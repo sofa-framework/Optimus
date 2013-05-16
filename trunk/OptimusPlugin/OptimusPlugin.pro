@@ -1,15 +1,14 @@
-######  PLUGIN TARGET
 load(sofa/pre)
-defineAsPlugin(Kalman)
+defineAsPlugin(OptimusPlugin)
 
-TARGET = Kalman
+README_FILE = OptimusPlugin.txt
 
-DEFINES += SOFA_BUILD_KALMANPLUGIN
+TARGET = OptimusPlugin 
 
-SOURCES = \
-initKalmanPlugin.cpp \
-#OptimParams.cpp \
-KalmanFilter.cpp
+DEFINES += SOFA_BUILD_OPTIMUSPLUGIN
+
+INCLUDEPATH += $$SOFA_INSTALL_INC_DIR/applications/plugins
+INCLUDEPATH += $$SOFA_INSTALL_INC_DIR/extlibs
 
 HEADERS = \
 initKalmanPlugin.h \
@@ -22,15 +21,11 @@ kfilter_impl.inl \
 KalmanFilter.h \
 KalmanFilter.inl
 
-README_FILE = KalmanFilter.txt
+SOURCES = \
+initKalmanPlugin.cpp \
+#OptimParams.cpp \
+KalmanFilter.cpp
 
-unix {
-LIBS +=
-}
-
-win32 {
-LIBS +=
-}
 
 unix : QMAKE_POST_LINK = cp $$SRC_DIR/$$README_FILE $$LIB_DESTDIR 
 win32 : QMAKE_POST_LINK = copy \"$$toWindowsPath($$SRC_DIR/$$README_FILE)\" \"$$LIB_DESTDIR\"
