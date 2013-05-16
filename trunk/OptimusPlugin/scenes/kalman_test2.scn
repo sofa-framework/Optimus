@@ -1,0 +1,23 @@
+<?xml version="1.0" ?>
+<Node name="root" gravity="0 -9.81 0" dt="0.01">
+    <RequiredPlugin name="Kalman Filter plugin" pluginName="Kalman" />
+
+    <VisualStyle displayFlags="showVisualModels hideBehaviorModels hideCollisionModels hideMappings hideForceFields" />
+
+    <Node name="Plane" >
+        <EulerImplicitSolver vdamping="0.1" />
+        <CGLinearSolver iterations="25" name="linear solver" tolerance="1.0e-9" threshold="1.0e-9"/>
+        <MechanicalObject name="DOFs" template="Rigid" position="0 0 0  0 0 0 1" />
+        <UniformMass name="mass" totalMass="1000" />
+        <ConstantForceField points="0" force="0 0 10000 0 0 0" />
+        <Node name="Visual" >
+            <OglModel name="plane" filename="GlobalHawk.obj" scale3d="0.025 0.025 0.025" />
+            <RigidMapping template="Rigid" name="rigidMapping" input="@../DOFs" output="@plane"/>
+        </Node>
+    </Node>
+
+    <Node name="Kalman"  >
+        <KalmanFilter input="@../Plane/DOFs.position"/>
+    </Node>
+
+</Node>

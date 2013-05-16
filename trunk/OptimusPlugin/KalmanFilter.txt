@@ -1,0 +1,7 @@
+Kalman Filter plugin
+
+Use as an engine (Kalman)
+
+Code partially based on: http://kalman.sourceforge.net (vincent.zalzal@gmail.com)
+
+
