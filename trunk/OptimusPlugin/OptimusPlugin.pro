@@ -19,12 +19,14 @@ ekfilter_impl.inl \
 kfilter.hpp \
 kfilter_impl.inl \
 KalmanFilter.h \
-KalmanFilter.inl
+KalmanFilter.inl \
+TestingParams.h
 
 SOURCES = \
 initOptimusPlugin.cpp \
 OptimParams.cpp \
-KalmanFilter.cpp
+KalmanFilter.cpp \
+TestingParams.cpp
 
 
 unix : QMAKE_POST_LINK = cp $$SRC_DIR/$$README_FILE $$LIB_DESTDIR 

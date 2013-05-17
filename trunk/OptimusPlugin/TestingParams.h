@@ -16,13 +16,22 @@
 * along with this library; if not, write to the Free Software Foundation,     *
 * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA.          *
 *******************************************************************************
-*                               SOFA :: Plugins                               *
+*                               SOFA :: Modules                               *
 *                                                                             *
 * Authors: The SOFA Team and external contributors (see Authors.txt)          *
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#include "initOptimusPlugin.h"
+#ifndef SOFA_TESTING_PARAMS_H
+#define SOFA_TESTING_PARAMS_H
+
+#include <sofa/component/component.h>
+#include <sofa/defaulttype/VecTypes.h>
+#include <sofa/defaulttype/RigidTypes.h>
+#include <sofa/defaulttype/defaulttype.h>
+#include <sofa/core/objectmodel/BaseObject.h>
+
+#include <string.h>
 
 namespace sofa
 {
@@ -30,60 +39,89 @@ namespace sofa
 namespace component
 {
 
-	//Here are just several convenient functions to help user to know what contains the plugin
+namespace misc
+{
 
-	extern "C" {
-                SOFA_OptimusPlugin_API void initExternalModule();
-                SOFA_OptimusPlugin_API const char* getModuleName();
-                SOFA_OptimusPlugin_API const char* getModuleVersion();
-                SOFA_OptimusPlugin_API const char* getModuleLicense();
-                SOFA_OptimusPlugin_API const char* getModuleDescription();
-                SOFA_OptimusPlugin_API const char* getModuleComponentList();
-	}
-	
-	void initExternalModule()
-	{
-		static bool first = true;
-		if (first)
-		{
-			first = false;
-		}
-	}
+template <class DataTypes>
+struct templateName
+{
+    std::string operator ()(void) { return("generic"); }
+};
 
-	const char* getModuleName()
-	{
-    return "Extended Kalman filter";
-	}
-
-	const char* getModuleVersion()
-	{
-        return "0.1";
-	}
-
-	const char* getModuleLicense()
-	{
-		return "LGPL";
-	}
+template<>
+struct templateName<double>
+{
+    std::string operator ()(void) { return("double"); }
+};
 
 
-	const char* getModuleDescription()
-	{
-        return "Bayesian Filtering is a probabilistic technique for data fusion. The technique combines a concise mathematical formulation of a system with observations of that system. Probabilities are used to represent the state of a system, and likelihood functions to represent their relationships";
-	}
-
-	const char* getModuleComponentList()
-	{
-    return "Filter_exception; ";
-	}
+template<>
+struct templateName<sofa::defaulttype::RigidCoord<3,double> >
+{
+    std::string operator ()(void) { return("Rigid3d"); }
+};
 
 
+template<>
+struct templateName<sofa::defaulttype::RigidCoord<2,double> >
+{
+    std::string operator ()(void) { return("Rigid2d"); }
+};
 
-} 
-
-} 
-
-SOFA_LINK_CLASS(KalmanFilter)
-SOFA_LINK_CLASS(OptimParams)
-SOFA_LINK_CLASS(TestingParams)
+template<>
+struct templateName<sofa::defaulttype::Vec3d>
+{
+    std::string operator ()(void) { return("Vec3d"); }
+};
 
 
+template<>
+struct templateName<sofa::defaulttype::Vec2d>
+{
+    std::string operator ()(void) { return("Vec2d"); }
+};
+
+
+template<>
+struct templateName<sofa::defaulttype::Vec1d>
+{
+    std::string operator ()(void) { return("Vec1d"); }
+};
+
+
+template <class DataTypes>
+class TestingParams: public sofa::core::objectmodel::BaseObject
+{
+public:
+    SOFA_CLASS(SOFA_TEMPLATE(TestingParams,DataTypes), BaseObject);
+
+    typedef sofa::core::objectmodel::BaseObject Inherit;
+
+    Data<DataTypes> initValue;
+
+    TestingParams() : Inherit()
+      , initValue( initData(&initValue, "initValue", "initValue"))
+    {
+    }
+
+    virtual std::string getTemplateName() const
+    {
+      return templateName(this);
+    }
+
+    static std::string templateName(const TestingParams<DataTypes>* = NULL)
+    {
+        std::string name = sofa::component::misc::templateName<DataTypes>()();
+        return(name);
+    }
+
+};
+
+
+}
+
+}
+
+}
+
+#endif

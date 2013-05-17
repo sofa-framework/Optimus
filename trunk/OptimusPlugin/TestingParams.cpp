@@ -16,13 +16,14 @@
 * along with this library; if not, write to the Free Software Foundation,     *
 * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA.          *
 *******************************************************************************
-*                               SOFA :: Plugins                               *
+*                               SOFA :: Modules                               *
 *                                                                             *
 * Authors: The SOFA Team and external contributors (see Authors.txt)          *
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#include "initOptimusPlugin.h"
+#include "TestingParams.h"
+#include <sofa/core/ObjectFactory.h>
 
 namespace sofa
 {
@@ -30,60 +31,47 @@ namespace sofa
 namespace component
 {
 
-	//Here are just several convenient functions to help user to know what contains the plugin
+namespace misc
+{
 
-	extern "C" {
-                SOFA_OptimusPlugin_API void initExternalModule();
-                SOFA_OptimusPlugin_API const char* getModuleName();
-                SOFA_OptimusPlugin_API const char* getModuleVersion();
-                SOFA_OptimusPlugin_API const char* getModuleLicense();
-                SOFA_OptimusPlugin_API const char* getModuleDescription();
-                SOFA_OptimusPlugin_API const char* getModuleComponentList();
-	}
-	
-	void initExternalModule()
-	{
-		static bool first = true;
-		if (first)
-		{
-			first = false;
-		}
-	}
+using namespace sofa::defaulttype;
 
-	const char* getModuleName()
-	{
-    return "Extended Kalman filter";
-	}
+SOFA_DECL_CLASS(TestingParams)
 
-	const char* getModuleVersion()
-	{
-        return "0.1";
-	}
+// Register in the Factory
+int TestingParamsClass = core::RegisterObject("Optimization Parameters")
+#ifndef SOFA_FLOAT
+        .add< TestingParams<Vec3d> >(true)
+        .add< TestingParams<Vec2d> >()
+        .add< TestingParams<Vec1d> >()
 
-	const char* getModuleLicense()
-	{
-		return "LGPL";
-	}
+        .add< TestingParams<RigidCoord<3, double> > >()
+        .add< TestingParams<RigidCoord<2, double> > >()
 
+        .add<TestingParams<double> >()
+#endif
+#ifndef SOFA_DOUBLE
 
-	const char* getModuleDescription()
-	{
-        return "Bayesian Filtering is a probabilistic technique for data fusion. The technique combines a concise mathematical formulation of a system with observations of that system. Probabilities are used to represent the state of a system, and likelihood functions to represent their relationships";
-	}
+#endif
+;
 
-	const char* getModuleComponentList()
-	{
-    return "Filter_exception; ";
-	}
+#ifndef SOFA_FLOAT
+template class  TestingParams<Vec3d>;
+template class  TestingParams<Vec2d>;
+template class  TestingParams<Vec1d>;
+
+template class  TestingParams<RigidCoord<3, double> >;
+template class  TestingParams<RigidCoord<2, double> >;
+
+template class TestingParams<double>;
+#endif
+#ifndef SOFA_DOUBLE
 
 
+#endif
 
-} 
+} // namespace misc
 
-} 
+} // namespace simulation
 
-SOFA_LINK_CLASS(KalmanFilter)
-SOFA_LINK_CLASS(OptimParams)
-SOFA_LINK_CLASS(TestingParams)
-
-
+} // namespace sofa

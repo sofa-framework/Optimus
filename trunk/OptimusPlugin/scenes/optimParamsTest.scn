@@ -1,11 +1,16 @@
 <?xml version="1.0" ?>
 <Node name="root" gravity="0 -9.81 0" dt="0.01">
     <RequiredPlugin name="Optimization plugin" pluginName="OptimusPlugin" />
+    <RequiredPlugin pluginName="haystackPlugin"/>
 
     <VisualStyle displayFlags="showVisualModels hideBehaviorModels hideCollisionModels hideMappings hideForceFields" />
-    <OptimParams name="X" template="Vec3d" initValue="0 0 0" />
+<!--     <OptimParams name="X" template="Vec3d" initValue="0 0 0" /> -->
     <!-- <OptimParams name="M" template="double" initValue="1.0" /> -->
-
+    
+    	<TestingParams name="rigid3d" template="Rigid3d" initValue="1.2 2.3 3.4  0 0 0 1"/>	
+	<TestingParams name="vec3types" template="Vec3d" initValue="3.1 2.1 3.3"/>	
+	<TestingParams name="double" template="double" initValue="3.1415"/>
+	
     <Node name="Ball" >
         <EulerImplicitSolver vdamping="0.0" />
         <CGLinearSolver iterations="25" name="linear solver" tolerance="1.0e-9" threshold="1.0e-9"/>
