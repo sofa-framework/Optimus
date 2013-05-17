@@ -1,0 +1,23 @@
+<?xml version="1.0" ?>
+<Node name="root" gravity="0 -9.81 0" dt="0.01">
+    <RequiredPlugin name="Optimization plugin" pluginName="OptimusPlugin" />
+
+    <VisualStyle displayFlags="showVisualModels hideBehaviorModels hideCollisionModels hideMappings hideForceFields" />
+    <OptimParams name="X" template="Vec3d" initValue="0 0 0" />
+    <!-- <OptimParams name="M" template="double" initValue="1.0" /> -->
+
+    <Node name="Ball" >
+        <EulerImplicitSolver vdamping="0.0" />
+        <CGLinearSolver iterations="25" name="linear solver" tolerance="1.0e-9" threshold="1.0e-9"/>
+        <MechanicalObject name="DOFs" template="Vec3d" position="@../X.val"/>
+        <Node name="Vec3toRigid" >
+            <Vertex2Frame name="vertex2frame" template="Rigid" position="@../DOFs.position" />
+            <MechanicalObject name="newDOFs" template="Rigid" position="@vertex2frame.frames" />/>
+            <UniformMass name="mass" totalMass="0.1" />
+            <Node name="Visual" >
+                <OglModel name="ball" filename="ball.obj" scale3d="0.01 0.01 0.01" />
+                <RigidMapping template="Rigid" name="rigidMapping" input="@../newDOFs" output="@ball"/>
+            </Node>
+        </Node>
+    </Node>
+</Node>
