@@ -39,6 +39,53 @@ namespace container
 {
 
 template <class DataTypes>
+struct templateName
+{
+    std::string operator ()(void) { return("generic"); }
+};
+
+template<>
+struct templateName<double>
+{
+    std::string operator ()(void) { return("double"); }
+};
+
+
+template<>
+struct templateName<sofa::defaulttype::RigidCoord<3,double> >
+{
+    std::string operator ()(void) { return("Rigid3d"); }
+};
+
+
+template<>
+struct templateName<sofa::defaulttype::RigidCoord<2,double> >
+{
+    std::string operator ()(void) { return("Rigid2d"); }
+};
+
+template<>
+struct templateName<sofa::defaulttype::Vec3d>
+{
+    std::string operator ()(void) { return("Vec3d"); }
+};
+
+
+template<>
+struct templateName<sofa::defaulttype::Vec2d>
+{
+    std::string operator ()(void) { return("Vec2d"); }
+};
+
+
+template<>
+struct templateName<sofa::defaulttype::Vec1d>
+{
+    std::string operator ()(void) { return("Vec1d"); }
+};
+
+//////////////////////////////////////////////////////////////////////////
+template <class DataTypes>
 class OptimParams : public sofa::core::objectmodel::BaseObject
 {
 public:
@@ -47,16 +94,13 @@ public:
     ~OptimParams();
     void init();
     void reinit();
+    static std::string templateName(const OptimParams<DataTypes>* = NULL) { std::string name = sofa::component::container::templateName<DataTypes>()(); return(name); }
 
 protected:
-    typedef typename DataTypes::Real        Real;
-    typedef typename DataTypes::Coord       Coord;
-    typedef typename DataTypes::Deriv       Deriv;
-
-    Data< Coord > m_val;
-    Data< Coord > m_initVal;
-    Data< Coord > m_min;
-    Data< Coord > m_max;
+    Data< DataTypes > m_val;
+    Data< DataTypes > m_initVal;
+    Data< DataTypes > m_min;
+    Data< DataTypes > m_max;
 };
 
 } // container

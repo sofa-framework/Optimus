@@ -3,22 +3,19 @@
     <RequiredPlugin name="Optimization plugin" pluginName="OptimusPlugin" />
     <RequiredPlugin pluginName="haystackPlugin"/>
 
-    <VisualStyle displayFlags="showVisualModels hideBehaviorModels hideCollisionModels hideMappings hideForceFields" />
-<!--     <OptimParams name="X" template="Vec3d" initValue="0 0 0" /> -->
-    <!-- <OptimParams name="M" template="double" initValue="1.0" /> -->
+    <VisualStyle displayFlags="showVisualModels showBehaviorModels hideCollisionModels hideMappings hideForceFields" />
+    <OptimParams name="X" template="Vec3d"  initValue="0 0 0" />
+    <OptimParams name="V" template="Vec3d"  initValue="0 0.5 0" />
+    <OptimParams name="M" template="double" initValue="0.1" />
     
-    	<TestingParams name="rigid3d" template="Rigid3d" initValue="1.2 2.3 3.4  0 0 0 1"/>	
-	<TestingParams name="vec3types" template="Vec3d" initValue="3.1 2.1 3.3"/>	
-	<TestingParams name="double" template="double" initValue="3.1415"/>
-	
     <Node name="Ball" >
         <EulerImplicitSolver vdamping="0.0" />
         <CGLinearSolver iterations="25" name="linear solver" tolerance="1.0e-9" threshold="1.0e-9"/>
-        <MechanicalObject name="DOFs" template="Vec3d" position="@../X.val"/>
+        <MechanicalObject name="DOFs" template="Vec3d" position="@../X.initValue" reset_velocity="@../V.initValue" />
         <Node name="Vec3toRigid" >
-            <Vertex2Frame name="vertex2frame" template="Rigid" position="@../DOFs.position" />
-            <MechanicalObject name="newDOFs" template="Rigid" position="@vertex2frame.frames" />/>
-            <UniformMass name="mass" totalMass="0.1" />
+            <Vertex2Frame name="vertex2frame" template="Rigid" position="@../DOFs.position" normals="0 0 1" />
+            <MechanicalObject name="newDOFs" template="Rigid" position="@vertex2frame.frames" />
+            <UniformMass name="mass" totalMass="@../../M.initValue"/>
             <Node name="Visual" >
                 <OglModel name="ball" filename="ball.obj" scale3d="0.01 0.01 0.01" />
                 <RigidMapping template="Rigid" name="rigidMapping" input="@../newDOFs" output="@ball"/>
