@@ -26,8 +26,6 @@
 //#define SOFA_COMPONENT_CONTAINER_OPTIMPARAMS_CPP
 
 #include <sofa/core/ObjectFactory.h>
-#include <sofa/defaulttype/VecTypes.h>
-#include <sofa/defaulttype/RigidTypes.h>
 #include <OptimParams.inl>
 
 namespace sofa
@@ -46,14 +44,16 @@ SOFA_DECL_CLASS(OptimParams)
 // Register in the Factory
 int OptimParamsClass = core::RegisterObject("Optimization Parameters")
 #ifndef SOFA_FLOAT
-        .add< OptimParams<Vec3dTypes> >(true) // default template
+        //.add< OptimParams<double> >(true) // default template
+        .add< OptimParams<Vec3dTypes> >(true)
         .add< OptimParams<Vec2dTypes> >()
         .add< OptimParams<Vec1dTypes> >()
         .add< OptimParams<Rigid3dTypes> >()
         .add< OptimParams<Rigid2dTypes> >()
 #endif
 #ifndef SOFA_DOUBLE
-        .add< OptimParams<Vec3fTypes> >(true) // default template
+        //.add< OptimParams<float> >(true) // default template
+        .add< OptimParams<Vec3fTypes> >()
         .add< OptimParams<Vec2fTypes> >()
         .add< OptimParams<Vec1fTypes> >()
         .add< OptimParams<Rigid3fTypes> >()
@@ -62,23 +62,21 @@ int OptimParamsClass = core::RegisterObject("Optimization Parameters")
 ;
 
 #ifndef SOFA_FLOAT
-template class SOFA_KalmanPlugin_API OptimParams<Vec3dTypes>;
-template class SOFA_KalmanPlugin_API OptimParams<Vec2dTypes>;
-template class SOFA_KalmanPlugin_API OptimParams<Vec1dTypes>;
-template class SOFA_KalmanPlugin_API OptimParams<Rigid3dTypes>;
-template class SOFA_KalmanPlugin_API OptimParams<Rigid2dTypes>;
+template class SOFA_OptimusPlugin_API OptimParams<Vec3dTypes>;
+template class SOFA_OptimusPlugin_API OptimParams<Vec2dTypes>;
+template class SOFA_OptimusPlugin_API OptimParams<Vec1dTypes>;
+template class SOFA_OptimusPlugin_API OptimParams<Rigid3dTypes>;
+template class SOFA_OptimusPlugin_API OptimParams<Rigid2dTypes>;
 #endif
 #ifndef SOFA_DOUBLE
-template class SOFA_KalmanPlugin_API OptimParams<Vec3fTypes>;
-template class SOFA_KalmanPlugin_API OptimParams<Vec2fTypes>;
-template class SOFA_KalmanPlugin_API OptimParams<Vec1fTypes>;
-template class SOFA_KalmanPlugin_API OptimParams<Rigid3fTypes>;
-template class SOFA_KalmanPlugin_API OptimParams<Rigid2fTypes>;
+template class SOFA_OptimusPlugin_API OptimParams<Vec3fTypes>;
+template class SOFA_OptimusPlugin_API OptimParams<Vec2fTypes>;
+template class SOFA_OptimusPlugin_API OptimParams<Vec1fTypes>;
+template class SOFA_OptimusPlugin_API OptimParams<Rigid3fTypes>;
+template class SOFA_OptimusPlugin_API OptimParams<Rigid2fTypes>;
 #endif
 
 } // namespace container
-
 } // namespace component
-
 } // namespace sofa
 

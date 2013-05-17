@@ -25,13 +25,10 @@
 #include <OptimParams.h>
 
 
-
 namespace sofa
 {
-
 namespace component
 {
-
 namespace container
 {
 
@@ -39,7 +36,7 @@ template <class DataTypes>
 OptimParams<DataTypes>::OptimParams()
     : m_val( initData(&m_val, "value", "parameter value") )
     , m_initVal( initData(&m_initVal, "initValue", "initial parameter value") )
-    , m_min( initData(&m_max, "min", "lower bound for parameter") )
+    , m_min( initData(&m_min, "min", "lower bound for parameter") )
     , m_max( initData(&m_max, "max", "higher bound for parameter") )
 {
 }
@@ -55,4 +52,13 @@ void OptimParams<DataTypes>::init()
     // DataTypes::set(x[i], topo->getPX(i), topo->getPY(i), topo->getPZ(i));
 }
 
+template <class DataTypes>
+void OptimParams<DataTypes>::reinit()
+{
+    init();
 }
+
+} // container
+} // component
+} // sofa
+

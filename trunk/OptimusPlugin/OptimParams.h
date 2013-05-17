@@ -25,10 +25,11 @@
 #ifndef OPTIMPARAMS_H_
 #define OPTIMPARAMS_H_
 
+#include <initOptimusPlugin.h>
 #include <sofa/component/component.h>
-//#include <sofa/defaulttype/BaseVector.h>
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/RigidTypes.h>
+#include <sofa/defaulttype/defaulttype.h>
 
 namespace sofa
 {
@@ -41,8 +42,7 @@ template <class DataTypes>
 class OptimParams : public sofa::core::objectmodel::BaseObject
 {
 public:
-    SOFA_CLASS(OptimParams,sofa::core::objectmodel::BaseObject);
-
+    SOFA_CLASS(SOFA_TEMPLATE(OptimParams, DataTypes), sofa::core::objectmodel::BaseObject);
     OptimParams();
     ~OptimParams();
     void init();
@@ -59,10 +59,10 @@ protected:
     Data< Coord > m_max;
 };
 
-}
-
-}
-
-}
+} // container
+} // component
+} // sofa
 
 #endif /*OPTIMPARAMS_H_*/
+
+
