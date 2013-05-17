@@ -11,9 +11,9 @@ INCLUDEPATH += $$SOFA_INSTALL_INC_DIR/applications/plugins
 INCLUDEPATH += $$SOFA_INSTALL_INC_DIR/extlibs
 
 HEADERS = \
-initKalmanPlugin.h \
-#OptimParams.h \
-#OptimParams.inl \
+initOptimusPlugin.h \
+OptimParams.h \
+OptimParams.inl \
 ekfilter.hpp \
 ekfilter_impl.inl \
 kfilter.hpp \
@@ -22,8 +22,8 @@ KalmanFilter.h \
 KalmanFilter.inl
 
 SOURCES = \
-initKalmanPlugin.cpp \
-#OptimParams.cpp \
+initOptimusPlugin.cpp \
+OptimParams.cpp \
 KalmanFilter.cpp
 
 
