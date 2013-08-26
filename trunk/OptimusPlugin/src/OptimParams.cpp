@@ -22,10 +22,11 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#define SOFA_COMPONENT_ENGINE_KALMANFILTER_CPP
-#include <KalmanFilter.inl>
-#include <sofa/defaulttype/defaulttype.h>
+
+//#define SOFA_COMPONENT_CONTAINER_OPTIMPARAMS_CPP
+
 #include <sofa/core/ObjectFactory.h>
+#include "OptimParams.inl"
 
 namespace sofa
 {
@@ -33,30 +34,54 @@ namespace sofa
 namespace component
 {
 
-namespace engine
+namespace container
 {
 
-SOFA_DECL_CLASS(KalmanFilter)
+using namespace defaulttype;
 
-int KalmanFilterClass = core::RegisterObject("Apply an Extended Kalman Filter to a data set")
+SOFA_DECL_CLASS(OptimParams)
+
+// Register in the Factory
+int OptimParamsClass = core::RegisterObject("Optimization Parameters")
 #ifndef SOFA_FLOAT
-.add< KalmanFilter<double> >(true) // default template
-#endif //SOFA_FLOAT
+        .add< OptimParams<double> >()
+        .add< OptimParams<Vec3d> >()
+        .add< OptimParams<Vec2d> >()
+        .add< OptimParams<Vec1d> >() // default template
+        .add< OptimParams<RigidCoord<3,double> > >()
+        .add< OptimParams<RigidCoord<2,double> > >()
+#endif
 #ifndef SOFA_DOUBLE
-//.add< KalmanFilter<float> >(true)
-#endif //SOFA_DOUBLE
+        .add< OptimParams<float> >(true) // default template
+        .add< OptimParams<Vec3f> >()
+        .add< OptimParams<Vec2f> >()
+        .add< OptimParams<Vec1f> >() // default template
+        .add< OptimParams<RigidCoord<3,float> > >()
+        .add< OptimParams<RigidCoord<2,float> > >()
+#endif
 ;
 
 #ifndef SOFA_FLOAT
-template class SOFA_KalmanPlugin_API KalmanFilter<double>;
-#endif //SOFA_FLOAT
+template class SOFA_OptimusPlugin_API OptimParams<double>;
+template class SOFA_OptimusPlugin_API OptimParams<Vec3d>;
+template class SOFA_OptimusPlugin_API OptimParams<Vec2d>;
+template class SOFA_OptimusPlugin_API OptimParams<Vec1d>;
+template class SOFA_OptimusPlugin_API OptimParams<RigidCoord<3,double> >;
+template class SOFA_OptimusPlugin_API OptimParams<RigidCoord<2,double> >;
+#endif
 #ifndef SOFA_DOUBLE
-//template class SOFA_KalmanPlugin_API KalmanFilter<float>;
-#endif //SOFA_DOUBLE
+template class SOFA_OptimusPlugin_API OptimParams<float>;
+template class SOFA_OptimusPlugin_API OptimParams<Vec3f>;
+template class SOFA_OptimusPlugin_API OptimParams<Vec2f>;
+template class SOFA_OptimusPlugin_API OptimParams<Vec1f>;
+template class SOFA_OptimusPlugin_API OptimParams<RigidCoord<3,float> >;
+template class SOFA_OptimusPlugin_API OptimParams<RigidCoord<2,float> >;
+#endif
 
-} // namespace engine
-
+} // namespace container
 } // namespace component
-
 } // namespace sofa
+
+
+
 

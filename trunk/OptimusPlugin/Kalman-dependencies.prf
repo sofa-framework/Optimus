@@ -1,4 +1,0 @@
-includeOnce($$_FILE_) {
-	declare(Kalman, applications-dev/plugins/Kalman, sofaguiqt)
-	enable(Kalman)
-}

@@ -25,7 +25,7 @@
 #ifndef SOFA_COMPONENT_ENGINE_KALMANFILTER_INL
 #define SOFA_COMPONENT_ENGINE_KALMANFILTER_INL
 
-#include <KalmanFilter.h>
+#include "KalmanFilter.h"
 
 // --------------------------- Example of Extended Kalman filter ------------------------//
 /*

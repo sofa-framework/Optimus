@@ -1,0 +1,5 @@
+includeOnce($$_FILE_) {
+        declare(Optimus, applications/plugins/OptimusPlugin/Optimus.pro, sofa_base_linear_solver)
+        enable(Optimus)
+}
+

@@ -16,26 +16,49 @@
 * along with this library; if not, write to the Free Software Foundation,     *
 * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA.          *
 *******************************************************************************
-*                               SOFA :: Plugins                               *
+*                               SOFA :: Modules                               *
 *                                                                             *
 * Authors: The SOFA Team and external contributors (see Authors.txt)          *
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef INITKalmanPlugin_H
-#define INITKalmanPlugin_H
+#include "OptimParams.h"
 
 
-#include <sofa/helper/system/config.h>
+namespace sofa
+{
+namespace component
+{
+namespace container
+{
 
-#ifdef SOFA_BUILD_BAYESFILTERPLUGIN
-#define SOFA_KalmanPlugin_API SOFA_EXPORT_DYNAMIC_LIBRARY
-#else
-#define SOFA_KalmanPlugin_API  SOFA_IMPORT_DYNAMIC_LIBRARY
-#endif
+template <class DataTypes>
+OptimParams<DataTypes>::OptimParams()
+    : m_val( initData(&m_val, "value", "parameter value") )
+    , m_initVal( initData(&m_initVal, "initValue", "initial parameter value") )
+    , m_min( initData(&m_min, "min", "lower bound for parameter") )
+    , m_max( initData(&m_max, "max", "higher bound for parameter") )
+{
+}
 
-/** \mainpage
-  This is a Bayesian Filtering plugin
-  */
+template <class DataTypes>
+OptimParams<DataTypes>::~OptimParams()
+{
+}
 
-#endif // INITKalmanPlugin_H
+template <class DataTypes>
+void OptimParams<DataTypes>::init()
+{
+    // DataTypes::set(x[i], topo->getPX(i), topo->getPY(i), topo->getPZ(i));
+}
+
+template <class DataTypes>
+void OptimParams<DataTypes>::reinit()
+{
+    init();
+}
+
+} // container
+} // component
+} // sofa
+

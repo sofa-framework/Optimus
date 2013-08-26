@@ -22,91 +22,41 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef OPTIMPARAMS_H_
-#define OPTIMPARAMS_H_
-
-#include <initOptimusPlugin.h>
-#include <sofa/component/component.h>
-#include <sofa/defaulttype/VecTypes.h>
-#include <sofa/defaulttype/RigidTypes.h>
+#define SOFA_COMPONENT_ENGINE_KALMANFILTER_CPP
+#include "KalmanFilter.inl"
 #include <sofa/defaulttype/defaulttype.h>
+#include <sofa/core/ObjectFactory.h>
 
 namespace sofa
 {
+
 namespace component
 {
-namespace container
+
+namespace engine
 {
 
-template <class DataTypes>
-struct templateName
-{
-    std::string operator ()(void) { return("generic"); }
-};
+SOFA_DECL_CLASS(KalmanFilter)
 
-template<>
-struct templateName<double>
-{
-    std::string operator ()(void) { return("double"); }
-};
+int KalmanFilterClass = core::RegisterObject("Apply an Extended Kalman Filter to a data set")
+#ifndef SOFA_FLOAT
+.add< KalmanFilter<double> >(true) // default template
+#endif //SOFA_FLOAT
+#ifndef SOFA_DOUBLE
+//.add< KalmanFilter<float> >(true)
+#endif //SOFA_DOUBLE
+;
 
+#ifndef SOFA_FLOAT
+template class SOFA_KalmanPlugin_API KalmanFilter<double>;
+#endif //SOFA_FLOAT
+#ifndef SOFA_DOUBLE
+//template class SOFA_KalmanPlugin_API KalmanFilter<float>;
+#endif //SOFA_DOUBLE
 
-template<>
-struct templateName<sofa::defaulttype::RigidCoord<3,double> >
-{
-    std::string operator ()(void) { return("Rigid3d"); }
-};
+} // namespace engine
 
+} // namespace component
 
-template<>
-struct templateName<sofa::defaulttype::RigidCoord<2,double> >
-{
-    std::string operator ()(void) { return("Rigid2d"); }
-};
-
-template<>
-struct templateName<sofa::defaulttype::Vec3d>
-{
-    std::string operator ()(void) { return("Vec3d"); }
-};
-
-
-template<>
-struct templateName<sofa::defaulttype::Vec2d>
-{
-    std::string operator ()(void) { return("Vec2d"); }
-};
-
-
-template<>
-struct templateName<sofa::defaulttype::Vec1d>
-{
-    std::string operator ()(void) { return("Vec1d"); }
-};
-
-//////////////////////////////////////////////////////////////////////////
-template <class DataTypes>
-class OptimParams : public sofa::core::objectmodel::BaseObject
-{
-public:
-    SOFA_CLASS(SOFA_TEMPLATE(OptimParams, DataTypes), sofa::core::objectmodel::BaseObject);
-    OptimParams();
-    ~OptimParams();
-    void init();
-    void reinit();
-    static std::string templateName(const OptimParams<DataTypes>* = NULL) { std::string name = sofa::component::container::templateName<DataTypes>()(); return(name); }
-
-protected:
-    Data< DataTypes > m_val;
-    Data< DataTypes > m_initVal;
-    Data< DataTypes > m_min;
-    Data< DataTypes > m_max;
-};
-
-} // container
-} // component
-} // sofa
-
-#endif /*OPTIMPARAMS_H_*/
-
+} // namespace sofa
 

@@ -1,0 +1,13 @@
+
+************************************
+*       AUTHORS      *
+************************************
+
+
+
+AUTHOR :
+ - Stephane Cotin, Igor Peterlik, Hugo Talbot
+
+
+LICENCE :
+ - LGPL

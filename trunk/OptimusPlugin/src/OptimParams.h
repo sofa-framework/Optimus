@@ -22,66 +22,91 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
+#ifndef OPTIMPARAMS_H_
+#define OPTIMPARAMS_H_
 
-//#define SOFA_COMPONENT_CONTAINER_OPTIMPARAMS_CPP
-
-#include <sofa/core/ObjectFactory.h>
-#include <OptimParams.inl>
+#include "initOptimusPlugin.h"
+#include <sofa/component/component.h>
+#include <sofa/defaulttype/VecTypes.h>
+#include <sofa/defaulttype/RigidTypes.h>
+#include <sofa/defaulttype/defaulttype.h>
 
 namespace sofa
 {
-
 namespace component
 {
-
 namespace container
 {
 
-using namespace defaulttype;
+template <class DataTypes>
+struct templateName
+{
+    std::string operator ()(void) { return("generic"); }
+};
 
-SOFA_DECL_CLASS(OptimParams)
-
-// Register in the Factory
-int OptimParamsClass = core::RegisterObject("Optimization Parameters")
-#ifndef SOFA_FLOAT
-        .add< OptimParams<double> >()
-        .add< OptimParams<Vec3d> >()
-        .add< OptimParams<Vec2d> >()
-        .add< OptimParams<Vec1d> >() // default template
-        .add< OptimParams<RigidCoord<3,double> > >()
-        .add< OptimParams<RigidCoord<2,double> > >()
-#endif
-#ifndef SOFA_DOUBLE
-        .add< OptimParams<float> >(true) // default template
-        .add< OptimParams<Vec3f> >()
-        .add< OptimParams<Vec2f> >()
-        .add< OptimParams<Vec1f> >() // default template
-        .add< OptimParams<RigidCoord<3,float> > >()
-        .add< OptimParams<RigidCoord<2,float> > >()
-#endif
-;
-
-#ifndef SOFA_FLOAT
-template class SOFA_OptimusPlugin_API OptimParams<double>;
-template class SOFA_OptimusPlugin_API OptimParams<Vec3d>;
-template class SOFA_OptimusPlugin_API OptimParams<Vec2d>;
-template class SOFA_OptimusPlugin_API OptimParams<Vec1d>;
-template class SOFA_OptimusPlugin_API OptimParams<RigidCoord<3,double> >;
-template class SOFA_OptimusPlugin_API OptimParams<RigidCoord<2,double> >;
-#endif
-#ifndef SOFA_DOUBLE
-template class SOFA_OptimusPlugin_API OptimParams<float>;
-template class SOFA_OptimusPlugin_API OptimParams<Vec3f>;
-template class SOFA_OptimusPlugin_API OptimParams<Vec2f>;
-template class SOFA_OptimusPlugin_API OptimParams<Vec1f>;
-template class SOFA_OptimusPlugin_API OptimParams<RigidCoord<3,float> >;
-template class SOFA_OptimusPlugin_API OptimParams<RigidCoord<2,float> >;
-#endif
-
-} // namespace container
-} // namespace component
-} // namespace sofa
+template<>
+struct templateName<double>
+{
+    std::string operator ()(void) { return("double"); }
+};
 
 
+template<>
+struct templateName<sofa::defaulttype::RigidCoord<3,double> >
+{
+    std::string operator ()(void) { return("Rigid3d"); }
+};
+
+
+template<>
+struct templateName<sofa::defaulttype::RigidCoord<2,double> >
+{
+    std::string operator ()(void) { return("Rigid2d"); }
+};
+
+template<>
+struct templateName<sofa::defaulttype::Vec3d>
+{
+    std::string operator ()(void) { return("Vec3d"); }
+};
+
+
+template<>
+struct templateName<sofa::defaulttype::Vec2d>
+{
+    std::string operator ()(void) { return("Vec2d"); }
+};
+
+
+template<>
+struct templateName<sofa::defaulttype::Vec1d>
+{
+    std::string operator ()(void) { return("Vec1d"); }
+};
+
+//////////////////////////////////////////////////////////////////////////
+template <class DataTypes>
+class OptimParams : public sofa::core::objectmodel::BaseObject
+{
+public:
+    SOFA_CLASS(SOFA_TEMPLATE(OptimParams, DataTypes), sofa::core::objectmodel::BaseObject);
+    OptimParams();
+    ~OptimParams();
+    void init();
+    void reinit();
+    static std::string templateName(const OptimParams<DataTypes>* = NULL) { std::string name = sofa::component::container::templateName<DataTypes>()(); return(name); }
+
+protected:
+    Data< DataTypes > m_val;
+    Data< DataTypes > m_initVal;
+    Data< DataTypes > m_min;
+    Data< DataTypes > m_max;
+};
+
+} // container
+} // component
+} // sofa
+
+#endif /*OPTIMPARAMS_H_*/
 
 
