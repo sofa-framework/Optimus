@@ -13,7 +13,7 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
-#include "initKalmanPlugin.h"
+#include "initOptimusPlugin.h"
 #include "ekfilter.hpp"
 
 namespace sofa
@@ -29,7 +29,7 @@ namespace engine
  * This engine applies a Extended Kalman Filter to a data set
  */
 template <class DataTypes>
-class SOFA_KalmanPlugin_API KalmanFilter : public core::DataEngine, public Kalman::EKFilter<DataTypes,false,true>
+class SOFA_OptimusPlugin_API KalmanFilter : public core::DataEngine, public Kalman::EKFilter<DataTypes,false,true>
 {
 public:
     SOFA_CLASS(SOFA_TEMPLATE(KalmanFilter, DataTypes), core::DataEngine);

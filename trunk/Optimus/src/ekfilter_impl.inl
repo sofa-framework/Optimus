@@ -27,7 +27,7 @@
 #ifndef EKFILTER_IMPL_INL
 #define EKFILTER_IMPL_INL
 
-#include "initKalmanPlugin.h"
+#include "initOptimusPlugin.h"
 #include "ekfilter.hpp"
 
 //! \file

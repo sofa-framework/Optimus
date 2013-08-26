@@ -85,5 +85,4 @@ namespace component
 SOFA_LINK_CLASS(KalmanFilter)
 SOFA_LINK_CLASS(OptimParams)
 SOFA_LINK_CLASS(TestingParams)
-
-
+SOFA_LINK_CLASS(BubblePackingForceField)

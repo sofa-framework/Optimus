@@ -48,10 +48,10 @@ int KalmanFilterClass = core::RegisterObject("Apply an Extended Kalman Filter to
 ;
 
 #ifndef SOFA_FLOAT
-template class SOFA_KalmanPlugin_API KalmanFilter<double>;
+template class SOFA_OptimusPlugin_API KalmanFilter<double>;
 #endif //SOFA_FLOAT
 #ifndef SOFA_DOUBLE
-//template class SOFA_KalmanPlugin_API KalmanFilter<float>;
+//template class SOFA_OptimusPlugin_API KalmanFilter<float>;
 #endif //SOFA_DOUBLE
 
 } // namespace engine
