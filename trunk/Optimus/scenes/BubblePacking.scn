@@ -1,8 +1,8 @@
 <Node name="root" dt="0.3" gravity="0 0 0">
 
 	<RequiredPlugin pluginName="libOptimus.so" />
-	<VisualStyle displayFlags="showForceFields" />
-	<Object type="LightManager" shadows="0" ambient="0.9 0.9 0.9 0.9"/>
+	<VisualStyle displayFlags="showForceFields showWireframe" />
+	<Object type="LightManager" shadows="0" ambient="0.2 0.2 0.2 0.9"/>
 
 	<Node name="Computation"  dt="0.3" gravity="0 0 0">
 		<EulerImplicitSolver name="Euler Implicit" rayleighStiffness="0" rayleighMass="0.5"/>
@@ -19,7 +19,7 @@
 
 	<Node name="OpenGL">
 		<MeshVTKLoader name="loader" filename="myCube.vtk" />
-		<OglModel src="@loader"  material="Default Diffuse 1 1 1 0.2 0.2 Ambient 1 1 1 1 1 Specular 0 0.5 0.5 0.5 1 Emissive 0 0.5 0.5 0.5 1 Shininess 0 45 No texture linked to the material No bump texture linked to the material "/>
+		<OglModel color="red"src="@loader"  material="Default Diffuse 1 1 1 0.2 0.2 Ambient 1 1 1 1 1 Specular 0 0.5 0.5 0.5 1 Emissive 0 0.5 0.5 0.5 1 Shininess 0 45 No texture linked to the material No bump texture linked to the material "/>
 <!--  color="red"  -->
 	</Node>
 

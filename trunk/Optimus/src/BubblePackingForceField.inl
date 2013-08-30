@@ -266,6 +266,7 @@ void BubblePackingForceField<DataTypes>::draw(const core::visual::VisualParams* 
     points.resize(nbPassive);
     for(unsigned int i=0; i<nbPassive; i++)
         points[i] = position[i];
+    glEnable(GL_LIGHTING);
 
     vparams->drawTool()->drawSpheres(points, (float)(m_radiusPassive.getValue()), Vec<4,float>(1.0f,1.0f,0.35f,0.05f));
 
@@ -277,7 +278,6 @@ void BubblePackingForceField<DataTypes>::draw(const core::visual::VisualParams* 
 
     vparams->drawTool()->drawSpheres(points, (float)(m_radiusActive.getValue()), Vec<4,float>(0.5f,1.0f,0.35f,1.0f));
 
-    glEnable(GL_LIGHTING);
 }
 
 
