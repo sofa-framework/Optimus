@@ -11,7 +11,7 @@
 		<MeshObjLoader name="mass" filename="mass.obj" />
 		<MechanicalObject name="Particles" template="Vec3d" src="@loader"/>
 
-		<BubblePackingForceField name="BubblePacking"  nbPassive="2035" nbActive="4" l01="2.7" k01="-27" l02="0.7" k02="-20" radiusActive="1.35" radiusPassive="0" damping="0"/>
+		<BubblePackingForceField name="BubblePacking"  nbPassive="2035" nbActive="11" l01="2.7" k01="-27" l02="0.7" k02="-20" radiusActive="1.35" radiusPassive="0.3" damping="0"/>
 		<!-- nbPassive="2035" nbActive="4" l01="2.7" k01="-27" l02="1.215" k02="-60" radiusActive="1.35" radiusPassive="0.16875" damping="150"  -->
       		<MeshMatrixMass template="Vec3d" name="Mass" inputMassVector="@mass.position" printMass="0"/>
 	</Node>
