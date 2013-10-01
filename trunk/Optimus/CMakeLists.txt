@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
 
-project("SofaOptimus")
-
 include(${SOFA_CMAKE_DIR}/preProject.cmake)
 
 set(HEADER_FILES
@@ -31,14 +29,13 @@ set(SOURCE_FILES
 
 	)
 
+set(README_FILES 
+	Optimus.txt 
+)	
 
+add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${MOC_FILES} ${SOURCE_FILES} ${README_FILES})
 
-set(README_FILE "Optimus.txt" )	
-
-
-set(COMPILER_DEFINES "SOFA_BUILD_OPTIMUS")
-set(LINKER_DEPENDENCIES SofaBaseLinearSolver )
-
-
+AddCompilerDefinitions("SOFA_BUILD_OPTIMUS")
+AddLinkerDependencies( SofaBaseLinearSolver )
 
 include(${SOFA_CMAKE_DIR}/postProject.cmake)
