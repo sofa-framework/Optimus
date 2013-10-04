@@ -1,0 +1,25 @@
+/*! \file example_models.dox
+    \brief Example Models.
+*/
+
+/*!
+\page example_models Example Models
+
+If you want to write an interface to your model, please refer to the following pages:
+<ul>
+<li> \ref plugging_model "Plugging in Verdandi: Model in C++", or </li>
+<li> \ref plugging_python_model "Plugging in Verdandi: Model in Python". </li>
+</ul>
+
+In addition, several <b>example models</b> have been implemented in %Verdandi. Follow the links below for a description of the available <b>models</b>:
+
+<ul>
+<li> \ref quadratic_model "Quadratic model", which is also \link QuadraticModel::QuadraticModel implemented in Python\endlink; </li>
+<li> \ref shallow_water_model "Shallow-water model"; </li>
+<li> \ref clamped_bar_model "Clamped bar"; </li>
+<li> \ref lorenz_model "Lorenz model". </li>
+</ul>
+
+For details about how to apply <b>data assimilation methods</b> on these models see \ref example_programs.
+
+*/

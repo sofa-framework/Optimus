@@ -1,0 +1,34 @@
+/*! \file compilation.dox
+    \brief Compilation.
+*/
+
+/*!
+\page compilation Compilation
+
+<a href="http://scons.org/">SCons</a> is a software construction tool, used for building every example of Verdandi. It uses Python scripts as configuration files.
+
+\section scons_main_strenghts SCons Main Strengths
+
+For compilation, Verdandi uses SCons (<a href="http://www.scons.org/">http://www.scons.org/</a>). It relies on SConstruct files (similar to the makefiles) that are written in Python.
+
+
+\section scons_basic_usage Basic Usage
+
+
+In order to start with Verdandi, it is strongly recommended to install SCons. So make sure that the executable <code>scons </code> is available.
+
+For example, to compile programs of the quadratic model, run <code>scons</code> in the directory <code>example/quadratic_model/</code>:
+
+
+\precode
+$ scons
+\endprecode
+
+If you want to compile only the program <code>forward.cpp</code> run:
+
+\precode
+$ scons forward
+\endprecode
+
+
+*/

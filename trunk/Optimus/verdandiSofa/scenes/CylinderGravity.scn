@@ -1,0 +1,41 @@
+<?xml version="1.0" ?>
+<!-- Mechanical MassSpring Group Basic Example -->
+<Node name="root" dt="0.01" showBoundingTree="0" gravity="0 -9.81 0">
+	<RequiredPlugin pluginName="Optimus"/>
+	<RequiredPlugin pluginName="SofaPardisoWrapper"/>
+	<RequiredPlugin pluginName="BilikimoAux"/>
+	<VisualStyle displayFlags="showBehaviorModels showForceFields" />
+	
+	<VerdandiAnimationLoop name="verdAnimLoop"/>
+<!-- 	<SofaModelWrapper name="verdModelWrapper"/> -->
+	
+	<EulerImplicit name="odeSolver" printLog="false" />\
+	
+	<SparseLDLSolver/>
+<!-- 	<SparsePARDISOSolver/> -->
+<!-- 	<CGLinearSolver/> -->
+
+	<MeshVTKLoader filename="cylinder363.vtk" name="loader" />
+	<MechanicalObject src="@loader" name="Volume" />
+	<include href="Objects/TetrahedronSetTopology.xml" src="@loader" />
+	<UniformMass totalMass="0.2513" />
+
+	<BoxROI name="fixedBox1" box="-0.05 -0.05 -0.002   0.05 0.05 0.002"/>	
+	<FixedConstraint indices="@fixedBox1.indices" />
+
+<!-- 		<BoxROI name="fixedBox2" box="-0.05 -0.05 0.176   0.05 0.05 0.180"/> -->
+<!-- 		<FixedConstraint indices="@fixedBox2.indices" /> -->
+	<Indices2ValuesMapper name="youngMapper" inputValues="@loader.dataset" indices="1 2" values="1e5 5e4"/>
+	<TetrahedronFEMForceField name="FEM" youngModulus="@youngMapper.outputValues" poissonRatio="0.45" method="large"  computeVonMisesStress="0" drawHeterogeneousTetra="1"/>
+
+<!-- 	<VTKExporter filename="cylinderDef7054.vtk" XMLformat="true" listening="true" edges="0" triangles="0" quads="0" tetras="1" exportAtEnd="true" cellsDataFields="FEM.vonMises"/> -->
+	<!--<Node name="T">
+		<include href="Objects/TriangleSetTopology.xml" />
+		<Tetra2TriangleTopologicalMapping object1="../../Container" object2="Container" />
+		<TriangleSet />
+		<Node name="Visu">
+			<OglModel name="Visual" color="blue" />
+			<IdentityMapping object1="../../../Volume" object2="Visual" />
+		</Node>
+	</Node>	-->
+</Node>

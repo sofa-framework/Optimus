@@ -1,0 +1,246 @@
+%======================================================================================================================
+% General Notation
+%======================================================================================================================
+\DeclareMathOperator*{\argmin}{argmin}
+
+\newcommand{\maj}[1]		{\mathcal{#1}}
+\newcommand{\eqd}			{\stackrel{\mathrm{def}}{=}}
+\newcommand{\dsp}			{\displaystyle}
+\newcommand{\R}				{\mathbb{R}}
+\newcommand{\1}				{\mathbb{1}}
+\newcommand{\N}				{\mathbb N}
+\newcommand{\eps}			{\epsilon}
+\newcommand{\vareps}		{\varepsilon}
+
+\DeclareMathOperator*{\Tr}	{tr}
+
+%======================================================================================================================
+% Mathematical Environments
+%======================================================================================================================
+\usepackage{amsthm}
+
+\renewcommand{\qedsymbol}{$\blacksquare$}
+\renewcommand{\proofname}{Proof}
+
+\newtheoremstyle{Myremark}% name
+{\topsep}% Space above
+{\topsep}% Space below
+{}% Body font
+{}% Indent amount
+{\bfseries \scshape}% Theorem head font
+{}% Punctuation after theorem head
+{\newline}% Space after theorem head
+{\normalsize{\thmname{#1}\thmnumber{ #2}\thmnote{ (\scshape{#3})}}}% Theorem head spec (can be left empty, meaningÄnormal)
+
+\newtheoremstyle{MyThm}% name
+{\topsep}% Space above
+{\topsep}% Space below
+{\slshape}% Body font
+{}% Indent amount
+{\bfseries \scshape}% Theorem head font
+{}% Punctuation after theorem head
+{\newline}% Space after theorem head
+{\thmname{#1}\thmnumber{ #2}\thmnote{ (\scshape{#3})}}% Theorem head spec (can be left empty, meaning normal
+
+\theoremstyle{MyThm}
+\newtheorem{Theo}{Theorem}
+\newtheorem{Def}[Theo]{Definition}
+\newtheorem{Not}[Theo]{Notation}
+\newtheorem{Prop}[Theo]{Proposition}
+\newtheorem{Lem}[Theo]{Lemma}
+\newtheorem{Cor}[Theo]{Corollary}
+\newtheorem{Hyp}{Assumption}
+
+\theoremstyle{Myremark}
+\newtheorem{Rem}{Remark}
+
+\renewcommand{\labelitemi}{--}
+\newenvironment{itemize*}%
+  { \begin{itemize}
+  \setlength{\itemsep}{1pt}
+  \setlength{\parskip}{0pt}
+  \setlength{\parsep}{0pt}}
+  {\end{itemize}}
+
+%======================================================================================================================
+% Track Changes
+%======================================================================================================================
+\usepackage[normalem]{ulem}
+\definecolor{myorange}{rgb}{0.9568,0.4941,0.1961}
+\definecolor{myred}{rgb}{0.9098,0.1294,0.2078}
+\definecolor{myblue}{rgb}{0.0352,0.4981,0.6509}
+\definecolor{mygreen}{rgb}{0.2235,0.6353,0.2588}
+
+%\usepackage{marvosym}
+\usepackage{manfnt}
+%\newcommand{\comment}[1]{{\color{myorange}[\Lightning]\emph{#1}}}
+\newcommand{\warning}[1]{{\color{myorange}{\tiny \textdbend}\emph{#1}}}
+\newcommand{\deleted}[1]{{\color{myred}\sout{#1}}}
+\newcommand{\inserted}[1]{{\color{myblue}#1}}
+\newcommand{\modify}[2]{{\color{myred}\sout{#1}$\mapsto$}{\color{myblue}#2}}
+\newcommand{\accepted}[2]{{\color{myred}\sout{}}{\color{mygreen}#2}}
+\newcommand{\declined}[2]{{\color{myred}#1}{\color{myblue}}}
+
+%======================================================================================================================
+% Computational Mechanics Notation
+%======================================================================================================================
+\DeclareMathOperator*{\Div}{div}
+\newcommand{\Dist}				{\mathrm{dist}}
+\newcommand{\diff}[0]			{\: \mathrm{d}}
+\newcommand{\difft}[1]			{\frac{\mathrm{d}#1}{\mathrm{dt}}}
+
+\newcommand{\grad}				{\nabla}
+\newcommand{\boldgrad}			{\mbox{\boldmath$\grad$}}
+\newcommand{\abs}[1]			{\left| #1 \right|}
+\newcommand{\norm}[1]			{\lVert#1\rVert}
+\newcommand{\tens}[1]			{\underline{\underline{#1}}}
+\newcommand{\vect}[1]			{\underline{#1}}
+
+
+%======================================================================================================================
+% Data Assimilation Notation
+%======================================================================================================================
+\newcommand{\state}				{x}%{{\rm x}}
+\newcommand{\stateDof}			{x}%{\vec{X}}
+\newcommand{\stateAug}			{x}
+\newcommand{\stateprev}			{y}
+\newcommand{\stateprevDof}		{\vec{Y}}
+\newcommand{\varstate}			{\xi}
+\newcommand{\varstateDof}		{\xi}%\vec{\xi}}
+\newcommand{\observ}			{y}
+\newcommand{\observDof}			{y}%{\vec{Z}}
+\newcommand{\adjoint}			{u}
+\newcommand{\increment}[1]		{\delta{#1}}
+\newcommand{\param}				{\theta}
+\newcommand{\paramDof}			{\param}%\vec{\param}}
+\newcommand{\target}			{{\state_\centerdot}}
+
+\newcommand{\modelOp}			{\mathcal{M}}
+\newcommand{\obsOp}				{\mathcal{H}}
+\newcommand{\noiseOp}			{\mathcal{B}}
+\newcommand{\discrepOp}			{\mathcal{D}}
+\newcommand{\modelRHS}			{\mathcal{F}}
+\newcommand{\gainFilter}		{\mathcal{G}}
+
+\newcommand{\modelOpDof}		{\modelOp}  %{\mathbf{\modelOp}}
+\newcommand{\obsOpDof}			{\obsOp}    %{\mathbf{\obsOp}}
+\newcommand{\noiseOpDof}		{\noiseOp}  %{\mathbf{\noiseOp}}
+\newcommand{\discrepOpDof}		{\discrepOp}%{\mathbf{\discrepOp}}
+\newcommand{\modelRHSDof}		{\modelRHS} %{\mathbf{\modelRHS}}
+
+
+\newcommand{\modelNoise}		{\omega}
+\newcommand{\obsNoise}			{\chi}
+\newcommand{\obsNoiseDof}		{\vec{\chi}}
+\newcommand{\initNoise}			{\zeta}
+
+\newcommand{\obsNoiseNorm}		{M}
+\newcommand{\initNoiseNorm}		{N_{\diamond}}
+\newcommand{\obsNoiseCov}		{R}
+\newcommand{\modelNoiseNorm}	{S}
+\newcommand{\modelNoiseCov}		{Q}
+\newcommand{\Cov}				{P}
+\newcommand{\stateCov}			{\Cov_{\! \state}}
+\newcommand{\initNoiseCov}		{\Cov_{0}}%{\Cov_{\diamond}}
+\newcommand{\paramNoiseCov}		{\Cov_{*}}
+
+\newcommand{\obsNoiseNormDof}	{\obsNoiseNorm}         %{\mathbf{\obsNoiseNorm}}
+\newcommand{\initNoiseNormDof}	{{N}_{\diamond}}        %{\mathbf{N}_{\diamond}}
+\newcommand{\obsNoiseCovDof}	{\obsNoiseCov}          %{\mathbf{\obsNoiseCov}}
+\newcommand{\initNoiseCovDof}	{\Cov_{0}}%{{\Cov}_{\diamond}}     %{\mathbf{\Cov}_{\diamond}}
+\newcommand{\modelNoiseNormDof}	{\modelNoiseNorm}       %{\mathbf{\modelNoiseNorm}}
+\newcommand{\modelNoiseCovDof}	{\modelNoiseCov}        %{\mathbf{\modelNoiseCov}}
+\newcommand{\CovDof}			{\Cov}                  %{\mathbf{\Cov}}
+\newcommand{\stateCovDof}		{{\Cov}_{\! \stateDof}}	%{\mathbf{\Cov}_{\! \stateDof}}
+\newcommand{\paramNoiseCovDof}	{{\Cov}_{*}}  			%{\mathbf{\Cov}_{*}}
+
+\newcommand{\E}			 		{\mathbb{E}}									% Mean value
+\newcommand{\covar}		 		{\text{Cov}}									% Covariance
+\newcommand{\gainOp}	 		{G}												% Gain Operator
+\newcommand{\gainOpDof}	 		{\gainOp}%{\mathbf{\gainOp}}
+\newcommand{\dist}		 		{\mathrm{dist}}									% Distance Operator
+\newcommand{\LX}		 		{L_{\state}}									% State parametric sensitivity
+\newcommand{\Ltheta}	 		{L_{\theta}}									% Parametric sensitivity
+\newcommand{\LGamma}	 		{L_{{\scriptscriptstyle \Gamma}}}
+\newcommand{\gainLuenb}	 		{\bar{K}^{\state}}								% State Luenberger gain
+
+\newcommand{\gradOpDof}[1]		{\boldgrad_{\!\!\scriptscriptstyle{\stateDof}}^{(#1)}}
+\newcommand{\bdiff}[0]			{\: \mathbf{d}}
+
+%======================================================================================================================
+% Software
+%======================================================================================================================
+
+% My Bash environment with frame.
+\lstnewenvironment{frame_bash}
+{
+  \lstset{%language=bash,
+    basicstyle=\scriptsize\ttfamily\color{white},
+    keywordstyle=\color{white},
+    commentstyle=\color{white},
+    columns=[l]flexible,
+    moredelim=[is][\color{MyGreen}]{|:}{:|},
+    moredelim=[is][\color{red}]{|*}{*|},
+    moredelim=[is][\color{MyOrange}]{**}{**},
+    moredelim=[is][\color{MyYellow}]{!*}{*!},
+    moredelim=[is][\color{MyPurple}]{/*}{*/},
+    moredelim=[is][\color{MyBlueGrey}]{/!}{!/},
+    moredelim=[is][\color{MyPurple}]{|!}{!|},
+    % xleftmargin=-5pt,
+    % xrightmargin=-12pt,
+    frame=trbl,
+    backgroundcolor=\color{black}
+  }}{}
+
+
+% My C++ environment with frame.
+\lstnewenvironment{frame_cpp}
+{
+  \lstset{
+   language=C++,                % the language of the code
+  basicstyle=\footnotesize,           % the size of the fonts that are used for the code
+  numbers=left,                   % where to put the line-numbers
+  numberstyle=\tiny\color{gray},  % the style that is used for the line-numbers
+  stepnumber=1,                   % the step between two line-numbers. If it's 1, each line
+                                  % will be numbered
+   }}{}
+
+ % My Python environment with frame.
+\lstnewenvironment{frame_python}
+{
+  \lstset{
+   language=python,                % the language of the code
+  basicstyle=\footnotesize,           % the size of the fonts that are used for the code
+  numbers=left,                   % where to put the line-numbers
+  numberstyle=\tiny\color{gray},  % the style that is used for the line-numbers
+  stepnumber=1,                   % the step between two line-numbers. If it's 1, each line
+                                  % will be numbered
+   }}{}
+
+
+ % My Lua environment with frame.
+\lstnewenvironment{frame_lua}
+{
+  \lstset{
+   language=Python,                % the language of the code
+  basicstyle=\footnotesize,           % the size of the fonts that are used for the code
+  numbers=left,                   % where to put the line-numbers
+  numberstyle=\tiny\color{gray},  % the style that is used for the line-numbers
+  stepnumber=1,                   % the step between two line-numbers. If it's 1, each line
+                                  % will be numbered
+  morecomment=[l]{\--},
+   }}{}
+
+
+
+ % My LISP environment with frame.
+\lstnewenvironment{frame_lisp}
+{
+  \lstset{
+   language=lisp,                % the language of the code
+  basicstyle=\footnotesize,           % the size of the fonts that are used for the code
+  numbers=left,                   % where to put the line-numbers
+  numberstyle=\tiny\color{gray},  % the style that is used for the line-numbers
+  stepnumber=1,                   % the step between two line-numbers. If it's 1, each line
+                                  % will be numbered
+   }}{}

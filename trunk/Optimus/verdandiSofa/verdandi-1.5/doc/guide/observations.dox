@@ -1,0 +1,25 @@
+/*! \file observations.dox
+    \brief Observations.
+*/
+
+/*!
+\page observations Observations
+
+In order to plug your own observation manager (i.e., the class that provides the observations), you should refer to the page \ref plugging_observation "Plugging in Verdandi: Observations", or directly see the required interface shown by the \link Verdandi::ObservationManagerTemplate ObservationManagerTemplate\endlink (in C++).
+
+You may also use or get help from the two <b>observation managers</b> implemented in Verdandi:
+<ul>
+<li> \ref linear_observation_manager "linear observation manager", which is also \link LinearObservationManager::LinearObservationManager available in Python\endlink; </li>
+<li> \ref grid_to_network_observation_manager "grid to network observation manager". </li>
+</ul>
+
+An <b>observation aggregator</b> which allows to compute aggregated (in time) and flattened observations is also available:
+<ul>
+<li> \ref observation_aggregator "observation aggregator". </li>
+</ul>
+
+The \ref observation_aggregator "observation aggregator" is coupled with the \ref linear_observation_manager "linear observation manager".
+One can use the \ref observation_aggregator "observation aggregator" in his own <b>observation manager</b>. For more detail about how
+to write a new <b>observation manager</b> see the page \ref plugging_observation  "Plugging in Verdandi: Observations".
+
+*/

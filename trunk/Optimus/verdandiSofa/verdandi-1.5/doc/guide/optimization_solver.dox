@@ -1,0 +1,148 @@
+/*! \file optimization_solver.dox
+    \brief Optimization Solver.
+*/
+
+/*!
+\page optimization_solver Optimization Solver
+
+An optimization solver in %Verdandi is a tool to carry out nonlinear optimization. One optimization library is currently interfaced: <a href="http://ab-initio.mit.edu/wiki/index.php/NLopt">NLopt</a>.
+
+\section nlopt NLopt Solver
+
+\subsection nlopt_installation NLopt Installation
+
+Download the latest version available from the <a href="http://ab-initio.mit.edu/wiki/index.php/NLopt#Download_and_installation"> NLopt web site </a> and follow the
+<a href="http://ab-initio.mit.edu/wiki/index.php/NLopt_Installation"> NLopt Installation </a> instructions.
+
+\subsection using_nlopt Using the Class NLoptSolver
+
+<a href="http://ab-initio.mit.edu/wiki/index.php/NLopt">NLopt</a> provides algorithms to solve optimization problems. The class <code>NLoptSolver</code> is 
+a <a href="http://www.seldon.sourceforge.net">Seldon</a> interface to <a href="http://ab-initio.mit.edu/wiki/index.php/NLopt">NLopt</a>. It can be used in a %Verdandi data assimilation method.
+
+An example of its use in a method can be found in the \ref four_dimensional_variational "Four Dimensional Variational (4DVar) method".
+
+\subsection nlopt_configuration Configuration
+
+The main configuration options are described below.
+
+<ul>
+
+<li><code>algorithm</code>: the optimization algorithm. <a href="http://ab-initio.mit.edu/wiki/index.php/NLopt">NLopt</a> provides <a href="http://ab-initio.mit.edu/wiki/index.php/NLopt_Algorithms#Local_gradient-based_optimization"> gradient-based optimization algorithms </a> and <a href="http://ab-initio.mit.edu/wiki/index.php/NLopt_Algorithms#Local_derivative-free_optimization">derivative-free optimization algorithms </a>. The name of the optimization algorithm can be:
+
+<table>
+<tr>
+<th> <a href="http://ab-initio.mit.edu/wiki/index.php/NLopt_Algorithms#Local_gradient-based_optimization"> gradient-based optimization algorithms</a>     </th>
+<th>    </th>
+<th> <a href="http://ab-initio.mit.edu/wiki/index.php/NLopt_Algorithms#Local_derivative-free_optimization">derivative-free optimization algorithms </a></th>
+</tr>
+<tr>
+<td><code>LD_LBFGS </code></td>
+<td> </td>
+<td><code>LN_PRAXIS</code></td>
+</tr>
+<tr>
+<td><code>LD_LBFGS_NOCEDAL </code></td>
+<td> </td>
+<td><code>LN_COBYLA</code></td>
+</tr>
+<tr>
+<td><code>LD_VAR1 </code></td>
+<td> </td>
+<td><code>LN_BOBYQA</code></td>
+</tr>
+<tr>
+<td><code>LD_VAR2 </code></td>
+<td> </td>
+<td><code>LN_NEWUOA</code></td>
+</tr>
+<tr>
+<td><code>LD_TNEWTON </code></td>
+<td> </td>
+<td><code>LN_NEWUOA_BOUND</code></td>
+</tr>
+<tr>
+<td><code>LD_TNEWTON_RESTART </code></td>
+<td> </td>
+<td><code>LN_NELDERMEAD</code></td>
+</tr>
+<tr>
+<td><code>LD_TNEWTON_PRECOND </code></td>
+<td> </td>
+<td><code>LN_SBPLX</code></td>
+</tr>
+<tr>
+<td><code>LD_TNEWTON_PRECOND_RESTART </code></td>
+<td> </td>
+<td><code>LN_AUGLAG</code></td>
+</tr>
+<tr>
+<td><code>LD_MMA </code></td>
+<td> </td>
+<td><code>LN_AUGLAG_EQ</code></td>
+</tr>
+<tr>
+<td><code>LD_AUGLAG_EQ </code></td>
+<td> </td>
+<td></td>
+</tr>
+<tr>
+<td><code>LD_SLSQP </code></td>
+<td> </td>
+<td></td>
+</tr>
+</table>
+</li>
+
+<li>
+<code>parameter_tolerance</code>: the relative tolerance on the parameters.
+    When the variation of the parameters, after one step of the algorithm, has
+    changed by less than <code>parameter_tolerance</code> multiplied by the value of the parameters, the optimization is stopped. If you do not want to use a
+    particular tolerance termination, you can just set that tolerance to zero
+    and it will be ignored.
+</li>
+
+<li>
+<code>cost_function_tolerance</code>: the relative tolerance on the cost
+    function. When the variation of the cost function, after one step of the
+    algorithm, has changed by less than <code>cost_function_tolerance</code> multiplied
+    by the value of the cost function, the optimization is stopped. If you
+    do not want to use a particular tolerance termination, you can just set
+    that tolerance to zero and it will be ignored.
+</li>
+
+<li>
+<code>Niteration_max</code>: the maximum number of cost function evaluations.
+    It is ignored if it is non-positive.
+</li>
+
+</ul>
+
+Here is an example derived from the \ref four_dimensional_variational "Four Dimensional Variational (4DVar)" configuration file.
+
+\precode
+-- Simulation with assimilation using 4D-VAR.
+four_dimensional_variational = {
+
+   nlopt = {
+
+      -- Optimization algorithm (LD_VAR1, LD_LBFGS, LD_SLSQP, LD_MMA,
+      -- LD_TNEWTON, ...).
+      algorithm = "LD_VAR1",
+
+      -- Relative tolerance on the optimization parameters. If you do not want
+      -- to use a particular tolerance termination, you can just set that
+      -- tolerance to zero and it will be ignored.
+      parameter_tolerance = 1.e-4,
+      -- Relative tolerance on the cost function.
+      cost_function_tolerance = 1.e-4,
+      -- Maximum number of function evaluations. Criterion is disabled
+      -- Maximum number of function evaluations. Criterion is disabled if the
+      -- value is non-positive.
+      Niteration_max = -1
+
+   }
+
+}
+\endprecode
+
+*/

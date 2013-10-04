@@ -1,0 +1,14 @@
+include/
+*.dat
+*.bin
+*.o
+*.os
+*.so
+*.cc
+*.pyc
+*.scon*
+*.log
+*~
+.gitignore
+doc/html/
+doc/latex/

@@ -1,0 +1,78 @@
+/*! \file plugging_observation.dox
+    \brief Plugging the Observation Manager.
+*/
+
+/*!
+\page plugging_observation Plugging the Observation Manager
+
+If you have already \link plugging_model plugged your own model\endlink in %Verdandi, you can now work on the observations. Start from the \link Verdandi::ObservationManagerTemplate ObservationManagerTemplate\endlink. The complete interface of the observation manager class is described \link Verdandi::ObservationManagerTemplate here\endlink. With a complete interface, one can apply any data assimilation method in %Verdandi. But for a given data assimilation method, the full interface may not be required. Use the \link observation_requirements Observation managers requirements page\endlink, or the Python script <code>bin/methods_requirement</code> to know precisely which interface you will need to implement for your observation manager.
+
+<ul>
+<li>
+In the directory <code>observation_manager</code>, copy the \link Verdandi::ObservationManagerTemplate ObservationManagerTemplate\endlink and rename it to \"MyObservationManager\". E.g., under Linux or MacOS, in command line:
+
+\precode
+$ cd verdandi/observation_manager/
+$ cp ObservationManagerTemplate.hxx MyObservationManager.hxx
+$ cp ObservationManagerTemplate.cxx MyObservationManager.cxx
+\endprecode
+
+</li>
+
+
+<li>
+Open the files <code>MyObservationManager.*xx</code>, rename the preprocessing variables.
+
+\code
+#ifndef VERDANDI_FILE_MODEL_OBSERVATIONMANAGERTEMPLATE_*XX
+#define VERDANDI_FILE_MODEL_OBSERVATIONMANAGERTEMPLATE_*XX
+\endcode
+
+to
+
+\code
+#ifndef VERDANDI_FILE_MODEL_MYOBSERVATIONMANAGER_*XX
+#define VERDANDI_FILE_MODEL_MYOBSERVATIONAMANAGER_*XX
+\endcode
+</li>
+
+<li>
+Replace all occurrences of "ObservationManagerTemplate" with "MyObservationManager".
+
+</li>
+
+<li>
+You can begin with writing the interface for the method \link Verdandi::OptimalInterpolation OptimalInterpolation\endlink which requires a basic interface.
+
+In some testing directory, copy the following files: <code>example/quadratic_model/SConstruct</code>, <code>example/quadratic_model/optimal_interpolation.cpp</code> and the configuration file <code>example/quadratic_model/configuration/assimilation.lua</code>. E.g., assuming you already created a directory <code>verdandi/example/my_model/</code> as proposed in \link plugging_model the page describing the plugging of a model\endlink:
+</li>
+
+\precode
+$ cd verdandi/example/
+$ cp quadratic_model/{SConstruct,optimal_interpolation.cpp} my_model/
+$ cp quadratic_model/configuration/assimilation.lua my_model/configuration/
+\endprecode
+
+<li> In the file <code>optimal_interpolation.cpp</code>, replace all "ObservationManagerTemplate" occurrences with "MyObservationManager". You will probably change the model as well.
+</li>
+
+<li> Compile the program <code>optimal_interpolation.cpp</code>.
+</li>
+
+\precode
+$ scons optimal_interpolation
+\endprecode
+
+<li> Run the optimal interpolation program.
+
+\precode
+$ ./optimal_interpolation configuration/assimilation.lua
+\endprecode
+
+At run time, if a method is needed in the model class, and if this method is not implemented, the program will launch an exception.
+For instance, if the method \link Verdandi::ObservationManagerTemplate::HasObservation HasObservation\endlink is undefined, an exception will be thrown to report you this error.
+Then, see the contract of this method and implement it. You can also have a look into the example managers in <code>verdandi/observation_manager/</code>. Be careful with the <code>LinearObservationManager</code> example, as it is way more advanced that what you need for a simple approach.
+</li>
+</ul>
+
+*/

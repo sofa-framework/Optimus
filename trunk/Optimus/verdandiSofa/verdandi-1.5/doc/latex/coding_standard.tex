@@ -1,0 +1,937 @@
+% Copyright (C) 2009, INRIA
+% Author(s): Vivien Mallet
+%
+% You can redistribute this document and/or modify it under the terms of the
+% GNU General Public License as published by the Free Software Foundation;
+% either version 2 of the License, or (at your option) any later version.
+%
+% This document is distributed in the hope that it will be useful, but WITHOUT
+% ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+% FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+% more details.
+
+\newcounter{points}
+
+\newcommand{\cscode}[1]{\texttt{#1}}
+\newcommand{\csrule}[1]{\textsc{#1}}
+\newcommand{\cscomment}[1]{\newline #1}
+\newcommand{\cscommentf}[1]{#1}
+\newcommand{\csjustification}[1]{\newline {\it Justification} --- #1}
+\newcommand{\csnjustification}[1]{{\it Justification} --- #1}
+\newcommand{\csjustificationf}[1]{#1}
+
+\newenvironment{cenumerate}
+{
+  \begin{enumerate}\setcounter{enumi}{\value{points}}%
+  }
+  {
+    \setcounter{points}{\value{enumi}}\end{enumerate}
+}
+
+%%%%%%%%%%%%%%%%%%
+%% INTRODUCTION %%
+%%%%%%%%%%%%%%%%%%
+
+
+\section*{Introduction}
+\label{part:introduction}
+
+Many coding standards may be found on-line: see, for instance, the list
+provided at \url{http://www.chris-lott.org/resources/cstyle/}. In particular,
+the \textit{C++ Coding Standard} by Todd Hoff, available at
+\url{http://www.possibility.com/Cpp/CppCodingStandard.html} provided useful
+guidelines for the present standard.
+
+The general conventions of part~\ref{part:general} shall be applied to all
+computer codes, in any language. C++ conventions follow in
+part~\ref{part:cpp}.
+
+
+%%%%%%%%%%%%%%%%%%%
+%% GENERAL RULES %%
+%%%%%%%%%%%%%%%%%%%
+
+
+\section{General Conventions}
+\label{part:general}
+
+The following conventions must be applied in all languages.
+
+\subsection{Development}
+
+\begin{enumerate}
+\item \csrule{Codes must be written in American English. This includes variable
+    names, file names, comments,~\ldots{}} \csjustification{A code should be
+    open to anyone.  Even if a code is not intended to be shared initially,
+    this may change.  Moreover parts of it may be reused in another project.}
+\item \csrule{Optimize only the parts of the code that lead to significant
+    overheads.} \cscomment{In addition, remember that the compilers partially
+    optimize your code.} \csjustification{An optimized code is usually less
+    readable than its straightforward version.}
+\item \csrule{A code must compile without warnings.}  \cscomment{At development
+    stage, compile your code with the most restrictive compilation options and
+    with all warning messages enabled.} \csjustification{It increases
+    portability, and it may help avoiding mistakes.}
+\item \csrule{Global variables must be avoided.} \csjustification{Units of a code
+    should be independent from their environment so that they may be reused
+    and so that the overall code may be safer.}
+  \setcounter{points}{\value{enumi}}
+\end{enumerate}
+
+
+\subsection{Names}
+
+\begin{cenumerate}
+\item \csrule{Use explicit and meaningful names.} \cscomment{You should first
+    consider that the length does not matter. Actually it does, but many
+    programmers tend to use too short and therefore uninformative
+    names. Usually, the wider scope, the longer name.}  \csjustification{New
+    programmers should be able to read the code without learning the meaning
+    of the variables and the functions in use. Explicit names also save
+    unnecessary comments.  Example (in C++):}
+\begin{verbatim}
+if (Species.GetName() == target_species)
+    output_concentration = Species.Concentration();
+\end{verbatim}
+  \csjustificationf{is better than:}
+\begin{verbatim}
+// Checks whether current species is the target species.
+if (sp.GetName() == species)
+    // Retrieves the output concentration.
+    c = sp.Concentration();
+\end{verbatim}
+\item \csrule{Avoid contractions. If you really need a contraction, only use it
+    as a suffix.} \cscomment{Accepted contractions are: tmp (temporary), in
+    (input), out (output), obs (observation). Example: \cscode{value\_in}.}
+  \csjustification{Contractions can easily collide (including with a full word)
+    or have meanings depending on the context. Besides, not all developers may
+    understand your contractions, depending on their habits and maybe their
+    native language. For instance, French developers often contract
+    \cscode{number} into \cscode{nb} whereas a native English speaker would use
+    \cscode{num}.}
+\item \csrule{Unless a more explicit name is found, preferably use {\rm
+      \cscode{i}} for an index. As for dimensions, use {\rm \cscode{h}} for time
+    index, {\rm \cscode{i}} along x, {\rm \cscode{j}} along y and {\rm \cscode{k}}
+    along z.} \csjustification{This is a common practice.}
+\item \csrule{Avoid plural forms.} \cscomment{Even the name of a vector should not
+    be in plural form. For instance, a vector of observations can be called
+    \cscode{observation}, and the i-th observation is \cscode{observation(i)}
+    which is perfectly clear. If the plural form seems to be required,
+    consider appending \cscode{\_list}: e.g., \cscode{location =
+      location\_list(i)}, even if \cscode{location\_list} is not an instance of
+    the STL class \cscode{list}.} \csjustification{The use of plural forms makes
+    it difficult to guess or remember the names of variables and methods. It
+    is quickly unclear whether the plural form was used or not for such and
+    such methods. The same is true with a complex object that stores many data
+    sets: should it be named with plural form because it contains a list, or
+    should the singular be preferred because it appears as a single
+    block/object? The easiest way to avoid the confusion is to avoid plural
+    forms.}
+\item \csrule{A fixed number of \cscode{xxx} should be named \cscode{Nxxx}.}
+  \cscomment{Example: \cscode{Nstep} for the number of steps (if it is fixed),
+    \cscode{Narray} for a number of arrays.}
+\item \csrule{The Boolean methods should have a prefix like \cscode{Is} or
+    \cscode{Has}.} \cscomment{Examples: \cscode{IsReady}, \cscode{HasObservation},
+    \cscode{IsEmpty}.} \csjustification{It makes it clear that the method returns
+    a Boolean. The question that the method answers is very clear too.}
+\end{cenumerate}
+
+
+\subsection{Formatting}
+
+\subsubsection{Spaces and Parens}
+\label{sec:spaces-parens}
+
+\begin{cenumerate}
+\item \csrule{Put one blank space before and one blank space after the
+    operators: \cscode{+}, \cscode{-}, \cscode{/}, \cscode{*} (multiplication),
+    \cscode{=}, \cscode{+=}, \cscode{-=}, \cscode{*=}, \cscode{/=}, \cscode{|}, \cscode{\&},
+    \cscode{||}, \cscode{\&\&}, \cscode{<}, \cscode{<=}, \cscode{>}, \cscode{>=},
+    \cscode{==}, \cscode{!=}, \cscode{<{}<}.}  \cscomment{You might break this rule in
+    inner parens (at a deep level, e.g., some array index like \cscode{i+1} in a
+    complex formula).} \csjustification{It makes the code much more readable. It
+    is also a very common practice.}
+\item \csrule{Put one blank space after each comma.} \csjustification{It makes the
+    code more readable. It is a very common practice.}
+\item \csrule{Do not add trailing spaces at the end of code lines.} \cscomment{A
+    script can remove the trailing spaces for you---such a script should be
+    run before any commit to the repository of your revision control
+    system. Emacs users may have their editor removing the trailing spaces
+    whenever they save a file. They can also have Emacs show them the trailing
+    whitespaces; e.g., in Python mode:}
+\begin{verbatim}
+(setq whitespace-style '(trailing))
+(add-hook 'python-mode-hook 'whitespace-mode)
+\end{verbatim}
+  \csnjustification{Browsing the code, moving blocks, copies,~\ldots{} are
+    slowed down because of trailing spaces. In addition, the differences
+    between two revisions of a file should not include such noise.}
+\item \csrule{No space between the function name and its arguments list.}
+  \cscomment{Write}
+\begin{verbatim}
+  func(a, b)
+\end{verbatim}
+  \cscommentf{instead of}
+\begin{verbatim}
+  func (a, b)
+\end{verbatim}
+\item \csrule{No space after an opening paren or a closing paren.}
+  \cscomment{Write}
+\begin{verbatim}
+  func(a, b)
+\end{verbatim}
+  \cscommentf{instead of}
+\begin{verbatim}
+  func( a, b )
+\end{verbatim}
+\item \csrule{Put a space between a language keyword and the following paren.}
+  \cscomment{Write}
+\begin{verbatim}
+  while (error > epsilon)
+\end{verbatim}
+  \cscommentf{instead of}
+\begin{verbatim}
+  while(error > epsilon)
+\end{verbatim}
+  \csnjustification{Keywords and functions should be distinguishable.}
+\item \csrule{Do not put unnecessary parens in logical expressions, except to
+    clarify the order of evaluation.}  \cscomment{For instance (in C++), write}
+\begin{verbatim}
+  if (i != 0 && j > 5)
+\end{verbatim}
+\cscommentf{instead of}
+\begin{verbatim}
+  if ((i != 0) && (j > 5))
+\end{verbatim}
+\csnjustification{Unncessary parens slow down the reading.}
+\end{cenumerate}
+
+\subsubsection{Comments}
+
+\begin{cenumerate}
+\item \csrule{A comment line is placed before the lines or the block it
+    comments.}  \cscomment{Observe where each comment line is placed:}
+\begin{verbatim}
+// Checks the availability of observations. Note that the call implicitly
+// loads the observations at current date.
+if (observation_manager.HasObservation())
+// Assimilates the available observations.
+{
+    Analyze();
+    if (positive_state)
+        // Enforces the positivity of the state vector.
+        for (int i = 0; i < Nstate; i++)
+            state(i) = max(0., state(i));
+}
+\end{verbatim}
+  \csnjustification{Since an explanation may address several lines, the scope of
+    a comment placed after is unclear.}
+\item \csrule{Like a sentence, a comment starts with a capital and ends with a
+    dot (even a one-word comment).}  \csjustification{All comment lines should
+    be consistent. This rule is clear and easy to follow.}
+\item \csrule{Use simple present to explain what a line does or what a sequence
+    of lines does.} \cscomment{See the example above.} \csjustification{A comment
+    introduces to what a line {\it does}. So \cscode{// Extracts data.}
+    implicitly means \cscode{// This line extracts data.}}
+\item \csrule{When referring to a variable, surround the variable name with
+    simple quotes.} \cscomment{Example: \cscode{// Updates 'state' so that it
+      should be consistent with 'full\_state'.}}  \csjustification{Reading
+    comments, with variable names included, can be really difficult because
+    the variable names are often words: one cannot identify at first sight
+    that the variable name is a special element. Think of a comment line like
+    \cscode{// Makes a consistent with the location.}  instead of \cscode{// Makes
+      'a' consistent with the location.}}
+\end{cenumerate}
+
+\subsubsection{Function and Method Definition}
+
+\begin{cenumerate}
+\item \csrule{Arguments are sorted from input variables to output variables.
+    Dimensions are provided first.} \cscomment{The only exception is for
+    optional arguments if they are necessarily the last arguments (as in C++
+    and Python). Try to sort all arguments so that the order makes sense. For
+    instance, if the input variables are a number of points along $x$, the
+    abscissae and the values of a function $f$ at these abscissae, then
+    provide them in that order. Indeed, one needs first the number of points
+    $n$, then the positions $x_i$ of the points ($i\in\llbracket{}0,
+    n-1\rrbracket$) and finally the associated values $f(x_i)$.}
+  \csjustification{A code line is read from left to right, and obviously an
+    input comes before an output.}
+\end{cenumerate}
+
+
+\subsection{Language Features}
+
+\subsubsection{Standard}
+
+\begin{cenumerate}
+\item \csrule{Build a fully standard-compliant code. If a compiler does not
+    understand it, discard it or maybe maintain specific code for it.}
+  \csjustification{This ensures portability and makes the code perennial.}
+\end{cenumerate}
+
+
+%%%%%%%%%
+%% C++ %%
+%%%%%%%%%
+
+
+\section{C++}
+\label{part:cpp}
+
+
+\subsection{Development}
+
+\begin{cenumerate}
+\item \csrule{Compilation with GNU G++ and with options {\rm \cscode{-Wall -ansi
+        -pedantic}} should not issue any warning.} \csjustification{It increases
+    portability (through compliance with the C++ standard), and it may help
+    avoiding mistakes.}
+\end{cenumerate}
+
+
+\subsection{Names}
+
+\subsubsection{Common Conventions}
+
+\begin{cenumerate}
+\item \csrule{Do not add a prefix to a set of objects to avoid conflicts.}
+  \cscomment{Use name spaces instead.}
+\end{cenumerate}
+
+\subsubsection{Classes and Methods}
+
+\begin{cenumerate}
+\item \csrule{A name is one word or a concatenation of words. The first letter
+    of each word (including the first one) is uppercase.}  \cscomment{Examples:}
+\begin{verbatim}
+class FormatBinary;
+double Data::GetMax() const;
+void Data::Print() const;
+void LoadPreviousAnalysis(...);
+\end{verbatim}
+  \csnjustification{Two other conventions are widely used: \cscode{formatBinary}
+    and \cscode{format\_binary}. With the latter convention, classes and methods
+    are not easily identified in a code. The former convention is a bit
+    inconsistent: one-word methods are not as emphasized as two-word methods
+    are.}
+\item \csrule{The accessors should be named with {\rm \cscode{Get}} or {\rm
+      \cscode{Set}} (prefixed).} \cscomment{Example: \cscode{GetDate},
+    \cscode{SetPosition}}.
+\end{cenumerate}
+
+\subsubsection{Functions}
+
+\begin{cenumerate}
+\item \csrule{Same rules as for the methods.} \cscomment{Meanwhile, the name of a
+    small function (e.g., a single formula, or an extension of the C++
+    libraries) may be lowercase with underscores to delimit the words.}
+\item \csrule{Extern functions should be lowercase with underscores to delimit
+    the words, and they should be prefixed by an underscore.}  \cscomment{The
+    name of an extern function is defined by the compiler. If the compiler
+    does comply with this convention, define a macro that follows this
+    convention. Example:}
+\begin{verbatim}
+#define _linear_interpolation linear_interpolation_
+\end{verbatim}
+  \csnjustification{Fortran functions are usually named with one or two
+    underscores at the end. The rule is consistent with the addition of an
+    underscore, but as a prefix in order to avoid conflicts (with attributes,
+    see below).}
+\end{cenumerate}
+
+\subsubsection{(Local) Variables}
+
+This section also applies to method arguments and function arguments.
+
+\begin{cenumerate}
+\item \csrule{Use lower case and words delimited with underscores.}
+  \csjustification{Many variables are naturally lowercase, like the indexes. In
+    addition, one may declare an instance of a class, say \cscode{Data} or
+    \cscode{ObservationManager}, with the same name as the class: \cscode{Data
+      data} or \cscode{ObservationManager observation\_manager}.}
+\end{cenumerate}
+
+\subsubsection{Attributes}
+
+\begin{cenumerate}
+\item \csrule{Same rules as for variables, except that an underscore must be
+    appended at the end of the name.} \cscomment{This rule might be broken in
+    case the attribute is public or for consistency with a public attribute
+    that has no appended underscore.} \csjustification{The underscore at the end
+    enables to distinguish attributes from local variables within the
+    methods. The scope is an important property of a variable. In addition,
+    the method arguments may have the same names as the attributes, without
+    the underscore. For example:}
+\begin{verbatim}
+void ExtendedStream::SetDelimiter(delimiter)
+{
+    delimiter_ = delimiter;
+}
+\end{verbatim}
+\end{cenumerate}
+
+\subsubsection{References, Pointers, Global Variables and Constant Variables}
+
+\begin{cenumerate}
+\item \csrule{No special notation is associated with references, pointers,
+    global variables or constant variables.} \csjustification{Constant variables
+    are declared as such (keyword \cscode{const}); no alteration of these
+    variables can occur.  Global variables should be avoided. References are
+    used in C++ to manipulate variables just like others: a notation to
+    distinguish them would break this advantage.  Programmers sometimes prefix
+    a 'p' for pointers, but the syntax is usually clear enough to show that a
+    pointer is in use.}
+\end{cenumerate}
+
+\subsubsection{Name Spaces}
+
+\begin{cenumerate}
+\item \csrule{Name spaces are mainly used for libraries. A name space has the
+    exact name of its library.} \cscomment{Example:}
+\begin{verbatim}
+namespace Verdandi;
+\end{verbatim}
+\end{cenumerate}
+
+\subsubsection{Type Names (typedef)}
+
+\begin{cenumerate}
+\item \csrule{Use lower case and words delimited with underscores. Do not append
+    an underscore even if the type name is defined in a class.}
+  \csjustification{Type names are used as shortcuts for what may be seen as a
+    low-level type, just like a \cscode{string} or a \cscode{double} in the
+    \cscode{main()} function.}
+\end{cenumerate}
+
+\subsubsection{Macros}
+
+\begin{cenumerate}
+\item \csrule{Use upper case and words delimited by underscores.}
+  \csjustification{Macros should be clearly identified because of their really
+    specific nature. In addition, this is common practice.}
+\item \csrule{In case a macro is related to a library, the first word of the
+    macro must be the library name.} \cscomment{Example:}
+\begin{verbatim}
+  #define VERDANDI_DEBUG_LEVEL_4
+\end{verbatim}
+  \csnjustification{This avoids conflicts with macros from other libraries, and
+    it better indicates what the macro is for.}
+\end{cenumerate}
+
+
+\subsection{Formatting}
+\label{sec:formatting}
+
+\subsubsection{Indentation and Braces}
+\label{sec:indentation-braces}
+
+\begin{cenumerate}
+\item \csrule{Use the Allman standard for indentation.} \cscomment{This
+    indentation style is called BSD under Emacs. It looks like this:}
+\begin{verbatim}
+    if (i == f(a, b))
+        i += 5;  // No braces for a single line.
+    else
+    {   // Instead of "else {".
+        while (i != 5)
+        {
+            j = 3 * f(4, b);
+            i++;
+        }
+        i--;
+    }
+\end{verbatim}
+  \cscommentf{Note the (compulsory) 4-space depth for the indentation. Emacs
+    users can enforce this convention with the following code (placed in
+    \cscode{.emacs}):}
+\begin{verbatim}
+(defun verdandi-c++-mode ()
+  (interactive)
+  (c-set-style "bsd")
+  (setq c-basic-offset 4)
+  (add-hook 'before-save-hook 'delete-trailing-whitespace t t))
+(defun verdandi-c++-mode-hook ()
+  (if (string-match "verdandi" buffer-file-name)
+      (verdandi-c++-mode)))
+(add-hook 'c++-mode-hook 'verdandi-c++-mode-hook)
+\end{verbatim}
+  \cscommentf{The hook \cscode{delete-trailing-whitespace} will remove trailing
+    spaces when the file is saved, which is another formatting rule (see
+    section~\ref{sec:spaces-parens}). The Verdandi C++ mode will be applied to
+    any file that contains the word ``verdandi'' in its absolute path.}
+  \csjustification{Consistent indentation is utterly required at least to browse
+    the code and to grasp its structure. In addition, differences between two
+    versions of a same code are easier to parse with a standard indentation.}
+\item \csrule{Tabulations are forbidden. They should be replaced with
+    spaces.}\cscomment{Emacs users can add the following line in their
+    \cscode{.emacs}:}
+\begin{verbatim}
+(setq-default indent-tabs-mode nil)
+\end{verbatim}
+  \csnjustification{Tabulation-based indentation may be more convenient for code
+    browsing than space-based indentation: moving in the code may be
+    faster. Unfortunately, the length of a tabulation may vary from one
+    environment to another (usual values are 4 or 8 spaces, maybe 2
+    sometimes). This can cause misalignment. Take for example:}
+\begin{verbatim}
+< TAB >if (condition)
+< TAB >< TAB >long_function_name(a, b, c,
+< TAB >< TAB >< TAB >< TAB >....h, j, i);
+\end{verbatim}
+  \csjustificationf{where \cscode{< TAB >} is a tabulation and \cscode{.} is a
+    whitespace. If the tabulation length is decreased, the code may look
+    misaligned:}
+\begin{verbatim}
+<TAB>if (condition)
+<TAB><TAB>long_function_name(a, b, c,
+<TAB><TAB><TAB><TAB>....h, j, i);
+\end{verbatim}
+  \csjustificationf{where \cscode{h, j, i} is not properly placed. A clever
+    solution is to use tabulations for block indentation and to use spaces for
+    alignment:}
+\begin{verbatim}
+< TAB >if (condition)
+< TAB >< TAB >long_function_name(a, b, c,
+< TAB >< TAB >...................h, j, i);
+\end{verbatim}
+  \csjustificationf{In that configuration, the formatting will be fine whatever
+    the tabulation length. Unfortunately, it seems that only Emacs and vi
+    implement that formatting. In addition, the interaction between such a
+    convention and the limit on the line length may be an issue. To conclude,
+    the safest indentation strategy is to use spaces only, which any decent
+    editor should handle:}
+\begin{verbatim}
+....if (condition)
+........long_function_name(a, b, c,
+...........................h, j, i);
+\end{verbatim}
+\item \csrule{The indentation depth is four spaces.} \csjustification{The
+    indentation depth is usually four spaces (like in GNU coding standards) or
+    eight spaces (like in Linux kernel). In scientific computing, several
+    indentation levels are commonly required---for example for loops in
+    three-dimensional space. A eight-space indentation depth is not practical
+    in that context.}
+\item \csrule{Do not put a useless semi-colon at the end of a block.}
+  \cscomment{Only classes and structures declarations require a semi-colon after
+    the closing brace.}
+\end{cenumerate}
+
+\subsubsection{Comments and Documentation}
+\label{sec:comm-docum}
+
+\begin{cenumerate}
+\item \csrule{Use \cscode{//}, not \cscode{/*}, except for Doxygen comments.}
+\item \csrule{Include Doxygen comments for every class, every attribute, every
+    method and every function.}
+\item \csrule{With respect to Doxygen comments of functions and methods:
+    \begin{itemize}
+    \item there must be a brief description, introduced by {\rm \cscode{//!}},
+      or {\rm \cscode{$\backslash$*! $\backslash$brief}} if the description does
+      not fit into a single line;
+    \item there must be a description for every argument and for the returned
+      value:
+      \begin{itemize}
+      \item only use {\rm \cscode{$\backslash$param[in]}}, {\rm
+          \cscode{$\backslash$param[in,out]}} and {\rm
+          \cscode{$\backslash${param[out]}}} to introduce the description for an
+        argument;
+      \item the description for an argument starts lowercase and ends with a
+        dot;
+      \item the description for a returned value starts with a capitalized
+        word and ends with a dot.
+      \end{itemize}
+    \item a full description should also be added whenever necessary, just
+      before the arguments description;
+    \item any reference to an argument, say {\rm \cscode{x}}, should be
+      introduced with the Doxygen command {\rm \cscode{$\backslash$a}}: {\rm
+        \cscode{$\backslash$a x}}.
+    \end{itemize}~}
+    \cscomment{Template:}
+\begin{verbatim}
+//! Here comes the brief description.
+/*! Here comes the long description, if needed.
+  \param[in] x description of the first parameter. It may include several
+  sentences on several lines.
+  \param[in,out] value another parameter.
+  \param[out] error true if and only if an error occurred.
+*/
+\end{verbatim}
+  \cscommentf{Another template:}
+\begin{verbatim}
+/*! \brief Here goes a brief description that does not fit into a single
+  line. */
+/*! Here comes the long description, if any.
+  \param[in] value description of the argument.
+  \return The sign of \a value.
+*/
+\end{verbatim}
+  \csnjustification{These rules ensure that the Doxygen documentation is
+    complete and clean.}
+\item \csrule{Doxygen comments for functions and methods are put before the
+    definition in the source file, not before the declaration in the header
+    file.} \csjustification{Headers should be as light as possible so that one
+    may browse them quickly.}
+\item \csrule{Doxygen comments for classes and attributes are put before their
+    declarations, in the header file.} \cscomment{For attributes, the
+    description is introduced by {\rm \cscode{//!}}, or {\rm
+      \cscode{$\backslash$*! $\backslash$brief}} if it does not fit into a
+    single line.} \csjustification{There is no other suitable place.}
+\item \csrule{The code may be organized in sections and subsections that are
+    introduced as follows.}  \cscomment{Section:}
+\begin{verbatim}
+  <two blank lines>
+  ////////////////////////
+  // READS INPUT FIELDS //
+  ////////////////////////
+  <two blank lines>
+\end{verbatim}
+  \cscommentf{Long section (especially in libraries, with many functions in the
+    section---otherwise prefer the previous format):}
+\begin{verbatim}
+  <two blank lines>
+  ///////////////////////////
+  // MATRIX FACTORIZATIONS //
+  <two blank lines>
+  [ code of the long section ]
+  <two blank lines>
+  // MATRIX FACTORIZATIONS //
+  ///////////////////////////
+  <two blank lines>
+\end{verbatim}
+\cscommentf{Heavy subsection:}
+\begin{verbatim}
+  <two blank lines>
+  /****************
+   * Binary files *
+   ****************/
+  <two blank lines>
+\end{verbatim}
+\cscommentf{Light subsection (prefer this to the heavy subsection, except if the
+  subsection is long---you may then nest light subsections inside the heavy
+  subsection):}
+\begin{verbatim}
+  <one blank line>
+  /*** Binary files ***/
+  <one blank line>
+\end{verbatim}
+\item \csrule{Name spaces are inserted this way:}
+\begin{verbatim}
+<two blank lines>
+namespace AtmoData
+{
+<two blank lines>
+    [ code ]
+<two blank lines>
+} // namespace AtmoData.
+<two blank lines>
+\end{verbatim}
+\end{cenumerate}
+
+\subsubsection{Lines}
+\label{sec:lines}
+
+\begin{cenumerate}
+\item \csrule{Only one statement should be put on a single line.}
+  \cscomment{Write}
+\begin{verbatim}
+int j;
+string line;
+if (i == 5)
+    cout << "Done." << endl;
+\end{verbatim}
+  \cscommentf{instead of}
+\begin{verbatim}
+int j; string line;
+if (i == 5) cout << "Done." << endl;
+\end{verbatim}
+  \cscommentf{There should never be two semi-colons on the same line, except in
+    \cscode{for} statements:}
+\begin{verbatim}
+for (i = 0; i < 10; i++)
+    cout << i << endl;
+\end{verbatim}
+  \csnjustification{This usually makes the code clearer. It avoids misleading
+    implementations like:}
+\begin{verbatim}
+if (i == 5)
+    cout << "Done." << endl; i++;
+\end{verbatim}
+\item \csrule{Functions and methods definitions should be separated by two blank
+    lines.}  \csjustification{There should be more space between two functions
+    than between two blocks in a function.}
+\item \csrule{A line should not contain strictly more than 78 characters.}
+  \csjustification{This ensures that the code may be properly printed and that
+    it could be displayed on a screen in text mode. Furthermore, one often
+    needs to display two source files side by side. The differences between
+    two files can also be displayed side by side.}
+\item \csrule{If you need to break a line that introduces the definition of a
+    method, never separate the two colons \cscode{::} from the name of the
+    method.} \cscomment{Write}
+\begin{verbatim}
+ClassName
+::MethodName(...long argument list...)
+\end{verbatim}
+  \cscommentf{instead}
+\begin{verbatim}
+ClassName::
+MethodName(...long argument list...)
+\end{verbatim}
+  \csnjustification{One often searches for the definition of a given method in a
+    source file. With this rule, one can search for \cscode{::MethodName} (using
+    the search ability of one's text editor) to quickly find the definition. A
+    search for \cscode{MethodName} may be inefficient because there may be many
+    calls to the method, at different places.}
+\end{cenumerate}
+
+\subsubsection{Variable Definition}
+
+\begin{cenumerate}
+\item \csrule{Do not systematically declare all variables at the beginning of a
+    program or a function. Declare small bunches of variables instead.}
+  \cscomment{Old languages require that all variables are declared at the very
+    beginning. This is the reason why this convention is still in use, even in
+    modern programming languages. It is good idea to declare at the beginning
+    a few variables that will be used at many places in the current block,
+    like an index \cscode{i}. Otherwise, declare the variables more locally.}
+  \csjustification{A variable declaration should be close to the lines where it
+    is used so that the programmer can easily access to this declaration and
+    so that the scope of the variable can be restricted.}
+\item \csrule{Characters \cscode{*} and \cscode{\&} should be directly connected to
+    the type, not the variable.} \cscomment{Write}
+\begin{verbatim}
+  int& i;
+\end{verbatim}
+\cscommentf{instead of}
+\begin{verbatim}
+  int &i;
+\end{verbatim}
+\csnjustification{In the previous example, the type of \cscode{i} is \cscode{int\&},
+  and it should appear as such.}
+\item \csrule{Constants are declared with a {\rm \cscode{const}} statement, not
+    with {\rm \cscode{\#define}} or so.}
+\end{cenumerate}
+
+\subsubsection{Class Definition}
+
+\begin{cenumerate}
+\item \csrule{All attributes should be protected ({\rm \cscode{protected}}).}
+  \cscomment{Public attributes are a bad idea because there are really
+    unsafe. If there are so many attributes that maintaining accessors is
+    difficult, this rule might be broken. Private attributes can be fine, but
+    they cannot be accessed by the derived classes, which is rarely a useful
+    feature.} \csjustification{Attributes should be accessed and modified only
+    with methods, so as to allow miscellaneous checks, and so as to guaranty
+    at any time the consistency of the object.}
+\item \csrule{In a class definition, put, in this order:
+    \begin{enumerate}
+    \item the {\rm \cscode{typedef}} declarations;
+    \item the attributes;
+    \item the constructor(s);
+    \item the destructor;
+    \item the public methods;
+    \item the protected methods;
+    \item the private methods.
+    \end{enumerate}In the source file, the definitions must follow the same
+    order as the declarations in the header file.}
+\item \csrule{Provide constant methods ({\rm \cscode{const}}) whenever possible.}
+  \csjustification{It makes the code safer, and such methods are compulsory to
+    manipulate \cscode{const} objects.}
+\item \csrule{Declare a virtual destructor in case the class is derived and
+    contains virtual methods.} \csjustification{If a pointer to an instance of a
+    derived class is used, then } \cscode{delete} \csjustificationf{will only call
+    the base destructor. In addition, some compilers will issue a warning.}
+\end{cenumerate}
+
+\subsubsection{Another Rule}
+
+\begin{cenumerate}
+\item \csrule{Floating-point numbers should always have a decimal point.}
+  \cscomment{While manipulating floating-point numbers, write}
+\begin{verbatim}
+double x = 2.; // or 2.0
+double y = 2. * x;
+y = 1. + x / 3.;
+\end{verbatim}
+  \cscommentf{instead of}
+\begin{verbatim}
+double x = 2;
+double y = 2 * x;
+y = 1 + x / 3;
+\end{verbatim}
+  \csnjustification{It clearly shows what type of variable is manipulated. It
+    can avoid mistakes like writing \cscode{2 / 3} (which is zero) instead of
+    \cscode{2. / 3.} (which is of course not zero).}
+\end{cenumerate}
+
+
+\subsection{Files}
+\label{sec:files}
+
+\subsubsection{General Rule}
+
+\begin{cenumerate}
+\item \csrule{Definition shall never follow declaration. Put declarations in
+    header files and definitions in source files. There must be a header file
+    for any source file.}  \csjustification{First, a precompiled library can be
+    built only if declarations and definitions have been split. Second, the
+    contents of a library may be quickly browsed in its headers.}
+\end{cenumerate}
+
+\subsubsection{Names}
+
+\begin{cenumerate}
+\item \csrule{Extensions are {\rm \cscode{hpp}} or {\rm \cscode{hxx}} (for headers)
+    and {\rm \cscode{cpp}} or {\rm \cscode{cxx}} (for sources). {\rm \cscode{*xx}}
+    files should be used for libraries, exclusively.}  \csjustification{It is
+    convenient to identify what is part of a software (to be compiled) and
+    what is part of a library (to be included).}
+\item \csrule{For libraries, a header file and a source file should be
+    associated to each class. Those files have the same name as the class and
+    they match its case.}
+\item \csrule{The names of the directories and the names of the files to be
+    compiled are lowercase with underscores to delimit the words.}
+  \cscomment{Lower case is used for the files not part of the core library
+    (\cscode{*.cpp}): examples, unit tests,~\ldots{}} \csjustification{Browsing
+    the code from command line is easier with lowercase directory names, and
+    it is consistent with Linux/Unix conventions. A file name of the core
+    library should be the same as the class it implements (see above), but
+    other files should be lowercase also for convenience and consistency with
+    the environment.}
+\end{cenumerate}
+
+\subsubsection{Includes}
+
+\begin{cenumerate}
+\item \csrule{All library files must have include guards.}
+\item \csrule{Include guards must be in the form \cscode{\{library name (upper
+      case)\}\_FILE\_\{file name with its full path in the library (upper
+      case; slashes and the dot are replaced with an underscore)\}}.}
+  \cscomment{Example: \cscode{SELDON\_FILE\_SHARE\_VIRTUALALLOCATOR\_HXX} for the
+    file ``VirtualAllocator.hxx'' in directory ``share'' of the library
+    Seldon.}
+\item \csrule{Include libraries of the C++ standard with \cscode{<} and \cscode{>},
+    and other libraries with double quotes.} \cscomment{Example:}
+\begin{verbatim}
+#include <vector>
+#include "Seldon.hxx"
+\end{verbatim}
+\end{cenumerate}
+
+
+\subsection{About C++ Features}
+
+\subsubsection{Exceptions}
+
+\begin{cenumerate}
+\item \csrule{Use exceptions to manage errors.} \csjustification{First, exception
+    are in C++ precisely to manage errors. In old languages, one adds an
+    integer to the arguments of all functions in order to track errors. This
+    is difficult to maintain and it is dangerous because errors may be
+    detected without further action. The other practice is to simply terminate
+    the program (e.g., with \cscode{abort()}), but then the program cannot
+    recover from the error.}
+\item \csrule{Do not use exception specifications.} \csjustification{It is a
+    nightmare to keep these exception specifications up-to-date because of
+    exceptions that may be thrown by nested functions.}
+\item \csrule{Check every memory allocation.} \cscomment{This is usually managed
+    at a rather low level, in the libraries that provide the base structures.}
+  \csjustification{If a memory allocation fails, a program should not keep
+    running.}
+\item \csrule{Allow the user to mute error checking.} \cscomment{To achieve this,
+    enclose any test and its throw statement by} \cscode{\#ifdef \{library name
+    (upper case)\}\_DEBUG\_\{small description\}} \cscommentf{and}
+  \cscode{\#endif}.  \cscommentf{Example:}
+  \cscode{VERDANDI\_DEBUG\_CHECK\_DIMENSION} \csjustification{Some tests may
+    result in significant overheads. For instance, in the access to an element
+    of a vector, checking the validity of the index requires a significant
+    amount of time compared to the access itself. The test may be very
+    helpful, but one should be able to deactivate it.}
+\end{cenumerate}
+
+\subsubsection{Templates}
+
+\begin{cenumerate}
+\item \csrule{For scientific computing, always consider template functions: most
+    functions should have the numerical type as template parameter.}
+  \cscomment{Do not fear templates! They are really helpful to build generic
+    codes while maintaining high performance.}  \csjustification{In scientific
+    computing, the type of the underlying data may change: \cscode{float},
+    \cscode{double}, \cscode{complex<float>}, \cscode{complex<double>} or even a
+    user-defined class. In addition, one never perfectly predicts what will be
+    the eventual use of one's code; for instance, parts of it may be reused in
+    another context, with other data structures.}
+\end{cenumerate}
+
+\subsubsection{C++ Standard}
+
+\begin{cenumerate}
+\item \csrule{Build a fully standard-compliant code. If a compiler does not
+    understand it, discard it or write the code it needs within a {\rm
+      \cscode{\#define}}/{\rm \cscode{\#endif}} block.} \csjustification{This
+    ensures portability and makes the code perennial.}
+\item \csrule{Do not use C features if they have been replaced by C++ features.}
+  \cscomment{Even if C++ features do not always seem better at first sight,
+    trust the designers of the C++ standard.} \csjustification{C++ features are
+    better than their C equivalents, except that they might lead to overheads
+    in a few cases.}
+\end{cenumerate}
+
+
+\subsection{Other Conventions}
+
+\begin{cenumerate}
+\item \csrule{In a loop, the stopping test should use an inclusive lower-bound
+    or an exclusive upper-bound.}  \cscomment{Example:}
+\begin{verbatim}
+  for (unsigned int i = 0; i < 50; i++)
+\end{verbatim}
+\end{cenumerate}
+
+
+%%%%%%%%%%%%
+%% PYTHON %%
+%%%%%%%%%%%%
+
+
+\section{Python}
+\label{part:python}
+
+\begin{cenumerate}
+\item \csrule{Tabulations are forbidden. They should be replaced with spaces.}
+  \csjustification{In Python, the indentation is part of the language since it
+    defines the blocks. If the indentation changes because of a varying
+    tabulation length and a mixing of spaces and tabulations, the code
+    changes. This is a risk nobody is willing to take.}
+\item \csrule{The indentation depth is four spaces.} \csjustification{Same as in
+    C++, see section~\ref{sec:indentation-braces}.}
+\item \csrule{A line should not contain strictly more than 78 characters.}
+  \csjustification{Same as in C++, see section~\ref{sec:lines}.}
+\item \csrule{Use Doxygen, with similar to conventions to those for C++---section~\ref{sec:comm-docum}.}
+\end{cenumerate}
+
+This part of the document should be completed later. Note that the conventions
+should be similar to C++. The ``Style Guide for Python Code'', by Guido van
+Rossum and Barry Warsaw, \url{http://www.python.org/dev/peps/pep-0008/},
+should serve as a sound background.
+
+
+%%%%%%%%%%%%%%%%%%%%%
+%% OTHER LANGUAGES %%
+%%%%%%%%%%%%%%%%%%%%%
+
+
+\section{Other Languages}
+
+\begin{cenumerate}
+\item \csrule{Only use a limited number of languages.} \cscomment{For instance,
+    with C++ and Python, one can cover all needs: from low-level
+    high-performance computing to high level programming (scripts, command
+    line).}  \csjustification{It is better to fully understand a few languages
+    than poorly using many languages. Moreover adding dependencies (to other
+    languages and, as a consequence, to other compilers and libraries) may
+    decrease the portability and may increase the installation difficulty.}
+\item \csrule{Try to follow the rules associated with C++.} \cscomment{In case you
+    {\it really} need to use another language, C++ conventions should cover
+    most features of this additional language.}
+\end{cenumerate}

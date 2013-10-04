@@ -1,0 +1,35 @@
+/*! \file dependencies.dox
+    \brief Dependencies.
+*/
+
+/*!
+\page dependencies Dependencies
+
+A few libraries are needed, for compilation, configuration files and linear algebra. Before choosing the dependencies, we carried out detailed comparisons of the available solutions:
+
+<ul>
+<li> <a href="../doc/linear_algebra_libraries.pdf">A thorough study of existing
+libraries for linear algebra</a> has been carried out to choose <a href="http://seldon.sourceforge.net/"> Seldon </a> for providing %Verdandi with vectors, matrices and related operations.</li>
+
+<li> <a href="../doc/configuration_library.pdf">A study of several libraries to manage configuration files </a> has initially concluded that GetPot should be used to read the configurations. Eventually, we switched to Ops: the configuration files are written in <a href="http://www.lua.org"> Lua </a>, which makes the configuration files easy to read and write for the beginner, and yet very powerful for advanced users. </li>
+
+<li> Verdandi provides a high level interface in Python generated via <a href="http://www.swig.org/">SWIG </a>. The tools to <a href="../doc/high_level_interface.pdf"> build a high level interface on top of the C++ source code </a> have been listed and studied.</li>
+</ul>
+
+Below is the list of dependencies required by Verdandi:
+
+<ul>
+<li> The software construction tool <a href="http://www.scons.org/">SCons</a> (version 1.0 or higher) for compilation. </li>
+<li> Python for both SCons and the optional Python interface (see page \ref python) to the C++ code; the generation of the interface also requires <a href="http://www.swig.org/">SWIG</a>.
+</li>
+</ul>
+
+Note that in Verdandi tarball, you will also find:
+
+<ul>
+<li> The linear algebra library <a href="http://seldon.sourceforge.net/"> Seldon </a>.</li>
+<li> <a href="http://www.lua.org"> Lua </a>, a scripting language.</li>
+<li>  Ops, a library for reading <a href="http://www.lua.org"> Lua </a> configuration files. </li>
+</ul>
+
+*/

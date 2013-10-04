@@ -1,0 +1,470 @@
+Version 5.2 (2013-02-24)
+-----------
+
+* Improvements
+
+** Structures
+
+- Added several methods to matrices 'Sparse', 'ComplexSparse',
+  'ArrayComplexSparse', 'SymSparse', 'SymComplexSparse': 'Get', 'Set',
+  'ValReal', ValImag', 'GetReal', 'GetImag', 'Resize', 'Reallocate', 'Zero',
+  'SetIdentity', 'Fill', 'FillRand', 'Write', 'WriteText', 'Read', 'ReadText'.
+- 'GetRow', 'GetCol', 'SetRow' and 'SetCol' should now work for all dense
+  matrices except triangular matrices.
+- Added the methods 'Get(int, int)' and 'Set(int, int, T)' to
+  'Matrix_TriangPacked' and 'Matrix_Triangular'.
+- Added the methods 'Get(int, int)' and 'Set(int, int, T)' to
+  'Matrix_HermPacked', 'Matrix_Hermitian', 'Matrix_Pointers',
+  'Matrix_SymPacked' and 'Matrix_Symmetric'.
+- 'Matrix_HermPacked::operator(int, int)' now returns a value instead of a
+  reference.
+- Added 'Vector<VectSparse>::Val(int)'.
+- Added the methods 'Val', 'Get' and 'Set' to 'ArrayRowSparse' matrices.
+- 'Matrix_Pointers::Resize' does not perform a useless copy anymore when the
+  dimensions do not change.
+- Added 'Matrix<PETScSeqDense>', 'Matrix<PETScMPIDense>' and
+  'Matrix<PETScMPIAIJ>'.
+- Added 'Vector<PETScSeq>' and 'Vector<PETScPar>'.
+- Added 'Matrix_Pointers::GetMe()'.
+- Added method 'Get' for sparse and dense vectors.
+- Added some useful 'Matrix<PETSc>' and 'Vector<PETSc>' conversion functions.
+- Added 'GetCommunicator', 'GetLocalM' and 'GetLocalN' to 'Matrix<PETSc>'.
+- Added 'Vector<VectFull> Vector<VectFull>::Copy()'.
+- Added 'Vector2::Copy()'.
+- Added 'Vector Vector2::Flatten()'.
+- Added 'Vector3::GetNelement(int, int, int, int)' and 'Vector3::Flatten(int,
+  int, int, int, Vector&)'.
+- Added 'Vector3::GetShape(int)' and 'Vector3::GetShape(int, Vector<int>&)'.
+- Modified the PETSc vector and matrix interfaces to be consistent with PETSc
+  3.2.
+- Added method 'Vector<Collection>::Reallocate(int)'.
+- Added methods 'Vector<Collection>::Copy', 'Vector<Collection>::GetIndex' and
+  'Vector<Collection>::GetVectorIndex'.
+- Added 'VectorCollection::SetData(Vector<Collection>&)' and
+  'VectorCollection::Fill(T x)'.
+- Added several matrix conversions.
+- Added 'GetCol(const Matrix& M_in, int begin, int end, Matrix& M_out)'.
+- Implemented function 'SetCol(const Vector<VectFull>, int,
+  Matrix<RowSparse>)'.
+- Added methods 'VectorCollection::GetIndex' and
+  'VectorCollection::GetIndexVector'.
+- Added the typedef 'storage' to 'Vector<FloatDouble,
+  DenseSparseCollection>'.
+- Added the typedefs 'value_type', 'property', 'storage' and 'allocator'
+  inside the classes for matrices collections.
+- Set 'data_' to 'NULL' in 'Matrix_Base' copy constructor, so that the copy
+  constructors of all derived classes will be safe, even if they call the copy
+  constructor of 'Matrix_Base'.
+
+** Computations
+
+- Initial import of 'NLoptSolver'.
+- Initial import of 'SparseDirectSolver' (with support of UmfPack, SuperLU,
+  Mumps and Pastix) and 'SparseSeldonSolver'.
+- Added a few basic linear algebra functions for PETSc matrices and PETSc
+  vectors.
+- Added a generic function 'MltAdd(alpha, TransA, A, TransB, B, beta, C)'.
+- Implemented matrix function 'Mlt(Matrix<RowMajor>, Matrix<RowSparse>,
+  Matrix<RowMajor>)'.
+- Added 'MltAdd(alpha, SeldonTranspose, Matrix<RowMajor>, SeldonTranspose,
+  Matrix<RowSparse>, beta, Matrix<RowMajor>)'.
+- Defined several 'VectorCollection' computation functions, including
+  'MltAdd(alpha, Matrix<RowSymSparse>, Vector<Collection>, beta,
+  Vector<Collection>)'.
+- Introduced the C++ MPI bindings in the Pastix interface.
+- In Pastix interface, the solution is now refined by default.
+- Introduced the C++ MPI bindings in the Mumps interface.
+- Modified Cholmod interface in order to support the product L x and L^T x.
+- Renamed 'SparseDirectSolver::SetOrdering' to
+  'SparseDirectSolver::SetPermutation', and improved MPI support.
+- Initial import of "SparseCholeskySolver" which allows one to choose
+  (dynamically) Cholmod or a default Cholesky solver.
+- Added 'Mlt(T, Array3D&)'.
+- Added header files associated with 'Functions_MatVect.cxx',
+  'Functions_Matrix.cxx' and 'Functions_Vector.cxx'.
+- Added header files for the Lapack interface.
+- Added header files for the Blas interface.
+- Renamed 'SetTypeOrdering' to 'SelectOrdering'.
+- Added 'GetInfoFactorization' in the UmfPack interface.
+- Added 'GetInfoFactorization' in the SuperLU interface.
+- "SeldonPreconditioner.hxx" is now included in "SeldonSolver.hxx" when
+  'SELDON_WITH_PRECONDITIONING' is defined.
+
+** Input/output
+
+- Added the possibility to write a vector in HDF5 file format.
+- Added methods 'Write' and 'Read' to 'Vector3'.
+- Added methods 'Write' and 'Read' to 'Vector2'.
+- Improved 'VectorCollection' input and output methods so that the shape of
+  the vector collection is written and read in the file.
+- Improved 'Matrix_ArraySparse::WriteText' and
+  'Matrix_ArrayComplexSparse::WriteText'.
+- Added 'PrintComplexValuesHarwell' and 'WriteHarwellBoeing'.
+
+** Python
+
+- Improved exception handling in Python: the C++ exceptions 'WrongIndex',
+  'WrongRow', 'WrongCol' and 'WrongDim' are now converted to 'IndexError'
+  instead of the generic 'Exception'. This enables to apply list
+  comprehensions to Seldon vectors and matrices.
+- Added 'Vector<Collection>' to the SWIG interface.
+- Extended the Python interface with the functions 'load_vector',
+  'load_vector_list', 'to_vector', 'load_matrix', 'load_matrix_list' and
+  'to_matrix'.
+- Modified 'load_vector_list' and 'load_matrix_list' so that several vectors
+  or matrices can be skipped in the beginning of the file.
+- Excluded a few 'Vector2' methods from SWIG interface in order to avoid
+  compilation problems.
+
+** Compilation
+
+- Adapted the SConstruct file to build the SWIG interface under Visual C++.
+- Added Python library at linking stage so that the SWIG module can be built
+  under MacOS.
+- Removed redefinitions of default parameters in several source files.
+- The copy constructor of 'Matrix_Sparse' now calls that of 'Matrix_Base' in
+  order to avoid a compilation warning.
+- Added the option "-Wno-parentheses" to GCC in strict mode, in order to
+  deactivate annoying warnings.
+- Removed all remaining exception specifications.
+
+** Miscellaneous
+
+- Initial import of class 'Str' that helps formatting strings.
+- Renamed files "PETScVector.*xx" to "PetscVector.*xx".
+- Added the prefix 'std::' to 'cout' and 'endl' in the preprocessor directives
+  ERR, DISP, DISPLAY and END.
+
+** Documentation
+
+- Added a page about eigenvalues in the documentation.
+- Updated the documentation on the eigenvalue solvers.
+- Updated the documentation about the direct solvers.
+- Improved the documentation for 'Vector::SetData'.
+- Improved the documentation about 'Vector<VectSparse>::Get(int)' and
+  'Vector<VectSparse>::operator(int)'.
+- Added the Doxygen documentation for 'GetRow', 'GetCol', 'SetRow' and
+  'SetCol'.
+
+* Bug fixes
+
+- 'ConvertMatrix_from_Coordinates' was erroneous for 'ArrayColSymSparse'
+  matrices.
+- The methods 'Read' and 'Write' did not work properly under Windows because
+  the streams were not opened with the option 'binary'.
+- 'Matrix_Pointers::Fill(const T0& x)' could not be compiled because an
+  assignment operator is not inherited in C++.
+- "Mlt(SeldonNoTrans, A, x, b)" was computing "b = 111 * A * x" when Blas was
+  not called.
+- 'Vector<Collection>::GetVectorIndex(string)' and
+  'Vector<Collection>::GetIndex(string)' were defined twice.
+- 'MltAdd' did not accept complex vectors together with a real
+  'ArrayRowSymSparse' matrix.
+- The method 'Fill(const T0& x)' was called instead of the assignment operator
+  which is not inherited in C++. This led to a compilation error.
+- 'Matrix_Sparse::FillRand(int, const T&)' did not compile.
+- The pointer returned by 'MallocObject::reallocate' could be erroneous
+  because 'realloc' may move the memory block.
+- 'MallocObject' could fail to deallocate or reallocate memory under MS
+  Windows because of alignment problems.
+- Some 'PETSc' computation functions did not support a communicator different
+  from 'MPI_COMM_WORLD'.
+- Two explicit specializations of two function templates had default
+  arguments, which could lead to compilation errors for the SWIG interface.
+- In "share/SConstruct", the variable "library_path" was used to set 'CPPPATH'
+  instead of 'LIBPATH'.
+- "share/SConstruct" was not linking with 'petsc' and 'X11'.
+- Corrected an erroneous preprocessor directive to avoid multiple inclusions
+  of file "Lsqr.cxx".
+- Under certain conditions, the SuperLU interface could not be compiled.
+- The include guard of "Functions_MatVect.cxx" was erroneously defined.
+- Fixed a few error messages.
+
+
+Version 5.1.2 (2011-06-14)
+-------------
+
+* Bug fixes and improvements
+
+- Fixed a bug: the methods 'Read' and 'Write' did not work properly under MS
+  Windows because the streams were not opened with the option 'binary'.
+- Fixed a bug: 'MallocObject' could fail to deallocate or reallocate memory
+  under MS Windows because of alignment problems.
+- The method 'Fill(const T0& x)' for matrices was called instead of the
+  assignment operator which is not inherited in C++. This led to a compilation
+  error.
+- Set 'data_' to 'NULL' in 'Matrix_Base' copy constructor, so that the copy
+  constructors of all derived classes will be safe, even if they call the copy
+  constructor of 'Matrix_Base'.
+- Fixed a few error messages related to input/output operations.
+- The copy constructor of 'Matrix_Sparse' now calls that of 'Matrix_Base' in
+  order to avoid a compilation warning.
+- Added the prefix 'std::' to 'cout' and 'endl' in the preprocessor directives
+  ERR, DISP, DISPLAY and END.
+- 'Matrix_Pointers::Resize' does not perform a useless copy anymore when the
+  dimensions do not change.
+
+
+Version 5.1.1 (2011-05-11)
+-------------
+
+
+Version 5.1 (2011-03-03)
+-----------
+
+* Improvements
+
+** New structures
+
+- Introduced 'Matrix<Collection>' which implements block matrices.
+- Introduced 'Matrix<FloatDouble, DenseSparseCollection>' which implements
+  heterogeneous (float/double dense/sparse) block matrices.
+- Introduced 'Vector<Collection>' which implements block vectors.
+- Introduced 'Vector<FloatDouble, DenseSparseCollection>' which implements
+  heterogeneous (float/double VectFull/VectSparse) block vectors.
+- Introduced the class 'Vector2' which handles vectors of vectors.
+- Introduced the class 'Vector3' which handles vectors of vectors of vectors.
+- Added support for sub-matrices.
+
+** Sparse matrices
+
+- Added facilities to read matrices from the Matrix Market.
+- Added 'Add(alpha, A, B)', 'Mlt(A, B, C)', 'MltNoTransTrans(A, B, C)' and
+  'MltAdd(alpha, A, B, beta, C)' for 'RowSparse' matrices.
+- Added 'ApplyInversePermutation' for 'RowSparse' and 'ColSparse' matrices.
+- Added 'Transpose' for 'RowSparse' matrices.
+- Added 'FillRand(Nelement)' and 'FillRand(Nelement, x)' to 'RowSparse' matrices.
+- Added 'Fill()', 'Fill(x)' and 'FillRand()' for Harwell-Boeing real matrices.
+- Added the methods 'SetIdentity', 'AddInteraction' and 'Zero' to
+  Harwell-Boeing real matrices.
+- Added 'GetRow', 'GetCol', 'SetRow' and 'SetCol' for 'RowSparse' matrices.
+- Added the generic function 'Copy(A, B)' for matrices. Added the function
+  'Copy' to convert from 'RowSparse' to 'ColSparse', from 'ColSymSparse' to
+  'RowSymSparse' and from 'ArrayRowSymSparse' to 'ColSparse'.
+- Added methods 'Val(int, int)' to sparse matrices.
+- Added 'GetSymmetricPattern(Matrix A, Matrix<int, Symmetric, RowSymSparse>& B)'.
+- Added 'WriteText(string)' and 'WriteText(ofstream&)' for
+  'ArrayComplexSparse' matrices.
+- Added two methods 'WriteText' for 'SymSparse' matrices.
+- Improved the conversion from coordinate format to 'RowSparse': duplicates
+  are now accepted.
+
+** Other structures and facilities
+
+- Added the allocator 'MallocObject' which allows to resize an array of
+  objects with a minimal number of recopies.
+- Added method 'Val(int)' to sparse vectors.
+- Added the methods 'SetData(const Vector<VectFull/VectSparse>&)' and the
+  typedef 'storage' in VectFull/VectSparse vectors.
+- Added 'Vector<T, VectFull>::Vector(int i, pointer data)'.
+- Added the optional argument 'with_size' to 'Vector<Vect_Full>::Read' and to
+  'Matrix_Pointers::Read' for the files or streams that do not contain the
+  vector length or the matrix dimensions.
+- Added the typedef declarations 'access_type' and 'const_access_type', and
+  added or extended the typedef declarations in many matrix structures.
+- Slightly modified 'Vector::GetNormInf' and 'Vector::GetNormInfIndex' so that
+  they may be compiled for vectors of Booleans.
+
+** Solvers
+
+- Initial import of the interface to Pastix (5.1.3).
+- Added 'PerformAnalysis' and 'PerformFactorization' to 'MatrixMumps' and
+  'MatrixUmfPack<double>'.
+- Added support for multiple right-hand sides with Mumps.
+- Added support for transposed matrices in the interface to SuperLU.
+- In the SuperLU interface, added 'GetLU(L, U, permuted)' so that the matrices
+  L and U may be accessed in 'ColSparse' format or 'RowSparse' format. Also
+  added 'GetRowPermutation' and 'GetColPermutation'.
+- Messages from Mumps, Pastix, UmfPack and SuperLU are now switched off by
+  default.
+- Added the function 'GetAndSolveLU(M, Y)' for sparse matrices.
+- Added 'SolveSylvester' for 'RowMajor' matrices in double precision.
+
+** Python and compiled library
+
+- Initial import of an experimental mechanism for the generation of a (rich)
+  compiled library.
+- Added 'ifstream' and 'ofstream' to the Python interface. This is useful for
+  the methods 'Read' and 'Write'.
+- Added 'VectorSparseDouble' and 'MatrixSparseDouble' to the Python interface.
+- The Python interface is now aware of the default arguments.
+
+** Other functions
+
+- Added support for Cholesky factorization, either with native C++ code or
+  with an interface to Cholmod.
+- Added incomplete factorization for symmetric matrices and unsymmetric
+  matrices.
+- Switched from 'QuickSort' to 'MergeSort' as default sorting algorithm.
+- Added the function 'Mlt(SeldonTrans&, const Matrix& M, const Vector& X,
+  Vector& Y)'.
+- Added 'ApplyPermutation' and 'ApplyInversePermutation' for row-major and
+  column-major dense matrices.
+
+* Bug fixes
+
+- The constructor 'Matrix_ArrayComplexSparse(int i, int j)' swapped the number
+  of rows and the number of columns, in the case of a column-major matrix.
+- The copy constructors of several sparse matrices did not properly copy the
+  attributes 'ind_' and ptr_'.
+- In 'TransposeConj(Matrix& A)', the diagonal was not conjugated.
+- in 'Matrix<ArrayRowComplexSparse>::AddInteractionRow(int, int, IVect,
+  Vector<complex<T>, VectFull>&)': the imaginary part was not properly added.
+- Fixed bugs in 'GetSVD'. In the complex cases, the singular values were not
+  returned in a real-valued vector. The functions 'cgesvd_' and 'zgesvd_' were
+  not declared in "clapack.h". For 'RowMajor' matrices, the memory was not
+  allocated for the output matrices U and V^T.
+- 'MergeSort' did nothing!
+- 'Mlt(SeldonNoTrans, A, x, b)' was computing 'b = 111 * A * x' when Blas was
+  not called.
+- In matrix conversions, there could be free/delete mismatches when the
+  allocators were badly mixed.
+- Bad calls to 'SetData' led to compilation errors in
+  'ConvertMatrix_from_Coordinates' for 'RowSparse', 'ColSparse',
+  'RowSymSparse' and 'ColSymSparse'.
+- 'CheckDim' was activated with 'SELDON_CHECK_BOUNDS instead of
+  'SELDON_CHECK_DIMENSIONS'.
+- A sparse matrix with 0 row can now be created.
+- Several constructors in the form 'Matrix(int, int)' were declared but not
+  defined.
+- 'MltAdd' for 'ArrayRowSymSparse' did not accept complex vectors with a real
+  matrix.
+- Some compilation errors with Microsoft Visual C++.
+
+* Miscellaneous
+
+- Included "superlu/slu_zdefs.h" instead of "slu_zdefs.h" in the SuperLU
+  interface, so as to be consistent with the structure of common SuperLU
+  packages.
+- Renamed 'SELDON_WITH_CBLAS' to 'SELDON_WITH_BLAS'. For backward
+  compatibility, 'SELDON_WITH_CBLAS' is still valid.
+- Added a number of unit tests.
+- The user's guide is now written in Doxygen format, which gives a better
+  integration with the reference documentation.
+
+
+Version 5.0 (2009-05-23)
+-----------
+
+Since this version is tagged after several years of development, it comes with
+far too many changes to be listed. About 40,000 source lines of code have been
+added. Below is a partial and short summary of the main changes (compared to
+version 4.1):
+- Added many functions for computing: extended the Blas interface, added an
+  interface to Lapack (eigenvalues and eigenvectors, least squares and
+  solvers), added iterative solvers (Gmres, BiCg, QCgs, ...), added a
+  preconditioner, added interfaces for SuperLU, Mumps and UmfPack, ...
+- Added Hermitian, Hermitian packed, symmetric, triangular and triangular
+  packed matrices.
+- Added (real and complex) sparse matrices stored as a vector of sparse
+  vectors.
+- Added sparse vectors.
+- Added many convenient methods and functions to manipulate vectors and
+  matrices; e.g., sorting algorithms, matrix conversions, construction of
+  structures from existing memory blocks.
+- Added unit tests.
+- Added a partial Python interface, generated by Swig.
+- Introduced compilation with SCons.
+
+
+Intermediate versions (not tagged)
+---------------------
+
+- 2009-03-04
+- 2009-02-17
+- 2008-11-12
+- 2005-05-15
+- 2004-12-03
+- 2004-11-08
+- 2004-09-20
+
+
+Version 4.1 (2003-12-14)
+-----------
+
+
+Version 4.0.2 (2003-09-05)
+-------------
+
+
+Version 4.0.1 (2003-09-05)
+-------------
+
+
+Version 4.0 (2003-08-31)
+-----------
+
+** Improvements:
+
+- Added row-major and column-major symmetric matrices stored in packed form
+  (Blas format).
+- Added the interface to the Blas (level 1) functions:
+    + 'Add' (xAXPY)
+    + 'ApplyModifRot' (xROTM)
+    + 'ApplyRot' (xROT)
+    + 'Copy' (xCOPY)
+    + 'DotProd' (xDOT)
+    + 'DotProjConj' (xDOTC)
+    + 'DotProdDouble' (SDSDOT)
+    + 'GetMaxAbsIndex' (IxAMAX)
+    + 'GenModifRot' (xROTMG)
+    + 'GenRot' (xROTG)
+    + 'Mlt(const T, Vector&)' (xSCAL)
+    + 'Norm1' (xASUM)
+    + 'Norm2' (xNRM2)
+    + 'Swap' (xSWAP)
+- Added the interface to some Blas (level 2) functions:
+    + 'MltAdd' (xGEMV and xSPMV)
+- Overloaded operator << for matrices and vectors.
+- Overloaded methods 'Write', 'WriteText' and 'Read' (for matrices and
+  vectors) with arguments of 'ofstream' or 'ifstream' type.
+- Added methods:
+    + 'Clear'
+    + 'SetData'
+  to matrices and vectors classes to allow for low level manipulations.
+- Improved error management in methods 'Write', 'WriteText' and 'Read' (for
+  matrices and vectors).
+- Improved error messages in case of indices out of range.
+
+** Bug fixes:
+
+- 'FILE_FUNCTIONS_VECTOR_CXX' was not defined at the end of
+  "Functions_Vector.cxx", which led to compilation problems in case of
+  multiple inclusions.
+
+
+Version 3.3 (2003-08-02)
+-----------
+
+** Improvements:
+
+- Improved input/output operations ('Write', 'WriteText' and 'Read').
+- Added convenient macros and functions:
+    + to_str and to_num
+    + ERR, DISP and DISPLAY
+- Changed 'include' statements to be fully compliant with the C++ standard.
+
+** Bug fixes:
+
+
+Version 3.2 (2003-06-09)
+-----------
+
+
+Version 3.1 (2002-12-06)
+-----------
+
+
+Version 3.0 (2002-02-27)
+-----------
+
+
+Version 2.0 (2002-01-10)
+-----------
+
+
+Version 1.0 (2001-09-18)
+-----------
+
+
+The development started in 2001.
