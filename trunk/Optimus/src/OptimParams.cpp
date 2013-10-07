@@ -25,8 +25,10 @@
 
 //#define SOFA_COMPONENT_CONTAINER_OPTIMPARAMS_CPP
 
+#
 #include <sofa/core/ObjectFactory.h>
 #include "OptimParams.inl"
+//#include <sofa/helper/accessor.h>
 
 namespace sofa
 {
@@ -39,6 +41,35 @@ namespace container
 
 using namespace defaulttype;
 
+template<>
+void OptimParams<sofa::helper::vector<double> >::init() {
+    helper::ReadAccessor<Data<sofa::helper::vector<double> > > initVal = m_initVal;
+    size_t nInitVal = initVal.size();
+    if (nInitVal != 0) {
+        helper::WriteAccessor<Data<sofa::helper::vector<double> > > val = m_val;
+        if (val.size() == 0) {
+            val.resize(nInitVal);
+            for (size_t i = 0; i < nInitVal; i++)
+                val[i] = initVal[i];
+        }
+
+        helper::WriteAccessor<Data<sofa::helper::vector<double> > > minVal = m_min;
+        if (minVal.size() == 0) {
+            minVal.resize(nInitVal);
+            for (size_t i = 0; i < nInitVal; i++)
+                minVal[i] = initVal[i];
+        }
+
+        helper::WriteAccessor<Data<sofa::helper::vector<double> > > maxVal = m_max;
+        if (maxVal.size() == 0) {
+            maxVal.resize(nInitVal);
+            for (size_t i = 0; i < nInitVal; i++)
+                maxVal[i] = initVal[i];
+        }
+
+    }
+}
+
 SOFA_DECL_CLASS(OptimParams)
 
 // Register in the Factory
@@ -50,6 +81,7 @@ int OptimParamsClass = core::RegisterObject("Optimization Parameters")
         .add< OptimParams<Vec1d> >() // default template
         .add< OptimParams<RigidCoord<3,double> > >()
         .add< OptimParams<RigidCoord<2,double> > >()
+        .add< OptimParams<sofa::helper::vector<double> > >()
 #endif
 #ifndef SOFA_DOUBLE
         .add< OptimParams<float> >(true) // default template
@@ -58,6 +90,7 @@ int OptimParamsClass = core::RegisterObject("Optimization Parameters")
         .add< OptimParams<Vec1f> >() // default template
         .add< OptimParams<RigidCoord<3,float> > >()
         .add< OptimParams<RigidCoord<2,float> > >()
+        .add< OptimParams<sofa::helper::vector<float> > >()
 #endif
 ;
 
@@ -68,6 +101,7 @@ template class SOFA_OptimusPlugin_API OptimParams<Vec2d>;
 template class SOFA_OptimusPlugin_API OptimParams<Vec1d>;
 template class SOFA_OptimusPlugin_API OptimParams<RigidCoord<3,double> >;
 template class SOFA_OptimusPlugin_API OptimParams<RigidCoord<2,double> >;
+template class SOFA_OptimusPlugin_API OptimParams<sofa::helper::vector<double> >;
 #endif
 #ifndef SOFA_DOUBLE
 template class SOFA_OptimusPlugin_API OptimParams<float>;
@@ -76,7 +110,9 @@ template class SOFA_OptimusPlugin_API OptimParams<Vec2f>;
 template class SOFA_OptimusPlugin_API OptimParams<Vec1f>;
 template class SOFA_OptimusPlugin_API OptimParams<RigidCoord<3,float> >;
 template class SOFA_OptimusPlugin_API OptimParams<RigidCoord<2,float> >;
+template class SOFA_OptimusPlugin_API OptimParams<sofa::helper::vector<float> >;
 #endif
+
 
 } // namespace container
 } // namespace component

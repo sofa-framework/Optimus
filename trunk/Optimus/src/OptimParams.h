@@ -84,6 +84,18 @@ struct templateName<sofa::defaulttype::Vec1d>
     std::string operator ()(void) { return("Vec1d"); }
 };
 
+template<>
+struct templateName<sofa::helper::vector<double> >
+{
+    std::string operator ()(void) { return("Vector"); }
+};
+
+template<>
+struct templateName<sofa::helper::vector<float> >
+{
+    std::string operator ()(void) { return("Vector"); }
+};
+
 //////////////////////////////////////////////////////////////////////////
 template <class DataTypes>
 class OptimParams : public sofa::core::objectmodel::BaseObject
@@ -94,7 +106,7 @@ public:
     ~OptimParams();
     void init();
     void reinit();
-    static std::string templateName(const OptimParams<DataTypes>* = NULL) { std::string name = sofa::component::container::templateName<DataTypes>()(); return(name); }
+    static std::string templateName(const OptimParams<DataTypes>* = NULL) { std::string name = sofa::component::container::templateName<DataTypes>()(); return(name); }       
 
 protected:
     Data< DataTypes > m_val;
