@@ -40,9 +40,13 @@
 #define VERDANDI_DENSE
 
 #define VERDANDI_WITH_DIRECT_SOLVER
+
+
 //#define SELDON_WITH_MUMPS*/
 
 //#include "SofaModelWrapper.h"
+
+//#define VERDANDI_IGNORE_MESSAGE
 
 #include "Verdandi.hxx"
 #include "method/ForwardDriver.cxx"
@@ -62,7 +66,7 @@ namespace simulation
 {
 
 template <class T>
-class SOFA_SIMULATION_COMMON_API SofaModelWrapper : public sofa::core::objectmodel::BaseObject, public Verdandi::VerdandiBase
+class SOFA_SIMULATION_COMMON_API SofaModelWrapper : public Verdandi::VerdandiBase
 {
 public:
     typedef sofa::core::objectmodel::BaseObject Inherit;
@@ -110,8 +114,8 @@ public:
 
 protected:
     const core::ExecParams* execParams;
-
-    state State;
+    int numStep;
+    state _state;
 
 public:
     SofaModelWrapper();
@@ -126,26 +130,37 @@ public:
     /// verdandi functions:
 
     void Finalize() {}
-    void FinalizeStep() {}
+
+    void FinalizeStep() {
+        numStep++;
+    }
+
     double GetTime() {
-        return this->gnode->getDt();
+        return double(numStep)*this->gnode->getDt();
     }
 
     bool HasFinished() {
         return(false);
     }
 
-    void Initialize() {
+    void sofaInitialize( simulation::Node* _gnode );
+
+    void Initialize(std::string &configFile) {        
+        std::cout << "Initialize the model with a model file: " << configFile << std::endl;
+        numStep = 0;
+        _state.Resize(10);
+        _state.Fill(3.14);
     }
 
-    void InitializeStep() {
-    }
+    void InitializeStep() {}
 
     void Forward();
 
     state& GetState() {
-        return State;
+        return _state;
     }
+
+    //void Message(string _message);
     /*virtual void setNode( simulation::Node* );
 
     /// Set the simulation node to the local context if not specified previously
@@ -187,6 +202,8 @@ protected:
     //SofaModelWrapper* modelWrapper;
 
     Data<std::string> _configFile;
+    Data<bool> _positionInState;
+    Data<bool> _velocityInState;
 
     virtual ~VerdandiAnimationLoop();
 public:

@@ -78,6 +78,8 @@ VerdandiAnimationLoop::VerdandiAnimationLoop(simulation::Node* _gnode)
     : Inherit()
     , gnode(_gnode)
     , _configFile( initData(&_configFile, "configFile", "configuration file for the driver") )
+    , _positionInState( initData(&_positionInState, true, "positionInState", "position included in Verdandi state") )
+    , _velocityInState( initData(&_velocityInState, true, "velocityInState", "velocity included in Verdandi state") )
 {    
     assert(gnode);
     driver=new Verdandi::ForwardDriver<SofaModelWrapper<double> >;
@@ -91,11 +93,15 @@ VerdandiAnimationLoop::~VerdandiAnimationLoop()
 
 void VerdandiAnimationLoop::init()
 {
+    std::cout << "initialize with: " << _configFile.getValue() << std::endl;
+    driver->GetModel().sofaInitialize(gnode);
+    driver->Initialize(_configFile.getValue());
+
     if (!gnode)
         gnode = dynamic_cast<simulation::Node*>(this->getContext());
 
     //this->getContext()->get(modelWrapper);
-    driver->GetModel().SetNode(gnode);
+
 
     /*if (modelWrapper == NULL) {
         std::cerr << "No model wrapper found, cannot interface Verdandi-Sofa" << std::endl;
@@ -105,7 +111,7 @@ void VerdandiAnimationLoop::init()
     }*/
 }
 
-void VerdandiAnimationLoop::setNode( simulation::Node* _gnode )
+void VerdandiAnimationLoop::setNode(simulation::Node* _gnode)
 {
     gnode=_gnode;
 }
@@ -115,7 +121,10 @@ void VerdandiAnimationLoop::step(const core::ExecParams* params, double /*dt*/)
     //modelWrapper->setExecParams(params);
     //modelWrapper->Forward();
     driver->GetModel().setExecParams(params);
-    driver->GetModel().Forward();
+    //driver->GetModel().Forward();
+    driver->InitializeStep();
+    driver->Forward();
+    driver->FinalizeStep();
     /*if (dt == 0)
         dt = this->gnode->getDt();
 
@@ -178,27 +187,40 @@ void VerdandiAnimationLoop::step(const core::ExecParams* params, double /*dt*/)
     sofa::helper::AdvancedTimer::stepEnd("AnimationStep");*/
 }
 
+
+
+/// ********************************************************************************** WRAPPER ****************************************
+
+
 template <class T>
 SofaModelWrapper<T>::SofaModelWrapper()
-    : Inherit()
+    //: Inherit()
 {}
 
 template <class T>
 SofaModelWrapper<T>::~SofaModelWrapper()
 {}
 
-/*void SofaModelWrapper::init()
-{
-    if (!gnode)
-        gnode = dynamic_cast<simulation::Node*>(this->getContext());
+/*template <class T>
+void SofaModelWrapper<T>::Message(string _message) {
+    std::cout << "Message: " << _message << std::endl;
+    if (_message.find("initial condition") != string::npos || _message.find("forecast") != string::npos)
+        ;
+        //Save();
 }*/
 
+
 template <class T>
-void SofaModelWrapper<T>::SetNode( simulation::Node* _gnode)
+void SofaModelWrapper<T>::sofaInitialize( simulation::Node* _gnode )
 {
+    std::cout << "sofa init " << std::endl;
     gnode=_gnode;
+    std::cout << "Registering object: " << this->GetName() << std::endl;
+    //gnode->addObject(this);
     //this->gnode->getDt();
 }
+
+
 
 template <class T>
 void SofaModelWrapper<T>::Forward()
