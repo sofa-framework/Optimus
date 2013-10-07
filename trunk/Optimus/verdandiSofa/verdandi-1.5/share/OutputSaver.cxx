@@ -336,6 +336,7 @@ namespace Verdandi
                           "Cannot open file \"" + file_name + "\"." );
 #endif
         x.WriteText(file);
+        file << "\n";
         file.close();
     }
 
