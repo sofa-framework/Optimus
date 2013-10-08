@@ -32,29 +32,10 @@
 #include <sofa/simulation/common/Node.h>
 #include <sofa/helper/AdvancedTimer.h>
 
-/*#define VERDANDI_DEBUG_LEVEL_4
-#define SELDON_WITH_BLAS
-#define SELDON_WITH_LAPACK
+#include "SofaModelWrapper.h"
+#include "VerdandiHeader.hxx"
 
-#define VERDANDI_WITH_ABORT
-#define VERDANDI_DENSE
-
-#define VERDANDI_WITH_DIRECT_SOLVER
-
-
-//#define SELDON_WITH_MUMPS*/
-
-//#include "SofaModelWrapper.h"
-
-//#define VERDANDI_IGNORE_MESSAGE
-
-#include "Verdandi.hxx"
-#include "method/ForwardDriver.cxx"
-
-
-//#include "seldon/SeldonSolver.hxx"
-//#include "model/ClampedBar.cxx"
-
+#include "../src/OptimParams.h"
 
 using namespace sofa::core::objectmodel;
 using namespace sofa::core::behavior;
@@ -65,145 +46,11 @@ namespace sofa
 namespace simulation
 {
 
-template <class T>
-class SOFA_SIMULATION_COMMON_API SofaModelWrapper : public Verdandi::VerdandiBase
-{
-public:
-    typedef sofa::core::objectmodel::BaseObject Inherit;
-    //SOFA_CLASS(SofaModelWrapper,sofa::core::objectmodel::BaseObject);
-
-    //! The numerical type (e.g., double).
-    typedef T value_type;
-    //! Pointer to the numerical type.
-    typedef T* pointer;
-    //! Const pointer to the numerical type.
-    typedef const T* const_pointer;
-    //! Reference to the numerical type.
-    typedef T& reference;
-    //! Const reference to the numerical type.
-    typedef const T& const_reference;
-#ifdef VERDANDI_SPARSE
-    //! Type of the background error covariance matrix.
-    typedef Seldon::Matrix<T, General, RowSparse> state_error_variance;
-    /*! \brief Type of the reduced matrix \f$U\f$ in the \f$LUL^T\f$
-      decomposition of the background error covariance matrix. */
-    typedef Seldon::Matrix<T, General, RowSparse> state_error_variance_reduced;
-    //! Type of a row of the background error variance.
-    typedef Seldon::Vector<T> state_error_variance_row;
-    //! Type of the model/observation crossed matrix.
-    typedef Seldon::Matrix<T, General, RowSparse> matrix_state_observation;
-    //! Type of the tangent linear operator.
-    typedef Seldon::Matrix<T, General, RowSparse> tangent_linear_operator;
-#else
-    //! Type of the background error covariance matrix.
-    typedef Seldon::Matrix<T> state_error_variance;
-    /*! \brief Type of the reduced matrix \f$U\f$ in the \f$LUL^T\f$
-      decomposition of the background error covariance matrix. */
-    typedef Seldon::Matrix<T> state_error_variance_reduced;
-    //! Type of a row of the background error variance.
-    typedef Seldon::Vector<T> state_error_variance_row;
-    //! Type of the model/observation crossed matrix.
-    typedef Seldon::Matrix<T> matrix_state_observation;
-    //! Type of the tangent linear operator.
-    typedef Seldon::Matrix<T> tangent_linear_operator;
-#endif
-    //! Type of the model state vector.
-    typedef Seldon::Vector<T> state;
-    //! Collection of vector state.
-    typedef Seldon::Vector<state, Seldon::Collection> state_collection;
-
-protected:
-    const core::ExecParams* execParams;
-    int numStep;
-    state _state;
-
-public:
-    SofaModelWrapper();
-    virtual ~SofaModelWrapper();
-
-    void setExecParams(const core::ExecParams* _execParams) {
-        execParams = _execParams;
-    }
-
-    void SetNode(simulation::Node* _gnode);
-
-    /// verdandi functions:
-
-    void Finalize() {}
-
-    void FinalizeStep() {
-        numStep++;
-    }
-
-    double GetTime() {
-        return double(numStep)*this->gnode->getDt();
-    }
-
-    bool HasFinished() {
-        return(false);
-    }
-
-    void sofaInitialize( simulation::Node* _gnode );
-
-    void Initialize(std::string &configFile) {        
-        std::cout << "Initialize the model with a model file: " << configFile << std::endl;
-        numStep = 0;
-        _state.Resize(10);
-        _state.Fill(3.14);
-    }
-
-    void InitializeStep() {}
-
-    void Forward();
-
-    state& GetState() {
-        return _state;
-    }
-
-    //void Message(string _message);
-    /*virtual void setNode( simulation::Node* );
-
-    /// Set the simulation node to the local context if not specified previously
-    virtual void init();
-
-    /// perform one animation step
-    virtual void step(const core::ExecParams* params, double dt);
-
-
-    /// Construction method called by ObjectFactory.
-    template<class T>
-    static typename T::SPtr create(T*, BaseContext* context, BaseObjectDescription* arg)
-    {
-        simulation::Node* gnode = dynamic_cast<simulation::Node*>(context);
-        typename T::SPtr obj = sofa::core::objectmodel::New<T>(gnode);
-        if (context) context->addObject(obj);
-        if (arg) obj->parse(arg);
-        return obj;
-    }*/
-
-private :
-
-    simulation::Node* gnode;  ///< the node controlled by the loop
-
-};
-
-
-/// /**********************************************************************************************/
-
-
 class SOFA_SIMULATION_COMMON_API VerdandiAnimationLoop : public sofa::core::behavior::BaseAnimationLoop
 {
 public:
     typedef sofa::core::behavior::BaseAnimationLoop Inherit;
     SOFA_CLASS(VerdandiAnimationLoop,sofa::core::behavior::BaseAnimationLoop);
-protected:
-    VerdandiAnimationLoop(simulation::Node* gnode = NULL);
-
-    //SofaModelWrapper* modelWrapper;
-
-    Data<std::string> _configFile;
-    Data<bool> _positionInState;
-    Data<bool> _velocityInState;
 
     virtual ~VerdandiAnimationLoop();
 public:
@@ -212,6 +59,8 @@ public:
 
     /// Set the simulation node to the local context if not specified previously
     virtual void init();
+
+    virtual void bwdInit();
 
     /// perform one animation step
     virtual void step(const core::ExecParams* params, double /*dt*/);
@@ -230,8 +79,14 @@ public:
 
 private :
     Verdandi::ForwardDriver<SofaModelWrapper<double> >* driver;
-
     simulation::Node* gnode;  ///< the node controlled by the loop
+
+public:
+    VerdandiAnimationLoop(simulation::Node* gnode = NULL);
+
+    Data<std::string> _configFile;
+    Data<bool> _positionInState;
+    Data<bool> _velocityInState;
 
 };
 

@@ -91,10 +91,14 @@ VerdandiAnimationLoop::~VerdandiAnimationLoop()
 
 }
 
-void VerdandiAnimationLoop::init()
+void VerdandiAnimationLoop::init() {
+
+}
+
+void VerdandiAnimationLoop::bwdInit()
 {
     std::cout << "initialize with: " << _configFile.getValue() << std::endl;
-    driver->GetModel().sofaInitialize(gnode);
+    driver->GetModel().initSimuData(gnode, _positionInState.getValue(), _velocityInState.getValue());
     driver->Initialize(_configFile.getValue());
 
     if (!gnode)
@@ -117,11 +121,8 @@ void VerdandiAnimationLoop::setNode(simulation::Node* _gnode)
 }
 
 void VerdandiAnimationLoop::step(const core::ExecParams* params, double /*dt*/)
-{
-    //modelWrapper->setExecParams(params);
-    //modelWrapper->Forward();
-    driver->GetModel().setExecParams(params);
-    //driver->GetModel().Forward();
+{    
+    driver->GetModel().setInitStepData(params, _positionInState.getValue(), _velocityInState.getValue());
     driver->InitializeStep();
     driver->Forward();
     driver->FinalizeStep();
@@ -188,100 +189,9 @@ void VerdandiAnimationLoop::step(const core::ExecParams* params, double /*dt*/)
 }
 
 
-
-/// ********************************************************************************** WRAPPER ****************************************
-
-
-template <class T>
-SofaModelWrapper<T>::SofaModelWrapper()
-    //: Inherit()
-{}
-
-template <class T>
-SofaModelWrapper<T>::~SofaModelWrapper()
-{}
-
-/*template <class T>
-void SofaModelWrapper<T>::Message(string _message) {
-    std::cout << "Message: " << _message << std::endl;
-    if (_message.find("initial condition") != string::npos || _message.find("forecast") != string::npos)
-        ;
-        //Save();
-}*/
-
-
-template <class T>
-void SofaModelWrapper<T>::sofaInitialize( simulation::Node* _gnode )
-{
-    std::cout << "sofa init " << std::endl;
-    gnode=_gnode;
-    std::cout << "Registering object: " << this->GetName() << std::endl;
-    //gnode->addObject(this);
-    //this->gnode->getDt();
-}
-
-
-
-template <class T>
-void SofaModelWrapper<T>::Forward()
-{
-    double    dt = this->gnode->getDt();
-
-    sofa::helper::AdvancedTimer::stepBegin("AnimationStep");
-
-    sofa::helper::AdvancedTimer::begin("Animate");
-
-#ifdef SOFA_DUMP_VISITOR_INFO
-    simulation::Visitor::printNode("Step");
-#endif
-
-    {
-        AnimateBeginEvent ev ( dt );
-        PropagateEventVisitor act ( execParams, &ev );
-        gnode->execute ( act );
-    }
-
-    double startTime = gnode->getTime();
-
-    BehaviorUpdatePositionVisitor beh(execParams , dt);
-    gnode->execute ( beh );
-
-    AnimateVisitor act(execParams, dt);
-    gnode->execute ( act );
-
-    gnode->setTime ( startTime + dt );
-    gnode->execute< UpdateSimulationContextVisitor >(execParams);
-
-    {
-        AnimateEndEvent ev ( dt );
-        PropagateEventVisitor act ( execParams, &ev );
-        gnode->execute ( act );
-    }
-
-    sofa::helper::AdvancedTimer::stepBegin("UpdateMapping");
-    //Visual Information update: Ray Pick add a MechanicalMapping used as VisualMapping
-    gnode->execute< UpdateMappingVisitor >(execParams);
-    sofa::helper::AdvancedTimer::step("UpdateMappingEndEvent");
-    {
-        UpdateMappingEndEvent ev ( dt );
-        PropagateEventVisitor act ( execParams , &ev );
-        gnode->execute ( act );
-    }
-    sofa::helper::AdvancedTimer::stepEnd("UpdateMapping");
-
-#ifndef SOFA_NO_UPDATE_BBOX
-    sofa::helper::AdvancedTimer::stepBegin("UpdateBBox");
-    gnode->execute< UpdateBoundingBoxVisitor >(execParams);
-    sofa::helper::AdvancedTimer::stepEnd("UpdateBBox");
-#endif
-#ifdef SOFA_DUMP_VISITOR_INFO
-    simulation::Visitor::printCloseNode("Step");
-#endif
-    sofa::helper::AdvancedTimer::end("Animate");
-    sofa::helper::AdvancedTimer::stepEnd("AnimationStep");
-}
-
-
 } // namespace simulation
 
 } // namespace sofa
+
+
+
