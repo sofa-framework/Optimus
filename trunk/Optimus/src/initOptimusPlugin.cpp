@@ -86,5 +86,8 @@ SOFA_LINK_CLASS(KalmanFilter)
 SOFA_LINK_CLASS(OptimParams)
 SOFA_LINK_CLASS(TestingParams)
 SOFA_LINK_CLASS(BubblePackingForceField)
-//SOFA_LINK_CLASS(VerdandiAnimationLoop)
-//SOFA_LINK_CLASS(SofaModelWrapper)
+
+#ifdef SOFA_HAVE_VERDANDI
+SOFA_LINK_CLASS(VerdandiAnimationLoop)
+SOFA_LINK_CLASS(SofaModelWrapper)
+#endif
