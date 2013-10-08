@@ -70,6 +70,12 @@ void OptimParams<sofa::helper::vector<double> >::init() {
     }
 }
 
+template<>
+size_t OptimParams<sofa::helper::vector<double> >::size() {
+    helper::ReadAccessor<Data<sofa::helper::vector<double> > > initVal = m_initVal;
+    return(initVal.size());
+}
+
 SOFA_DECL_CLASS(OptimParams)
 
 // Register in the Factory

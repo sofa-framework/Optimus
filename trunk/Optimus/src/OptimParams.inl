@@ -58,6 +58,12 @@ void OptimParams<DataTypes>::reinit()
     init();
 }
 
+template <class DataTypes>
+size_t OptimParams<DataTypes>::size()
+{
+    return(1);
+}
+
 } // container
 } // component
 } // sofa

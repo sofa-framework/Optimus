@@ -106,6 +106,11 @@ public:
     ~OptimParams();
     void init();
     void reinit();
+    size_t size();
+    const DataTypes& getValue() {
+        return m_val.getValue();
+    }
+
     static std::string templateName(const OptimParams<DataTypes>* = NULL) { std::string name = sofa::component::container::templateName<DataTypes>()(); return(name); }       
 
 protected:
