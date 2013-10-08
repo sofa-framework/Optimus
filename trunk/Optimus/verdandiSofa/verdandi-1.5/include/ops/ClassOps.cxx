@@ -829,11 +829,12 @@ namespace Ops
     // value is converted to a string (that Lua can process).
 
     std::map<string, bool>::iterator i_bool = read_bool.find(name);
-    if (i_bool != read_bool.end())
+    if (i_bool != read_bool.end()) {
       if (i_bool->second)
         output << name << " = true";
       else
         output << name << " = false";
+    }
     // In case the entry was read under two different types, only one type is
     // returned. So, once the entry is found, this method returns the
     // definition.
@@ -1057,12 +1058,13 @@ namespace Ops
   bool Ops::Convert(int index, std::vector<bool>::reference output,
                     string name)
   {
-    if (!lua_isboolean(state_, index))
+    if (!lua_isboolean(state_, index)) {
       if (name.empty())
         return false;
       else
         throw Error("Convert(vector<bool>::reference&)",
                     "The " + Entry(name) + " is not a Boolean.");
+    }
 
     output = static_cast<bool>(lua_toboolean(state_, index));
     return true;
@@ -1082,12 +1084,13 @@ namespace Ops
   */
   bool Ops::Convert(int index, bool& output, string name)
   {
-    if (!lua_isboolean(state_, index))
+    if (!lua_isboolean(state_, index)) {
       if (name.empty())
         return false;
       else
         throw Error("Convert(bool&)",
                     "The " + Entry(name) + " is not a Boolean.");
+    }
 
     output = static_cast<bool>(lua_toboolean(state_, index));
     return true;
@@ -1107,21 +1110,23 @@ namespace Ops
   */
   bool Ops::Convert(int index, int& output, string name)
   {
-    if (!lua_isnumber(state_, index))
+    if (!lua_isnumber(state_, index)) {
       if (name.empty())
         return false;
       else
         throw Error("Convert(int&)",
                     "The " + Entry(name) + " is not an integer.");
+    }
 
     double number = static_cast<double>(lua_tonumber(state_, index));
     int value = static_cast<int>(number);
-    if (static_cast<double>(value) != number)
+    if (static_cast<double>(value) != number) {
       if (name.empty())
         return false;
       else
         throw Error("Convert(int&)",
                     "The " + Entry(name) + " is not an integer.");
+    }
 
     output = value;
     return true;
@@ -1141,12 +1146,13 @@ namespace Ops
   */
   bool Ops::Convert(int index, float& output, string name)
   {
-    if (!lua_isnumber(state_, index))
+    if (!lua_isnumber(state_, index)) {
       if (name.empty())
         return false;
       else
         throw Error("Convert(float&)",
                     "The " + Entry(name) + " is not a float.");
+    }
 
     output = static_cast<float>(lua_tonumber(state_, index));
     return true;
@@ -1166,12 +1172,13 @@ namespace Ops
   */
   bool Ops::Convert(int index, double& output, string name)
   {
-    if (!lua_isnumber(state_, index))
+    if (!lua_isnumber(state_, index)) {
       if (name.empty())
         return false;
       else
         throw Error("Convert(double&)",
                     "The " + Entry(name) + " is not a double.");
+    }
 
     output = static_cast<double>(lua_tonumber(state_, index));
     return true;
@@ -1191,12 +1198,13 @@ namespace Ops
   */
   bool Ops::Convert(int index, string& output, string name)
   {
-    if (!lua_isstring(state_, index))
+    if (!lua_isstring(state_, index)) {
       if (name.empty())
         return false;
       else
         throw Error("Convert(string&)",
                     "The " + Entry(name) + " is not a string.");
+    }
 
     output = static_cast<string>(lua_tostring(state_, index));
     return true;
@@ -1220,7 +1228,7 @@ namespace Ops
   {
     PutOnStack(Name(name));
 
-    if (lua_isnil(state_, -1))
+    if (lua_isnil(state_, -1)) {
       if (with_default)
         {
           value = default_value;
@@ -1230,6 +1238,7 @@ namespace Ops
       else
         throw Error("SetValue",
                     "The " + Entry(name) + " was not found.");
+    }
 
     Convert(-1, value, name);
 
@@ -1261,7 +1270,7 @@ namespace Ops
   {
     PutOnStack(Name(name));
 
-    if (lua_isnil(state_, -1))
+    if (lua_isnil(state_, -1)) {
       if (with_default)
         {
           value = default_value;
@@ -1271,6 +1280,7 @@ namespace Ops
       else
         throw Error("SetValue",
                     "The " + Entry(name) + " was not found.");
+    }
 
     if (!lua_istable(state_, -1))
       throw Error("SetValue",
@@ -1399,7 +1409,7 @@ namespace Ops
         return;
       }
 
-    if (name[end] == '[')
+    if (name[end] == '[')  {
       if (end == 0)
         // Access to an element through "[i]".
         {
@@ -1450,6 +1460,7 @@ namespace Ops
             WalkDown(name.substr(end).c_str());
           return;
         }
+    }
   }
 
 

@@ -57,7 +57,7 @@ namespace Verdandi
     /*
       \param[in] message the received message.
     */
-    void VerdandiBase::Message(string message)
+    void VerdandiBase::Message(string /*message*/)
     {
     }
 

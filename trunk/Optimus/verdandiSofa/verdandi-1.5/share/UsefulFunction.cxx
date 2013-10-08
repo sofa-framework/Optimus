@@ -100,7 +100,7 @@ namespace Verdandi
 
         position.Reallocate(length);
 
-        if (length == 1)
+        if (length == 1) {
             if (index >= shape(0))
                 throw ErrorArgument
                     ("get_position(int, Vector<int>, Vector<int>&)",
@@ -111,6 +111,7 @@ namespace Verdandi
                 position(0) = index;
                 return;
             }
+        }
 
         Vector<int> size(length - 1);
         size(length - 2) = shape(length - 1);

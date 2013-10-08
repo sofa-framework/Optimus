@@ -109,7 +109,7 @@ namespace Verdandi
                                      "The variable \"Time\" in file \""
                                      + configuration.GetFilePath() +
                                      "\" cannot be parsed:\n" + tmp);
-        if (time_vector.size() >= 2)
+        if (time_vector.size() >= 2) {
             if (!is_num(time_vector[1]))
                 throw ErrorConfiguration("OutputSaver::OutputSaver(string,"
                                          " string)",
@@ -118,7 +118,8 @@ namespace Verdandi
                                          "\" cannot be parsed:\n" + tmp);
             else
                 to_num(time_vector[1], save_period_);
-        if (time_vector.size() == 3)
+        }
+        if (time_vector.size() == 3)  {
             if (!is_num(time_vector[2]))
                 throw ErrorConfiguration("OutputSaver::OutputSaver(string,"
                                          " string)",
@@ -127,6 +128,7 @@ namespace Verdandi
                                          "\" cannot be parsed:\n" + tmp);
             else
                 to_num(time_vector[2], time_tolerance_);
+	}
 
 
         /******************************
@@ -575,7 +577,7 @@ namespace Verdandi
     */
     void OutputSaver::SetVariable(VerdandiOps& configuration,
                                   string generic_path,
-                                  string default_mode,
+                                  string /*default_mode*/,
                                   string variable_name)
     {
         string current_mode;

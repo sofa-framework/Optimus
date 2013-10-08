@@ -30,21 +30,21 @@ namespace Seldon
   //////////////////////
 
 
-  inline int ColMajor::GetFirst(int i, int j)
+  inline int ColMajor::GetFirst(int /*i*/, int j)
   {
     return j;
   }
-  inline int ColMajor::GetSecond(int i, int j)
+  inline int ColMajor::GetSecond(int i, int /*j*/)
   {
     return i;
   }
 
 
-  inline int RowMajor::GetFirst(int i, int j)
+  inline int RowMajor::GetFirst(int i, int /*j*/)
   {
     return i;
   }
-  inline int RowMajor::GetSecond(int i, int j)
+  inline int RowMajor::GetSecond(int /*i*/, int j)
   {
     return j;
   }
@@ -106,81 +106,81 @@ namespace Seldon
   ////////////
 
 
-  inline int ColSparse::GetFirst(int i, int j)
+  inline int ColSparse::GetFirst(int /*i*/, int j)
   {
     return j;
   }
-  inline int ColSparse::GetSecond(int i, int j)
+  inline int ColSparse::GetSecond(int i, int /*j*/)
   {
     return i;
   }
 
 
-  inline int RowSparse::GetFirst(int i, int j)
+  inline int RowSparse::GetFirst(int i, int /*j*/)
   {
     return i;
   }
-  inline int RowSparse::GetSecond(int i, int j)
-  {
-    return j;
-  }
-
-
-  inline int ColComplexSparse::GetFirst(int i, int j)
-  {
-    return j;
-  }
-  inline int ColComplexSparse::GetSecond(int i, int j)
-  {
-    return i;
-  }
-
-
-  inline int RowComplexSparse::GetFirst(int i, int j)
-  {
-    return i;
-  }
-  inline int RowComplexSparse::GetSecond(int i, int j)
+  inline int RowSparse::GetSecond(int /*i*/, int j)
   {
     return j;
   }
 
 
-  inline int ColSymSparse::GetFirst(int i, int j)
+  inline int ColComplexSparse::GetFirst(int /*i*/, int j)
   {
     return j;
   }
-  inline int ColSymSparse::GetSecond(int i, int j)
+  inline int ColComplexSparse::GetSecond(int i, int /*j*/)
   {
     return i;
   }
 
 
-  inline int RowSymSparse::GetFirst(int i, int j)
+  inline int RowComplexSparse::GetFirst(int i, int /*j*/)
   {
     return i;
   }
-  inline int RowSymSparse::GetSecond(int i, int j)
+  inline int RowComplexSparse::GetSecond(int /*i*/, int j)
   {
     return j;
   }
 
 
-  inline int ColSymComplexSparse::GetFirst(int i, int j)
+  inline int ColSymSparse::GetFirst(int /*i*/, int j)
   {
     return j;
   }
-  inline int ColSymComplexSparse::GetSecond(int i, int j)
+  inline int ColSymSparse::GetSecond(int i, int /*j*/)
   {
     return i;
   }
 
 
-  inline int RowSymComplexSparse::GetFirst(int i, int j)
+  inline int RowSymSparse::GetFirst(int i, int /*j*/)
   {
     return i;
   }
-  inline int RowSymComplexSparse::GetSecond(int i, int j)
+  inline int RowSymSparse::GetSecond(int /*i*/, int j)
+  {
+    return j;
+  }
+
+
+  inline int ColSymComplexSparse::GetFirst(int /*i*/, int j)
+  {
+    return j;
+  }
+  inline int ColSymComplexSparse::GetSecond(int i, int /*j*/)
+  {
+    return i;
+  }
+
+
+  inline int RowSymComplexSparse::GetFirst(int i, int /*j*/)
+  {
+    return i;
+  }
+  inline int RowSymComplexSparse::GetSecond(int /*i*/, int j)
   {
     return j;
   }
@@ -192,41 +192,41 @@ namespace Seldon
   ///////////////
 
 
-  inline int ColSymPacked::GetFirst(int i, int j)
+  inline int ColSymPacked::GetFirst(int /*i*/, int j)
   {
     return j;
   }
-  inline int ColSymPacked::GetSecond(int i, int j)
+  inline int ColSymPacked::GetSecond(int i, int /*j*/)
   {
     return i;
   }
 
 
-  inline int RowSymPacked::GetFirst(int i, int j)
+  inline int RowSymPacked::GetFirst(int i, int /*j*/)
   {
     return i;
   }
-  inline int RowSymPacked::GetSecond(int i, int j)
+  inline int RowSymPacked::GetSecond(int /*i*/, int j)
   {
     return j;
   }
 
 
-  inline int ColSym::GetFirst(int i, int j)
+  inline int ColSym::GetFirst(int /*i*/, int j)
   {
     return j;
   }
-  inline int ColSym::GetSecond(int i, int j)
+  inline int ColSym::GetSecond(int i, int /*j*/)
   {
     return i;
   }
 
 
-  inline int RowSym::GetFirst(int i, int j)
+  inline int RowSym::GetFirst(int i, int /*j*/)
   {
     return i;
   }
-  inline int RowSym::GetSecond(int i, int j)
+  inline int RowSym::GetSecond(int /*i*/, int j)
   {
     return j;
   }
@@ -238,41 +238,41 @@ namespace Seldon
   ///////////////
 
 
-  inline int ColHerm::GetFirst(int i, int j)
+  inline int ColHerm::GetFirst(int /*i*/, int j)
   {
     return j;
   }
-  inline int ColHerm::GetSecond(int i, int j)
+  inline int ColHerm::GetSecond(int i, int /*j*/)
   {
     return i;
   }
 
 
-  inline int RowHerm::GetFirst(int i, int j)
+  inline int RowHerm::GetFirst(int i, int /*j*/)
   {
     return i;
   }
-  inline int RowHerm::GetSecond(int i, int j)
+  inline int RowHerm::GetSecond(int /*i*/, int j)
   {
     return j;
   }
 
 
-  inline int ColHermPacked::GetFirst(int i, int j)
+  inline int ColHermPacked::GetFirst(int /*i*/, int j)
   {
     return j;
   }
-  inline int ColHermPacked::GetSecond(int i, int j)
+  inline int ColHermPacked::GetSecond(int i, int /*j*/)
   {
     return i;
   }
 
 
-  inline int RowHermPacked::GetFirst(int i, int j)
+  inline int RowHermPacked::GetFirst(int i, int /*j*/)
   {
     return i;
   }
-  inline int RowHermPacked::GetSecond(int i, int j)
+  inline int RowHermPacked::GetSecond(int /*i*/, int j)
   {
     return j;
   }
@@ -284,11 +284,11 @@ namespace Seldon
   ////////////////
 
 
-  inline int ColUpTriang::GetFirst(int i, int j)
+  inline int ColUpTriang::GetFirst(int /*i*/, int j)
   {
     return j;
   }
-  inline int ColUpTriang::GetSecond(int i, int j)
+  inline int ColUpTriang::GetSecond(int i, int /*j*/)
   {
     return i;
   }
@@ -298,11 +298,11 @@ namespace Seldon
   }
 
 
-  inline int ColLoTriang::GetFirst(int i, int j)
+  inline int ColLoTriang::GetFirst(int /*i*/, int j)
   {
     return j;
   }
-  inline int ColLoTriang::GetSecond(int i, int j)
+  inline int ColLoTriang::GetSecond(int i, int /*j*/)
   {
     return i;
   }
@@ -312,11 +312,11 @@ namespace Seldon
   }
 
 
-  inline int RowUpTriang::GetFirst(int i, int j)
+  inline int RowUpTriang::GetFirst(int i, int /*j*/)
   {
     return i;
   }
-  inline int RowUpTriang::GetSecond(int i, int j)
+  inline int RowUpTriang::GetSecond(int /*i*/, int j)
   {
     return j;
   }
@@ -326,11 +326,11 @@ namespace Seldon
   }
 
 
-  inline int RowLoTriang::GetFirst(int i, int j)
+  inline int RowLoTriang::GetFirst(int i, int /*j*/)
   {
     return i;
   }
-  inline int RowLoTriang::GetSecond(int i, int j)
+  inline int RowLoTriang::GetSecond(int /*i*/, int j)
   {
     return j;
   }
@@ -340,11 +340,11 @@ namespace Seldon
   }
 
 
-  inline int ColUpTriangPacked::GetFirst(int i, int j)
+  inline int ColUpTriangPacked::GetFirst(int /*i*/, int j)
   {
     return j;
   }
-  inline int ColUpTriangPacked::GetSecond(int i, int j)
+  inline int ColUpTriangPacked::GetSecond(int i, int /*j*/)
   {
     return i;
   }
@@ -354,11 +354,11 @@ namespace Seldon
   }
 
 
-  inline int ColLoTriangPacked::GetFirst(int i, int j)
+  inline int ColLoTriangPacked::GetFirst(int /*i*/, int j)
   {
     return j;
   }
-  inline int ColLoTriangPacked::GetSecond(int i, int j)
+  inline int ColLoTriangPacked::GetSecond(int i, int /*j*/)
   {
     return i;
   }
@@ -368,11 +368,11 @@ namespace Seldon
   }
 
 
-  inline int RowUpTriangPacked::GetFirst(int i, int j)
+  inline int RowUpTriangPacked::GetFirst(int i, int /*j*/)
   {
     return i;
   }
-  inline int RowUpTriangPacked::GetSecond(int i, int j)
+  inline int RowUpTriangPacked::GetSecond(int /*i*/, int j)
   {
     return j;
   }
@@ -382,11 +382,11 @@ namespace Seldon
   }
 
 
-  inline int RowLoTriangPacked::GetFirst(int i, int j)
+  inline int RowLoTriangPacked::GetFirst(int i, int /*j*/)
   {
     return i;
   }
-  inline int RowLoTriangPacked::GetSecond(int i, int j)
+  inline int RowLoTriangPacked::GetSecond(int /*i*/, int j)
   {
     return j;
   }

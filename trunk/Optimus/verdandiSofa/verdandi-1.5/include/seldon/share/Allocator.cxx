@@ -33,19 +33,19 @@ namespace Seldon
 
   template <class T>
   inline typename MallocAlloc<T>::pointer
-  MallocAlloc<T>::allocate(int num, void* h)
+  MallocAlloc<T>::allocate(int num, void* /*h*/)
   {
     return static_cast<pointer>( malloc(num * sizeof(T)) );
   }
 
   template <class T>
-  inline void MallocAlloc<T>::deallocate(pointer data, int num, void* h)
+  inline void MallocAlloc<T>::deallocate(pointer data, int /*num*/, void* /*h*/)
   {
     free(data);
   }
 
   template <class T>
-  inline void* MallocAlloc<T>::reallocate(pointer data, int num, void* h)
+  inline void* MallocAlloc<T>::reallocate(pointer data, int num, void* /*h*/)
   {
     return realloc(reinterpret_cast<void*>(data), num * sizeof(T));
   }
