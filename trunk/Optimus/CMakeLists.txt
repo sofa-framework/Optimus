@@ -158,6 +158,7 @@ if(SOFA-EXT_VERDANDI)
     list(APPEND SOURCE_FILES
         verdandiSofa/VerdandiAnimationLoop.cpp
         verdandiSofa/SofaModelWrapper.cpp
+	verdandiSofa/VerdandiClasses.cpp
     )
 
     include_directories(${SOFA_EXTLIBS_DIR}/verdandi-1.5)
@@ -165,7 +166,13 @@ if(SOFA-EXT_VERDANDI)
     include_directories(${SOFA_EXTLIBS_DIR}/verdandi-1.5/include)
     include_directories(${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/lua/src)
 
-    AddLinkerDependencies(lua5.1)
+    link_directories(${SOFA_EXTLIBS_DIR}/verdandi-1.5/python)
+    link_directories(${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon)
+
+    AddLinkerDependencies(lua5.1)    
+    AddLinkerDependencies(seldon verdandi)
+
+    AddCompilerDefinitions(SOFA_HAVE_VERDANDI)
 endif()
 
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${MOC_FILES} ${SOURCE_FILES} ${README_FILES})
