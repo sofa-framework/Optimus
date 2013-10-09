@@ -170,7 +170,8 @@ if(SOFA-EXT_VERDANDI)
     link_directories(${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon)
 
     AddLinkerDependencies(lua5.1)    
-    AddLinkerDependencies(seldon verdandi)
+    AddLinkerDependencies(seldon verdandi lapack blas)
+    AddLinkerFlags("-Wl,--no-undefined")
 
     AddCompilerDefinitions(SOFA_HAVE_VERDANDI)
 endif()
