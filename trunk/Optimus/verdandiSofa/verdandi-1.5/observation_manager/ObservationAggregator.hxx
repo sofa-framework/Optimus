@@ -44,7 +44,7 @@ namespace Verdandi
         /*** Tracks ***/
 
         //! Vector of times.
-        Vector2<double> time_;
+        Seldon::Vector2<double> time_;
         //! Index of the active track.
         int active_track_index_;
 

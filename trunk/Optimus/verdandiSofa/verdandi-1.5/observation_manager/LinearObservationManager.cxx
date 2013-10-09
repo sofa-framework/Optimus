@@ -162,7 +162,7 @@ namespace Verdandi
         }
         else
         {
-            int file_size;
+            //int file_size;
             ifstream file_stream;
             file_stream.open(observation_file_.c_str());
 
@@ -357,7 +357,7 @@ namespace Verdandi
     template <class T>
     template <class Model>
     void LinearObservationManager<T>
-    ::SetTime(Model& model, double time)
+    ::SetTime(Model& /*model*/, double time)
     {
         SetTime(time);
     }
@@ -2151,7 +2151,7 @@ namespace Verdandi
       \param[in] message the received message.
     */
     template <class T>
-    void LinearObservationManager<T>::Message(string message)
+    void LinearObservationManager<T>::Message(string /*message*/)
     {
     }
 

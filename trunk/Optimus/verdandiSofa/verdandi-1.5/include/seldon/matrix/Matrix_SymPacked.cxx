@@ -50,7 +50,7 @@ namespace Seldon
   */
   template <class T, class Prop, class Storage, class Allocator>
   inline Matrix_SymPacked<T, Prop, Storage, Allocator>
-  ::Matrix_SymPacked(int i, int j): Matrix_Base<T, Allocator>(i, i)
+  ::Matrix_SymPacked(int i, int /*j*/): Matrix_Base<T, Allocator>(i, i)
   {
 
 #ifdef SELDON_CHECK_MEMORY
@@ -1102,7 +1102,7 @@ namespace Seldon
     \note 'j' is assumed to be equal to 'i' and is therefore discarded.
   */
   template <class T, class Prop, class Allocator>
-  Matrix<T, Prop, RowSymPacked, Allocator>::Matrix(int i, int j):
+  Matrix<T, Prop, RowSymPacked, Allocator>::Matrix(int i, int /*j*/):
     Matrix_SymPacked<T, Prop, RowSymPacked, Allocator>(i, i)
   {
   }

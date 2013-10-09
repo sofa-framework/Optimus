@@ -78,13 +78,13 @@ namespace Seldon
   }
 
   template <class T>
-  inline void CallocAlloc<T>::deallocate(pointer data, int num, void* h)
+  inline void CallocAlloc<T>::deallocate(pointer data, int /*num*/, void* /*h*/)
   {
     free(data);
   }
 
   template <class T>
-  inline void* CallocAlloc<T>::reallocate(pointer data, int num, void* h)
+  inline void* CallocAlloc<T>::reallocate(pointer data, int num, void* /*h*/)
   {
     return realloc(reinterpret_cast<void*>(data), num * sizeof(T));
   }
@@ -111,7 +111,7 @@ namespace Seldon
 
   template <class T>
   inline typename MallocObject<T>::pointer
-  MallocObject<T>::allocate(int num, void* h)
+  MallocObject<T>::allocate(int num, void* /*h*/)
   {
     // The cast from char* to T* may lead to a memory shift (because of
     // alignment issues) under MS Windows. It requires that one allocates more
@@ -134,7 +134,7 @@ namespace Seldon
 
 
   template <class T>
-  inline void MallocObject<T>::deallocate(pointer data, int num, void* h)
+  inline void MallocObject<T>::deallocate(pointer data, int num, void* /*h*/)
   {
     void * memory_block;
     memcpy(&memory_block,
@@ -211,13 +211,13 @@ namespace Seldon
 
   template <class T>
   inline typename NewAlloc<T>::pointer
-  NewAlloc<T>::allocate(int num, void* h)
+  NewAlloc<T>::allocate(int num, void* /*h*/)
   {
     return static_cast<pointer>(new T[num]);
   }
 
   template <class T>
-  inline void NewAlloc<T>::deallocate(pointer data, int num, void* h)
+  inline void NewAlloc<T>::deallocate(pointer data, int /*num*/, void* /*h*/)
   {
     delete [] data;
   }
