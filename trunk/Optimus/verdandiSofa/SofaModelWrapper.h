@@ -47,15 +47,20 @@
 //#include "seldon/SeldonSolver.hxx"
 
 //#include "model/ClampedBar.cxx"
-//#include "method/ForwardDriver.cxx"*/
+//#include "method/ForwardDriver.cxx"
 
 //#include "Verdandi.hxx"
-//#include "method/ForwardDriver.cxx"
+//#include "method/ForwardDriver.cxx"*/
 
 //#include "VerdandiAnimationLoop.h"
 
 #include "VerdandiHeader.hxx"
-#include "method/ForwardDriver.hxx"
+#include "seldon/SeldonHeader.hxx"
+#include "seldon/computation/basic_functions/Functions_Matrix.cxx"
+#include "seldon/computation/basic_functions/Functions_Vector.cxx"
+#include "seldon/computation/basic_functions/Functions_MatVect.cxx"
+
+
 
 
 using namespace sofa::core::objectmodel;
@@ -127,12 +132,32 @@ public:
 protected:
     const core::ExecParams* execParams;
     int numStep;
-    state _state;
+
+    int state_size_;
+    state state_, duplicated_state_;
+
+
+
 
     OPVector* vecParams;
     core::behavior::MechanicalState<defaulttype::Vec3dTypes>* mechanicalObject;
 
     bool positionInState, velocityInState;
+
+    /// error variance
+    double state_error_variance_value_;
+
+    //! Background error covariance matrix (B).
+    state_error_variance state_error_variance_;
+    //! Inverse of the background error covariance matrix (B^-1).
+    state_error_variance state_error_variance_inverse_;
+    //! Value of the row of B currently stored.
+    state_error_variance_row state_error_variance_row_;
+
+    int current_row_;
+
+    double time_;
+
 
 public:
     SofaModelWrapper();
@@ -144,47 +169,35 @@ public:
         velocityInState = _velInState;
     }
 
-    //void SetNode(simulation::Node* _gnode);
+    void initSimuData( simulation::Node* _gnode, bool _posInState = true, bool _velInState = true, double _stateErrorVarianceValue = 1.0);
 
-    /// verdandi functions:
+    /// functions propagating state between SOFA and Verdandi
 
-    void Finalize() {}
+    void StateSofa2Verdandi();
+    void StateVerdandi2Sofa();
 
-    void FinalizeStep() {
-        numStep++;
-    }
+    /// functions required by Verdandi API:
 
-    double GetTime() {
-        return double(numStep)*this->gnode->getDt();
-    }
-
-    bool HasFinished() {
-        return(false);
-    }
-
-    void initSimuData( simulation::Node* _gnode, bool _posInState, bool _velInState );
-
-    void Initialize(std::string &configFile) {
-        std::cout << "Initialize the model with a model file: " << configFile << std::endl;
-        numStep = 0;
-        _state.Resize(10);
-        _state.Fill(3.14);
-    }
-
-    void InitializeStep() {}
-
-    void Forward();
-
+    int GetNstate() const { return state_size_; }
+    double GetTime() { return time_; }
     state& GetState();
+    void GetStateCopy(state& _copy);
+
+    void Initialize(std::string &);
+    void InitializeStep() { time_ =  double(numStep)*this->gnode->getDt(); }
+    void Finalize() {}
+    void FinalizeStep() { numStep++; }
+    bool HasFinished() { return(false); }
+    void StateUpdated();
+    void SetTime(double _time) { time_ = _time;}
+
+    double ApplyOperator(state& _x, bool _preserve_state = true, bool _update_force = true);
+    void Forward(bool _update_force = true);
 
     void Message(string _message);
-    /// virtual void setNode( simulation::Node* );
 
-    /// Set the simulation node to the local context if not specified previously
-    /// virtual void init();
-
-    /// perform one animation step
-    /// virtual void step(const core::ExecParams* params, double dt);
+    state_error_variance& GetStateErrorVariance();
+    state_error_variance_row& GetStateErrorVarianceRow(int row);
 
 
     /// Construction method called by ObjectFactory.

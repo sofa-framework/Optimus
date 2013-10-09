@@ -70,7 +70,8 @@ namespace simulation
 
 template <class Type>
 SofaModelWrapper<Type>::SofaModelWrapper()
-    //: Inherit()
+    : Inherit()
+    , current_row_(-1)
 {}
 
 template <class Type>
@@ -87,79 +88,185 @@ void SofaModelWrapper<Type>::Message(string _message) {
 
 
 template <class Type>
-void SofaModelWrapper<Type>::initSimuData( simulation::Node* _gnode, bool _posInState, bool _velInState )
+void SofaModelWrapper<Type>::initSimuData( simulation::Node* _gnode, bool _posInState, bool _velInState, double _stateErrorVarianceValue )
 {
-    std::cout << "sofa init " << std::endl;
+    /// set variables given by animation loop
     gnode=_gnode;
     positionInState = _posInState;
     velocityInState = _velInState;
+    state_error_variance_value_ = _stateErrorVarianceValue;
+
+    /// register the object in the scene
     std::cout << "Registering object: " << this->GetName() << std::endl;
     this->setName("sofaModelWrapper");
     gnode->addObject(this);
 
     /// looking for optimization parameters which will be a part of the state    
     gnode->get(vecParams);
-
     if (vecParams != NULL) {
         std::cout << "Vectorial parameter container found " << vecParams->getName() << ", size: " << vecParams->size() << std::endl;
     } else
         std::cerr << "Vectorial parameter not found! " << std::endl;
 
     gnode->get(mechanicalObject);
-
     if (mechanicalObject != NULL)
         std::cout << "Mechanical object found " << mechanicalObject->getName() << std::endl;
     else
         std::cerr << "Mechanical object not found! " << std::endl;
+
+    numStep = 0;
 }
 
 template <class Type>
-typename SofaModelWrapper<Type>::state& SofaModelWrapper<Type>::GetState() {
+void SofaModelWrapper<Type>::StateSofa2Verdandi() {
     typename core::behavior::MechanicalState<defaulttype::Vec3dTypes>::ReadVecCoord pos = mechanicalObject->readPositions();
     typename core::behavior::MechanicalState<defaulttype::Vec3dTypes>::ReadVecDeriv vel = mechanicalObject->readVelocities();
-
-    size_t size = 0;
-    if (positionInState)
-        size += 3*pos.size();
-
-    if (velocityInState)
-        size += 3*vel.size();
-
-
-
-    if (vecParams)
-        size += vecParams->size();
-
-    _state.Nullify();
-    _state.Resize(size);
-
-    //std::cout << "State having " << size << " members " << std::endl;
 
     size_t j = 0;
     if (positionInState) {
         for (size_t i = 0; i < pos.size(); i++)
             for (size_t d = 0; d < 3; d++) {
-                _state(j++) = pos[i][d];
+                state_(j++) = pos[i][d];
             }
     }
 
     if (velocityInState) {
         for (size_t i = 0; i < vel.size(); i++)
             for (size_t d = 0; d < 3; d++)
-                _state(j++) = vel[i][d];
+                state_(j++) = vel[i][d];
     }
 
     const helper::vector<double>& vecPar = vecParams->getValue();
     for (size_t i = 0; i < vecParams->size(); i++)
-        _state(j++) = vecPar[i];
+        state_(j++) = vecPar[i];
+}
 
-    return _state;
+template <class Type>
+void SofaModelWrapper<Type>::StateVerdandi2Sofa() {
+    typename core::behavior::MechanicalState<defaulttype::Vec3dTypes>::WriteVecCoord pos = mechanicalObject->writePositions();
+    typename core::behavior::MechanicalState<defaulttype::Vec3dTypes>::WriteVecDeriv vel = mechanicalObject->writeVelocities();
+
+    size_t j = 0;
+    if (positionInState) {
+        for (size_t i = 0; i < pos.size(); i++)
+            for (size_t d = 0; d < 3; d++) {
+                pos[i][d] = state_(j++);
+            }
+    }
+
+    if (velocityInState) {
+        for (size_t i = 0; i < vel.size(); i++)
+            for (size_t d = 0; d < 3; d++)
+                vel[i][d] = state_(j++);
+    }
+
+    helper::vector<double> vecPar(vecParams->size());
+    for (size_t i = 0; i < vecParams->size(); i++)
+        vecPar[i] = state_(j++);
+    vecParams->setValue(vecPar);
 }
 
 
 template <class Type>
-void SofaModelWrapper<Type>::Forward()
+void SofaModelWrapper<Type>::Initialize(std::string &/*configFile*/)
 {
+    //std::cout << "Initialize the model with a model file: " << configFile << std::endl;
+    /// initialize filter state
+    state_size_ = 0;
+    if (positionInState)
+        state_size_ += 3*mechanicalObject->getSize();
+
+    if (velocityInState)
+        state_size_ += 3*mechanicalObject->getSize();
+
+    if (vecParams)
+        state_size_ += vecParams->size();
+
+    state_.Nullify();
+    state_.Resize(state_size_);
+
+    StateSofa2Verdandi();
+
+    /// initialize state error variance
+    state_error_variance_.Reallocate(GetNstate(), GetNstate());
+    state_error_variance_.SetIdentity();
+    Mlt(Type(state_error_variance_value_), state_error_variance_);
+    state_error_variance_inverse_.Reallocate(GetNstate(), GetNstate());
+    state_error_variance_inverse_.SetIdentity();
+    Mlt(Type(state_error_variance_value_), state_error_variance_inverse_);
+}
+
+
+template <class Type>
+typename SofaModelWrapper<Type>::state& SofaModelWrapper<Type>::GetState() {
+    /// propagate the SOFA state towards verdandi state
+    StateSofa2Verdandi();
+
+    /// return a reference to duplicate state
+    duplicated_state_.Reallocate(state_.GetM());
+    for (int i = 0; i < state_.GetM(); i++)
+        duplicated_state_(i) = state_(i);
+    return duplicated_state_;
+
+}
+
+template <class Type>
+void SofaModelWrapper<Type>::StateUpdated() {
+    for (int i = 0; i < state_.GetM(); i++)
+        state_(i) = duplicated_state_(i);
+    StateVerdandi2Sofa();
+}
+
+template <class Type>
+void SofaModelWrapper<Type>::GetStateCopy(state& _copy) {
+    _copy.Reallocate(state_.GetM());
+    for (int i = 0; i < state_.GetM(); i++)
+        _copy(i) = state_(i);
+}
+
+
+template <class Type>
+double SofaModelWrapper<Type>::ApplyOperator(state& _x, bool _preserve_state, bool _update_force)  {
+    std::cout << this->getName() << " Apply Operator start"  << std::endl;
+    double saved_time = 0;
+    state saved_state;
+    saved_time = GetTime();
+
+    if (_preserve_state)
+        saved_state.SetData(duplicated_state_);
+
+    duplicated_state_.Nullify();
+    duplicated_state_.SetData(_x);
+    StateUpdated();
+
+    Forward(_update_force);
+    double new_time = GetTime();
+
+    GetStateCopy(duplicated_state_);
+
+    duplicated_state_.Nullify();
+
+    SetTime(saved_time);
+
+    if (_preserve_state)
+    {
+        duplicated_state_.SetData(saved_state);
+        StateUpdated();
+        saved_state.Nullify();
+    }
+
+    std::cout << this->getName() << " Apply Operator end"  << std::endl;
+    return new_time;
+}
+
+
+template <class Type>
+void SofaModelWrapper<Type>::Forward(bool _update_force)
+{
+    if (_update_force) {
+
+    }
+
     double    dt = this->gnode->getDt();
 
     sofa::helper::AdvancedTimer::stepBegin("AnimationStep");
@@ -215,6 +322,27 @@ void SofaModelWrapper<Type>::Forward()
     sofa::helper::AdvancedTimer::end("Animate");
     sofa::helper::AdvancedTimer::stepEnd("AnimationStep");
 }
+
+
+template <class Type>
+typename SofaModelWrapper<Type>::state_error_variance& SofaModelWrapper<Type>::GetStateErrorVariance() {
+    std::cout << this->getName() << " " << GetTime() << " getStateErrorVariance" << std::endl;
+    return state_error_variance_;
+}
+
+
+template <class Type>
+typename SofaModelWrapper<Type>::state_error_variance_row& SofaModelWrapper<Type>::GetStateErrorVarianceRow(int row)
+{
+    if (row == current_row_)
+        return state_error_variance_row_;
+
+    GetRow(state_error_variance_, row, state_error_variance_row_);
+    current_row_ = row;
+
+    return state_error_variance_row_;
+}
+
 
 SOFA_DECL_CLASS(SofaModelWrapper)
 

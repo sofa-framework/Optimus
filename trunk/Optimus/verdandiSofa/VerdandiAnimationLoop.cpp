@@ -80,9 +80,12 @@ VerdandiAnimationLoop::VerdandiAnimationLoop(simulation::Node* _gnode)
     , _configFile( initData(&_configFile, "configFile", "configuration file for the driver") )
     , _positionInState( initData(&_positionInState, true, "positionInState", "position included in Verdandi state") )
     , _velocityInState( initData(&_velocityInState, true, "velocityInState", "velocity included in Verdandi state") )
-{    
+    , _filterType( initData(&_filterType, "filterType", "type of filter [forward | UKF]", "forward") )
+    , _stateErrorVarianceValue( initData(&_stateErrorVarianceValue, 1.0 , "stateErrorVariance", "state error variance value") )
+{
     assert(gnode);
-    driver=new Verdandi::ForwardDriver<SofaModelWrapper<double> >;
+
+    //ukfDriver=
     //modelWrapper = &driver.GetModel();
 }
 
@@ -92,27 +95,32 @@ VerdandiAnimationLoop::~VerdandiAnimationLoop()
 }
 
 void VerdandiAnimationLoop::init() {
+    std::cout << "Filter type: " << _filterType.getValue() << std::endl;
+
+    if (_filterType.getValue() == "forward") {
+        filterType = FORWARD;
+        fwdDriver = new Verdandi::ForwardDriver<SofaModelWrapper<double> >;
+    }
+    else if (_filterType.getValue() == "UKF") {
+        filterType = UKF;
+        ukfDriver = new Verdandi::UnscentedKalmanFilter<SofaModelWrapper<double>, Verdandi::LinearObservationManager<double> >;
+    }
+    else
+        filterType = UNDEF;
+
+
+    fwdDriver->GetModel().initSimuData(gnode, _positionInState.getValue(), _velocityInState.getValue(), _stateErrorVarianceValue.getValue());
 
 }
 
 void VerdandiAnimationLoop::bwdInit()
 {
-    std::cout << "initialize with: " << _configFile.getValue() << std::endl;
-    driver->GetModel().initSimuData(gnode, _positionInState.getValue(), _velocityInState.getValue());
-    driver->Initialize(_configFile.getValue());
+    //std::cout << "initialize with: " << _configFile.getValue() << std::endl;
+    fwdDriver->Initialize(_configFile.getValue());
 
     if (!gnode)
         gnode = dynamic_cast<simulation::Node*>(this->getContext());
 
-    //this->getContext()->get(modelWrapper);
-
-
-    /*if (modelWrapper == NULL) {
-        std::cerr << "No model wrapper found, cannot interface Verdandi-Sofa" << std::endl;
-    } else {
-        std::cout << "[" << this->getName() << "]: model wrapper found: " << modelWrapper->getName() << std::endl;
-        modelWrapper->setNode(gnode);
-    }*/
 }
 
 void VerdandiAnimationLoop::setNode(simulation::Node* _gnode)
@@ -122,70 +130,10 @@ void VerdandiAnimationLoop::setNode(simulation::Node* _gnode)
 
 void VerdandiAnimationLoop::step(const core::ExecParams* params, double /*dt*/)
 {    
-    driver->GetModel().setInitStepData(params, _positionInState.getValue(), _velocityInState.getValue());
-    driver->InitializeStep();
-    driver->Forward();
-    driver->FinalizeStep();
-    /*if (dt == 0)
-        dt = this->gnode->getDt();
-
-    sofa::helper::AdvancedTimer::stepBegin("AnimationStep");
-
-    sofa::helper::AdvancedTimer::begin("Animate");
-
-#ifdef SOFA_DUMP_VISITOR_INFO
-    simulation::Visitor::printNode("Step");
-#endif
-
-    {
-        AnimateBeginEvent ev ( dt );
-        PropagateEventVisitor act ( params, &ev );
-        gnode->execute ( act );
-    }
-
-    double startTime = gnode->getTime();
-
-    BehaviorUpdatePositionVisitor beh(params , dt);
-    gnode->execute ( beh );
-
-    AnimateVisitor act(params, dt);
-    gnode->execute ( act );
-
-    gnode->setTime ( startTime + dt );
-    gnode->execute< UpdateSimulationContextVisitor >(params);
-
-    {
-        AnimateEndEvent ev ( dt );
-        PropagateEventVisitor act ( params, &ev );
-        gnode->execute ( act );
-    }
-
-    sofa::helper::AdvancedTimer::stepBegin("UpdateMapping");
-    //Visual Information update: Ray Pick add a MechanicalMapping used as VisualMapping
-    gnode->execute< UpdateMappingVisitor >(params);
-    sofa::helper::AdvancedTimer::step("UpdateMappingEndEvent");
-    {
-        UpdateMappingEndEvent ev ( dt );
-        PropagateEventVisitor act ( params , &ev );
-        gnode->execute ( act );
-    }
-    sofa::helper::AdvancedTimer::stepEnd("UpdateMapping");
-
-#ifndef SOFA_NO_UPDATE_BBOX
-    sofa::helper::AdvancedTimer::stepBegin("UpdateBBox");
-    gnode->execute< UpdateBoundingBoxVisitor >(params);
-    sofa::helper::AdvancedTimer::stepEnd("UpdateBBox");
-#endif
-#ifdef SOFA_DUMP_VISITOR_INFO
-    simulation::Visitor::printCloseNode("Step");
-#endif
-
-    ///////////////////////////////////////////////////////////////////////
-
-    ///////////////////////////////////////////////////////////////////////
-
-    sofa::helper::AdvancedTimer::end("Animate");
-    sofa::helper::AdvancedTimer::stepEnd("AnimationStep");*/
+    fwdDriver->GetModel().setInitStepData(params, _positionInState.getValue(), _velocityInState.getValue());
+    fwdDriver->InitializeStep();
+    fwdDriver->Forward();
+    fwdDriver->FinalizeStep();
 }
 
 

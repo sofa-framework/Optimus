@@ -6,7 +6,7 @@
 	<RequiredPlugin pluginName="BilikimoAux"/>
 	<VisualStyle displayFlags="showBehaviorModels showForceFields" />
 	
-	<VerdandiAnimationLoop name="verdAnimLoop" configFile="configuration/truth.lua"/>
+	<VerdandiAnimationLoop name="verdAnimLoop" configFile="configuration/truth.lua" filterType="forward"/>
 	<OptimParams name="paramE" template="Vector" initValue="1e5 5e4"/>
 <!-- 	<SofaModelWrapper name="verdModelWrapper"/> -->
 	

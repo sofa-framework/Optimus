@@ -34,6 +34,9 @@
 
 #include "SofaModelWrapper.h"
 #include "VerdandiHeader.hxx"
+#include "method/ForwardDriver.hxx"
+#include "method/UnscentedKalmanFilter.hxx"
+#include "observation_manager/LinearObservationManager.hxx"
 
 #include "../src/OptimParams.h"
 
@@ -51,6 +54,8 @@ class SOFA_SIMULATION_COMMON_API VerdandiAnimationLoop : public sofa::core::beha
 public:
     typedef sofa::core::behavior::BaseAnimationLoop Inherit;
     SOFA_CLASS(VerdandiAnimationLoop,sofa::core::behavior::BaseAnimationLoop);
+
+    enum FilterType { UNDEF, FORWARD, UKF };
 
     virtual ~VerdandiAnimationLoop();
 public:
@@ -78,8 +83,10 @@ public:
     }
 
 private :
-    Verdandi::ForwardDriver<SofaModelWrapper<double> >* driver;
+    Verdandi::ForwardDriver<SofaModelWrapper<double> >* fwdDriver;
+    Verdandi::UnscentedKalmanFilter<SofaModelWrapper<double>, Verdandi::LinearObservationManager<double> >* ukfDriver;
     simulation::Node* gnode;  ///< the node controlled by the loop
+    FilterType filterType;
 
 public:
     VerdandiAnimationLoop(simulation::Node* gnode = NULL);
@@ -87,6 +94,8 @@ public:
     Data<std::string> _configFile;
     Data<bool> _positionInState;
     Data<bool> _velocityInState;
+    Data<string> _filterType;
+    Data<double> _stateErrorVarianceValue;
 
 };
 
