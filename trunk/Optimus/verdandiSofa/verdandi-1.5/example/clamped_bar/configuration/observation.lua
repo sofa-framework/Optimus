@@ -85,3 +85,17 @@ observation = {
    }
 
 }
+
+Nstate = 22
+Nobservation = 1
+for i = 1, Nobservation * Nstate do
+    observation.operator.value[i] = 0.
+end
+for i = 1, Nobservation do
+    for j = 1, Nobservation do
+        if i == j then
+            observation.operator.value[Nstate * (i - 1) + j] = 1.0
+        end
+    end
+end
+
