@@ -82,8 +82,10 @@ VerdandiAnimationLoop::VerdandiAnimationLoop(simulation::Node* _gnode)
     , _velocityInState( initData(&_velocityInState, true, "velocityInState", "velocity included in Verdandi state") )
     , _filterType( initData(&_filterType, "filterType", "type of filter [forward | UKF]", "forward") )
     , _stateErrorVarianceValue( initData(&_stateErrorVarianceValue, 1.0 , "stateErrorVariance", "state error variance value") )
+    , _verbose( initData(&_verbose, false, "verbose", "print out traces") )
 {
     assert(gnode);
+    numStep=0;
 
     //ukfDriver=
     //modelWrapper = &driver.GetModel();
@@ -97,30 +99,32 @@ VerdandiAnimationLoop::~VerdandiAnimationLoop()
 void VerdandiAnimationLoop::init() {
     std::cout << "Filter type: " << _filterType.getValue() << std::endl;
 
-    if (_filterType.getValue() == "forward") {
-        filterType = FORWARD;
+    if (!gnode)
+        gnode = dynamic_cast<simulation::Node*>(this->getContext());
+
+    if (_filterType.getValue() == "forward") {        
         fwdDriver = new Verdandi::ForwardDriver<SofaModelWrapper<double> >;
+        filterType = FORWARD;
+        fwdDriver->GetModel().initSimuData(gnode, _positionInState.getValue(), _velocityInState.getValue(), _stateErrorVarianceValue.getValue(), _verbose.getValue());
     }
-    else if (_filterType.getValue() == "UKF") {
-        filterType = UKF;
+    else if (_filterType.getValue() == "UKF") {        
         ukfDriver = new Verdandi::UnscentedKalmanFilter<SofaModelWrapper<double>, Verdandi::LinearObservationManager<double> >;
+        filterType = UKF;
+        ukfDriver->GetModel().initSimuData(gnode, _positionInState.getValue(), _velocityInState.getValue(), _stateErrorVarianceValue.getValue(), _verbose.getValue());
     }
     else
-        filterType = UNDEF;
-
-
-    fwdDriver->GetModel().initSimuData(gnode, _positionInState.getValue(), _velocityInState.getValue(), _stateErrorVarianceValue.getValue());
+        filterType = UNDEF;  
 
 }
 
 void VerdandiAnimationLoop::bwdInit()
 {
     //std::cout << "initialize with: " << _configFile.getValue() << std::endl;
-    fwdDriver->Initialize(_configFile.getValue());
-
-    if (!gnode)
-        gnode = dynamic_cast<simulation::Node*>(this->getContext());
-
+    switch (filterType) {
+    case FORWARD: fwdDriver->Initialize(_configFile.getValue()); break;
+    case UKF: ukfDriver->Initialize(_configFile.getValue()); break;
+    case UNDEF: break;
+    }
 }
 
 void VerdandiAnimationLoop::setNode(simulation::Node* _gnode)
@@ -130,10 +134,23 @@ void VerdandiAnimationLoop::setNode(simulation::Node* _gnode)
 
 void VerdandiAnimationLoop::step(const core::ExecParams* params, double /*dt*/)
 {    
-    fwdDriver->GetModel().setInitStepData(params, _positionInState.getValue(), _velocityInState.getValue());
-    fwdDriver->InitializeStep();
-    fwdDriver->Forward();
-    fwdDriver->FinalizeStep();
+    std::cout << "================== step: " << ++numStep << " ===================" << std::endl;
+    switch (filterType) {
+    case FORWARD:
+        fwdDriver->GetModel().setInitStepData(params, _positionInState.getValue(), _velocityInState.getValue());
+        fwdDriver->InitializeStep();
+        fwdDriver->Forward();
+        fwdDriver->FinalizeStep();
+        break;
+    case UKF:
+        ukfDriver->GetModel().setInitStepData(params, _positionInState.getValue(), _velocityInState.getValue());
+        ukfDriver->InitializeStep();
+        ukfDriver->Forward();
+        ukfDriver->Analyze();
+        ukfDriver->FinalizeStep();
+        break;
+    case UNDEF: break;
+    }
 }
 
 

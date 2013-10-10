@@ -32,6 +32,8 @@
 #include <sofa/simulation/common/Node.h>
 #include <sofa/helper/AdvancedTimer.h>
 
+#define VERDANDI_DEBUG_LEVEL_4
+
 #include "SofaModelWrapper.h"
 #include "VerdandiHeader.hxx"
 #include "method/ForwardDriver.hxx"
@@ -86,7 +88,9 @@ private :
     Verdandi::ForwardDriver<SofaModelWrapper<double> >* fwdDriver;
     Verdandi::UnscentedKalmanFilter<SofaModelWrapper<double>, Verdandi::LinearObservationManager<double> >* ukfDriver;
     simulation::Node* gnode;  ///< the node controlled by the loop
-    FilterType filterType;
+    FilterType filterType;    
+
+    int numStep;
 
 public:
     VerdandiAnimationLoop(simulation::Node* gnode = NULL);
@@ -96,6 +100,8 @@ public:
     Data<bool> _velocityInState;
     Data<string> _filterType;
     Data<double> _stateErrorVarianceValue;
+    Data<bool> _verbose;
+
 
 };
 

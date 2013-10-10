@@ -54,6 +54,8 @@
 
 //#include "VerdandiAnimationLoop.h"
 
+#define VERDANDI_DEBUG_LEVEL_4
+
 #include "VerdandiHeader.hxx"
 #include "seldon/SeldonHeader.hxx"
 #include "seldon/computation/basic_functions/Functions_Matrix.cxx"
@@ -142,7 +144,7 @@ protected:
     OPVector* vecParams;
     core::behavior::MechanicalState<defaulttype::Vec3dTypes>* mechanicalObject;
 
-    bool positionInState, velocityInState;
+    bool positionInState, velocityInState, verbose;
 
     /// error variance
     double state_error_variance_value_;
@@ -169,7 +171,7 @@ public:
         velocityInState = _velInState;
     }
 
-    void initSimuData( simulation::Node* _gnode, bool _posInState = true, bool _velInState = true, double _stateErrorVarianceValue = 1.0);
+    void initSimuData(simulation::Node* _gnode, bool _posInState = true, bool _velInState = true, double _stateErrorVarianceValue = 1.0, bool _verbose = true);
 
     /// functions propagating state between SOFA and Verdandi
 
@@ -184,9 +186,9 @@ public:
     void GetStateCopy(state& _copy);
 
     void Initialize(std::string &);
-    void InitializeStep() { time_ =  double(numStep)*this->gnode->getDt(); }
+    void InitializeStep() { numStep++; time_ =  double(numStep)*this->gnode->getDt(); }
     void Finalize() {}
-    void FinalizeStep() { numStep++; }
+    void FinalizeStep();
     bool HasFinished() { return(false); }
     void StateUpdated();
     void SetTime(double _time) { time_ = _time;}
@@ -195,6 +197,10 @@ public:
     void Forward(bool _update_force = true);
 
     void Message(string _message);
+    void Verb(string _s) {
+        if (verbose)
+            std::cout << "[" << this->getName() << "]: " << _s << std::endl;
+    }
 
     state_error_variance& GetStateErrorVariance();
     state_error_variance_row& GetStateErrorVarianceRow(int row);

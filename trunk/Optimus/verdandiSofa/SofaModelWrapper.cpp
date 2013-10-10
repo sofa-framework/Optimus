@@ -88,13 +88,16 @@ void SofaModelWrapper<Type>::Message(string _message) {
 
 
 template <class Type>
-void SofaModelWrapper<Type>::initSimuData( simulation::Node* _gnode, bool _posInState, bool _velInState, double _stateErrorVarianceValue )
+void SofaModelWrapper<Type>::initSimuData(simulation::Node* _gnode, bool _posInState, bool _velInState, double _stateErrorVarianceValue , bool _verbose)
 {
     /// set variables given by animation loop
+    Verb("initSimuData");
+
     gnode=_gnode;
     positionInState = _posInState;
     velocityInState = _velInState;
     state_error_variance_value_ = _stateErrorVarianceValue;
+    verbose = _verbose;
 
     /// register the object in the scene
     std::cout << "Registering object: " << this->GetName() << std::endl;
@@ -170,7 +173,7 @@ void SofaModelWrapper<Type>::StateVerdandi2Sofa() {
 template <class Type>
 void SofaModelWrapper<Type>::Initialize(std::string &/*configFile*/)
 {
-    //std::cout << "Initialize the model with a model file: " << configFile << std::endl;
+    Verb("initialize");
     /// initialize filter state
     state_size_ = 0;
     if (positionInState)
@@ -196,6 +199,18 @@ void SofaModelWrapper<Type>::Initialize(std::string &/*configFile*/)
     Mlt(Type(state_error_variance_value_), state_error_variance_inverse_);
 }
 
+template <class Type>
+void SofaModelWrapper<Type>::FinalizeStep() {
+    /*if ((numStep%200) == 0) {
+        state& temp = GetState();
+        int sz = temp.GetSize();
+        double x = temp(sz-1);
+        temp(sz-1) = temp(sz-2);
+        temp(sz-2) = x;
+        StateUpdated();
+    }*/
+}
+
 
 template <class Type>
 typename SofaModelWrapper<Type>::state& SofaModelWrapper<Type>::GetState() {
@@ -212,6 +227,8 @@ typename SofaModelWrapper<Type>::state& SofaModelWrapper<Type>::GetState() {
 
 template <class Type>
 void SofaModelWrapper<Type>::StateUpdated() {
+    if (verbose)
+        std::cout << this->getName() << " :state updated " << std::endl;
     for (int i = 0; i < state_.GetM(); i++)
         state_(i) = duplicated_state_(i);
     StateVerdandi2Sofa();
@@ -219,6 +236,7 @@ void SofaModelWrapper<Type>::StateUpdated() {
 
 template <class Type>
 void SofaModelWrapper<Type>::GetStateCopy(state& _copy) {
+    Verb("get state copy");
     _copy.Reallocate(state_.GetM());
     for (int i = 0; i < state_.GetM(); i++)
         _copy(i) = state_(i);
@@ -227,7 +245,7 @@ void SofaModelWrapper<Type>::GetStateCopy(state& _copy) {
 
 template <class Type>
 double SofaModelWrapper<Type>::ApplyOperator(state& _x, bool _preserve_state, bool _update_force)  {
-    std::cout << this->getName() << " Apply Operator start"  << std::endl;
+    Verb("state updated begin");
     double saved_time = 0;
     state saved_state;
     saved_time = GetTime();
@@ -255,7 +273,7 @@ double SofaModelWrapper<Type>::ApplyOperator(state& _x, bool _preserve_state, bo
         saved_state.Nullify();
     }
 
-    std::cout << this->getName() << " Apply Operator end"  << std::endl;
+    Verb("state updated begin end");
     return new_time;
 }
 
@@ -263,6 +281,7 @@ double SofaModelWrapper<Type>::ApplyOperator(state& _x, bool _preserve_state, bo
 template <class Type>
 void SofaModelWrapper<Type>::Forward(bool _update_force)
 {
+    Verb("forward begin");
     if (_update_force) {
 
     }
@@ -321,6 +340,8 @@ void SofaModelWrapper<Type>::Forward(bool _update_force)
 #endif
     sofa::helper::AdvancedTimer::end("Animate");
     sofa::helper::AdvancedTimer::stepEnd("AnimationStep");
+
+    Verb("forward end");
 }
 
 
