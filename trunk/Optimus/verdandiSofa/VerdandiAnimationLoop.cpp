@@ -134,7 +134,7 @@ void VerdandiAnimationLoop::setNode(simulation::Node* _gnode)
 
 void VerdandiAnimationLoop::step(const core::ExecParams* params, double /*dt*/)
 {    
-    std::cout << "================== step: " << ++numStep << " ===================" << std::endl;
+    std::cout << "================== " << filterType << " step: " << ++numStep << " ===================" << std::endl;
     switch (filterType) {
     case FORWARD:
         fwdDriver->GetModel().setInitStepData(params, _positionInState.getValue(), _velocityInState.getValue());

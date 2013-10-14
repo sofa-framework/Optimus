@@ -127,14 +127,14 @@ void SofaModelWrapper<Type>::StateSofa2Verdandi() {
 
     size_t j = 0;
     if (positionInState) {
-        for (size_t i = 0; i < pos.size(); i++)
+        for (size_t i = 4; i < pos.size(); i++)
             for (size_t d = 0; d < 3; d++) {
                 state_(j++) = pos[i][d];
             }
     }
 
     if (velocityInState) {
-        for (size_t i = 0; i < vel.size(); i++)
+        for (size_t i = 4; i < vel.size(); i++)
             for (size_t d = 0; d < 3; d++)
                 state_(j++) = vel[i][d];
     }
@@ -151,14 +151,14 @@ void SofaModelWrapper<Type>::StateVerdandi2Sofa() {
 
     size_t j = 0;
     if (positionInState) {
-        for (size_t i = 0; i < pos.size(); i++)
+        for (size_t i = 4; i < pos.size(); i++)
             for (size_t d = 0; d < 3; d++) {
                 pos[i][d] = state_(j++);
             }
     }
 
     if (velocityInState) {
-        for (size_t i = 0; i < vel.size(); i++)
+        for (size_t i = 4; i < vel.size(); i++)
             for (size_t d = 0; d < 3; d++)
                 vel[i][d] = state_(j++);
     }
@@ -177,13 +177,18 @@ void SofaModelWrapper<Type>::Initialize(std::string &/*configFile*/)
     /// initialize filter state
     state_size_ = 0;
     if (positionInState)
-        state_size_ += 3*mechanicalObject->getSize();
+        state_size_ += 3*(mechanicalObject->getSize()-4);
 
     if (velocityInState)
-        state_size_ += 3*mechanicalObject->getSize();
+        state_size_ += 3*(mechanicalObject->getSize()-4);
+
+    std::cout << "Initializing with size " << state_size_ << std::endl;
 
     if (vecParams)
         state_size_ += vecParams->size();
+
+    std::cout << "SSS "  << vecParams->size() << std::endl;
+    std::cout << "Initializing with size " << state_size_ << std::endl;
 
     state_.Nullify();
     state_.Resize(state_size_);
@@ -246,6 +251,11 @@ void SofaModelWrapper<Type>::GetStateCopy(state& _copy) {
 template <class Type>
 double SofaModelWrapper<Type>::ApplyOperator(state& _x, bool _preserve_state, bool _update_force)  {
     Verb("state updated begin");
+    /*std::cout << "start _x ";
+    for (size_t i = 0; i < _x.GetSize(); i++)
+        std::cout << _x(i) << " ";
+    std::cout << std::endl;*/
+
     double saved_time = 0;
     state saved_state;
     saved_time = GetTime();
@@ -258,6 +268,7 @@ double SofaModelWrapper<Type>::ApplyOperator(state& _x, bool _preserve_state, bo
     StateUpdated();
 
     Forward(_update_force);
+    StateSofa2Verdandi();
     double new_time = GetTime();
 
     GetStateCopy(duplicated_state_);
@@ -265,6 +276,11 @@ double SofaModelWrapper<Type>::ApplyOperator(state& _x, bool _preserve_state, bo
     duplicated_state_.Nullify();
 
     SetTime(saved_time);
+
+    /*std::cout << "end _x ";
+    for (size_t i = 0; i < _x.GetSize(); i++)
+        std::cout << _x(i) << " ";
+    std::cout << std::endl;*/
 
     if (_preserve_state)
     {

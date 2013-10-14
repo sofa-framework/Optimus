@@ -131,7 +131,7 @@ public:
     //! Collection of vector state.
     typedef Seldon::Vector<state, Seldon::Collection> state_collection;
 
-protected:
+public:
     const core::ExecParams* execParams;
     int numStep;
 

@@ -8,7 +8,7 @@
 	
 <!-- 	<VerdandiAnimationLoop name="verdAnimLoop" configFile="configuration/truth.lua" filterType="forward" verbose="1" velocityInState="0"/> -->
 	<VerdandiAnimationLoop name="verdAnimLoop" configFile="configuration/assimilationUKF.lua" filterType="UKF" verbose="0" velocityInState="0"/>
-	<OptimParams name="paramE" template="Vector" initValue="1e6 1e6"/>
+	<OptimParams name="paramE" template="Vector" initValue="1.2e5 1.2e5"/>
 <!-- 	<SofaModelWrapper name="verdModelWrapper"/> -->
 	
 	<EulerImplicit name="odeSolver" printLog="false" />\
