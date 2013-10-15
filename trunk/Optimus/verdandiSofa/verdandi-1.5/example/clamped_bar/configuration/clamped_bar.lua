@@ -5,6 +5,7 @@ clamped_bar = {
 
     -- Components of the state vector.
     state = {"displacement", "velocity", "theta_force"},
+    --state = {"displacement", "theta_force"},
     -- Reduced state parameters.
     reduced_state = {"theta_force"},
 
@@ -16,7 +17,7 @@ clamped_bar = {
         final_time = final_time_clamped_bar,
 
         bar_length = 1.,
-        Nx = 10
+        Nx = 4 
 
     },
 

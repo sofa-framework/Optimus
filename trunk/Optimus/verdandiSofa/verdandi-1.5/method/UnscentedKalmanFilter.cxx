@@ -232,20 +232,36 @@ namespace Verdandi
         Copy(background_error_variance_, background_error_variance_sqrt);
         GetCholesky(background_error_variance_sqrt);
 
+        /// ***************************
+        char name[100];
+        sprintf(name, "varMatP_%04d.dat", int(100*model_.GetTime()));
+        background_error_variance_.WriteText(name);
+        std::cout << "#sigma: " << Nsigma_point_ << std::endl;
+        //for (int i = 0; i < Nsigma_point_; i++)
+        //    std::cout << "sigmaPoints: " << sigma_point_collection_.GetVector(i) << std::endl;
+
+        /// ***************************
+
         // Computes X_n^{(i)+}.
         model_state_error_variance_row x(Nstate_);
         Copy(model_.GetState(), x);
 
+        sprintf(name, "xstart_%04d.dat", int(100*model_.GetTime()));
+        x.WriteText(name);
+
         X_i_trans_.Reallocate(Nsigma_point_, Nstate_);
         sigma_point x_col;
         for (int i = 0; i < Nsigma_point_; i++)
-        {
-            SetRow(x, i, X_i_trans_);
-            GetRowPointer(X_i_trans_, i, x_col);
+        {                        
+            SetRow(x, i, X_i_trans_);            
+            GetRowPointer(X_i_trans_, i, x_col);            
             MltAdd(Ts(1), background_error_variance_sqrt,
                    sigma_point_collection_.GetVector(i), Ts(1), x_col);
-            x_col.Nullify();
+            x_col.Nullify();            
         }
+
+        sprintf(name, "xit_%04d.dat", int(100*model_.GetTime()));
+        X_i_trans_.WriteText(name);
 
         if (alpha_constant_)
         {
@@ -266,14 +282,18 @@ namespace Verdandi
             model_.StateUpdated();
             model_.SetTime(new_time);
 
+            sprintf(name, "xAprior_%04d.dat", int(100*model_.GetTime()));
+            x.WriteText(name);
+
             // Computes P_{n + 1}^-.
-            background_error_variance_.Fill(Ts(0));
+            background_error_variance_.Fill(Ts(0));            
             for (int i = 0; i < Nsigma_point_; i++)
             {
                 GetRowPointer(X_i_trans_, i, x_col);
                 Add(Ts(-1), x, x_col);
                 Rank1Update(Ts(1), x_col, x_col, background_error_variance_);
                 x_col.Nullify();
+
             }
             Mlt(alpha_, background_error_variance_);
         }
@@ -337,7 +357,11 @@ namespace Verdandi
         // Computes background error variance Cholesky factorization.
         model_state_error_variance background_error_variance_sqrt;
         Copy(background_error_variance_, background_error_variance_sqrt);
-        GetCholesky(background_error_variance_sqrt);
+        GetCholesky(background_error_variance_sqrt);        
+
+        char name[100];
+        sprintf(name, "varMatA_%04d.dat", int(100*model_.GetTime()));
+        background_error_variance_.WriteText(name);
 
         // Computes X_{n + 1}^{(i)-}.
         model_state& x = model_.GetState();
@@ -425,6 +449,9 @@ namespace Verdandi
 
             // Computes X_{n + 1}^+.
             MltAdd(Ts(1), K, observation_manager_.GetInnovation(x), Ts(1), x);
+
+            sprintf(name, "xApost_%04d.dat", int(100*model_.GetTime()));
+            x.WriteText(name);
 
             model_.StateUpdated();
 
