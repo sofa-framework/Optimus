@@ -71,7 +71,7 @@ namespace simulation
 template <class Type>
 SofaModelWrapper<Type>::SofaModelWrapper()
     : Inherit()
-    , current_row_(-1)
+    , current_row_(-1)    
 {}
 
 template <class Type>
@@ -88,16 +88,13 @@ void SofaModelWrapper<Type>::Message(string _message) {
 
 
 template <class Type>
-void SofaModelWrapper<Type>::initSimuData(simulation::Node* _gnode, bool _posInState, bool _velInState, double _stateErrorVarianceValue , bool _verbose)
+void SofaModelWrapper<Type>::initSimuData(ModelData &_md)
 {
     /// set variables given by animation loop
     Verb("initSimuData");
 
-    gnode=_gnode;
-    positionInState = _posInState;
-    velocityInState = _velInState;
-    state_error_variance_value_ = _stateErrorVarianceValue;
-    verbose = _verbose;
+    modelData = _md;
+    simulation::Node* gnode = modelData.gnode;
 
     /// register the object in the scene
     std::cout << "Registering object: " << this->GetName() << std::endl;
@@ -126,15 +123,15 @@ void SofaModelWrapper<Type>::StateSofa2Verdandi() {
     typename core::behavior::MechanicalState<defaulttype::Vec3dTypes>::ReadVecDeriv vel = mechanicalObject->readVelocities();
 
     size_t j = 0;
-    if (positionInState) {
-        for (size_t i = 4; i < pos.size(); i++)
+    if (modelData.positionInState) {
+        for (size_t i = modelData.offset; i < pos.size(); i++)
             for (size_t d = 0; d < 3; d++) {
                 state_(j++) = pos[i][d];
             }
     }
 
-    if (velocityInState) {
-        for (size_t i = 4; i < vel.size(); i++)
+    if (modelData.velocityInState) {
+        for (size_t i = modelData.offset; i < vel.size(); i++)
             for (size_t d = 0; d < 3; d++)
                 state_(j++) = vel[i][d];
     }
@@ -150,15 +147,15 @@ void SofaModelWrapper<Type>::StateVerdandi2Sofa() {
     typename core::behavior::MechanicalState<defaulttype::Vec3dTypes>::WriteVecDeriv vel = mechanicalObject->writeVelocities();
 
     size_t j = 0;
-    if (positionInState) {
-        for (size_t i = 4; i < pos.size(); i++)
+    if (modelData.positionInState) {
+        for (size_t i = modelData.offset; i < pos.size(); i++)
             for (size_t d = 0; d < 3; d++) {
                 pos[i][d] = state_(j++);
             }
     }
 
-    if (velocityInState) {
-        for (size_t i = 4; i < vel.size(); i++)
+    if (modelData.velocityInState) {
+        for (size_t i = modelData.offset; i < vel.size(); i++)
             for (size_t d = 0; d < 3; d++)
                 vel[i][d] = state_(j++);
     }
@@ -175,33 +172,49 @@ void SofaModelWrapper<Type>::Initialize(std::string &/*configFile*/)
 {
     Verb("initialize");
     /// initialize filter state
+    std::cout << "OFFSET: " << modelData.offset << std::endl;
     state_size_ = 0;
-    if (positionInState)
-        state_size_ += 3*(mechanicalObject->getSize()-4);
+    if (modelData.positionInState)
+        state_size_ += 3*(mechanicalObject->getSize()-modelData.offset);
 
-    if (velocityInState)
-        state_size_ += 3*(mechanicalObject->getSize()-4);
+    if (modelData.velocityInState)
+        state_size_ += 3*(mechanicalObject->getSize()-modelData.offset);
 
-    std::cout << "Initializing with size " << state_size_ << std::endl;
+    int sofaStateSize = state_size_;
 
     if (vecParams)
         state_size_ += vecParams->size();
 
-    std::cout << "SSS "  << vecParams->size() << std::endl;
-    std::cout << "Initializing with size " << state_size_ << std::endl;
+    std::cout << "Initializing with size " << state_size_ << " (" << sofaStateSize << ")" << std::endl;
 
     state_.Nullify();
     state_.Resize(state_size_);
 
     StateSofa2Verdandi();
 
+
     /// initialize state error variance
     state_error_variance_.Reallocate(GetNstate(), GetNstate());
     state_error_variance_.SetIdentity();
-    Mlt(Type(state_error_variance_value_), state_error_variance_);
+    for (size_t i = 0; i < size_t(sofaStateSize); i++)
+        state_error_variance_(i,i) *= modelData.errorVarianceSofaState;
+
+    for (size_t i = sofaStateSize; i < size_t(state_size_); i++)
+        state_error_variance_(i,i) *= modelData.errorVarianceSofaParams;
+
+    //Mlt(Type(state_error_variance_value_), state_error_variance_);
+
     state_error_variance_inverse_.Reallocate(GetNstate(), GetNstate());
     state_error_variance_inverse_.SetIdentity();
-    Mlt(Type(state_error_variance_value_), state_error_variance_inverse_);
+    for (size_t i = 0; i < size_t(sofaStateSize); i++)
+        state_error_variance_inverse_(i,i) *= modelData.errorVarianceSofaState;
+    for (size_t i = size_t(sofaStateSize); i < size_t(state_size_); i++)
+        state_error_variance_inverse_(i,i) *= modelData.errorVarianceSofaParams;
+
+    //Mlt(Type(state_error_variance_value_), state_error_variance_inverse_);
+
+    std::cout << "Covariance INIT: " << std::endl;
+    printMatrix(state_error_variance_);
 }
 
 template <class Type>
@@ -232,11 +245,19 @@ typename SofaModelWrapper<Type>::state& SofaModelWrapper<Type>::GetState() {
 
 template <class Type>
 void SofaModelWrapper<Type>::StateUpdated() {
-    if (verbose)
+    if (modelData.verbose)
         std::cout << this->getName() << " :state updated " << std::endl;
     for (int i = 0; i < state_.GetM(); i++)
         state_(i) = duplicated_state_(i);
     StateVerdandi2Sofa();
+}
+
+template <class Type>
+void SofaModelWrapper<Type>::SetTime(double _time) {
+    time_ = _time;
+    simulation::Node* gnode = modelData.gnode;
+    gnode->setTime ( _time );
+    gnode->execute< UpdateSimulationContextVisitor >(execParams);
 }
 
 template <class Type>
@@ -267,7 +288,7 @@ double SofaModelWrapper<Type>::ApplyOperator(state& _x, bool _preserve_state, bo
     duplicated_state_.SetData(_x);
     StateUpdated();
 
-    Forward(_update_force);
+    Forward(_update_force, false);
     StateSofa2Verdandi();
     double new_time = GetTime();
 
@@ -295,14 +316,15 @@ double SofaModelWrapper<Type>::ApplyOperator(state& _x, bool _preserve_state, bo
 
 
 template <class Type>
-void SofaModelWrapper<Type>::Forward(bool _update_force)
+void SofaModelWrapper<Type>::Forward(bool _update_force, bool _update_time)
 {
     Verb("forward begin");
     if (_update_force) {
 
     }
+    simulation::Node* gnode = modelData.gnode;
 
-    double    dt = this->gnode->getDt();
+    double    dt = gnode->getDt();
 
     sofa::helper::AdvancedTimer::stepBegin("AnimationStep");
 
@@ -326,8 +348,10 @@ void SofaModelWrapper<Type>::Forward(bool _update_force)
     AnimateVisitor act(execParams, dt);
     gnode->execute ( act );
 
-    gnode->setTime ( startTime + dt );
-    gnode->execute< UpdateSimulationContextVisitor >(execParams);
+    if (_update_time) {
+        gnode->setTime ( startTime + dt );
+        gnode->execute< UpdateSimulationContextVisitor >(execParams);
+    }
 
     {
         AnimateEndEvent ev ( dt );

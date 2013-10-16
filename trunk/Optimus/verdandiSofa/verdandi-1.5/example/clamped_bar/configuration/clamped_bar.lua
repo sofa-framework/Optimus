@@ -36,7 +36,7 @@ clamped_bar = {
     error_statistics = {
 
         -- Diagonal value of "B".
-        state_error_variance = 1.,
+        state_error_variance = 0.01,
 
     },
 

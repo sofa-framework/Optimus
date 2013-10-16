@@ -20,6 +20,7 @@
 
 #ifndef VERDANDI_FILE_MODEL_CLAMPEDBAR_CXX
 
+#include <iomanip>
 
 #include "ClampedBar.hxx"
 

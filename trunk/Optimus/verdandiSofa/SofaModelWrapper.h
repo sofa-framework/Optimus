@@ -131,23 +131,31 @@ public:
     //! Collection of vector state.
     typedef Seldon::Vector<state, Seldon::Collection> state_collection;
 
+    typedef struct {
+        simulation::Node* gnode;
+        int offset;
+        bool positionInState;
+        bool velocityInState;
+        double errorVarianceSofaState;
+        double errorVarianceSofaParams;
+        bool verbose;
+    } ModelData;
+
 public:
     const core::ExecParams* execParams;
     int numStep;
 
     int state_size_;
+
     state state_, duplicated_state_;
-
-
-
 
     OPVector* vecParams;
     core::behavior::MechanicalState<defaulttype::Vec3dTypes>* mechanicalObject;
 
-    bool positionInState, velocityInState, verbose;
+    //bool positionInState, velocityInState, verbose;
 
     /// error variance
-    double state_error_variance_value_;
+    //double state_error_variance_state_, state_error_variance_params_;
 
     //! Background error covariance matrix (B).
     state_error_variance state_error_variance_;
@@ -157,21 +165,22 @@ public:
     state_error_variance_row state_error_variance_row_;
 
     int current_row_;
+    //int offSet;
 
     double time_;
+
+    ModelData modelData;
 
 
 public:
     SofaModelWrapper();
     virtual ~SofaModelWrapper();
 
-    void setInitStepData(const core::ExecParams* _execParams, bool _posInState, bool _velInState) {
-        execParams = _execParams;
-        positionInState = _posInState;
-        velocityInState = _velInState;
+    void setInitStepData(const core::ExecParams* _execParams) {
+        execParams = _execParams;     
     }
 
-    void initSimuData(simulation::Node* _gnode, bool _posInState = true, bool _velInState = true, double _stateErrorVarianceValue = 1.0, bool _verbose = true);
+    void initSimuData(ModelData& _md);
 
     /// functions propagating state between SOFA and Verdandi
 
@@ -186,19 +195,19 @@ public:
     void GetStateCopy(state& _copy);
 
     void Initialize(std::string &);
-    void InitializeStep() { numStep++; time_ =  double(numStep)*this->gnode->getDt(); }
+    void InitializeStep() { numStep++; time_ = numStep*modelData.gnode->getDt(); }
     void Finalize() {}
     void FinalizeStep();
     bool HasFinished() { return(false); }
     void StateUpdated();
-    void SetTime(double _time) { time_ = _time;}
+    void SetTime(double _time);
 
     double ApplyOperator(state& _x, bool _preserve_state = true, bool _update_force = true);
-    void Forward(bool _update_force = true);
+    void Forward(bool _update_force = true, bool _update_time = true);
 
     void Message(string _message);
     void Verb(string _s) {
-        if (verbose)
+        if (modelData.verbose)
             std::cout << "[" << this->getName() << "]: " << _s << std::endl;
     }
 
@@ -217,9 +226,18 @@ public:
         return obj;
     }*/
 
+    void printMatrix(Seldon::Matrix<Type>& M) {
+        for (int i = 0; i < M.GetM(); i++)
+          {
+            for (int j = 0; j < M.GetN(); j++)
+              std::cout << M(i, j) << '\t';
+            std::cout << std::endl;
+          }
+    }
+
 private :
 
-    simulation::Node* gnode;  ///< the node controlled by the loop
+    //simulation::Node* gnode;  ///< the node controlled by the loop
 
 };
 

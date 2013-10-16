@@ -34,9 +34,13 @@
 #include "seldon/vector/VectorCollection.hxx"
 
 
-namespace Verdandi {
+namespace Verdandi {    
     template class Verdandi::ForwardDriver<sofa::simulation::SofaModelWrapper<double> >;
     template class Verdandi::UnscentedKalmanFilter<sofa::simulation::SofaModelWrapper<double>, Verdandi::LinearObservationManager<double> >;
 }
+
+/*namespace Seldon {
+    template <class T, class Prop, class Storage, class Allocator> ostream& operator << (ostream& out, const Matrix<T, Prop, Storage, Allocator>& A);
+}*/
 
 

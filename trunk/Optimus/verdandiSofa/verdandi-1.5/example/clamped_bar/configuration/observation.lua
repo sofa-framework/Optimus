@@ -88,14 +88,14 @@ observation = {
 }
 
 Nstate = 10
-Nobservation = 10
+Nobservation = 3
 for i = 1, Nobservation * Nstate do
     observation.operator.value[i] = 0.
 end
 for i = 1, Nobservation do
     for j = 1, Nobservation do
         if i == j then
-            observation.operator.value[Nstate * (i - 1) + j] = 1.0
+            observation.operator.value[Nstate * (i - 1) + j + 6] = 1.0
         end
     end
 end

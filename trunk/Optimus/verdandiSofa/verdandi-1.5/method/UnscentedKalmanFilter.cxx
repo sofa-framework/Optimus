@@ -232,13 +232,15 @@ namespace Verdandi
         Copy(background_error_variance_, background_error_variance_sqrt);
         GetCholesky(background_error_variance_sqrt);
 
-        /// ***************************
+        /// ***************************        
+
         char name[100];
-        sprintf(name, "varMatP_%04d.dat", int(100*model_.GetTime()));
+        sprintf(name, "varMatP_%04d.dat", int(100*model_.GetTime()+0.5));
         background_error_variance_.WriteText(name);
         std::cout << "#sigma: " << Nsigma_point_ << std::endl;
         //for (int i = 0; i < Nsigma_point_; i++)
         //    std::cout << "sigmaPoints: " << sigma_point_collection_.GetVector(i) << std::endl;
+
 
         /// ***************************
 
@@ -246,22 +248,34 @@ namespace Verdandi
         model_state_error_variance_row x(Nstate_);
         Copy(model_.GetState(), x);
 
-        sprintf(name, "xstart_%04d.dat", int(100*model_.GetTime()));
+        sprintf(name, "xstart_%04d.dat", int(100*model_.GetTime()+0.5));
         x.WriteText(name);
 
+        sigma_point_matrix pertMat;
+        pertMat.Reallocate(Nsigma_point_, Nstate_);
+        pertMat.Fill(0.0);
         X_i_trans_.Reallocate(Nsigma_point_, Nstate_);
-        sigma_point x_col;
+        sigma_point x_col, pert_col;
         for (int i = 0; i < Nsigma_point_; i++)
         {                        
             SetRow(x, i, X_i_trans_);            
-            GetRowPointer(X_i_trans_, i, x_col);            
+            GetRowPointer(X_i_trans_, i, x_col);
+            GetRowPointer(pertMat, i, pert_col);
             MltAdd(Ts(1), background_error_variance_sqrt,
                    sigma_point_collection_.GetVector(i), Ts(1), x_col);
+
+            MltAdd(Ts(1), background_error_variance_sqrt,
+                   sigma_point_collection_.GetVector(i), Ts(1), pert_col);
+
             x_col.Nullify();            
+            pert_col.Nullify();
         }
 
-        sprintf(name, "xit_%04d.dat", int(100*model_.GetTime()));
+        sprintf(name, "xit_%04d.dat", int(100*model_.GetTime() + 0.5));
         X_i_trans_.WriteText(name);
+
+        sprintf(name, "pert_%04d.dat", int(100*model_.GetTime() + 0.5));
+        pertMat.WriteText(name);
 
         if (alpha_constant_)
         {
@@ -282,7 +296,9 @@ namespace Verdandi
             model_.StateUpdated();
             model_.SetTime(new_time);
 
-            sprintf(name, "xAprior_%04d.dat", int(100*model_.GetTime()));
+            std::cout << "NEWTIME: " << new_time << std::endl;
+
+            sprintf(name, "xAprior_%04d.dat", int(100*model_.GetTime()+0.5));
             x.WriteText(name);
 
             // Computes P_{n + 1}^-.
@@ -360,7 +376,7 @@ namespace Verdandi
         GetCholesky(background_error_variance_sqrt);        
 
         char name[100];
-        sprintf(name, "varMatA_%04d.dat", int(100*model_.GetTime()));
+        sprintf(name, "varMatA_%04d.dat", int(100*model_.GetTime()+0.5));
         background_error_variance_.WriteText(name);
 
         // Computes X_{n + 1}^{(i)-}.
@@ -450,7 +466,7 @@ namespace Verdandi
             // Computes X_{n + 1}^+.
             MltAdd(Ts(1), K, observation_manager_.GetInnovation(x), Ts(1), x);
 
-            sprintf(name, "xApost_%04d.dat", int(100*model_.GetTime()));
+            sprintf(name, "xApost_%04d.dat", int(100*model_.GetTime()+0.5));
             x.WriteText(name);
 
             model_.StateUpdated();

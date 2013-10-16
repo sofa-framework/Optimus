@@ -81,7 +81,9 @@ VerdandiAnimationLoop::VerdandiAnimationLoop(simulation::Node* _gnode)
     , _positionInState( initData(&_positionInState, true, "positionInState", "position included in Verdandi state") )
     , _velocityInState( initData(&_velocityInState, true, "velocityInState", "velocity included in Verdandi state") )
     , _filterType( initData(&_filterType, "filterType", "type of filter [forward | UKF]", "forward") )
-    , _stateErrorVarianceValue( initData(&_stateErrorVarianceValue, 1.0 , "stateErrorVariance", "state error variance value") )
+    , _stateErrorVarianceState( initData(&_stateErrorVarianceState, 1.0 , "stateErrorVarianceState", "state error variance value") )
+    , _stateErrorVarianceParams( initData(&_stateErrorVarianceParams, 1.0 , "stateErrorVarianceParams", "parameters error variance value") )
+    , _offset( initData(&_offset, 0 , "offset", "offset (number of fixed nodes") )
     , _verbose( initData(&_verbose, false, "verbose", "print out traces") )
 {
     assert(gnode);
@@ -102,15 +104,23 @@ void VerdandiAnimationLoop::init() {
     if (!gnode)
         gnode = dynamic_cast<simulation::Node*>(this->getContext());
 
+    SofaModelWrapper<double>::ModelData md;
+    md.gnode = gnode;
+    md.offset = _offset.getValue();
+    md.errorVarianceSofaState = _stateErrorVarianceState.getValue();
+    md.errorVarianceSofaParams  = _stateErrorVarianceParams.getValue();
+    md.positionInState = _positionInState.getValue();
+    md.velocityInState = _velocityInState.getValue();
+
     if (_filterType.getValue() == "forward") {        
         fwdDriver = new Verdandi::ForwardDriver<SofaModelWrapper<double> >;
-        filterType = FORWARD;
-        fwdDriver->GetModel().initSimuData(gnode, _positionInState.getValue(), _velocityInState.getValue(), _stateErrorVarianceValue.getValue(), _verbose.getValue());
+        filterType = FORWARD;        
+        fwdDriver->GetModel().initSimuData(md);
     }
     else if (_filterType.getValue() == "UKF") {        
         ukfDriver = new Verdandi::UnscentedKalmanFilter<SofaModelWrapper<double>, Verdandi::LinearObservationManager<double> >;
-        filterType = UKF;
-        ukfDriver->GetModel().initSimuData(gnode, _positionInState.getValue(), _velocityInState.getValue(), _stateErrorVarianceValue.getValue(), _verbose.getValue());
+        filterType = UKF;        
+        ukfDriver->GetModel().initSimuData(md);
     }
     else
         filterType = UNDEF;  
@@ -137,13 +147,13 @@ void VerdandiAnimationLoop::step(const core::ExecParams* params, double /*dt*/)
     std::cout << "================== " << filterType << " step: " << ++numStep << " ===================" << std::endl;
     switch (filterType) {
     case FORWARD:
-        fwdDriver->GetModel().setInitStepData(params, _positionInState.getValue(), _velocityInState.getValue());
+        fwdDriver->GetModel().setInitStepData(params);
         fwdDriver->InitializeStep();
         fwdDriver->Forward();
         fwdDriver->FinalizeStep();
         break;
     case UKF:
-        ukfDriver->GetModel().setInitStepData(params, _positionInState.getValue(), _velocityInState.getValue());
+        ukfDriver->GetModel().setInitStepData(params);
         ukfDriver->InitializeStep();
         ukfDriver->Forward();
         ukfDriver->Analyze();
