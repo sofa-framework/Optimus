@@ -81,16 +81,12 @@ VerdandiAnimationLoop::VerdandiAnimationLoop(simulation::Node* _gnode)
     , _positionInState( initData(&_positionInState, true, "positionInState", "position included in Verdandi state") )
     , _velocityInState( initData(&_velocityInState, true, "velocityInState", "velocity included in Verdandi state") )
     , _filterType( initData(&_filterType, "filterType", "type of filter [forward | UKF]", "forward") )
-    , _stateErrorVarianceState( initData(&_stateErrorVarianceState, 1.0 , "stateErrorVarianceState", "state error variance value") )
-    , _stateErrorVarianceParams( initData(&_stateErrorVarianceParams, 1.0 , "stateErrorVarianceParams", "parameters error variance value") )
-    , _offset( initData(&_offset, 0 , "offset", "offset (number of fixed nodes") )
+    , _stateErrorVarianceState( initData(&_stateErrorVarianceState, 1.0 , "stateErrorVariance", "state error variance value") )
+    , _stateErrorVarianceParams( initData(&_stateErrorVarianceParams, 1.0 , "paramErrorVariance", "parameters error variance value") )
     , _verbose( initData(&_verbose, false, "verbose", "print out traces") )
 {
     assert(gnode);
-    numStep=0;
-
-    //ukfDriver=
-    //modelWrapper = &driver.GetModel();
+    numStep=0;    
 }
 
 VerdandiAnimationLoop::~VerdandiAnimationLoop()
@@ -104,23 +100,28 @@ void VerdandiAnimationLoop::init() {
     if (!gnode)
         gnode = dynamic_cast<simulation::Node*>(this->getContext());
 
+    //fixedConstraints = gnode->get<sofa::component::projectiveconstraintset::FixedConstraint<sofa::defaulttype::Vec3dTypes>*>();
+
     SofaModelWrapper<double>::ModelData md;
     md.gnode = gnode;
-    md.offset = _offset.getValue();
     md.errorVarianceSofaState = _stateErrorVarianceState.getValue();
     md.errorVarianceSofaParams  = _stateErrorVarianceParams.getValue();
     md.positionInState = _positionInState.getValue();
     md.velocityInState = _velocityInState.getValue();
 
     if (_filterType.getValue() == "forward") {        
-        fwdDriver = new Verdandi::ForwardDriver<SofaModelWrapper<double> >;
-        filterType = FORWARD;        
+        filterType = md.filterType = FORWARD;
+        fwdDriver = new Verdandi::ForwardDriver<SofaModelWrapper<double> >;        
         fwdDriver->GetModel().initSimuData(md);
     }
     else if (_filterType.getValue() == "UKF") {        
-        ukfDriver = new Verdandi::UnscentedKalmanFilter<SofaModelWrapper<double>, Verdandi::LinearObservationManager<double> >;
-        filterType = UKF;        
+        filterType = md.filterType = UKF;
+        ukfDriver = new Verdandi::UnscentedKalmanFilter<SofaModelWrapper<double>, Verdandi::LinearObservationManager<double> >;        
         ukfDriver->GetModel().initSimuData(md);
+    } else if (_filterType.getValue() == "ROUKF") {
+        filterType = md.filterType = ROUKF;
+        roukfDriver = new Verdandi::ReducedOrderUnscentedKalmanFilter<SofaModelWrapper<double>, Verdandi::LinearObservationManager<double> >;
+        roukfDriver->GetModel().initSimuData(md);
     }
     else
         filterType = UNDEF;  
@@ -133,6 +134,7 @@ void VerdandiAnimationLoop::bwdInit()
     switch (filterType) {
     case FORWARD: fwdDriver->Initialize(_configFile.getValue()); break;
     case UKF: ukfDriver->Initialize(_configFile.getValue()); break;
+    case ROUKF: roukfDriver->Initialize(_configFile.getValue()); break;
     case UNDEF: break;
     }
 }
@@ -158,6 +160,13 @@ void VerdandiAnimationLoop::step(const core::ExecParams* params, double /*dt*/)
         ukfDriver->Forward();
         ukfDriver->Analyze();
         ukfDriver->FinalizeStep();
+        break;
+    case ROUKF:
+        roukfDriver->GetModel().setInitStepData(params);
+        roukfDriver->InitializeStep();
+        roukfDriver->Forward();
+        roukfDriver->Analyze();
+        roukfDriver->FinalizeStep();
         break;
     case UNDEF: break;
     }

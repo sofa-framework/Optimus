@@ -62,8 +62,7 @@
 #include "seldon/computation/basic_functions/Functions_Vector.cxx"
 #include "seldon/computation/basic_functions/Functions_MatVect.cxx"
 
-
-
+#include "sofa/component/projectiveconstraintset/FixedConstraint.h"
 
 using namespace sofa::core::objectmodel;
 using namespace sofa::core::behavior;
@@ -77,6 +76,8 @@ namespace simulation
 /**
  *  \brief Wrapper class implementing an interface between SOFA and Verdandi
  */
+
+enum FilterType { UNDEF, FORWARD, UKF, ROUKF };
 
 template <class Type>
 class SOFA_SIMULATION_COMMON_API SofaModelWrapper : public Verdandi::VerdandiBase, public sofa::core::objectmodel::BaseObject
@@ -131,9 +132,13 @@ public:
     //! Collection of vector state.
     typedef Seldon::Vector<state, Seldon::Collection> state_collection;
 
+    typedef core::behavior::MechanicalState<defaulttype::Vec3dTypes> MechStateVec3d;
+    typedef sofa::component::projectiveconstraintset::FixedConstraint<sofa::defaulttype::Vec3dTypes> FixedConstraintVec3d;
+
     typedef struct {
         simulation::Node* gnode;
-        int offset;
+
+        FilterType filterType;
         bool positionInState;
         bool velocityInState;
         double errorVarianceSofaState;
@@ -145,12 +150,20 @@ public:
     const core::ExecParams* execParams;
     int numStep;
 
-    int state_size_;
+    int current_row_;
+    size_t dim_;
+    size_t state_size_;
+    size_t reduced_state_size_;
+    size_t reduced_state_index_;
+    size_t free_nodes_size;
 
     state state_, duplicated_state_;
 
     OPVector* vecParams;
-    core::behavior::MechanicalState<defaulttype::Vec3dTypes>* mechanicalObject;
+    MechStateVec3d * mechanicalObject;
+    FixedConstraintVec3d* fixedConstraints;
+    helper::vector<size_t> freeIndices;
+
 
     //bool positionInState, velocityInState, verbose;
 
@@ -164,8 +177,18 @@ public:
     //! Value of the row of B currently stored.
     state_error_variance_row state_error_variance_row_;
 
-    int current_row_;
-    //int offSet;
+    /*! \brief Projector matrix L in the decomposition of the
+      background error covariance matrix (\f$B\f$) as a product LUL^T */
+    state_error_variance state_error_variance_projector_;
+    /*! \brief Reduced matrix U in the decomposition of the
+      background error covariance matrix (\f$B\f$) as a product LUL^T */
+    state_error_variance_reduced state_error_variance_reduced_;
+    //! Is state error variance projector allocated?
+    bool variance_projector_allocated_;
+    //! Is reduced state error variance allocated?
+    bool variance_reduced_allocated_;
+
+
 
     double time_;
 
@@ -213,6 +236,8 @@ public:
 
     state_error_variance& GetStateErrorVariance();
     state_error_variance_row& GetStateErrorVarianceRow(int row);
+    state_error_variance& GetStateErrorVarianceProjector();
+    state_error_variance_reduced& GetStateErrorVarianceReduced();
 
 
     /// Construction method called by ObjectFactory.

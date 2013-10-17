@@ -72,6 +72,11 @@ template <class Type>
 SofaModelWrapper<Type>::SofaModelWrapper()
     : Inherit()
     , current_row_(-1)    
+    , dim_(3)
+    , state_size_(0)
+    , reduced_state_size_(0)
+    , reduced_state_index_(0)
+    , freeIndices(0)
 {}
 
 template <class Type>
@@ -114,26 +119,33 @@ void SofaModelWrapper<Type>::initSimuData(ModelData &_md)
     else
         std::cerr << "Mechanical object not found! " << std::endl;
 
+    gnode->get(fixedConstraints);
+    if (fixedConstraints != NULL)
+        std::cout << "FixedConstraints found " << fixedConstraints->getName() << std::endl;
+    else
+        std::cerr << "Fixed constraints not found! " << std::endl;
+
+    std::cout << "Number of fixed constraints: " << fixedConstraints->f_indices.getValue().size() << std::endl;
+
     numStep = 0;
 }
 
 template <class Type>
 void SofaModelWrapper<Type>::StateSofa2Verdandi() {
-    typename core::behavior::MechanicalState<defaulttype::Vec3dTypes>::ReadVecCoord pos = mechanicalObject->readPositions();
-    typename core::behavior::MechanicalState<defaulttype::Vec3dTypes>::ReadVecDeriv vel = mechanicalObject->readVelocities();
+    typename MechStateVec3d::ReadVecCoord pos = mechanicalObject->readPositions();
+    typename MechStateVec3d::ReadVecDeriv vel = mechanicalObject->readVelocities();
 
     size_t j = 0;
     if (modelData.positionInState) {
-        for (size_t i = modelData.offset; i < pos.size(); i++)
-            for (size_t d = 0; d < 3; d++) {
-                state_(j++) = pos[i][d];
-            }
+        for (size_t i = 0; i < free_nodes_size; i++)
+            for (size_t d = 0; d < dim_; d++)
+                state_(j++) = pos[freeIndices[i]][d];
     }
 
     if (modelData.velocityInState) {
-        for (size_t i = modelData.offset; i < vel.size(); i++)
-            for (size_t d = 0; d < 3; d++)
-                state_(j++) = vel[i][d];
+        for (size_t i = 0; i < free_nodes_size; i++)
+            for (size_t d = 0; d < dim_; d++)
+                state_(j++) = vel[freeIndices[i]][d];
     }
 
     const helper::vector<double>& vecPar = vecParams->getValue();
@@ -143,21 +155,20 @@ void SofaModelWrapper<Type>::StateSofa2Verdandi() {
 
 template <class Type>
 void SofaModelWrapper<Type>::StateVerdandi2Sofa() {
-    typename core::behavior::MechanicalState<defaulttype::Vec3dTypes>::WriteVecCoord pos = mechanicalObject->writePositions();
-    typename core::behavior::MechanicalState<defaulttype::Vec3dTypes>::WriteVecDeriv vel = mechanicalObject->writeVelocities();
+    typename MechStateVec3d::WriteVecCoord pos = mechanicalObject->writePositions();
+    typename MechStateVec3d::WriteVecDeriv vel = mechanicalObject->writeVelocities();
 
     size_t j = 0;
     if (modelData.positionInState) {
-        for (size_t i = modelData.offset; i < pos.size(); i++)
-            for (size_t d = 0; d < 3; d++) {
-                pos[i][d] = state_(j++);
-            }
+        for (size_t i = 0; i < free_nodes_size; i++)
+            for (size_t d = 0;  d < dim_; d++)
+                pos[freeIndices[i]][d] = state_(j++);
     }
 
     if (modelData.velocityInState) {
-        for (size_t i = modelData.offset; i < vel.size(); i++)
-            for (size_t d = 0; d < 3; d++)
-                vel[i][d] = state_(j++);
+        for (size_t i = 0; i < free_nodes_size; i++)
+            for (size_t d = 0;  d < dim_; d++)
+                vel[freeIndices[i]][d] = state_(j++);
     }
 
     helper::vector<double> vecPar(vecParams->size());
@@ -171,21 +182,40 @@ template <class Type>
 void SofaModelWrapper<Type>::Initialize(std::string &/*configFile*/)
 {
     Verb("initialize");
-    /// initialize filter state
-    std::cout << "OFFSET: " << modelData.offset << std::endl;
+    /// get fixed nodes
+    const FixedConstraintVec3d::SetIndexArray& fixedIndices = fixedConstraints->f_indices.getValue();
+
+    freeIndices.clear();
+    for (int i = 0; i < mechanicalObject->getSize(); i++) {
+        bool found = false;
+        for (size_t j = 0; j < fixedIndices.size(); j++) {
+            if (int(fixedIndices[j]) == i) {
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+            freeIndices.push_back(i);
+    }
+    free_nodes_size = freeIndices.size();
+
+    /// initialize filter state                
     state_size_ = 0;
     if (modelData.positionInState)
-        state_size_ += 3*(mechanicalObject->getSize()-modelData.offset);
+        state_size_ += dim_* free_nodes_size;
 
     if (modelData.velocityInState)
-        state_size_ += 3*(mechanicalObject->getSize()-modelData.offset);
+        state_size_ += dim_* free_nodes_size;
 
-    int sofaStateSize = state_size_;
+    reduced_state_index_ = state_size_;
 
-    if (vecParams)
-        state_size_ += vecParams->size();
+    if (vecParams) {
+        reduced_state_size_ = vecParams->size();
+        state_size_ += reduced_state_size_;
+    }
 
-    std::cout << "Initializing with size " << state_size_ << " (" << sofaStateSize << ")" << std::endl;
+    std::cout << "Initializing model (filter type " << modelData.filterType << ") with size " << state_size_ << std::endl;
+    std::cout << "Reduced state index: " << reduced_state_index_ << " size: " << reduced_state_size_ << std::endl;
 
     state_.Nullify();
     state_.Resize(state_size_);
@@ -193,40 +223,38 @@ void SofaModelWrapper<Type>::Initialize(std::string &/*configFile*/)
     StateSofa2Verdandi();
 
 
-    /// initialize state error variance
-    state_error_variance_.Reallocate(GetNstate(), GetNstate());
-    state_error_variance_.SetIdentity();
-    for (size_t i = 0; i < size_t(sofaStateSize); i++)
-        state_error_variance_(i,i) *= modelData.errorVarianceSofaState;
+    if (modelData.filterType == UKF) {
+        /// initialize state error variance
+        state_error_variance_.Reallocate(GetNstate(), GetNstate());
+        state_error_variance_.SetIdentity();
+        for (size_t i = 0; i < size_t(reduced_state_index_); i++)
+            state_error_variance_(i,i) *= modelData.errorVarianceSofaState;
 
-    for (size_t i = sofaStateSize; i < size_t(state_size_); i++)
-        state_error_variance_(i,i) *= modelData.errorVarianceSofaParams;
+        for (size_t i = reduced_state_index_; i < size_t(state_size_); i++)
+            state_error_variance_(i,i) *= modelData.errorVarianceSofaParams;
 
-    //Mlt(Type(state_error_variance_value_), state_error_variance_);
+        //Mlt(Type(state_error_variance_value_), state_error_variance_);
 
-    state_error_variance_inverse_.Reallocate(GetNstate(), GetNstate());
-    state_error_variance_inverse_.SetIdentity();
-    for (size_t i = 0; i < size_t(sofaStateSize); i++)
-        state_error_variance_inverse_(i,i) *= modelData.errorVarianceSofaState;
-    for (size_t i = size_t(sofaStateSize); i < size_t(state_size_); i++)
-        state_error_variance_inverse_(i,i) *= modelData.errorVarianceSofaParams;
+        state_error_variance_inverse_.Reallocate(GetNstate(), GetNstate());
+        state_error_variance_inverse_.SetIdentity();
+        for (size_t i = 0; i < size_t(reduced_state_index_); i++)
+            state_error_variance_inverse_(i,i) *= modelData.errorVarianceSofaState;
+        for (size_t i = size_t(reduced_state_index_); i < size_t(state_size_); i++)
+            state_error_variance_inverse_(i,i) *= modelData.errorVarianceSofaParams;
+    }
 
-    //Mlt(Type(state_error_variance_value_), state_error_variance_inverse_);
-
-    std::cout << "Covariance INIT: " << std::endl;
-    printMatrix(state_error_variance_);
+    if (modelData.filterType == ROUKF) {
+        variance_projector_allocated_ = false;
+        variance_reduced_allocated_ = false;
+    }
 }
 
 template <class Type>
-void SofaModelWrapper<Type>::FinalizeStep() {
-    /*if ((numStep%200) == 0) {
-        state& temp = GetState();
-        int sz = temp.GetSize();
-        double x = temp(sz-1);
-        temp(sz-1) = temp(sz-2);
-        temp(sz-2) = x;
-        StateUpdated();
-    }*/
+void SofaModelWrapper<Type>::FinalizeStep() {    
+    std::cout << "Actual parameter values:";
+    for (size_t i = reduced_state_index_; i < state_size_; i++)
+        std::cout << " " << state_(i);
+    std::cout << std::endl;
 }
 
 
@@ -402,6 +430,56 @@ typename SofaModelWrapper<Type>::state_error_variance_row& SofaModelWrapper<Type
     current_row_ = row;
 
     return state_error_variance_row_;
+}
+
+template <class Type>
+typename SofaModelWrapper<Type>::state_error_variance& SofaModelWrapper<Type>::GetStateErrorVarianceProjector() {
+    //std::cout << this->getName() << " " << GetTime() << " getStateErrorVarianceProjector" << std::endl;
+    std::cout << "GetSEV_PROJECTOR" << std::endl;
+    if (!variance_projector_allocated_)
+    {
+        /*int Nreduced = 0;
+        for (unsigned int i = 0; i < reduced_.size(); i++)
+            Nreduced += x_.GetVector(reduced_[i]).GetSize();
+        std::cout << "  PP-Nreduced: " << Nreduced << std::endl;
+        // Initializes L.
+        std::cout << "  P-reducedSize: " << reduced_.size() << std::endl;*/
+        state_error_variance_projector_.Reallocate(state_size_, reduced_state_size_);
+        state_error_variance_projector_.Fill(Type(0.0));
+        //for (size_t i = 0, l = 0; i < reduced_state_size_; i++) {
+        for (size_t i = 0, l = 0; i < 1; i++) {   /// only one reduced state
+            for(size_t k = reduced_state_index_; k < reduced_state_index_ + reduced_state_size_; k++) {
+                std::cout << "k,l = " << k << " " << l << std::endl;
+                state_error_variance_projector_(k, l++) = 1;
+            }
+        }
+        std::cout << "  Initialize L: " << std::endl;
+        variance_projector_allocated_ = true;
+    }
+    //std::cout << "  L = " << state_error_variance_projector_ << std::endl;
+    return state_error_variance_projector_;
+}
+
+template <class Type>
+typename SofaModelWrapper<Type>::state_error_variance& SofaModelWrapper<Type>::GetStateErrorVarianceReduced() {
+    //std::cout << this->getName() << " " << GetTime() << " getStateErrorVarianceReduced" << std::endl;
+    //std::cout << "GetSEV_REDUCED" << std::endl;
+    if (!variance_reduced_allocated_)
+    {
+        /*int Nreduced = 0;
+        for (unsigned int i = 0; i < reduced_.size(); i++)
+            Nreduced += x_.GetVector(reduced_[i]).GetSize();
+        std::cout << "  R-Nreduced: " << Nreduced << std::endl;
+        // Initializes U.*/
+        state_error_variance_reduced_.Reallocate(reduced_state_size_,  reduced_state_size_);
+        state_error_variance_reduced_.Fill(Type(0.0));
+        for (size_t i = 0; i < reduced_state_size_; i++)
+            state_error_variance_reduced_(i, i) = Type(Type(1.0) / modelData.errorVarianceSofaParams);
+        std::cout << "  Initialize U: " << std::endl;
+        variance_reduced_allocated_ = true;
+    }
+    //std::cout << "U = " << state_error_variance_reduced_ << std::endl;
+    return state_error_variance_reduced_;
 }
 
 

@@ -29,6 +29,7 @@
 #include "seldon/Seldon.hxx"
 #include "method/ForwardDriver.cxx"
 #include "method/UnscentedKalmanFilter.cxx"
+#include "method/ReducedOrderUnscentedKalmanFilter.cxx"
 #include "seldon/SeldonSolver.hxx"
 #include "observation_manager/LinearObservationManager.cxx"
 #include "seldon/vector/VectorCollection.hxx"
@@ -37,6 +38,8 @@
 namespace Verdandi {    
     template class Verdandi::ForwardDriver<sofa::simulation::SofaModelWrapper<double> >;
     template class Verdandi::UnscentedKalmanFilter<sofa::simulation::SofaModelWrapper<double>, Verdandi::LinearObservationManager<double> >;
+    template class Verdandi::ReducedOrderUnscentedKalmanFilter<sofa::simulation::SofaModelWrapper<double>, Verdandi::LinearObservationManager<double> >;
+
 }
 
 /*namespace Seldon {
