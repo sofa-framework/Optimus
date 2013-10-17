@@ -890,7 +890,7 @@ namespace Verdandi
     template <class T0, class Prop0, class Storage0, class Allocator0,
               class Model>
     void Reallocate(Matrix<T0, Prop0, Storage0, Allocator0>& A, int i, int j,
-                    const Model& model)
+                    const Model& /*model*/)
     {
         A.Reallocate(i, j);
     }
@@ -923,7 +923,7 @@ namespace Verdandi
     template <class T0, class Storage0, class Allocator0,
               class Model>
     void Reallocate(Vector<T0, Storage0, Allocator0>& V, int i,
-                    const Model& model)
+                    const Model& /*model*/)
     {
         V.Reallocate(i);
     }
