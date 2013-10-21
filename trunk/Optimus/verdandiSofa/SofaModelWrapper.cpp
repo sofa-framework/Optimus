@@ -304,6 +304,11 @@ double SofaModelWrapper<Type>::ApplyOperator(state& _x, bool _preserve_state, bo
     for (size_t i = 0; i < _x.GetSize(); i++)
         std::cout << _x(i) << " ";
     std::cout << std::endl;*/
+    /*char nm[100];
+    sprintf(nm, "aoState_%04d_%02u.dat", numStep, applyOpNum);
+    std::ofstream of(nm);
+    printVector(_x, of);
+    of.close();*/
 
     double saved_time = 0;
     state saved_state;
@@ -338,6 +343,7 @@ double SofaModelWrapper<Type>::ApplyOperator(state& _x, bool _preserve_state, bo
         saved_state.Nullify();
     }
 
+    applyOpNum++;
     Verb("state updated begin end");
     return new_time;
 }
@@ -476,9 +482,11 @@ typename SofaModelWrapper<Type>::state_error_variance& SofaModelWrapper<Type>::G
         for (size_t i = 0; i < reduced_state_size_; i++)
             state_error_variance_reduced_(i, i) = Type(Type(1.0) / modelData.errorVarianceSofaParams);
         std::cout << "  Initialize U: " << std::endl;
+        //printMatrix()
         variance_reduced_allocated_ = true;
     }
     //std::cout << "U = " << state_error_variance_reduced_ << std::endl;
+
     return state_error_variance_reduced_;
 }
 

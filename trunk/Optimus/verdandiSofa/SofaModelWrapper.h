@@ -156,6 +156,7 @@ public:
     size_t reduced_state_size_;
     size_t reduced_state_index_;
     size_t free_nodes_size;
+    size_t applyOpNum;
 
     state state_, duplicated_state_;
 
@@ -218,7 +219,7 @@ public:
     void GetStateCopy(state& _copy);
 
     void Initialize(std::string &);
-    void InitializeStep() { numStep++; time_ = numStep*modelData.gnode->getDt(); }
+    void InitializeStep() { numStep++; time_ = numStep*modelData.gnode->getDt(); applyOpNum = 0; }
     void Finalize() {}
     void FinalizeStep();
     bool HasFinished() { return(false); }
@@ -251,13 +252,18 @@ public:
         return obj;
     }*/
 
-    void printMatrix(Seldon::Matrix<Type>& M) {
+    void printMatrix(Seldon::Matrix<Type>& M, std::ofstream &of) {
         for (int i = 0; i < M.GetM(); i++)
           {
             for (int j = 0; j < M.GetN(); j++)
-              std::cout << M(i, j) << '\t';
-            std::cout << std::endl;
+              of << M(i, j) << '\t';
+            of << '\n';
           }
+    }
+
+    void printVector(Seldon::Vector<Type>& V, std::ofstream &of) {
+        for (int i = 0; i < V.GetSize(); i++)
+            of << V(i) << '\n';
     }
 
 private :
