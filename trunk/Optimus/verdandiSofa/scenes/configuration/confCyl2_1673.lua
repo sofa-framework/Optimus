@@ -2,7 +2,7 @@ Delta_t_clamped_bar = 0.001
 final_time_clamped_bar = 5.0
 Nskip_save = 1
 
-output_directory = "result2/"
+output_directory = "result2_1673/"
 
 --observation_file = output_directory .. "truth-observation.bin"
 --observation.option.
@@ -119,8 +119,8 @@ observation = {
    }
 }
 
-Nstate = 329
-Nobservation = 327
+Nstate = 1556
+Nobservation = 1554
 for i = 1, Nobservation * Nstate do
     observation.operator.value[i] = 0.
 end
