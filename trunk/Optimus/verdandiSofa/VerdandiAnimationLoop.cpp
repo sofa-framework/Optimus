@@ -77,12 +77,12 @@ int VerdandiAnimationLoopClass = core::RegisterObject("The simplest animation lo
 VerdandiAnimationLoop::VerdandiAnimationLoop(simulation::Node* _gnode)
     : Inherit()
     , gnode(_gnode)
-    , _configFile( initData(&_configFile, "configFile", "configuration file for the driver") )
+    , _configFile( initData(&_configFile, "configFile", "configuration file for the driver") )    
     , _positionInState( initData(&_positionInState, true, "positionInState", "position included in Verdandi state") )
     , _velocityInState( initData(&_velocityInState, true, "velocityInState", "velocity included in Verdandi state") )
     , _filterType( initData(&_filterType, "filterType", "type of filter [forward | UKF]", "forward") )
     , _stateErrorVarianceState( initData(&_stateErrorVarianceState, 1.0 , "stateErrorVariance", "state error variance value") )
-    , _stateErrorVarianceParams( initData(&_stateErrorVarianceParams, 1.0 , "paramErrorVariance", "parameters error variance value") )
+    , _stateErrorVarianceParams( initData(&_stateErrorVarianceParams, 1.0 , "paramErrorVariance", "parameters error variance value") )    
     , _verbose( initData(&_verbose, false, "verbose", "print out traces") )
 {
     assert(gnode);
@@ -107,7 +107,7 @@ void VerdandiAnimationLoop::init() {
     md.errorVarianceSofaState = _stateErrorVarianceState.getValue();
     md.errorVarianceSofaParams  = _stateErrorVarianceParams.getValue();
     md.positionInState = _positionInState.getValue();
-    md.velocityInState = _velocityInState.getValue();
+    md.velocityInState = _velocityInState.getValue();    
 
     if (_filterType.getValue() == "forward") {        
         filterType = md.filterType = FORWARD;

@@ -32,6 +32,10 @@
 #include <sofa/simulation/common/Node.h>
 #include <sofa/helper/AdvancedTimer.h>
 
+#include <sofa/simulation/common/CollisionAnimationLoop.h>
+#include <sofa/component/constraintset/LCPConstraintSolver.h>
+#include <sofa/component/component.h>
+
 #include "../src/OptimParams.h"
 
 /*#define VERDANDI_DEBUG_LEVEL_4
@@ -143,7 +147,7 @@ public:
         bool velocityInState;
         double errorVarianceSofaState;
         double errorVarianceSofaParams;
-        bool verbose;
+        bool verbose;        
     } ModelData;
 
 public:
@@ -152,19 +156,32 @@ public:
 
     int current_row_;
     size_t dim_;
-    size_t state_size_;
+    size_t state_size_;    
     size_t reduced_state_size_;
-    size_t reduced_state_index_;
-    size_t free_nodes_size;
+    size_t reduced_state_index_;    
     size_t applyOpNum;
+
+    helper::vector<size_t> listStateBegin;
+    helper::vector<size_t> listStateMiddle;
+    helper::vector<size_t> listStateEnd;
+    helper::vector<size_t> listParamBegin;
+    helper::vector<size_t> listParamEnd;
 
     state state_, duplicated_state_;
 
-    OPVector* vecParams;
-    MechStateVec3d * mechanicalObject;
-    FixedConstraintVec3d* fixedConstraints;
-    helper::vector<size_t> freeIndices;
+    Data<bool> displayTime;
+    Data<bool> m_solveVelocityConstraintFirst;
 
+    /*OPVector* vecParams;
+    MechStateVec3d * mechanicalObject;
+    FixedConstraintVec3d* fixedConstraints;*/
+
+    helper::vector<OPVector*> listOP3d;
+    helper::vector<MechStateVec3d*> listMS3d;
+    helper::vector<FixedConstraintVec3d*> listFC3d;
+
+    //size_t free_nodes_size;
+    helper::vector<helper::vector<size_t> > listFreeIndices;
 
     //bool positionInState, velocityInState, verbose;
 
@@ -194,6 +211,8 @@ public:
     double time_;
 
     ModelData modelData;
+
+    sofa::core::behavior::ConstraintSolver *constraintSolver;
 
 
 public:
@@ -229,11 +248,16 @@ public:
     double ApplyOperator(state& _x, bool _preserve_state = true, bool _update_force = true);
     void Forward(bool _update_force = true, bool _update_time = true);
 
+    void StepDefault(bool _update_force, bool _update_time);
+    void StepFreeMotion(bool _update_force, bool _update_time);
+
     void Message(string _message);
     void Verb(string _s) {
         if (modelData.verbose)
             std::cout << "[" << this->getName() << "]: " << _s << std::endl;
     }
+
+    void computeCollision();
 
     state_error_variance& GetStateErrorVariance();
     state_error_variance_row& GetStateErrorVarianceRow(int row);

@@ -42,6 +42,7 @@
 #include "observation_manager/LinearObservationManager.hxx"
 
 #include "../src/OptimParams.h"
+//#include "VerdandiActiveStateMonitor.h"
 
 using namespace sofa::core::objectmodel;
 using namespace sofa::core::behavior;
@@ -88,14 +89,15 @@ private :
     Verdandi::UnscentedKalmanFilter<SofaModelWrapper<double>, Verdandi::LinearObservationManager<double> >* ukfDriver;
     Verdandi::ReducedOrderUnscentedKalmanFilter<SofaModelWrapper<double>, Verdandi::LinearObservationManager<double> >* roukfDriver;
     simulation::Node* gnode;  ///< the node controlled by the loop
-    FilterType filterType;    
+    FilterType filterType;
+    //std::vector<sofa::component::misc::VerdandiActiveStateMonitor*> associatedMonitors;
 
     int numStep;
 
 public:
     VerdandiAnimationLoop(simulation::Node* gnode = NULL);
 
-    Data<std::string> _configFile;
+    Data<std::string> _configFile;    
     Data<bool> _positionInState;
     Data<bool> _velocityInState;
     Data<string> _filterType;
