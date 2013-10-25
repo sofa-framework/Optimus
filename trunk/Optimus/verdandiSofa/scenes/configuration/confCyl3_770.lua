@@ -1,8 +1,8 @@
-Delta_t_clamped_bar = 0.01
-final_time_clamped_bar = 10.0
+Delta_t_clamped_bar = 0.001
+final_time_clamped_bar = 2.0
 Nskip_save = 1
 
-output_directory = "result3_770_DT/"
+output_directory = "result3_770/"
 
 --observation_file = output_directory .. "truth-observation.bin"
 --observation.option.

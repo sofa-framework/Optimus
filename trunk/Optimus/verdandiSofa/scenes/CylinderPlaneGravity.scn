@@ -7,8 +7,8 @@
 	<VisualStyle displayFlags="showBehaviorModels showForceFields hideCollisionModels" />
 	
 <!-- 	<FreeMotionAnimationLoop /> -->
-<!--  	<VerdandiAnimationLoop name="verdAnimLoop" configFile="configuration/confCyl2_1673.lua" filterType="forward" verbose="0" velocityInState="0"/> -->
-	<VerdandiAnimationLoop name="verdAnimLoop" configFile="configuration/confCyl2_1673.lua" filterType="ROUKF" verbose="0" velocityInState="0" stateErrorVariance="0.01" paramErrorVariance="100000000"/>
+<!--  	<VerdandiAnimationLoop name="verdAnimLoop" configFile="configuration/confCyl2_363.lua" filterType="forward" verbose="0" velocityInState="0"/> -->
+	<VerdandiAnimationLoop name="verdAnimLoop" configFile="configuration/confCyl2_363.lua" filterType="ROUKF" verbose="0" velocityInState="0" stateErrorVariance="0.01" paramErrorVariance="100000000"/>
 	<GenericConstraintSolver tolerance="1e-11" printLog="false" computeGraphs="1"/>
 	<CollisionPipeline depth="6" verbose="0" draw="0"/>
 	<BruteForceDetection name="N2" />
@@ -30,14 +30,14 @@
 <!-- 		<SparsePARDISOSolver/> -->
 	<!-- 	<CGLinearSolver/> -->
 	
-		<MeshVTKLoader filename="data/cylinder1673.vtk" name="loader" />
+		<MeshVTKLoader filename="data/cylinder363.vtk" name="loader" />
 		<MechanicalObject src="@loader" name="Volume" />
 		<include href="Objects/TetrahedronSetTopology.xml" src="@loader" />
 		<UniformMass totalMass="0.2513" />
 	<!-- 	<UniformMass totalMass="0.000015"/> -->
 
 		<BoxROI name="fixedBox1" box="-0.05 -0.05 -0.002   0.05 0.05 0.002"/>
-		<BoxROI name="fixedBox2" box="-0.05 -0.05  0.238   0.05 0.05 0.242"/>
+<!-- 		<BoxROI name="fixedBox2" box="-0.05 -0.05  0.238   0.05 0.05 0.242"/> -->
 		
 		<MergeSets name="mergeIndices" in1="@fixedBox1.indices" in2="@fixedBox2.indices"/>
 		
