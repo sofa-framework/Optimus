@@ -172,6 +172,18 @@ public:
     Data<bool> displayTime;
     Data<bool> m_solveVelocityConstraintFirst;
 
+
+
+    ///// OLD:
+    size_t free_nodes_size;
+    OPVector* vecParams;
+    MechStateVec3d * mechanicalObject;
+    FixedConstraintVec3d* fixedConstraints;
+    helper::vector<size_t> freeIndices;
+    ////
+
+
+
     /*OPVector* vecParams;
     MechStateVec3d * mechanicalObject;
     FixedConstraintVec3d* fixedConstraints;*/

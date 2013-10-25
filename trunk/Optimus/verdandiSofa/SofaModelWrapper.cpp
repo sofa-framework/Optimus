@@ -158,12 +158,9 @@ void SofaModelWrapper<Type>::initSimuData(ModelData &_md)
     else
         std::cout << "Constraint solver " << constraintSolver->getName() << " found, modeling contacts" << std::endl;
 
-    //size_t nStates = listMS3d.size();
 
-    numStep = 0;
-
-
-    /*if (vecParams != NULL) {
+    /*gnode->get(vecParams);
+    if (vecParams != NULL) {
         std::cout << "Vectorial parameter container found " << vecParams->getName() << ", size: " << vecParams->size() << std::endl;
     } else
         std::cerr << "Vectorial parameter not found! " << std::endl;
@@ -180,14 +177,13 @@ void SofaModelWrapper<Type>::initSimuData(ModelData &_md)
     else
         std::cerr << "Fixed constraints not found! " << std::endl;
 
-    std::cout << "Number of fixed constraints: " << fixedConstraints->f_indices.getValue().size() << std::endl;
+    std::cout << "Number of fixed constraints: " << fixedConstraints->f_indices.getValue().size() << std::endl;*/
 
-    numStep = 0;*/
+    numStep = 0;
 }
 
 template <class Type>
 void SofaModelWrapper<Type>::StateSofa2Verdandi() {
-
     for (size_t si = 0; si < listMS3d.size(); si++) {
         typename MechStateVec3d::ReadVecCoord pos = listMS3d[si]->readPositions();
         typename MechStateVec3d::ReadVecDeriv vel = listMS3d[si]->readVelocities();
@@ -210,31 +206,32 @@ void SofaModelWrapper<Type>::StateSofa2Verdandi() {
         const helper::vector<double>& vecPar = listOP3d[si]->getValue();
         for (size_t i = listParamBegin[si]; i < listParamEnd[si]; i++)
             state_(i) = vecPar[ii++];
-
-        /*size_t nfn = listFreeIndices[si].size();
-
-        if (modelData.positionInState) {
-            for (size_t i = 0; i < nfn; i++)
-                for (size_t d = 0; d < dim_; d++)
-                    state_(j++) = pos[listFreeIndices[si][i]][d];
-        }
-
-        if (modelData.velocityInState) {
-            for (size_t i = 0; i < nfn; i++)
-                for (size_t d = 0; d < dim_; d++)
-                    state_(j++) = vel[listFreeIndices[si][i]][d];
-        }
-
-        const helper::vector<double>& vecPar = listOP3d[si]->getValue();
-        for (size_t i = 0; i < vecPar.size(); i++)
-            state_(j++) = vecPar[i];*/
     }
+
+    /*typename MechStateVec3d::ReadVecCoord pos = mechanicalObject->readPositions();
+    typename MechStateVec3d::ReadVecDeriv vel = mechanicalObject->readVelocities();
+
+    size_t j = 0;
+    if (modelData.positionInState) {
+        for (size_t i = 0; i < free_nodes_size; i++)
+            for (size_t d = 0; d < dim_; d++)
+                state_(j++) = pos[freeIndices[i]][d];
+    }
+
+    if (modelData.velocityInState) {
+        for (size_t i = 0; i < free_nodes_size; i++)
+            for (size_t d = 0; d < dim_; d++)
+                state_(j++) = vel[freeIndices[i]][d];
+    }
+
+    const helper::vector<double>& vecPar = vecParams->getValue();
+    for (size_t i = 0; i < vecParams->size(); i++)
+        state_(j++) = vecPar[i];*/
+
 }
 
 template <class Type>
 void SofaModelWrapper<Type>::StateVerdandi2Sofa() {
-    //size_t j = 0;
-
     for (size_t si = 0; si < listMS3d.size(); si++) {
         typename MechStateVec3d::WriteVecCoord pos = listMS3d[si]->writePositions();
         typename MechStateVec3d::WriteVecDeriv vel = listMS3d[si]->writeVelocities();
@@ -258,29 +255,28 @@ void SofaModelWrapper<Type>::StateVerdandi2Sofa() {
         for (size_t i = listParamBegin[si]; i < listParamEnd[si]; i++)
             vecPar[ii++] = state_(i);
         listOP3d[si]->setValue(vecPar);
-
-        /*typename MechStateVec3d::WriteVecCoord pos = listMS3d[si]->writePositions();
-        typename MechStateVec3d::WriteVecDeriv vel = listMS3d[si]->writeVelocities();
-        size_t nfn = listFreeIndices[si].size();
-
-        if (modelData.positionInState) {
-            for (size_t i = 0; i < nfn; i++)
-                for (size_t d = 0;  d < dim_; d++)
-                    pos[listFreeIndices[si][i]][d] = state_(j++);
-        }
-
-        if (modelData.velocityInState) {
-            for (size_t i = 0; i < nfn; i++)
-                for (size_t d = 0;  d < dim_; d++)
-                    vel[listFreeIndices[si][i]][d] = state_(j++);
-        }
-
-        helper::vector<Type> vecPar(listOP3d[si]->size());
-        for (size_t i = 0; i < vecPar.size(); i++)
-            vecPar[i] = state_(j++);
-        listOP3d[si]->setValue(vecPar);*/
-
     }
+
+    /*typename MechStateVec3d::WriteVecCoord pos = mechanicalObject->writePositions();
+    typename MechStateVec3d::WriteVecDeriv vel = mechanicalObject->writeVelocities();
+
+    size_t j = 0;
+    if (modelData.positionInState) {
+        for (size_t i = 0; i < free_nodes_size; i++)
+            for (size_t d = 0;  d < dim_; d++)
+                pos[freeIndices[i]][d] = state_(j++);
+    }
+
+    if (modelData.velocityInState) {
+        for (size_t i = 0; i < free_nodes_size; i++)
+            for (size_t d = 0;  d < dim_; d++)
+                vel[freeIndices[i]][d] = state_(j++);
+    }
+
+    helper::vector<double> vecPar(vecParams->size());
+    for (size_t i = 0; i < vecParams->size(); i++)
+        vecPar[i] = state_(j++);
+    vecParams->setValue(vecPar);*/
 }
 
 

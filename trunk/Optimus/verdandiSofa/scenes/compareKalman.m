@@ -4,8 +4,9 @@ clear all
 %it=10; nParam=2; nColl=2; nDim=1;
 %indir='/home/ipeterlik/Work/Sofa/applications-dev/plugins/Optimus/verdandiSofa/verdandi-1.5/example/clamped_bar/result'
 
-it=10; nParam=2; nColl=1; nDim=3;
-indir='/home/ipeterlik/Work/Sofa/applications-dev/plugins/Optimus/verdandiSofa/scenes/result2_363';
+it=10; nParam=2; nColl=1; nDim=3; nElem=1673;
+
+indir=sprintf('/home/ipeterlik/Work/Sofa/applications-dev/plugins/Optimus/verdandiSofa/scenes/result%d_%d', nParam, nElem);
 
 
 %T=load(sprintf('%s/truth-forecast_state.dat',indir));
@@ -19,12 +20,17 @@ nObs=size(R,1)
 nDof=(nState-nParam)/nColl;
 nNode=nDof/nDim;
 
-desiredObs = nObs;
+desiredObs = 2600;
 
-figure; plot(1:desiredObs, R(1:desiredObs,nState-1), 1:desiredObs, R(1:desiredObs,nState));
-%figure; plot(1:desiredObs, R(1:desiredObs,nState-2), 1:desiredObs, R(1:desiredObs,nState-1), 1:desiredObs, R(1:desiredObs,nState));
-
-fprintf('Parameters found: %f %f\n', R(nObs, nState-1), R(nObs,nState));
+if (nParam == 2)
+    figure; plot(1:1:desiredObs, R(1:1:desiredObs,nState-1), 1:1:desiredObs, R(1:1:desiredObs,nState));
+    fprintf('Parameters found: %f %f\n', R(desiredObs, nState-1), R(desiredObs,nState));
+    xlabel('Time step');
+    ylabel('Young modulus [Pa]');
+elseif (nParam == 3)
+    figure; plot(1:desiredObs, R(1:desiredObs,nState-2), 1:desiredObs, R(1:desiredObs,nState-1), 1:desiredObs, R(1:desiredObs,nState));
+    fprintf('Parameters found: %f %f %f\n', R(desiredObs, nState-2), R(desiredObs, nState-1), R(desiredObs,nState));
+end
 
 
 return

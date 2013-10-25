@@ -1,5 +1,5 @@
 Delta_t_clamped_bar = 0.001
-final_time_clamped_bar = 5.0
+final_time_clamped_bar = 3.0
 Nskip_save = 1
 
 output_directory = "result2_1673/"

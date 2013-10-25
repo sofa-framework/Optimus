@@ -6,11 +6,11 @@
 	<RequiredPlugin pluginName="BilikimoAux"/>
 	<VisualStyle displayFlags="showBehaviorModels showForceFields" />
 		
-<!--  	<VerdandiAnimationLoop name="verdAnimLoop" configFile="configuration/confCylinder3.lua" filterType="forward" verbose="0" velocityInState="0"/> -->
-<!-- 	<OptimParams name="paramE" template="Vector" initValue="5 0.5 2"/>  -->
+<!--  	<VerdandiAnimationLoop name="verdAnimLoop" configFile="configuration/confCyl3_770.lua" filterType="forward" verbose="0" velocityInState="0"/> -->
+<!-- 	<OptimParams name="paramE" template="Vector" initValue="10000 5000 7000"/>  -->
 	
-	<VerdandiAnimationLoop name="verdAnimLoop" configFile="configuration/confCylinder3.lua" filterType="ROUKF" verbose="0" velocityInState="0" stateErrorVariance="0.01" paramErrorVariance="0.1"/>
-	<OptimParams name="paramE" template="Vector" initValue="7 1 1"/> 
+	<VerdandiAnimationLoop name="verdAnimLoop" configFile="configuration/confCyl3_770.lua" filterType="ROUKF" verbose="0" velocityInState="0" stateErrorVariance="0.01" paramErrorVariance="10000000"/>
+	<OptimParams name="paramE" template="Vector" initValue="6000 6000 6000"/> 
 	
         <EulerImplicit name="odeSolver" printLog="false"/>
 <!-- 	rayleighMass="1" rayleighStiffness="1" /> -->
@@ -20,11 +20,11 @@
 <!-- 	<CGLinearSolver/> -->
 
 <!-- 	<MeshVTKLoader filename="cylinder363.vtk" name="loader" /> -->
-	<MeshVTKLoader filename="cylinder3_770.vtk" name="loader" />
+	<MeshVTKLoader filename="data/cylinder3_770.vtk" name="loader" />
 	<MechanicalObject src="@loader" name="Volume" />
 	<include href="Objects/TetrahedronSetTopology.xml" src="@loader" />
 <!-- 	<UniformMass totalMass="0.2513" /> -->
-	<UniformMass totalMass="0.0002"/>
+	<UniformMass totalMass="0.2513"/>
 
 	<BoxROI name="fixedBox1" box="-0.05 -0.05 -0.002   0.05 0.05 0.002"/>
 	<BoxROI name="fixedBox2" box="-0.05 -0.05  0.238   0.05 0.05 0.242"/>
@@ -39,15 +39,6 @@
 	<TetrahedronFEMForceField name="FEM" listening="true" updateStiffness="1"  youngModulus="@youngMapper.outputValues" poissonRatio="0.45" method="large"  computeVonMisesStress="0" drawHeterogeneousTetra="1"/>
 <!-- 	<TetrahedronFEMForceField name="FEM" listening="true" updateStiffness="1"  youngModulus="@paramE.value" poissonRatio="0.45" method="large"  computeVonMisesStress="0" drawHeterogeneousTetra="1"/> -->
 
-	<VTKExporter filename="cylinder.vtk" XMLformat="true" listening="true" edges="0" triangles="0" quads="0" tetras="1" exportAtEnd="true"/>
-<!-- 	cellsDataFields="FEM.vonMises"/> -->
-	<!--<Node name="T">
-		<include href="Objects/TriangleSetTopology.xml" />
-		<Tetra2TriangleTopologicalMapping object1="../../Container" object2="Container" />
-		<TriangleSet />
-		<Node name="Visu">
-			<OglModel name="Visual" color="blue" />
-			<IdentityMapping object1="../../../Volume" object2="Visual" />
-		</Node>
-	</Node>	-->
+<!-- 	<VTKExporter filename="cylinder.vtk" XMLformat="true" listening="true" edges="0" triangles="0" quads="0" tetras="1" exportAtEnd="true"/> -->
+
 </Node>
