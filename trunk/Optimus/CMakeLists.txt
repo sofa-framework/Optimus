@@ -31,7 +31,7 @@ set(README_FILES
 	Optimus.txt 
 )	
 
-#if(SOFA-EXT_VERDANDI)
+if(SOFA-EXT_VERDANDI)
     list(APPEND HEADER_FILES
         verdandiSofa/VerdandiAnimationLoop.h
         verdandiSofa/SofaModelWrapper.h
@@ -179,7 +179,7 @@ set(README_FILES
     AddLinkerFlags("-Wl,--no-undefined")
 
     AddCompilerDefinitions(SOFA_HAVE_VERDANDI)
-#endif()
+endif()
 
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${MOC_FILES} ${SOURCE_FILES} ${README_FILES})
 
