@@ -12,11 +12,11 @@
 	<GenericConstraintSolver tolerance="1e-11" printLog="false" computeGraphs="1"/>
 	<CollisionPipeline depth="6" verbose="0" draw="0"/>
 	<BruteForceDetection name="N2" />
-	<LocalMinDistance name="Proximity"  alarmDistance="0.005" contactDistance="0.002"  angleCone="0.0"/>
+	<LocalMinDistance name="Proximity"  alarmDistance="0.01" contactDistance="0.002"  angleCone="0.0"/>
 	<RuleBasedContactManager name="Response" rules="* * FrictionContact?mu=0.0"/> 
 
 	
-	<Node>	
+	<Node>
 <!-- 		<OptimParams name="paramE" template="Vector" initValue="40000.0 10000.0"/>  -->
 		<OptimParams name="paramE" template="Vector" initValue="20000.0 20000.0"/> 
 	<!-- 	 -->
@@ -26,8 +26,8 @@
 		<EulerImplicit name="odeSolver" printLog="false"/>
 	<!-- 	rayleighMass="1" rayleighStiffness="1" /> -->
 		
-		<SparseLDLSolver/>
-<!-- 		<SparsePARDISOSolver/> -->
+<!-- 		<SparseLDLSolver/> -->
+		<SparsePARDISOSolver/>
 	<!-- 	<CGLinearSolver/> -->
 	
 		<MeshVTKLoader filename="data/cylinder363.vtk" name="loader" />

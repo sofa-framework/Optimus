@@ -4,7 +4,7 @@ clear all
 %it=10; nParam=2; nColl=2; nDim=1;
 %indir='/home/ipeterlik/Work/Sofa/applications-dev/plugins/Optimus/verdandiSofa/verdandi-1.5/example/clamped_bar/result'
 
-it=10; nParam=2; nColl=1; nDim=3; nElem=1673;
+it=10; nParam=2; nColl=1; nDim=3; nElem=363;
 
 indir=sprintf('/home/ipeterlik/Work/Sofa/applications-dev/plugins/Optimus/verdandiSofa/scenes/result%d_%d', nParam, nElem);
 
@@ -20,7 +20,7 @@ nObs=size(R,1)
 nDof=(nState-nParam)/nColl;
 nNode=nDof/nDim;
 
-desiredObs = 2600;
+desiredObs = nObs;
 
 if (nParam == 2)
     figure; plot(1:1:desiredObs, R(1:1:desiredObs,nState-1), 1:1:desiredObs, R(1:1:desiredObs,nState));

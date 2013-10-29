@@ -137,7 +137,10 @@ public:
     typedef Seldon::Vector<state, Seldon::Collection> state_collection;
 
     typedef core::behavior::MechanicalState<defaulttype::Vec3dTypes> MechStateVec3d;
-    typedef sofa::component::projectiveconstraintset::FixedConstraint<sofa::defaulttype::Vec3dTypes> FixedConstraintVec3d;
+    typedef component::projectiveconstraintset::FixedConstraint<defaulttype::Vec3dTypes> FixedConstraintVec3d;
+
+    typedef core::behavior::MechanicalState<defaulttype::Rigid3dTypes> MechStateRigid3d;
+    typedef component::projectiveconstraintset::FixedConstraint<defaulttype::Rigid3dTypes> FixedConstraintRigid3d;
 
     typedef struct {
         simulation::Node* gnode;
@@ -149,6 +152,19 @@ public:
         double errorVarianceSofaParams;
         bool verbose;        
     } ModelData;
+
+    typedef std::pair<OPVector*,helper::vector<size_t> > OPVecInd;
+
+    typedef struct {
+        simulation::Node* node;
+        helper::vector<OPVecInd> oparams;
+        MechStateVec3d* vecMS;
+        MechStateRigid3d* rigidMS;
+        FixedConstraintVec3d* vecFC;
+        FixedConstraintRigid3d* rigidFC;
+        helper::vector<std::pair<size_t, size_t> > positionPairs;
+        helper::vector<std::pair<size_t, size_t> > velocityPairs;
+    } SofaObject;
 
 public:
     const core::ExecParams* execParams;
@@ -172,28 +188,32 @@ public:
     Data<bool> displayTime;
     Data<bool> m_solveVelocityConstraintFirst;
 
-
-
     ///// OLD:
-    size_t free_nodes_size;
+    /*size_t free_nodes_size;
     OPVector* vecParams;
     MechStateVec3d * mechanicalObject;
     FixedConstraintVec3d* fixedConstraints;
-    helper::vector<size_t> freeIndices;
+    helper::vector<size_t> freeIndices;*/
     ////
 
 
+    ///LATEST:
+    helper::vector<SofaObject> sofaObjects;
 
     /*OPVector* vecParams;
     MechStateVec3d * mechanicalObject;
     FixedConstraintVec3d* fixedConstraints;*/
 
-    helper::vector<OPVector*> listOP3d;
+    /*helper::vector<OPVector*> listOP3d;
+
     helper::vector<MechStateVec3d*> listMS3d;
     helper::vector<FixedConstraintVec3d*> listFC3d;
 
+    helper::vector<MechStateRigid3d*> listRigidMS;
+    helper::vector<FixedConstraintRigid3d*> listRigidFC;
+
     //size_t free_nodes_size;
-    helper::vector<helper::vector<size_t> > listFreeIndices;
+    helper::vector<helper::vector<size_t> > listFreeIndices;*/
 
     //bool positionInState, velocityInState, verbose;
 
