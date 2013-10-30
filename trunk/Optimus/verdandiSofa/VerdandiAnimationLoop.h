@@ -101,8 +101,7 @@ public:
     Data<bool> _positionInState;
     Data<bool> _velocityInState;
     Data<string> _filterType;
-    Data<double> _stateErrorVarianceState;
-    Data<double> _stateErrorVarianceParams;
+    Data<double> _stateErrorVarianceState;    
     Data<bool> _verbose;    
 
 };

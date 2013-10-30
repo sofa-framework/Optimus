@@ -149,7 +149,6 @@ public:
         bool positionInState;
         bool velocityInState;
         double errorVarianceSofaState;
-        double errorVarianceSofaParams;
         bool verbose;        
     } ModelData;
 
@@ -308,13 +307,22 @@ public:
         return obj;
     }*/
 
-    void printMatrix(Seldon::Matrix<Type>& M, std::ofstream &of) {
+    void printMatrix(Seldon::Matrix<Type>& M, std::ostream &of) {
         for (int i = 0; i < M.GetM(); i++)
           {
             for (int j = 0; j < M.GetN(); j++)
               of << M(i, j) << '\t';
             of << '\n';
           }
+    }
+
+    void printMatrixInRow(Seldon::Matrix<Type>& M, std::ostream &of) {
+        for (int i = 0; i < M.GetM(); i++)
+          {
+            for (int j = 0; j < M.GetN(); j++)
+              of << M(i, j) << '\t';
+          }
+        of << '\n';
     }
 
     void printVector(Seldon::Vector<Type>& V, std::ofstream &of) {

@@ -4,9 +4,10 @@ clear all
 %it=10; nParam=2; nColl=2; nDim=1;
 %indir='/home/ipeterlik/Work/Sofa/applications-dev/plugins/Optimus/verdandiSofa/verdandi-1.5/example/clamped_bar/result'
 
-it=10; nParam=2; nColl=1; nDim=3; nElem=363;
+it=10; nParam=1; nColl=1; nDim=3; nElem=15;
 
-indir=sprintf('/home/ipeterlik/Work/Sofa/applications-dev/plugins/Optimus/verdandiSofa/scenes/result%d_%d', nParam, nElem);
+%indir=sprintf('/home/ipeterlik/Work/Sofa/applications-dev/plugins/Optimus/verdandiSofa/scenes/result%d_%d', nParam, nElem);
+indir=sprintf('/home/ipeterlik/Work/Sofa/applications-dev/plugins/Optimus/verdandiSofa/scenes/beam15');
 
 
 %T=load(sprintf('%s/truth-forecast_state.dat',indir));
@@ -22,7 +23,10 @@ nNode=nDof/nDim;
 
 desiredObs = nObs;
 
-if (nParam == 2)
+if (nParam == 1)
+    figure; plot(1:1:desiredObs, R(1:1:desiredObs,nState));
+
+elseif (nParam == 2)
     figure; plot(1:1:desiredObs, R(1:1:desiredObs,nState-1), 1:1:desiredObs, R(1:1:desiredObs,nState));
     fprintf('Parameters found: %f %f\n', R(desiredObs, nState-1), R(desiredObs,nState));
     xlabel('Time step');

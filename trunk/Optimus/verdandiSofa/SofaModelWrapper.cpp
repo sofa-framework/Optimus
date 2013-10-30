@@ -80,11 +80,11 @@ namespace simulation
 template <class Type>
 SofaModelWrapper<Type>::SofaModelWrapper()
     : Inherit()
-    , current_row_(-1)    
+    , current_row_(-1)
     , dim_(3)
     , state_size_(0)
     , reduced_state_size_(0)
-    , reduced_state_index_(0)    
+    , reduced_state_index_(0)
 {
     displayTime.setValue(false);
     m_solveVelocityConstraintFirst.setValue(false);
@@ -187,6 +187,10 @@ void SofaModelWrapper<Type>::initSimuData(ModelData &_md)
 
     for (size_t iop = 0; iop < listOP.size(); iop++) {
         OPVector* op = listOP[iop];
+
+        if (!op->optimize())
+            continue;
+
         simulation::Node* opnode = dynamic_cast<simulation::Node*>(op->getContext());
 
         OPVecInd oparam;
@@ -269,6 +273,7 @@ void SofaModelWrapper<Type>::StateSofa2Verdandi() {
     for (size_t i = 0; i < vecParams->size(); i++)
         state_(j++) = vecPar[i];*/
 
+    //std::cout << "S2V: " << std::endl;
 
     for (size_t iop = 0; iop < sofaObjects.size(); iop++) {
         SofaObject& obj = sofaObjects[iop];
@@ -292,6 +297,7 @@ void SofaModelWrapper<Type>::StateSofa2Verdandi() {
 
             for (helper::vector<std::pair<size_t, size_t> >::iterator it = obj.positionPairs.begin(); it != obj.positionPairs.end(); it++) {
                 defaulttype::Rigid3dTypes::CPos rpos = defaulttype::Rigid3dTypes::getCPos(pos[it->first]);
+                //std::cout << rpos << std::endl;
                 for (size_t d = 0; d < dim_; d++)
                     state_(dim_*it->second + d ) = rpos[d];
             }
@@ -364,6 +370,7 @@ void SofaModelWrapper<Type>::StateVerdandi2Sofa() {
     vecParams->setValue(vecPar);*/
 
     /// THE LATEST VERSION:
+    //std::cout << "V2S: " << std::endl;
     for (size_t iop = 0; iop < sofaObjects.size(); iop++) {
         SofaObject& obj = sofaObjects[iop];
 
@@ -385,12 +392,13 @@ void SofaModelWrapper<Type>::StateVerdandi2Sofa() {
             typename MechStateRigid3d::WriteVecDeriv vel = obj.rigidMS->writeVelocities();
 
             for (helper::vector<std::pair<size_t, size_t> >::iterator it = obj.positionPairs.begin(); it != obj.positionPairs.end(); it++) {
-                defaulttype::Rigid3dTypes::CPos rpos(dim_*it->second, dim_*it->second + 1, dim_*it->second + 2);
+                defaulttype::Rigid3dTypes::CPos rpos(state_(dim_*it->second), state_(dim_*it->second + 1), state_(dim_*it->second + 2));
                 defaulttype::Rigid3dTypes::setCPos(pos[it->first], rpos);
+                //std::cout << rpos << std::endl;
             }
 
             for (helper::vector<std::pair<size_t, size_t> >::iterator it = obj.velocityPairs.begin(); it != obj.velocityPairs.end(); it++) {
-                defaulttype::Rigid3dTypes::DPos rvel(dim_*it->second, dim_*it->second + 1, dim_*it->second + 2);
+                defaulttype::Rigid3dTypes::DPos rvel(state_(dim_*it->second), state_(dim_*it->second + 1), state_(dim_*it->second + 2));
                 defaulttype::Rigid3dTypes::setDPos(vel[it->first], rvel);
             }
         }
@@ -490,7 +498,7 @@ void SofaModelWrapper<Type>::Initialize(std::string &/*configFile*/)
     }
     free_nodes_size = freeIndices.size();
 
-    /// initialize filter state                
+    /// initialize filter state
     state_size_ = 0;
     if (modelData.positionInState)
         state_size_ += dim_* free_nodes_size;
@@ -625,8 +633,20 @@ void SofaModelWrapper<Type>::Initialize(std::string &/*configFile*/)
         for (size_t i = 0; i < size_t(reduced_state_index_); i++)
             state_error_variance_(i,i) *= modelData.errorVarianceSofaState;
 
-        for (size_t i = reduced_state_index_; i < size_t(state_size_); i++)
-            state_error_variance_(i,i) *= modelData.errorVarianceSofaParams;
+        //for (size_t i = reduced_state_index_; i < size_t(state_size_); i++)
+        //    state_error_variance_(i,i) *= modelData.errorVarianceSofaParams;
+
+        for (size_t soi = 0, vpi = 0; soi < sofaObjects.size(); soi++) {
+            SofaObject& obj = sofaObjects[soi];
+
+            for (size_t opi = 0; opi < obj.oparams.size(); opi++) {
+                OPVector* op = obj.oparams[opi].first;
+                const helper::vector<Type>& stdev = op->getStdev();
+                for (size_t pi = 0; pi < op->size(); pi++, vpi++)
+                    state_error_variance_(vpi, vpi) *=  (stdev[pi] * stdev[pi]);
+
+            }
+        }
 
         //Mlt(Type(state_error_variance_value_), state_error_variance_);
 
@@ -634,8 +654,21 @@ void SofaModelWrapper<Type>::Initialize(std::string &/*configFile*/)
         state_error_variance_inverse_.SetIdentity();
         for (size_t i = 0; i < size_t(reduced_state_index_); i++)
             state_error_variance_inverse_(i,i) *= modelData.errorVarianceSofaState;
-        for (size_t i = size_t(reduced_state_index_); i < size_t(state_size_); i++)
-            state_error_variance_inverse_(i,i) *= modelData.errorVarianceSofaParams;
+        /*for (size_t i = size_t(reduced_state_index_); i < size_t(state_size_); i++)
+            state_error_variance_inverse_(i,i) *= modelData.errorVarianceSofaParams;*/
+
+        for (size_t soi = 0, vpi = 0; soi < sofaObjects.size(); soi++) {
+            SofaObject& obj = sofaObjects[soi];
+
+            for (size_t opi = 0; opi < obj.oparams.size(); opi++) {
+                OPVector* op = obj.oparams[opi].first;
+                const helper::vector<Type>& stdev = op->getStdev();
+                for (size_t pi = 0; pi < op->size(); pi++, vpi++)
+                    state_error_variance_inverse_(vpi, vpi) *=  (stdev[pi] * stdev[pi]);
+
+            }
+        }
+
     }
 
     if (modelData.filterType == ROUKF) {
@@ -1011,7 +1044,7 @@ void SofaModelWrapper<Type>::StepFreeMotion(bool _update_force, bool _update_tim
     sofa::helper::AdvancedTimer::stepBegin("UpdateMapping");
     //Visual Information update: Ray Pick add a MechanicalMapping used as VisualMapping
     gnode->execute<UpdateMappingVisitor>(execParams);
-//	sofa::helper::AdvancedTimer::step("UpdateMappingEndEvent");
+    //	sofa::helper::AdvancedTimer::step("UpdateMappingEndEvent");
     {
         UpdateMappingEndEvent ev ( dt );
         PropagateEventVisitor act ( execParams , &ev );
@@ -1057,7 +1090,7 @@ typename SofaModelWrapper<Type>::state_error_variance_row& SofaModelWrapper<Type
 template <class Type>
 typename SofaModelWrapper<Type>::state_error_variance& SofaModelWrapper<Type>::GetStateErrorVarianceProjector() {
     //std::cout << this->getName() << " " << GetTime() << " getStateErrorVarianceProjector" << std::endl;
-    std::cout << "GetSEV_PROJECTOR" << std::endl;
+    //std::cout << "GetSEV_PROJECTOR" << std::endl;
     if (!variance_projector_allocated_)
     {
         /*int Nreduced = 0;
@@ -1085,7 +1118,7 @@ typename SofaModelWrapper<Type>::state_error_variance& SofaModelWrapper<Type>::G
 template <class Type>
 typename SofaModelWrapper<Type>::state_error_variance& SofaModelWrapper<Type>::GetStateErrorVarianceReduced() {
     //std::cout << this->getName() << " " << GetTime() << " getStateErrorVarianceReduced" << std::endl;
-    //std::cout << "GetSEV_REDUCED" << std::endl;
+    std::cout << "GetSEV_REDUCED" << std::endl;
     if (!variance_reduced_allocated_)
     {
         /*int Nreduced = 0;
@@ -1095,11 +1128,34 @@ typename SofaModelWrapper<Type>::state_error_variance& SofaModelWrapper<Type>::G
         // Initializes U.*/
         state_error_variance_reduced_.Reallocate(reduced_state_size_,  reduced_state_size_);
         state_error_variance_reduced_.Fill(Type(0.0));
-        for (size_t i = 0; i < reduced_state_size_; i++)
-            state_error_variance_reduced_(i, i) = Type(Type(1.0) / modelData.errorVarianceSofaParams);
+        //for (size_t i = 0; i < reduced_state_size_; i++)
+        //    state_error_variance_reduced_(i, i) = Type(Type(1.0) / modelData.errorVarianceSofaParams);
+        for (size_t soi = 0, vpi = 0; soi < sofaObjects.size(); soi++) {
+            SofaObject& obj = sofaObjects[soi];
+
+            for (size_t opi = 0; opi < obj.oparams.size(); opi++) {
+                OPVector* op = obj.oparams[opi].first;
+                const helper::vector<Type>& stdev = op->getStdev();
+
+                for (size_t pi = 0; pi < op->size(); pi++, vpi++)
+                    state_error_variance_reduced_(vpi, vpi) = Type(Type(1.0) / (stdev[pi] * stdev[pi]));
+            }
+        }
+
         std::cout << "  Initialize U: " << std::endl;
-        //printMatrix()
+        printMatrix(state_error_variance_reduced_, std::cout);
         variance_reduced_allocated_ = true;
+        std::fstream f;
+        f.open("U.mat", std::fstream::out);
+        printMatrixInRow(state_error_variance_reduced_, f);
+        f.close();
+    } else {
+        std::cout << "!!!!!!!!!!! U = " << std::endl;
+        printMatrix(state_error_variance_reduced_, std::cout);
+        std::fstream f;
+        f.open("U.mat", std::fstream::out | std::fstream::app);
+        printMatrixInRow(state_error_variance_reduced_, f);
+        f.close();
     }
     //std::cout << "U = " << state_error_variance_reduced_ << std::endl;
 
@@ -1132,12 +1188,12 @@ void SofaModelWrapper<Type>::computeCollision()
 SOFA_DECL_CLASS(SofaModelWrapper)
 
 int SofaModelWrapperClass = core::RegisterObject("A class implementing an interface between SOFA and verdandi")
-#ifndef SOFA_FLOAT
+        #ifndef SOFA_FLOAT
         .add< SofaModelWrapper<double> >()
-#endif
-/*#ifndef SOFA_DOUBLE
-        .add< SofaModelWrapper<float> >()
-#endif*/
+        #endif
+        /*#ifndef SOFA_DOUBLE
+                .add< SofaModelWrapper<float> >()
+        #endif*/
         ;
 
 template class SofaModelWrapper<double>;

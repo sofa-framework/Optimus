@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Node name="root" dt="0.001" showBoundingTree="0" gravity="0 0 0">
+<Node name="root" dt="0.001" showBoundingTree="0" gravity="0 -9.81 0">
 	<RequiredPlugin pluginName="Optimus"/>
 <!-- 	<RequiredPlugin pluginName="SofaPardisoWrapper"/> -->
 <!-- 	<RequiredPlugin pluginName="BilikimoAux"/> -->
@@ -9,7 +9,7 @@
 	
 	<VisualStyle displayFlags="showInteractionForceFields showCollisionModels hideForceFields hideBehaviorModels showWireframe"/>
 <!-- 	<VerdandiAnimationLoop name="verdAnimLoop" configFile="configuration/confBeam15.lua" filterType="forward" verbose="0" velocityInState="0"/> -->
-	<VerdandiAnimationLoop name="verdAnimLoop" configFile="configuration/confBeam15.lua" filterType="ROUKF" verbose="0" velocityInState="0" stateErrorVariance="0.01" paramErrorVariance="1e16"/>
+	<VerdandiAnimationLoop name="verdAnimLoop" configFile="configuration/confBeam15.lua" filterType="ROUKF" verbose="0" velocityInState="0" stateErrorVariance="0.01"/>
 	
 	<Node name="Needle" activated="1">
 		<EulerImplicit />
@@ -17,7 +17,9 @@
 		
 		<BTDLinearSolver/>
 		
-		<OptimParams name="paramE" template="Vector" initValue="1.5e9"/> 
+		<OptimParams name="paramE" template="Vector" initValue="1e9" stdev="1e8" optimize="0"/>
+<!-- 		<OptimParams name="paramR" template="Vector" initValue="0.0009"-->
+		<OptimParams name="paramR" template="Vector" initValue="0.0004" stdev="0.0010" optimize="1"/> 
 		
 		<WireRestShape template="Rigid" printLog="0" name="sutureRestShape" length="0.15"  straightLength="0.15" spireDiameter="0" spireHeight="0.0"
 					densityOfBeams="15 0" numEdges="15" numEdgesCollis="15 0"  youngModulus="@paramE.value" youngModulusExtremity="1e4"/>
@@ -30,10 +32,12 @@
 		<MechanicalObject template="Rigid" name="DOFs" showIndices="0" translation="0 0 0"/>
 		<FixedConstraint indices="0"/>
 
-		<WireBeamInterpolation name="interpolSuture" WireRestShape="@sutureRestShape" radius="0.00082" printLog="0" dofsAndBeamsAligned="false"/> 
-		<AdaptiveBeamForceFieldAndMass name="sutureForceField" interpolation="@interpolSuture" massDensity="0.0"/>
+		<WireBeamInterpolation name="interpolSuture" WireRestShape="@sutureRestShape" radius="@paramR.value" printLog="0" dofsAndBeamsAligned="false" listening="1" updateRadius="1"/> 
+		
+		<AdaptiveBeamForceFieldAndMass name="sutureForceField" interpolation="@interpolSuture" massDensity="0"/>
 		<SutureController template="Rigid" name="m_ircontroller" printLog="0" applyOrientationFirstInCreateNeedle="1"  startingPos="0 0 0 0 0 0 1" interpolation="@interpolSuture"  threshold="1e-5" maxBendingAngle="0.4"/>
-				
+		<UniformMass mass="0.001 0.001 [0.0001 0 0 0 0.0001 0 0 0 0.0001]" printLog="false" totalmass="0.008" showAxisSizeFactor="0.4" />
+		
 		<Node name="Collis">
 			<RegularGrid name="grid" nx="15" ny="1" nz="1" xmin="0.0" xmax="0.15" ymin="0" ymax="0" zmin="0" zmax="0"/>
 			<MechanicalObject name="points" showIndices="0" translation="0 0 0"/>
@@ -42,11 +46,11 @@
 			<Point proximity="0.0" PointActiverPath="../container" group="10" color="0 0 1 1"/>
 		</Node>
 		
-		<Node name="ForcePoint">
+<!--		<Node name="ForcePoint">
 			<MechanicalObject position="0.12 0.0 0.0" showIndices="1"/>
 			<AdaptiveBeamMapping/>
 			<ConstantForceField points="0" forces="0 -0.1 0"/>
-		</Node>
+		</Node>-->
 		
 <!--		<Node name="VisuSuture" >
 			<MechanicalObject name="Quads" />
