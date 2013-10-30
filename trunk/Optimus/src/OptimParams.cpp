@@ -67,7 +67,26 @@ void OptimParams<sofa::helper::vector<double> >::init() {
                 maxVal[i] = initVal[i];
         }
 
+        helper::WriteAccessor<Data<sofa::helper::vector<double> > > stdev = m_stdev;
+        //std::cout << "STDEV: " << stdev << std::endl;
+        if (stdev.size() == 0) {
+            stdev.resize(nInitVal, 0.0);
+        } else if (stdev.size() != nInitVal) {
+            std::cerr << this->getName() << ": ERROR: |stdev| != |init value|, taking the first member of stdev. " << std::endl;
+            //double x=stdev[0];
+            stdev.resize(nInitVal);
+            for (size_t i = 1; i < nInitVal; i++)
+                stdev[i] = stdev[0];
+
+            //std::cout << "STDEV A: " << stdev << std::endl;
+            //stdev.resize(nInitVal, x);
+            //std::cout << "STDEV B: " << stdev << std::endl;
+        }
+
+
     }
+
+
 }
 
 template<>
@@ -80,23 +99,23 @@ SOFA_DECL_CLASS(OptimParams)
 
 // Register in the Factory
 int OptimParamsClass = core::RegisterObject("Optimization Parameters")
-#ifndef SOFA_FLOAT
+        #ifndef SOFA_FLOAT
         .add< OptimParams<double> >()
         .add< OptimParams<Vec3d> >()
         .add< OptimParams<Vec2d> >()
         .add< OptimParams<Vec1d> >() // default template
         .add< OptimParams<RigidCoord<3,double> > >()
-        .add< OptimParams<RigidCoord<2,double> > >()
-        .add< OptimParams<sofa::helper::vector<double> > >()
+.add< OptimParams<RigidCoord<2,double> > >()
+.add< OptimParams<sofa::helper::vector<double> > >()
 #endif
 #ifndef SOFA_DOUBLE
-        .add< OptimParams<float> >(true) // default template
-        .add< OptimParams<Vec3f> >()
-        .add< OptimParams<Vec2f> >()
-        .add< OptimParams<Vec1f> >() // default template
-        .add< OptimParams<RigidCoord<3,float> > >()
-        .add< OptimParams<RigidCoord<2,float> > >()
-        .add< OptimParams<sofa::helper::vector<float> > >()
+.add< OptimParams<float> >(true) // default template
+.add< OptimParams<Vec3f> >()
+.add< OptimParams<Vec2f> >()
+.add< OptimParams<Vec1f> >() // default template
+.add< OptimParams<RigidCoord<3,float> > >()
+.add< OptimParams<RigidCoord<2,float> > >()
+.add< OptimParams<sofa::helper::vector<float> > >()
 #endif
 ;
 

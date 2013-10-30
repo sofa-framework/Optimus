@@ -38,6 +38,8 @@ OptimParams<DataTypes>::OptimParams()
     , m_initVal( initData(&m_initVal, "initValue", "initial parameter value") )
     , m_min( initData(&m_min, "min", "lower bound for parameter") )
     , m_max( initData(&m_max, "max", "higher bound for parameter") )
+    , m_stdev( initData(&m_stdev, "stdev", "standard variation") )
+    , m_optimize( initData(&m_optimize, true, "optimize", "the parameter will be optimized by Verdandi") )
 {
 }
 
@@ -49,7 +51,7 @@ OptimParams<DataTypes>::~OptimParams()
 template <class DataTypes>
 void OptimParams<DataTypes>::init()
 {
-    // DataTypes::set(x[i], topo->getPX(i), topo->getPY(i), topo->getPZ(i));
+    // DataTypes::set(x[i], topo->getPX(i), topo->getPY(i), topo->getPZ(i));    
 }
 
 template <class DataTypes>

@@ -113,8 +113,16 @@ public:
         return m_val.getValue();
     }
 
+    const DataTypes& getStdev() {
+        return m_stdev.getValue();
+    }
+
     void setValue(DataTypes& _value) {
         m_val.setValue(_value);
+    }
+
+    bool optimize()  {
+        return(m_optimize.getValue());
     }
 
     static std::string templateName(const OptimParams<DataTypes>* = NULL) { std::string name = sofa::component::container::templateName<DataTypes>()(); return(name); }       
@@ -124,6 +132,8 @@ protected:
     Data< DataTypes > m_initVal;
     Data< DataTypes > m_min;
     Data< DataTypes > m_max;
+    Data< DataTypes > m_stdev;
+    Data< bool > m_optimize;
 };
 
 } // container
