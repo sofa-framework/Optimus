@@ -18,8 +18,8 @@
 		<BTDLinearSolver/>
 		
 		<OptimParams name="paramE" template="Vector" initValue="1e9" stdev="1e8" optimize="0"/>
-<!-- 		<OptimParams name="paramR" template="Vector" initValue="0.0009"-->
-		<OptimParams name="paramR" template="Vector" initValue="0.0004" stdev="0.0010" optimize="1"/> 
+<!-- 		<OptimParams name="paramR" template="Vector" initValue="0.0009"/> -->
+		<OptimParams name="paramR" template="Vector" initValue="0.0001" stdev="0.0010" optimize="1"/> 
 		
 		<WireRestShape template="Rigid" printLog="0" name="sutureRestShape" length="0.15"  straightLength="0.15" spireDiameter="0" spireHeight="0.0"
 					densityOfBeams="15 0" numEdges="15" numEdgesCollis="15 0"  youngModulus="@paramE.value" youngModulusExtremity="1e4"/>

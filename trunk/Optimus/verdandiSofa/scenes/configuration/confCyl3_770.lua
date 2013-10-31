@@ -54,7 +54,8 @@ reduced_order_unscented_kalman_filter = {
    },
    output = {
      configuration = output_directory .. "roukf.lua",
-     log = output_directory .. "roukf_%{rank}.log"
+     saveVQ = true
+     --log = output_directory .. "roukf_%{rank}.log"
    },
 }
 

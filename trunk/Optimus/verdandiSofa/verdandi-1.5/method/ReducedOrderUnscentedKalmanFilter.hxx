@@ -109,6 +109,10 @@ namespace Verdandi
         string model_configuration_file_;
         //! Path to the configuration file for the observation manager.
         string observation_configuration_file_;
+        //! Output directory path
+        string output_directory_;
+
+        bool saveVQ_;
 
         //! Display options.
         map<string, bool> option_display_;

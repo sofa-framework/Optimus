@@ -4,7 +4,7 @@ clear all
 %it=10; nParam=2; nColl=2; nDim=1;
 %indir='/home/ipeterlik/Work/Sofa/applications-dev/plugins/Optimus/verdandiSofa/verdandi-1.5/example/clamped_bar/result'
 
-it=10; nParam=1; nColl=1; nDim=3; nElem=15;
+it=10; nParam=3; nColl=1; nDim=1; nElem=15;
 
 %indir=sprintf('/home/ipeterlik/Work/Sofa/applications-dev/plugins/Optimus/verdandiSofa/scenes/result%d_%d', nParam, nElem);
 indir=sprintf('/home/ipeterlik/Work/Sofa/applications-dev/plugins/Optimus/verdandiSofa/scenes/beam15');
@@ -35,6 +35,12 @@ elseif (nParam == 3)
     figure; plot(1:desiredObs, R(1:desiredObs,nState-2), 1:desiredObs, R(1:desiredObs,nState-1), 1:desiredObs, R(1:desiredObs,nState));
     fprintf('Parameters found: %f %f %f\n', R(desiredObs, nState-2), R(desiredObs, nState-1), R(desiredObs,nState));
 end
+
+
+L=load(sprintf('%s/roukf-forecast-Lvec.dat', indir));
+figure; plot(L(:,1));
+%figure; plot(L(:,5));
+%figure; plot(L(:,9));
 
 
 return

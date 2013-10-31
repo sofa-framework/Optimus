@@ -115,9 +115,18 @@ namespace Verdandi
 
 
         configuration_file_ = configuration.GetFilePath();
+
+        configuration.Set("output_directory", "", configuration_file_, output_directory_);
+
+        char comm[100];
+        sprintf(comm, "rm %s/roukf*dat", output_directory_.c_str());
+        std::cout << "Executing: " << comm << std::endl;
+        system(comm);
+
         configuration.SetPrefix("reduced_order_unscented_kalman_filter.");
 
         /*** Model ***/
+        configuration.Set("output.saveVQ", saveVQ_);
 
         configuration.Set("model.configuration_file", "", configuration_file_,
                           model_configuration_file_);
@@ -571,6 +580,14 @@ namespace Verdandi
 
             sigma_point_matrix tmp;
             GetCholesky(U_inv_);
+
+            if (saveVQ_){
+                char name[100];
+                sprintf(name, "%s/roukf-forecast_uinv.dat", output_directory_.c_str());
+                output_saver_.WriteText(U_inv_, name);
+            }
+
+
             Copy(model_.GetStateErrorVarianceProjector(), tmp);
             MltAdd(Ts(1), tmp, U_inv_, Ts(0),
                    model_.GetStateErrorVarianceProjector());
@@ -593,8 +610,15 @@ namespace Verdandi
             for (int i = 0; i < Nsigma_point_; i++)
             {
                 GetRow(X_i_trans_, i, x_col);
+                if (saveVQ_){
+                    char name[100];
+                    sprintf(name, "%s/roukf-forecast-sigmastate_%02d.dat", output_directory_.c_str(), i);
+                    output_saver_.WriteText(x_col, name);
+                }
+
                 new_time = model_.ApplyOperator(x_col, false);
-                Add(Ts(alpha_), x_col, x);
+
+                Add(Ts(alpha_), x_col, x);                
                 SetRow(x_col, i, X_i_trans_);
             }
             model_.SetTime(new_time);
@@ -610,6 +634,7 @@ namespace Verdandi
             Mlt(Ts(-1), M_trans);
             Add(Ts(1), X_i_trans_, M_trans);
 
+
             if (alpha_constant_)
                 Mlt(sqrt(alpha_), M_trans);
             else
@@ -617,14 +642,25 @@ namespace Verdandi
                                      "Forward()", "Calculation not "
                                      "implemented for no constant alpha_i.");
 
+            //std::cout << "M = " << M_trans << std::endl;
+
             sigma_point_matrix G(Nsigma_point_, Nsigma_point_);
             MltAdd(Ts(1), SeldonNoTrans, M_trans, SeldonTrans, M_trans,
                    Ts(0), G);
 
+            //std::cout << "G = " << G << std::endl;
+
             Vector<Ts> lambda;
             Matrix<Ts> U, V;
             GetSVD(G, lambda, U, V);
+
+            //std::cout << "Lambda = " << lambda << std::endl;
+            //std::cout << "U = " << U << std::endl;
+            //std::cout << "V = " << V << std::endl;
+
             U.Resize(Nsigma_point_, Nreduced_);
+
+            //std::cout << "Ures = " << U << std::endl;
 
             sigma_point_matrix
                 working_matrix_rr(Nsigma_point_, Nsigma_point_),
@@ -633,9 +669,13 @@ namespace Verdandi
             MltAdd(Ts(sqrt(alpha_)), SeldonNoTrans, U, SeldonTrans, I_trans_,
                    Ts(0), working_matrix_rr);
 
+            //std::cout << "Wrr = " << working_matrix_rr << std::endl;
+
             for(int i = 0; i < Nsigma_point_; i++)
                 SetRow(x, i, X_i_trans_);
             Add(Ts(-1), X_i_trans_, working_matrix_rN);
+
+            //std::cout << "Wrn = " << working_matrix_rN << std::endl;
 
             MltAdd(Ts(1), SeldonTrans, working_matrix_rr, SeldonNoTrans,
                    working_matrix_rN, Ts(1), X_i_trans_);
@@ -643,6 +683,24 @@ namespace Verdandi
             // Computes L_{n + 1}.
             MltAdd(Ts(alpha_), SeldonTrans, X_i_trans_, SeldonNoTrans,
                    I_trans_, Ts(0), model_.GetStateErrorVarianceProjector());
+
+            //std::cout << "VarProj = " << model_.GetStateErrorVarianceProjector() << std::endl;
+
+            if (saveVQ_){
+                typename Model::state_error_variance LL = model_.GetStateErrorVarianceProjector();
+                Seldon::Vector<Ts> LLv(Nreduced_* Nreduced_);
+                for (int i = 0; i < Nreduced_; i++)
+                    for (int j = 0; j < Nreduced_; j++)
+                        LLv(3*i+j) = LL(LL.GetM()-3+i,j);
+
+                //std::cout << "SIZES" << LL.GetN() << " x " << LL.GetM() << " " << Nreduced_ << std::endl;
+                char name[100];
+                //sprintf(name, "%s/roukf-forecast-Lmat.dat", output_directory_.c_str());
+                //output_saver_.WriteText(LL, name);
+                sprintf(name, "%s/roukf-forecast-Lvec.dat", output_directory_.c_str());
+                output_saver_.WriteText(LLv, name);
+            }
+
 #endif
         }
 
@@ -925,16 +983,13 @@ namespace Verdandi
         }
 
 #ifndef VERDANDI_WITH_MPI
-        MessageHandler::Send(*this, "model", "forecast");
-        MessageHandler::Send(*this, "observation_manager", "forecast");
-        MessageHandler::Send(*this, "driver", "forecast");
+        MessageHandler::Send(*this, "model", "analysis");
+        MessageHandler::Send(*this, "observation_manager", "analysis");
+        MessageHandler::Send(*this, "driver", "analysis");
 #else
-        MessageHandler::Send(*this, "model" +
-                             to_str(world_rank_), "analysis");
-        MessageHandler::Send(*this, "observation_manager" +
-                             to_str(world_rank_), "analysis");
-        MessageHandler::Send(*this, "driver" + to_str(world_rank_),
-                             "analysis");
+        MessageHandler::Send(*this, "model" + to_str(world_rank_), "analysis");
+        MessageHandler::Send(*this, "observation_manager" + to_str(world_rank_), "analysis");
+        MessageHandler::Send(*this, "driver" + to_str(world_rank_), "analysis");
 #endif
         MessageHandler::Send(*this, "all", "::Analyze end");
     }
