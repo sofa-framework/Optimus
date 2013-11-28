@@ -938,7 +938,7 @@ void SofaModelWrapper<Type>::StepFreeMotion(bool _update_force, bool _update_tim
     gnode->execute(&freeMotion);
     AdvancedTimer::stepEnd("FreeMotion");
 
-    mop.propagateXAndV(freePos, freeVel);
+    mop.propagateXAndV(freePos, freeVel, true);
 
     if (f_printLog.getValue())
         serr << " SolveVisitor for freeMotion performed" << sendl;
@@ -956,7 +956,7 @@ void SofaModelWrapper<Type>::StepFreeMotion(bool _update_force, bool _update_tim
     computeCollision();
     AdvancedTimer::stepEnd  ("Collision");
 
-    mop.propagateX(pos);
+    mop.propagateX(pos, false);
 
     if (displayTime.getValue())
     {
@@ -984,15 +984,15 @@ void SofaModelWrapper<Type>::StepFreeMotion(bool _update_force, bool _update_tim
 
             // xfree += dv * dt
             freePos.eq(freePos, dv, dt);
-            mop.propagateX(freePos);
+            mop.propagateX(freePos, false);
 
             cparams.setOrder(core::ConstraintParams::POS);
             constraintSolver->solveConstraint(&cparams, pos);
 
             MultiVecDeriv dx(&vop, constraintSolver->getDx());
 
-            mop.projectResponse(vel);
-            mop.propagateV(vel);
+            //mop.projectResponse(vel);
+            mop.propagateV(vel, true);
             mop.projectResponse(dx);
             mop.propagateDx(dx, true);
 
@@ -1006,8 +1006,8 @@ void SofaModelWrapper<Type>::StepFreeMotion(bool _update_force, bool _update_tim
             cparams.setV(freeVel);
 
             constraintSolver->solveConstraint(&cparams, pos, vel);
-            mop.projectResponse(vel);
-            mop.propagateV(vel);
+            //mop.projectResponse(vel);
+            mop.propagateV(vel, true);
 
             MultiVecDeriv dx(&vop, constraintSolver->getDx());
             mop.projectResponse(dx);
