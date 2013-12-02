@@ -32,17 +32,11 @@
 #include <sofa/simulation/common/Node.h>
 #include <sofa/helper/AdvancedTimer.h>
 
-#define VERDANDI_DEBUG_LEVEL_4
+#include "../src/OptimParams.h"
 
 #include "SofaModelWrapper.h"
-#include "VerdandiHeader.hxx"
-#include "method/ForwardDriver.hxx"
-#include "method/UnscentedKalmanFilter.hxx"
-#include "method/ReducedOrderUnscentedKalmanFilter.hxx"
-#include "observation_manager/LinearObservationManager.hxx"
+#include "VerdandiClasses.h"
 
-#include "../src/OptimParams.h"
-//#include "VerdandiActiveStateMonitor.h"
 
 using namespace sofa::core::objectmodel;
 using namespace sofa::core::behavior;
@@ -102,7 +96,7 @@ public:
     Data<bool> _velocityInState;
     Data<string> _filterType;
     Data<double> _stateErrorVarianceState;    
-    Data<bool> _verbose;    
+    Data<bool> _verbose;
 
 };
 
@@ -111,4 +105,7 @@ public:
 
 } // namespace sofa
 
+//#endif
+
 #endif  /* SOFA_SIMULATION_VERDANDIANIMATIONLOOP_H */
+

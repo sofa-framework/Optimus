@@ -93,6 +93,7 @@ VerdandiAnimationLoop::~VerdandiAnimationLoop()
 
 }
 
+
 void VerdandiAnimationLoop::init() {
     std::cout << "Filter type: " << _filterType.getValue() << std::endl;
 
@@ -107,12 +108,12 @@ void VerdandiAnimationLoop::init() {
     md.positionInState = _positionInState.getValue();
     md.velocityInState = _velocityInState.getValue();    
 
-    if (_filterType.getValue() == "forward") {        
+    if (_filterType.getValue() == "forward") {
         filterType = md.filterType = FORWARD;
-        fwdDriver = new Verdandi::ForwardDriver<SofaModelWrapper<double> >;        
+        fwdDriver = new Verdandi::ForwardDriver<SofaModelWrapper<double> >;
         fwdDriver->GetModel().initSimuData(md);
     }
-    else if (_filterType.getValue() == "UKF") {        
+    else if (_filterType.getValue() == "UKF") {
         filterType = md.filterType = UKF;
         ukfDriver = new Verdandi::UnscentedKalmanFilter<SofaModelWrapper<double>, Verdandi::LinearObservationManager<double> >;        
         ukfDriver->GetModel().initSimuData(md);
@@ -122,9 +123,12 @@ void VerdandiAnimationLoop::init() {
         roukfDriver->GetModel().initSimuData(md);
     }
     else
-        filterType = UNDEF;  
+        filterType = UNDEF;
 
 }
+
+
+
 
 void VerdandiAnimationLoop::bwdInit()
 {
@@ -143,7 +147,7 @@ void VerdandiAnimationLoop::setNode(simulation::Node* _gnode)
 }
 
 void VerdandiAnimationLoop::step(const core::ExecParams* params, double /*dt*/)
-{    
+{
     std::cout << "================== " << filterType << " step: " << ++numStep << " ===================" << std::endl;
     switch (filterType) {
     case FORWARD:
@@ -174,6 +178,8 @@ void VerdandiAnimationLoop::step(const core::ExecParams* params, double /*dt*/)
 } // namespace simulation
 
 } // namespace sofa
+
+
 
 
 
