@@ -35,10 +35,9 @@ if(SOFA-EXT_VERDANDI)
     list(APPEND HEADER_FILES
         verdandiSofa/VerdandiAnimationLoop.h
         verdandiSofa/SofaModelWrapper.h
-	verdandiSofa/VerdandiActiveStateMonitor.h
-	verdandiSofa/VerdandiActiveStateMonitor.inl
-	verdandiSofa/VerdandiUpdateStateEvent.h
-	${SOFA_EXTLIBS_DIR}/verdandi-1.5/Verdandi.hxx
+        verdandiSofa/SofaModelWrapper.inl
+	verdandiSofa/VerdandiClasses.h
+        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/Verdandi.hxx
 	${SOFA_EXTLIBS_DIR}/verdandi-1.5/model/QuadraticModel.hxx
         ${SOFA_EXTLIBS_DIR}/verdandi-1.5/model/ClampedBar.hxx
         ${SOFA_EXTLIBS_DIR}/verdandi-1.5/model/ModelTemplate.hxx
@@ -162,8 +161,6 @@ if(SOFA-EXT_VERDANDI)
         verdandiSofa/VerdandiAnimationLoop.cpp
         verdandiSofa/SofaModelWrapper.cpp
 	verdandiSofa/VerdandiClasses.cpp
-	verdandiSofa/VerdandiActiveStateMonitor.cpp
-	verdandiSofa/VerdandiUpdateStateEvent.cpp
     )
 
     include_directories(${SOFA_EXTLIBS_DIR}/verdandi-1.5)
@@ -175,7 +172,7 @@ if(SOFA-EXT_VERDANDI)
     link_directories(${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon)
 
     AddLinkerDependencies(lua5.1)    
-    AddLinkerDependencies(SofaValidation seldon verdandi lapack blas)
+    AddLinkerDependencies(SofaCore SofaValidation lapack blas)
     AddLinkerFlags("-Wl,--no-undefined")
 
     AddCompilerDefinitions(SOFA_HAVE_VERDANDI)
