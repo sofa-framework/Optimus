@@ -38,34 +38,7 @@
 
 #include "../src/OptimParams.h"
 
-/*#define VERDANDI_DEBUG_LEVEL_4
-#define SELDON_WITH_BLAS
-#define SELDON_WITH_LAPACK
-
-#define VERDANDI_WITH_ABORT
-#define VERDANDI_DENSE
-
-#define VERDANDI_WITH_DIRECT_SOLVER
-//#define SELDON_WITH_MUMPS
-
-//#include "seldon/SeldonSolver.hxx"
-
-//#include "model/ClampedBar.cxx"
-//#include "method/ForwardDriver.cxx"
-
-//#include "Verdandi.hxx"
-//#include "method/ForwardDriver.cxx"*/
-
-//#include "VerdandiAnimationLoop.h"
-
-#define VERDANDI_DEBUG_LEVEL_4
-
-#include "VerdandiHeader.hxx"
-#include "seldon/SeldonHeader.hxx"
-#include "seldon/computation/basic_functions/Functions_Matrix.cxx"
-#include "seldon/computation/basic_functions/Functions_Vector.cxx"
-#include "seldon/computation/basic_functions/Functions_MatVect.cxx"
-
+#include "VerdandiClasses.h"
 #include "sofa/component/projectiveconstraintset/FixedConstraint.h"
 
 using namespace sofa::core::objectmodel;
@@ -188,31 +161,31 @@ public:
     Data<bool> m_solveVelocityConstraintFirst;
 
     ///// OLD:
-    /*size_t free_nodes_size;
-    OPVector* vecParams;
-    MechStateVec3d * mechanicalObject;
-    FixedConstraintVec3d* fixedConstraints;
-    helper::vector<size_t> freeIndices;*/
+    //size_t free_nodes_size;
+    //OPVector* vecParams;
+    //MechStateVec3d * mechanicalObject;
+    //FixedConstraintVec3d* fixedConstraints;
+    //helper::vector<size_t> freeIndices;
     ////
 
 
     ///LATEST:
     helper::vector<SofaObject> sofaObjects;
 
-    /*OPVector* vecParams;
-    MechStateVec3d * mechanicalObject;
-    FixedConstraintVec3d* fixedConstraints;*/
+    //OPVector* vecParams;
+    //MechStateVec3d * mechanicalObject;
+    //FixedConstraintVec3d* fixedConstraints;
 
-    /*helper::vector<OPVector*> listOP3d;
+    //helper::vector<OPVector*> listOP3d;
 
-    helper::vector<MechStateVec3d*> listMS3d;
-    helper::vector<FixedConstraintVec3d*> listFC3d;
+    //helper::vector<MechStateVec3d*> listMS3d;
+    //helper::vector<FixedConstraintVec3d*> listFC3d;
 
-    helper::vector<MechStateRigid3d*> listRigidMS;
-    helper::vector<FixedConstraintRigid3d*> listRigidFC;
+    //helper::vector<MechStateRigid3d*> listRigidMS;
+    //helper::vector<FixedConstraintRigid3d*> listRigidFC;
 
     //size_t free_nodes_size;
-    helper::vector<helper::vector<size_t> > listFreeIndices;*/
+    //helper::vector<helper::vector<size_t> > listFreeIndices;
 
     //bool positionInState, velocityInState, verbose;
 
@@ -226,11 +199,11 @@ public:
     //! Value of the row of B currently stored.
     state_error_variance_row state_error_variance_row_;
 
-    /*! \brief Projector matrix L in the decomposition of the
-      background error covariance matrix (\f$B\f$) as a product LUL^T */
+    //! \brief Projector matrix L in the decomposition of the
+    //  background error covariance matrix (\f$B\f$) as a product LUL^T
     state_error_variance state_error_variance_projector_;
-    /*! \brief Reduced matrix U in the decomposition of the
-      background error covariance matrix (\f$B\f$) as a product LUL^T */
+    //! \brief Reduced matrix U in the decomposition of the
+    //  background error covariance matrix (\f$B\f$) as a product LUL^T
     state_error_variance_reduced state_error_variance_reduced_;
     //! Is state error variance projector allocated?
     bool variance_projector_allocated_;
@@ -297,15 +270,15 @@ public:
 
 
     /// Construction method called by ObjectFactory.
-    /*template<class T>
-    static typename T::SPtr create(T*, BaseContext* context, BaseObjectDescription* arg)
-    {
-        simulation::Node* gnode = dynamic_cast<simulation::Node*>(context);
-        typename T::SPtr obj = sofa::core::objectmodel::New<T>(gnode);
-        if (context) context->addObject(obj);
-        if (arg) obj->parse(arg);
-        return obj;
-    }*/
+    //template<class T>
+    //static typename T::SPtr create(T*, BaseContext* context, BaseObjectDescription* arg)
+    //{
+    //    simulation::Node* gnode = dynamic_cast<simulation::Node*>(context);
+    //    typename T::SPtr obj = sofa::core::objectmodel::New<T>(gnode);
+    //    if (context) context->addObject(obj);
+    //    if (arg) obj->parse(arg);
+    //    return obj;
+    //}
 
     void printMatrix(Seldon::Matrix<Type>& M, std::ostream &of) {
         for (int i = 0; i < M.GetM(); i++)
