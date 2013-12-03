@@ -171,22 +171,24 @@ if(${SOFA-EXTERNAL_VERDANDI})
     include_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/computation/interfaces)
 
 #    link_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/python)
-    link_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon)
+#    link_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon)
 
-#    AddLinkerDependencies(lua5.1)
-#    AddLinkerDependencies(SofaCore SofaValidation lapack blas)
- #   AddLinkerFlags("-Wl,--no-undefined")
-
-    FIND_LIBRARY(BlasLapackLib Accelerate)
-    TARGET_LINK_LIBRARIES(${BlasLapackLib})
-
-    AddLinkerDependencies(SofaCore SofaValidation)
     AddCompilerDefinitions(SOFA_HAVE_VERDANDI SELDON_WITH_CBLAS)
+
+#   MAC:
+#    FIND_LIBRARY(BlasLapackLib Accelerate)
+#    TARGET_LINK_LIBRARIES(${BlasLapackLib})
+#    AddLinkerDependencies(SofaCore SofaValidation  ${BlasLapackLib} lua)
+
+#   LINUX:
+    AddLinkerDependencies(SofaCore SofaValidation lua5.1 blas lapack)
+    AddLinkerFlags("-Wl,--no-undefined")
+
 endif()
 
 
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${MOC_FILES} ${SOURCE_FILES} ${README_FILES})
 AddCompilerDefinitions("SOFA_BUILD_OPTIMUS")
-AddLinkerDependencies( SofaBaseLinearSolver SofaBoundaryCondition ${BlasLapackLib} lua)
+AddLinkerDependencies( SofaBaseLinearSolver SofaBoundaryCondition )
 
 include(${SOFA_CMAKE_DIR}/postProject.cmake)
