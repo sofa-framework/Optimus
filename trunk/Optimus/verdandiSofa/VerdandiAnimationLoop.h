@@ -79,9 +79,10 @@ public:
     }
 
 private :    
-    Verdandi::ForwardDriver<SofaModelWrapper<double> >* fwdDriver;
-    Verdandi::UnscentedKalmanFilter<SofaModelWrapper<double>, Verdandi::LinearObservationManager<double> >* ukfDriver;
-    Verdandi::ReducedOrderUnscentedKalmanFilter<SofaModelWrapper<double>, Verdandi::LinearObservationManager<double> >* roukfDriver;
+    //Verdandi::ForwardDriver<SofaModelWrapper<double> >* fwdDriver;
+    SofaForwardDriver<SofaModelWrapper<double> > *fwdDriver;
+    SofaUnscentedKalmanFilter<SofaModelWrapper<double>, SofaObservationManager<double> >* ukfDriver;
+    SofaReducedOrderUKF<SofaModelWrapper<double>, SofaObservationManager<double> >* roukfDriver;
     simulation::Node* gnode;  ///< the node controlled by the loop
     FilterType filterType;
     //std::vector<sofa::component::misc::VerdandiActiveStateMonitor*> associatedMonitors;

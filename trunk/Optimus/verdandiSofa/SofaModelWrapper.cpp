@@ -82,10 +82,12 @@
 
 namespace Verdandi {
     template class Verdandi::ForwardDriver<sofa::simulation::SofaModelWrapper<double> >;
-    template class Verdandi::UnscentedKalmanFilter<sofa::simulation::SofaModelWrapper<double>, Verdandi::LinearObservationManager<double> >;
-    template class Verdandi::ReducedOrderUnscentedKalmanFilter<sofa::simulation::SofaModelWrapper<double>, Verdandi::LinearObservationManager<double> >;
+    template class Verdandi::UnscentedKalmanFilter<sofa::simulation::SofaModelWrapper<double>, sofa::simulation::SofaObservationManager<double> >;
+    template class Verdandi::ReducedOrderUnscentedKalmanFilter<sofa::simulation::SofaModelWrapper<double>, sofa::simulation::SofaObservationManager<double> >;
 
 }
+
+
 
 
 namespace sofa
@@ -101,12 +103,23 @@ int SofaModelWrapperClass = core::RegisterObject("A class implementing an interf
         #ifndef SOFA_FLOAT
         .add< SofaModelWrapper<double> >()
         #endif
-        //#ifndef SOFA_DOUBLE
-        //        .add< SofaModelWrapper<float> >()
-        //#endif
         ;
 
+
+int SofaObservationManagerClass = core::RegisterObject("A class implementing the observation manager interfaced in SOFA")
+        #ifndef SOFA_FLOAT
+        .add< SofaObservationManager<double> >()
+        #endif
+        ;
+
+
+
 template class SofaModelWrapper<double>;
+template class SofaObservationManager<double>;
+template class SofaForwardDriver<SofaModelWrapper<double> >;
+template class SofaUnscentedKalmanFilter<SofaModelWrapper<double>,SofaObservationManager<double> >;
+template class SofaReducedOrderUKF<SofaModelWrapper<double>,SofaObservationManager<double> >;
+
 
 
 } // namespace simulation

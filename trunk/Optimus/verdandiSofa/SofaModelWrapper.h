@@ -302,12 +302,36 @@ public:
         for (int i = 0; i < V.GetSize(); i++)
             of << V(i) << '\n';
     }
+};
 
-private :
 
-    //simulation::Node* gnode;  ///< the node controlled by the loop
+template <class T>
+class SOFA_SIMULATION_COMMON_API SofaObservationManager : public Verdandi::LinearObservationManager<T>, public sofa::core::objectmodel::BaseObject
+{
+public:
+
 
 };
+
+template <class Model, class ObservationManager >
+class SOFA_SIMULATION_COMMON_API SofaReducedOrderUKF : public Verdandi::ReducedOrderUnscentedKalmanFilter<Model, ObservationManager>, public sofa::core::objectmodel::BaseObject
+{
+public:
+};
+
+template <class Model, class ObservationManager >
+class SOFA_SIMULATION_COMMON_API SofaUnscentedKalmanFilter : public Verdandi::UnscentedKalmanFilter<Model, ObservationManager>, public sofa::core::objectmodel::BaseObject
+{
+public:
+};
+
+
+template <class Model>
+class SOFA_SIMULATION_COMMON_API SofaForwardDriver: public Verdandi::ForwardDriver<Model>, public sofa::core::objectmodel::BaseObject
+{
+public:
+};
+
 
 
 

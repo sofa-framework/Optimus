@@ -21,5 +21,7 @@
 #include "method/ReducedOrderUnscentedKalmanFilter.hxx"
 
 #include "observation_manager/LinearObservationManager.hxx"
+#include "observation_manager/ObservationAggregator.hxx"
+//#include "share/VerdandiOps.hxx"
 
 #endif

@@ -110,16 +110,16 @@ void VerdandiAnimationLoop::init() {
 
     if (_filterType.getValue() == "forward") {
         filterType = md.filterType = FORWARD;
-        fwdDriver = new Verdandi::ForwardDriver<SofaModelWrapper<double> >;
+        fwdDriver = new SofaForwardDriver<SofaModelWrapper<double> >;
         fwdDriver->GetModel().initSimuData(md);
     }
     else if (_filterType.getValue() == "UKF") {
         filterType = md.filterType = UKF;
-        ukfDriver = new Verdandi::UnscentedKalmanFilter<SofaModelWrapper<double>, Verdandi::LinearObservationManager<double> >;        
+        ukfDriver = new SofaUnscentedKalmanFilter<SofaModelWrapper<double>, SofaObservationManager<double> >;
         ukfDriver->GetModel().initSimuData(md);
     } else if (_filterType.getValue() == "ROUKF") {
         filterType = md.filterType = ROUKF;
-        roukfDriver = new Verdandi::ReducedOrderUnscentedKalmanFilter<SofaModelWrapper<double>, Verdandi::LinearObservationManager<double> >;
+        roukfDriver = new SofaReducedOrderUKF<SofaModelWrapper<double>, SofaObservationManager<double> >;
         roukfDriver->GetModel().initSimuData(md);
     }
     else

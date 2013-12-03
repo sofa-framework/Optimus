@@ -1185,6 +1185,493 @@ void SofaModelWrapper<Type>::computeCollision()
 }
 
 
+/// LINEAR MANAGER
+
+/*
+template <class T>
+template <class Model>
+void SofaObservationManager<T>::Initialize(Model& model, std::string configuration_file)
+{
+    observation_aggregator_.Initialize(configuration_file);
+
+    Verdandi::VerdandiOps configuration(configuration_file);
+    InitializeOperator(model, configuration_file);
+    configuration.SetPrefix("observation.");
+
+    bool with_observation;
+    configuration.Set("option.with_observation", with_observation);
+    if (!with_observation)
+        return;
+
+    configuration.Set("file", observation_file_);
+    configuration.Set("file_type", "", "binary", observation_file_type_);
+    configuration.Set("observation_dataset_path","", "",
+                      observation_dataset_path_);
+    configuration.Set("type", "", "state", observation_type_);
+    configuration.Set("Delta_t_constant", is_delta_t_constant_);
+    if (!is_delta_t_constant_)
+    {
+        configuration.Set("observation_time_file",
+                          observation_time_file_);
+        observation_time_.Read(observation_time_file_);
+    }
+    else
+        configuration.Set("Delta_t", "v > 0", Delta_t_);
+
+    configuration.Set("Nskip", "v > 0", Nskip_);
+    configuration.Set("initial_time", "", 0., initial_time_);
+    configuration.Set("final_time", "", std::numeric_limits<double>::max(),
+                      final_time_);
+
+    time_ = std::numeric_limits<double>::min();
+
+    configuration.Set("width_file", "", "", width_file_);
+
+    if (observation_type_ == "state")
+        Nbyte_observation_ = Nstate_model_ * sizeof(T) + sizeof(int);
+
+    if (observation_type_ == "observation")
+        Nbyte_observation_ = Nobservation_ * sizeof(T) + sizeof(int);
+
+    if (is_delta_t_constant_)
+    {
+
+        int expected_file_size;
+        expected_file_size = Nbyte_observation_
+            * int((final_time_ - initial_time_)
+                  / (Delta_t_ * double(Nskip_)) + 1.);
+
+        int file_size;
+        std::ifstream file_stream;
+        file_stream.open(observation_file_.c_str());
+
+#ifdef VERDANDI_CHECK_IO
+        // Checks if the file was opened.
+        if (!file_stream.is_open())
+            throw Verdandi::ErrorIO("LinearObservationManager"
+                          "::Initialize(model, configuration_file)",
+                          "Unable to open file \""
+                          + observation_file_ + "\".");
+#endif
+
+        file_stream.seekg(0, std::ios_base::end);
+        file_size = file_stream.tellg() ;
+        file_stream.close();
+
+        if (expected_file_size > file_size)
+            throw Verdandi::IOError("LinearObservationManager"
+                          "::Initialize(model, configuration_file)",
+                          "Too few available observations, the size of \""
+                          + observation_file_ + "\" must be greater than "
+                          + Seldon::to_str(expected_file_size) + " B.");
+    }
+    else
+    {
+        //int file_size;
+        std::ifstream file_stream;
+        file_stream.open(observation_file_.c_str());
+
+#ifdef VERDANDI_CHECK_IO
+        // Checks if the file was opened.
+        if (!file_stream.is_open())
+            throw Verdandi::ErrorIO("LinearObservationManager"
+                          "::Initialize(model, configuration_file)",
+                          "Unable to open file \""
+                          + observation_file_ + "\".");
+#endif
+        file_stream.close();
+    }
+}
+
+
+template <class T>
+template <class Model>
+void SofaObservationManager<T>::InitializeOperator(Model& model, std::string configuration_file)
+{
+    Verdandi::VerdandiOps configuration(configuration_file);
+    Nstate_model_ = model.GetNstate();
+    configuration.SetPrefix("observation.");
+
+    configuration.Set("operator.scaled_identity",
+                      operator_scaled_identity_);
+    configuration.Set("error.variance", "v > 0",
+                      error_variance_value_);
+
+    if (operator_scaled_identity_)
+    {
+        configuration.Set("operator.diagonal_value",
+                          operator_diagonal_value_);
+
+        Nobservation_ = Nstate_model_;
+#ifdef VERDANDI_TANGENT_LINEAR_OPERATOR_SPARSE
+        build_diagonal_sparse_matrix(Nstate_model_,
+                                     operator_diagonal_value_,
+                                     tangent_operator_matrix_);
+#else
+        tangent_operator_matrix_.Reallocate(Nobservation_, Nstate_model_);
+        tangent_operator_matrix_.SetIdentity();
+        Mlt(operator_diagonal_value_, tangent_operator_matrix_);
+#endif
+    }
+    else // Operator given in a Lua table or in a file.
+    {
+#ifdef VERDANDI_TANGENT_LINEAR_OPERATOR_SPARSE
+        if (configuration.Is<std::string>("operator.value"))
+        {
+            Matrix<T, General, ArrayRowSparse> tmp;
+            tmp.Read(configuration.Get<string>("operator.value"));
+            Copy(tmp, tangent_operator_matrix_);
+        }
+        else
+        {
+            Matrix<T> tmp;
+            configuration.Set("operator.value", tmp);
+            if (tmp.GetN() % model.GetNstate() != 0)
+                throw ErrorArgument("LinearObservationManager"
+                                    "::Initialize()",
+                                    "The total number of elements in the "
+                                    "tangent operator matrix ("
+                                    + to_str(tangent_operator_matrix_
+                                             .GetN())
+                                    + ") is not a multiple of the"
+                                    " dimension of the model state ("
+                                    + to_str(model.GetNstate()) + ").");
+            tmp.Resize(tmp.GetN() / model.GetNstate(), model.GetNstate());
+            Matrix<T, General, ArrayRowSparse> tmp_array;
+            ConvertDenseToArrayRowSparse(tmp, tmp_array);
+            Copy(tmp_array, tangent_operator_matrix_);
+        }
+        if (tangent_operator_matrix_.GetN() != model.GetNstate())
+            throw ErrorArgument("LinearObservationManager::Initialize()",
+                                "The number of columns of the tangent "
+                                "operator matrix ("
+                                + to_str(tangent_operator_matrix_.GetN())
+                                + ") is inconsistent with the"
+                                " dimension of the model state ("
+                                + to_str(model.GetNstate()) + ").");
+        Nobservation_ = tangent_operator_matrix_.GetM();
+#else
+        if (configuration.Is<string>("operator.value"))
+            tangent_operator_matrix_
+                .Read(configuration.Get<string>("operator.value"));
+        else
+        {
+            tangent_operator_matrix_.Clear();
+            configuration.Set("operator.value", tangent_operator_matrix_);
+            if (tangent_operator_matrix_.GetN() % model.GetNstate() != 0)
+                throw ErrorArgument("LinearObservationManager"
+                                    "::Initialize()",
+                                    "The total number of elements in the "
+                                    "tangent operator matrix ("
+                                    + to_str(tangent_operator_matrix_
+                                             .GetN())
+                                    + ") is not a multiple of the"
+                                    " dimension of the model state ("
+                                    + to_str(model.GetNstate()) + ").");
+            tangent_operator_matrix_
+                .Resize(tangent_operator_matrix_.GetN()
+                        / model.GetNstate(),
+                        model.GetNstate());
+        }
+        if (tangent_operator_matrix_.GetN() != model.GetNstate())
+            throw ErrorArgument("LinearObservationManager::Initialize()",
+                                "The number of columns of the tangent "
+                                "operator matrix ("
+                                + to_str(tangent_operator_matrix_.GetN())
+                                + ") is inconsistent with the"
+                                " dimension of the model state ("
+                                + to_str(model.GetNstate()) + ").");
+        Nobservation_ = tangent_operator_matrix_.GetM();
+#endif
+    }
+
+#ifdef VERDANDI_OBSERVATION_ERROR_SPARSE
+    build_diagonal_sparse_matrix(Nobservation_, error_variance_value_,
+                                 error_variance_);
+    build_diagonal_sparse_matrix(Nobservation_,
+                                 T(T(1) / error_variance_value_),
+                                 error_variance_inverse_);
+#else
+    error_variance_.Reallocate(Nobservation_, Nobservation_);
+    error_variance_.SetIdentity();
+    Mlt(error_variance_value_, error_variance_);
+    error_variance_inverse_.Reallocate(Nobservation_, Nobservation_);
+    error_variance_inverse_.SetIdentity();
+    Mlt(T(T(1)/ error_variance_value_), error_variance_inverse_);
+#endif
+
+}
+
+template <class T>
+template <class Model>
+void SofaObservationManager<T>::SetTime(Model& model, double time)
+{
+    SetTime(time);
+}
+
+template <class T>
+void SofaObservationManager<T>::SetTime(double time)
+{
+    if (time_ == time)
+        return;
+
+    time_ = time;
+    SetAvailableTime(time_, available_time_);
+}
+
+
+
+template <class T>
+void SofaObservationManager<T>::SetAvailableTime(double time, time_vector& available_time)
+{
+    double time_inf, time_sup;
+    int selection_policy;
+    observation_aggregator_.GetContributionInterval(time, time_inf,
+                                                    time_sup,
+                                                    selection_policy);
+    SetAvailableTime(time, time_inf, time_sup, selection_policy,
+                     available_time);
+
+    Verdandi::Logger::Log<3>(*this, Seldon::to_str(time) + ", [" + Seldon::to_str(time_inf) + " " +
+                   Seldon::to_str(time_sup) + "], {" + to_str(available_time) +
+                   "}\n");
+}
+
+
+template <class T>
+void SofaObservationManager<T>::SetAvailableTime(double time_inf, double time_sup, time_vector& available_time)
+{
+    available_time.Clear();
+
+    if (is_delta_t_constant_)
+    {
+        double period = Delta_t_ * Nskip_;
+        double available_time_0
+            = initial_time_
+            + floor((time_inf - initial_time_) / period) * period;
+        if (available_time_0 == time_inf)
+            available_time.PushBack(available_time_0);
+        available_time_0 += period;
+        for (double t = available_time_0; t < time_sup; t += period)
+            available_time.PushBack(t);
+    }
+    else
+        for (int i = 0; i < observation_time_.GetM(); i++)
+            if (observation_time_(i) >= time_inf &&
+                observation_time_(i) <= time_sup)
+                available_time.PushBack(observation_time_(i));
+    return;
+}
+
+
+template <class T>
+void SofaObservationManager<T>::SetAvailableTime(double time, double time_inf, double time_sup, int selection_policy, time_vector& available_time)
+{
+    available_time.Clear();
+    time_inf = time_inf > initial_time_ ? time_inf : initial_time_;
+    time_sup = time_sup < final_time_ ? time_sup : final_time_;
+
+
+    if (is_delta_t_constant_)
+    {
+        double period = Delta_t_ * Nskip_;
+
+        // All observations available in the given interval are
+        // considered.
+        if (selection_policy == 0)
+        {
+            double available_time_0
+                = initial_time_
+                + floor((time_inf - initial_time_) / period) * period;
+            if (available_time_0 == time_inf)
+                available_time.PushBack(available_time_0);
+            available_time_0 += period;
+            for (double t = available_time_0; t < time_sup; t += period)
+                available_time.PushBack(t);
+            observation_aggregator_.Contribution(time_, available_time_,
+                                                 contribution_);
+            return;
+        }
+
+        // Only the closest left observation and the closest right
+        // observation are requested.
+        if (selection_policy == 2)
+        {
+            double t1, t2;
+
+            if (Verdandi::is_multiple(time - initial_time_, period))
+                t1 = time;
+            else
+                t1 = initial_time_
+                    + floor((time - initial_time_) / period) * period;
+
+            t2 = t1 + period;
+
+            if (t1 <= final_time_)
+                available_time.PushBack(t1);
+            if (t2 <= final_time_)
+                available_time.PushBack(t2);
+            observation_aggregator_.Contribution(time_, available_time_,
+                                                 contribution_);
+            return;
+        }
+
+        // All observations available in the given interval are considered
+        // taking into account non constant triangle widths associated
+        // with observations.
+        if (selection_policy == 3)
+        {
+            double available_time_0, available_time_1;
+            int Nobservation;
+
+            Seldon::Vector<double> width_left, width_right, available_width_left,
+                available_width_right;
+            ReadObservationTriangleWidth(time_inf, time_sup, width_left,
+                                         width_right);
+
+            available_time_0 = initial_time_
+                + floor((time_inf - initial_time_) / period) * period;
+            if (!Verdandi::is_equal(available_time_0, time_inf))
+                available_time_0 += period;
+
+            available_time_1 = initial_time_
+                + floor((time_sup - initial_time_) / period) * period;
+            if (Verdandi::is_equal(available_time_1, time_sup))
+                available_time_1 -= period;
+
+            Nobservation = floor((available_time_1 - available_time_0)
+                                 / period) + 1;
+
+            double t = available_time_0;
+            for (int i = 0; i < Nobservation; i++, t += period)
+            {
+                if (t < time)
+                {
+                    if (t + width_right(i) > time)
+                    {
+                        available_time.PushBack(t);
+                        available_width_left.PushBack(width_left(i));
+                        available_width_right.PushBack(width_right(i));
+                    }
+                }
+                else if (t > time)
+                {
+                    if (t - width_left(i) < time)
+                    {
+                        available_time.PushBack(t);
+                        available_width_left.PushBack(width_left(i));
+                        available_width_right.PushBack(width_right(i));
+                    }
+                }
+                else
+                {
+                    available_time.PushBack(t);
+                    available_width_left.PushBack(width_left(i));
+                    available_width_right.PushBack(width_right(i));
+                }
+
+            }
+            observation_aggregator_.
+                Contribution(time_, available_time_,
+                             available_width_left, available_width_right,
+                             contribution_);
+            return;
+        }
+    }
+    else
+    {
+        // All observations available in the given interval are
+        // considered.
+        if (selection_policy == 0)
+        {
+            for (int i = 0; i < observation_time_.GetM(); i++)
+                if (observation_time_(i) >= time_inf &&
+                    observation_time_(i) <= time_sup)
+                    available_time.PushBack(observation_time_(i));
+            observation_aggregator_.Contribution(time_, available_time_,
+                                                 contribution_);
+            return;
+        }
+        // Only the closest left observation and the closest right
+        // observation are requested.
+        if (selection_policy == 2)
+        {
+            if (observation_time_(0) > time)
+                return;
+            for (int i = 1; i < observation_time_.GetM(); i++)
+                if (observation_time_(i) >= time)
+                {
+                    available_time.PushBack(observation_time_(i - 1));
+                    available_time.PushBack(observation_time_(i));
+                    observation_aggregator_.
+                        Contribution(time_, available_time_,
+                                     contribution_);
+                    return;
+                }
+            return;
+        }
+    }
+
+    throw Verdandi::ErrorArgument("void LinearObservationManager<T>"
+                        "::SetAvailableTime(double time,"
+                        " double time_inf, double time_sup,"
+                        " int selection_policy,"
+                        "LinearObservationManager<T>"
+                        "::time_vector&"
+                        "available_time) const");
+}
+
+
+template <class T>
+void SofaObservationManager<T>::ReadObservationTriangleWidth(double time_inf, double time_sup,
+                               Seldon::Vector<double>& width_left,
+                               Seldon::Vector<double>& width_right) const
+{
+    double period, available_time_0, available_time_1;
+    int Nwidth, Nbyte_width;
+    Seldon::Vector<double> input_data;
+
+    std::ifstream file_stream;
+    file_stream.open(width_file_.c_str());
+    std::streampos position;
+#ifdef VERDANDI_CHECK_IO
+    // Checks if the file was opened.
+    if (!file_stream.is_open())
+        throw Verdandi::ErrorIO("LinearObservationManager"
+                      "::ReadObservationTriangleWidth()",
+                      "Unable to open file \""
+                      + width_file_ + "\".");
+#endif
+    period = Delta_t_ * Nskip_;
+    available_time_0 = initial_time_
+        + floor((time_inf - initial_time_) / period) * period;
+    if (!Verdandi::is_equal(available_time_0, time_inf))
+        available_time_0 += period;
+    available_time_1 = initial_time_
+        + floor((time_sup - initial_time_) / period) * period;
+    if (Verdandi::is_equal(available_time_1, time_sup))
+        available_time_1 -= period;
+
+    Nwidth = floor((available_time_1 - available_time_0) / period) + 1;
+    Nbyte_width = 2 * sizeof(double) + sizeof(int);
+    width_left.Reallocate(Nwidth);
+    width_right.Reallocate(Nwidth);
+
+    position = floor((available_time_0 - initial_time_) / Delta_t_)
+        * Nbyte_width;
+    for (int i = 0; i < Nwidth; i++, position += Nskip_ * Nbyte_width)
+    {
+        file_stream.seekg(position);
+        input_data.Read(file_stream);
+        width_left(i) = input_data(0);
+        width_right(i) = input_data(1);
+        input_data.Clear();
+    }
+
+    file_stream.close();
+}*/
+
+
 
 
 } // namespace simulation
