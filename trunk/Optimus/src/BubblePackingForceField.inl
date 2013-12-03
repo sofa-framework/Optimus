@@ -30,7 +30,7 @@
 
 #include <sofa/core/behavior/ForceField.inl>
 #include <sofa/helper/AdvancedTimer.h>
-#include <GL/glut.h>
+#include <sofa/helper/system/glut.h>
 
 
 namespace sofa
