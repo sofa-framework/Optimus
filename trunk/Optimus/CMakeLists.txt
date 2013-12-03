@@ -31,130 +31,130 @@ set(README_FILES
 	Optimus.txt 
 )	
 
-if(SOFA-EXT_VERDANDI)
+if(${SOFA-EXTERNAL_VERDANDI})
     list(APPEND HEADER_FILES
         verdandiSofa/VerdandiAnimationLoop.h
         verdandiSofa/SofaModelWrapper.h
         verdandiSofa/SofaModelWrapper.inl
 	verdandiSofa/VerdandiClasses.h
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/Verdandi.hxx
-	${SOFA_EXTLIBS_DIR}/verdandi-1.5/model/QuadraticModel.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/model/ClampedBar.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/model/ModelTemplate.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/model/CheckingModel.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/model/Lorenz.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/model/ShallowWater.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/model/PetscClampedBar.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/model/PythonModel.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/share/VerdandiOps.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/share/Functions_Vector3.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/share/MessageHandler.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/share/LockFile.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/share/Functions_Vector2.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/share/Error.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/share/OutputSaver.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/share/VerdandiBase.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/share/Logger.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/share/Variable.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/share/UsefulFunction.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/sequential_aggregation/BaseForecaster.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/sequential_aggregation/Aggregate.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/sequential_aggregation/DiscountedRidgeRegression.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/error/DiagonalMatrix.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/error/IsotropicBalgovindMatrix.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/error/BalgovindMatrix.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/VerdandiHeader.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/method/ReducedMinimax.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/method/TRNGPerturbationManager.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/method/EnsembleKalmanFilter.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/method/SigmaPoint.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/method/ExtendedKalmanFilter.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/method/NewranPerturbationManager.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/method/FourDimensionalVariational.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/method/BasePerturbationManager.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/method/ReducedOrderUnscentedKalmanFilter.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/method/HamiltonJacobiBellman.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/method/ReducedOrderExtendedKalmanFilter.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/method/ObservationGenerator.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/method/MonteCarlo.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/method/ForwardDriver.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/method/UnscentedKalmanFilter.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/method/BLUE.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/method/TR1PerturbationManager.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/method/TrajectoryManager.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/method/OptimalInterpolation.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/method/chi_2.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/observation_manager/GridToNetworkObservationManager.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/observation_manager/ObservationManagerTemplate.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/observation_manager/LinearObservationManager.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/observation_manager/ObservationAggregator.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/observation_manager/PetscLinearObservationManager.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/observation_manager/PythonObservationManager.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/ops/OpsHeader.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/ops/ClassOps.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/ops/Ops.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/ops/Error.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/computation/optimization/NLopt.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/computation/optimization/NLoptSolver.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/computation/basic_functions/Functions_Vector.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/computation/basic_functions/Functions_Matrix.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/computation/basic_functions/Functions_MatVect.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/computation/solver/iterative/Iterative.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/computation/solver/SparseCholeskyFactorisation.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/computation/solver/SparseSolver.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/computation/solver/preconditioner/IlutPreconditioning.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/computation/solver/Ordering.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/computation/interfaces/Blas_1.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/computation/interfaces/Lapack_LeastSquares.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/computation/interfaces/Blas_2.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/computation/interfaces/Blas_3.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/computation/interfaces/direct/Mumps.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/computation/interfaces/direct/Pastix.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/computation/interfaces/direct/SuperLU.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/computation/interfaces/direct/UmfPack.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/computation/interfaces/direct/Cholmod.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/computation/interfaces/Lapack_Eigenvalues.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/computation/interfaces/Lapack_LinearEquations.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/share/Properties.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/share/Allocator.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/share/Errors.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/share/Common.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/share/Storage.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/share/MatrixFlag.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/matrix/Matrix_Triangular.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/matrix/Matrix_Base.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/matrix/Matrix_HermPacked.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/matrix/Matrix_Pointers.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/matrix/MatrixCollection.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/matrix/Matrix_TriangPacked.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/matrix/Matrix_Hermitian.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/matrix/Matrix_SymPacked.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/matrix/SubMatrix_Base.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/matrix/PetscMatrix.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/matrix/Functions.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/matrix/SubMatrix.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/matrix/HeterogeneousMatrixCollection.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/matrix/Matrix_Symmetric.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/Seldon.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/array3d/Array3D.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/SeldonSolver.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/matrix_sparse/Matrix_Conversions.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/matrix_sparse/Matrix_ComplexSparse.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/matrix_sparse/IOMatrixMarket.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/matrix_sparse/Matrix_SymComplexSparse.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/matrix_sparse/Matrix_ArrayComplexSparse.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/matrix_sparse/Matrix_ArraySparse.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/matrix_sparse/Matrix_Sparse.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/matrix_sparse/Matrix_SymSparse.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/SeldonPreconditioner.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/SeldonHeader.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/vector/PetscVector.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/vector/HeterogeneousCollection.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/vector/Vector2.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/vector/Vector3.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/vector/VectorCollection.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/vector/Vector.hxx
-        ${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon/vector/SparseVector.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/Verdandi.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/model/QuadraticModel.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/model/ClampedBar.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/model/ModelTemplate.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/model/CheckingModel.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/model/Lorenz.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/model/ShallowWater.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/model/PetscClampedBar.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/model/PythonModel.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/share/VerdandiOps.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/share/Functions_Vector3.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/share/MessageHandler.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/share/LockFile.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/share/Functions_Vector2.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/share/Error.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/share/OutputSaver.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/share/VerdandiBase.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/share/Logger.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/share/Variable.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/share/UsefulFunction.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/sequential_aggregation/BaseForecaster.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/sequential_aggregation/Aggregate.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/sequential_aggregation/DiscountedRidgeRegression.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/error/DiagonalMatrix.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/error/IsotropicBalgovindMatrix.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/error/BalgovindMatrix.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/VerdandiHeader.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/method/ReducedMinimax.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/method/TRNGPerturbationManager.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/method/EnsembleKalmanFilter.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/method/SigmaPoint.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/method/ExtendedKalmanFilter.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/method/NewranPerturbationManager.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/method/FourDimensionalVariational.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/method/BasePerturbationManager.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/method/ReducedOrderUnscentedKalmanFilter.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/method/HamiltonJacobiBellman.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/method/ReducedOrderExtendedKalmanFilter.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/method/ObservationGenerator.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/method/MonteCarlo.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/method/ForwardDriver.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/method/UnscentedKalmanFilter.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/method/BLUE.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/method/TR1PerturbationManager.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/method/TrajectoryManager.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/method/OptimalInterpolation.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/method/chi_2.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/observation_manager/GridToNetworkObservationManager.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/observation_manager/ObservationManagerTemplate.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/observation_manager/LinearObservationManager.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/observation_manager/ObservationAggregator.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/observation_manager/PetscLinearObservationManager.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/observation_manager/PythonObservationManager.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/ops/OpsHeader.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/ops/ClassOps.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/ops/Ops.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/ops/Error.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/computation/optimization/NLopt.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/computation/optimization/NLoptSolver.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/computation/basic_functions/Functions_Vector.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/computation/basic_functions/Functions_Matrix.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/computation/basic_functions/Functions_MatVect.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/computation/solver/iterative/Iterative.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/computation/solver/SparseCholeskyFactorisation.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/computation/solver/SparseSolver.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/computation/solver/preconditioner/IlutPreconditioning.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/computation/solver/Ordering.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/computation/interfaces/Blas_1.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/computation/interfaces/Lapack_LeastSquares.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/computation/interfaces/Blas_2.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/computation/interfaces/Blas_3.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/computation/interfaces/direct/Mumps.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/computation/interfaces/direct/Pastix.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/computation/interfaces/direct/SuperLU.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/computation/interfaces/direct/UmfPack.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/computation/interfaces/direct/Cholmod.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/computation/interfaces/Lapack_Eigenvalues.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/computation/interfaces/Lapack_LinearEquations.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/share/Properties.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/share/Allocator.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/share/Errors.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/share/Common.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/share/Storage.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/share/MatrixFlag.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/matrix/Matrix_Triangular.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/matrix/Matrix_Base.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/matrix/Matrix_HermPacked.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/matrix/Matrix_Pointers.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/matrix/MatrixCollection.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/matrix/Matrix_TriangPacked.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/matrix/Matrix_Hermitian.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/matrix/Matrix_SymPacked.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/matrix/SubMatrix_Base.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/matrix/PetscMatrix.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/matrix/Functions.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/matrix/SubMatrix.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/matrix/HeterogeneousMatrixCollection.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/matrix/Matrix_Symmetric.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/Seldon.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/array3d/Array3D.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/SeldonSolver.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/matrix_sparse/Matrix_Conversions.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/matrix_sparse/Matrix_ComplexSparse.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/matrix_sparse/IOMatrixMarket.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/matrix_sparse/Matrix_SymComplexSparse.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/matrix_sparse/Matrix_ArrayComplexSparse.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/matrix_sparse/Matrix_ArraySparse.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/matrix_sparse/Matrix_Sparse.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/matrix_sparse/Matrix_SymSparse.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/SeldonPreconditioner.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/SeldonHeader.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/vector/PetscVector.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/vector/HeterogeneousCollection.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/vector/Vector2.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/vector/Vector3.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/vector/VectorCollection.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/vector/Vector.hxx
+	${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/vector/SparseVector.hxx
     )
 
     list(APPEND SOURCE_FILES
@@ -163,26 +163,30 @@ if(SOFA-EXT_VERDANDI)
 	verdandiSofa/VerdandiClasses.cpp
     )
 
-    include_directories(${SOFA_EXTLIBS_DIR}/verdandi-1.5)
-    include_directories(${SOFA_EXTLIBS_DIR}/verdandi-1.5/share)
-    include_directories(${SOFA_EXTLIBS_DIR}/verdandi-1.5/include)
-    include_directories(${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/lua/src)
+    include_directories(${SOFA-EXTERNAL_VERDANDI_PATH})
+    include_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/share)
+    include_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include)
+    include_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include/lua/src)
+    include_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon)
+    include_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/computation/interfaces)
 
-    link_directories(${SOFA_EXTLIBS_DIR}/verdandi-1.5/python)
-    link_directories(${SOFA_EXTLIBS_DIR}/verdandi-1.5/include/seldon)
+#    link_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/python)
+    link_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon)
 
-    AddLinkerDependencies(lua5.1)    
-    AddLinkerDependencies(SofaCore SofaValidation lapack blas)
-    AddLinkerFlags("-Wl,--no-undefined")
+#    AddLinkerDependencies(lua5.1)
+#    AddLinkerDependencies(SofaCore SofaValidation lapack blas)
+ #   AddLinkerFlags("-Wl,--no-undefined")
 
-    AddCompilerDefinitions(SOFA_HAVE_VERDANDI)
+    FIND_LIBRARY(BlasLapackLib Accelerate)
+    TARGET_LINK_LIBRARIES(${BlasLapackLib})
+
+    AddLinkerDependencies(SofaCore SofaValidation)
+    AddCompilerDefinitions(SOFA_HAVE_VERDANDI SELDON_WITH_CBLAS)
 endif()
 
+
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${MOC_FILES} ${SOURCE_FILES} ${README_FILES})
-
 AddCompilerDefinitions("SOFA_BUILD_OPTIMUS")
-AddLinkerDependencies( SofaBaseLinearSolver SofaBoundaryCondition )
-
-
+AddLinkerDependencies( SofaBaseLinearSolver SofaBoundaryCondition ${BlasLapackLib} lua)
 
 include(${SOFA_CMAKE_DIR}/postProject.cmake)
