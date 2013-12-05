@@ -8,8 +8,8 @@
 	<RequiredPlugin pluginName="haystackPlugin"/>	
 	
 	<VisualStyle displayFlags="showInteractionForceFields showCollisionModels hideForceFields hideBehaviorModels showWireframe"/>
-<!-- 	<VerdandiAnimationLoop name="verdAnimLoop" configFile="configuration/confBeam15.lua" filterType="forward" verbose="0" velocityInState="0"/> -->
-	<VerdandiAnimationLoop name="verdAnimLoop" configFile="configuration/confBeam15.lua" filterType="ROUKF" verbose="0" velocityInState="0" stateErrorVariance="0.01"/>
+	<VerdandiAnimationLoop name="verdAnimLoop" configFile="configuration/confBeam15.lua" filterType="forward" verbose="0" velocityInState="0"/>
+<!-- 	<VerdandiAnimationLoop name="verdAnimLoop" configFile="configuration/confBeam15.lua" filterType="ROUKF" verbose="0" velocityInState="0" stateErrorVariance="0.01"/> -->
 	
 	<Node name="Needle" activated="1">
 		<EulerImplicit />
@@ -19,7 +19,7 @@
 		
 		<OptimParams name="paramE" template="Vector" initValue="1e9" stdev="1e8" optimize="0"/>
 <!-- 		<OptimParams name="paramR" template="Vector" initValue="0.0009"/> -->
-		<OptimParams name="paramR" template="Vector" initValue="0.0001" stdev="0.0010" optimize="1"/> 
+		<OptimParams name="paramR" template="Vector" initValue="0.001" stdev="0.0010" optimize="1"/> 
 		
 		<WireRestShape template="Rigid" printLog="0" name="sutureRestShape" length="0.15"  straightLength="0.15" spireDiameter="0" spireHeight="0.0"
 					densityOfBeams="15 0" numEdges="15" numEdgesCollis="15 0"  youngModulus="@paramE.value" youngModulusExtremity="1e4"/>
@@ -31,6 +31,9 @@
 						
 		<MechanicalObject template="Rigid" name="DOFs" showIndices="0" translation="0 0 0"/>
 		<FixedConstraint indices="0"/>
+		
+		<BoxROI name="allDOFs" box="-1 -1 -1 1 1 1"/>
+		<Monitor template="Rigid" name="MONR" indices="@allDOFs.indices" ExportPositions="1" ExportVelocities="1" ExportForces="1"/>
 
 		<WireBeamInterpolation name="interpolSuture" WireRestShape="@sutureRestShape" radius="@paramR.value" printLog="0" dofsAndBeamsAligned="false" listening="1" updateRadius="1"/> 
 		
@@ -45,6 +48,8 @@
 			<Line proximity="0.0" LineActiverPath="../container" color="0 0 1 1"/>
 			<Point proximity="0.0" PointActiverPath="../container" group="10" color="0 0 1 1"/>
 		</Node>
+		
+		
 		
 <!--		<Node name="ForcePoint">
 			<MechanicalObject position="0.12 0.0 0.0" showIndices="1"/>

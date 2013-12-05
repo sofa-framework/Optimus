@@ -28,36 +28,36 @@ forward = {
    }
 }
 
-reduced_order_unscented_kalman_filter = {
-   data_assimilation = {
-      analyze_first_step = false,
-      with_resampling = false,
-      -- Indicates how R is stored: "matrix", "matrix_inverse".
-      observation_error_variance = "matrix_inverse",
-   },
-
-   sigma_point = {      
-      type = "star" -- Choice of sigma-points: "canonical", "star" or "simplex".
-   },
-
-   display = {
-      show_iteration = false,
-      show_time = true
-   },
-
-   output_saver = {
-      variable_list = {"forecast_time", "forecast_state", "analysis_time", "analysis_state"},
-      file = output_directory .. "roukf-%{name}.%{extension}",
-      time = "step " .. Delta_t_clamped_bar * Nskip_save .. " 1.e-6",
-      mode = "text",
-      mode_scalar = "text"
-   },
-   output = {
-     configuration = output_directory .. "roukf.lua",
-     saveVQ = true
-     --log = output_directory .. "roukf_%{rank}.log"
-   },
-}
+-- reduced_order_unscented_kalman_filter = {
+--    data_assimilation = {
+--       analyze_first_step = false,
+--       with_resampling = false,
+--       -- Indicates how R is stored: "matrix", "matrix_inverse".
+--       observation_error_variance = "matrix_inverse",
+--    },
+-- 
+--    sigma_point = {      
+--       type = "star" -- Choice of sigma-points: "canonical", "star" or "simplex".
+--    },
+-- 
+--    display = {
+--       show_iteration = false,
+--       show_time = true
+--    },
+-- 
+--    output_saver = {
+--       variable_list = {"forecast_time", "forecast_state", "analysis_time", "analysis_state"},
+--       file = output_directory .. "roukf-%{name}.%{extension}",
+--       time = "step " .. Delta_t_clamped_bar * Nskip_save .. " 1.e-6",
+--       mode = "text",
+--       mode_scalar = "text"
+--    },
+--    output = {
+--      configuration = output_directory .. "roukf.lua",
+--      saveVQ = true
+--      --log = output_directory .. "roukf_%{rank}.log"
+--    },
+-- }
 
 observation = {   
    with_observation = false,
