@@ -22,6 +22,8 @@
 
 #include "observation_manager/LinearObservationManager.hxx"
 #include "observation_manager/ObservationAggregator.hxx"
+#include "method/SigmaPoint.hxx"
+#include "seldon/computation/interfaces/Lapack_LinearEquations.hxx"
 //#include "share/VerdandiOps.hxx"
 
 #endif

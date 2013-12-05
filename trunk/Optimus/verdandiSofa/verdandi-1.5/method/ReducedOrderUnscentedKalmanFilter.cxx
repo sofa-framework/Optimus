@@ -48,10 +48,11 @@ namespace Verdandi
     ReducedOrderUnscentedKalmanFilter<Model, ObservationManager>
     ::ReducedOrderUnscentedKalmanFilter()
     {
+        observation_manager_ = new ObservationManager;
 #ifndef VERDANDI_WITH_MPI
         MessageHandler::AddRecipient("model", model_, Model::StaticMessage);
         MessageHandler::AddRecipient("observation_manager",
-                                     observation_manager_,
+                                     *observation_manager_,
                                      ObservationManager::StaticMessage);
         MessageHandler::AddRecipient("driver",
                                      *this, ReducedOrderUnscentedKalmanFilter
@@ -63,7 +64,7 @@ namespace Verdandi
                                      Model::StaticMessage);
         MessageHandler::AddRecipient("observation_manager"
                                      + to_str(world_rank_),
-                                     observation_manager_,
+                                     *observation_manager_,
                                      ObservationManager::StaticMessage);
         MessageHandler::AddRecipient("driver" + to_str(world_rank_), *this,
                                      ReducedOrderUnscentedKalmanFilter
@@ -253,14 +254,14 @@ namespace Verdandi
         if (initialize_observation_manager)
         {
 #ifdef VERDANDI_WITH_MPI
-            observation_manager_.SetMPICommunicator(col_communicator_);
+            observation_manager_->SetMPICommunicator(col_communicator_);
 #endif
-            observation_manager_.Initialize(model_,
+            observation_manager_->Initialize(model_,
                                             observation_configuration_file_);
-            observation_manager_.DiscardObservation(false);
+            observation_manager_->DiscardObservation(false);
         }
         Nstate_ = model_.GetNstate();
-        Nobservation_ = observation_manager_.GetNobservation();
+        Nobservation_ = observation_manager_->GetNobservation();
 
         Copy(model_.GetStateErrorVarianceReduced(), U_);
         U_inv_.Copy(U_);
@@ -732,9 +733,9 @@ namespace Verdandi
 #endif
             MessageHandler::Send(*this, "all", "::Analyze begin");
 
-        observation_manager_.SetTime(model_, model_.GetTime());
+        observation_manager_->SetTime(model_, model_.GetTime());
 
-        if (!observation_manager_.HasObservation())
+        if (!observation_manager_->HasObservation())
         {
 #if defined(VERDANDI_WITH_MPI)
             if (model_task_ == 0)
@@ -743,7 +744,7 @@ namespace Verdandi
             return;
         }
 
-        Nobservation_  = observation_manager_.GetNobservation();
+        Nobservation_  = observation_manager_->GetNobservation();
 
 #if defined(VERDANDI_WITH_MPI)
         if (world_rank_ == 0)
@@ -768,7 +769,7 @@ namespace Verdandi
                 {
                     GetCol(X_i_, i, x_col_);
                     observation& z_col =
-                        observation_manager_.GetInnovation(x_col_);
+                        observation_manager_->GetInnovation(x_col_);
                     Add(To(alpha_), z_col, z);
                     SetRow(z_col, i, Z_i_trans_);
                 }
@@ -776,12 +777,12 @@ namespace Verdandi
                        Z_i_trans_, Ts(0), HL_trans_);
                 observation_error_variance R_inv;
                 if (observation_error_variance_ == "matrix_inverse")
-                    Mlt(HL_trans_, observation_manager_.
+                    Mlt(HL_trans_, observation_manager_->
                         GetErrorVarianceInverse(), HL_trans_R_);
                 else
                 {
                     observation_error_variance R_inv;
-                    Copy(observation_manager_.GetErrorVariance(), R_inv);
+                    Copy(observation_manager_->GetErrorVariance(), R_inv);
                     GetInverse(R_inv);
                     Mlt(HL_trans_, R_inv, HL_trans_R_);
                 }
@@ -808,7 +809,7 @@ namespace Verdandi
             {
                 GetCol(X_i_, i, x_col);
                 observation& z_col =
-                    observation_manager_.GetInnovation(x_col);
+                    observation_manager_->GetInnovation(x_col);
                 Add(To(alpha_), z_col, z);
                 SetRow(z_col, i, Z_i_trans);
             }
@@ -822,12 +823,12 @@ namespace Verdandi
                 tmp;
 
             if (observation_error_variance_ == "matrix_inverse")
-                Mlt(HL_trans, observation_manager_.GetErrorVarianceInverse(),
+                Mlt(HL_trans, observation_manager_->GetErrorVarianceInverse(),
                     working_matrix_po);
             else
             {
                 observation_error_variance R_inv;
-                Copy(observation_manager_.GetErrorVariance(), R_inv);
+                Copy(observation_manager_->GetErrorVariance(), R_inv);
                 GetInverse(R_inv);
                 Mlt(HL_trans, R_inv, working_matrix_po);
             }
@@ -873,7 +874,7 @@ namespace Verdandi
             {
                 GetRowPointer(X_i_trans_, i, x_col);
                 observation& z_col =
-                    observation_manager_.GetInnovation(x_col);
+                    observation_manager_->GetInnovation(x_col);
                 Add(To(alpha_), z_col, z);
                 SetRow(z_col, i, Z_i_trans);
                 x_col.Nullify();
@@ -895,11 +896,11 @@ namespace Verdandi
 
             observation_error_variance R_inv;
             if (observation_error_variance_ == "matrix_inverse")
-                Mlt(Z_i_trans, observation_manager_.GetErrorVarianceInverse(),
+                Mlt(Z_i_trans, observation_manager_->GetErrorVarianceInverse(),
                     working_matrix_ro);
             else
             {
-                Copy(observation_manager_.GetErrorVariance(), R_inv);
+                Copy(observation_manager_->GetErrorVariance(), R_inv);
                 GetInverse(R_inv);
                 Mlt(Z_i_trans, R_inv, working_matrix_ro);
             }
@@ -967,7 +968,7 @@ namespace Verdandi
                 working_matrix_po2(Nreduced_, Nobservation_);
 
             if (observation_error_variance_ == "matrix_inverse")
-                Mlt(HL_trans, observation_manager_.GetErrorVarianceInverse(),
+                Mlt(HL_trans, observation_manager_->GetErrorVarianceInverse(),
                     working_matrix_po);
             else
                 Mlt(HL_trans, R_inv, working_matrix_po);
@@ -1055,7 +1056,7 @@ namespace Verdandi
     ReducedOrderUnscentedKalmanFilter<Model, ObservationManager>
     ::GetObservationManager()
     {
-        return observation_manager_;
+        return *observation_manager_;
     }
 
 

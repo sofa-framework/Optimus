@@ -117,13 +117,23 @@ void VerdandiAnimationLoop::init() {
         filterType = md.filterType = UKF;
         ukfDriver = new SofaUnscentedKalmanFilter<SofaModelWrapper<double>, SofaObservationManager<double> >;
         ukfDriver->GetModel().initSimuData(md);
+
     } else if (_filterType.getValue() == "ROUKF") {
-        filterType = md.filterType = ROUKF;
+        /*filterType = md.filterType = ROUKF;
         roukfDriver = new SofaReducedOrderUKF<SofaModelWrapper<double>, SofaObservationManager<double> >;
-        roukfDriver->GetModel().initSimuData(md);
+        roukfDriver->GetModel().initSimuData(md);*/
     }
     else
         filterType = UNDEF;
+
+
+    /// NEW INTERFACE:
+    gnode->get(roukfDriver, core::objectmodel::BaseContext::SearchDown);
+    if (roukfDriver) {
+        std::cout << "ROUKF driver " << roukfDriver->GetName() << " found." << std::endl;
+        filterType = md.filterType = ROUKF;
+        roukfDriver->GetModel().initSimuData(md);
+    }
 
 }
 
@@ -131,14 +141,17 @@ void VerdandiAnimationLoop::init() {
 
 
 void VerdandiAnimationLoop::bwdInit()
-{
-    //std::cout << "initialize with: " << _configFile.getValue() << std::endl;
-    switch (filterType) {
+{    
+    if (roukfDriver)
+        roukfDriver->InitializeFilter();
+
+
+    /*switch (filterType) {
     case FORWARD: fwdDriver->Initialize(_configFile.getValue()); break;
     case UKF: ukfDriver->Initialize(_configFile.getValue()); break;
-    case ROUKF: roukfDriver->Initialize(_configFile.getValue()); break;
+    case ROUKF: roukfDriver->InitializeFilter(roukfParams); break;
     case UNDEF: break;
-    }
+    }*/
 }
 
 void VerdandiAnimationLoop::setNode(simulation::Node* _gnode)
@@ -156,7 +169,7 @@ void VerdandiAnimationLoop::step(const core::ExecParams* params, double /*dt*/)
         fwdDriver->Forward();
         fwdDriver->FinalizeStep();
         break;
-    case UKF:
+    case UKF:        
         ukfDriver->GetModel().setInitStepData(params);
         ukfDriver->InitializeStep();
         ukfDriver->Forward();

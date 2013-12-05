@@ -417,7 +417,7 @@ void SofaModelWrapper<Type>::StateVerdandi2Sofa() {
 
 
 template <class Type>
-void SofaModelWrapper<Type>::Initialize(std::string &/*configFile*/)
+void SofaModelWrapper<Type>::Initialize()
 {
     Verb("initialize");
     /// get fixed nodes
@@ -626,7 +626,7 @@ void SofaModelWrapper<Type>::Initialize(std::string &/*configFile*/)
 
     StateSofa2Verdandi();
 
-    if (modelData.filterType == UKF) {
+    /*if (modelData.filterType == UKF) {
         /// initialize state error variance
         state_error_variance_.Reallocate(GetNstate(), GetNstate());
         state_error_variance_.SetIdentity();
@@ -654,8 +654,8 @@ void SofaModelWrapper<Type>::Initialize(std::string &/*configFile*/)
         state_error_variance_inverse_.SetIdentity();
         for (size_t i = 0; i < size_t(reduced_state_index_); i++)
             state_error_variance_inverse_(i,i) *= modelData.errorVarianceSofaState;
-        /*for (size_t i = size_t(reduced_state_index_); i < size_t(state_size_); i++)
-            state_error_variance_inverse_(i,i) *= modelData.errorVarianceSofaParams;*/
+        //for (size_t i = size_t(reduced_state_index_); i < size_t(state_size_); i++)
+        //    state_error_variance_inverse_(i,i) *= modelData.errorVarianceSofaParams;
 
         for (size_t soi = 0, vpi = 0; soi < sofaObjects.size(); soi++) {
             SofaObject& obj = sofaObjects[soi];
@@ -669,7 +669,7 @@ void SofaModelWrapper<Type>::Initialize(std::string &/*configFile*/)
             }
         }
 
-    }
+    }*/
 
     if (modelData.filterType == ROUKF) {
         variance_projector_allocated_ = false;
@@ -1183,6 +1183,234 @@ void SofaModelWrapper<Type>::computeCollision()
         eventPropagation.execute(getContext());
     }
 }
+
+/// ROUKF:
+template <class Model, class ObservationManager>
+SofaReducedOrderUKF<Model, ObservationManager>::SofaReducedOrderUKF()
+    : Inherit1()
+    , Inherit2()
+    , m_outputDirectory( initData(&m_outputDirectory, "outputDirectory", "working directory of the filter") )
+    , m_configFile( initData(&m_configFile, "configFile", "lua configuration file (temporary)") )
+    , m_sigmaPointType( initData(&m_sigmaPointType, std::string("star"), "sigmaPointType", "type of sigma points (canonical|star|simplex)") )
+    , m_observationErrorVariance( initData(&m_observationErrorVariance, std::string("matrix_inverse"), "observationErrorVariance", "observationErrorVariance") )
+    , m_saveVQ( initData(&m_saveVQ, true, "saveVQ", "m_saveVQ") )
+    , m_showIteration( initData(&m_showIteration, false, "showIteration", "showIteration") )
+    , m_showTime( initData(&m_showTime, true, "showTime", "showTime") )
+    , m_analyzeFirstStep( initData(&m_analyzeFirstStep, false, "analyzeFirstStep", "analyzeFirstStep") )
+    , m_withResampling( initData(&m_withResampling, false, "withResampling", "withResampling") )
+    , m_positionInState( initData(&m_positionInState, true, "positionInState", "include position in the non-reduced state") )
+    , m_velocityInState( initData(&m_velocityInState, false, "velocityInState", "include position in the non-reduced state") )
+{
+}
+
+
+
+
+template <class Model, class ObservationManager>
+void SofaReducedOrderUKF<Model, ObservationManager>
+::InitializeFilter() { //VerdandiROUKFParams* _roukfParams) {
+
+    InitializeParams(); //_roukfParams);
+
+    this->model_.Initialize();
+    this->observation_manager_->Initialize(this->model_, this->configuration_file_);
+    this->observation_manager_->DiscardObservation(false);
+
+    InitializeStructures();
+}
+
+
+template <class Model, class ObservationManager>
+void SofaReducedOrderUKF<Model, ObservationManager>
+::InitializeParams() //VerdandiROUKFParams* _roukfParams)
+{
+    //this->roukfParams = _roukfParams;
+
+    this->output_directory_ = m_outputDirectory.getValue();
+    this->configuration_file_ = m_configFile.getValue();
+
+    this->saveVQ_ = m_saveVQ.getValue();
+    this->analyze_first_step_ = m_analyzeFirstStep.getValue();
+    this->with_resampling_ = m_withResampling.getValue();
+
+    this->positionInState = m_positionInState.getValue();
+    this->velocityInState = m_velocityInState.getValue();
+
+    this->observation_error_variance_ = m_observationErrorVariance.getValue();
+    this->sigma_point_type_ = m_sigmaPointType.getValue();
+
+    this->option_display_["show_iteration"] = m_showIteration.getValue();
+    this->option_display_["show_time"] = m_showTime.getValue();
+
+
+    char comm[100];
+    sprintf(comm, "rm %s/roukf*dat", this->output_directory_.c_str());
+    std::cout << "Executing: " << comm << std::endl;
+    system(comm);
+}
+
+
+
+/*template <class Model, class ObservationManager>
+void SofaReducedOrderUKF<Model, ObservationManager>
+::Initialize(std::string configuration_file,
+             bool initialize_model, bool initialize_observation_manager)
+{
+    Verdandi::VerdandiOps configuration(configuration_file);
+    Initialize(configuration, initialize_model,
+               initialize_observation_manager);
+}
+
+template <class Model, class ObservationManager>
+void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::VerdandiOps& configuration, bool initialize_model, bool initialize_observation_manager)
+{
+    Verdandi::MessageHandler::Send(*this, "all", "::Initialize begin");
+
+    this->configuration_file_ = configuration.GetFilePath();
+
+    configuration.Set("output_directory", "", this->configuration_file_, this->output_directory_);
+
+    char comm[100];
+    sprintf(comm, "rm %s/roukf*dat", this->output_directory_.c_str());
+    std::cout << "Executing: " << comm << std::endl;
+    system(comm);
+
+    configuration.SetPrefix("reduced_order_unscented_kalman_filter.");
+
+    configuration.Set("output.saveVQ", this->saveVQ_);
+
+    configuration.Set("model.configuration_file", "", this->configuration_file_,
+                      this->model_configuration_file_);
+
+    configuration.Set("observation_manager.configuration_file", "",
+                      this->configuration_file_,
+                      this->observation_configuration_file_);
+
+    // Should iterations be displayed on screen?
+    configuration.Set("display.show_iteration",
+                      this->option_display_["show_iteration"]);
+    // Should current time be displayed on screen?
+    configuration.Set("display.show_time", this->option_display_["show_time"]);
+
+    configuration.Set("data_assimilation.analyze_first_step",
+                      this->analyze_first_step_);
+    configuration.Set("data_assimilation.with_resampling",
+                      this->with_resampling_);
+    configuration.Set("data_assimilation.observation_error_variance",
+                      "ops_in(v, {'matrix', 'matrix_inverse'})",
+                      this->observation_error_variance_);
+
+    configuration.Set("sigma_point.type",
+                      "ops_in(v, {'canonical', 'star', 'simplex'})",
+                      this->sigma_point_type_);
+
+        configuration.
+            SetPrefix("reduced_order_unscented_kalman_filter"
+                      ".output_saver.");
+        this->output_saver_.Initialize(configuration);
+        this->output_saver_.Empty("forecast_time");
+        this->output_saver_.Empty("forecast_state");
+        this->output_saver_.Empty("analysis_time");
+        this->output_saver_.Empty("analysis_state");
+
+        configuration.SetPrefix("reduced_order_unscented_kalman_filter.");
+
+        if (configuration.Exists("output.configuration"))
+        {
+            std::string output_configuration;
+            configuration.Set("output.configuration",
+                              output_configuration);
+            configuration.WriteLuaDefinition(output_configuration);
+        }
+
+
+    if (configuration.Exists("output.log"))
+        Verdandi::Logger::SetFileName(configuration.Get<std::string>("output.log"));
+
+    if (initialize_model)
+    {
+        this->model_.Initialize(this->model_configuration_file_);
+    }
+    if (initialize_observation_manager)
+    {
+        this->observation_manager_.Initialize(this->model_,
+                                        this->observation_configuration_file_);
+        this->observation_manager_.DiscardObservation(false);
+    }
+}*/
+
+ template <class Model, class ObservationManager>
+ void SofaReducedOrderUKF<Model, ObservationManager>::InitializeStructures() {
+    this->Nstate_ = this->model_.GetNstate();
+    this->Nobservation_ = this->observation_manager_->GetNobservation();
+
+    Copy(this->model_.GetStateErrorVarianceReduced(), this->U_);
+    this->U_inv_.Copy(this->U_);
+
+    GetInverse(this->U_inv_);
+
+    this->Nreduced_ = this->U_.GetN();
+
+    /*** Sigma-points ***/
+
+    typename Inherit1::sigma_point_matrix V_trans;
+    if (this->sigma_point_type_ == "canonical")
+        Verdandi::ComputeCanonicalSigmaPoint(this->Nreduced_, V_trans, this->D_alpha_,
+                                   this->alpha_constant_);
+    else if (this->sigma_point_type_ == "star")
+        Verdandi::ComputeStarSigmaPoint(this->Nreduced_, V_trans, this->D_alpha_,
+                              this->alpha_constant_);
+    else if (this->sigma_point_type_ == "simplex")
+        Verdandi::ComputeSimplexSigmaPoint(this->Nreduced_, V_trans, this->D_alpha_,
+                                 this->alpha_constant_);
+    if (this->alpha_constant_)
+        this->alpha_ = this->D_alpha_(0);
+
+    this->Nsigma_point_ = V_trans.GetM();
+
+    // Initializes transpose of I.
+    typename Inherit1::sigma_point_matrix P_alpha_v(this->Nreduced_, this->Nreduced_);
+    this->I_trans_.Reallocate(this->Nsigma_point_, this->Nreduced_);
+
+    if (this->alpha_constant_)
+    {
+        MltAdd(typename Inherit1::Ts(this->alpha_), Seldon::SeldonTrans, V_trans, Seldon::SeldonNoTrans, V_trans,
+               typename Inherit1::Ts(0), P_alpha_v);
+        GetInverse(P_alpha_v);
+        Verdandi::GetCholesky(P_alpha_v);
+        MltAdd(typename Inherit1::Ts(1), Seldon::SeldonNoTrans, V_trans, Seldon::SeldonTrans, P_alpha_v,
+               typename Inherit1::Ts(0), this->I_trans_);
+    }
+    else
+        throw Verdandi::ErrorUndefined("ReducedOrderUnscentedKalmanFilter::"
+                             "Initialize()", "Calculation not "
+                             "implemented for no constant alpha_i.");
+    this->I_.Copy(this->I_trans_);
+    Transpose(this->I_);
+
+    // Initializes D_v.
+    this->D_v_.Reallocate(this->Nsigma_point_, this->Nsigma_point_);
+    if (this->alpha_constant_)
+        MltAdd(typename Inherit1::Ts(this->alpha_ * this->alpha_), Seldon::SeldonNoTrans, this->I_trans_, Seldon::SeldonTrans,
+               this->I_trans_, typename Inherit1::Ts(0), this->D_v_);
+    else
+        throw Verdandi::ErrorUndefined("ReducedOrderUnscentedKalmanFilter::"
+                             "Initialize()", "Calculation not "
+                             "implemented for no constant alpha_i.");
+
+    /*** Assimilation ***/
+
+    if (this->analyze_first_step_)
+        this->Analyze();
+
+    //if (initialize_model)
+    {
+        Verdandi::MessageHandler::Send(*this, "model", "initial condition");
+        Verdandi::MessageHandler::Send(*this, "driver", "initial condition");
+    }
+    Verdandi::MessageHandler::Send(*this, "all", "::Initialize end");
+}
+
 
 
 /// LINEAR MANAGER

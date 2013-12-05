@@ -39,7 +39,9 @@
 #include "../src/OptimParams.h"
 
 #include "VerdandiClasses.h"
+#include "VerdandiROUKFParams.h"
 #include "sofa/component/projectiveconstraintset/FixedConstraint.h"
+
 
 using namespace sofa::core::objectmodel;
 using namespace sofa::core::behavior;
@@ -241,7 +243,11 @@ public:
     state& GetState();
     void GetStateCopy(state& _copy);
 
-    void Initialize(std::string &);
+    void Initialize(std::string &) {
+        Initialize();
+    }
+
+    void Initialize();
     void InitializeStep() { numStep++; time_ = numStep*modelData.gnode->getDt(); applyOpNum = 0; }
     void Finalize() {}
     void FinalizeStep();
@@ -309,15 +315,88 @@ template <class T>
 class SOFA_SIMULATION_COMMON_API SofaObservationManager : public Verdandi::LinearObservationManager<T>, public sofa::core::objectmodel::BaseObject
 {
 public:
+    typedef typename Verdandi::LinearObservationManager<T> Inherit1;
 
 
 };
+
+
+class SOFA_SIMULATION_COMMON_API SofaObservationManagerBase : public Verdandi::VerdandiBase, public sofa::core::objectmodel::BaseObject
+{
+public:
+    typedef Seldon::Matrix<double> error_variance;
+    typedef Seldon::Vector<double> observation;
+    typedef Seldon::Vector<double> state;
+    typedef SofaModelWrapper<double> model;
+    typedef Seldon::Matrix<double> tangent_linear_operator;
+    typedef Seldon::Vector<double> tangent_linear_operator_row;
+
+
+    virtual void DiscardObservation(bool _discard_observation) {} // = 0;
+
+    virtual error_variance& GetErrorVariance() const {} //  = 0;
+    virtual error_variance& GetErrorVarianceInverse() const {} //  = 0;
+
+    virtual observation& GetInnovation(const state& _x) {} // = 0;
+
+    virtual int GetNobservation() const {} //  = 0;
+
+    virtual bool HasObservation() const {} //  = 0;
+    virtual bool HasObservation(double time) {} //  = 0;
+
+    virtual void Initialize(model& _model, std::string configuration_file) {} // = 0;
+
+    virtual void SetTime(model& _model, double time) {} // = 0;
+    virtual void SetTime(double time) {} //  = 0;
+};
+
+
+template <class DataTypes1, class DataTypes2>
+class SOFA_SIMULATION_COMMON_API MappedPointsObservationManager : public SofaObservationManagerBase
+{
+public:
+    void DiscardObservation(bool _discard_observation) {}
+
+    error_variance& GetErrorVariance() const {}
+    error_variance& GetErrorVarianceInverse() const {}
+
+    virtual observation& GetInnovation(const state& _x) {}
+
+    int GetNobservation() const {}
+
+    bool HasObservation() const {}
+    bool HasObservation(double time) {}
+
+    void Initialize(model& _model, std::string configuration_file) {}
+
+    void SetTime(model& _model, double time) {}
+    void SetTime(double time) {}
+
+};
+
 
 template <class Model, class ObservationManager >
 class SOFA_SIMULATION_COMMON_API SofaReducedOrderUKF : public Verdandi::ReducedOrderUnscentedKalmanFilter<Model, ObservationManager>, public sofa::core::objectmodel::BaseObject
 {
-public:
+protected:
+    //VerdandiROUKFParams* roukfParams;
+    bool positionInState, velocityInState;
+
+public:            
+    typedef typename Verdandi::ReducedOrderUnscentedKalmanFilter<Model, ObservationManager> Inherit1;
+    typedef typename sofa::core::objectmodel::BaseObject Inherit2;
+
+    Data<std::string> m_outputDirectory, m_configFile, m_sigmaPointType, m_observationErrorVariance;
+    Data<bool> m_saveVQ, m_showIteration, m_showTime, m_analyzeFirstStep, m_withResampling;
+    Data<bool> m_positionInState, m_velocityInState;
+
+    SofaReducedOrderUKF();
+
+    void InitializeFilter(); //VerdandiROUKFParams* _roukfParams);
+    void InitializeParams(); //VerdandiROUKFParams* _roukfParams);
+    void InitializeStructures();
 };
+
 
 template <class Model, class ObservationManager >
 class SOFA_SIMULATION_COMMON_API SofaUnscentedKalmanFilter : public Verdandi::UnscentedKalmanFilter<Model, ObservationManager>, public sofa::core::objectmodel::BaseObject

@@ -36,6 +36,8 @@
 
 #include "SofaModelWrapper.h"
 #include "VerdandiClasses.h"
+#include "VerdandiROUKFParams.h"
+#include "VerdandiObservationParams.h"
 
 
 using namespace sofa::core::objectmodel;
@@ -79,6 +81,9 @@ public:
     }
 
 private :    
+    VerdandiROUKFParams* roukfParams;
+    VerdandiObservationParams* observationParams;
+
     //Verdandi::ForwardDriver<SofaModelWrapper<double> >* fwdDriver;
     SofaForwardDriver<SofaModelWrapper<double> > *fwdDriver;
     SofaUnscentedKalmanFilter<SofaModelWrapper<double>, SofaObservationManager<double> >* ukfDriver;
@@ -92,11 +97,12 @@ private :
 public:
     VerdandiAnimationLoop(simulation::Node* gnode = NULL);
 
-    Data<std::string> _configFile;    
+    Data<std::string> _configFile;
     Data<bool> _positionInState;
     Data<bool> _velocityInState;
     Data<string> _filterType;
-    Data<double> _stateErrorVarianceState;    
+    Data<double> _stateErrorVarianceState;
+
     Data<bool> _verbose;
 
 };

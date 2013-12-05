@@ -92,7 +92,7 @@ namespace Verdandi
         //! Underlying model.
         Model model_;
         //! Observation manager.
-        ObservationManager observation_manager_;
+        ObservationManager* observation_manager_;
 
         //! Matrix U in the P SVD decomposition.
         model_state_error_variance_reduced U_;
