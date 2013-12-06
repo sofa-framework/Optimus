@@ -62,6 +62,8 @@
 
 #include "VerdandiAnimationLoop.h"
 
+#include <sofa/component/forcefield/TetrahedronFEMForceField.h>
+
 namespace sofa
 {
 
@@ -77,15 +79,12 @@ int VerdandiAnimationLoopClass = core::RegisterObject("The simplest animation lo
 VerdandiAnimationLoop::VerdandiAnimationLoop(simulation::Node* _gnode)
     : Inherit()
     , gnode(_gnode)
-    , _configFile( initData(&_configFile, "configFile", "configuration file for the driver") )    
-    , _positionInState( initData(&_positionInState, true, "positionInState", "position included in Verdandi state") )
-    , _velocityInState( initData(&_velocityInState, true, "velocityInState", "velocity included in Verdandi state") )
-    , _filterType( initData(&_filterType, "filterType", "type of filter [forward | UKF]", "forward") )
-    , _stateErrorVarianceState( initData(&_stateErrorVarianceState, 1.0 , "stateErrorVariance", "state error variance value") )    
+    , _configFile( initData(&_configFile, "configFile", "configuration file for the driver") )            
     , _verbose( initData(&_verbose, false, "verbose", "print out traces") )
 {
     assert(gnode);
     numStep=0;    
+    filterType=UNDEF;
 }
 
 VerdandiAnimationLoop::~VerdandiAnimationLoop()
@@ -95,14 +94,15 @@ VerdandiAnimationLoop::~VerdandiAnimationLoop()
 
 
 void VerdandiAnimationLoop::init() {
-    std::cout << "Filter type: " << _filterType.getValue() << std::endl;
+    //std::cout << "Filter type: " << _filterType.getValue() << std::endl;
 
     if (!gnode)
         gnode = dynamic_cast<simulation::Node*>(this->getContext());
 
     //fixedConstraints = gnode->get<sofa::component::projectiveconstraintset::FixedConstraint<sofa::defaulttype::Vec3dTypes>*>();
 
-    SofaModelWrapper<double>::ModelData md;
+    /// OLD INTERFACE
+    /*SofaModelWrapper<double>::ModelData md;
     md.gnode = gnode;
     md.errorVarianceSofaState = _stateErrorVarianceState.getValue();    
     md.positionInState = _positionInState.getValue();
@@ -115,29 +115,28 @@ void VerdandiAnimationLoop::init() {
     }
     else if (_filterType.getValue() == "UKF") {
         filterType = md.filterType = UKF;
-        ukfDriver = new SofaUnscentedKalmanFilter<SofaModelWrapper<double>, SofaObservationManager<double> >;
+        ukfDriver = new SofaUnscentedKalmanFilter<SofaModelWrapper<double>, SofaLinearObservationManager<double> >;
         ukfDriver->GetModel().initSimuData(md);
-
-    } else if (_filterType.getValue() == "ROUKF") {
-        /*filterType = md.filterType = ROUKF;
-        roukfDriver = new SofaReducedOrderUKF<SofaModelWrapper<double>, SofaObservationManager<double> >;
-        roukfDriver->GetModel().initSimuData(md);*/
     }
     else
-        filterType = UNDEF;
+        filterType = UNDEF;*/
 
 
     /// NEW INTERFACE:
     gnode->get(roukfDriver, core::objectmodel::BaseContext::SearchDown);
     if (roukfDriver) {
-        std::cout << "ROUKF driver " << roukfDriver->GetName() << " found." << std::endl;
-        filterType = md.filterType = ROUKF;
-        roukfDriver->GetModel().initSimuData(md);
+        std::cout << this->getName() << "ROUKF driver " << roukfDriver->getName() << " found." << std::endl;
+        filterType = ROUKF;
+    } else {
+        std::cerr << this->getName() << "Warning: ROUKF driver not found! "<< std::endl;
     }
 
+    if (filterType == UNDEF) {
+        std::cerr << this->getName() << "ERROR: no filter defined, idle animation loop!" << std::endl;
+    }
+
+
 }
-
-
 
 
 void VerdandiAnimationLoop::bwdInit()
@@ -161,8 +160,8 @@ void VerdandiAnimationLoop::setNode(simulation::Node* _gnode)
 
 void VerdandiAnimationLoop::step(const core::ExecParams* params, double /*dt*/)
 {
-    std::cout << "================== " << filterType << " step: " << ++numStep << " ===================" << std::endl;
-    switch (filterType) {
+    std::cout << "================== " << " step: " << ++numStep << " ===================" << std::endl;
+   /* switch (filterType) {
     case FORWARD:
         fwdDriver->GetModel().setInitStepData(params);
         fwdDriver->InitializeStep();
@@ -177,14 +176,20 @@ void VerdandiAnimationLoop::step(const core::ExecParams* params, double /*dt*/)
         ukfDriver->FinalizeStep();
         break;
     case ROUKF:
+
+        break;
+    case UNDEF: break;
+    }*/
+
+
+    if (roukfDriver) {
         roukfDriver->GetModel().setInitStepData(params);
         roukfDriver->InitializeStep();
         roukfDriver->Forward();
         roukfDriver->Analyze();
         roukfDriver->FinalizeStep();
-        break;
-    case UNDEF: break;
     }
+
 }
 
 

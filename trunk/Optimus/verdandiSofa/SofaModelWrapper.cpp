@@ -82,8 +82,8 @@
 
 namespace Verdandi {
     template class Verdandi::ForwardDriver<sofa::simulation::SofaModelWrapper<double> >;
-    template class Verdandi::UnscentedKalmanFilter<sofa::simulation::SofaModelWrapper<double>, sofa::simulation::SofaObservationManager<double> >;
-    template class Verdandi::ReducedOrderUnscentedKalmanFilter<sofa::simulation::SofaModelWrapper<double>, sofa::simulation::SofaObservationManager<double> >;
+    template class Verdandi::UnscentedKalmanFilter<sofa::simulation::SofaModelWrapper<double>, sofa::simulation::SofaLinearObservationManager<double> >;
+    template class Verdandi::ReducedOrderUnscentedKalmanFilter<sofa::simulation::SofaModelWrapper<double>, sofa::simulation::SofaLinearObservationManager<double> >;
 
 }
 
@@ -98,17 +98,16 @@ namespace simulation
 
 
 SOFA_DECL_CLASS(SofaModelWrapper)
-
 int SofaModelWrapperClass = core::RegisterObject("A class implementing an interface between SOFA and verdandi")
         #ifndef SOFA_FLOAT
         .add< SofaModelWrapper<double> >()
         #endif
         ;
 
-SOFA_DECL_CLASS(SofaObservationManager)
-int SofaObservationManagerClass = core::RegisterObject("A class implementing the observation manager interfaced in SOFA")
+SOFA_DECL_CLASS(SofaLinearObservationManager)
+int SofaLinearObservationManagerClass = core::RegisterObject("A class implementing the observation manager interfaced in SOFA")
         #ifndef SOFA_FLOAT
-        .add< SofaObservationManager<double> >()
+        .add< SofaLinearObservationManager<double> >()
         #endif
         ;
 
@@ -123,21 +122,36 @@ int MappedPointsObservationManageClass = core::RegisterObject("A class implement
 SOFA_DECL_CLASS(SofaReducedOrderUKF)
 int SofaReducedOrderUKFClass = core::RegisterObject("A class implementing the observation manager interfaced in SOFA")
         #ifndef SOFA_FLOAT
-        .add<SofaReducedOrderUKF<SofaModelWrapper<double>,SofaObservationManager<double> > >()
+        .add<SofaReducedOrderUKF<SofaModelWrapper<double>,SofaLinearObservationManager<double> > >()
+        #endif
+        ;
+
+SOFA_DECL_CLASS(SofaUnscentedKalmanFilter)
+int SofaUnscentedKalmanFilterClass = core::RegisterObject("A class implementing the observation manager interfaced in SOFA")
+        #ifndef SOFA_FLOAT
+        .add<SofaUnscentedKalmanFilter<SofaModelWrapper<double>,SofaLinearObservationManager<double> > >()
         #endif
         ;
 
 
+SOFA_DECL_CLASS(SofaForwardDriver)
+int SofaForwardDriverClass = core::RegisterObject("A class implementing the observation manager interfaced in SOFA")
+        #ifndef SOFA_FLOAT
+        .add<SofaForwardDriver<SofaModelWrapper<double> > >()
+        #endif
+        ;
+
 
 template class SofaModelWrapper<double>;
-template class SofaObservationManager<double>;
-template class SofaForwardDriver<SofaModelWrapper<double> >;
-template class SofaUnscentedKalmanFilter<SofaModelWrapper<double>,SofaObservationManager<double> >;
 
+/// observation managers:
+template class SofaLinearObservationManager<double>;
 template class MappedPointsObservationManager<Vec3d, Vec3d>;
 
-template class SofaReducedOrderUKF<SofaModelWrapper<double>,SofaObservationManager<double> >;
-//template class SofaReducedOrderUKF<SofaModelWrapper<double>, SofaObservationManagerBase>;
+/// filters:
+template class SofaForwardDriver<SofaModelWrapper<double> >;
+template class SofaReducedOrderUKF<SofaModelWrapper<double>,SofaLinearObservationManager<double> >;
+template class SofaUnscentedKalmanFilter<SofaModelWrapper<double>,SofaLinearObservationManager<double> >;
 
 
 

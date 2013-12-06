@@ -1187,8 +1187,8 @@ void SofaModelWrapper<Type>::computeCollision()
 /// ROUKF:
 template <class Model, class ObservationManager>
 SofaReducedOrderUKF<Model, ObservationManager>::SofaReducedOrderUKF()
-    : Inherit1()
-    , Inherit2()
+    //: Inherit1()
+    : Inherit2()
     , m_outputDirectory( initData(&m_outputDirectory, "outputDirectory", "working directory of the filter") )
     , m_configFile( initData(&m_configFile, "configFile", "lua configuration file (temporary)") )
     , m_sigmaPointType( initData(&m_sigmaPointType, std::string("star"), "sigmaPointType", "type of sigma points (canonical|star|simplex)") )
@@ -1203,12 +1203,30 @@ SofaReducedOrderUKF<Model, ObservationManager>::SofaReducedOrderUKF()
 {
 }
 
+template <class Model, class ObservationManager>
+void SofaReducedOrderUKF<Model, ObservationManager>::init() {
+    SofaModelWrapper<double>::ModelData md;
+    md.positionInState = m_positionInState.getValue();
+    md.velocityInState = m_velocityInState.getValue();
+    md.filterType = ROUKF;
+    md.gnode = dynamic_cast<simulation::Node*>(this->getContext());
 
+    this->model_.initSimuData(md);
+}
 
 
 template <class Model, class ObservationManager>
-void SofaReducedOrderUKF<Model, ObservationManager>
-::InitializeFilter() { //VerdandiROUKFParams* _roukfParams) {
+void SofaReducedOrderUKF<Model, ObservationManager>::InitializeFilter() { //VerdandiROUKFParams* _roukfParams) {
+    simulation::Node* gnode = dynamic_cast<simulation::Node*>(this->getContext());
+
+
+    gnode->get(this->observation_manager_, core::objectmodel::BaseContext::SearchDown);
+    if (this->observation_manager_) {
+        std::cout << this->getName() << " observation manager found: " << this->observation_manager_->getName() << std::endl;
+    } else {
+        std::cerr << this->getName() << " ERROR: observation manager not found." << std::endl;
+        return;
+    }
 
     InitializeParams(); //_roukfParams);
 

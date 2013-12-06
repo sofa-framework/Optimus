@@ -80,28 +80,27 @@ public:
         return obj;
     }
 
-private :    
-    VerdandiROUKFParams* roukfParams;
-    VerdandiObservationParams* observationParams;
-
-    //Verdandi::ForwardDriver<SofaModelWrapper<double> >* fwdDriver;
+private :            
     SofaForwardDriver<SofaModelWrapper<double> > *fwdDriver;
-    SofaUnscentedKalmanFilter<SofaModelWrapper<double>, SofaObservationManager<double> >* ukfDriver;
-    SofaReducedOrderUKF<SofaModelWrapper<double>, SofaObservationManager<double> >* roukfDriver;
-    simulation::Node* gnode;  ///< the node controlled by the loop
-    FilterType filterType;
-    //std::vector<sofa::component::misc::VerdandiActiveStateMonitor*> associatedMonitors;
+    SofaUnscentedKalmanFilter<SofaModelWrapper<double>, SofaLinearObservationManager<double> >* ukfDriver;
+    SofaReducedOrderUKF<SofaModelWrapper<double>, SofaLinearObservationManager<double> >* roukfDriver;
 
+    /// NEW SOFA UKF:
+    SofaReducedOrderUKF<SofaModelWrapper<double>, Verdandi::LinearObservationManager<double> >* roukfDriver2;
+
+    FilterType filterType;
+    simulation::Node* gnode;  ///< the node controlled by the loop
     int numStep;
 
 public:
     VerdandiAnimationLoop(simulation::Node* gnode = NULL);
 
     Data<std::string> _configFile;
-    Data<bool> _positionInState;
+    /*Data<bool> _positionInState;
     Data<bool> _velocityInState;
-    Data<string> _filterType;
     Data<double> _stateErrorVarianceState;
+    Data<string> _filterType;*/
+
 
     Data<bool> _verbose;
 

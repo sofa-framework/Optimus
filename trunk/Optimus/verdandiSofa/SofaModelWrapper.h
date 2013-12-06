@@ -311,17 +311,7 @@ public:
 };
 
 
-template <class T>
-class SOFA_SIMULATION_COMMON_API SofaObservationManager : public Verdandi::LinearObservationManager<T>, public sofa::core::objectmodel::BaseObject
-{
-public:
-    typedef typename Verdandi::LinearObservationManager<T> Inherit1;
-
-
-};
-
-
-class SOFA_SIMULATION_COMMON_API SofaObservationManagerBase : public Verdandi::VerdandiBase, public sofa::core::objectmodel::BaseObject
+/*class SOFA_SIMULATION_COMMON_API SofaObservationManagerBase : public Verdandi::VerdandiBase, public sofa::core::objectmodel::BaseObject
 {
 public:
     typedef Seldon::Matrix<double> error_variance;
@@ -348,29 +338,24 @@ public:
 
     virtual void SetTime(model& _model, double time) {} // = 0;
     virtual void SetTime(double time) {} //  = 0;
+};*/
+
+template <class T>
+class SOFA_SIMULATION_COMMON_API SofaLinearObservationManager : public Verdandi::LinearObservationManager<T>, public sofa::core::objectmodel::BaseObject
+{
+public:
+    typedef typename Verdandi::LinearObservationManager<T> Inherit1;
+
+
 };
 
 
 template <class DataTypes1, class DataTypes2>
-class SOFA_SIMULATION_COMMON_API MappedPointsObservationManager : public SofaObservationManagerBase
+class SOFA_SIMULATION_COMMON_API MappedPointsObservationManager : public SofaLinearObservationManager<double>
 {
 public:
-    void DiscardObservation(bool _discard_observation) {}
+    typedef SofaLinearObservationManager<double> Inherit;
 
-    error_variance& GetErrorVariance() const {}
-    error_variance& GetErrorVarianceInverse() const {}
-
-    virtual observation& GetInnovation(const state& _x) {}
-
-    int GetNobservation() const {}
-
-    bool HasObservation() const {}
-    bool HasObservation(double time) {}
-
-    void Initialize(model& _model, std::string configuration_file) {}
-
-    void SetTime(model& _model, double time) {}
-    void SetTime(double time) {}
 
 };
 
@@ -378,8 +363,7 @@ public:
 template <class Model, class ObservationManager >
 class SOFA_SIMULATION_COMMON_API SofaReducedOrderUKF : public Verdandi::ReducedOrderUnscentedKalmanFilter<Model, ObservationManager>, public sofa::core::objectmodel::BaseObject
 {
-protected:
-    //VerdandiROUKFParams* roukfParams;
+protected:    
     bool positionInState, velocityInState;
 
 public:            
@@ -392,8 +376,10 @@ public:
 
     SofaReducedOrderUKF();
 
-    void InitializeFilter(); //VerdandiROUKFParams* _roukfParams);
-    void InitializeParams(); //VerdandiROUKFParams* _roukfParams);
+    void init();
+
+    void InitializeFilter();
+    void InitializeParams();
     void InitializeStructures();
 };
 
