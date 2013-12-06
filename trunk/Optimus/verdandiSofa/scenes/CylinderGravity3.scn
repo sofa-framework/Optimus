@@ -9,11 +9,8 @@
 <!-- 	<OptimParams name="paramE" template="Vector" initValue="10000 5000 7000"/>  -->
 	
 	<VerdandiAnimationLoop name="verdAnimLoop" configFile="configuration/confCyl3_770.lua" filterType="ROUKF" verbose="0" velocityInState="0" stateErrorVariance="0.01"/>
-<!-- 	<VerdandiROUKFParams name="roukfParams" configFile="configuration/confCyl3_770.lua" outputDirectory="result3_770"/> -->
 	<SofaReducedOrderUKF name="sofaROUKF" configFile="configuration/confCyl3_770.lua" outputDirectory="result3_770"/>
-	
-<!-- 	<SofaReducedOrderUKF name="newSofaROUKF" template="SofaModelWrapper,MappedPointsObservationManager<Vec3d,Vec3d> >" configFile="configuration/confCyl3_770.lua" outputDirectory="result3_770"/> -->
-	
+		
 	<OptimParams name="paramE" template="Vector" initValue="6000 6000 6000" stdev="2000"/>
 	
         <EulerImplicit name="odeSolver" printLog="false"/>
@@ -50,8 +47,8 @@
 		<MechanicalObject position="0.0 0.0 0.02  0.0 0.0 0.04   0.0 0.0 0.08   0.0 0.0 0.09   0.0 0.0 0.12"/>
 		<Sphere radius="0.002" color="1 0 0"/>
 		<BarycentricMapping/>
-<!-- 		<MappedPointsObservationManager name="MOBS"/> -->
-		<SofaLinearObservationManager name="LinObs"/>
+		<MappedPointsObservationManager name="MOBS"/>
+<!-- 		<SofaLinearObservationManager name="LinObs"/> -->
 	</Node>
 
 <!-- 	<VTKExporter filename="cylinder.vtk" XMLformat="true" listening="true" edges="0" triangles="0" quads="0" tetras="1" exportAtEnd="true"/> -->

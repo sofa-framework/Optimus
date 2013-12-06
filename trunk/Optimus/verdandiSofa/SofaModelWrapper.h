@@ -39,7 +39,6 @@
 #include "../src/OptimParams.h"
 
 #include "VerdandiClasses.h"
-#include "VerdandiROUKFParams.h"
 #include "sofa/component/projectiveconstraintset/FixedConstraint.h"
 
 
@@ -346,7 +345,9 @@ class SOFA_SIMULATION_COMMON_API SofaLinearObservationManager : public Verdandi:
 public:
     typedef typename Verdandi::LinearObservationManager<T> Inherit1;
 
-
+    virtual typename Inherit1::observation& GetInnovation(const typename SofaModelWrapper<double>::state& x) {
+        return Inherit1::GetInnovation(x);
+    }
 };
 
 
@@ -356,6 +357,9 @@ class SOFA_SIMULATION_COMMON_API MappedPointsObservationManager : public SofaLin
 public:
     typedef SofaLinearObservationManager<double> Inherit;
 
+    virtual typename Inherit::observation& GetInnovation(const typename SofaModelWrapper<double>::state& x) {
+        return Inherit::GetInnovation(x);
+    }
 
 };
 

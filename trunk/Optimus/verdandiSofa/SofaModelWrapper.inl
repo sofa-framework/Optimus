@@ -1219,7 +1219,6 @@ template <class Model, class ObservationManager>
 void SofaReducedOrderUKF<Model, ObservationManager>::InitializeFilter() { //VerdandiROUKFParams* _roukfParams) {
     simulation::Node* gnode = dynamic_cast<simulation::Node*>(this->getContext());
 
-
     gnode->get(this->observation_manager_, core::objectmodel::BaseContext::SearchDown);
     if (this->observation_manager_) {
         std::cout << this->getName() << " observation manager found: " << this->observation_manager_->getName() << std::endl;
@@ -1228,7 +1227,7 @@ void SofaReducedOrderUKF<Model, ObservationManager>::InitializeFilter() { //Verd
         return;
     }
 
-    InitializeParams(); //_roukfParams);
+    InitializeParams();
 
     this->model_.Initialize();
     this->observation_manager_->Initialize(this->model_, this->configuration_file_);
@@ -1240,10 +1239,7 @@ void SofaReducedOrderUKF<Model, ObservationManager>::InitializeFilter() { //Verd
 
 template <class Model, class ObservationManager>
 void SofaReducedOrderUKF<Model, ObservationManager>
-::InitializeParams() //VerdandiROUKFParams* _roukfParams)
-{
-    //this->roukfParams = _roukfParams;
-
+::InitializeParams() {
     this->output_directory_ = m_outputDirectory.getValue();
     this->configuration_file_ = m_configFile.getValue();
 
@@ -1266,7 +1262,6 @@ void SofaReducedOrderUKF<Model, ObservationManager>
     std::cout << "Executing: " << comm << std::endl;
     system(comm);
 }
-
 
 
 /*template <class Model, class ObservationManager>
