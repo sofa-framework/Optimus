@@ -69,9 +69,9 @@ void SimulatedStateObservationSource<DataTypes>::init()
     int numPos = parseMonitorFile(posFile);
 
     if (numPos >= 0) {
-        std::cout << this->getName() << ": number of parsed positions: " << numPos << std::endl;
+        std::cout << "[" << this->getName() << "]: number of parsed positions: " << numPos << std::endl;
     } else {
-        std::cerr << this->getName() << ": ERROR: " << numPos << std::endl;
+        std::cerr << "[" << this->getName() << "]: ERROR: " << numPos << std::endl;
     }
 }
 
@@ -107,7 +107,7 @@ int SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _n
 
         nParticles = tokens.size() - tki;
 
-        std::cout << this->getName() << ": number of particles: " << nParticles << std::endl;
+        std::cout << "[" << this->getName() << "]: number of particles: " << nParticles << std::endl;
 
 
         getline(file, line);

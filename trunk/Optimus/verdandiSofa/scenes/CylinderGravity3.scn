@@ -44,11 +44,13 @@
 	<TetrahedronFEMForceField name="FEM" listening="true" updateStiffness="1"  youngModulus="@youngMapper.outputValues" poissonRatio="0.45" method="large"  computeVonMisesStress="0" drawHeterogeneousTetra="1"/>
 <!-- 	<TetrahedronFEMForceField name="FEM" listening="true" updateStiffness="1"  youngModulus="@paramE.value" poissonRatio="0.45" method="large"  computeVonMisesStress="0" drawHeterogeneousTetra="1"/> -->
 	<Node>
-		<MechanicalObject position="0.0 0.0 0.02  0.0 0.0 0.04   0.0 0.0 0.08   0.0 0.0 0.09   0.0 0.0 0.12"/>
+		<MechanicalObject position="@../Volume.position"/>  
+<!-- 		position="0.0 0.0 0.02  0.0 0.0 0.04   0.0 0.0 0.08   0.0 0.0 0.09   0.0 0.0 0.12"/> -->
 		<Sphere radius="0.002" color="1 0 0"/>
 		<BarycentricMapping/>
-		<MappedPointsObservationManager name="MOBS"/>
+		<MappedPointsObservationManager name="MOBS"/>	
 <!-- 		<SofaLinearObservationManager name="LinObs"/> -->
+		<SimulatedStateObservationSource name="ObsSource" monitorPrefix="MON"/>
 	</Node>
 
 <!-- 	<VTKExporter filename="cylinder.vtk" XMLformat="true" listening="true" edges="0" triangles="0" quads="0" tetras="1" exportAtEnd="true"/> -->

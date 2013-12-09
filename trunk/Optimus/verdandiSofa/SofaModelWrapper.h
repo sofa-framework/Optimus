@@ -40,6 +40,10 @@
 
 #include "VerdandiClasses.h"
 #include "sofa/component/projectiveconstraintset/FixedConstraint.h"
+#include "ObservationSource.h"
+#include "SimulatedStateObservationSource.h"
+
+#include "sofa/core/Mapping.h"
 
 
 using namespace sofa::core::objectmodel;
@@ -56,6 +60,44 @@ namespace simulation
  */
 
 enum FilterType { UNDEF, FORWARD, UKF, ROUKF };
+
+template <class Model, class ObservationManager >
+class SOFA_SIMULATION_COMMON_API SofaReducedOrderUKF : public Verdandi::ReducedOrderUnscentedKalmanFilter<Model, ObservationManager>, public sofa::core::objectmodel::BaseObject
+{
+protected:    
+    bool positionInState, velocityInState;
+
+public:            
+    typedef typename Verdandi::ReducedOrderUnscentedKalmanFilter<Model, ObservationManager> Inherit1;
+    typedef typename sofa::core::objectmodel::BaseObject Inherit2;
+
+    Data<std::string> m_outputDirectory, m_configFile, m_sigmaPointType, m_observationErrorVariance;
+    Data<bool> m_saveVQ, m_showIteration, m_showTime, m_analyzeFirstStep, m_withResampling;
+    Data<bool> m_positionInState, m_velocityInState;
+
+    SofaReducedOrderUKF();
+
+    void init();
+
+    void InitializeFilter();
+    void InitializeParams();
+    void InitializeStructures();
+};
+
+
+template <class Model, class ObservationManager >
+class SOFA_SIMULATION_COMMON_API SofaUnscentedKalmanFilter : public Verdandi::UnscentedKalmanFilter<Model, ObservationManager>, public sofa::core::objectmodel::BaseObject
+{
+public:
+};
+
+
+template <class Model>
+class SOFA_SIMULATION_COMMON_API SofaForwardDriver: public Verdandi::ForwardDriver<Model>, public sofa::core::objectmodel::BaseObject
+{
+public:
+};
+
 
 template <class Type>
 class SOFA_SIMULATION_COMMON_API SofaModelWrapper : public Verdandi::VerdandiBase, public sofa::core::objectmodel::BaseObject
@@ -123,7 +165,7 @@ public:
         bool positionInState;
         bool velocityInState;
         double errorVarianceSofaState;
-        bool verbose;        
+        bool verbose;
     } ModelData;
 
     typedef std::pair<OPVector*,helper::vector<size_t> > OPVecInd;
@@ -145,9 +187,9 @@ public:
 
     int current_row_;
     size_t dim_;
-    size_t state_size_;    
+    size_t state_size_;
     size_t reduced_state_size_;
-    size_t reduced_state_index_;    
+    size_t reduced_state_index_;
     size_t applyOpNum;
 
     helper::vector<size_t> listStateBegin;
@@ -225,7 +267,7 @@ public:
     virtual ~SofaModelWrapper();
 
     void setInitStepData(const core::ExecParams* _execParams) {
-        execParams = _execParams;     
+        execParams = _execParams;
     }
 
     void initSimuData(ModelData& _md);
@@ -357,48 +399,17 @@ class SOFA_SIMULATION_COMMON_API MappedPointsObservationManager : public SofaLin
 public:
     typedef SofaLinearObservationManager<double> Inherit;
 
-    virtual typename Inherit::observation& GetInnovation(const typename SofaModelWrapper<double>::state& x) {
-        return Inherit::GetInnovation(x);
-    }
-
-};
-
-
-template <class Model, class ObservationManager >
-class SOFA_SIMULATION_COMMON_API SofaReducedOrderUKF : public Verdandi::ReducedOrderUnscentedKalmanFilter<Model, ObservationManager>, public sofa::core::objectmodel::BaseObject
-{
-protected:    
-    bool positionInState, velocityInState;
-
-public:            
-    typedef typename Verdandi::ReducedOrderUnscentedKalmanFilter<Model, ObservationManager> Inherit1;
-    typedef typename sofa::core::objectmodel::BaseObject Inherit2;
-
-    Data<std::string> m_outputDirectory, m_configFile, m_sigmaPointType, m_observationErrorVariance;
-    Data<bool> m_saveVQ, m_showIteration, m_showTime, m_analyzeFirstStep, m_withResampling;
-    Data<bool> m_positionInState, m_velocityInState;
-
-    SofaReducedOrderUKF();
+    sofa::core::Mapping<DataTypes1, DataTypes2>* mapping;
+    //sofa::component::container::ObservationSource<DataTypes1>* observationSource;
+    sofa::component::container::SimulatedStateObservationSource<DataTypes1> *observationSource;
 
     void init();
 
-    void InitializeFilter();
-    void InitializeParams();
-    void InitializeStructures();
-};
+    virtual typename Inherit::observation& GetInnovation(const typename SofaModelWrapper<double>::state& x);
+    //{
+    //    return Inherit::GetInnovation(x);
+    //}
 
-
-template <class Model, class ObservationManager >
-class SOFA_SIMULATION_COMMON_API SofaUnscentedKalmanFilter : public Verdandi::UnscentedKalmanFilter<Model, ObservationManager>, public sofa::core::objectmodel::BaseObject
-{
-public:
-};
-
-
-template <class Model>
-class SOFA_SIMULATION_COMMON_API SofaForwardDriver: public Verdandi::ForwardDriver<Model>, public sofa::core::objectmodel::BaseObject
-{
-public:
 };
 
 
