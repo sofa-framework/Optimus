@@ -68,6 +68,9 @@ public:
     void init();
 
     int parseMonitorFile(std::string& _name);
+    VecCoord& getObservation(double time) {
+        return(positions[time]);
+    }
 
 
 };

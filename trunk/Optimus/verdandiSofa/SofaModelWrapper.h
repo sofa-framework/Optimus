@@ -390,6 +390,10 @@ public:
     virtual typename Inherit1::observation& GetInnovation(const typename SofaModelWrapper<double>::state& x) {
         return Inherit1::GetInnovation(x);
     }
+
+    virtual void SetTime(SofaModelWrapper<double>& model, double time) {
+        return Inherit1::SetTime(model, time);
+    }
 };
 
 
@@ -406,9 +410,12 @@ public:
     void init();
 
     virtual typename Inherit::observation& GetInnovation(const typename SofaModelWrapper<double>::state& x);
-    //{
-    //    return Inherit::GetInnovation(x);
-    //}
+
+    virtual void SetTime(SofaModelWrapper<double>& model, double time) {
+        std::cout << "Setting time: " << time << std::endl;
+        return Inherit::SetTime(model, time);
+    }
+
 
 };
 

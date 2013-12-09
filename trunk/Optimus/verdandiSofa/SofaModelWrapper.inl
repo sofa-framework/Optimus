@@ -1447,8 +1447,17 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
  MappedPointsObservationManager<DataTypes1,DataTypes2>::Inherit::observation& MappedPointsObservationManager<DataTypes1, DataTypes2>::GetInnovation(const typename SofaModelWrapper<double>::state& x) {
      std::cout << "[" << this->getName() << "]: new get innovation " << std::endl;
 
+     std::cout << this->GetObservation() << std::endl;
 
-     return Inherit::GetInnovation(x);
+     typename DataTypes1::VecCoord& xxx = observationSource->getObservation(this->time_);
+     std::cout << "SIZE: " << xxx.size() << std::endl;
+
+     this->innovation_.Reallocate(this->Nobservation_);
+     this->ApplyOperator(x, this->innovation_);
+     Mlt(double(-1.0), this->innovation_);
+     Add(double(1.0), this->GetObservation(), this->innovation_);
+     std::cout << "SIZE2: " << this->GetObservation().GetSize() << std::endl;
+     return this->innovation_;
  }
 
 
