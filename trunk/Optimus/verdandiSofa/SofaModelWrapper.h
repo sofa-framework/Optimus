@@ -272,6 +272,9 @@ public:
 
     void initSimuData(ModelData& _md);
 
+    SofaObject* getObject(MechStateVec3d *_state);
+    void SetSofaVectorFromVerdandiState(defaulttype::Vec3dTypes::VecCoord & vec, const state& _state, SofaObject *obj);
+
     /// functions propagating state between SOFA and Verdandi
 
     void StateSofa2Verdandi();
@@ -387,6 +390,13 @@ class SOFA_SIMULATION_COMMON_API SofaLinearObservationManager : public Verdandi:
 public:
     typedef typename Verdandi::LinearObservationManager<T> Inherit1;
 
+    Data<double> m_errorVariance;
+
+    SofaLinearObservationManager()
+        : m_errorVariance( initData(&m_errorVariance, double(1.0), "errorVariance", "observation error variance") ) {
+    }
+
+
     virtual typename Inherit1::observation& GetInnovation(const typename SofaModelWrapper<double>::state& x) {
         return Inherit1::GetInnovation(x);
     }
@@ -394,6 +404,25 @@ public:
     virtual void SetTime(SofaModelWrapper<double>& model, double time) {
         return Inherit1::SetTime(model, time);
     }
+
+    virtual int GetNobservation() {
+        return Inherit1::GetNobservation();
+    }
+
+    virtual const typename Inherit1::error_variance& GetErrorVariance() {
+        return Inherit1::GetErrorVariance();
+    }
+
+    virtual const typename Inherit1::error_variance& GetErrorVarianceInverse() {
+        return Inherit1::GetErrorVarianceInverse();
+    }
+
+    virtual void Initialize(SofaModelWrapper<double>& model, std::string confFile) {
+        Inherit1::Initialize(model, confFile);
+
+        return;
+    }
+
 };
 
 
@@ -401,13 +430,34 @@ template <class DataTypes1, class DataTypes2>
 class SOFA_SIMULATION_COMMON_API MappedPointsObservationManager : public SofaLinearObservationManager<double>
 {
 public:
+    typedef typename DataTypes1::Real Real1;
     typedef SofaLinearObservationManager<double> Inherit;
+    typedef core::behavior::MechanicalState<DataTypes1> MasterState;
+    typedef core::behavior::MechanicalState<DataTypes2> MappedState;
+    typedef sofa::core::Mapping<DataTypes1, DataTypes2> Mapping;
+    typedef sofa::component::container::SimulatedStateObservationSource<DataTypes1> ObservationSource;
 
-    sofa::core::Mapping<DataTypes1, DataTypes2>* mapping;
-    //sofa::component::container::ObservationSource<DataTypes1>* observationSource;
-    sofa::component::container::SimulatedStateObservationSource<DataTypes1> *observationSource;
+protected:
+
+    SofaModelWrapper<Real1>* sofaModel;
+    typename SofaModelWrapper<Real1>::SofaObject* sofaObject;
+    size_t masterStateSize;
+    size_t mappedStateSize;
+
+
+public:
+
+    MappedPointsObservationManager()
+        : Inherit() {
+    }
+
+    Mapping* mapping;
+    MappedState* mappedState;
+    MasterState* masterState;
+    ObservationSource *observationSource;
 
     void init();
+    void bwdInit();
 
     virtual typename Inherit::observation& GetInnovation(const typename SofaModelWrapper<double>::state& x);
 
@@ -415,6 +465,41 @@ public:
         std::cout << "Setting time: " << time << std::endl;
         return Inherit::SetTime(model, time);
     }
+
+    virtual int GetNobservation() {
+        return this->Nobservation_;
+    }
+
+    virtual const typename Inherit::error_variance& GetErrorVariance() {
+        return Inherit::GetErrorVariance();
+    }
+
+    virtual const typename Inherit::error_variance& GetErrorVarianceInverse() {
+        return Inherit::GetErrorVarianceInverse();
+    }
+
+    virtual void Initialize(SofaModelWrapper<double>& model, std::string confFile) {
+        Inherit1::Initialize(model, confFile);
+
+
+
+        if (int(masterStateSize) != observationSource->getNParticles()) {
+            std::cerr << this->getName() << " ERROR: number of nodes in master state " << masterStateSize << " and observation source " << observationSource->getNParticles() << " differ!" << std::endl;
+            return;
+        }
+
+        this->error_variance_value_ = m_errorVariance.getValue();
+        this->Nobservation_ = 3*mappedStateSize;
+        this->error_variance_.Reallocate(this->Nobservation_, this->Nobservation_);
+        this->error_variance_.SetIdentity();
+        Mlt(this->error_variance_value_, this->error_variance_);
+        this->error_variance_inverse_.Reallocate(this->Nobservation_, this->Nobservation_);
+        this->error_variance_inverse_.SetIdentity();
+        Mlt(double(double(1.0)/ this->error_variance_value_), this->error_variance_inverse_);
+
+        return;
+    }
+
 
 
 };

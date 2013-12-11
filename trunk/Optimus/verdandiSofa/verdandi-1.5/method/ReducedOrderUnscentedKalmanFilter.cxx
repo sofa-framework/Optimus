@@ -746,6 +746,7 @@ namespace Verdandi
 
         Nobservation_  = observation_manager_->GetNobservation();
 
+
 #if defined(VERDANDI_WITH_MPI)
         if (world_rank_ == 0)
         {

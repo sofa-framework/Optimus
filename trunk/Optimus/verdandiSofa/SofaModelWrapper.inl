@@ -224,7 +224,39 @@ void SofaModelWrapper<Type>::initSimuData(ModelData &_md)
         }
     }
 
+    std::cout << this->getName() << " NUMBER of SOFA objects: " << sofaObjects.size() << std::endl;
+
     numStep = 0;
+}
+
+/*template <class Type>
+void SofaModelWrapper<Type>::VectorSofaToVerdandi() {
+
+}*/
+
+template<class Type>
+typename SofaModelWrapper<Type>::SofaObject* SofaModelWrapper<Type>::getObject(typename SofaModelWrapper<Type>::MechStateVec3d *_state) {
+    for (size_t iop = 0; iop < sofaObjects.size(); iop++) {
+        if (sofaObjects[iop].vecMS == _state) {
+            std::cout << this->getName() << " : found SOFA object " << iop << std::endl;
+            return &sofaObjects[iop];
+        }
+    }
+    return(NULL);
+}
+
+template<class Type>
+void SofaModelWrapper<Type>::SetSofaVectorFromVerdandiState(defaulttype::Vec3dTypes::VecCoord & vec, const state &_state, SofaObject* obj) {
+    vec.clear();
+    typename MechStateVec3d::ReadVecCoord pos = obj->vecMS->readPositions();
+    vec.resize(pos.size());
+    for (size_t i = 0; i < vec.size(); i++)
+        vec[i] = pos[i];
+
+    for (helper::vector<std::pair<size_t, size_t> >::iterator it = obj->positionPairs.begin(); it != obj->positionPairs.end(); it++)
+        for (size_t d = 0; d < dim_; d++)
+            vec[it->first][d] = _state(dim_*it->second + d);
+
 }
 
 template <class Type>
@@ -1440,23 +1472,110 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
          std::cout << "[" << this->getName() << "]: " << "found observation source: " << observationSource->getName() << std::endl;
      } else
          std::cerr << "[" << this->getName() << "]: ERROR no observation source found " << std::endl;
+
+     gnode->get(sofaModel, core::objectmodel::BaseContext::SearchUp);
+     if (sofaModel) {
+         std::cout << "[" << this->getName() << "]: " << "found SOFA model: " << sofaModel->getName() << std::endl;
+     } else
+         std::cerr << "[" << this->getName() << "]: ERROR no SOFA model found " << std::endl;
+
+     gnode->get(mappedState);
+     if (mappedState) {
+         std::cout << "[" << this->getName() << "]: " << "found mapped mechanical state: " << mappedState->getName() << std::endl;
+         typename MappedState::ReadVecCoord mappedPos = mappedState->readPositions();
+         mappedStateSize = mappedPos.size();
+     } else
+         std::cerr << "[" << this->getName() << "]: ERROR no mapped state found " << std::endl;
+
+
+     sofaObject = NULL;
+     masterState = dynamic_cast<MasterState*>(mapping->getFromModel());
+     if (masterState != NULL) {
+         sofaObject = sofaModel->getObject(masterState);
+         typename MasterState::ReadVecCoord masterPos = masterState->readPositions();
+         masterStateSize = masterPos.size();
+     }
+     else
+         std::cerr << this->getName() << "ERROR SOFA MO not found!" << std::endl;
+
+     if (!sofaObject)
+         std::cerr << this->getName() << "ERROR SOFA object not found " << std::endl;
+
+
+
  }
+
+ template <class DataTypes1, class DataTypes2>
+ void MappedPointsObservationManager<DataTypes1, DataTypes2>::bwdInit() {
+ }
+
 
 
  template <class DataTypes1, class DataTypes2>
  MappedPointsObservationManager<DataTypes1,DataTypes2>::Inherit::observation& MappedPointsObservationManager<DataTypes1, DataTypes2>::GetInnovation(const typename SofaModelWrapper<double>::state& x) {
-     std::cout << "[" << this->getName() << "]: new get innovation " << std::endl;
+     //std::cout << "[" << this->getName() << "]: new get innovation " << std::endl;
 
-     std::cout << this->GetObservation() << std::endl;
 
-     typename DataTypes1::VecCoord& xxx = observationSource->getObservation(this->time_);
-     std::cout << "SIZE: " << xxx.size() << std::endl;
+     Data<typename DataTypes1::VecCoord> inputObservationData;
+     Data<typename DataTypes2::VecCoord> mappedObservationData;
 
-     this->innovation_.Reallocate(this->Nobservation_);
-     this->ApplyOperator(x, this->innovation_);
+     typename DataTypes1::VecCoord& inputObservation = *inputObservationData.beginEdit();
+     typename DataTypes2::VecCoord mappedObservation = *mappedObservationData.beginEdit();
+
+     inputObservation = observationSource->getObservation(this->time_);
+     mappedObservation.resize(mappedStateSize);
+
+     mappedObservation = inputObservation;
+     MechanicalParams mp;
+     //mapping->apply(&mp, mappedObservationData, inputObservationData);
+     //mapping->apply(&mp, inputObservationData, mappedObservationData);
+
+
+     std::cout << this->getName() << ": size of mapped observation: " << mappedObservation.size() << std::endl;
+     Inherit::observation actualObs(mappedObservation.size()*3);
+     for (size_t i = 0; i < mappedObservation.size(); i++)
+         for (size_t d = 0; d < 3; d++)
+             actualObs(3*i+d) = mappedObservation[i][d];
+
+     Data<typename DataTypes1::VecCoord> actualStateData;
+     Data<typename DataTypes2::VecCoord> mappedStateData;
+
+     typename DataTypes1::VecCoord& actualState = *actualStateData.beginEdit();
+     typename DataTypes2::VecCoord& mappedState = *mappedStateData.beginEdit();
+
+     mappedState.resize(mappedStateSize);
+     sofaModel->SetSofaVectorFromVerdandiState(actualState, x, sofaObject);
+
+     //mappedState=actualState;
+     mapping->apply(&mp, mappedStateData, actualStateData);
+     //mapping->apply(&mp, actualStateData, mappedStateData);
+
+     //std::cout << actualState << std::endl;
+
+     //std::cout << mappedState2 << std::endl;
+
+
+
+     std::cout << this->getName() << ": size of mapped state: " << mappedState.size() << std::endl;
+     this->innovation_.Reallocate(mappedState.size()*3);
+     for (size_t i = 0; i < mappedState.size(); i++)
+         for (size_t d = 0; d < 3; d++)
+             this->innovation_(3*i+d) = mappedState[i][d];
+
+     //this->innovation_.Reallocate(this->Nobservation_);
+     //this->ApplyOperator(x, this->innovation_);
      Mlt(double(-1.0), this->innovation_);
-     Add(double(1.0), this->GetObservation(), this->innovation_);
-     std::cout << "SIZE2: " << this->GetObservation().GetSize() << std::endl;
+     //Add(double(1.0), this->GetObservation(), this->innovation_);
+     Add(double(1.0), actualObs, this->innovation_);
+     //std::cout << this->getName() << ": innovation updated" << std::endl;
+
+     //std::cout << "ERROR VARIANCE: " << this->error_variance_ << std::endl;
+
+     inputObservationData.endEdit();
+     mappedObservationData.endEdit();
+     actualStateData.endEdit();
+     mappedStateData.endEdit();
+
      return this->innovation_;
  }
 

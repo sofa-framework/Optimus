@@ -55,13 +55,20 @@ public:
     typedef typename DataTypes::VecCoord VecCoord;
     typedef typename std::vector<VecCoord> VecVecCoord;
 
+protected:
+    int nParticles, nStates;
+    double dt;
+
+public:
+
     SimulatedStateObservationSource();
     ~SimulatedStateObservationSource();
 
     Data<std::string> m_monitorPrefix;
 
     /// maps:  time + vector
-    std::map<double, VecCoord> positions;
+    //std::map<double, VecCoord> positions;
+    std::vector<VecCoord> positions;
 
 
 
@@ -69,7 +76,22 @@ public:
 
     int parseMonitorFile(std::string& _name);
     VecCoord& getObservation(double time) {
-        return(positions[time]);
+        int ix = int(time/dt);
+
+        if (ix >= int(positions.size())) {
+            std::cerr << this->getName() << " ERROR: no observation for time " << time << " , using the last one from " << positions.size()-1 << std::endl;
+            ix = positions.size() - 1;
+        }
+
+        return(positions[ix]);
+    }
+
+    int getNParticles() {
+        return nParticles;
+    }
+
+    int getNStates() {
+        return nStates;
     }
 
 

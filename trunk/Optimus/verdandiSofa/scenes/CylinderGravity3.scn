@@ -4,21 +4,16 @@
 	<RequiredPlugin pluginName="SofaPardisoWrapper"/>
 	<RequiredPlugin pluginName="BilikimoAux"/>
 	<VisualStyle displayFlags="showBehaviorModels showForceFields showCollisionModels" />
-		
-<!--  	<VerdandiAnimationLoop name="verdAnimLoop" configFile="configuration/confCyl3_770.lua" filterType="forward" verbose="0" velocityInState="0"/> -->
-<!-- 	<OptimParams name="paramE" template="Vector" initValue="10000 5000 7000"/>  -->
-	
+			
 	<VerdandiAnimationLoop name="verdAnimLoop" configFile="configuration/confCyl3_770.lua" filterType="ROUKF" verbose="0" velocityInState="0" stateErrorVariance="0.01"/>
 	<SofaReducedOrderUKF name="sofaROUKF" configFile="configuration/confCyl3_770.lua" outputDirectory="result3_770"/>
 		
 	<OptimParams name="paramE" template="Vector" initValue="6000 6000 6000" stdev="2000"/>
+<!-- 	<OptimParams name="paramE" template="Vector" initValue="10000 5000 7000"/>  -->
 	
         <EulerImplicit name="odeSolver" printLog="false"/>
-<!-- 	rayleighMass="1" rayleighStiffness="1" /> -->
 	
-<!-- 	<SparseLDLSolver/> -->
 	<SparsePARDISOSolver/>
-<!-- 	<CGLinearSolver/> -->
 
 <!-- 	<MeshVTKLoader filename="cylinder363.vtk" name="loader" /> -->
 	<MeshVTKLoader filename="data/cylinder3_770.vtk" name="loader" />
@@ -43,12 +38,14 @@
 	<Indices2ValuesMapper name="youngMapper" inputValues="@loader.dataset" indices="1 2 3" values="@paramE.value"/>
 	<TetrahedronFEMForceField name="FEM" listening="true" updateStiffness="1"  youngModulus="@youngMapper.outputValues" poissonRatio="0.45" method="large"  computeVonMisesStress="0" drawHeterogeneousTetra="1"/>
 <!-- 	<TetrahedronFEMForceField name="FEM" listening="true" updateStiffness="1"  youngModulus="@paramE.value" poissonRatio="0.45" method="large"  computeVonMisesStress="0" drawHeterogeneousTetra="1"/> -->
-	<Node>
+
+	<Node activated="1">
 		<MechanicalObject position="@../Volume.position"/>  
 <!-- 		position="0.0 0.0 0.02  0.0 0.0 0.04   0.0 0.0 0.08   0.0 0.0 0.09   0.0 0.0 0.12"/> -->
 		<Sphere radius="0.002" color="1 0 0"/>
 		<BarycentricMapping/>
-		<MappedPointsObservationManager name="MOBS"/>	
+<!-- 		<IdentityMapping/> -->
+		<MappedPointsObservationManager name="MOBS" errorVariance="0.01"/>	
 <!-- 		<SofaLinearObservationManager name="LinObs"/> -->
 		<SimulatedStateObservationSource name="ObsSource" monitorPrefix="MON"/>
 	</Node>

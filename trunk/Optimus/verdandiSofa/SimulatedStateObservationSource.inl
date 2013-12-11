@@ -73,14 +73,15 @@ void SimulatedStateObservationSource<DataTypes>::init()
     } else {
         std::cerr << "[" << this->getName() << "]: ERROR: " << numPos << std::endl;
     }
+
 }
 
 template<class DataTypes>
 int SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _name) {
     std::ifstream file(_name.c_str());
 
-    int nParticles = 0;
-    int nStates = 0;
+    nParticles = 0;
+    nStates = 0;
     if (file.good()) {
         /// parse the header of a monitor-generated file:
         std::string line;
@@ -124,18 +125,26 @@ int SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _n
                 return(-4);
             }
 
-            double time = atof(tokens[0].c_str());
+            if (nStates == 0)
+                dt = atof(tokens[0].c_str());
+
+            if (nStates == 1)
+                dt = atof(tokens[0].c_str()) - dt;
 
             VecCoord position(nParticles);
             for (int i = 0; i < nParticles; i++)
                 for (int d = 0; d < 3; d++)
                     position[i][d] = atof(tokens[3*i+d+1].c_str());
 
-            positions[time] = position;
+            //positions[time] = position;
+            positions.push_back(position);
+
+            //std::cout << "Reading # observations for time " << time << " : " << positions[time].size() << std::endl;
+            //std::cout << int(time/0.001d) << std::endl;
 
             /*std::cout << "State at time " << time << std::endl;
             for (int i = 0; i < nParticles; i++)
-                std::cout << position[i] << std::endl;*/
+                std::cout << positions[time][i] << std::endl;*/
 
             nStates++;
 
