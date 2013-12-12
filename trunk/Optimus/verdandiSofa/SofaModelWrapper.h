@@ -497,6 +497,8 @@ public:
         this->error_variance_inverse_.SetIdentity();
         Mlt(double(double(1.0)/ this->error_variance_value_), this->error_variance_inverse_);
 
+        std::cout << this->getName() << " size of observed state: " << this->Nobservation_ << std::endl;
+
         return;
     }
 

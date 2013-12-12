@@ -1513,24 +1513,19 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
 
  template <class DataTypes1, class DataTypes2>
  MappedPointsObservationManager<DataTypes1,DataTypes2>::Inherit::observation& MappedPointsObservationManager<DataTypes1, DataTypes2>::GetInnovation(const typename SofaModelWrapper<double>::state& x) {
-     //std::cout << "[" << this->getName() << "]: new get innovation " << std::endl;
+     std::cout << "[" << this->getName() << "]: new get innovation " << std::endl;
 
 
      Data<typename DataTypes1::VecCoord> inputObservationData;
      Data<typename DataTypes2::VecCoord> mappedObservationData;
 
      typename DataTypes1::VecCoord& inputObservation = *inputObservationData.beginEdit();
-     typename DataTypes2::VecCoord mappedObservation = *mappedObservationData.beginEdit();
-
      inputObservation = observationSource->getObservation(this->time_);
-     mappedObservation.resize(mappedStateSize);
 
-     mappedObservation = inputObservation;
      MechanicalParams mp;
-     //mapping->apply(&mp, mappedObservationData, inputObservationData);
-     //mapping->apply(&mp, inputObservationData, mappedObservationData);
+     mapping->apply(&mp, mappedObservationData, inputObservationData);
 
-
+     typename DataTypes2::VecCoord mappedObservation = *mappedObservationData.beginEdit();
      std::cout << this->getName() << ": size of mapped observation: " << mappedObservation.size() << std::endl;
      Inherit::observation actualObs(mappedObservation.size()*3);
      for (size_t i = 0; i < mappedObservation.size(); i++)
@@ -1546,15 +1541,7 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
      mappedState.resize(mappedStateSize);
      sofaModel->SetSofaVectorFromVerdandiState(actualState, x, sofaObject);
 
-     //mappedState=actualState;
      mapping->apply(&mp, mappedStateData, actualStateData);
-     //mapping->apply(&mp, actualStateData, mappedStateData);
-
-     //std::cout << actualState << std::endl;
-
-     //std::cout << mappedState2 << std::endl;
-
-
 
      std::cout << this->getName() << ": size of mapped state: " << mappedState.size() << std::endl;
      this->innovation_.Reallocate(mappedState.size()*3);
