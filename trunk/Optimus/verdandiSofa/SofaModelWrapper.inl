@@ -451,7 +451,7 @@ void SofaModelWrapper<Type>::StateVerdandi2Sofa() {
 template <class Type>
 void SofaModelWrapper<Type>::Initialize()
 {
-    Verb("initialize");
+    Verb("initialize sofaModelWrapper");
     /// get fixed nodes
 
     /*listStateBegin.resize(listMS3d.size(),size_t(0));
@@ -1222,7 +1222,7 @@ SofaReducedOrderUKF<Model, ObservationManager>::SofaReducedOrderUKF()
     //: Inherit1()
     : Inherit2()
     , m_outputDirectory( initData(&m_outputDirectory, "outputDirectory", "working directory of the filter") )
-    , m_configFile( initData(&m_configFile, "configFile", "lua configuration file (temporary)") )
+    //, m_configFile( initData(&m_configFile, "configFile", "lua configuration file (temporary)") )
     , m_sigmaPointType( initData(&m_sigmaPointType, std::string("star"), "sigmaPointType", "type of sigma points (canonical|star|simplex)") )
     , m_observationErrorVariance( initData(&m_observationErrorVariance, std::string("matrix_inverse"), "observationErrorVariance", "observationErrorVariance") )
     , m_saveVQ( initData(&m_saveVQ, true, "saveVQ", "m_saveVQ") )

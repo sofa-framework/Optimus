@@ -418,9 +418,15 @@ public:
     }
 
     virtual void Initialize(SofaModelWrapper<double>& model, std::string confFile) {
-        Inherit1::Initialize(model, confFile);
+        Verb("initialize sofaLinObsManager");
+        //Inherit1::Initialize(model, confFile);
 
         return;
+    }
+
+    void Verb(string _s) {
+        //if (modelData.verbose)
+            std::cout << "[" << this->getName() << "]: " << _s << std::endl;
     }
 
 };
@@ -478,9 +484,14 @@ public:
         return Inherit::GetErrorVarianceInverse();
     }
 
-    virtual void Initialize(SofaModelWrapper<double>& model, std::string confFile) {
-        Inherit1::Initialize(model, confFile);
+    virtual void Initialize(SofaModelWrapper<double>& /*model*/, std::string /*confFile*/) {
+        Verb("initialize mappedPointsObsManager");
+        //Inherit1::Initialize(model, confFile);
 
+        this->Delta_t_ = 0.001;
+        this->Nskip_= 1;
+        this->initial_time_ = 0.0;
+        this->final_time_ = 1000.0;
 
 
         if (int(masterStateSize) != observationSource->getNParticles()) {

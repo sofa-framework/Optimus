@@ -86,7 +86,7 @@ private :
     SofaReducedOrderUKF<SofaModelWrapper<double>, SofaLinearObservationManager<double> >* roukfDriver;
 
     /// NEW SOFA UKF:
-    SofaReducedOrderUKF<SofaModelWrapper<double>, Verdandi::LinearObservationManager<double> >* roukfDriver2;
+    //SofaReducedOrderUKF<SofaModelWrapper<double>, Verdandi::LinearObservationManager<double> >* roukfDriver2;
 
     FilterType filterType;
     simulation::Node* gnode;  ///< the node controlled by the loop
@@ -95,7 +95,7 @@ private :
 public:
     VerdandiAnimationLoop(simulation::Node* gnode = NULL);
 
-    Data<std::string> _configFile;
+    //Data<std::string> _configFile;
     /*Data<bool> _positionInState;
     Data<bool> _velocityInState;
     Data<double> _stateErrorVarianceState;

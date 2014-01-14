@@ -79,7 +79,7 @@ int VerdandiAnimationLoopClass = core::RegisterObject("The simplest animation lo
 VerdandiAnimationLoop::VerdandiAnimationLoop(simulation::Node* _gnode)
     : Inherit()
     , gnode(_gnode)
-    , _configFile( initData(&_configFile, "configFile", "configuration file for the driver") )            
+    //, _configFile( initData(&_configFile, "configFile", "configuration file for the driver") )
     , _verbose( initData(&_verbose, false, "verbose", "print out traces") )
 {
     assert(gnode);
