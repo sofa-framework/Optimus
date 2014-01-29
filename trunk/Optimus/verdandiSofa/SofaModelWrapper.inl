@@ -345,8 +345,16 @@ void SofaModelWrapper<Type>::StateSofa2Verdandi() {
         for (size_t opi = 0; opi < obj.oparams.size(); opi++) {
             OPVecInd& op = obj.oparams[opi];
             const helper::vector<Type> vecPar = op.first->getValue();
-            for (size_t i = 0; i < op.second.size(); i++)
-                state_(reduced_state_index_ + op.second[i]) = vecPar[i];
+
+            switch (modelData.transformParams) {
+            case 1:
+                for (size_t i = 0; i < op.second.size(); i++)
+                    state_(reduced_state_index_ + op.second[i]) = fabs(vecPar[i]);
+                break;
+            default:
+                for (size_t i = 0; i < op.second.size(); i++)
+                    state_(reduced_state_index_ + op.second[i]) = vecPar[i];
+            }
         }
 
     }
@@ -438,8 +446,18 @@ void SofaModelWrapper<Type>::StateVerdandi2Sofa() {
         for (size_t opi = 0; opi < obj.oparams.size(); opi++) {
             OPVecInd& op = obj.oparams[opi];
             helper::vector<Type> vecPar;
-            for (size_t i = 0; i < op.second.size(); i++)
-                vecPar.push_back(state_(reduced_state_index_ + op.second[i]));
+
+
+            switch (modelData.transformParams) {
+            case 1:
+                for (size_t i = 0; i < op.second.size(); i++)
+                    vecPar.push_back(fabs(state_(reduced_state_index_ + op.second[i])));
+                break;
+            default:
+                for (size_t i = 0; i < op.second.size(); i++)
+                    vecPar.push_back(state_(reduced_state_index_ + op.second[i]));
+            }
+
             op.first->setValue(vecPar);
         }
 
@@ -637,7 +655,7 @@ void SofaModelWrapper<Type>::Initialize()
             if (obj.rigidMS && obj.rigidFC)
                 std::cout << "RigidMO " << obj.rigidMS->getName() << " size: " << obj.rigidMS->getSize() << "  FC size: " << obj.rigidFC->f_indices.getValue().size() << std::endl;
 
-            std::cout << "Num of position pairs: " << obj.positionPairs.size() << " inx: ";
+            /*std::cout << "Num of position pairs: " << obj.positionPairs.size() << " inx: ";
             for (size_t i = 0; i < obj.positionPairs.size(); i++)
                 std::cout << "(" << obj.positionPairs[i].first << "," << obj.positionPairs[i].second << ") ";
             std::cout << std::endl;
@@ -645,7 +663,7 @@ void SofaModelWrapper<Type>::Initialize()
             std::cout << "Num of velocity pairs: " << obj.velocityPairs.size() << " inx: ";
             for (size_t i = 0; i < obj.velocityPairs.size(); i++)
                 std::cout << "(" << obj.velocityPairs[i].first << "," << obj.velocityPairs[i].second << ") ";
-            std::cout << std::endl;
+            std::cout << std::endl;*/
         }
         /// end of print out
     }
@@ -712,8 +730,16 @@ void SofaModelWrapper<Type>::Initialize()
 template <class Type>
 void SofaModelWrapper<Type>::FinalizeStep() {
     std::cout << "Actual parameter values:";
-    for (size_t i = reduced_state_index_; i < state_size_; i++)
-        std::cout << " " << state_(i);
+    switch (modelData.transformParams) {
+    case 1:
+        for (size_t i = reduced_state_index_; i < state_size_; i++)
+            std::cout << " " << fabs(state_(i));
+        break;
+    default:
+        for (size_t i = reduced_state_index_; i < state_size_; i++)
+            std::cout << " " << state_(i);
+    }
+
     std::cout << std::endl;
 }
 
@@ -734,7 +760,7 @@ typename SofaModelWrapper<Type>::state& SofaModelWrapper<Type>::GetState() {
 template <class Type>
 void SofaModelWrapper<Type>::StateUpdated() {
     if (modelData.verbose)
-        std::cout << this->getName() << " :state updated " << std::endl;
+        std::cout << "[" << this->getName() << "]: state updated " << std::endl;
     for (int i = 0; i < state_.GetM(); i++)
         state_(i) = duplicated_state_(i);
     StateVerdandi2Sofa();
@@ -804,7 +830,7 @@ double SofaModelWrapper<Type>::ApplyOperator(state& _x, bool _preserve_state, bo
     }
 
     applyOpNum++;
-    Verb("state updated begin end");
+    Verb("state updated end");
     return new_time;
 }
 
@@ -1232,6 +1258,8 @@ SofaReducedOrderUKF<Model, ObservationManager>::SofaReducedOrderUKF()
     , m_withResampling( initData(&m_withResampling, false, "withResampling", "withResampling") )
     , m_positionInState( initData(&m_positionInState, true, "positionInState", "include position in the non-reduced state") )
     , m_velocityInState( initData(&m_velocityInState, false, "velocityInState", "include position in the non-reduced state") )
+    , m_transformParams( initData(&m_transformParams, 0, "transformParams", "transform estimated params: 0: do nothing, 1: absolute value, 2: quadratic (not implemented)") )
+
 {
 }
 
@@ -1242,6 +1270,7 @@ void SofaReducedOrderUKF<Model, ObservationManager>::init() {
     md.velocityInState = m_velocityInState.getValue();
     md.filterType = ROUKF;
     md.gnode = dynamic_cast<simulation::Node*>(this->getContext());
+    md.transformParams = m_transformParams.getValue();
 
     this->model_.initSimuData(md);
 }
@@ -1520,7 +1549,12 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
      Data<typename DataTypes2::VecCoord> mappedObservationData;
 
      typename DataTypes1::VecCoord& inputObservation = *inputObservationData.beginEdit();
+
+     std::cout << "2 " << observationSource << std::endl;
+
      inputObservation = observationSource->getObservation(this->time_);
+
+     //std::cout << "Apply mapping on observations" << std::endl;
 
      MechanicalParams mp;
      mapping->apply(&mp, mappedObservationData, inputObservationData);
@@ -1564,6 +1598,36 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
      mappedStateData.endEdit();
 
      return this->innovation_;
+ }
+
+ template <class DataTypes1, class DataTypes2>
+ void MappedPointsObservationManager<DataTypes1, DataTypes2>::Initialize(SofaModelWrapper<double>& /*model*/, std::string /*confFile*/) {
+     Verb("initialize mappedPointsObsManager");
+     //Inherit1::Initialize(model, confFile);
+
+     this->Delta_t_ = 0.001;
+     this->Nskip_= 1;
+     this->initial_time_ = 0.0;
+     this->final_time_ = 1000.0;
+
+
+     if (int(masterStateSize) != observationSource->getNParticles()) {
+         std::cerr << this->getName() << " ERROR: number of nodes in master state " << masterStateSize << " and observation source " << observationSource->getNParticles() << " differ!" << std::endl;
+         return;
+     }
+
+     this->error_variance_value_ = m_errorVariance.getValue();
+     this->Nobservation_ = 3*mappedStateSize;
+     this->error_variance_.Reallocate(this->Nobservation_, this->Nobservation_);
+     this->error_variance_.SetIdentity();
+     Mlt(this->error_variance_value_, this->error_variance_);
+     this->error_variance_inverse_.Reallocate(this->Nobservation_, this->Nobservation_);
+     this->error_variance_inverse_.SetIdentity();
+     Mlt(double(double(1.0)/ this->error_variance_value_), this->error_variance_inverse_);
+
+     std::cout << this->getName() << " size of observed state: " << this->Nobservation_ << std::endl;
+
+     return;
  }
 
 

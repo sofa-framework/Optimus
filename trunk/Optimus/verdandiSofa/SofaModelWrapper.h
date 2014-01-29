@@ -31,6 +31,7 @@
 #include <sofa/simulation/common/common.h>
 #include <sofa/simulation/common/Node.h>
 #include <sofa/helper/AdvancedTimer.h>
+#include <sofa/simulation/common/Simulation.h>
 
 #include <sofa/simulation/common/CollisionAnimationLoop.h>
 #include <sofa/component/constraintset/LCPConstraintSolver.h>
@@ -44,6 +45,9 @@
 #include "SimulatedStateObservationSource.h"
 
 #include "sofa/core/Mapping.h"
+#include "sofa/component/topology/TriangleSetTopologyContainer.h"
+
+#include <src/PointProjection.h>
 
 
 using namespace sofa::core::objectmodel;
@@ -74,6 +78,7 @@ public:
     Data<std::string> m_outputDirectory, m_configFile, m_sigmaPointType, m_observationErrorVariance;
     Data<bool> m_saveVQ, m_showIteration, m_showTime, m_analyzeFirstStep, m_withResampling;
     Data<bool> m_positionInState, m_velocityInState;
+    Data<int> m_transformParams;
 
     SofaReducedOrderUKF();
 
@@ -162,6 +167,7 @@ public:
         simulation::Node* gnode;
 
         FilterType filterType;
+        int transformParams;   /// 0: do nothing, 1: take absolute value, 2: quadratic (not implemented)
         bool positionInState;
         bool velocityInState;
         double errorVarianceSofaState;
@@ -384,16 +390,18 @@ public:
     virtual void SetTime(double time) {} //  = 0;
 };*/
 
+
 template <class T>
 class SOFA_SIMULATION_COMMON_API SofaLinearObservationManager : public Verdandi::LinearObservationManager<T>, public sofa::core::objectmodel::BaseObject
 {
-public:
+public:            
     typedef typename Verdandi::LinearObservationManager<T> Inherit1;
 
     Data<double> m_errorVariance;
 
     SofaLinearObservationManager()
-        : m_errorVariance( initData(&m_errorVariance, double(1.0), "errorVariance", "observation error variance") ) {
+        : m_errorVariance( initData(&m_errorVariance, double(1.0), "errorVariance", "observation error variance") )
+    {
     }
 
 
@@ -476,6 +484,114 @@ public:
         return this->Nobservation_;
     }
 
+    virtual const typename Inherit::error_variance& GetErrorVariance() {        
+        return Inherit::GetErrorVariance();
+    }
+
+    virtual const typename Inherit::error_variance& GetErrorVarianceInverse() {        
+        return Inherit::GetErrorVarianceInverse();
+    }
+
+    virtual void Initialize(SofaModelWrapper<double>& /*model*/, std::string /*confFile*/);
+
+};
+
+
+
+template <class DataTypes1, class DataTypes2>
+class SOFA_SIMULATION_COMMON_API ARObservationManager : public SofaLinearObservationManager<double>
+{
+public:
+    SOFA_CLASS(SOFA_TEMPLATE2(ARObservationManager, DataTypes1, DataTypes2), SOFA_TEMPLATE(SofaLinearObservationManager, double));
+
+    typedef typename DataTypes1::Real Real1;
+    typedef typename DataTypes1::VecCoord VecCoord1;
+    typedef SofaLinearObservationManager<double> Inherit;
+    typedef core::behavior::MechanicalState<DataTypes1> MasterState;
+    typedef core::behavior::MechanicalState<DataTypes2> MappedState;
+    typedef sofa::core::Mapping<DataTypes1, DataTypes2> Mapping;
+    typedef sofa::component::container::SimulatedStateObservationSource<DataTypes1> ObservationSource;
+
+    typedef sofa::component::topology::TriangleSetTopologyContainer TriangleContainer;
+
+protected:
+    SingleLink<ARObservationManager<DataTypes1,DataTypes2>, TriangleContainer, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> triangleContainerLink;
+    SingleLink<ARObservationManager<DataTypes1,DataTypes2>, MechanicalState<DataTypes1>, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> triangleMStateLink;
+
+
+    SofaModelWrapper<Real1>* sofaModel;
+    typename SofaModelWrapper<Real1>::SofaObject* sofaObject;
+    size_t masterStateSize;
+    size_t mappedStateSize;
+
+    TriangleContainer* triangleContainer;
+    PointProjection<Real1>* pointProjection;
+    MechanicalState<DataTypes1>* localMState;
+    MechanicalState<DataTypes1>* triangleMState;
+
+
+
+    //SingleLink<ARObservationManager<DataTypes1, DataTypes2>, TriangleContainer, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> triangleTopologyContainer;
+
+
+public:
+
+    TriangleContainer* triaCont;
+    ARObservationManager()
+        : Inherit()
+        , triangleContainerLink(initLink("triangleTopologyContainer", "link to the triangle topology needed for point projection"), triangleContainer)
+        , triangleMStateLink(initLink("triangleMState", "link to the mstate of the surface needed for point projection"), triangleMState)
+    {
+    }
+
+    Mapping* mapping;
+    MappedState* mappedState;
+    MasterState* masterState;
+    ObservationSource *observationSource;
+
+    void init() {
+        this->getContext()->get(localMState);
+
+        if (localMState == NULL)
+            std::cerr << "[" << this->getName() << "]: ERROR: cannot find the local mechanical state" << std::endl;
+        else
+            std::cout << "[" << this->getName() << "]: the local mechanical state name: " << localMState->getName() << std::endl;
+
+        triangleMState = triangleMStateLink.get();
+        if (triangleMState == NULL)
+            std::cerr << "[" << this->getName() << "]: ERROR: cannot find the triangle mechanical state" << std::endl;
+        else
+            std::cout << "[" << this->getName() << "]: the triangle  mechanical state name: " << triangleMState->getName() << std::endl;
+
+        triangleContainer = triangleContainerLink.get();
+        if (triangleContainer == NULL)
+            std::cerr << "[" << this->getName() << "]: ERROR: cannot find the triangle container" << std::endl;
+        else
+            std::cout << "[" << this->getName() << "]: the triangle  container name: " << triangleContainer->getName() << std::endl;
+    }
+
+
+    void bwdInit() {
+        pointProjection = new PointProjection<Real1>(*triangleContainer);
+
+        /// project initially all the points from triangle mstate to the surface and store in the local m-state!
+
+        //const VecCoord1& pX = triangleMState->getX();
+        //const VecCoord1& pX = triangleMState->getX();
+
+
+    }
+
+
+    virtual void SetTime(SofaModelWrapper<double>& model, double time) {
+        std::cout << "Setting time: " << time << std::endl;
+        return Inherit::SetTime(model, time);
+    }
+
+    virtual int GetNobservation() {
+        return this->Nobservation_;
+    }
+
     virtual const typename Inherit::error_variance& GetErrorVariance() {
         return Inherit::GetErrorVariance();
     }
@@ -484,36 +600,9 @@ public:
         return Inherit::GetErrorVarianceInverse();
     }
 
-    virtual void Initialize(SofaModelWrapper<double>& /*model*/, std::string /*confFile*/) {
-        Verb("initialize mappedPointsObsManager");
-        //Inherit1::Initialize(model, confFile);
+    virtual void Initialize(SofaModelWrapper<double>& /*model*/, std::string /*confFile*/) {}
 
-        this->Delta_t_ = 0.001;
-        this->Nskip_= 1;
-        this->initial_time_ = 0.0;
-        this->final_time_ = 1000.0;
-
-
-        if (int(masterStateSize) != observationSource->getNParticles()) {
-            std::cerr << this->getName() << " ERROR: number of nodes in master state " << masterStateSize << " and observation source " << observationSource->getNParticles() << " differ!" << std::endl;
-            return;
-        }
-
-        this->error_variance_value_ = m_errorVariance.getValue();
-        this->Nobservation_ = 3*mappedStateSize;
-        this->error_variance_.Reallocate(this->Nobservation_, this->Nobservation_);
-        this->error_variance_.SetIdentity();
-        Mlt(this->error_variance_value_, this->error_variance_);
-        this->error_variance_inverse_.Reallocate(this->Nobservation_, this->Nobservation_);
-        this->error_variance_inverse_.SetIdentity();
-        Mlt(double(double(1.0)/ this->error_variance_value_), this->error_variance_inverse_);
-
-        std::cout << this->getName() << " size of observed state: " << this->Nobservation_ << std::endl;
-
-        return;
-    }
-
-
+    virtual typename Inherit::observation& GetInnovation(const typename SofaModelWrapper<double>::state& x) {}
 
 };
 
