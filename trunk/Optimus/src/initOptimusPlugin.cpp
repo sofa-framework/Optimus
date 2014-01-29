@@ -90,4 +90,14 @@ SOFA_LINK_CLASS(BubblePackingForceField)
 #ifdef SOFA_HAVE_VERDANDI
 SOFA_LINK_CLASS(VerdandiAnimationLoop)
 SOFA_LINK_CLASS(SofaModelWrapper)
+
+SOFA_LINK_CLASS(SofaLinearObservationManager)
+SOFA_LINK_CLASS(MappedPointsObservationManager)
+SOFA_LINK_CLASS(ARObservationManager)
+
+SOFA_LINK_CLASS(SimulatedStateObservationSource)
+
+SOFA_LINK_CLASS(SofaReducedOrderUKF)
+SOFA_LINK_CLASS(SofaUnscentedKalmanFilter)
+SOFA_LINK_CLASS(SofaForwardDriver)
 #endif
