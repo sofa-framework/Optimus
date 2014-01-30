@@ -1541,7 +1541,8 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
 
 
  template <class DataTypes1, class DataTypes2>
- MappedPointsObservationManager<DataTypes1,DataTypes2>::Inherit::observation& MappedPointsObservationManager<DataTypes1, DataTypes2>::GetInnovation(const typename SofaModelWrapper<double>::state& x) {
+ MappedPointsObservationManager<DataTypes1,DataTypes2>
+ ::Inherit::observation& MappedPointsObservationManager<DataTypes1, DataTypes2>::GetInnovation(const typename SofaModelWrapper<double>::state& x) {
      std::cout << "[" << this->getName() << "]: new get innovation " << std::endl;
 
 

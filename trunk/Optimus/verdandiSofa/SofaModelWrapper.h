@@ -49,6 +49,11 @@
 
 #include <src/PointProjection.h>
 
+#include <sofa/helper/gl/template.h>
+
+#include <sofa/simulation/common/AnimateEndEvent.h>
+#include <sofa/simulation/common/AnimateBeginEvent.h>
+
 
 using namespace sofa::core::objectmodel;
 using namespace sofa::core::behavior;
@@ -506,6 +511,7 @@ public:
 
     typedef typename DataTypes1::Real Real1;
     typedef typename DataTypes1::VecCoord VecCoord1;
+    typedef typename DataTypes1::Coord Coord1;
     typedef SofaLinearObservationManager<double> Inherit;
     typedef core::behavior::MechanicalState<DataTypes1> MasterState;
     typedef core::behavior::MechanicalState<DataTypes2> MappedState;
@@ -513,23 +519,26 @@ public:
     typedef sofa::component::container::SimulatedStateObservationSource<DataTypes1> ObservationSource;
 
     typedef sofa::component::topology::TriangleSetTopologyContainer TriangleContainer;
+    typedef PointProjection<Real1> PointProjection1;
 
 protected:
-    SingleLink<ARObservationManager<DataTypes1,DataTypes2>, TriangleContainer, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> triangleContainerLink;
-    SingleLink<ARObservationManager<DataTypes1,DataTypes2>, MechanicalState<DataTypes1>, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> triangleMStateLink;
+    //SingleLink<ARObservationManager<DataTypes1,DataTypes2>, TriangleContainer, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> triangleContainerLink;
+    //SingleLink<ARObservationManager<DataTypes1,DataTypes2>, MechanicalState<DataTypes1>, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> triangleMStateLink;
+    SingleLink<ARObservationManager<DataTypes1,DataTypes2>, MechanicalState<DataTypes1>, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> featureMStateLink;
 
 
     SofaModelWrapper<Real1>* sofaModel;
     typename SofaModelWrapper<Real1>::SofaObject* sofaObject;
-    size_t masterStateSize;
-    size_t mappedStateSize;
+    //size_t masterStateSize;
+    //size_t mappedStateSize;
 
-    TriangleContainer* triangleContainer;
-    PointProjection<Real1>* pointProjection;
-    MechanicalState<DataTypes1>* localMState;
+    //TriangleContainer* triangleContainer;
+    //PointProjection<Real1>* pointProjection;
+    MechanicalState<DataTypes1>* mappedMState;
+    MechanicalState<DataTypes1>* featureMState;
     MechanicalState<DataTypes1>* triangleMState;
 
-
+    //VecCoord1 projectedFeatures;
 
     //SingleLink<ARObservationManager<DataTypes1, DataTypes2>, TriangleContainer, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> triangleTopologyContainer;
 
@@ -539,8 +548,9 @@ public:
     TriangleContainer* triaCont;
     ARObservationManager()
         : Inherit()
-        , triangleContainerLink(initLink("triangleTopologyContainer", "link to the triangle topology needed for point projection"), triangleContainer)
-        , triangleMStateLink(initLink("triangleMState", "link to the mstate of the surface needed for point projection"), triangleMState)
+        //, triangleContainerLink(initLink("triangleTopologyContainer", "link to the triangle topology needed for point projection"), triangleContainer)
+        //, triangleMStateLink(initLink("triangleMState", "link to the mstate of the surface needed for point projection"), triangleMState)
+        , featureMStateLink(initLink("featureMState", "link to the mstate the moving features"), triangleMState)
     {
     }
 
@@ -550,14 +560,29 @@ public:
     ObservationSource *observationSource;
 
     void init() {
-        this->getContext()->get(localMState);
+        simulation::Node* gnode = dynamic_cast<simulation::Node*>(this->getContext());
+        gnode->get(mapping);
+        if (mapping) {
+            std::cout << "[" << this->getName() << "]: " << "found mapping: " << mapping->getName() << std::endl;
+        } else
+            std::cerr << "[" << this->getName() << "]: ERROR no mapping found " << std::endl;
 
-        if (localMState == NULL)
+        gnode->get(mappedMState);
+        if (mappedMState == NULL)
             std::cerr << "[" << this->getName() << "]: ERROR: cannot find the local mechanical state" << std::endl;
         else
-            std::cout << "[" << this->getName() << "]: the local mechanical state name: " << localMState->getName() << std::endl;
+            std::cout << "[" << this->getName() << "]: the local mechanical state name: " << mappedMState->getName() << std::endl;
 
-        triangleMState = triangleMStateLink.get();
+        featureMState = featureMStateLink.get();
+        if (featureMState == NULL)
+            std::cerr << "[" << this->getName() << "]: ERROR: cannot find the master mechanical state" << std::endl;
+        else
+            std::cout << "[" << this->getName() << "]: the master mechanical state name: " << featureMState->getName() << std::endl;
+
+        if (mappedMState->getSize() != featureMState->getSize())
+            std::cerr << "[" << this->getName() << "]: ERROR: different number of nodes in feature and local states" << std::endl;
+
+        /*triangleMState = triangleMStateLink.get();
         if (triangleMState == NULL)
             std::cerr << "[" << this->getName() << "]: ERROR: cannot find the triangle mechanical state" << std::endl;
         else
@@ -568,20 +593,42 @@ public:
             std::cerr << "[" << this->getName() << "]: ERROR: cannot find the triangle container" << std::endl;
         else
             std::cout << "[" << this->getName() << "]: the triangle  container name: " << triangleContainer->getName() << std::endl;
+
+        pointProjection = new PointProjection<Real1>(*triangleContainer);*/
+
+        /// project initially all the points from triangle mstate to the surface and store in the local m-state!
+
+        /*helper::ReadAccessor<Data<VecCoord1> > trianglePos = *triangleMState->read(sofa::core::VecCoordId::position());
+        helper::ReadAccessor<Data<VecCoord1> > masterPos = *masterMState->read(sofa::core::VecCoordId::position());
+        //helper::WriteAccessor<Data<VecCoord1> > localFreePos = *mappedMState->write(sofa::core::VecCoordId::freePosition());
+        helper::WriteAccessor<Data<VecCoord1> > localPos = *mappedMState->write(sofa::core::VecCoordId::position());
+
+        if (localPos.size() != masterPos.size()) {
+            std::cerr << "[" << this->getName() << "]: ERROR: difference in feature and local state size" << std::endl;
+        }
+
+        projectedFeatures.resize(masterPos.size());
+
+        typename PointProjection1::Index index;
+        typename PointProjection1::Vec3 bary;
+
+        for (size_t i = 0; i < localPos.size(); i++) {
+            Coord1 projectedCoord;
+            pointProjection->ProjectPoint(bary, projectedCoord, index, masterPos[i], trianglePos.ref());
+            localPos[i] = projectedCoord;
+            projectedFeatures[i] = projectedCoord;
+            //localFreePos[i] = projectedCoord;
+            //std::cout << "Point " << i << " projected on triangle " << index << std::endl;
+            //std::cout << "      " << localPos[i] << " => " << projectedCoord << std::endl;
+        }*/
+
+
     }
 
 
     void bwdInit() {
-        pointProjection = new PointProjection<Real1>(*triangleContainer);
-
-        /// project initially all the points from triangle mstate to the surface and store in the local m-state!
-
-        //const VecCoord1& pX = triangleMState->getX();
-        //const VecCoord1& pX = triangleMState->getX();
-
 
     }
-
 
     virtual void SetTime(SofaModelWrapper<double>& model, double time) {
         std::cout << "Setting time: " << time << std::endl;
@@ -600,9 +647,123 @@ public:
         return Inherit::GetErrorVarianceInverse();
     }
 
-    virtual void Initialize(SofaModelWrapper<double>& /*model*/, std::string /*confFile*/) {}
+    virtual void Initialize(SofaModelWrapper<double>& /*model*/, std::string /*confFile*/) {
+        this->Delta_t_ = 0.001;
+        this->Nskip_= 1;
+        this->initial_time_ = 0.0;
+        this->final_time_ = 1000.0;
 
-    virtual typename Inherit::observation& GetInnovation(const typename SofaModelWrapper<double>::state& x) {}
+        this->error_variance_value_ = m_errorVariance.getValue();
+        this->Nobservation_ = 3*mappedMState->getSize();
+        this->error_variance_.Reallocate(this->Nobservation_, this->Nobservation_);
+        this->error_variance_.SetIdentity();
+        Mlt(this->error_variance_value_, this->error_variance_);
+        this->error_variance_inverse_.Reallocate(this->Nobservation_, this->Nobservation_);
+        this->error_variance_inverse_.SetIdentity();
+        Mlt(double(double(1.0)/ this->error_variance_value_), this->error_variance_inverse_);
+
+        std::cout << this->getName() << " size of observed state: " << this->Nobservation_ << std::endl;
+
+        return;
+    }
+
+    virtual typename Inherit::observation& GetInnovation(const typename SofaModelWrapper<double>::state& x) {
+        std::cout << "[" << this->getName() << "]: new get innovation " << std::endl;
+
+        /// the observation already projected on the liver surface => copying to verdandi vector (TODO optimize)
+        helper::ReadAccessor<Data<VecCoord1> > fX = *featureMState->read(sofa::core::VecCoordId::position());
+        Inherit::observation actualObs(fX.size()*3);
+        for (size_t i = 0; i < fX.size(); i++)
+            for (size_t d = 0; d < 3; d++)
+                actualObs(3*i+d) = fX[i][d];
+
+        Data<VecCoord1> actualStateData;
+        Data<VecCoord1> mappedStateData;
+
+        VecCoord1& actualState = *actualStateData.beginEdit();
+        VecCoord1& mappedState = *mappedStateData.beginEdit();
+
+        mappedState.resize(mappedMState->getSize());
+        sofaModel->SetSofaVectorFromVerdandiState(actualState, x, sofaObject);
+
+        MechanicalParams mp;
+        mapping->apply(&mp, mappedStateData, actualStateData);
+
+        //std::cout << this->getName() << ": size of mapped state: " << mappedState.size() << std::endl;
+        this->innovation_.Reallocate(mappedState.size()*3);
+        for (size_t i = 0; i < mappedState.size(); i++)
+            for (size_t d = 0; d < 3; d++)
+                this->innovation_(3*i+d) = mappedState[i][d];
+
+        //this->innovation_.Reallocate(this->Nobservation_);
+        //this->ApplyOperator(x, this->innovation_);
+        Mlt(double(-1.0), this->innovation_);
+        //Add(double(1.0), this->GetObservation(), this->innovation_);
+        Add(double(1.0), actualObs, this->innovation_);
+        //std::cout << this->getName() << ": innovation updated" << std::endl;
+
+        //std::cout << "ERROR VARIANCE: " << this->error_variance_ << std::endl;
+
+        actualStateData.endEdit();
+        mappedStateData.endEdit();
+
+        return this->innovation_;
+
+
+    }
+
+    void handleEvent(core::objectmodel::Event *event) {
+        if (dynamic_cast<sofa::simulation::AnimateBeginEvent *>(event)) {
+            /// update projection: TODO more efficiently by taking into account the previous triangle
+
+            /*helper::ReadAccessor<Data<VecCoord1> > trianglePos = *triangleMState->read(sofa::core::VecCoordId::position());
+            helper::ReadAccessor<Data<VecCoord1> > masterPos = *masterMState->read(sofa::core::VecCoordId::position());
+            //helper::WriteAccessor<Data<VecCoord1> > localPos = *localMState->write(sofa::core::VecCoordId::position());
+            //helper::WriteAccessor<Data<VecCoord1> > localFreePos = *localMState->write(sofa::core::VecCoordId::freePosition());
+
+            typename PointProjection1::Index index;
+            typename PointProjection1::Vec3 bary;
+
+            for (size_t i = 0; i < masterPos.size(); i++) {
+                Coord1 projectedCoord;
+                pointProjection->ProjectPoint(bary, projectedCoord, index, masterPos[i], trianglePos.ref());
+                projectedFeatures[i] = projectedCoord;
+                //localFreePos[i] = projectedCoord;
+                //std::cout << "Point " << i << " projected on triangle " << index << std::endl;
+                //std::cout << "      " << projectedFeatures[i] << " => " << projectedCoord << std::endl;
+            }*/
+
+        } else if (dynamic_cast<sofa::simulation::AnimateEndEvent *>(event)) {
+
+        }
+
+    }
+
+
+    void draw(const core::visual::VisualParams* /*vparams*/) {
+        helper::ReadAccessor<Data<VecCoord1> > fX = *featureMState->read(sofa::core::VecCoordId::position());
+        //helper::ReadAccessor<Data<VecCoord1> > X = *localMState->read(sofa::core::VecCoordId::position());
+
+        /*glDisable(GL_LIGHTING);
+        for (size_t i = 0; i < fX.size(); i++)  {
+            glLineWidth(2.0);
+            glBegin(GL_LINES);
+            glColor4f(1,1,1,1);
+            helper::gl::glVertexT(fX[i]);
+            helper::gl::glVertexT(projectedFeatures[i]);
+            glEnd();
+        }
+
+        glPointSize(10);
+        glColor4f(0.5,0.5,0.3,1.0);
+        glBegin(GL_POINTS);
+        for (size_t i = 0; i < projectedFeatures.size(); i++) {
+            helper::gl::glVertexT(projectedFeatures[i]);
+        }
+        glEnd();
+
+        glEnable(GL_LIGHTING);*/
+    }
 
 };
 
