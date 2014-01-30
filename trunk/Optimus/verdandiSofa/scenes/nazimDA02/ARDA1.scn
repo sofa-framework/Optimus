@@ -9,23 +9,31 @@
 	<VisualStyle displayFlags="showVisualModels hideBehaviorModels hideCollisionModels hideMappings hideForceFields" />
 	<DefaultAnimationLoop />
 	
-	<!-- Control Points (C) -->
+	<VerdandiAnimationLoop name="verdAnimLoop"  verbose="0"/>
+	<SofaReducedOrderUKF name="sofaROUKF" outputDirectory="out" showIteration="1" showTime="1" transformParams="1"/>
+		
 	<Node name="ControlPoints" activated="1">
 		<VisualStyle displayFlags="showCollisionModels"/>
 		<MeshObjLoader name="loader" filename="initC.txt"/>
 		<Mesh src="@loader"/>
 		<Sphere template="Vec3d" radius="1.5" color="0 0 1 1" />
-		<MechanicalObject src="@loader" name="movingC"/>
+		<MechanicalObject src="@loader" name="MO"/>
 		<ReadState filename="movingC.txt" /> 
 		<BoxROI name="ROI" box="-160 -130 -240 250 80 120" drawBoxes="1" />
 	</Node> 
 	
-	<!-- The projected control points on the surface (M) -->
-	<Node name="ProjectedControlPoints" activated="true">
-		<MeshObjLoader name="loader" filename="initM.txt"/>
+	<Node name="Features" activated="1">
+		<VisualStyle displayFlags="showCollisionModels"/>
+		<MeshObjLoader name="loader" filename="initP.txt"/>
+		<Mesh src="@loader"/>
+		<Sphere template="Vec3d" radius="0.8" color="0 1 0 1" />
+		<MechanicalObject src="@loader" name="MO"/>
+		<ReadState filename="movingP.txt" /> 
+		<BoxROI name="ROI" box="-160 -130 -240 250 80 120" drawBoxes="1" />
 	</Node>
 	
 	<Node name="Liver" >
+		<OptimParams name="paramK" template="Vector" initValue="3e6 3e6 3e6 3e6 3e6 3e6 3e6 3e6" stdev="1e6 1e6 1e6 1e6 1e6 1e6 1e6 1e6 "/> 
 		<RegularGrid name="volume" n="8 8 4" min="-160 -130 -240" max="250 80 120" />
 		<EulerImplicit />
 		<SparsePARDISOSolver/>
@@ -75,31 +83,26 @@
 			
 			
 			<!-- springs to minimize between the mapped points (M) and tracked control points (C) -->
-		<Mapped3DoFForceField mappedFEM="Springs/RSFF" mappedMechObject="Springs/MO" mapping="Springs/Bmapping" printLog="1"/>		
-		<Node name="Springs" activated="true">
-			<MechanicalObject name="MO" position="@../../ProjectedControlPoints/loader.position"/>
+		<Mapped3DoFForceField activated="1" mappedFEM="Springs/RSFF" mappedMechObject="Springs/MO" mapping="Springs/Bmapping" printLog="1"/>		
+		<Node name="Springs" activated="1">
+			<MeshObjLoader name="loader" filename="initM.txt"/>
+			<MechanicalObject name="MO" position="@loader.position"/>
 			<VisualStyle displayFlags="showForceFields showCollisionModels" />
 			<Sphere template="Vec3d" radius="1.5" color="1 0 0 1"/>
 			<BarycentricMapping name="Bmapping" input="@../gridDOFs" output="@MO" />
 			<BoxROI name="ROI" box="-160 -130 -240 250 80 120" drawBoxes="true" />
-			<RestShapeSpringsForceField name="RSFF"  stiffness="3e6" external_rest_shape="../../ControlPoints/movingC" external_points="@../../ControlPoints/ROI.indices" points="@ROI.indices" recompute_indices="true" drawSpring="1"/>
+			<RestShapeSpringsForceField name="RSFF"  stiffness="@paramK.value" external_rest_shape="../../ControlPoints/movingC" external_points="@../../ControlPoints/ROI.indices" points="@ROI.indices" recompute_indices="true" drawSpring="1"/>
 		</Node>
 			
-		<Node name="Features" activated="1">
-			<VisualStyle displayFlags="showCollisionModels"/>
-			<MeshObjLoader name="loader" filename="initP.txt"/>
-			<Mesh src="@loader"/>
-			<Sphere template="Vec3d" radius="1.5" color="0 1 0 1" />
-			<MechanicalObject src="@loader" name="movingP"/>
-			<ReadState filename="movingP.txt" /> 
-			<BoxROI name="ROI" box="-160 -130 -240 250 80 120" drawBoxes="1" />
-		</Node>
-		
+	
 		<Node name="Observations" activated="1">
+<!-- 			<MeshObjLoader name="loader" filename="mappedF.txt"/> -->
 			<VisualStyle displayFlags="showCollisionModels"/>
-			<MechanicalObject src="@../Features/loader" name="ObsMO"/>
-			<Sphere template="Vec3d" radius="1.5" color="0.2 0.6 0 1" />
-			<ARObservationManager triangleTopologyContainer="@../liverSurface/Container" triangleMState="@../liverSurface/MO"/>
+			<MechanicalObject src="@../../Features/loader" name="ObsMO"/>
+			<Sphere template="Vec3d" radius="0.8" color="0.8 0.6 0.3 1" />
+<!-- 			<ARObservationManager errorVariance="1" triangleTopologyContainer="@../liverSurface/Container" triangleMState="@../liverSurface/MO" featureMState="@../../Features/MO"  listening="1"/> -->
+			<ARObservationManager errorVariance="1" featureMState="@../../Features/MO"  listening="1"/>
+			<BarycentricMapping/>
 		</Node>
 	</Node>
 </Node>
