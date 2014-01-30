@@ -688,18 +688,18 @@ namespace Verdandi
             //std::cout << "VarProj = " << model_.GetStateErrorVarianceProjector() << std::endl;
 
             if (saveVQ_){
-                typename Model::state_error_variance LL = model_.GetStateErrorVarianceProjector();
-                Seldon::Vector<Ts> LLv(Nreduced_* Nreduced_);
-                for (int i = 0; i < Nreduced_; i++)
-                    for (int j = 0; j < Nreduced_; j++)
-                        LLv(3*i+j) = LL(LL.GetM()-3+i,j);
+                //typename Model::state_error_variance LL = model_.GetStateErrorVarianceProjector();
+                //Seldon::Vector<Ts> LLv(Nreduced_* Nreduced_);
+                //for (int i = 0; i < Nreduced_; i++)
+                //    for (int j = 0; j < Nreduced_; j++)
+                //        LLv(3*i+j) = LL(LL.GetM()-3+i,j);
 
                 //std::cout << "SIZES" << LL.GetN() << " x " << LL.GetM() << " " << Nreduced_ << std::endl;
-                char name[100];
+                //char name[100];
                 //sprintf(name, "%s/roukf-forecast-Lmat.dat", output_directory_.c_str());
                 //output_saver_.WriteText(LL, name);
-                sprintf(name, "%s/roukf-forecast-Lvec.dat", output_directory_.c_str());
-                output_saver_.WriteText(LLv, name);
+                //sprintf(name, "%s/roukf-forecast-Lvec.dat", output_directory_.c_str());
+                //output_saver_.WriteText(LLv, name);
             }
 
 #endif
