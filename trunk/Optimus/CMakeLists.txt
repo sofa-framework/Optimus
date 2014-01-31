@@ -16,11 +16,14 @@ set(HEADER_FILES
 	src/TestingParams.h
 	src/BubblePackingForceField.h
 	src/BubblePackingForceField.inl	
+	src/PointProjection.h
+	src/PointProjection.inl
 	)
 
 set(SOURCE_FILES
 
     	src/initOptimusPlugin.cpp
+	src/PointProjection.cpp
 	src/OptimParams.cpp
 	src/KalmanFilter.cpp
 	src/TestingParams.cpp
@@ -37,6 +40,11 @@ if(${SOFA-EXTERNAL_VERDANDI})
         verdandiSofa/SofaModelWrapper.h
         verdandiSofa/SofaModelWrapper.inl
 	verdandiSofa/VerdandiClasses.h
+	#verdandiSofa/VerdandiROUKFParams.h
+	#verdandiSofa/VerdandiObservationParams.h
+	verdandiSofa/ObservationSource.h
+	verdandiSofa/SimulatedStateObservationSource.h
+	verdandiSofa/SimulatedStateObservationSource.inl
 	${SOFA-EXTERNAL_VERDANDI_PATH}/Verdandi.hxx
 	${SOFA-EXTERNAL_VERDANDI_PATH}/model/QuadraticModel.hxx
 	${SOFA-EXTERNAL_VERDANDI_PATH}/model/ClampedBar.hxx
@@ -161,12 +169,14 @@ if(${SOFA-EXTERNAL_VERDANDI})
         verdandiSofa/VerdandiAnimationLoop.cpp
         verdandiSofa/SofaModelWrapper.cpp
 	verdandiSofa/VerdandiClasses.cpp
+	#verdandiSofa/VerdandiROUKFParams.cpp
+        #verdandiSofa/VerdandiObservationParams.cpp
+        verdandiSofa/SimulatedStateObservationSource.cpp
     )
 
     include_directories(${SOFA-EXTERNAL_VERDANDI_PATH})
     include_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/share)
     include_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include)
-    include_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include/lua/src)
     include_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon)
     include_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/computation/interfaces)
 
@@ -181,7 +191,7 @@ if(${SOFA-EXTERNAL_VERDANDI})
 #    AddLinkerDependencies(SofaCore SofaValidation  ${BlasLapackLib} lua)
 
 #   LINUX:
-    AddLinkerDependencies(SofaCore SofaValidation lua5.1 blas lapack)
+    AddLinkerDependencies(SofaCore SofaValidation lua blas lapack)
     AddLinkerFlags("-Wl,--no-undefined")
 
 endif()

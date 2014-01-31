@@ -40,7 +40,9 @@ class PointProjection
         typedef sofa::component::topology::TriangleSetTopologyContainer::SeqEdges               SeqEdges;
         typedef sofa::component::topology::TriangleSetTopologyContainer::SeqTriangles           SeqTriangles;
 
-        typedef sofa::helper::vector<Vec3>      VecVec3;
+        //typedef sofa::helper::vector<Vec3>      VecVec3;
+        typedef sofa::defaulttype::Vec3dTypes::VecCoord VecVec3;
+        typedef sofa::defaulttype::Vec3dTypes::Coord Coord;
         typedef sofa::helper::vector<Index>     VecIndex;
 
         enum { InvalidID = sofa::core::topology::Topology::InvalidID };
@@ -63,7 +65,7 @@ class PointProjection
          * @param point         Point to project.
          * @param x             Current positions of points in the topology.
          */
-        void ProjectPoint(Vec3 &baryCoords, Index &triangleID,
+        void ProjectPoint(Vec3 &baryCoords, Coord &projectedCoord, Index &triangleID,
             const Vec3 &point, const VecVec3 &x);
 
         /**
@@ -77,7 +79,7 @@ class PointProjection
          * @param x             Current positions of points in the topology.
          * @param triangleList  Indices of triangle to consider for projection.
          */
-        void ProjectPoint(Vec3 &baryCoords, Index &triangleID,
+        void ProjectPoint(Vec3 &baryCoords, Coord &projectedCoord, Index &triangleID,
             const Vec3 &point, const VecVec3 &x, const VecIndex &triangleList);
 
         /**
@@ -164,7 +166,7 @@ class PointProjection
 
     private:
             void ProjectPoint(
-                Vec3 &baryCoords, Index &triangleID,
+                Vec3 &baryCoords, Index &triangleID, Coord &projectedCoord,
                 const Vec3 &point, const VecVec3 &x,
                 Index closestVertex, Index closestEdge, Index closestTriangle,
                 Real minVertex, Real minEdge, Real minTriangle);

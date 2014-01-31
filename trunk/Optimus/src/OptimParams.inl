@@ -40,6 +40,7 @@ OptimParams<DataTypes>::OptimParams()
     , m_max( initData(&m_max, "max", "higher bound for parameter") )
     , m_stdev( initData(&m_stdev, "stdev", "standard variation") )
     , m_optimize( initData(&m_optimize, true, "optimize", "the parameter will be optimized by Verdandi") )
+    , m_numParams( initData(&m_numParams, 1, "numParams", "number of params for vectorial data (input values replicated)") )
 {
 }
 

@@ -45,6 +45,17 @@ template<>
 void OptimParams<sofa::helper::vector<double> >::init() {
     helper::ReadAccessor<Data<sofa::helper::vector<double> > > initVal = m_initVal;
     size_t nInitVal = initVal.size();
+
+    if (nInitVal == 1 && m_numParams.getValue() > 1) {
+        double value = initVal[0];
+        nInitVal = m_numParams.getValue();
+        helper::WriteAccessor<Data<sofa::helper::vector<double> > > wInitVal = m_initVal;
+        wInitVal.wref().resize(nInitVal);
+        for (size_t i = 0; i < nInitVal; i++)
+            wInitVal[i] = value;
+    }
+
+
     if (nInitVal != 0) {
         helper::WriteAccessor<Data<sofa::helper::vector<double> > > val = m_val;
         if (val.size() == 0) {

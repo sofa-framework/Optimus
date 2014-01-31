@@ -134,6 +134,7 @@ protected:
     Data< DataTypes > m_max;
     Data< DataTypes > m_stdev;
     Data< bool > m_optimize;
+    Data< int > m_numParams;
 };
 
 } // container

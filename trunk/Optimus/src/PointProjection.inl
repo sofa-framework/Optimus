@@ -10,7 +10,7 @@ namespace sofa
 {
 
 template <class Real>
-void PointProjection<Real>::ProjectPoint(Vec3 &baryCoords, Index &triangleID,
+void PointProjection<Real>::ProjectPoint(Vec3 &baryCoords, Coord &projectedCoord, Index &triangleID,
     const Vec3 &point, const VecVec3 &x)
 {
     Index closestVertex, closestEdge, closestTriangle;
@@ -29,14 +29,14 @@ void PointProjection<Real>::ProjectPoint(Vec3 &baryCoords, Index &triangleID,
     // Go over triangles
     minTriangle = FindClosestTriangle(closestTriangle, point, x, triangles);
 
-    ProjectPoint(baryCoords, triangleID, point, x,
+    ProjectPoint(baryCoords, triangleID, projectedCoord, point, x,
         closestVertex, closestEdge, closestTriangle,
         minVertex, minEdge, minTriangle);
 }
 
 // --------------------------------------------------------------------------------------
 template <class Real>
-void PointProjection<Real>::ProjectPoint(Vec3 &baryCoords, Index &triangleID,
+void PointProjection<Real>::ProjectPoint(Vec3 &baryCoords, Coord &projectedCoord, Index &triangleID,
     const Vec3 &point, const VecVec3 &x, const VecIndex &triangleList)
 {
     Index closestVertex=InvalidID, closestEdge=InvalidID, closestTriangle=InvalidID;
@@ -95,7 +95,7 @@ void PointProjection<Real>::ProjectPoint(Vec3 &baryCoords, Index &triangleID,
         closestTriangle = triangleList[closestTriangle];
     }
 
-    ProjectPoint(baryCoords, triangleID, point, x,
+    ProjectPoint(baryCoords, triangleID, projectedCoord, point, x,
         closestVertex, closestEdge, closestTriangle,
         minVertex, minEdge, minTriangle);
 }
@@ -197,7 +197,7 @@ void PointProjection<Real>::ComputeBaryCoords(
     baryCoords = mi * Vec3(1, p[0], p[1]);
     if (bConstraint) {
         ConstraintBaryCoords<Real>(baryCoords);
-    }
+    }        
 }
 
 // -----------------------------------------------------------------------------
@@ -317,8 +317,7 @@ Real PointProjection<Real>::FindClosestTriangle(Index& closestTriangle,
 
 // -----------------------------------------------------------------------------
 template <class Real>
-void PointProjection<Real>::ProjectPoint(
-    Vec3 &baryCoords, Index &triangleID,
+void PointProjection<Real>::ProjectPoint(Vec3 &baryCoords, Index &triangleID, Coord &projectedCoord,
     const Vec3 &point, const VecVec3 &x,
     Index closestVertex, Index closestEdge, Index closestTriangle,
     Real minVertex, Real minEdge, Real minTriangle)
@@ -381,6 +380,8 @@ void PointProjection<Real>::ProjectPoint(
             x[ triangles[triangleID][1] ],
             x[ triangles[triangleID][2] ]);
     }
+
+    projectedCoord = x[triangles[triangleID][0]]*baryCoords[0] + x[triangles[triangleID][1]]*baryCoords[1] + x[triangles[triangleID][2]]*baryCoords[2];
 }
 
 
