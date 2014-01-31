@@ -14,39 +14,42 @@
 		
 	<Node name="ControlPoints" activated="1">
 		<VisualStyle displayFlags="showCollisionModels"/>
-		<MeshObjLoader name="loader" filename="initC.txt"/>
+		<MeshObjLoader name="loader" filename="initC.txt" scale3d="0.01 0.01 0.01"/>
 		<Mesh src="@loader"/>
-		<Sphere template="Vec3d" radius="1.5" color="0 0 1 1" />
+		<Sphere template="Vec3d" radius="0.001" color="0 0 1 1" />
 		<MechanicalObject src="@loader" name="MO"/>
-		<ReadState filename="movingC.txt" /> 
-		<BoxROI name="ROI" box="-160 -130 -240 250 80 120" drawBoxes="1" />
+		<ReadState filename="movingC.txt" scalePos="0.01"/> 
+		<BoxROI name="ROI" box="-0.160 -0.130 -0.240 0.250 0.080 0.120" drawBoxes="1" />
 	</Node> 
 	
 	<Node name="Features" activated="1">
 		<VisualStyle displayFlags="showCollisionModels"/>
-		<MeshObjLoader name="loader" filename="initP.txt"/>
+		<MeshObjLoader name="loader" filename="initF.txt"  scale3d="0.01 0.01 0.01"/>
 		<Mesh src="@loader"/>
-		<Sphere template="Vec3d" radius="0.8" color="0 1 0 1" />
+		<Sphere template="Vec3d" radius="0.001" color="0 1 0 1" />
 		<MechanicalObject src="@loader" name="MO"/>
-		<ReadState filename="movingP.txt" /> 
-		<BoxROI name="ROI" box="-160 -130 -240 250 80 120" drawBoxes="1" />
+		<ReadState filename="movingF.txt" scalePos="0.01"/> 
+		<BoxROI name="ROI" box="-0.160 -0.130 -0.240 0.250 0.080 0.120" drawBoxes="1" />
 	</Node>
 	
 	<Node name="Liver" >
-		<OptimParams name="paramK" template="Vector" initValue="3e6 3e6 3e6 3e6 3e6 3e6 3e6 3e6" stdev="1e6 1e6 1e6 1e6 1e6 1e6 1e6 1e6 "/> 
-		<RegularGrid name="volume" n="8 8 4" min="-160 -130 -240" max="250 80 120" />
+		<OptimParams name="paramK" template="Vector" initValue="1e4" stdev="2e3" numParams="11"/> 
+<!-- 		<RegularGrid name="volume" n="8 8 4" min="-160 -130 -240" max="250 80 120" /> -->
+		<RegularGrid name="volume" n="8 12 4" min="-0.12 -0.08 -0.18" max="0.18 0.05 0.08" />
 		<EulerImplicit />
 		<SparsePARDISOSolver/>
 		<!--         <CGLinearSolver iterations="80" tolerance="1e-9" threshold="1e-9" /> -->
 		<MechanicalObject template="Vec3d" name="gridDOFs" />
 		<UniformMass name="mass" totalMass="1.0" />
 		<TetrahedronFEMForceField name="FEM" youngModulus="3e4" poissonRatio="0.45" method="large" />
-		<BoxROI name="ROI" box="-160 -130 -240 250 -120 120" drawBoxes="1" />
+		<BoxROI name="ROI" box="-0.12 -0.08 -0.20 0.18 -0.07 0.10" drawBoxes="1" />
 		<FixedConstraint template="Vec3d" indices="@ROI.indices" drawSize="0"/>
+<!-- 		<BoxROI name="ROI" box="-16.0 -13.0 -24.0 25.0 -12.0 12.0" drawBoxes="1" /> -->
+<!-- 		<FixedConstraint template="Vec3d" indices="@ROI.indices" drawSize="0"/> -->
 		
 		<Node name="liverSurface" activated="1">
 			<VisualStyle displayFlags="showWireframe showCollisionModels" />
-			<MeshObjLoader name="liverLoader" filename="mesh/PPP_SURFACE_Recale.obj" scale3d="15 15 15"/>
+			<MeshObjLoader name="liverLoader" filename="mesh/PPP_SURFACE_Recale.obj"  scale3d="0.01 0.01 0.01"/>
 			<MechanicalObject name="MO" src="@liverLoader"/>
 			<include href="Objects/TriangleSetTopology.xml" src="@liverLoader"/>
 			<Triangle/>
@@ -83,15 +86,15 @@
 			
 			
 			<!-- springs to minimize between the mapped points (M) and tracked control points (C) -->
-		<Mapped3DoFForceField activated="1" mappedFEM="Springs/RSFF" mappedMechObject="Springs/MO" mapping="Springs/Bmapping" printLog="1"/>		
+		<Mapped3DoFForceField mappedFEM="Springs/RSFF" mappedMechObject="Springs/MO" mapping="Springs/Bmapping" printLog="1"/>
 		<Node name="Springs" activated="1">
-			<MeshObjLoader name="loader" filename="initM.txt"/>
-			<MechanicalObject name="MO" position="@loader.position"/>
+			<MeshObjLoader name="loader" filename="mappedC.txt"  scale3d="0.01 0.01 0.01"/>
+			<MechanicalObject name="MO" position="@loader.position" />
 			<VisualStyle displayFlags="showForceFields showCollisionModels" />
-			<Sphere template="Vec3d" radius="1.5" color="1 0 0 1"/>
+			<Sphere template="Vec3d" radius="0.001" color="1 0 0 1"/>
 			<BarycentricMapping name="Bmapping" input="@../gridDOFs" output="@MO" />
-			<BoxROI name="ROI" box="-160 -130 -240 250 80 120" drawBoxes="true" />
-			<RestShapeSpringsForceField name="RSFF"  stiffness="@paramK.value" external_rest_shape="../../ControlPoints/movingC" external_points="@../../ControlPoints/ROI.indices" points="@ROI.indices" recompute_indices="true" drawSpring="1"/>
+			<BoxROI name="ROI" box="-0.160 -0.130 -0.240 0.250 0.080 0.120" drawBoxes="true" />
+			<RestShapeSpringsForceField name="RSFF"  stiffness="@paramK.value" external_rest_shape="../../ControlPoints/MO" external_points="@../../ControlPoints/ROI.indices" points="@ROI.indices" recompute_indices="true" drawSpring="1"/>
 		</Node>
 			
 	
@@ -99,9 +102,9 @@
 <!-- 			<MeshObjLoader name="loader" filename="mappedF.txt"/> -->
 			<VisualStyle displayFlags="showCollisionModels"/>
 			<MechanicalObject src="@../../Features/loader" name="ObsMO"/>
-			<Sphere template="Vec3d" radius="0.8" color="0.8 0.6 0.3 1" />
+			<Sphere template="Vec3d" radius="0.001" color="0.8 0.6 0.3 1" />
 <!-- 			<ARObservationManager errorVariance="1" triangleTopologyContainer="@../liverSurface/Container" triangleMState="@../liverSurface/MO" featureMState="@../../Features/MO"  listening="1"/> -->
-			<ARObservationManager errorVariance="1" featureMState="@../../Features/MO"  listening="1"/>
+			<ARObservationManager errorVariance="0.01" featureMState="@../../Features/MO"  listening="1"/>
 			<BarycentricMapping/>
 		</Node>
 	</Node>
