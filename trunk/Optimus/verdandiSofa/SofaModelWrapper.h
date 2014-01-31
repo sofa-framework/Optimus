@@ -741,7 +741,7 @@ public:
 
 
     void draw(const core::visual::VisualParams* /*vparams*/) {
-        helper::ReadAccessor<Data<VecCoord1> > fX = *featureMState->read(sofa::core::VecCoordId::position());
+        //helper::ReadAccessor<Data<VecCoord1> > fX = *featureMState->read(sofa::core::VecCoordId::position());
         //helper::ReadAccessor<Data<VecCoord1> > X = *localMState->read(sofa::core::VecCoordId::position());
 
         /*glDisable(GL_LIGHTING);
