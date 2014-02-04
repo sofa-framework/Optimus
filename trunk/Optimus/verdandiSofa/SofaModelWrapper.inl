@@ -785,8 +785,8 @@ void SofaModelWrapper<Type>::GetStateCopy(state& _copy) {
 
 template <class Type>
 double SofaModelWrapper<Type>::ApplyOperator(state& _x, bool _preserve_state, bool _update_force)  {
-    Verb("state updated begin");
-    //std::cout << "Apply operator on ";
+    Verb("apply operator begin");
+    std::cout << "Apply operator on ";
     //for (size_t i = 0; i < _x.GetSize(); i++)
     //      std::cout << _x(i) << " ";
     //std::cout << std::endl;
@@ -830,7 +830,7 @@ double SofaModelWrapper<Type>::ApplyOperator(state& _x, bool _preserve_state, bo
     }
 
     applyOpNum++;
-    Verb("state updated end");
+    Verb("apply operator end");
     return new_time;
 }
 
