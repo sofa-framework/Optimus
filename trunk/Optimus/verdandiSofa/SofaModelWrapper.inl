@@ -418,9 +418,16 @@ void SofaModelWrapper<Type>::StateVerdandi2Sofa() {
             typename MechStateVec3d::WriteVecCoord pos = obj.vecMS->writePositions();
             typename MechStateVec3d::WriteVecDeriv vel = obj.vecMS->writeVelocities();
 
-            for (helper::vector<std::pair<size_t, size_t> >::iterator it = obj.positionPairs.begin(); it != obj.positionPairs.end(); it++)
-                for (size_t d = 0; d < dim_; d++)
-                    pos[it->first][d] = state_(dim_*it->second + d);
+            size_t ii = 0;
+            for (helper::vector<std::pair<size_t, size_t> >::iterator it = obj.positionPairs.begin(); it != obj.positionPairs.end(); it++) {
+                for (size_t d = 0; d < dim_; d++) {
+                    pos[it->first][d] = state_(dim_*it->second + d);                    
+                }
+                if (ii < 2)
+                    std::cout << pos[it->first] << " ";
+                ii++;
+            }
+            std::cout << std::endl;
 
             for (helper::vector<std::pair<size_t, size_t> >::iterator it = obj.velocityPairs.begin(); it != obj.velocityPairs.end(); it++)
                 for (size_t d = 0; d < dim_; d++)
@@ -446,6 +453,7 @@ void SofaModelWrapper<Type>::StateVerdandi2Sofa() {
         MechanicalParams mp;
         MechanicalPropagatePositionAndVelocityVisitor(&mp).execute( obj.node );
 
+        std::cout << "Params: " << std::endl;
         for (size_t opi = 0; opi < obj.oparams.size(); opi++) {
             OPVecInd& op = obj.oparams[opi];
             helper::vector<Type> vecPar;
@@ -453,16 +461,22 @@ void SofaModelWrapper<Type>::StateVerdandi2Sofa() {
 
             switch (modelData.transformParams) {
             case 1:
-                for (size_t i = 0; i < op.second.size(); i++)
+                for (size_t i = 0; i < op.second.size(); i++) {
                     vecPar.push_back(fabs(state_(reduced_state_index_ + op.second[i])));
+                    std::cout << vecPar.back() << " ";
+                }
                 break;
             default:
-                for (size_t i = 0; i < op.second.size(); i++)
+                for (size_t i = 0; i < op.second.size(); i++) {
                     vecPar.push_back(state_(reduced_state_index_ + op.second[i]));
+                    std::cout << vecPar.back() << " ";
+                }
             }
+
 
             op.first->setValue(vecPar);
         }
+        std::cout << std::endl;
 
     }
 
@@ -1437,6 +1451,8 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
 
     this->Nreduced_ = this->U_.GetN();
 
+    std::cout << "NSTATE: " << this->Nstate_ << " Nreduced: " << this->Nreduced_ << std::endl;
+
     /*** Sigma-points ***/
 
     typename Inherit1::sigma_point_matrix V_trans;
@@ -1453,6 +1469,8 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
         this->alpha_ = this->D_alpha_(0);
 
     this->Nsigma_point_ = V_trans.GetM();
+
+    std::cout << "NSigma: " << this->Nsigma_point_ << std::endl;
 
     // Initializes transpose of I.
     typename Inherit1::sigma_point_matrix P_alpha_v(this->Nreduced_, this->Nreduced_);
