@@ -576,6 +576,10 @@ namespace Verdandi
 #else
             model_state_error_variance_row x(Nstate_);
             Copy(model_.GetState(), x);
+            std::cout << "BEGIN FORWARD: ";
+            for (size_t i = 0; i < 12; i++)
+                std::cout << model_.state_(i) << " ";
+            std::cout << std::endl;
 
             /*** Sampling ***/
 
@@ -598,6 +602,10 @@ namespace Verdandi
             sigma_point x_col;
             for (int i = 0; i < Nsigma_point_; i++)
                 SetRow(x, i, X_i_trans_);
+
+            std::cout << "XITRANS = " << X_i_trans_.GetM() << " x " << X_i_trans_.GetN() << std::endl;
+            std::cout << "ITRANS = " << I_trans_.GetM() << " x " << I_trans_.GetN() << std::endl;
+            std::cout << "StEVarProj = " << model_.GetStateErrorVarianceProjector().GetM() << " x " << model_.GetStateErrorVarianceProjector().GetN() << std::endl;
 
             MltAdd(Ts(1), SeldonNoTrans, I_trans_, SeldonTrans,
                    model_.GetStateErrorVarianceProjector(),
@@ -686,6 +694,11 @@ namespace Verdandi
                    I_trans_, Ts(0), model_.GetStateErrorVarianceProjector());
 
             //std::cout << "VarProj = " << model_.GetStateErrorVarianceProjector() << std::endl;
+
+            std::cout << "END FORWARD: ";
+            for (size_t i = 0; i < 12; i++)
+                std::cout << model_.state_(i) << " ";
+            std::cout << std::endl;
 
             if (saveVQ_){
                 //typename Model::state_error_variance LL = model_.GetStateErrorVarianceProjector();
@@ -981,6 +994,10 @@ namespace Verdandi
             model_state& x =  model_.GetState();
             MltAdd(Ts(-1), K, z, Ts(1), x);
             model_.StateUpdated();
+            std::cout << "END ANALYZE: ";
+            for (size_t i = 0; i < 12; i++)
+                std::cout << model_.state_(i) << " ";
+            std::cout << std::endl;
 #endif
         }
 
