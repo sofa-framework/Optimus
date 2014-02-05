@@ -19,7 +19,7 @@
 
 	<Node>
 <!-- 		<OptimParams name="paramE" template="Vector" initValue="10000 5000 7000"/>  -->
-		<OptimParams name="paramK" template="Vector" initValue="10 10" stdev="5 5"/> 
+		<OptimParams name="paramK" template="Vector" initValue="10 10" stdev="2 2"/> 
 		
 		<EulerImplicit name="odeSolver" printLog="false"/>
 		
