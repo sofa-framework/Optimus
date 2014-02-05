@@ -409,10 +409,10 @@ void SofaModelWrapper<Type>::StateVerdandi2Sofa() {
         vecPar[i] = state_(j++);
     vecParams->setValue(vecPar);*/
 
-    /// THE LATEST VERSION:
-    //std::cout << "V2S: " << std::endl;
+    /// THE LATEST VERSION:    
     for (size_t iop = 0; iop < sofaObjects.size(); iop++) {
         SofaObject& obj = sofaObjects[iop];
+        std::cout << "Verdandi => Sofa on " << obj.vecMS->getName() <<  std::endl;
 
         if (obj.vecMS != NULL) {
             typename MechStateVec3d::WriteVecCoord pos = obj.vecMS->writePositions();
@@ -442,6 +442,9 @@ void SofaModelWrapper<Type>::StateVerdandi2Sofa() {
                 defaulttype::Rigid3dTypes::setDPos(vel[it->first], rvel);
             }
         }
+
+        MechanicalParams mp;
+        MechanicalPropagatePositionAndVelocityVisitor(&mp).execute( obj.node );
 
         for (size_t opi = 0; opi < obj.oparams.size(); opi++) {
             OPVecInd& op = obj.oparams[opi];
@@ -857,6 +860,8 @@ void SofaModelWrapper<Type>::StepDefault(bool _update_force, bool _update_time) 
 
     double    dt = gnode->getDt();
 
+    //std::cout << "[" << this->getName() << "]: step default begin" << std::endl;
+
     sofa::helper::AdvancedTimer::stepBegin("AnimationStep");
 
     sofa::helper::AdvancedTimer::begin("Animate");
@@ -866,6 +871,7 @@ void SofaModelWrapper<Type>::StepDefault(bool _update_force, bool _update_time) 
 #endif
 
     {
+        //std::cout << "[" << this->getName() << "]: animate begin" << std::endl;
         AnimateBeginEvent ev ( dt );
         PropagateEventVisitor act ( execParams, &ev );
         gnode->execute ( act );
@@ -873,18 +879,22 @@ void SofaModelWrapper<Type>::StepDefault(bool _update_force, bool _update_time) 
 
     double startTime = gnode->getTime();
 
+    //std::cout << "[" << this->getName() << "]: behaviour update position" << std::endl;
     BehaviorUpdatePositionVisitor beh(execParams , dt);
     gnode->execute ( beh );
 
+    //std::cout << "[" << this->getName() << "]: animate" << std::endl;
     AnimateVisitor act(execParams, dt);
     gnode->execute ( act );
 
     if (_update_time) {
+        //std::cout << "[" << this->getName() << "]: update simulation context" << std::endl;
         gnode->setTime ( startTime + dt );
         gnode->execute< UpdateSimulationContextVisitor >(execParams);
     }
 
     {
+        //std::cout << "[" << this->getName() << "]: animate end" << std::endl;
         AnimateEndEvent ev ( dt );
         PropagateEventVisitor act ( execParams, &ev );
         gnode->execute ( act );
@@ -892,9 +902,11 @@ void SofaModelWrapper<Type>::StepDefault(bool _update_force, bool _update_time) 
 
     sofa::helper::AdvancedTimer::stepBegin("UpdateMapping");
     //Visual Information update: Ray Pick add a MechanicalMapping used as VisualMapping
+    //std::cout << "[" << this->getName() << "]: update mapping" << std::endl;
     gnode->execute< UpdateMappingVisitor >(execParams);
     sofa::helper::AdvancedTimer::step("UpdateMappingEndEvent");
     {
+        //std::cout << "[" << this->getName() << "]: update mapping end" << std::endl;
         UpdateMappingEndEvent ev ( dt );
         PropagateEventVisitor act ( execParams , &ev );
         gnode->execute ( act );
@@ -1550,8 +1562,6 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
      Data<typename DataTypes2::VecCoord> mappedObservationData;
 
      typename DataTypes1::VecCoord& inputObservation = *inputObservationData.beginEdit();
-
-     std::cout << "2 " << observationSource << std::endl;
 
      inputObservation = observationSource->getObservation(this->time_);
 
