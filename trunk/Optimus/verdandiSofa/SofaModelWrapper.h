@@ -409,13 +409,24 @@ public:
     {
     }
 
+    void SetTime(double _time) {
+        this->time_ = _time;
+    }
+
+    virtual void SetTime(SofaModelWrapper<double>& /*model*/, double _time) {
+        this->time_ = _time;
+    }
+
+    bool HasObservation() const {
+        return true;
+    }
+
+    bool HasObservation(double time) {
+        return true;
+    }
 
     virtual typename Inherit1::observation& GetInnovation(const typename SofaModelWrapper<double>::state& x) {
         return Inherit1::GetInnovation(x);
-    }
-
-    virtual void SetTime(SofaModelWrapper<double>& model, double time) {
-        return Inherit1::SetTime(model, time);
     }
 
     virtual int GetNobservation() {
@@ -623,6 +634,25 @@ public:
         }*/
 
 
+        gnode->get(sofaModel, core::objectmodel::BaseContext::SearchUp);
+        if (sofaModel) {
+            std::cout << "[" << this->getName() << "]: " << "found SOFA model: " << sofaModel->getName() << std::endl;
+        } else
+            std::cerr << "[" << this->getName() << "]: ERROR no SOFA model found " << std::endl;
+
+        sofaObject = NULL;
+        masterState = dynamic_cast<MasterState*>(mapping->getFromModel());
+        if (masterState != NULL) {
+            sofaObject = sofaModel->getObject(masterState);
+        }
+        else
+            std::cerr << this->getName() << "ERROR SOFA MO not found!" << std::endl;
+
+        if (!sofaObject)
+            std::cerr << this->getName() << "ERROR SOFA object not found " << std::endl;
+        else
+
+            std::cout << this->getName() << "Sofa object found " << std::endl;
     }
 
 
@@ -671,11 +701,12 @@ public:
         std::cout << "[" << this->getName() << "]: new get innovation " << std::endl;
 
         /// the observation already projected on the liver surface => copying to verdandi vector (TODO optimize)
-        helper::ReadAccessor<Data<VecCoord1> > fX = *featureMState->read(sofa::core::VecCoordId::position());
+        helper::ReadAccessor<Data<VecCoord1> > fX = *featureMState->read(sofa::core::VecCoordId::position());        
+
         Inherit::observation actualObs(fX.size()*3);
         for (size_t i = 0; i < fX.size(); i++)
             for (size_t d = 0; d < 3; d++)
-                actualObs(3*i+d) = fX[i][d];
+                actualObs(3*i+d) = fX[i][d];        
 
         Data<VecCoord1> actualStateData;
         Data<VecCoord1> mappedStateData;
@@ -683,11 +714,11 @@ public:
         VecCoord1& actualState = *actualStateData.beginEdit();
         VecCoord1& mappedState = *mappedStateData.beginEdit();
 
-        mappedState.resize(mappedMState->getSize());
-        sofaModel->SetSofaVectorFromVerdandiState(actualState, x, sofaObject);
+        mappedState.resize(mappedMState->getSize());                
+        sofaModel->SetSofaVectorFromVerdandiState(actualState, x, sofaObject);        
 
         MechanicalParams mp;
-        mapping->apply(&mp, mappedStateData, actualStateData);
+        mapping->apply(&mp, mappedStateData, actualStateData);        
 
         //std::cout << this->getName() << ": size of mapped state: " << mappedState.size() << std::endl;
         this->innovation_.Reallocate(mappedState.size()*3);
