@@ -11,7 +11,7 @@
 	<SofaReducedOrderUKF name="sofaROUKF" outputDirectory="output" showIteration="1" showTime="1" transformParams="1"/>
 		
 	<Node name="target">
-		<MechanicalObject name="TargetMO" position="0.0 -0.0029944 0.24062 0.01634 -0.0108 0.1731"/>
+		<MechanicalObject name="TargetMO" position="0.0 -0.0029944 0.24062 0.01634 -0.0108 0.14"/>
 		<Sphere radius="0.002" color="1 0 0"/>
 		<LinearMotionController name="MotionControl1" indices="0" keyDisplacements="0 0 0   0.0 0.12 0.01  0.0 0.0 0.0"  applyOnRestPosition="1" applyOnPosition="1" applyOnFreePosition="1" keyTimeSteps="0 50 50" listening="1" loop="0"/>
 		<LinearMotionController name="MotionControl2" indices="1" keyDisplacements="0 0 0   0.0 -0.12 0.01  0.0 0.0 0.0"  applyOnRestPosition="1" applyOnPosition="1" applyOnFreePosition="1" keyTimeSteps="0 50 50" listening="1" loop="0"/>		
@@ -26,7 +26,7 @@
 		<SparsePARDISOSolver/>
 
 	<!-- 	<MeshVTKLoader filename="cylinder363.vtk" name="loader" /> -->
-		<MeshVTKLoader filename="data/cylinder3_770.vtk" name="loader" />
+		<MeshVTKLoader filename="data/cylinder363.vtk" name="loader" />
 		<MechanicalObject src="@loader" name="Volume" />
 		
 		<include href="Objects/TetrahedronSetTopology.xml" src="@loader" />
@@ -52,7 +52,7 @@
 		
 		<Mapped3DoFForceField mappedFEM="sourcePoints/SourceFF" mappedMechObject="sourcePoints/SourceMO" mapping="sourcePoints/SourceMapping" printLog="1"/>		
 		<Node activated="1" name="sourcePoints">			
-			<MechanicalObject name="SourceMO" position="0.0 -0.0029944 0.24062 0.01634 -0.0108 0.1731"/>
+			<MechanicalObject name="SourceMO" position="0.0 -0.0029944 0.20 0.01634 -0.0108 0.14"/>
 			<Sphere radius="0.001" color="1 1 0.5 1"/>
 			<RestShapeSpringsForceField name="SourceFF" angularStiffness="0" stiffness="@../paramK.value" external_rest_shape="../../target/TargetMO" drawSpring="1" forceDir="forces" numDTAppl="0" startDTAppl="0" listening="1" updateStiffness="1"/>
 			<BarycentricMapping name="SourceMapping"/>
