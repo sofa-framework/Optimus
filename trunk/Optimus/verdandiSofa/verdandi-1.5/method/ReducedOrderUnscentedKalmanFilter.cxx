@@ -603,9 +603,29 @@ namespace Verdandi
             for (int i = 0; i < Nsigma_point_; i++)
                 SetRow(x, i, X_i_trans_);
 
-            std::cout << "XITRANS = " << X_i_trans_.GetM() << " x " << X_i_trans_.GetN() << std::endl;
-            std::cout << "ITRANS = " << I_trans_.GetM() << " x " << I_trans_.GetN() << std::endl;
-            std::cout << "StEVarProj = " << model_.GetStateErrorVarianceProjector().GetM() << " x " << model_.GetStateErrorVarianceProjector().GetN() << std::endl;
+            //std::cout << "XITRANS = " << X_i_trans_.GetM() << " x " << X_i_trans_.GetN() << std::endl;
+            //std::cout << "ITRANS = " << I_trans_.GetM() << " x " << I_trans_.GetN() << std::endl << I_trans_ << std::endl;
+            //std::cout << "StEVarProj = " << model_.GetStateErrorVarianceProjector().GetM() << " x " << model_.GetStateErrorVarianceProjector().GetN() << std::endl;
+
+            //// print error variance projector begin
+            if (0) {
+                model_state_error_variance& m1 = model_.GetStateErrorVarianceProjector();
+                size_t errVarM = model_.GetStateErrorVarianceProjector().GetM();
+                size_t errVarN = model_.GetStateErrorVarianceProjector().GetN();
+                for (size_t i = 0; i < 6; i++) {
+                    for (size_t j = 0; j < errVarN; j++)
+                        std::cout << m1(i,j) << " ";
+                    std::cout << std::endl;
+                }
+                std::cout << " ... FWD BEGIN ... " << std::endl;
+                for (size_t i = errVarM-errVarN; i < errVarM; i++) {
+                    for (size_t j = 0; j < errVarN; j++)
+                        std::cout << m1(i,j) << " ";
+                    std::cout << std::endl;
+                }
+            }
+            //// print error variance projector end
+
 
             MltAdd(Ts(1), SeldonNoTrans, I_trans_, SeldonTrans,
                    model_.GetStateErrorVarianceProjector(),
@@ -669,6 +689,25 @@ namespace Verdandi
 
             U.Resize(Nsigma_point_, Nreduced_);
 
+            //// print error variance projector begin
+            if (0) {
+                model_state_error_variance& m1 = model_.GetStateErrorVarianceProjector();
+                size_t errVarM = model_.GetStateErrorVarianceProjector().GetM();
+                size_t errVarN = model_.GetStateErrorVarianceProjector().GetN();
+                for (size_t i = 0; i < 6; i++) {
+                    for (size_t j = 0; j < errVarN; j++)
+                        std::cout << m1(i,j) << " ";
+                    std::cout << std::endl;
+                }
+                std::cout << " ... FWD 2 ... " << std::endl;
+                for (size_t i = errVarM-errVarN; i < errVarM; i++) {
+                    for (size_t j = 0; j < errVarN; j++)
+                        std::cout << m1(i,j) << " ";
+                    std::cout << std::endl;
+                }
+            }
+            //// print error variance projector end
+
             //std::cout << "Ures = " << U << std::endl;
 
             sigma_point_matrix
@@ -699,6 +738,26 @@ namespace Verdandi
             for (size_t i = 0; i < 12; i++)
                 std::cout << model_.state_(i) << " ";
             std::cout << std::endl;
+            std::cout << "ITRANS = " << I_trans_ << std::endl;
+
+            //// print error variance projector begin
+            if (0) {
+                model_state_error_variance& m1 = model_.GetStateErrorVarianceProjector();
+                size_t errVarM = model_.GetStateErrorVarianceProjector().GetM();
+                size_t errVarN = model_.GetStateErrorVarianceProjector().GetN();
+                for (size_t i = 0; i < 6; i++) {
+                    for (size_t j = 0; j < errVarN; j++)
+                        std::cout << m1(i,j) << " ";
+                    std::cout << std::endl;
+                }
+                std::cout << " ... FWD END ... " << std::endl;
+                for (size_t i = errVarM-errVarN; i < errVarM; i++) {
+                    for (size_t j = 0; j < errVarN; j++)
+                        std::cout << m1(i,j) << " ";
+                    std::cout << std::endl;
+                }
+            }
+            //// print error variance projector end
 
             if (saveVQ_){
                 //typename Model::state_error_variance LL = model_.GetStateErrorVarianceProjector();
@@ -750,6 +809,7 @@ namespace Verdandi
 
         if (!observation_manager_->HasObservation())
         {
+            std::cout << "ANALYZE: NO OBSERVATION ------------------" << std::endl;
 #if defined(VERDANDI_WITH_MPI)
             if (model_task_ == 0)
 #endif
@@ -994,10 +1054,30 @@ namespace Verdandi
             model_state& x =  model_.GetState();
             MltAdd(Ts(-1), K, z, Ts(1), x);
             model_.StateUpdated();
-            std::cout << "END ANALYZE: ";
+            std::cout << "END ANALYZE:  ";
             for (size_t i = 0; i < 12; i++)
                 std::cout << model_.state_(i) << " ";
             std::cout << std::endl;
+
+            //// print error variance projector begin
+            if (0) {
+                model_state_error_variance& m1 = model_.GetStateErrorVarianceProjector();
+                size_t errVarM = model_.GetStateErrorVarianceProjector().GetM();
+                size_t errVarN = model_.GetStateErrorVarianceProjector().GetN();
+                for (size_t i = 0; i < 6; i++) {
+                    for (size_t j = 0; j < errVarN; j++)
+                        std::cout << m1(i,j) << " ";
+                    std::cout << std::endl;
+                }
+                std::cout << " ... ANA END ... " << std::endl;
+                for (size_t i = errVarM-errVarN; i < errVarM; i++) {
+                    for (size_t j = 0; j < errVarN; j++)
+                        std::cout << m1(i,j) << " ";
+                    std::cout << std::endl;
+                }
+            }
+            std::cout << "ITRANS = " << I_trans_ << std::endl;
+            //// print error variance projector end
 #endif
         }
 
