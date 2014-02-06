@@ -246,16 +246,20 @@ typename SofaModelWrapper<Type>::SofaObject* SofaModelWrapper<Type>::getObject(t
 }
 
 template<class Type>
-void SofaModelWrapper<Type>::SetSofaVectorFromVerdandiState(defaulttype::Vec3dTypes::VecCoord & vec, const state &_state, SofaObject* obj) {
+void SofaModelWrapper<Type>::SetSofaVectorFromVerdandiState(defaulttype::Vec3dTypes::VecCoord & vec, const state &_state, SofaObject* obj) {    
     vec.clear();
     typename MechStateVec3d::ReadVecCoord pos = obj->vecMS->readPositions();
     vec.resize(pos.size());
-    for (size_t i = 0; i < vec.size(); i++)
+    for (size_t i = 0; i < vec.size(); i++) {
+        //std::cout << "[" << i << "]: " << pos[i] << std::endl;
         vec[i] = pos[i];
+    }
 
     for (helper::vector<std::pair<size_t, size_t> >::iterator it = obj->positionPairs.begin(); it != obj->positionPairs.end(); it++)
-        for (size_t d = 0; d < dim_; d++)
+        for (size_t d = 0; d < dim_; d++) {
+            //std::cout << "x[" << it->first << "]: " << vec[it->first] << std::endl;
             vec[it->first][d] = _state(dim_*it->second + d);
+        }
 
 }
 
@@ -418,16 +422,16 @@ void SofaModelWrapper<Type>::StateVerdandi2Sofa() {
             typename MechStateVec3d::WriteVecCoord pos = obj.vecMS->writePositions();
             typename MechStateVec3d::WriteVecDeriv vel = obj.vecMS->writeVelocities();
 
-            size_t ii = 0;
+            //size_t ii = 0;
             for (helper::vector<std::pair<size_t, size_t> >::iterator it = obj.positionPairs.begin(); it != obj.positionPairs.end(); it++) {
                 for (size_t d = 0; d < dim_; d++) {
                     pos[it->first][d] = state_(dim_*it->second + d);                    
                 }
-                if (ii < 2)
+                /*if (ii < 2)
                     std::cout << pos[it->first] << " ";
-                ii++;
+                ii++;*/
             }
-            std::cout << std::endl;
+            //std::cout << std::endl;
 
             for (helper::vector<std::pair<size_t, size_t> >::iterator it = obj.velocityPairs.begin(); it != obj.velocityPairs.end(); it++)
                 for (size_t d = 0; d < dim_; d++)
@@ -1589,7 +1593,7 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
      mapping->apply(&mp, mappedObservationData, inputObservationData);
 
      typename DataTypes2::VecCoord mappedObservation = *mappedObservationData.beginEdit();
-     std::cout << this->getName() << ": size of mapped observation: " << mappedObservation.size() << std::endl;
+     //std::cout << this->getName() << ": size of mapped observation: " << mappedObservation.size() << std::endl;
      Inherit::observation actualObs(mappedObservation.size()*3);
      for (size_t i = 0; i < mappedObservation.size(); i++)
          for (size_t d = 0; d < 3; d++)
