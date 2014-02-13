@@ -1,0 +1,185 @@
+﻿<?xml version="1.0"?>
+<Node name="root" dt="0.01" gravity="0 0 0">
+	<RequiredPlugin pluginName="SofaMiscForcefieldDev"/>
+	<RequiredPlugin pluginName="haystackPlugin"/>
+	<RequiredPlugin pluginName="BezierSkeletonization"/>
+	<RequiredPlugin name="AugmentedReality plugin" pluginName="SofaAR" />
+    	<ViewerSetting resolution="960 540" />
+	
+	<VisualStyle displayFlags="hideCollisionModels hideForceFields hideBehaviorModels showVisualModels hideWireframe" />
+		
+	<Node name="treeTopology">
+		<MeshVTKLoader name="loader"  filename="data/portalVeinCenterLines.vtk" scale="0.001 0.001 0.001"/>
+		<Mesh position="@loader.position" edges="@loader.edges"/>
+		<MechanicalObject name="SkeletMO"/>
+		<Line/>
+	</Node>	
+
+	    <Node name="TrackedPoints" activated="true">
+		<MeshObjLoader name="loader" filename="initPc.txt"/>
+		<Mesh src="@loader"/>
+		<Sphere radius="0.001" color="1 0 0 1" />
+		<EulerImplicit />
+		<CGLinearSolver iterations="10" tolerance="1e-9" threshold="1e-9" />
+		<MechanicalObject src="@loader" name="movingDOFs" />
+		<ReadState filename="statePc.state" />
+		<BoxROI name="ROI" box="0 0 0 0.3 0.3 0.3" drawBoxes="0" />
+	    </Node>
+		
+	<Node name="image-liver">
+		<!--<StaticSolver/>
+		<SparseLDLSolver name="precond"/>-->
+		<EulerImplicitSolver/>
+		<CGLinearSolver iterations="25" tolerance="1e-12" threshold="1e-12"/>
+
+		<VisualStyle displayFlags="hideCollisionModels hideForceFields hideMappings hideBehaviorModels showVisualModels hideWireframe" />
+		<MeshVTKLoader name="vloader" filename="data/liver_pir15_12.vtk" flipNormals="false" scale3d="0.001 0.001 0.001"/>
+		<MeshObjLoader name="sloader" filename="data/liver_pir15.obj" scale3d="0.001 0.001 0.001"/>
+		<MeshObjLoader name="vesloader" filename="data/vessels_pir15.obj" scale3d="0.001 0.001 0.001"/>
+		<MeshObjLoader name="tumloader" filename="data/pepite.obj" scale3d="0.001 0.001 0.001"/>
+
+		<TetrahedronSetTopologyContainer name="Container" src="@vloader"/>
+		<TetrahedronSetTopologyModifier name="Modifier"/>
+		<TetrahedronSetTopologyAlgorithms name="TopoAlgo"/>
+		<TetrahedronSetGeometryAlgorithms name="GeomAlgo"/>
+		<MechanicalObject template="Vec3d" name="LiverMO"/>
+		<UniformMass totalmass="0.67" />	
+		<TetrahedronFEMForceField name="FEM" youngModulus="5000" poissonRatio="0.45" method="large" listening="1" />
+
+		<BoxROI name="box2" box="0.070 0.110 0.150 0.170 0.230 0.210" drawBoxes="1"/>
+		<FixedConstraint  indices="@box2.indices"/>
+			
+		<Node name="visual" activated="1">
+			<VisualStyle displayFlags="hideCollisionModels hideForceFields hideMappings hideBehaviorModels showVisualModels hideWireframe" />
+			<Mesh src="@../sloader" name="surface"/>
+			<OglModel name="LiverVisu" color="1  0  0  0.2"/>
+			<BarycentricMapping input="@../LiverMO" output="@LiverVisu"/>
+		</Node>
+
+
+		<Node name="visual2" activated="0">
+			<VisualStyle displayFlags="hideCollisionModels hideForceFields hideMappings hideBehaviorModels showVisualModels hideWireframe" />
+			<Mesh src="@../vesloader" name="surface" />
+			<OglModel name="VesselVisu" color="0 1 0 0.2"/>
+			<BarycentricMapping input="@../LiverMO" output="@VesselVisu"/>
+		</Node>
+
+		<Node name="tumor" activated="1">
+			<VisualStyle displayFlags="hideCollisionModels hideForceFields hideMappings hideBehaviorModels showVisualModels showWireframe" />
+			<Mesh src="@../tumloader" name="tumor" />
+			<OglModel name="TumorVisu" color="0 0 1 1"  translation="0.20 0.18 0.14"/>
+			<BarycentricMapping input="@../LiverMO" output="@TumorVisu"/>
+
+		</Node>
+
+		<!-- attach beams to liver -->
+		<MappedBeamToTetraForceField mappedFEM="PortalVein/BeamFEM" mappedMechObject="PortalVein/BeamMO" mapping="PortalVein/BeamTetraMapping" printLog="1"/>
+		
+		<Node name="PortalVein" activated="1">
+			<VisualStyle displayFlags="hideCollisionModels hideForceFields hideMappings showBehaviorModels showVisualModels hideWireframe" />
+			
+			<BezierSegmentTree name="tree" printLog="1" pointSamplingDistance="0.01"
+				   inputSegmentSizes="@../../treeTopology/loader.PolyLineSubEdges"  inputTopology="@../../treeTopology/loader.Topology" 
+				   inputEdges="@../../treeTopology/loader.edges"   inputPositions="@../../treeTopology/loader.position"/>
+				   
+			<Mesh name="SkeletTopo" position="@tree.position" edges="@tree.edges"/>
+			<MechanicalObject name="BeamMO" template="Rigid" position="@tree.position"/>
+			<UniformMass totalmass="0.027" showAxisSizeFactor="0.004" />
+			<BeamFEMForceField name="BeamFEM" radius="0.003" radiusInner="0.0029"  youngModulus="6.2e6" poissonRatio="0.40"/>
+			<BarycentricMapping name="BeamTetraMapping" input="@../LiverMO" output="@BeamMO"/>
+		</Node>
+
+	       <Node name="TrackedPoints" activated="1">
+		    <VisualStyle displayFlags="showCollisionModels showForceFields" />
+		    <MeshObjLoader name="loader" filename="initPc.txt"/>
+		    <Mesh src="@loader"/>
+		    <MechanicalObject src="@loader" name="movingDOFs" />
+		    <Sphere radius="0.001" color="0 1 1 1"/>
+		    <BoxROI name="ROI" box="0 0 0 0.3 0.3 0.3" drawBoxes="true" />
+		    <BarycentricMapping name="Bmapping" input="@../LiverMO" output="@movingDOFs" />
+		    <RestShapeSpringsForceField name="RSFF" stiffness="5000"  external_rest_shape="../../TrackedPoints/movingDOFs" points="@ROI.indices" external_points="@../../TrackedPoints/ROI.indices" recompute_indices="true" />
+		</Node>
+		
+	</Node>	
+
+
+
+
+
+
+
+
+
+	<Node name="simu-liver" activated="1">
+		<!--<StaticSolver/>-->
+		<!--<SparseLDLSolver name="precond"/>-->
+		<EulerImplicitSolver/>
+		<CGLinearSolver iterations="25" tolerance="1e-12" threshold="1e-12"/>
+
+
+		<MeshVTKLoader name="vloader" filename="data/liver_pir15_12.vtk" flipNormals="false" scale3d="0.001 0.001 0.001"/>
+		<MeshObjLoader name="sloader" filename="data/liver_pir15.obj" scale3d="0.001 0.001 0.001"/>
+		<MeshObjLoader name="vesloader" filename="data/vessels_pir15.obj" scale3d="0.001 0.001 0.001"/>
+		<MeshObjLoader name="tumloader" filename="data/pepite.obj" scale3d="0.001 0.001 0.001"/>
+
+		<TetrahedronSetTopologyContainer name="Container" src="@vloader"/>
+		<TetrahedronSetTopologyModifier name="Modifier"/>
+		<TetrahedronSetTopologyAlgorithms name="TopoAlgo"/>
+		<TetrahedronSetGeometryAlgorithms name="GeomAlgo"/>
+		<MechanicalObject template="Vec3d" name="LiverMO"/>
+		<UniformMass totalmass="0.67" />	
+		<TetrahedronFEMForceField name="FEM" youngModulus="5000" poissonRatio="0.45" method="large" listening="1" />
+
+		<BoxROI name="box2" box="0.070 0.110 0.150 0.170 0.230 0.210" drawBoxes="1"/>
+		<FixedConstraint  indices="@box2.indices"/>
+
+	        <!-- JUST TO SEE HOW MUCH FORCE NEEDS TO BE APPLIED -->
+		<!-- <BoxROI name="boxForce" box="0.100 0.120 0.0 0.120 0.220 0.06" drawBoxes="1"/>-->
+	        <BoxConstantForceField box="0.200 0.120 0.140 0.270 0.220 0.190" force="0.0 0.0 -0.05" arrowSizeCoef="0" />
+	        <!-- <BoxConstantForceField box="0.100 0.120 0.0 0.120 0.220 0.06" force="0.08 0.0 -0.08" arrowSizeCoef="0" />-->
+	        <!-- <BoxConstantForceField box="550 -115 500 600 -110 600" force="1000 1e6 25000" arrowSizeCoef="0" /> -->
+			
+		<Node name="visual" activated="1">
+			<VisualStyle displayFlags="hideCollisionModels hideForceFields hideMappings hideBehaviorModels showVisualModels hideWireframe" />
+			<Mesh src="@../sloader" name="surface"/>
+			<OglModel name="LiverVisu" color="0  0  1  0.2"/>
+			<BarycentricMapping input="@../LiverMO" output="@LiverVisu"/>
+		</Node>
+
+
+		<Node name="visual2" activated="0">
+			<VisualStyle displayFlags="hideCollisionModels hideForceFields hideMappings hideBehaviorModels showVisualModels hideWireframe" />
+			<Mesh src="@../vesloader" name="surface" />
+			<OglModel name="VesselVisu" color="0 1 0 0.2"/>
+			<BarycentricMapping input="@../LiverMO" output="@VesselVisu"/>
+		</Node>
+
+		<Node name="tumor" activated="1">
+			<VisualStyle displayFlags="hideCollisionModels hideForceFields hideMappings hideBehaviorModels showVisualModels showWireframe" />
+			<Mesh src="@../tumloader" name="tumor" />
+			<OglModel name="TumorVisu" color="1 1 0 1"  translation="0.20 0.18 0.14"/>
+			<BarycentricMapping input="@../LiverMO" output="@TumorVisu"/>
+
+		</Node>
+
+		<!-- attach beams to liver -->
+		<MappedBeamToTetraForceField mappedFEM="PortalVein/BeamFEM" mappedMechObject="PortalVein/BeamMO" mapping="PortalVein/BeamTetraMapping" printLog="1"/>
+		
+		<Node name="PortalVein" activated="1">
+			<VisualStyle displayFlags="hideCollisionModels hideForceFields hideMappings showBehaviorModels showVisualModels hideWireframe" />
+			
+			<BezierSegmentTree name="tree" printLog="1" ointSamplingDistance="0.010"
+				   inputSegmentSizes="@../../treeTopology/loader.PolyLineSubEdges"  inputTopology="@../../treeTopology/loader.Topology" 
+				   inputEdges="@../../treeTopology/loader.edges"   inputPositions="@../../treeTopology/loader.position"/>
+				   
+			<Mesh name="SkeletTopo" position="@tree.position" edges="@tree.edges"/>
+			<MechanicalObject name="BeamMO" template="Rigid" position="@tree.position"/>
+			<UniformMass totalmass="0.027" showAxisSizeFactor="0.004" />
+			<BeamFEMForceField name="BeamFEM" radius="0.003" radiusInner="0.0029"  youngModulus="6.2e6" poissonRatio="0.40"/>
+			<BarycentricMapping name="BeamTetraMapping" input="@../LiverMO" output="@BeamMO"/>
+		</Node>
+		
+	</Node>	
+        </Node>
+
+</Node>
