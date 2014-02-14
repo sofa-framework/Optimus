@@ -33,9 +33,9 @@
 	</Node>
 	
 	<Node name="Liver" >
-		<OptimParams name="paramK" template="Vector" initValue="1e7" stdev="5e6" numParams="3"/>
+		<OptimParams name="paramK" template="Vector" initValue="1e2" stdev="1e7" numParams="3"/>
 <!-- 		<RegularGrid name="volume" n="8 8 4" min="-160 -130 -240" max="250 80 120" /> -->
-		<RegularGrid name="volume" n="8 12 4" min="-0.12 -0.08 -0.18" max="0.18 0.05 0.08" />
+		<RegularGrid name="volume" n="8 10 8" min="-0.12 -0.08 -0.18" max="0.18 0.05 0.08" />
 		<EulerImplicit />
 		<SparsePARDISOSolver/>
 		<!--         <CGLinearSolver iterations="80" tolerance="1e-9" threshold="1e-9" /> -->
@@ -105,7 +105,7 @@
 			<MechanicalObject src="@loader" name="ObsMO"/>
 			<Sphere template="Vec3d" radius="0.001" color="0.8 0.6 0.3 1" />
 <!-- 			<ARObservationManager errorVariance="1" triangleTopologyContainer="@../liverSurface/Container" triangleMState="@../liverSurface/MO" featureMState="@../../Features/MO"  listening="1"/> -->
-			<ARObservationManager errorVariance="0.1" featureMState="@../../Features/MO"  listening="1"/>
+			<ARObservationManager errorVariance="0.01" featureMState="@../../Features/MO"  listening="1"/>
 			<BarycentricMapping/>
 		</Node>
 	</Node>
