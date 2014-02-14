@@ -1570,6 +1570,17 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
 
  template <class DataTypes1, class DataTypes2>
  void MappedPointsObservationManager<DataTypes1, DataTypes2>::bwdInit() {
+     typename DataTypes1::VecCoord& inputObservation = *inputObservationData.beginEdit();
+
+     inputObservation = observationSource->getObservation(0.0);
+
+     //std::cout << "Apply mapping on observations" << std::endl;
+
+     MechanicalParams mp;
+     mapping->apply(&mp, mappedObservationData, inputObservationData);
+
+     noise.clear();
+     noise.resize(3*mappedObservationData.getValue().size());
  }
 
 
@@ -1580,8 +1591,8 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
      std::cout << "[" << this->getName() << "]: new get innovation " << std::endl;
 
 
-     Data<typename DataTypes1::VecCoord> inputObservationData;
-     Data<typename DataTypes2::VecCoord> mappedObservationData;
+     //Data<typename DataTypes1::VecCoord> inputObservationData;
+     //Data<typename DataTypes2::VecCoord> mappedObservationData;
 
      typename DataTypes1::VecCoord& inputObservation = *inputObservationData.beginEdit();
 
@@ -1592,12 +1603,17 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
      MechanicalParams mp;
      mapping->apply(&mp, mappedObservationData, inputObservationData);
 
-     typename DataTypes2::VecCoord mappedObservation = *mappedObservationData.beginEdit();
+     //typename DataTypes2::VecCoord mappedObservation = *mappedObservationData.beginEdit();
+
+     sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > mappedObservation = mappedObservationData;
+
      //std::cout << this->getName() << ": size of mapped observation: " << mappedObservation.size() << std::endl;
      Inherit::observation actualObs(mappedObservation.size()*3);
      for (size_t i = 0; i < mappedObservation.size(); i++)
-         for (size_t d = 0; d < 3; d++)
+         for (size_t d = 0; d < 3; d++) {
+             mappedObservation[i][d] += noise[3*i+d];
              actualObs(3*i+d) = mappedObservation[i][d];
+         }
 
      Data<typename DataTypes1::VecCoord> actualStateData;
      Data<typename DataTypes2::VecCoord> mappedStateData;
@@ -1617,18 +1633,24 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
              this->innovation_(3*i+d) = mappedState[i][d];
 
      //this->innovation_.Reallocate(this->Nobservation_);
-     //this->ApplyOperator(x, this->innovation_);
-     Mlt(double(-1.0), this->innovation_);
-     //Add(double(1.0), this->GetObservation(), this->innovation_);
-     Add(double(1.0), actualObs, this->innovation_);
+     //this->ApplyOperator(x, this->innovation_);     
+     //Inherit::observation predObs  = this->innovation_;
+     Mlt(double(-1.0), this->innovation_);     
+     //Add(double(1.0), this->GetObservation(), this->innovation_);     
+     Add(double(1.0), actualObs, this->innovation_);     
      //std::cout << this->getName() << ": innovation updated" << std::endl;
+
+     //for (size_t i = 0; i < this->innovation_.GetM(); i++)
+     //    std::cout << actualObs(i) << " " << predObs(i) << " " << this->innovation_(i) << std::endl;
 
      //std::cout << "ERROR VARIANCE: " << this->error_variance_ << std::endl;
 
      inputObservationData.endEdit();
-     mappedObservationData.endEdit();
+     //mappedObservationData.endEdit();
      actualStateData.endEdit();
      mappedStateData.endEdit();
+
+     //std::cout << "MPP: " << mappedObservationData.getValue() << std::endl;
 
      return this->innovation_;
  }

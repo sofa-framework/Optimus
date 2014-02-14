@@ -478,13 +478,22 @@ protected:
 public:
 
     MappedPointsObservationManager()
-        : Inherit() {
+        : Inherit()
+        , actualTime(-1.0)
+        , inputObservationData( initData (&inputObservationData, "observations", "observations read from a file") )
+        , mappedObservationData( initData (&mappedObservationData, "mappedObservations", "mapped observations") )
+    {
     }
 
     Mapping* mapping;
     MappedState* mappedState;
     MasterState* masterState;
     ObservationSource *observationSource;
+    double actualTime;
+    Data<typename DataTypes1::VecCoord> inputObservationData;
+    Data<typename DataTypes2::VecCoord> mappedObservationData;
+
+    helper::vector<double> noise;
 
     void init();
     void bwdInit();
@@ -509,6 +518,35 @@ public:
     }
 
     virtual void Initialize(SofaModelWrapper<double>& /*model*/, std::string /*confFile*/);
+
+    virtual void handleEvent(core::objectmodel::Event *event) {
+        if (dynamic_cast<sofa::simulation::AnimateBeginEvent *>(event))
+        {
+            if (this->getContext()->getTime() == actualTime)
+                return;
+            actualTime = this->getContext()->getTime();
+
+            std::cout << "Generate noise in the observations in time " << actualTime << std::endl;
+
+
+            srand(time(NULL));
+            for (size_t i = 0; i < 3*mappedObservationData.getValue().size(); i++) {
+                double sgn = (rand()%2 == 0) ? -1.0 : 1.0;
+                if ( i == 19 ||  i == 3) {
+                //if (i == 10 || i == 21) {
+                    if (noise[i] > -0.15)
+                        noise[i] -= double(rand()%1000)/double(100000);
+                    else
+                        noise[i] += double(rand()%1000)/double(100000);
+                }
+                else {
+                    noise[i] = sgn*double(rand()%1000)/double(100000);
+                }
+            }
+            std::cout << noise << std::endl;
+
+        }
+    }
 
 };
 
@@ -728,12 +766,16 @@ public:
 
         //this->innovation_.Reallocate(this->Nobservation_);
         //this->ApplyOperator(x, this->innovation_);
+        Inherit::observation predObs  = this->innovation_;
         Mlt(double(-1.0), this->innovation_);
         //Add(double(1.0), this->GetObservation(), this->innovation_);
         Add(double(1.0), actualObs, this->innovation_);
         //std::cout << this->getName() << ": innovation updated" << std::endl;
 
         //std::cout << "ERROR VARIANCE: " << this->error_variance_ << std::endl;
+
+        for (size_t i = 0; i < this->innovation_.GetM(); i++)
+            std::cout << actualObs(i) << " " << predObs(i) << " " << this->innovation_(i) << std::endl;
 
         actualStateData.endEdit();
         mappedStateData.endEdit();
