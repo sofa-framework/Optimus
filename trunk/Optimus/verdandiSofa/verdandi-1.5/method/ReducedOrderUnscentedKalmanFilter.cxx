@@ -49,6 +49,7 @@ namespace Verdandi
     ::ReducedOrderUnscentedKalmanFilter()
     {
         observation_manager_ = new ObservationManager;
+        step = 0;
 #ifndef VERDANDI_WITH_MPI
         MessageHandler::AddRecipient("model", model_, Model::StaticMessage);
         MessageHandler::AddRecipient("observation_manager",
@@ -1050,8 +1051,21 @@ namespace Verdandi
             Mlt(model_.GetStateErrorVarianceProjector(),
                 working_matrix_po2, K);
 
+            /*{
+                char name[100];
+                sprintf(name, "out/K_%03d.txt", step);
+                std::ofstream f;
+                f.open(name);
+                f << K << std::endl;
+                f.close();
+                sprintf(name, "out/z_%03d.txt", step);
+                f.open(name);
+                f << z << std::endl;
+                f.close();
+            }*/
+
             // Updates.
-            model_state& x =  model_.GetState();
+            model_state& x =  model_.GetState();                        
             MltAdd(Ts(-1), K, z, Ts(1), x);
             model_.StateUpdated();
             std::cout << "END ANALYZE:  ";
@@ -1091,6 +1105,7 @@ namespace Verdandi
         MessageHandler::Send(*this, "driver" + to_str(world_rank_), "analysis");
 #endif
         MessageHandler::Send(*this, "all", "::Analyze end");
+        step++;
     }
 
 

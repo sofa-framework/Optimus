@@ -166,6 +166,7 @@ namespace Verdandi
         Ts alpha_;
         //! Number of sigma-points.
         int Nsigma_point_;
+        int step;
 
 #if defined(VERDANDI_WITH_MPI)
         //! The rank in MPI_COMM_WORLD.
