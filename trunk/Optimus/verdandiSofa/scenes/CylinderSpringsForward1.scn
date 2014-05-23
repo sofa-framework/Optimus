@@ -12,7 +12,7 @@
 <!-- 		<MechanicalObject name="TargetMO" position="0.0 -0.0029944 0.24062 0.012122 0.0049707 0.24 -0.0054268 0.010285 0.24 0.0047787 -0.01346 0.24"/> -->
 		<Sphere radius="0.002" color="1 0 0"/>
 <!-- 		<BarycentricMapping/> -->
-		<LinearMotionController name="MotionControl1" indices="0" keyDisplacements="0 0 0   0.0 0.10 0.01    0.0 0.05 0.0   0.0 0.15 0.0   0 0 0"  applyOnRestPosition="1" applyOnPosition="1" applyOnFreePosition="1" keyTimeSteps="0 70 140 210 280" listening="1" loop="1"/>
+		<LinearMotionController name="MotionControl1" indices="0" keyTimes="0.0 1.0 2.0 3.0 4.0"  keyDisplacements="0 0 0   0.0 0.10 0.01    0.0 0.05 0.0   0.0 0.15 0.0   0 0 0"  applyOnRestPosition="1" applyOnPosition="1" applyOnFreePosition="1" listening="1" loop="1"/>
 <!-- 		<LinearMotionController name="MotionControl2" indices="2 3" keyDisplacements="0 0 0   0.0 -0.12 0.05  0.0 0.0 0.0"  applyOnRestPosition="1" applyOnPosition="1" applyOnFreePosition="1" keyTimeSteps="0 50 50" listening="1" loop="0"/> -->
 	</Node>
 
@@ -20,7 +20,8 @@
 <!-- 		<OptimParams name="paramE" template="Vector" initValue="10000 5000 7000"/>  -->
 		<OptimParams name="paramK" template="Vector" initValue="2000" stdev="1"/> 
 		
-		<EulerImplicit name="odeSolver" printLog="false"/>
+<!-- 		<EulerImplicit name="odeSolver" printLog="false" rayleighStiffness="0.01" rayleighMass="0.0"/> -->
+		<StaticSolver/>
 		
 		<SparsePARDISOSolver/>
 
