@@ -1,0 +1,102 @@
+\documentclass[9pt]{article}
+
+\begin{document}
+{\Large Based on Christian's presentation (2009)}:
+
+\begin{equation}
+M \ddot{x} = F_{ext} + F_{int}(x,\dot{x})
+\label{eq:newton}
+\end{equation}
+
+Euler explicit:
+
+\begin{eqnarray}
+\dot{x}_t & = & \dot{x}_{t-1} + \ddot{x}_{t-1} dt \\
+x_t & = & x_{t-1} + \dot{x}_{t-1} dt
+\end{eqnarray}
+
+Fast and easy, needs small dt:   
+\begin{equation}
+\Delta t \leq \alpha\sqrt{\frac{m}{k}}
+\end{equation}
+
+
+Euler implicit: 
+
+\begin{eqnarray}
+\dot{x}_t & = & \dot{x}_{t-1} + \ddot{x}_t dt \\
+x_t & = & x_{t-1} + \dot{x}_t dt \\
+x_t & = & x_{t-1} + \dot{x}_{t-1}dt + \ddot{x}_t dt^2
+\end{eqnarray}
+
+\begin{equation}
+F_{int}(x_{t}, \dot{x}_t) \approx F_{int}(x_{t-1}, \dot{x}_{t-1}) + \frac{\partial F_{int}}{dx}dx + \frac{\partial F_{int}}{dv} dv
+\label{eq:appfint}
+\end{equation}
+where
+\begin{eqnarray}
+dx & = & x_t - x_{t-1} = dt\dot{x}_{t-1} + \ddot{x}_t dt^2 \\
+dv & = & v_t - v_{t-1} = \ddot{x}_t dt
+\end{eqnarray}
+So Eq.~\ref{eq:appfint} + Eq.~\ref{eq:newton} become:
+\begin{equation}
+M\ddot{x}_t = F_{ext} + F_{int}(x_{t-1},\dot{x}_{t-1}) + K.(\dot{x}_{t-1}dt + \ddot{x}_t dt^2) - B.(\ddot{x}_t dt)
+\end{equation}
+
+After rearragement:
+\begin{equation}
+(M - Bdt - Kdt^2)\ddot{x}_t = F_{ext} +  F_{int} (x_{t-1},\dot{x}_{t-1}) +  K\dot{x}_{t-1}dt
+\end{equation}
+
+
+\newpage
+{\Large Text from Euler code:}
+
+ Method based on [Baraff and Witkin, Large Steps in Cloth Simulation, SIGGRAPH 1998]
+
+2nd order integration scheme:
+ 
+    $$x_{t+h} = x_t + h v_{t+h}$$
+    $$v_{t+h} = v_t + h a_{t+h}$$
+ 
+    The unknown is
+    $$v_{t+h} - v_t = dv$$
+ 
+    Newton's law is
+    $$ M dv = h f(t+h) $$
+    $$ M dv = h ( f(t) + K dx     + (B - r_M M + r_K K) (v+dv) )$$
+    $$ M dv = h ( f(t) + K h dv   + (B - r_M M + r_K K) (v+dv) )$$
+ 
+    where $M$ is the mass matrix.
+    $$ K = df/dx $$ is the stiffness implemented (or not) by the force fields.
+    $$ B = df/dv $$ is the damping implemented (or not) by the force fields.
+    An additional, uniform Rayleigh damping  $-r_M M + r_K K$ is imposed by the solver.
+ 
+  This corresponds to the following equation system:
+ 
+    $$ ( (1+r_M) M - h B - h(h + r_K) K ) dv = h ( f(t) + (h+r_K) K v - r_M M v )$$
+ 
+  Moreover, the projective constraints filter out the forbidden motions.
+  This is equivalent with multiplying vectors with a projection matrix $P$.
+  Finally, the equation system set by this ode solver is:
+ 
+    $$ P ( (1+r_M) M - h B - h(h + r_K) K ) P dv = P h ( f(t) + (h + r_K) K dv - r_M M dv )$$
+ 
+{\bf 1st order integration scheme: }
+ 
+  This integration scheme is based on the following eqation:
+ 
+    $$x_{t+h} = x_t + h v_{t+h}$$
+ 
+  Applied to this mechanical system:
+ 
+    $$ M v_t = f_ext $$
+ 
+    $$ M v_{t+h} = f_ext{t+h} $$
+    $$           = f_ext{t} + h (df_ext/dt){t+h} $$
+    $$           = f_ext{t} + h (df_ext/dx){t+h} v_{t+h} $$
+    $$           = f_ext{t} - h K v_{t+h} $$
+ 
+    $$ ( M + h K ) v_{t+h} = f_ext $$
+ 
+ \end{document}
