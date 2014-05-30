@@ -30,6 +30,7 @@
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/RigidTypes.h>
 #include <sofa/defaulttype/defaulttype.h>
+#include <sofa/core/behavior/MechanicalState.h>
 
 namespace sofa
 {
@@ -120,7 +121,7 @@ public:
 protected:    
     size_t m_dim;
     Data< bool > m_optimize;            ///if OptimParams component are used in Verdandi optimization
-    Data< int > m_numParams;
+    Data< size_t > m_numParams;
     Data< int > m_transformParams;
 
     IVec paramIndices;  /// mapping of parameters stored in m_val to Verdandi state vector
@@ -137,7 +138,7 @@ public:
     OptimParamsBase()
         : m_dim(1)
         , m_optimize( initData(&m_optimize, true, "optimize", "the parameters handled in the component will be optimized by Verdandi") )
-        , m_numParams( initData(&m_numParams, 1, "numParams", "number of params for vectorial data (input values replicated)") )
+        , m_numParams( initData(&m_numParams, size_t(1), "numParams", "number of params for vectorial data (input values replicated)") )
         , m_transformParams( initData(&m_transformParams, 0, "transformParams", "transform estimated params: 0: do nothing, 1: absolute value, 2: quadratic (not implemented)") )
     {}
 
@@ -196,6 +197,10 @@ public:
     ~OptimParams();
     void init();
     void reinit();
+
+    typedef core::behavior::MechanicalState<defaulttype::Vec3dTypes> MechStateVec3d;
+    SingleLink<OptimParams<DataTypes>, MechStateVec3d, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> m_paramMOLink;
+    MechStateVec3d* paramMO;
 
     static std::string templateName(const OptimParams<DataTypes>* = NULL) { std::string name = sofa::component::container::templateName<DataTypes>()(); return(name); }       
 

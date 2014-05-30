@@ -41,6 +41,8 @@ namespace container
 
 using namespace defaulttype;
 
+/// SPECIALIZATIONS FOR vector<double>
+
 template<>
 void OptimParams<sofa::helper::vector<double> >::getStDevTempl(DVec& _stdev) {
     _stdev.resize(m_stdev.getValue().size());
@@ -143,47 +145,123 @@ void OptimParams<sofa::helper::vector<double> >::init() {
             stdev.resize(nInitVal);
             for (size_t i = 1; i < nInitVal; i++)
                 stdev[i] = stdev[0];
-
-            //std::cout << "STDEV A: " << stdev << std::endl;
-            //stdev.resize(nInitVal, x);
-            //std::cout << "STDEV B: " << stdev << std::endl;
         }
 
 
-    }    
+    }
 }
 
-/*template<>
-size_t OptimParams<sofa::helper::vector<double> >::size() {
-    helper::ReadAccessor<Data<sofa::helper::vector<double> > > initVal = m_initVal;
-    return(initVal.size());
-}*/
+
+/// SPECIALIZATIONS FOR VecCoord3D
+
+template<>
+void OptimParams<Vec3dTypes::VecCoord>::init() {
+    paramMO = m_paramMOLink.get();
+    this->m_dim = 3;
+
+    if (paramMO == NULL)
+        std::cerr << "WARNING: cannot find the parametric mechanical state, assuming no mechanical state is associated with the parameters" << std::endl;
+    else {
+        std::cout << "Mechanical state associated with the parameters: " << paramMO->getName() << std::endl;
+
+        typename MechStateVec3d::ReadVecCoord moPos = paramMO->readPositions();
+        helper::WriteAccessor<Data<Vec3dTypes::VecCoord> > waInitVal = m_initVal;
+
+
+        int moSize = moPos.size();
+        waInitVal.resize(moSize);
+
+
+        for (int i = 0; i < moSize; i++)
+            waInitVal[i] = moPos[i];
+    }
+
+    helper::ReadAccessor<Data<Vec3dTypes::VecCoord> > raInitVal = m_initVal;
+    helper::WriteAccessor<Data<Vec3dTypes::VecCoord> > waVal = m_val;
+    int numParams = raInitVal.size();
+    m_numParams.setValue(numParams);
+    waVal.resize(numParams);
+    for (int i = 0; i < numParams; i++)
+        waVal[i] = raInitVal[i];
+
+    helper::ReadAccessor<Data<Vec3dTypes::VecCoord> > raStdDev = m_stdev;
+    if (raStdDev.size() != 1) {
+        std::cout << this->getName() << ": cannot handle standard deviation, size should be 1 for VecCoord3D" << std::endl;
+    } else {
+        Vec3dTypes::Coord sd0 = raStdDev[0];
+        helper::WriteAccessor<Data<Vec3dTypes::VecCoord> > waStdDev = m_stdev;
+        waStdDev.resize(numParams);
+        for (int i = 0; i < numParams; i++)
+            waStdDev[i] = sd0;
+    }
+}
+
+
+template<>
+void OptimParams<Vec3dTypes::VecCoord>::rawVectorToParams(const double* _vector) {
+    helper::WriteAccessor<Data<Vec3dTypes::VecCoord> > waVal = m_val;
+
+    size_t numParams = m_numParams.getValue();
+    size_t k = 0;
+    for (size_t i = 0; i < numParams; i++)
+        for (size_t j = 0; j < 3; j++, k++)
+            waVal[i][j] = _vector[paramIndices[k]];
+
+    if (paramMO != NULL) {
+        typename MechStateVec3d::WriteVecCoord moWPos = paramMO->writePositions();
+        helper::ReadAccessor<Data<Vec3dTypes::VecCoord> > raVal = m_val;
+
+        for (size_t i = 0; i < numParams; i++)
+            moWPos[i] = raVal[i];
+    }
+
+}
+
+template<>
+void OptimParams<Vec3dTypes::VecCoord>::paramsToRawVector(double* _vector) {
+    size_t numParams = m_numParams.getValue();
+    if (paramMO != NULL) {
+        typename MechStateVec3d::ReadVecCoord moRPos = paramMO->readPositions();
+        helper::WriteAccessor<Data<Vec3dTypes::VecCoord> > waVal = m_val;
+
+        for (size_t i = 0; i < numParams; i++)
+            waVal[i] = moRPos[i];
+    }
+
+    helper::ReadAccessor<Data<Vec3dTypes::VecCoord> > raVal = m_val;
+    size_t k = 0;
+    for (size_t i = 0; i < numParams; i++)
+        for (size_t j = 0; j < 3; j++, k++)
+            _vector[paramIndices[k]] = raVal[i][j];
+
+}
+
 
 SOFA_DECL_CLASS(OptimParams)
 
 // Register in the Factory
 int OptimParamsClass = core::RegisterObject("Optimization Parameters")
-#ifndef SOFA_FLOAT
-.add< OptimParams<double> >(true)
-/*.add< OptimParams<Vec3d> >()
-.add< OptimParams<Vec2d> >()
-.add< OptimParams<Vec1d> >()
-.add< OptimParams<RigidCoord<3,double> > >()
-.add< OptimParams<RigidCoord<2,double> > >()*/
-.add< OptimParams<sofa::helper::vector<double> > >()
-//.add< OptimParams<Vec3dTypes::VecCoord> >()
-#endif
-#ifndef SOFA_DOUBLE
-/*.add< OptimParams<float> >(true)
-.add< OptimParams<Vec3f> >()
-.add< OptimParams<Vec2f> >()
-.add< OptimParams<Vec1f> >()
-.add< OptimParams<RigidCoord<3,float> > >()
-.add< OptimParams<RigidCoord<2,float> > >()
-.add< OptimParams<sofa::helper::vector<float> > >()
-.add< OptimParams<Vec3fTypes::VecCoord> >()*/
-#endif
-;
+        #ifndef SOFA_FLOAT
+        .add< OptimParams<double> >(true)
+        /*.add< OptimParams<Vec3d> >()
+        .add< OptimParams<Vec2d> >()
+        .add< OptimParams<Vec1d> >()
+        .add< OptimParams<RigidCoord<3,double> > >()
+        .add< OptimParams<RigidCoord<2,double> > >()*/
+        .add< OptimParams<sofa::helper::vector<double> > >()
+        .add< OptimParams<Vec3dTypes::VecCoord> >()
+        #endif
+        #ifndef SOFA_DOUBLE
+        /*.add< OptimParams<float> >(true)
+        .add< OptimParams<Vec3f> >()
+        .add< OptimParams<Vec2f> >()
+        .add< OptimParams<Vec1f> >()
+        .add< OptimParams<RigidCoord<3,float> > >()
+        .add< OptimParams<RigidCoord<2,float> > >()
+        .add< OptimParams<sofa::helper::vector<float> > >()
+        .add< OptimParams<Vec3fTypes::VecCoord> >()*/
+        #endif
+        ;
 
 #ifndef SOFA_FLOAT
 template class SOFA_OptimusPlugin_API OptimParams<double>;
