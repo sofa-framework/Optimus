@@ -42,20 +42,58 @@ namespace container
 using namespace defaulttype;
 
 template<>
-void OptimParams<sofa::helper::vector<double> >::_getStDev() {
-    this->_stDevInVector = m_stdev.getValue();
+void OptimParams<sofa::helper::vector<double> >::getStDevTempl(DVec& _stdev) {
+    _stdev.resize(m_stdev.getValue().size());
+    for (size_t i = 0; i < _stdev.size(); i++)
+        _stdev[i] = m_stdev.getValue()[i];
 }
 
 template<>
-void OptimParams<sofa::helper::vector<double> >::_getValue() {
-    this->_valueInVector = m_val.getValue();
+void OptimParams<sofa::helper::vector<double> >::getValueTempl(DVec& _value) {
+    _value.resize(m_val.getValue().size());
+    for (size_t i = 0; i < _value.size(); i++)
+        _value[i] = m_val.getValue()[i];
 }
 
 template<>
-void OptimParams<sofa::helper::vector<double> >::_setValue() {
-    m_val.setValue(this->_valueInVector);
+void OptimParams<sofa::helper::vector<double> >::setValueTempl(const DVec& _value) {
+    helper::vector<double>* val = m_val.beginEdit();
+    for (size_t i = 0; i < _value.size(); i++)
+        val->at(i) = _value[i];
+    m_val.endEdit();
 }
 
+template<>
+void OptimParams<sofa::helper::vector<double> >::rawVectorToParams(const double* _vector) {
+    helper::WriteAccessor<Data<helper::vector<double> > > val = m_val;
+
+    switch (this->m_transformParams.getValue()) {
+    case 1:
+        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+            val[i]=fabs(_vector[this->paramIndices[i]]);
+        }
+        break;
+    default:
+        for (size_t i = 0; i < this->paramIndices.size(); i++)
+            val[i] = _vector[this->paramIndices[i]];
+    }
+}
+
+template<>
+void OptimParams<sofa::helper::vector<double> >::paramsToRawVector(double* _vector) {
+    helper::ReadAccessor<Data<helper::vector<double> > > val = m_val;
+
+    switch (this->m_transformParams.getValue()) {
+    case 1:
+        for (size_t i = 0; i < paramIndices.size(); i++)
+            _vector[paramIndices[i]] = fabs(val[i]);
+        break;
+    default:
+        for (size_t i = 0; i < paramIndices.size(); i++)
+            _vector[paramIndices[i]] = val[i];
+    }
+
+}
 
 
 template<>
@@ -112,9 +150,7 @@ void OptimParams<sofa::helper::vector<double> >::init() {
         }
 
 
-    }
-    this->_getStDev();
-    this->_getValue();
+    }    
 }
 
 /*template<>
@@ -129,46 +165,45 @@ SOFA_DECL_CLASS(OptimParams)
 int OptimParamsClass = core::RegisterObject("Optimization Parameters")
 #ifndef SOFA_FLOAT
 .add< OptimParams<double> >(true)
-.add< OptimParams<Vec3d> >()
+/*.add< OptimParams<Vec3d> >()
 .add< OptimParams<Vec2d> >()
 .add< OptimParams<Vec1d> >()
 .add< OptimParams<RigidCoord<3,double> > >()
-.add< OptimParams<RigidCoord<2,double> > >()
+.add< OptimParams<RigidCoord<2,double> > >()*/
 .add< OptimParams<sofa::helper::vector<double> > >()
-.add< OptimParams<Vec3dTypes::VecCoord> >()
+//.add< OptimParams<Vec3dTypes::VecCoord> >()
 #endif
 #ifndef SOFA_DOUBLE
-.add< OptimParams<float> >(true)
+/*.add< OptimParams<float> >(true)
 .add< OptimParams<Vec3f> >()
 .add< OptimParams<Vec2f> >()
 .add< OptimParams<Vec1f> >()
 .add< OptimParams<RigidCoord<3,float> > >()
 .add< OptimParams<RigidCoord<2,float> > >()
 .add< OptimParams<sofa::helper::vector<float> > >()
-.add< OptimParams<Vec3fTypes::VecCoord> >()
+.add< OptimParams<Vec3fTypes::VecCoord> >()*/
 #endif
 ;
 
 #ifndef SOFA_FLOAT
 template class SOFA_OptimusPlugin_API OptimParams<double>;
-template class SOFA_OptimusPlugin_API OptimParams<Vec3d>;
+/*template class SOFA_OptimusPlugin_API OptimParams<Vec3d>;
 template class SOFA_OptimusPlugin_API OptimParams<Vec2d>;
 template class SOFA_OptimusPlugin_API OptimParams<Vec1d>;
 template class SOFA_OptimusPlugin_API OptimParams<RigidCoord<3,double> >;
-template class SOFA_OptimusPlugin_API OptimParams<RigidCoord<2,double> >;
+template class SOFA_OptimusPlugin_API OptimParams<RigidCoord<2,double> >;*/
 template class SOFA_OptimusPlugin_API OptimParams<sofa::helper::vector<double> >;
-template class SOFA_OptimusPlugin_API OptimParams<Vec3dTypes::VecCoord>;
-template class SOFA_OptimusPlugin_API OptimParams<Rigid3dTypes::VecCoord>;
+//template class SOFA_OptimusPlugin_API OptimParams<Vec3dTypes::VecCoord>;
 #endif
 #ifndef SOFA_DOUBLE
-template class SOFA_OptimusPlugin_API OptimParams<float>;
+/*template class SOFA_OptimusPlugin_API OptimParams<float>;
 template class SOFA_OptimusPlugin_API OptimParams<Vec3f>;
 template class SOFA_OptimusPlugin_API OptimParams<Vec2f>;
 template class SOFA_OptimusPlugin_API OptimParams<Vec1f>;
 template class SOFA_OptimusPlugin_API OptimParams<RigidCoord<3,float> >;
 template class SOFA_OptimusPlugin_API OptimParams<RigidCoord<2,float> >;
 template class SOFA_OptimusPlugin_API OptimParams<sofa::helper::vector<float> >;
-template class SOFA_OptimusPlugin_API OptimParams<Vec3fTypes::VecCoord>;
+template class SOFA_OptimusPlugin_API OptimParams<Vec3fTypes::VecCoord>;*/
 #endif
 
 

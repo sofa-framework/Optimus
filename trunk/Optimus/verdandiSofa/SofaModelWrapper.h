@@ -83,7 +83,7 @@ public:
     Data<std::string> m_outputDirectory, m_configFile, m_sigmaPointType, m_observationErrorVariance;
     Data<bool> m_saveVQ, m_showIteration, m_showTime, m_analyzeFirstStep, m_withResampling;
     Data<bool> m_positionInState, m_velocityInState;
-    Data<int> m_transformParams;
+    //Data<int> m_transformParams;
 
     SofaReducedOrderUKF();
 
@@ -168,8 +168,7 @@ public:
     typedef struct {
         simulation::Node* gnode;
 
-        FilterType filterType;
-        int transformParams;   /// 0: do nothing, 1: take absolute value, 2: quadratic (not implemented)
+        FilterType filterType;        
         bool positionInState;
         bool velocityInState;
         double errorVarianceSofaState;
@@ -501,7 +500,7 @@ public:
                 return;
             actualTime = this->getContext()->getTime();
 
-            std::cout << "Generate noise in the observations in time " << actualTime << std::endl;
+            /*std::cout << "Generate noise in the observations in time " << actualTime << std::endl;
 
 
             srand(time(NULL));
@@ -517,7 +516,7 @@ public:
                 else {
                     noise[i] = sgn*double(rand()%1000)/double(100000);
                 }
-            }
+            }*/
             std::cout << noise << std::endl;
 
         }

@@ -39,8 +39,7 @@ OptimParams<DataTypes>::OptimParams()
     , m_initVal( initData(&m_initVal, "initValue", "initial parameter value") )
     , m_min( initData(&m_min, "min", "lower bound for parameter") )
     , m_max( initData(&m_max, "max", "higher bound for parameter") )
-    , m_stdev( initData(&m_stdev, "stdev", "standard variation") )    
-    , m_numParams( initData(&m_numParams, 1, "numParams", "number of params for vectorial data (input values replicated)") )
+    , m_stdev( initData(&m_stdev, "stdev", "standard variation") )
 {    
 }
 
@@ -52,9 +51,7 @@ OptimParams<DataTypes>::~OptimParams()
 template <class DataTypes>
 void OptimParams<DataTypes>::init()
 {
-    // DataTypes::set(x[i], topo->getPX(i), topo->getPY(i), topo->getPZ(i));
-    this->_getStDev();
-    this->_getValue();
+
 }
 
 template <class DataTypes>

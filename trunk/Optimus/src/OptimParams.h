@@ -113,41 +113,72 @@ struct templateName<sofa::helper::vector<float> >
 
 class OptimParamsBase : public sofa::core::objectmodel::BaseObject
 {
+public:
     typedef helper::vector<double> DVec;
+    typedef helper::vector<size_t> IVec;
 
-protected:
-    DVec _stDevInVector;
-    DVec _valueInVector;
-    Data< bool > m_optimize;            ///
+protected:    
+    size_t m_dim;
+    Data< bool > m_optimize;            ///if OptimParams component are used in Verdandi optimization
+    Data< int > m_numParams;
+    Data< int > m_transformParams;
 
-    virtual void _getStDev() = 0;   /// copy standard deviation from a structure of given type to plain helper::vector
-    virtual void _getValue() = 0;   /// copy the actual value from a structure of given type to plain helper::vector
-    virtual void _setValue() = 0;   /// copy a value in plain vector to a structure of given type
+    IVec paramIndices;  /// mapping of parameters stored in m_val to Verdandi state vector
+
+    virtual void getStDevTempl(DVec& _stdev) = 0;   /// copy standard deviation from a structure of given type to plain helper::vector
+    virtual void getValueTempl(DVec& _value) = 0;   /// copy the actual value from a structure of given type to plain helper::vector
+    virtual void setValueTempl(const DVec& _value) = 0;   /// copy a value in plain vector to a structure of given type
+    virtual void rawVectorToParams(const double* _vector) = 0;  /// copy values from a input vector into parameters at correct positions
+    virtual void paramsToRawVector(double* _vector) = 0;  /// copy values from parameters to the output vector at correct positions
 
 public:
-    helper::vector<size_t> mappingIndices;  /// mapping of parameters stored in m_val to Verdandi state vector
+
 
     OptimParamsBase()
-        : m_optimize( initData(&m_optimize, true, "optimize", "the parameter will be optimized by Verdandi") )
+        : m_dim(1)
+        , m_optimize( initData(&m_optimize, true, "optimize", "the parameters handled in the component will be optimized by Verdandi") )
+        , m_numParams( initData(&m_numParams, 1, "numParams", "number of params for vectorial data (input values replicated)") )
+        , m_transformParams( initData(&m_transformParams, 0, "transformParams", "transform estimated params: 0: do nothing, 1: absolute value, 2: quadratic (not implemented)") )
     {}
 
     size_t size() {
-        return(_valueInVector.size());
+        return(m_numParams.getValue() * m_dim);
     }
 
-    DVec& getStDev() {
-        this->_getStDev();
-        return _stDevInVector;
+    void rawVectorToParams(const double* _rawVector, size_t /*_size*/) {
+        /*if (!_size != size()) {
+            std::cerr << "Vector sizes differ!" << std::endl;
+            return;
+        }*/
+        rawVectorToParams(_rawVector);
     }
 
-    DVec& getValue() {
-        this->_getValue();
-        return _valueInVector;
+    void paramsToRawVector(double* _rawVector, size_t /*_size*/) {
+        /*if (!_size != size()) {
+            std::cerr << "Vector sizes differ!" << std::endl;
+            return;
+        }*/
+        paramsToRawVector(_rawVector);
     }
 
-    void setValue(DVec& _value) {
-        _valueInVector = _value;
-        this->_setValue();
+    void getStDev(DVec& _stdev) {
+        this->getStDevTempl(_stdev);
+    }
+
+    void getValue(DVec& _value) {
+        this->getValueTempl(_value);
+    }
+
+    void setValue(const DVec& _value) {
+        this->setValueTempl(_value);
+    }
+
+    IVec& getVStateParamIndices() {
+        return paramIndices;
+    }
+
+    void setVStateParamIndices(IVec& _vector) {
+        paramIndices = _vector;
     }
 
     bool optimize()  {
@@ -173,13 +204,15 @@ protected:
     Data< DataTypes > m_initVal;        /// initial value
     Data< DataTypes > m_min;
     Data< DataTypes > m_max;
-    Data< DataTypes > m_stdev;          /// standard deviation
-    Data< int > m_numParams;
+    Data< DataTypes > m_stdev;          /// standard deviation    
 
     /// must be implemented in specializations
-    virtual void _getStDev() {}
-    virtual void _getValue() {}
-    virtual void _setValue() {}
+    virtual void getStDevTempl(DVec& /*_stdev*/) {}
+    virtual void getValueTempl(DVec& /*_value*/) {}
+    virtual void setValueTempl(const DVec& /*_value*/) {}
+    virtual void rawVectorToParams(const double* /*_vector*/) {}
+    virtual void paramsToRawVector(double* /*_vector*/) {}
+
 
 };
 

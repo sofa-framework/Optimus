@@ -102,6 +102,9 @@ int SofaModelWrapperClass = core::RegisterObject("A class implementing an interf
         #ifndef SOFA_FLOAT
         .add< SofaModelWrapper<double> >()
         #endif
+        /*#ifndef SOFA_DOUBLE
+        .add< SofaModelWrapper<float> >()
+        #endif*/
         ;
 
 SOFA_DECL_CLASS(SofaLinearObservationManager)

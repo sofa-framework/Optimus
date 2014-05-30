@@ -136,8 +136,6 @@ void SofaModelWrapper<Type>::initSimuData(ModelData &_md)
 
         simulation::Node* opnode = dynamic_cast<simulation::Node*>(oparam->getContext());
 
-        oparam->mappingIndices.clear();
-
         bool existingObject = false;
         for (size_t i = 0; i < sofaObjects.size(); i++) {
             if (sofaObjects[i].node == opnode) {
@@ -229,8 +227,7 @@ void SofaModelWrapper<Type>::StateSofa2Verdandi() {
             typename MechStateRigid3d::ReadVecDeriv vel = obj.rigidMS->readVelocities();
 
             for (helper::vector<std::pair<size_t, size_t> >::iterator it = obj.positionPairs.begin(); it != obj.positionPairs.end(); it++) {
-                defaulttype::Rigid3dTypes::CPos rpos = defaulttype::Rigid3dTypes::getCPos(pos[it->first]);
-                //std::cout << rpos << std::endl;
+                defaulttype::Rigid3dTypes::CPos rpos = defaulttype::Rigid3dTypes::getCPos(pos[it->first]);                
                 for (size_t d = 0; d < dim_; d++)
                     state_(dim_*it->second + d ) = rpos[d];
             }
@@ -243,26 +240,14 @@ void SofaModelWrapper<Type>::StateSofa2Verdandi() {
             }
         }
 
-        for (size_t opi = 0; opi < obj.oparams.size(); opi++) {
-            OptimParams* oparam = obj.oparams[opi];
-            const helper::vector<Type> vecPar = oparam->getValue();
-
-            switch (modelData.transformParams) {
-            case 1:
-                for (size_t i = 0; i < oparam->mappingIndices.size(); i++)
-                    state_(reduced_state_index_ + oparam->mappingIndices[i]) = fabs(vecPar[i]);
-                break;
-            default:
-                for (size_t i = 0; i < oparam->mappingIndices.size(); i++)
-                    state_(reduced_state_index_ + oparam->mappingIndices[i]) = vecPar[i];
-            }
-        }
+        for (size_t opi = 0; opi < obj.oparams.size(); opi++)
+            obj.oparams[opi]->paramsToRawVector(state_.GetData(), state_.GetM());
 
     }
 
 }
 
-/// copy a Verdandi state to SOFA mechanical object and parameter vector in corresponding OptimParams
+/// copy a Verdandi state to SOFA mechanical object and parameter vector into the corresponding OptimParams
 template <class Type>
 void SofaModelWrapper<Type>::StateVerdandi2Sofa() {
     for (size_t iop = 0; iop < sofaObjects.size(); iop++) {
@@ -308,29 +293,10 @@ void SofaModelWrapper<Type>::StateVerdandi2Sofa() {
         MechanicalParams mp;
         MechanicalPropagatePositionAndVelocityVisitor(&mp).execute( obj.node );
 
-        std::cout << "Params: " << std::endl;
-        for (size_t opi = 0; opi < obj.oparams.size(); opi++) {
-            OptimParams* oparam = obj.oparams[opi];
-            helper::vector<Type> vecPar;
+        /// let the OptimParams to extract the actual values of parameters from the verdandi state
+        for (size_t opi = 0; opi < obj.oparams.size(); opi++)
+            obj.oparams[opi]->rawVectorToParams(state_.GetData(), state_.GetM());
 
-            switch (modelData.transformParams) {
-            case 1:
-                for (size_t i = 0; i < oparam->mappingIndices.size(); i++) {
-                    vecPar.push_back(fabs(state_(reduced_state_index_ + oparam->mappingIndices[i])));
-                    std::cout << vecPar.back() << " ";
-                }
-                break;
-            default:
-                for (size_t i = 0; i < oparam->mappingIndices.size(); i++) {
-                    vecPar.push_back(state_(reduced_state_index_ + oparam->mappingIndices[i]));
-                    std::cout << vecPar.back() << " ";
-                }
-            }
-
-
-            oparam->setValue(vecPar);
-        }
-        std::cout << std::endl;
 
     }
 
@@ -401,15 +367,16 @@ void SofaModelWrapper<Type>::Initialize()
             }
         }
 
-        for (size_t pi = 0; pi < obj.oparams.size(); pi++) {
-            helper::vector<size_t>& opv = obj.oparams[pi]->mappingIndices;
+        reduced_state_index_ = dim_ * vsi;
+        for (size_t pi = 0; pi < obj.oparams.size(); pi++) {            
+            helper::vector<size_t>& opv = obj.oparams[pi]->getVStateParamIndices();
             opv.clear();
 
-            for (size_t i = 0; i < obj.oparams[pi]->size(); i++)
-                opv.push_back(vpi++);
+            for (size_t i = 0; i < obj.oparams[pi]->size(); i++, vpi++) {
+                opv.push_back(reduced_state_index_+vpi);
+            }
         }
 
-        reduced_state_index_ = dim_ * vsi;
         state_size_ = dim_* vsi + vpi;
         reduced_state_size_ = vpi;
 
@@ -422,8 +389,8 @@ void SofaModelWrapper<Type>::Initialize()
             for (size_t i = 0; i < obj.oparams.size(); i++) {
                 std::cout << "  Params: " << obj.oparams[i]->getName();
                 std::cout << "     inx:";
-                for (size_t j = 0; j < obj.oparams[i]->mappingIndices.size(); j++)
-                    std::cout << " " << obj.oparams[i]->mappingIndices[j];
+                for (size_t j = 0; j < obj.oparams[i]->getVStateParamIndices().size(); j++)
+                    std::cout << " " << obj.oparams[i]->getVStateParamIndices()[j];
                 std::cout << std::endl;
             }
 
@@ -463,17 +430,17 @@ void SofaModelWrapper<Type>::Initialize()
 template <class Type>
 void SofaModelWrapper<Type>::FinalizeStep() {
     std::cout << "Actual parameter values:";
-    switch (modelData.transformParams) {
-    case 1:
+    /*switch (modelData.transformParams) {
+    case 1:*/
         for (size_t i = reduced_state_index_; i < state_size_; i++)
             std::cout << " " << fabs(state_(i));
-        break;
+      /*  break;
     default:
         for (size_t i = reduced_state_index_; i < state_size_; i++)
             std::cout << " " << state_(i);
     }
 
-    std::cout << std::endl;
+    std::cout << std::endl;*/
 }
 
 
@@ -936,7 +903,8 @@ typename SofaModelWrapper<Type>::state_error_variance& SofaModelWrapper<Type>::G
             for (size_t opi = 0; opi < obj.oparams.size(); opi++) {
                 OptimParams* oparam = obj.oparams[opi];
                 //const helper::vector<Type>& stdev = op->getStdev();
-                helper::vector<double>& stdev = oparam->getStDev();
+                helper::vector<double> stdev;
+                oparam->getStDev(stdev);
 
                 for (size_t pi = 0; pi < oparam->size(); pi++, vpi++)
                     state_error_variance_reduced_(vpi, vpi) = Type(Type(1.0) / (stdev[pi] * stdev[pi]));
@@ -1000,8 +968,7 @@ SofaReducedOrderUKF<Model, ObservationManager>::SofaReducedOrderUKF()
     , m_analyzeFirstStep( initData(&m_analyzeFirstStep, false, "analyzeFirstStep", "analyzeFirstStep") )
     , m_withResampling( initData(&m_withResampling, false, "withResampling", "withResampling") )
     , m_positionInState( initData(&m_positionInState, true, "positionInState", "include position in the non-reduced state") )
-    , m_velocityInState( initData(&m_velocityInState, false, "velocityInState", "include position in the non-reduced state") )
-    , m_transformParams( initData(&m_transformParams, 0, "transformParams", "transform estimated params: 0: do nothing, 1: absolute value, 2: quadratic (not implemented)") )
+    , m_velocityInState( initData(&m_velocityInState, false, "velocityInState", "include position in the non-reduced state") )    
 
 {
 }
@@ -1012,8 +979,7 @@ void SofaReducedOrderUKF<Model, ObservationManager>::init() {
     md.positionInState = m_positionInState.getValue();
     md.velocityInState = m_velocityInState.getValue();
     md.filterType = ROUKF;
-    md.gnode = dynamic_cast<simulation::Node*>(this->getContext());
-    md.transformParams = m_transformParams.getValue();
+    md.gnode = dynamic_cast<simulation::Node*>(this->getContext());    
 
     this->model_.initSimuData(md);
 }
