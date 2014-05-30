@@ -117,10 +117,6 @@ public:
     /// SOFA TYPES
     typedef sofa::core::objectmodel::BaseObject Inherit;
 
-    //typedef sofa::component::container::OptimParams<sofa::helper::vector<Type> > OPVector;
-    typedef sofa::component::container::OptimParamsBase OPVector;
-
-
     /// VERDANDI TYPES
 
     //! The numerical type (e.g., double).
@@ -180,13 +176,14 @@ public:
         bool verbose;
     } ModelData;
 
+    typedef sofa::component::container::OptimParamsBase OptimParams;
     /// structure to associate OptimParams (found in a node) and indices mapping parameters to Verdandi state
-    typedef std::pair<OPVector*,helper::vector<size_t> > OPVecInd;
+    //typedef std::pair<OptimParams*,helper::vector<size_t> > OPVecInd;
 
     /// structure associated with a node that contains OptimParams
     typedef struct {
         simulation::Node* node;                 /// associated not
-        helper::vector<OPVecInd> oparams;       /// vector of OptimParams points in that node (multiple OptimParams per node allowed)
+        helper::vector<OptimParams*> oparams;       /// vector of OptimParams points in that node (multiple OptimParams per node allowed)
         MechStateVec3d* vecMS;                  /// pointer to mechanical state (Vec3D), to be templated
         MechStateRigid3d* rigidMS;              /// pointer to mechanical state (Rigid3D), to be templated
         FixedConstraintVec3d* vecFC;            /// pointer to fixed constraints (fixed DoFs must be ommitted from Verdandi state vector)
@@ -217,34 +214,9 @@ public:
     Data<bool> displayTime;
     Data<bool> m_solveVelocityConstraintFirst;
 
-    ///// OLD:
-    //size_t free_nodes_size;
-    //OPVector* vecParams;
-    //MechStateVec3d * mechanicalObject;
-    //FixedConstraintVec3d* fixedConstraints;
-    //helper::vector<size_t> freeIndices;
-    ////
-
-
-    ///LATEST:
+    /// list of all SOFA objects: nodes with OptimParams component
+    /// initSimuData
     helper::vector<SofaObject> sofaObjects;
-
-    //OPVector* vecParams;
-    //MechStateVec3d * mechanicalObject;
-    //FixedConstraintVec3d* fixedConstraints;
-
-    //helper::vector<OPVector*> listOP3d;
-
-    //helper::vector<MechStateVec3d*> listMS3d;
-    //helper::vector<FixedConstraintVec3d*> listFC3d;
-
-    //helper::vector<MechStateRigid3d*> listRigidMS;
-    //helper::vector<FixedConstraintRigid3d*> listRigidFC;
-
-    //size_t free_nodes_size;
-    //helper::vector<helper::vector<size_t> > listFreeIndices;
-
-    //bool positionInState, velocityInState, verbose;
 
     /// error variance
     //double state_error_variance_state_, state_error_variance_params_;

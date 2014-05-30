@@ -160,25 +160,11 @@ template <class DataTypes>
 class OptimParams : public OptimParamsBase
 {
 public:
-    SOFA_CLASS(SOFA_TEMPLATE(OptimParams, DataTypes), sofa::core::objectmodel::BaseObject);
-    //typedef helper::ReadAccessor<Data< DataTypes > > ReadData;
-    //typedef helper::WriteAccessor<Data< DataTypes > > WriteData;
+    SOFA_CLASS(SOFA_TEMPLATE(OptimParams, DataTypes), sofa::core::objectmodel::BaseObject);    
     OptimParams();
     ~OptimParams();
     void init();
     void reinit();
-    //size_t size();
-    /*const DataTypes& getValue() {
-        return m_val.getValue();
-    }
-
-    const DataTypes& getStdev() {
-        return m_stdev.getValue();
-    }
-
-    void setValue(DataTypes& _value) {
-        m_val.setValue(_value);
-    }*/
 
     static std::string templateName(const OptimParams<DataTypes>* = NULL) { std::string name = sofa::component::container::templateName<DataTypes>()(); return(name); }       
 

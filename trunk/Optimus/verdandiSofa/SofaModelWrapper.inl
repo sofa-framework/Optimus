@@ -117,85 +117,26 @@ void SofaModelWrapper<Type>::initSimuData(ModelData &_md)
     std::cout << "Registering object: " << this->GetName() << std::endl;
     this->setName("sofaModelWrapper");
     gnode->addObject(this);
-
-    /// looking for optimization parameters which will be a part of the state
-    /*std::cout << "Searching optim params: " << std::endl;
-    helper::vector<OPVector*> listOP;
-    gnode->get<OPVector>(&listOP, BaseContext::SearchRoot );
-
-    listOP3d.clear();
-    listMS3d.clear();
-    listFC3d.clear();
-
-    /// TODO!!!:  we suppose there is only one OptimParam in a node
-    for (size_t i = 0; i < listOP.size(); i++) {
-        listOP3d.push_back(listOP[i]);
-
-        simulation::Node* lnode = dynamic_cast<simulation::Node*>(listOP[i]->getContext());
-        std::cout << "  Found optim params " << listOP[i]->getName() << " in node " << lnode->getName() << std::endl;
-
-        MechStateVec3d* ms;
-        lnode->get(ms);
-        if (ms != NULL)
-            std::cout << "Mechanical state found: " << ms->getName() << std::endl;
-        else
-            std::cerr << "PROBLEM: NO MECHANICAL STATE FOUND! " << std::endl;
-        listMS3d.push_back(ms);
-
-        FixedConstraintVec3d* fc;
-        lnode->get(fc);
-        if (fc != NULL) {
-            std::cout << "Fixed constraints found: " << fc->getName() << std::endl;
-        }
-        else
-            std::cerr << "PROBLEM: NO FIXED CONSTRAINTS FOUND! " << std::endl;
-        listFC3d.push_back(fc);
-    }*/
-
     gnode->get(constraintSolver, core::objectmodel::BaseContext::SearchDown);
     if (constraintSolver == NULL)
         std::cout << "No ConstraintSolver found, considering the version with no contacts" << std::endl;
     else
         std::cout << "Constraint solver " << constraintSolver->getName() << " found, modeling contacts" << std::endl;
 
-    /// original implementation
-    /*gnode->get(vecParams);
-    if (vecParams != NULL) {
-        std::cout << "Vectorial parameter container found " << vecParams->getName() << ", size: " << vecParams->size() << std::endl;
-    } else
-        std::cerr << "Vectorial parameter not found! " << std::endl;
-
-    gnode->get(mechanicalObject);
-    if (mechanicalObject != NULL)
-        std::cout << "Mechanical object found " << mechanicalObject->getName() << std::endl;
-    else
-        std::cerr << "Mechanical object not found! " << std::endl;
-
-    gnode->get(fixedConstraints);
-    if (fixedConstraints != NULL)
-        std::cout << "FixedConstraints found " << fixedConstraints->getName() << std::endl;
-    else
-        std::cerr << "Fixed constraints not found! " << std::endl;
-
-    std::cout << "Number of fixed constraints: " << fixedConstraints->f_indices.getValue().size() << std::endl;*/
-
-
     sofaObjects.clear();
     std::cout << "Searching optim params: " << std::endl;
-    helper::vector<OPVector*> listOP;
-    gnode->get<OPVector>(&listOP, BaseContext::SearchRoot );
+    helper::vector<OptimParams*> listOP;
+    gnode->get<OptimParams>(&listOP, BaseContext::SearchRoot );
 
     for (size_t iop = 0; iop < listOP.size(); iop++) {
-        OPVector* op = listOP[iop];
+        OptimParams* oparam = listOP[iop];
 
-        if (!op->optimize())
+        if (!oparam->optimize())
             continue;
 
-        simulation::Node* opnode = dynamic_cast<simulation::Node*>(op->getContext());
+        simulation::Node* opnode = dynamic_cast<simulation::Node*>(oparam->getContext());
 
-        OPVecInd oparam;
-        oparam.first = op;
-        oparam.second.clear();
+        oparam->mappingIndices.clear();
 
         bool existingObject = false;
         for (size_t i = 0; i < sofaObjects.size(); i++) {
@@ -266,52 +207,6 @@ void SofaModelWrapper<Type>::SetSofaVectorFromVerdandiState(defaulttype::Vec3dTy
 /// copy the actual SOFA mechanical object and parameter vector to Verdandi state vector using already created index maps
 template <class Type>
 void SofaModelWrapper<Type>::StateSofa2Verdandi() {
-    /*for (size_t si = 0; si < listMS3d.size(); si++) {
-        typename MechStateVec3d::ReadVecCoord pos = listMS3d[si]->readPositions();
-        typename MechStateVec3d::ReadVecDeriv vel = listMS3d[si]->readVelocities();
-
-        size_t ii = 0;
-        for (size_t i = listStateBegin[si]; i < listStateMiddle[si]; i++) {
-            for (size_t d = 0; d < dim_; d++)
-                state_(3*i+d) = pos[listFreeIndices[si][ii]][d];
-            ii++;
-        }
-
-        ii = 0;
-        for (size_t i = listStateMiddle[si]; i < listStateEnd[si]; i++) {
-            for (size_t d = 0; d < dim_; d++)
-                state_(3*i+d) = vel[listFreeIndices[si][ii]][d];
-            ii++;
-        }
-
-        ii = 0;
-        const helper::vector<double>& vecPar = listOP3d[si]->getValue();
-        for (size_t i = listParamBegin[si]; i < listParamEnd[si]; i++)
-            state_(i) = vecPar[ii++];
-    }*/
-
-    /*typename MechStateVec3d::ReadVecCoord pos = mechanicalObject->readPositions();
-    typename MechStateVec3d::ReadVecDeriv vel = mechanicalObject->readVelocities();
-
-    size_t j = 0;
-    if (modelData.positionInState) {
-        for (size_t i = 0; i < free_nodes_size; i++)
-            for (size_t d = 0; d < dim_; d++)
-                state_(j++) = pos[freeIndices[i]][d];
-    }
-
-    if (modelData.velocityInState) {
-        for (size_t i = 0; i < free_nodes_size; i++)
-            for (size_t d = 0; d < dim_; d++)
-                state_(j++) = vel[freeIndices[i]][d];
-    }
-
-    const helper::vector<double>& vecPar = vecParams->getValue();
-    for (size_t i = 0; i < vecParams->size(); i++)
-        state_(j++) = vecPar[i];*/
-
-    //std::cout << "S2V: " << std::endl;
-
     /// for all SofaObjects (associated with nodes having OptimParams component)
     for (size_t iop = 0; iop < sofaObjects.size(); iop++) {
         SofaObject& obj = sofaObjects[iop];
@@ -349,17 +244,17 @@ void SofaModelWrapper<Type>::StateSofa2Verdandi() {
         }
 
         for (size_t opi = 0; opi < obj.oparams.size(); opi++) {
-            OPVecInd& op = obj.oparams[opi];
-            const helper::vector<Type> vecPar = op.first->getValue();
+            OptimParams* oparam = obj.oparams[opi];
+            const helper::vector<Type> vecPar = oparam->getValue();
 
             switch (modelData.transformParams) {
             case 1:
-                for (size_t i = 0; i < op.second.size(); i++)
-                    state_(reduced_state_index_ + op.second[i]) = fabs(vecPar[i]);
+                for (size_t i = 0; i < oparam->mappingIndices.size(); i++)
+                    state_(reduced_state_index_ + oparam->mappingIndices[i]) = fabs(vecPar[i]);
                 break;
             default:
-                for (size_t i = 0; i < op.second.size(); i++)
-                    state_(reduced_state_index_ + op.second[i]) = vecPar[i];
+                for (size_t i = 0; i < oparam->mappingIndices.size(); i++)
+                    state_(reduced_state_index_ + oparam->mappingIndices[i]) = vecPar[i];
             }
         }
 
@@ -415,26 +310,25 @@ void SofaModelWrapper<Type>::StateVerdandi2Sofa() {
 
         std::cout << "Params: " << std::endl;
         for (size_t opi = 0; opi < obj.oparams.size(); opi++) {
-            OPVecInd& op = obj.oparams[opi];
+            OptimParams* oparam = obj.oparams[opi];
             helper::vector<Type> vecPar;
-
 
             switch (modelData.transformParams) {
             case 1:
-                for (size_t i = 0; i < op.second.size(); i++) {
-                    vecPar.push_back(fabs(state_(reduced_state_index_ + op.second[i])));
+                for (size_t i = 0; i < oparam->mappingIndices.size(); i++) {
+                    vecPar.push_back(fabs(state_(reduced_state_index_ + oparam->mappingIndices[i])));
                     std::cout << vecPar.back() << " ";
                 }
                 break;
             default:
-                for (size_t i = 0; i < op.second.size(); i++) {
-                    vecPar.push_back(state_(reduced_state_index_ + op.second[i]));
+                for (size_t i = 0; i < oparam->mappingIndices.size(); i++) {
+                    vecPar.push_back(state_(reduced_state_index_ + oparam->mappingIndices[i]));
                     std::cout << vecPar.back() << " ";
                 }
             }
 
 
-            op.first->setValue(vecPar);
+            oparam->setValue(vecPar);
         }
         std::cout << std::endl;
 
@@ -508,10 +402,10 @@ void SofaModelWrapper<Type>::Initialize()
         }
 
         for (size_t pi = 0; pi < obj.oparams.size(); pi++) {
-            helper::vector<size_t>& opv = obj.oparams[pi].second;
+            helper::vector<size_t>& opv = obj.oparams[pi]->mappingIndices;
             opv.clear();
 
-            for (size_t i = 0; i < obj.oparams[pi].first->size(); i++)
+            for (size_t i = 0; i < obj.oparams[pi]->size(); i++)
                 opv.push_back(vpi++);
         }
 
@@ -526,10 +420,10 @@ void SofaModelWrapper<Type>::Initialize()
             std::cout << "Object in node: " << obj.node->getName() << " " << obj.oparams.size() << std::endl;
 
             for (size_t i = 0; i < obj.oparams.size(); i++) {
-                std::cout << "  Params: " << obj.oparams[i].first->getName();
+                std::cout << "  Params: " << obj.oparams[i]->getName();
                 std::cout << "     inx:";
-                for (size_t j = 0; j < obj.oparams[i].second.size(); j++)
-                    std::cout << " " << obj.oparams[i].second[j];
+                for (size_t j = 0; j < obj.oparams[i]->mappingIndices.size(); j++)
+                    std::cout << " " << obj.oparams[i]->mappingIndices[j];
                 std::cout << std::endl;
             }
 
@@ -1040,11 +934,11 @@ typename SofaModelWrapper<Type>::state_error_variance& SofaModelWrapper<Type>::G
             SofaObject& obj = sofaObjects[soi];
 
             for (size_t opi = 0; opi < obj.oparams.size(); opi++) {
-                OPVector* op = obj.oparams[opi].first;
+                OptimParams* oparam = obj.oparams[opi];
                 //const helper::vector<Type>& stdev = op->getStdev();
-                helper::vector<double>& stdev = op->getStDev();
+                helper::vector<double>& stdev = oparam->getStDev();
 
-                for (size_t pi = 0; pi < op->size(); pi++, vpi++)
+                for (size_t pi = 0; pi < oparam->size(); pi++, vpi++)
                     state_error_variance_reduced_(vpi, vpi) = Type(Type(1.0) / (stdev[pi] * stdev[pi]));
             }
         }
