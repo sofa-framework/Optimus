@@ -38,11 +38,26 @@ namespace component
 namespace container
 {
 
+using namespace defaulttype;
+
 template <class DataTypes>
 struct templateName
 {
     std::string operator ()(void) { return("generic"); }
 };
+
+template<>
+struct templateName<Vec3dTypes::VecCoord>
+{
+    std::string operator ()(void) { return("VecCoord3d"); }
+};
+
+template<>
+struct templateName<Vec3fTypes::VecCoord>
+{
+    std::string operator ()(void) { return("VecCoord3f"); }
+};
+
 
 template<>
 struct templateName<double>
@@ -96,9 +111,53 @@ struct templateName<sofa::helper::vector<float> >
     std::string operator ()(void) { return("Vector"); }
 };
 
+class OptimParamsBase : public sofa::core::objectmodel::BaseObject
+{
+    typedef helper::vector<double> DVec;
+
+protected:
+    DVec _stDevInVector;
+    DVec _valueInVector;
+    Data< bool > m_optimize;            ///
+
+    virtual void _getStDev() = 0;   /// copy standard deviation from a structure of given type to plain helper::vector
+    virtual void _getValue() = 0;   /// copy the actual value from a structure of given type to plain helper::vector
+    virtual void _setValue() = 0;   /// copy a value in plain vector to a structure of given type
+
+public:
+    helper::vector<size_t> mappingIndices;  /// mapping of parameters stored in m_val to Verdandi state vector
+
+    OptimParamsBase()
+        : m_optimize( initData(&m_optimize, true, "optimize", "the parameter will be optimized by Verdandi") )
+    {}
+
+    size_t size() {
+        return(_valueInVector.size());
+    }
+
+    DVec& getStDev() {
+        this->_getStDev();
+        return _stDevInVector;
+    }
+
+    DVec& getValue() {
+        this->_getValue();
+        return _valueInVector;
+    }
+
+    void setValue(DVec& _value) {
+        _valueInVector = _value;
+        this->_setValue();
+    }
+
+    bool optimize()  {
+        return(m_optimize.getValue());
+    }
+};
+
 //////////////////////////////////////////////////////////////////////////
 template <class DataTypes>
-class OptimParams : public sofa::core::objectmodel::BaseObject
+class OptimParams : public OptimParamsBase
 {
 public:
     SOFA_CLASS(SOFA_TEMPLATE(OptimParams, DataTypes), sofa::core::objectmodel::BaseObject);
@@ -108,8 +167,8 @@ public:
     ~OptimParams();
     void init();
     void reinit();
-    size_t size();
-    const DataTypes& getValue() {
+    //size_t size();
+    /*const DataTypes& getValue() {
         return m_val.getValue();
     }
 
@@ -119,22 +178,23 @@ public:
 
     void setValue(DataTypes& _value) {
         m_val.setValue(_value);
-    }
-
-    bool optimize()  {
-        return(m_optimize.getValue());
-    }
+    }*/
 
     static std::string templateName(const OptimParams<DataTypes>* = NULL) { std::string name = sofa::component::container::templateName<DataTypes>()(); return(name); }       
 
 protected:
-    Data< DataTypes > m_val;
-    Data< DataTypes > m_initVal;
+    Data< DataTypes > m_val;            /// real actual value of parameters
+    Data< DataTypes > m_initVal;        /// initial value
     Data< DataTypes > m_min;
     Data< DataTypes > m_max;
-    Data< DataTypes > m_stdev;
-    Data< bool > m_optimize;
+    Data< DataTypes > m_stdev;          /// standard deviation
     Data< int > m_numParams;
+
+    /// must be implemented in specializations
+    virtual void _getStDev() {}
+    virtual void _getValue() {}
+    virtual void _setValue() {}
+
 };
 
 } // container

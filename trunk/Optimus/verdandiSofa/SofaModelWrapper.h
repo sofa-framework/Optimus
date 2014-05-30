@@ -117,7 +117,8 @@ public:
     /// SOFA TYPES
     typedef sofa::core::objectmodel::BaseObject Inherit;
 
-    typedef sofa::component::container::OptimParams<sofa::helper::vector<Type> > OPVector;
+    //typedef sofa::component::container::OptimParams<sofa::helper::vector<Type> > OPVector;
+    typedef sofa::component::container::OptimParamsBase OPVector;
 
 
     /// VERDANDI TYPES
@@ -179,17 +180,19 @@ public:
         bool verbose;
     } ModelData;
 
+    /// structure to associate OptimParams (found in a node) and indices mapping parameters to Verdandi state
     typedef std::pair<OPVector*,helper::vector<size_t> > OPVecInd;
 
+    /// structure associated with a node that contains OptimParams
     typedef struct {
-        simulation::Node* node;
-        helper::vector<OPVecInd> oparams;
-        MechStateVec3d* vecMS;
-        MechStateRigid3d* rigidMS;
-        FixedConstraintVec3d* vecFC;
+        simulation::Node* node;                 /// associated not
+        helper::vector<OPVecInd> oparams;       /// vector of OptimParams points in that node (multiple OptimParams per node allowed)
+        MechStateVec3d* vecMS;                  /// pointer to mechanical state (Vec3D), to be templated
+        MechStateRigid3d* rigidMS;              /// pointer to mechanical state (Rigid3D), to be templated
+        FixedConstraintVec3d* vecFC;            /// pointer to fixed constraints (fixed DoFs must be ommitted from Verdandi state vector)
         FixedConstraintRigid3d* rigidFC;
-        helper::vector<std::pair<size_t, size_t> > positionPairs;
-        helper::vector<std::pair<size_t, size_t> > velocityPairs;
+        helper::vector<std::pair<size_t, size_t> > positionPairs;       /// map to match positions in SOFA and Verdandi state vector
+        helper::vector<std::pair<size_t, size_t> > velocityPairs;       /// map to match velocities in SOFA and Verdandi state vector
     } SofaObject;
 
 public:

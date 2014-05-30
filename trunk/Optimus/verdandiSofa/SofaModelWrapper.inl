@@ -263,6 +263,7 @@ void SofaModelWrapper<Type>::SetSofaVectorFromVerdandiState(defaulttype::Vec3dTy
 
 }
 
+/// copy the actual SOFA mechanical object and parameter vector to Verdandi state vector using already created index maps
 template <class Type>
 void SofaModelWrapper<Type>::StateSofa2Verdandi() {
     /*for (size_t si = 0; si < listMS3d.size(); si++) {
@@ -311,6 +312,7 @@ void SofaModelWrapper<Type>::StateSofa2Verdandi() {
 
     //std::cout << "S2V: " << std::endl;
 
+    /// for all SofaObjects (associated with nodes having OptimParams component)
     for (size_t iop = 0; iop < sofaObjects.size(); iop++) {
         SofaObject& obj = sofaObjects[iop];
 
@@ -365,55 +367,9 @@ void SofaModelWrapper<Type>::StateSofa2Verdandi() {
 
 }
 
+/// copy a Verdandi state to SOFA mechanical object and parameter vector in corresponding OptimParams
 template <class Type>
 void SofaModelWrapper<Type>::StateVerdandi2Sofa() {
-    /*for (size_t si = 0; si < listMS3d.size(); si++) {
-        typename MechStateVec3d::WriteVecCoord pos = listMS3d[si]->writePositions();
-        typename MechStateVec3d::WriteVecDeriv vel = listMS3d[si]->writeVelocities();
-
-        size_t ii = 0;
-        for (size_t i = listStateBegin[si]; i < listStateMiddle[si]; i++) {
-            for (size_t d = 0; d < dim_; d++)
-                pos[listFreeIndices[si][ii]][d] = state_(3*i+d);
-            ii++;
-        }
-
-        ii = 0;
-        for (size_t i = listStateMiddle[si]; i < listStateEnd[si]; i++) {
-            for (size_t d = 0; d < dim_; d++)
-                vel[listFreeIndices[si][ii]][d] = state_(3*i+d);
-            ii++;
-        }
-
-        ii = 0;
-        helper::vector<Type> vecPar(listOP3d[si]->size());
-        for (size_t i = listParamBegin[si]; i < listParamEnd[si]; i++)
-            vecPar[ii++] = state_(i);
-        listOP3d[si]->setValue(vecPar);
-    }*/
-
-    /*typename MechStateVec3d::WriteVecCoord pos = mechanicalObject->writePositions();
-    typename MechStateVec3d::WriteVecDeriv vel = mechanicalObject->writeVelocities();
-
-    size_t j = 0;
-    if (modelData.positionInState) {
-        for (size_t i = 0; i < free_nodes_size; i++)
-            for (size_t d = 0;  d < dim_; d++)
-                pos[freeIndices[i]][d] = state_(j++);
-    }
-
-    if (modelData.velocityInState) {
-        for (size_t i = 0; i < free_nodes_size; i++)
-            for (size_t d = 0;  d < dim_; d++)
-                vel[freeIndices[i]][d] = state_(j++);
-    }
-
-    helper::vector<double> vecPar(vecParams->size());
-    for (size_t i = 0; i < vecParams->size(); i++)
-        vecPar[i] = state_(j++);
-    vecParams->setValue(vecPar);*/
-
-    /// THE LATEST VERSION:    
     for (size_t iop = 0; iop < sofaObjects.size(); iop++) {
         SofaObject& obj = sofaObjects[iop];
         std::cout << "Verdandi => Sofa on " << obj.vecMS->getName() <<  std::endl;
@@ -492,99 +448,6 @@ void SofaModelWrapper<Type>::Initialize()
 {
     Verb("initialize sofaModelWrapper");
     /// get fixed nodes
-
-    /*listStateBegin.resize(listMS3d.size(),size_t(0));
-    listStateMiddle.resize(listMS3d.size(),0);
-    listStateEnd.resize(listMS3d.size(),0);
-
-    listParamBegin.resize(listMS3d.size(),0);
-    listParamEnd.resize(listMS3d.size(),0);
-
-    listFreeIndices.clear();
-
-    size_t lastS = 0;
-    size_t lastP = 0;
-    for (size_t si = 0; si < listMS3d.size(); si++) {
-        const FixedConstraintVec3d::SetIndexArray& fixedIndices = listFC3d[si]->f_indices.getValue();
-        helper::vector<size_t> freeIndices;
-
-        for (int i = 0; i < listMS3d[si]->getSize(); i++) {
-            bool found = false;
-            for (size_t j = 0; j < fixedIndices.size(); j++) {
-                if (int(fixedIndices[j]) == i) {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found)
-                freeIndices.push_back(i);
-        }
-
-        std::cout <<" FREE INDICES: " << freeIndices.size() << std::endl;
-
-        listFreeIndices.push_back(freeIndices);
-        size_t ns = freeIndices.size();
-        size_t np = listOP3d[si]->size();
-
-        listStateBegin[si] = lastS;
-        if (modelData.positionInState)
-            lastS += ns;
-        listStateMiddle[si] = lastS;
-        if (modelData.velocityInState)
-            lastS += ns;
-        listStateEnd[si] = lastS;
-
-        listParamBegin[si] = lastP;
-        lastP += np;
-        listParamEnd[si] = lastP;
-
-        reduced_state_index_ = state_size_;
-    }
-
-    for (size_t si = 0; si < listMS3d.size(); si++) {
-        listParamBegin[si] += dim_ * lastS;
-        listParamEnd[si] += dim_ * lastS;
-    }
-
-    reduced_state_index_ = dim_ * lastS;
-    state_size_ = dim_* lastS + lastP;
-    reduced_state_size_ = lastP;
-
-    std::cout << "Initializing model (filter type " << modelData.filterType << ") with size " << state_size_ << std::endl;
-    std::cout << "Reduced state index: " << reduced_state_index_ << " size: " << reduced_state_size_ << std::endl;*/
-
-    /*const FixedConstraintVec3d::SetIndexArray& fixedIndices = fixedConstraints->f_indices.getValue();
-
-    freeIndices.clear();
-    for (int i = 0; i < mechanicalObject->getSize(); i++) {
-        bool found = false;
-        for (size_t j = 0; j < fixedIndices.size(); j++) {
-            if (int(fixedIndices[j]) == i) {
-                found = true;
-                break;
-            }
-        }
-        if (!found)
-            freeIndices.push_back(i);
-    }
-    free_nodes_size = freeIndices.size();
-
-    /// initialize filter state
-    state_size_ = 0;
-    if (modelData.positionInState)
-        state_size_ += dim_* free_nodes_size;
-
-    if (modelData.velocityInState)
-        state_size_ += dim_* free_nodes_size;
-
-    reduced_state_index_ = state_size_;
-
-    if (vecParams) {
-        reduced_state_size_ = vecParams->size();
-        state_size_ += reduced_state_size_;
-    }*/
-
-    /// THE LATEST VERSION
     size_t vsi = 0;
     size_t vpi = 0;
 
@@ -696,51 +559,6 @@ void SofaModelWrapper<Type>::Initialize()
     state_.Resize(state_size_);
 
     StateSofa2Verdandi();
-
-    /*if (modelData.filterType == UKF) {
-        /// initialize state error variance
-        state_error_variance_.Reallocate(GetNstate(), GetNstate());
-        state_error_variance_.SetIdentity();
-        for (size_t i = 0; i < size_t(reduced_state_index_); i++)
-            state_error_variance_(i,i) *= modelData.errorVarianceSofaState;
-
-        //for (size_t i = reduced_state_index_; i < size_t(state_size_); i++)
-        //    state_error_variance_(i,i) *= modelData.errorVarianceSofaParams;
-
-        for (size_t soi = 0, vpi = 0; soi < sofaObjects.size(); soi++) {
-            SofaObject& obj = sofaObjects[soi];
-
-            for (size_t opi = 0; opi < obj.oparams.size(); opi++) {
-                OPVector* op = obj.oparams[opi].first;
-                const helper::vector<Type>& stdev = op->getStdev();
-                for (size_t pi = 0; pi < op->size(); pi++, vpi++)
-                    state_error_variance_(vpi, vpi) *=  (stdev[pi] * stdev[pi]);
-
-            }
-        }
-
-        //Mlt(Type(state_error_variance_value_), state_error_variance_);
-
-        state_error_variance_inverse_.Reallocate(GetNstate(), GetNstate());
-        state_error_variance_inverse_.SetIdentity();
-        for (size_t i = 0; i < size_t(reduced_state_index_); i++)
-            state_error_variance_inverse_(i,i) *= modelData.errorVarianceSofaState;
-        //for (size_t i = size_t(reduced_state_index_); i < size_t(state_size_); i++)
-        //    state_error_variance_inverse_(i,i) *= modelData.errorVarianceSofaParams;
-
-        for (size_t soi = 0, vpi = 0; soi < sofaObjects.size(); soi++) {
-            SofaObject& obj = sofaObjects[soi];
-
-            for (size_t opi = 0; opi < obj.oparams.size(); opi++) {
-                OPVector* op = obj.oparams[opi].first;
-                const helper::vector<Type>& stdev = op->getStdev();
-                for (size_t pi = 0; pi < op->size(); pi++, vpi++)
-                    state_error_variance_inverse_(vpi, vpi) *=  (stdev[pi] * stdev[pi]);
-
-            }
-        }
-
-    }*/
 
     if (modelData.filterType == ROUKF) {
         variance_projector_allocated_ = false;
@@ -1223,7 +1041,8 @@ typename SofaModelWrapper<Type>::state_error_variance& SofaModelWrapper<Type>::G
 
             for (size_t opi = 0; opi < obj.oparams.size(); opi++) {
                 OPVector* op = obj.oparams[opi].first;
-                const helper::vector<Type>& stdev = op->getStdev();
+                //const helper::vector<Type>& stdev = op->getStdev();
+                helper::vector<double>& stdev = op->getStDev();
 
                 for (size_t pi = 0; pi < op->size(); pi++, vpi++)
                     state_error_variance_reduced_(vpi, vpi) = Type(Type(1.0) / (stdev[pi] * stdev[pi]));
