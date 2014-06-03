@@ -51,6 +51,7 @@ template<class DataTypes>
 SimulatedStateObservationSource<DataTypes>::SimulatedStateObservationSource()
     : Inherit()
     , m_monitorPrefix( initData(&m_monitorPrefix, std::string("monitor1"), "monitorPrefix", "prefix of the monitor-generated file") )
+    , m_actualObservation( initData (&m_actualObservation, "actualObservation", "actual observation") )
 {
 
 }
@@ -71,10 +72,14 @@ void SimulatedStateObservationSource<DataTypes>::init()
 
     if (numPos >= 0) {
         std::cout << "[" << this->getName() << "]: number of parsed positions: " << numPos << std::endl;
+        m_actualObservation.setValue(positions[0]);
+
     } else {
         std::cerr << "[" << this->getName() << "]: ERROR: " << numPos << std::endl;
     }
     std::cout << "[" << this->getName() << "]: ==init done" << std::endl;
+
+
 }
 
 template<class DataTypes>

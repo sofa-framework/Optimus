@@ -65,6 +65,7 @@ public:
     ~SimulatedStateObservationSource();
 
     Data<std::string> m_monitorPrefix;
+    Data<VecCoord> m_actualObservation;
 
     /// maps:  time + vector
     //std::map<double, VecCoord> positions;
@@ -81,7 +82,9 @@ public:
         if (ix >= int(positions.size())) {
             std::cerr << this->getName() << " ERROR: no observation for time " << time << " , using the last one from " << positions.size()-1 << std::endl;
             ix = positions.size() - 1;
-        }
+        } else
+            std::cout << this->getName() << " observation in time " << time << ": " << positions[ix] << std::endl;
+        m_actualObservation.setValue(positions[ix]);
 
         return(positions[ix]);
     }
