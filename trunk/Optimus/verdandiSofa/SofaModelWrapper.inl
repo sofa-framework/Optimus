@@ -306,6 +306,7 @@ void SofaModelWrapper<Type>::StateVerdandi2Sofa() {
 template <class Type>
 void SofaModelWrapper<Type>::Initialize()
 {
+    SNCOUT("== Initialize started")
     Verb("initialize sofaModelWrapper");
     /// get fixed nodes
     size_t vsi = 0;
@@ -368,13 +369,12 @@ void SofaModelWrapper<Type>::Initialize()
         }
 
         reduced_state_index_ = dim_ * vsi;
-        for (size_t pi = 0; pi < obj.oparams.size(); pi++) {            
-            helper::vector<size_t>& opv = obj.oparams[pi]->getVStateParamIndices();
-            opv.clear();
-
+        for (size_t pi = 0; pi < obj.oparams.size(); pi++) {                                    
+            helper::vector<size_t> opv;
             for (size_t i = 0; i < obj.oparams[pi]->size(); i++, vpi++) {
                 opv.push_back(reduced_state_index_+vpi);
             }
+            obj.oparams[pi]->setVStateParamIndices(opv);
         }
 
         state_size_ = dim_* vsi + vpi;
@@ -389,8 +389,9 @@ void SofaModelWrapper<Type>::Initialize()
             for (size_t i = 0; i < obj.oparams.size(); i++) {
                 std::cout << "  Params: " << obj.oparams[i]->getName();
                 std::cout << "     inx:";
-                for (size_t j = 0; j < obj.oparams[i]->getVStateParamIndices().size(); j++)
-                    std::cout << " " << obj.oparams[i]->getVStateParamIndices()[j];
+                helper::vector<size_t> opv = obj.oparams[i]->getVStateParamIndices();
+                for (size_t j = 0; j < opv.size(); j++)
+                    std::cout << " " << opv[j];
                 std::cout << std::endl;
             }
 
@@ -425,6 +426,7 @@ void SofaModelWrapper<Type>::Initialize()
         variance_projector_allocated_ = false;
         variance_reduced_allocated_ = false;
     }
+    SNCOUT("== Initialize done")
 }
 
 template <class Type>
@@ -893,17 +895,20 @@ typename SofaModelWrapper<Type>::state_error_variance& SofaModelWrapper<Type>::G
         //    Nreduced += x_.GetVector(reduced_[i]).GetSize();
         //std::cout << "  R-Nreduced: " << Nreduced << std::endl;
         // Initializes U.
+        //SERR("Reduced size: " << reduced_state_size_)
         state_error_variance_reduced_.Reallocate(reduced_state_size_,  reduced_state_size_);
         state_error_variance_reduced_.Fill(Type(0.0));
         //for (size_t i = 0; i < reduced_state_size_; i++)
         //    state_error_variance_reduced_(i, i) = Type(Type(1.0) / modelData.errorVarianceSofaParams);
+        //SERR("SObjs size: " << sofaObjects.size())
         for (size_t soi = 0, vpi = 0; soi < sofaObjects.size(); soi++) {
             SofaObject& obj = sofaObjects[soi];
-
+            //SERR("SObji size: " << obj.oparams.size())
             for (size_t opi = 0; opi < obj.oparams.size(); opi++) {
                 OptimParams* oparam = obj.oparams[opi];
                 //const helper::vector<Type>& stdev = op->getStdev();
                 helper::vector<double> stdev;
+                //SERR("getStDev")
                 oparam->getStDev(stdev);
 
                 for (size_t pi = 0; pi < oparam->size(); pi++, vpi++)
@@ -927,6 +932,7 @@ typename SofaModelWrapper<Type>::state_error_variance& SofaModelWrapper<Type>::G
         f.close();
     }
     //std::cout << "U = " << state_error_variance_reduced_ << std::endl;
+    std::cout << "OK" << std::endl;
 
     return state_error_variance_reduced_;
 }
@@ -975,6 +981,7 @@ SofaReducedOrderUKF<Model, ObservationManager>::SofaReducedOrderUKF()
 
 template <class Model, class ObservationManager>
 void SofaReducedOrderUKF<Model, ObservationManager>::init() {
+    SNCOUT("== init started")
     SofaModelWrapper<double>::ModelData md;
     md.positionInState = m_positionInState.getValue();
     md.velocityInState = m_velocityInState.getValue();
@@ -982,11 +989,13 @@ void SofaReducedOrderUKF<Model, ObservationManager>::init() {
     md.gnode = dynamic_cast<simulation::Node*>(this->getContext());    
 
     this->model_.initSimuData(md);
+    SNCOUT("== init done")
 }
 
 
 template <class Model, class ObservationManager>
 void SofaReducedOrderUKF<Model, ObservationManager>::InitializeFilter() { //VerdandiROUKFParams* _roukfParams) {
+    SNCOUT("== InitializeFilter started")
     simulation::Node* gnode = dynamic_cast<simulation::Node*>(this->getContext());
 
     gnode->get(this->observation_manager_, core::objectmodel::BaseContext::SearchDown);
@@ -997,19 +1006,21 @@ void SofaReducedOrderUKF<Model, ObservationManager>::InitializeFilter() { //Verd
         return;
     }
 
+    SNCOUT("=== InitializeParams...")
     InitializeParams();
 
     this->model_.Initialize();
     this->observation_manager_->Initialize(this->model_, this->configuration_file_);
     this->observation_manager_->DiscardObservation(false);
 
+    SNCOUT("=== InitializeStructures...")
     InitializeStructures();
+    SNCOUT("== InitializeFilter done")
 }
 
 
 template <class Model, class ObservationManager>
-void SofaReducedOrderUKF<Model, ObservationManager>
-::InitializeParams() {
+void SofaReducedOrderUKF<Model, ObservationManager>::InitializeParams() {
     this->output_directory_ = m_outputDirectory.getValue();
     this->configuration_file_ = m_configFile.getValue();
 
@@ -1200,8 +1211,10 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
 
 
  template <class DataTypes1, class DataTypes2>
- void MappedPointsObservationManager<DataTypes1, DataTypes2>::init() {
+ void MappedPointsObservationManager<DataTypes1, DataTypes2>::init() {     
      simulation::Node* gnode = dynamic_cast<simulation::Node*>(this->getContext());
+
+     SNCOUT("== init started")
 
      gnode->get(mapping);
      if (mapping) {
@@ -1243,12 +1256,14 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
      if (!sofaObject)
          std::cerr << this->getName() << "ERROR SOFA object not found " << std::endl;
 
+     SNCOUT("== init done")
 
 
  }
 
  template <class DataTypes1, class DataTypes2>
  void MappedPointsObservationManager<DataTypes1, DataTypes2>::bwdInit() {
+     SNCOUT("== bwdInit started")
      typename DataTypes1::VecCoord& inputObservation = *inputObservationData.beginEdit();
 
      inputObservation = observationSource->getObservation(0.0);
@@ -1260,6 +1275,7 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
 
      noise.clear();
      noise.resize(3*mappedObservationData.getValue().size());
+     SNCOUT("== bwdInit done")
  }
 
 

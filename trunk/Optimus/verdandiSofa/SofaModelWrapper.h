@@ -54,6 +54,10 @@
 #include <sofa/simulation/common/AnimateEndEvent.h>
 #include <sofa/simulation/common/AnimateBeginEvent.h>
 
+#define SNCOUT(arg)     { std::cout << "[" << this->getName() << "] " << arg << std::endl; }
+
+#define SERR(arg)     { std::cerr << "[" << this->getName() << "] " << arg << std::endl; }
+
 
 using namespace sofa::core::objectmodel;
 using namespace sofa::core::behavior;

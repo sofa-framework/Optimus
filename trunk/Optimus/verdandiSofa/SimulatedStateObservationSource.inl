@@ -64,6 +64,7 @@ SimulatedStateObservationSource<DataTypes>::~SimulatedStateObservationSource()
 template<class DataTypes>
 void SimulatedStateObservationSource<DataTypes>::init()
 {
+    std::cout << "[" << this->getName() << "]: ==init start" << std::endl;
     std::string posFile = m_monitorPrefix.getValue() + "_x.txt";
 
     int numPos = parseMonitorFile(posFile);
@@ -73,7 +74,7 @@ void SimulatedStateObservationSource<DataTypes>::init()
     } else {
         std::cerr << "[" << this->getName() << "]: ERROR: " << numPos << std::endl;
     }
-
+    std::cout << "[" << this->getName() << "]: ==init done" << std::endl;
 }
 
 template<class DataTypes>

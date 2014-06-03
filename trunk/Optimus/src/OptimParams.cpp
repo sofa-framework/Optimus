@@ -45,12 +45,12 @@ using namespace defaulttype;
 
 template<>
 void OptimParams<sofa::helper::vector<double> >::getStDevTempl(DVec& _stdev) {
-    _stdev.resize(m_stdev.getValue().size());
+    _stdev.resize(m_stdev.getValue().size());    
     for (size_t i = 0; i < _stdev.size(); i++)
         _stdev[i] = m_stdev.getValue()[i];
 }
 
-template<>
+/*template<>
 void OptimParams<sofa::helper::vector<double> >::getValueTempl(DVec& _value) {
     _value.resize(m_val.getValue().size());
     for (size_t i = 0; i < _value.size(); i++)
@@ -63,7 +63,7 @@ void OptimParams<sofa::helper::vector<double> >::setValueTempl(const DVec& _valu
     for (size_t i = 0; i < _value.size(); i++)
         val->at(i) = _value[i];
     m_val.endEdit();
-}
+}*/
 
 template<>
 void OptimParams<sofa::helper::vector<double> >::rawVectorToParams(const double* _vector) {
@@ -235,6 +235,34 @@ void OptimParams<Vec3dTypes::VecCoord>::paramsToRawVector(double* _vector) {
             _vector[paramIndices[k]] = raVal[i][j];
 
 }
+
+template<>
+void OptimParams<Vec3dTypes::VecCoord>::getStDevTempl(DVec& _stdev) {
+    size_t numParams = this->m_numParams.getValue();
+    _stdev.resize(numParams*m_dim);
+    size_t ij = 0;
+    for (size_t i = 0; i < numParams; i++)
+        for (size_t j = 0; j < m_dim; j++, ij++)
+            _stdev[ij] = m_stdev.getValue()[i][j];
+}
+
+/*template<>
+void OptimParams<Vec3dTypes::VecCoord>::getValueTempl(DVec& _value) {
+    _value.resize(m_val.getValue().size());
+    for (size_t i = 0; i < _value.size(); i++)
+        _value[i] = m_val.getValue()[i];
+}
+
+template<>
+void OptimParams<Vec3dTypes::VecCoord>::setValueTempl(const DVec& _value) {
+    helper::vector<double>* val = m_val.beginEdit();
+    for (size_t i = 0; i < _value.size(); i++)
+        val->at(i) = _value[i];
+    m_val.endEdit();
+}*/
+
+/// DECLARATIONS
+
 
 
 SOFA_DECL_CLASS(OptimParams)
