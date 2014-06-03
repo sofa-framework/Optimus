@@ -576,11 +576,7 @@ namespace Verdandi
                                  " simplex' cases.");
 #else
             model_state_error_variance_row x(Nstate_);
-            Copy(model_.GetState(), x);
-            std::cout << "BEGIN FORWARD: ";
-            for (size_t i = 0; i < 12; i++)
-                std::cout << model_.state_(i) << " ";
-            std::cout << std::endl;
+            Copy(model_.GetState(), x);            
 
             /*** Sampling ***/
 
@@ -735,11 +731,11 @@ namespace Verdandi
 
             //std::cout << "VarProj = " << model_.GetStateErrorVarianceProjector() << std::endl;
 
-            std::cout << "END FORWARD: ";
+            /*std::cout << "END FORWARD: ";
             for (size_t i = 0; i < 12; i++)
                 std::cout << model_.state_(i) << " ";
             std::cout << std::endl;
-            std::cout << "ITRANS = " << I_trans_ << std::endl;
+            std::cout << "ITRANS = " << I_trans_ << std::endl;*/
 
             //// print error variance projector begin
             if (0) {
@@ -1068,10 +1064,10 @@ namespace Verdandi
             model_state& x =  model_.GetState();                        
             MltAdd(Ts(-1), K, z, Ts(1), x);
             model_.StateUpdated();
-            std::cout << "END ANALYZE:  ";
+            /*std::cout << "END ANALYZE:  ";
             for (size_t i = 0; i < 12; i++)
                 std::cout << model_.state_(i) << " ";
-            std::cout << std::endl;
+            std::cout << std::endl;*/
 
             //// print error variance projector begin
             if (0) {
