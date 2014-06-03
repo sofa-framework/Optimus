@@ -1,0 +1,75 @@
+<?xml version="1.0" ?>
+<Node name="root" dt="0.01" showBoundingTree="0" gravity="0 0 0">
+	<RequiredPlugin pluginName="Optimus"/>
+	<RequiredPlugin pluginName="SofaPardisoWrapper"/>
+	<RequiredPlugin pluginName="BilikimoAux"/>
+	<RequiredPlugin pluginName="haystackPlugin"/>
+	<RequiredPlugin pluginName="SofaMiscForcefieldDev"/>
+	<VisualStyle displayFlags="showBehaviorModels showForceFields showCollisionModels" />
+	
+<!-- 	<FreeMotionAnimationLoop /> -->
+<!-- 	<GenericConstraintSolver printLog="1" /> -->
+		
+	<Node name="target">
+<!-- 		<MechanicalObject name="TargetMO" position="0.0 0.0 0.2"/> -->
+		<MechanicalObject name="TargetMO" position="0.212934 0.120158 0.144699"/>
+<!-- 		0.205365 0.120022 0.128309"/> -->
+<!-- 		<Sphere radius="0.002" color="1 0 0"/> -->
+		<Sphere color="1 0 0 1" radius="0.01"/>
+<!-- 		<BarycentricMapping/> -->
+		<LinearMotionController name="MotionControl1" indices="0" keyTimes="0 2 4"  keyDisplacements="0 0 0   0.05 0.0 0.0  0.0 0.0 0.0"  applyOnRestPosition="1" applyOnPosition="1" applyOnFreePosition="1" listening="1" loop="1"/>
+<!-- 		<LinearMotionController name="MotionControl2" indices="2 3" keyDisplacements="0 0 0   0.0 -0.12 0.05  0.0 0.0 0.0"  applyOnRestPosition="1" applyOnPosition="1" applyOnFreePosition="1" keyTimeSteps="0 50 50" listening="1" loop="0"/> -->
+	</Node>
+
+	<Node name="deformable">
+<!-- 		<OptimParams name="paramE" template="Vector" initValue="10000 5000 7000"/>  -->
+		<OptimParams name="paramK" template="VecCoord3d" parametricMechanicalObject="@../target/TargetMO" stdev="0.001 0.001 0.001"/> 
+		
+		<EulerImplicit name="odeSolver" printLog="false" rayleighStiffness="0.1" rayleighMass="0.0"/>
+<!-- 		<StaticSolver/> -->
+		<SparseLDLSolver/>
+<!-- 		<SparsePARDISOSolver/> -->
+
+	<!-- 	<MeshVTKLoader filename="cylinder363.vtk" name="loader" /> -->
+<!-- 		<MeshVTKLoader filename="../data/liver_pir15_10.vtk" name="loader" scale="0.001 0.001 0.001"/> -->
+<!-- 		<MechanicalObject src="@loader" name="Volume" /> -->
+		<MechanicalObject name="TargetMO" position="0.212934 0.120158 0.144699"/>
+		<Sphere color="0 0 1 1" radius="0.01"/>
+		
+<!-- 		<include href="Objects/TetrahedronSetTopology.xml" src="@loader" /> -->
+<!-- 		<UniformMass totalMass="0.2513" /> -->
+<!-- 		<UniformMass totalMass="0.2513"/> -->
+
+<!-- 		<BoxROI name="fixedBox1" box="-0.05 -0.05 -0.002   0.05 0.05 0.002"/> -->
+	<!-- 	<BoxROI name="fixedBox2" box="-0.05 -0.05  0.238   0.05 0.05 0.242"/> -->
+		
+	<!-- 	<MergeSets name="mergeIndices" in1="@fixedBox1.indices" in2="@fixedBox2.indices"/> -->
+		
+	<!-- 	<FixedConstraint indices="@mergeIndices.out" /> -->
+<!-- 		<FixedConstraint indices="16 35 35 73 78 112 132 132 153 194 267 303 308 313 313 323 330 338 352 352 370 373 381 476 486 486 514 514 520 890 939 948 949 961 1108 1133 1286"/> -->
+<!-- 		<LinearSolverConstraintCorrection/> -->
+		
+<!-- 		<BoxROI name="allDOFs" box="-1 -1 -1 1 1 1"/> -->
+		<Monitor name="pointOscil" indices="0" ExportPositions="1" ExportVelocities="0" ExportForces="0"/>
+
+	<!-- 		<BoxROI name="fixedBox2" box="-0.05 -0.05 0.176   0.05 0.05 0.180"/> -->
+	<!-- 		<FixedConstraint indices="@fixedBox2.indices" /> -->
+		<!--<Indices2ValuesMapper name="youngMapper" inputValues="@loader.dataset" indices="1 2 3" values="@paramE.value"/>-->
+<!-- 		<Indices2ValuesMapper name="youngMapper" inputValues="@loader.dataset" indices="1 2" values="10000 5000"/> -->
+<!-- 		<TetrahedronFEMForceField name="FEM" listening="true" updateStiffness="1"  youngModulus="1e4" poissonRatio="0.45" method="large"  computeVonMisesStress="0" drawHeterogeneousTetra="1"/> -->
+	<!-- 	<TetrahedronFEMForceField name="FEM" listening="true" updateStiffness="1"  youngModulus="@paramE.value" poissonRatio="0.45" method="large"  computeVonMisesStress="0" drawHeterogeneousTetra="1"/> -->
+		
+		<RestShapeSpringsForceField name="SourceFF" angularStiffness="0" stiffness="1e6" external_rest_shape="../target/TargetMO" drawSpring="1" forceFile="forcesStat.txt" numDTAppl="0" startDTAppl="0" listening="1"/>
+		<!--<Mapped3DoFForceField mappedFEM="sourcePoints/SourceFF" mappedMechObject="sourcePoints/SourceMO" mapping="sourcePoints/SourceMapping" printLog="1" updateStiffness="1"/>
+		<Node activated="1" name="sourcePoints">			
+			<MechanicalObject name="SourceMO" position="0.212934 0.120158 0.144699"/>
+			<Sphere radius="0.002" color="0 1 0"/>
+			<RestShapeSpringsForceField name="SourceFF" angularStiffness="0" stiffness="@../paramK.value" external_rest_shape="../../target/TargetMO" drawSpring="1" forceFile="forcesStat.txt" numDTAppl="0" startDTAppl="0" listening="1"/>
+			<BarycentricMapping name="SourceMapping"/>
+		</Node>-->
+<!-- 		<VTKExporter filename="cylinder.vtk" XMLformat="true" listening="true" edges="0" triangles="0" quads="0" tetras="1" exportAtEnd="true"/> -->
+	</Node>
+	
+<!-- 	<BilateralInteractionConstraint template="Vec3d" object1="@target/TargetMO" object2="@deformable/sourcePoints/SourceMO" first_point="0" second_point="0" /> -->
+</Node>
+
