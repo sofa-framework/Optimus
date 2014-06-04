@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Node name="root" dt="0.01" showBoundingTree="0" gravity="0 0 0">
+<Node name="root" dt="0.001" showBoundingTree="0" gravity="0 0 0">
 	<RequiredPlugin pluginName="Optimus"/>
 	<RequiredPlugin pluginName="SofaPardisoWrapper"/>
 	<RequiredPlugin pluginName="BilikimoAux"/>
@@ -28,7 +28,7 @@
 <!-- 		<OptimParams name="paramE" template="Vector" initValue="10000 5000 7000"/>  -->
 		<OptimParams name="paramPos" template="VecCoord3d" parametricMechanicalObject="@../target/TargetMO" stdev="0.1 0.1 0.1"/> 
 		
-		<EulerImplicit name="odeSolver" printLog="false" rayleighStiffness="0.1" rayleighMass="0.0"/>
+		<EulerImplicit name="odeSolver" printLog="false" rayleighStiffness="0.01" rayleighMass="0.0"/>
 <!-- 		<StaticSolver/> -->
 		<SparseLDLSolver/>
 <!-- 		<SparsePARDISOSolver/> -->
@@ -67,7 +67,7 @@
 			<MechanicalObject name="TargetMO" position="0.212934 0.120158 0.144699"/>
 <!-- 			<Sphere radius="0.002" color="1 1 0"/> -->
 			<IdentityMapping/>
-			<MappedPointsObservationManager name="MOBS" errorVariance="0.000000001" listening="1"/>
+			<MappedPointsObservationManager name="MOBS" errorVariance="1e-10" listening="1"/>
 			<SimulatedStateObservationSource name="ObsSource" monitorPrefix="pointOscil"/>
 		</Node>	
 		
