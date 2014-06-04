@@ -103,6 +103,8 @@ void OptimParams<sofa::helper::vector<double> >::init() {
     helper::ReadAccessor<Data<sofa::helper::vector<double> > > initVal = m_initVal;
     size_t nInitVal = initVal.size();
 
+    m_numParams.setValue(nInitVal);
+
     if (nInitVal == 1 && m_numParams.getValue() > 1) {
         double value = initVal[0];
         nInitVal = m_numParams.getValue();

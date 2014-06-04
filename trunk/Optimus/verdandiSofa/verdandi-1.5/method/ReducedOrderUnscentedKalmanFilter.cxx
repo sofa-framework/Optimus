@@ -947,7 +947,7 @@ namespace Verdandi
                 observation& z_col =
                     observation_manager_->GetInnovation(x_col);
                 Add(To(alpha_), z_col, z);
-                std::cout << "Innovation: " << z_col << std::endl;
+                //std::cout << "Innovation: " << z_col << std::endl;
                 SetRow(z_col, i, Z_i_trans);
                 x_col.Nullify();
             }
@@ -1067,13 +1067,12 @@ namespace Verdandi
 
             MltAdd(Ts(-1), K, z, Ts(1), x);
 
-            model_state yy(x.GetM());
+            /*model_state yy(x.GetM());
             yy.Zero();
             MltAdd(Ts(-1), K, z, Ts(1), yy);
-
             std::cout << "KalmanGain = \n" << K << std::endl;
             std::cout << "innovation = " << z << std::endl;
-            std::cout << "correction = " << yy << std::endl;
+            std::cout << "correction = " << yy << std::endl;*/
 
             model_.StateUpdated();
             /*std::cout << "END ANALYZE:  ";

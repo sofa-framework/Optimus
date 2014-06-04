@@ -370,7 +370,7 @@ void SofaModelWrapper<Type>::Initialize()
 
         reduced_state_index_ = dim_ * vsi;
         for (size_t pi = 0; pi < obj.oparams.size(); pi++) {                                    
-            helper::vector<size_t> opv;
+            helper::vector<size_t> opv;            
             for (size_t i = 0; i < obj.oparams[pi]->size(); i++, vpi++) {
                 opv.push_back(reduced_state_index_+vpi);
             }
@@ -378,7 +378,7 @@ void SofaModelWrapper<Type>::Initialize()
         }
 
         state_size_ = dim_* vsi + vpi;
-        reduced_state_size_ = vpi;
+        reduced_state_size_ = vpi;        
 
         /// print out the structure:
         for (size_t iop = 0; iop < sofaObjects.size(); iop++) {
@@ -434,6 +434,7 @@ void SofaModelWrapper<Type>::FinalizeStep() {
     std::cout << "Actual parameter values:";
     /*switch (modelData.transformParams) {
     case 1:*/
+    std::cout << "RedIx = " << reduced_state_index_ << " s_s: " << state_size_ << std::endl;
         for (size_t i = reduced_state_index_; i < state_size_; i++)
             std::cout << " " << fabs(state_(i));
       /*  break;

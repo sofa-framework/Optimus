@@ -8,10 +8,11 @@
 	<VerdandiAnimationLoop name="verdAnimLoop"  verbose="0"/>
 	<SofaReducedOrderUKF name="sofaROUKF" outputDirectory="output"/>
 		
-	<OptimParams name="paramE" template="Vector" initValue="6000 6000 6000" stdev="2000"/>
+	<OptimParams name="paramE" template="Vector" initValue="6000 6000 6000" stdev="2000 2000 2000"/>
 <!-- 	<OptimParams name="paramE" template="Vector" initValue="10000 5000 7000"/>  -->
 	
-        <EulerImplicit name="odeSolver" printLog="false"/>
+<!--         <EulerImplicit name="odeSolver" printLog="false"/> -->
+	<StaticSolver/>
 	
 	<SparsePARDISOSolver/>
 

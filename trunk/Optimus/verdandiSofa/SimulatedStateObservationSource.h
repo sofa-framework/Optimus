@@ -83,13 +83,13 @@ public:
             std::cerr << this->getName() << " ERROR: no observation for time " << time << " , using the last one from " << positions.size()-1 << std::endl;
             ix = positions.size() - 1;
         } else {
-            std::cout << this->getName() << " observation in time " << time << ": " << positions[ix] << std::endl;
-            if (ix > 0) {
+            //std::cout << this->getName() << " observation in time " << time << ": " << positions[ix] << std::endl;
+            /*if (ix > 0) {
                 std::cout << this->getName() << " difference w.r.t. previous: ";
                 for (size_t ii = 0; ii < positions[ix].size(); ii++)
                     std::cout << positions[ix][ii] - positions[ix-1][ii] << " ";
                 std::cout << std::endl;
-            }
+            }*/
         }
         m_actualObservation.setValue(positions[ix]);
 
