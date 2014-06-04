@@ -79,7 +79,6 @@ void SimulatedStateObservationSource<DataTypes>::init()
     }
     std::cout << "[" << this->getName() << "]: ==init done" << std::endl;
 
-
 }
 
 template<class DataTypes>
