@@ -99,29 +99,6 @@ void VerdandiAnimationLoop::init() {
     if (!gnode)
         gnode = dynamic_cast<simulation::Node*>(this->getContext());
 
-    //fixedConstraints = gnode->get<sofa::component::projectiveconstraintset::FixedConstraint<sofa::defaulttype::Vec3dTypes>*>();
-
-    /// OLD INTERFACE
-    /*SofaModelWrapper<double>::ModelData md;
-    md.gnode = gnode;
-    md.errorVarianceSofaState = _stateErrorVarianceState.getValue();    
-    md.positionInState = _positionInState.getValue();
-    md.velocityInState = _velocityInState.getValue();    
-
-    if (_filterType.getValue() == "forward") {
-        filterType = md.filterType = FORWARD;
-        fwdDriver = new SofaForwardDriver<SofaModelWrapper<double> >;
-        fwdDriver->GetModel().initSimuData(md);
-    }
-    else if (_filterType.getValue() == "UKF") {
-        filterType = md.filterType = UKF;
-        ukfDriver = new SofaUnscentedKalmanFilter<SofaModelWrapper<double>, SofaLinearObservationManager<double> >;
-        ukfDriver->GetModel().initSimuData(md);
-    }
-    else
-        filterType = UNDEF;*/
-
-
     /// NEW INTERFACE:
     gnode->get(roukfDriver, core::objectmodel::BaseContext::SearchDown);
     if (roukfDriver) {
