@@ -135,6 +135,9 @@ void VerdandiAnimationLoop::init() {
         std::cerr << this->getName() << "ERROR: no filter defined, idle animation loop!" << std::endl;
     }
 
+    char cmd[100];
+    sprintf(cmd, "mkdir -p output");
+    system(cmd);
 
 }
 
