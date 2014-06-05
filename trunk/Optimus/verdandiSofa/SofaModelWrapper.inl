@@ -165,6 +165,15 @@ void SofaModelWrapper<Type>::initSimuData(ModelData &_md)
 
     std::cout << this->getName() << " NUMBER of SOFA objects: " << sofaObjects.size() << std::endl;
 
+    saveParams = false;
+    if (!modelData.paramFileName.empty()) {
+        std::ofstream paramFile(modelData.paramFileName.c_str());
+        if (paramFile.is_open()) {
+            saveParams = true;
+            paramFile.close();
+        }
+    }
+
     numStep = 0;
 }
 
@@ -431,12 +440,23 @@ void SofaModelWrapper<Type>::Initialize()
 
 template <class Type>
 void SofaModelWrapper<Type>::FinalizeStep() {
-    std::cout << "Actual parameter values:";
+    std::cout << "Actual parameter values: ";
     /*switch (modelData.transformParams) {
-    case 1:*/
-    std::cout << "RedIx = " << reduced_state_index_ << " s_s: " << state_size_ << std::endl;
+    case 1:*/    
         for (size_t i = reduced_state_index_; i < state_size_; i++)
             std::cout << " " << fabs(state_(i));
+        std::cout << std::endl;
+
+        if (saveParams) {
+            std::ofstream paramFile(modelData.paramFileName.c_str(), std::ios::app);
+            if (paramFile.is_open()) {
+                for (size_t i = reduced_state_index_; i < state_size_; i++)
+                    paramFile << " " << fabs(state_(i));
+                paramFile << std::endl;
+                paramFile.close();
+            }
+        }
+
       /*  break;
     default:
         for (size_t i = reduced_state_index_; i < state_size_; i++)
@@ -965,17 +985,19 @@ template <class Model, class ObservationManager>
 SofaReducedOrderUKF<Model, ObservationManager>::SofaReducedOrderUKF()
     //: Inherit1()
     : Inherit2()
-    , m_outputDirectory( initData(&m_outputDirectory, "outputDirectory", "working directory of the filter") )
+    , m_outputDirectory( initData(&m_outputDirectory, std::string("output"), "outputDirectory", "working directory of the filter") )
     //, m_configFile( initData(&m_configFile, "configFile", "lua configuration file (temporary)") )
     , m_sigmaPointType( initData(&m_sigmaPointType, std::string("star"), "sigmaPointType", "type of sigma points (canonical|star|simplex)") )
     , m_observationErrorVariance( initData(&m_observationErrorVariance, std::string("matrix_inverse"), "observationErrorVariance", "observationErrorVariance") )
+    , m_parameterFileName( initData(&m_parameterFileName, std::string(""), "parameterFileName", "store the parameters at the end of each step to a file") )
     , m_saveVQ( initData(&m_saveVQ, true, "saveVQ", "m_saveVQ") )
     , m_showIteration( initData(&m_showIteration, false, "showIteration", "showIteration") )
     , m_showTime( initData(&m_showTime, true, "showTime", "showTime") )
     , m_analyzeFirstStep( initData(&m_analyzeFirstStep, false, "analyzeFirstStep", "analyzeFirstStep") )
     , m_withResampling( initData(&m_withResampling, false, "withResampling", "withResampling") )
     , m_positionInState( initData(&m_positionInState, true, "positionInState", "include position in the non-reduced state") )
-    , m_velocityInState( initData(&m_velocityInState, false, "velocityInState", "include position in the non-reduced state") )    
+    , m_velocityInState( initData(&m_velocityInState, false, "velocityInState", "include position in the non-reduced state") )
+
 
 {
 }
@@ -986,6 +1008,7 @@ void SofaReducedOrderUKF<Model, ObservationManager>::init() {
     SofaModelWrapper<double>::ModelData md;
     md.positionInState = m_positionInState.getValue();
     md.velocityInState = m_velocityInState.getValue();
+    md.paramFileName = m_parameterFileName.getValue();
     md.filterType = ROUKF;
     md.gnode = dynamic_cast<simulation::Node*>(this->getContext());    
 

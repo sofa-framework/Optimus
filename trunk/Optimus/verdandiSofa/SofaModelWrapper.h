@@ -84,9 +84,9 @@ public:
     typedef typename Verdandi::ReducedOrderUnscentedKalmanFilter<Model, ObservationManager> Inherit1;
     typedef typename sofa::core::objectmodel::BaseObject Inherit2;
 
-    Data<std::string> m_outputDirectory, m_configFile, m_sigmaPointType, m_observationErrorVariance;
+    Data<std::string> m_outputDirectory, m_configFile, m_sigmaPointType, m_observationErrorVariance, m_parameterFileName;
     Data<bool> m_saveVQ, m_showIteration, m_showTime, m_analyzeFirstStep, m_withResampling;
-    Data<bool> m_positionInState, m_velocityInState;
+    Data<bool> m_positionInState, m_velocityInState;    
     //Data<int> m_transformParams;
 
     SofaReducedOrderUKF();
@@ -176,6 +176,7 @@ public:
         bool positionInState;
         bool velocityInState;
         double errorVarianceSofaState;
+        std::string paramFileName;
         bool verbose;
     } ModelData;
 
@@ -248,7 +249,8 @@ public:
 
     ModelData modelData;
 
-    sofa::core::behavior::ConstraintSolver *constraintSolver;
+    sofa::core::behavior::ConstraintSolver *constraintSolver;    
+    bool saveParams;
 
 
 public:
