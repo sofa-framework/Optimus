@@ -237,7 +237,7 @@ public:
     state_error_variance state_error_variance_projector_;
     //! \brief Reduced matrix U in the decomposition of the
     //  background error covariance matrix (\f$B\f$) as a product LUL^T
-    state_error_variance_reduced state_error_variance_reduced_;
+    state_error_variance_reduced state_error_variance_reduced_;     /// remains constant during the assimilation
     //! Is state error variance projector allocated?
     bool variance_projector_allocated_;
     //! Is reduced state error variance allocated?

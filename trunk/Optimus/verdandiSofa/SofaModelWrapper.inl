@@ -457,6 +457,7 @@ void SofaModelWrapper<Type>::FinalizeStep() {
             }
         }
 
+
       /*  break;
     default:
         for (size_t i = reduced_state_index_; i < state_size_; i++)
@@ -880,7 +881,7 @@ typename SofaModelWrapper<Type>::state_error_variance_row& SofaModelWrapper<Type
 template <class Type>
 typename SofaModelWrapper<Type>::state_error_variance& SofaModelWrapper<Type>::GetStateErrorVarianceProjector() {
     //std::cout << this->getName() << " " << GetTime() << " getStateErrorVarianceProjector" << std::endl;
-    //std::cout << "GetSEV_PROJECTOR" << std::endl;
+    std::cout << "GetSEV_PROJECTOR" << std::endl;
     if (!variance_projector_allocated_)
     {
         //int Nreduced = 0;
@@ -899,16 +900,14 @@ typename SofaModelWrapper<Type>::state_error_variance& SofaModelWrapper<Type>::G
             }
         }
         std::cout << "  Initialize L: " << std::endl;
+        //printMatrix(state_error_variance_projector_, std::cout);
         variance_projector_allocated_ = true;
-    }
-    //std::cout << "  L = " << state_error_variance_projector_ << std::endl;
+    }    
     return state_error_variance_projector_;
 }
 
 template <class Type>
-typename SofaModelWrapper<Type>::state_error_variance& SofaModelWrapper<Type>::GetStateErrorVarianceReduced() {
-    //std::cout << this->getName() << " " << GetTime() << " getStateErrorVarianceReduced" << std::endl;
-    std::cout << "GetSEV_REDUCED" << std::endl;
+typename SofaModelWrapper<Type>::state_error_variance& SofaModelWrapper<Type>::GetStateErrorVarianceReduced() {    
     if (!variance_reduced_allocated_)
     {
         //int Nreduced = 0;
@@ -944,8 +943,7 @@ typename SofaModelWrapper<Type>::state_error_variance& SofaModelWrapper<Type>::G
         f.open("U.mat", std::fstream::out);
         printMatrixInRow(state_error_variance_reduced_, f);
         f.close();
-    } else {
-        std::cout << "!!!!!!!!!!! U = " << std::endl;
+    } else {        
         printMatrix(state_error_variance_reduced_, std::cout);
         std::fstream f;
         f.open("U.mat", std::fstream::out | std::fstream::app);
