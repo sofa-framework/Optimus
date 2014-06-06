@@ -1,18 +1,18 @@
 <?xml version="1.0" ?>
-<Node name="root" dt="0.005" showBoundingTree="0" gravity="0 -9.81 0">
+<Node name="root" dt="0.01" showBoundingTree="0" gravity="0 -9.81 0">
 	<RequiredPlugin pluginName="Optimus"/>
 	<RequiredPlugin pluginName="SofaPardisoWrapper"/>
 	<RequiredPlugin pluginName="BilikimoAux"/>
 	<VisualStyle displayFlags="showBehaviorModels showForceFields showCollisionModels" />
 			
 	<VerdandiAnimationLoop name="verdAnimLoop"  verbose="0"/>
-	<SofaReducedOrderUKF name="sofaROUKF" outputDirectory="output"/>
+	<SofaReducedOrderUKF name="sofaROUKF" parameterFileName="params5.out"/>
 		
-	<OptimParams name="paramE" template="Vector" initValue="6000 6000 6000" stdev="2000 2000 2000"/>
+	<OptimParams name="paramE" template="Vector" initValue="6000 6000 6000" stdev="1000 1000 1000"/>
 <!-- 	<OptimParams name="paramE" template="Vector" initValue="10000 5000 7000"/>  -->
 	
 <!--         <EulerImplicit name="odeSolver" printLog="false"/> -->
-	<StaticSolver/>
+	<StaticSolver applyIncrementFactor="1"/>
 	
 	<SparsePARDISOSolver/>
 
@@ -40,15 +40,15 @@
 	<Node activated="1">
 <!-- 		<MechanicalObject position="@../Volume.position"/> -->
 		<MechanicalObject position="
-			0.0 0.0 0.02  0.0 0.0 0.04   0.0 0.0 0.08   0.0 0.0 0.09   0.0 0.0 0.12  0.0 0.0 0.13   0.0 0.0 0.14  0.0 0.0 0.17  0.0 0.0 0.19  0.0 0.0 0.22
- 			0.0 0.01 0.02  0.0 0.01 0.04   0.0 0.01 0.08   0.0 0.01 0.09   0.0 0.01 0.12  0.0 0.01 0.13   0.0 0.01 0.14  0.0 0.01 0.17  0.0 0.01 0.19  0.0 0.01 0.22
+			0.0 0.0 0.02  0.0 0.0 0.04   0.0 0.0 0.08   0.0 0.0 0.09   0.0 0.0 0.12  0.0 0.0 0.13   0.0 0.0 0.14  0.0 0.0 0.17  0.0 0.0 0.19  0.0 0.0 0.22"/>
+ 			<!--0.0 0.01 0.02  0.0 0.01 0.04   0.0 0.01 0.08   0.0 0.01 0.09   0.0 0.01 0.12  0.0 0.01 0.13   0.0 0.01 0.14  0.0 0.01 0.17  0.0 0.01 0.19  0.0 0.01 0.22
  			0.0 -0.01 0.02  0.0 -0.01 0.04   0.0 -0.01 0.08   0.0 -0.01 0.09   0.0 -0.01 0.12  0.0 -0.01 0.13   0.0 -0.01 0.14  0.0 -0.01 0.17  0.0 -0.01 0.19  0.0 -0.01 0.22
   			0.01 0.01 0.02  0.01 0.01 0.04   0.01 0.01 0.08   0.01 0.01 0.09   0.01 0.01 0.12  0.01 0.01 0.13   0.01 0.01 0.14  0.01 0.01 0.17  0.01 0.01 0.19  0.01 0.01 0.22
-			-0.01 -0.01 0.02  -0.01 -0.01 0.04   -0.01 -0.01 0.08   -0.01 -0.01 0.09   -0.01 -0.01 0.12  -0.01 -0.01 0.13   -0.01 -0.01 0.14  -0.01 -0.01 0.17  -0.01 -0.01 0.19  -0.01 -0.01 0.22"/> 
+			-0.01 -0.01 0.02  -0.01 -0.01 0.04   -0.01 -0.01 0.08   -0.01 -0.01 0.09   -0.01 -0.01 0.12  -0.01 -0.01 0.13   -0.01 -0.01 0.14  -0.01 -0.01 0.17  -0.01 -0.01 0.19  -0.01 -0.01 0.22"/> -->
 		<Sphere radius="0.002" color="1 0 0"/>
 		<BarycentricMapping/>
 <!-- 		<IdentityMapping/> -->
-		<MappedPointsObservationManager name="MOBS" errorVariance="0.01"/>	
+		<MappedPointsObservationManager name="MOBS" errorVariance="1e-1"/>	
 <!-- 		<SofaLinearObservationManager name="LinObs"/> -->
 		<SimulatedStateObservationSource name="ObsSource" monitorPrefix="cylinderModulusMonitor"/>
 	</Node>

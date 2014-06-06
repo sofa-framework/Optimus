@@ -8,7 +8,7 @@
 	<OptimParams name="paramE" template="Vector" initValue="10000 5000 7000"/> 
 	
 <!--         <EulerImplicit name="odeSolver" printLog="false"/> -->
-	<StaticSolver/>
+	<StaticSolver applyIncrementFactor="1"/>
 	
 	<SparsePARDISOSolver/>
 
