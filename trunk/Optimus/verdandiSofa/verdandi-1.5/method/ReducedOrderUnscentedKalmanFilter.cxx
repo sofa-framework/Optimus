@@ -581,6 +581,7 @@ namespace Verdandi
             /*** Sampling ***/
 
             sigma_point_matrix tmp;
+            //std::cout << "U_inv (before Cholesky) = " << U_inv_   << std::endl;
             GetCholesky(U_inv_);
 
             if (saveVQ_){
@@ -1010,6 +1011,17 @@ namespace Verdandi
                 Copy(U_, U_inv_);
                 GetInverse(U_inv_);
 
+                /// added P = L Uint Lt;
+                sigma_point_matrix LU(Nstate_, Nreduced_);
+                model_state_error_variance tmp, tmp2, tmp3;
+
+                Copy(model_.GetStateErrorVarianceProjector(), tmp);
+                MltAdd(Ts(1), tmp, U_inv_, Ts(0), tmp2);
+                MltAdd(Ts(1), SeldonNoTrans, tmp2, SeldonTrans, tmp, Ts(0), tmp3);
+                std::cout << "P = " << tmp3 << std::endl;
+
+                ///
+
                 // Computes {HL}_{n+1}.
                 HL_trans.Reallocate(Nreduced_, Nobservation_);
                 working_matrix_rr2.SetIdentity();
@@ -1032,7 +1044,8 @@ namespace Verdandi
             else
                 throw ErrorUndefined("ReducedOrderUnscentedKalmanFilter::"
                                      "Analyse()", "Calculation not "
-                                     "implemented for no constant alpha_i.");
+                                     "implemented for no constant alpha_i.");                        
+
 
             // Computes K.
             sigma_point_matrix K(Nstate_, Nobservation_),
