@@ -580,8 +580,7 @@ namespace Verdandi
 
             /*** Sampling ***/
 
-            sigma_point_matrix tmp;
-            //std::cout << "U_inv (before Cholesky) = " << U_inv_   << std::endl;
+            sigma_point_matrix tmp;            
             GetCholesky(U_inv_);
 
             if (saveVQ_){
@@ -589,7 +588,6 @@ namespace Verdandi
                 sprintf(name, "%s/roukf-forecast_uinv.dat", output_directory_.c_str());
                 output_saver_.WriteText(U_inv_, name);
             }
-
 
             Copy(model_.GetStateErrorVarianceProjector(), tmp);
             MltAdd(Ts(1), tmp, U_inv_, Ts(0),
@@ -599,11 +597,7 @@ namespace Verdandi
             X_i_trans_.Reallocate(Nsigma_point_, Nstate_);
             sigma_point x_col;
             for (int i = 0; i < Nsigma_point_; i++)
-                SetRow(x, i, X_i_trans_);
-
-            //std::cout << "XITRANS = " << X_i_trans_.GetM() << " x " << X_i_trans_.GetN() << std::endl;
-            //std::cout << "ITRANS = " << I_trans_.GetM() << " x " << I_trans_.GetN() << std::endl << I_trans_ << std::endl;
-            //std::cout << "StEVarProj = " << model_.GetStateErrorVarianceProjector().GetM() << " x " << model_.GetStateErrorVarianceProjector().GetN() << std::endl;
+                SetRow(x, i, X_i_trans_);           
 
             //// print error variance projector begin
             if (0) {
@@ -1012,13 +1006,13 @@ namespace Verdandi
                 GetInverse(U_inv_);
 
                 /// added P = L Uint Lt;
-                sigma_point_matrix LU(Nstate_, Nreduced_);
+                /*sigma_point_matrix LU(Nstate_, Nreduced_);
                 model_state_error_variance tmp, tmp2, tmp3;
 
                 Copy(model_.GetStateErrorVarianceProjector(), tmp);
                 MltAdd(Ts(1), tmp, U_inv_, Ts(0), tmp2);
                 MltAdd(Ts(1), SeldonNoTrans, tmp2, SeldonTrans, tmp, Ts(0), tmp3);
-                std::cout << "P = " << tmp3 << std::endl;
+                std::cout << "P = " << tmp3 << std::endl;*/
 
                 ///
 
@@ -1109,8 +1103,7 @@ namespace Verdandi
                         std::cout << m1(i,j) << " ";
                     std::cout << std::endl;
                 }
-            }
-            //std::cout << "ITRANS = " << I_trans_ << std::endl;
+            }            
             //// print error variance projector end
 #endif
         }
