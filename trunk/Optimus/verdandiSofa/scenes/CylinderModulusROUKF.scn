@@ -6,9 +6,9 @@
 	<VisualStyle displayFlags="showBehaviorModels showForceFields showCollisionModels" />
 			
 	<VerdandiAnimationLoop name="verdAnimLoop"  verbose="0"/>
-	<SofaReducedOrderUKF name="sofaROUKF" parameterFileName="params5.out"/>
+	<SofaReducedOrderUKF name="sofaROUKF" paramFileName="cylTest/p6_estim.out" paramVarFileName="cylTest/p6_var.out"/>
 		
-	<OptimParams name="paramE" template="Vector" initValue="6000 6000 6000" stdev="1000 1000 1000"/>
+	<OptimParams name="paramE" template="Vector" initValue="6000 6000 6000" stdev="2000 2000 2000"/>
 <!-- 	<OptimParams name="paramE" template="Vector" initValue="10000 5000 7000"/>  -->
 	
 <!--         <EulerImplicit name="odeSolver" printLog="false"/> -->
@@ -37,20 +37,25 @@
 	<TetrahedronFEMForceField name="FEM" listening="true" updateStiffness="1"  youngModulus="@youngMapper.outputValues" poissonRatio="0.45" method="large"  computeVonMisesStress="0" drawHeterogeneousTetra="1"/>
 <!-- 	<TetrahedronFEMForceField name="FEM" listening="true" updateStiffness="1"  youngModulus="@paramE.value" poissonRatio="0.45" method="large"  computeVonMisesStress="0" drawHeterogeneousTetra="1"/> -->
 
-	<Node activated="1">
+	<Node name="obsNode" activated="1">
 <!-- 		<MechanicalObject position="@../Volume.position"/> -->
-		<MechanicalObject position="
-			0.0 0.0 0.02  0.0 0.0 0.04   0.0 0.0 0.08   0.0 0.0 0.09   0.0 0.0 0.12  0.0 0.0 0.13   0.0 0.0 0.14  0.0 0.0 0.17  0.0 0.0 0.19  0.0 0.0 0.22"/>
+		<MechanicalObject position=" 0.0 0.0 0.12"/>
+<!-- 			0.0 0.0 0.02  0.0 0.0 0.04   0.0 0.0 0.08   0.0 0.0 0.09   0.0 0.0 0.12  0.0 0.0 0.13   0.0 0.0 0.14  0.0 0.0 0.17  0.0 0.0 0.19  0.0 0.0 0.22"/> -->
  			<!--0.0 0.01 0.02  0.0 0.01 0.04   0.0 0.01 0.08   0.0 0.01 0.09   0.0 0.01 0.12  0.0 0.01 0.13   0.0 0.01 0.14  0.0 0.01 0.17  0.0 0.01 0.19  0.0 0.01 0.22
  			0.0 -0.01 0.02  0.0 -0.01 0.04   0.0 -0.01 0.08   0.0 -0.01 0.09   0.0 -0.01 0.12  0.0 -0.01 0.13   0.0 -0.01 0.14  0.0 -0.01 0.17  0.0 -0.01 0.19  0.0 -0.01 0.22
   			0.01 0.01 0.02  0.01 0.01 0.04   0.01 0.01 0.08   0.01 0.01 0.09   0.01 0.01 0.12  0.01 0.01 0.13   0.01 0.01 0.14  0.01 0.01 0.17  0.01 0.01 0.19  0.01 0.01 0.22
-			-0.01 -0.01 0.02  -0.01 -0.01 0.04   -0.01 -0.01 0.08   -0.01 -0.01 0.09   -0.01 -0.01 0.12  -0.01 -0.01 0.13   -0.01 -0.01 0.14  -0.01 -0.01 0.17  -0.01 -0.01 0.19  -0.01 -0.01 0.22"/> -->
+			-0.01 -0.01 0.02  -0.01 -0.01 0.04   -0.01 -0.01 0.08   -0.01 -0.01 0.09   -0.01 -0.01 0.12  -0.01 -0.01 0.13   -0.01 -0.01 0.14  -0.01 -0.01 0.17  -0.01 -0.01 0.19  -0.01 -0.01 0.22"/>-->
 		<Sphere radius="0.002" color="1 0 0"/>
 		<BarycentricMapping/>
 <!-- 		<IdentityMapping/> -->
-		<MappedPointsObservationManager name="MOBS" errorVariance="1e-1"/>	
+		<MappedPointsObservationManager name="MOBS" observationStdev="2e-3" noiseStdev="2e-3" listening="1"/>
 <!-- 		<SofaLinearObservationManager name="LinObs"/> -->
 		<SimulatedStateObservationSource name="ObsSource" monitorPrefix="cylinderModulusMonitor"/>
+	</Node>
+	
+	<Node>
+		<MechanicalObject name="SourceMO" position="@../obsNode/MOBS.mappedObservations"/>
+		<Sphere radius="0.002" color="0 0 0.3"/>
 	</Node>
 <!-- 	<VTKExporter filename="cylinder.vtk" XMLformat="true" listening="true" edges="0" triangles="0" quads="0" tetras="1" exportAtEnd="true"/> -->
 </Node>
