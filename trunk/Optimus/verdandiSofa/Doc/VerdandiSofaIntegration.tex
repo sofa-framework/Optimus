@@ -245,6 +245,9 @@ receive any parameters from XML via \texttt{ModelData} structure.
 \item Container of parameters in given \asn. 
 \item Templated on any numerical type in SOFA, specializations needed.
 \item Abstract pure base \texttt{OptimParamsBase} created to facilitate the manipulation and define the API.
+\item In some cases, it's desirable to keep some properties of the parameters being optimized (e.g positivity for the Young's modulus. 
+The option \texttt{transformParams} can be used to choose between: 0 (the no transformation is done) 1: absolute value of the parameters is taken
+before feeding the model.
 \end{itemize}
 \medskip
 {\large\mobs}
@@ -252,8 +255,10 @@ receive any parameters from XML via \texttt{ModelData} structure.
 \item Observation manager computing the innovation based on current prediction and observation.
 \item Templated on \texttt{DataTypes1} and \texttt{DataTypes2} since it calls mapping apply (having also two template parameters).
 \item Inherits from \texttt{SofaLinearObservationManager} which is only an abstract base (inheriting from Verdandi observation manager).
-\item The uncertainty of the observations from Verdandi point of view is set using option \texttt{observationStdev} which is the standard deviation of observations assumed in the data assimilation. 
-\item Noise can be added using \texttt{noiseStdev}: the noise is generated using \texttt{Boost}, has a normal distribution with zero mean and standard deviation given by \texttt{noiseStdev}. 
+\item The uncertainty of the observations from Verdandi point of view is set using option \texttt{observationStdev} which is the standard deviation of
+observations assumed in the data assimilation. 
+\item Noise can be added using \texttt{noiseStdev}: the noise is generated using \texttt{Boost}, has a normal distribution with zero mean and standard
+deviation given by \texttt{noiseStdev}. 
 \end{itemize}
 \medskip
 {\large\texttt{SimulatedStateObservationSource}}
@@ -287,7 +292,7 @@ Verdandi to SOFA, which would be finally much easier).
 
 \section{Examples}
 
-\subsection{Estimation of Young's modulus of cylinder under gravity}
+% \subsection{EX1: Estimation of Young's modulus of cylinder under gravity}
 
 The data are generated using \texttt{CylinderModulusForward.scn} and in each step, the entire mechanical object of the cylinder is saved by the
 \texttt{Monitor} component.
@@ -376,7 +381,8 @@ parameters.
 %\subfigure[]{
 \includegraphics[width=.49\linewidth]{figures/p4_var.pdf}
 \caption{Parameters: \texttt{initValue="6000"}, \texttt{stdev="2000"}. Observations: 10 points selected along the centerline,
-\texttt{observationStdev=1e-3}, \texttt{noiseStdev=1e-3}. We have a real uncertainty of 1\,mm modeled with white Gaussian noise with standard deviation of 1\,mm.}
+\texttt{observationStdev=1e-3}, \texttt{noiseStdev=1e-3}. We have a real uncertainty of 1\,mm modeled with white Gaussian noise with standard
+deviation of 1\,mm.}
 \label{fig:Results1}
 \end{center}
 \end{figure}
@@ -391,7 +397,8 @@ parameters.
 %\subfigure[]{
 \includegraphics[width=.49\linewidth]{figures/p5_var.pdf}
 \caption{Parameters: \texttt{initValue="6000"}, \texttt{stdev="2000"}. Observations: 10 points selected along the centerline,
-\texttt{observationStdev=2e-3}, \texttt{noiseStdev=2e-3}. We have a real uncertainty of 2\,mm modeled with white Gaussian noise with standard deviation of 2\,mm.}
+\texttt{observationStdev=2e-3}, \texttt{noiseStdev=2e-3}. We have a real uncertainty of 2\,mm modeled with white Gaussian noise with standard
+deviation of 2\,mm.}
 \label{fig:Results1}
 \end{center}
 \end{figure}
@@ -406,7 +413,8 @@ parameters.
 %\subfigure[]{
 \includegraphics[width=.49\linewidth]{figures/p6_var.pdf}
 \caption{Parameters: \texttt{initValue="6000"}, \texttt{stdev="2000"}. Observations: 1 points selected in the middle of the cylinder,
-\texttt{observationStdev=2e-3}, \texttt{noiseStdev=2e-3}. An extreme case with fairly limited number of observations (a single point) and a real uncertainty of 2\,mm modeled with white Gaussian noise with standard deviation of 2\,mm.}
+\texttt{observationStdev=2e-3}, \texttt{noiseStdev=2e-3}. An extreme case with fairly limited number of observations (a single point) and a real
+uncertainty of 2\,mm modeled with white Gaussian noise with standard deviation of 2\,mm.}
 \label{fig:Results1}
 \end{center}
 \end{figure}
@@ -414,7 +422,21 @@ parameters.
 
 
 
-%\section{Notes}
+\section{Notes}
+
+\subsection{Static vs. Dynamic}
+The graphs in the EX1 were obtained using quasi-static scenario, \ie\ \texttt{StaticSolver} having \texttt{applyIncrementFactor="1"}. Observations:
+\begin{itemize}
+ \item The result with the \texttt{StaticSolver} depend on \texttt{dt}: the results were obtained with \texttt{dt=0.01s}. Comparable results can be
+achieved with \texttt{dt=0.1}, 
+ the \svda\ remains stable even for dt of 1\,s.
+ \item The stability of the \svda\ seems to depend on the integration scheme, as with \texttt{EulerImplicitSolver} the method seems to be less stable.
+The stability depends on \texttt{Rayleigh stiffness}: a behavior comparable to the static behavior is achieved with RS=0.5, the process is stable and
+the final approximation is even more precise that in the static case. 
+\item With decreasing RS, the DA becomes less stable in the beginning since the change in positions is too fast and so the perturbations becomes
+``wild''. 
+\end{itemize}
+
 
 
 
