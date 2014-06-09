@@ -163,17 +163,7 @@ void SofaModelWrapper<Type>::initSimuData(ModelData &_md)
         }
     }
 
-    std::cout << this->getName() << " NUMBER of SOFA objects: " << sofaObjects.size() << std::endl;
-
-    saveParams = false;
-    if (!modelData.paramFileName.empty()) {
-        std::ofstream paramFile(modelData.paramFileName.c_str());
-        if (paramFile.is_open()) {
-            saveParams = true;
-            paramFile.close();
-        }
-    }
-
+    std::cout << this->getName() << " NUMBER of SOFA objects: " << sofaObjects.size() << std::endl;    
     numStep = 0;
 }
 
@@ -446,16 +436,6 @@ void SofaModelWrapper<Type>::FinalizeStep() {
         for (size_t i = reduced_state_index_; i < state_size_; i++)
             std::cout << " " << fabs(state_(i));
         std::cout << std::endl;
-
-        if (saveParams) {
-            std::ofstream paramFile(modelData.paramFileName.c_str(), std::ios::app);
-            if (paramFile.is_open()) {
-                for (size_t i = reduced_state_index_; i < state_size_; i++)
-                    paramFile << " " << fabs(state_(i));
-                paramFile << std::endl;
-                paramFile.close();
-            }
-        }
 
 
       /*  break;
@@ -987,8 +967,9 @@ SofaReducedOrderUKF<Model, ObservationManager>::SofaReducedOrderUKF()
     //, m_configFile( initData(&m_configFile, "configFile", "lua configuration file (temporary)") )
     , m_sigmaPointType( initData(&m_sigmaPointType, std::string("star"), "sigmaPointType", "type of sigma points (canonical|star|simplex)") )
     , m_observationErrorVariance( initData(&m_observationErrorVariance, std::string("matrix_inverse"), "observationErrorVariance", "observationErrorVariance") )
-    , m_parameterFileName( initData(&m_parameterFileName, std::string(""), "parameterFileName", "store the parameters at the end of each step to a file") )
-    , m_saveVQ( initData(&m_saveVQ, true, "saveVQ", "m_saveVQ") )
+    , m_paramFileName( initData(&m_paramFileName, std::string(""), "paramFileName", "store the parameters at the end of each step to a file") )
+    , m_paramVarFileName( initData(&m_paramVarFileName, std::string(""), "paramVarFileName", "store the parameter variance (submatrix) at the end of each step to a file") )
+    , m_saveVQ( initData(&m_saveVQ, false, "saveVQ", "m_saveVQ") )
     , m_showIteration( initData(&m_showIteration, false, "showIteration", "showIteration") )
     , m_showTime( initData(&m_showTime, true, "showTime", "showTime") )
     , m_analyzeFirstStep( initData(&m_analyzeFirstStep, false, "analyzeFirstStep", "analyzeFirstStep") )
@@ -1005,8 +986,7 @@ void SofaReducedOrderUKF<Model, ObservationManager>::init() {
     SNCOUT("== init started")
     SofaModelWrapper<double>::ModelData md;
     md.positionInState = m_positionInState.getValue();
-    md.velocityInState = m_velocityInState.getValue();
-    md.paramFileName = m_parameterFileName.getValue();
+    md.velocityInState = m_velocityInState.getValue();    
     md.filterType = ROUKF;
     md.gnode = dynamic_cast<simulation::Node*>(this->getContext());    
 
@@ -1037,6 +1017,26 @@ void SofaReducedOrderUKF<Model, ObservationManager>::InitializeFilter() { //Verd
 
     SNCOUT("=== InitializeStructures...")
     InitializeStructures();
+
+    saveParams=false;
+    if (!m_paramFileName.getValue().empty()) {
+        std::ofstream paramFile(m_paramFileName.getValue().c_str());
+        if (paramFile.is_open()) {
+            saveParams = true;
+            paramFile.close();
+        }
+    }
+
+    saveParamVar = false;
+    if (!m_paramVarFileName.getValue().empty()) {
+        std::ofstream paramFile(m_paramVarFileName.getValue().c_str());
+        if (paramFile.is_open()) {
+            saveParamVar = true;
+            paramFile.close();
+        }
+    }
+
+
     SNCOUT("== InitializeFilter done")
 }
 
@@ -1066,6 +1066,62 @@ void SofaReducedOrderUKF<Model, ObservationManager>::InitializeParams() {
     system(comm);
 }
 
+template <class Model, class ObservationManager>
+void SofaReducedOrderUKF<Model, ObservationManager>::FinalizeStep() {
+    Inherit1::FinalizeStep();
+
+    ///saving the actual structures
+    if (saveParams) {
+        std::ofstream paramFile(m_paramFileName.getValue().c_str(), std::ios::app);
+        if (paramFile.is_open()) {
+            typename Inherit1::model_state& st =  this->model_.GetState();
+            for (size_t i = this->Nstate_-this->Nreduced_; i < this->Nstate_; i++)
+                paramFile << " " << st(i);
+            paramFile << '\n';
+            paramFile.close();
+        }
+    }
+
+    ///saving the actual structures
+    if (saveParamVar) {
+        std::ofstream paramFile(m_paramVarFileName.getValue().c_str(), std::ios::app);
+        if (paramFile.is_open()) {
+            typename Inherit1::model_state_error_variance& L = this->model_.GetStateErrorVarianceProjector();
+            typename Inherit1::model_state_error_variance tmp1(this->Nreduced_, this->Nreduced_), tmp2(this->Nreduced_, this->Nreduced_);
+
+            tmp1.Zero();
+            tmp2.Zero();
+
+            int redIx = this->Nstate_ - this->Nreduced_;
+            for (int i = 0; i < this->Nreduced_; i++)
+                for (int j = 0; j < this->Nreduced_; j++)
+                    for (int k = 0; k < this->Nreduced_; k++)
+                        tmp1(i,j) += L(redIx+i,k)*this->U_inv_(k,j);
+
+
+            for (int i = 0; i < this->Nreduced_; i++)
+                for (int j = 0; j < this->Nreduced_; j++)
+                    for (int k = 0; k < this->Nreduced_; k++)
+                        tmp2(i,j) += tmp1(i,k)*L(redIx+j,k);
+
+            for (int i = 0; i < this->Nreduced_; i++)
+                paramFile << tmp2(i,i) << " ";
+
+            for (int i = 1; i < this->Nreduced_; i++)
+                for (int j = 0; j < i; j++)
+                    paramFile << tmp2(i,j) << " ";
+
+            for (int i = 1; i < this->Nreduced_; i++)
+                for (int j = 0; j < i; j++)
+                    paramFile << tmp2(j,i) << " ";
+
+            paramFile << '\n';
+            paramFile.close();
+        }
+    }
+
+
+}
 
 /*template <class Model, class ObservationManager>
 void SofaReducedOrderUKF<Model, ObservationManager>
@@ -1278,9 +1334,14 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
      if (!sofaObject)
          std::cerr << this->getName() << "ERROR SOFA object not found " << std::endl;
 
+     /// initialize noise generator:
+     if (m_noiseStdev.getValue() != 0.0) {
+         pRandGen = new boost::mt19937;
+         pNormDist = new boost::normal_distribution<>(0.0, m_noiseStdev.getValue());
+         pVarNorm = new boost::variate_generator<boost::mt19937&, boost::normal_distribution<> >(*pRandGen, *pNormDist);
+     }
+
      SNCOUT("== init done")
-
-
  }
 
  template <class DataTypes1, class DataTypes2>
@@ -1388,7 +1449,7 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
          return;
      }
 
-     this->error_variance_value_ = m_errorVariance.getValue();
+     this->error_variance_value_ = m_observationStdev.getValue() * m_observationStdev.getValue();
      this->Nobservation_ = 3*mappedStateSize;
      this->error_variance_.Reallocate(this->Nobservation_, this->Nobservation_);
      this->error_variance_.SetIdentity();

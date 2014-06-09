@@ -54,6 +54,10 @@
 #include <sofa/simulation/common/AnimateEndEvent.h>
 #include <sofa/simulation/common/AnimateBeginEvent.h>
 
+#include <boost/random.hpp>
+#include <boost/random/normal_distribution.hpp>
+
+
 #define SNCOUT(arg)     { std::cout << "[" << this->getName() << "] " << arg << std::endl; }
 
 #define SERR(arg)     { std::cerr << "[" << this->getName() << "] " << arg << std::endl; }
@@ -84,7 +88,7 @@ public:
     typedef typename Verdandi::ReducedOrderUnscentedKalmanFilter<Model, ObservationManager> Inherit1;
     typedef typename sofa::core::objectmodel::BaseObject Inherit2;
 
-    Data<std::string> m_outputDirectory, m_configFile, m_sigmaPointType, m_observationErrorVariance, m_parameterFileName;
+    Data<std::string> m_outputDirectory, m_configFile, m_sigmaPointType, m_observationErrorVariance, m_paramFileName, m_paramVarFileName;
     Data<bool> m_saveVQ, m_showIteration, m_showTime, m_analyzeFirstStep, m_withResampling;
     Data<bool> m_positionInState, m_velocityInState;    
     //Data<int> m_transformParams;
@@ -96,6 +100,11 @@ public:
     void InitializeFilter();
     void InitializeParams();
     void InitializeStructures();
+    void FinalizeStep();
+
+private:
+    bool saveParams, saveParamVar;
+
 };
 
 
@@ -171,12 +180,10 @@ public:
 
     typedef struct {
         simulation::Node* gnode;
-
         FilterType filterType;        
         bool positionInState;
         bool velocityInState;
-        double errorVarianceSofaState;
-        std::string paramFileName;
+        double errorVarianceSofaState;        
         bool verbose;
     } ModelData;
 
@@ -243,15 +250,11 @@ public:
     //! Is reduced state error variance allocated?
     bool variance_reduced_allocated_;
 
-
-
     double time_;
 
     ModelData modelData;
 
-    sofa::core::behavior::ConstraintSolver *constraintSolver;    
-    bool saveParams;
-
+    sofa::core::behavior::ConstraintSolver *constraintSolver;
 
 public:
     SofaModelWrapper();
@@ -382,10 +385,10 @@ class SOFA_SIMULATION_COMMON_API SofaLinearObservationManager : public Verdandi:
 public:            
     typedef typename Verdandi::LinearObservationManager<T> Inherit1;
 
-    Data<double> m_errorVariance;
+    Data<double> m_observationStdev;
 
     SofaLinearObservationManager()
-        : m_errorVariance( initData(&m_errorVariance, double(1.0), "errorVariance", "observation error variance") )
+        : m_observationStdev( initData(&m_observationStdev, double(0.0), "observationStdev", "standard deviation in observations") )
     {
     }
 
@@ -452,8 +455,7 @@ protected:
     SofaModelWrapper<Real1>* sofaModel;
     typename SofaModelWrapper<Real1>::SofaObject* sofaObject;
     size_t masterStateSize;
-    size_t mappedStateSize;
-
+    size_t mappedStateSize;    
 
 public:
 
@@ -462,6 +464,7 @@ public:
         , actualTime(-1.0)
         , inputObservationData( initData (&inputObservationData, "observations", "observations read from a file") )
         , mappedObservationData( initData (&mappedObservationData, "mappedObservations", "mapped observations") )
+        , m_noiseStdev( initData(&m_noiseStdev, double(0.0), "noiseStdev", "standard deviation of generated noise") )
     {
     }
 
@@ -472,6 +475,12 @@ public:
     double actualTime;
     Data<typename DataTypes1::VecCoord> inputObservationData;
     Data<typename DataTypes2::VecCoord> mappedObservationData;
+    Data<double> m_noiseStdev;
+
+    boost::mt19937* pRandGen; // I don't seed it on purpouse (it's not relevant)
+    boost::normal_distribution<>* pNormDist;
+    boost::variate_generator<boost::mt19937&, boost::normal_distribution<> >* pVarNorm;
+
 
     helper::vector<double> noise;
 
@@ -506,6 +515,13 @@ public:
                 return;
             actualTime = this->getContext()->getTime();
 
+            if (m_noiseStdev.getValue() != 0.0) {
+                std::cout << this->getName() << ": generating noise in the time step: " << std::endl;
+                for (size_t i = 0; i < 3*mappedObservationData.getValue().size(); i++)
+                    noise[i] = (*pVarNorm)();
+                std::cout << noise << std::endl;
+            }
+
             /*std::cout << "Generate noise in the observations in time " << actualTime << std::endl;
 
 
@@ -523,7 +539,7 @@ public:
                     noise[i] = sgn*double(rand()%1000)/double(100000);
                 }
             }*/
-            std::cout << noise << std::endl;
+
 
         }
     }
@@ -701,7 +717,7 @@ public:
         this->initial_time_ = 0.0;
         this->final_time_ = 1000.0;
 
-        this->error_variance_value_ = m_errorVariance.getValue();
+        this->error_variance_value_ = m_observationStdev.getValue() * m_observationStdev.getValue();
         this->Nobservation_ = 3*mappedMState->getSize();
         this->error_variance_.Reallocate(this->Nobservation_, this->Nobservation_);
         this->error_variance_.SetIdentity();
