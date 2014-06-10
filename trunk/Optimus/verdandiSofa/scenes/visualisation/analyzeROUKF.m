@@ -1,20 +1,21 @@
 clear 
 
-prefix='../daHeteroCylinderConstant/pD2';
+prefixForward='../daHeteroCylinderConstant/pVar';
+prefix='../daHeteroCylinderConstant/pVar3';
 
 Xf=sprintf('%s_estim.out', prefix);
 Pf=sprintf('%s_var.out', prefix);
+Xdf=sprintf('%s_forward.out', prefixForward);
 
-defVals=[10000 5000 7000];
 
-maxT=400;
+maxT=900;
 
 doStd=1;
 
 
 %================================================
 
-close all
+%close all
 
 X=load(Xf);
 numPar=size(X,2);
@@ -24,7 +25,9 @@ P=load(Pf);
 X=X(1:maxT,:);
 P=P(1:maxT,:);
 
-Xd=repmat(defVals,size(X,1),1);
+%Xd=repmat(defVals,size(X,1),1);
+Xd=load(Xdf);
+Xd=Xd(1:maxT,:);
 
 
 
