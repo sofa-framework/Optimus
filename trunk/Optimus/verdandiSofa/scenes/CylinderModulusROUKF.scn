@@ -6,13 +6,14 @@
 	<VisualStyle displayFlags="showBehaviorModels showForceFields showCollisionModels" />
 			
 	<VerdandiAnimationLoop name="verdAnimLoop"  verbose="0"/>
-	<SofaReducedOrderUKF name="sofaROUKF" paramFileName="cylTest/p6_estim.out" paramVarFileName="cylTest/p6_var.out"/>
+	<SofaReducedOrderUKF name="sofaROUKF" paramFileName="daHeteroCylinderConstant/pD2_estim.out" paramVarFileName="daHeteroCylinderConstant/pD2_var.out"/>
 		
-	<OptimParams name="paramE" template="Vector" initValue="6000 6000 6000" stdev="2000 2000 2000"/>
+	<OptimParams name="paramE" template="Vector" initValue="6000 6000 6000" stdev="2000 2000 2000" transformParams="1"/>
 <!-- 	<OptimParams name="paramE" template="Vector" initValue="10000 5000 7000"/>  -->
 	
 <!--         <EulerImplicit name="odeSolver" printLog="false"/> -->
-	<StaticSolver applyIncrementFactor="1"/>
+<!-- 	<StaticSolver applyIncrementFactor="1"/> -->
+	<EulerImplicit name="odeSolver" printLog="false" rayleighStiffness="0.1"/>
 	
 	<SparsePARDISOSolver/>
 
@@ -39,8 +40,8 @@
 
 	<Node name="obsNode" activated="1">
 <!-- 		<MechanicalObject position="@../Volume.position"/> -->
-		<MechanicalObject position=" 0.0 0.0 0.12"/>
-<!-- 			0.0 0.0 0.02  0.0 0.0 0.04   0.0 0.0 0.08   0.0 0.0 0.09   0.0 0.0 0.12  0.0 0.0 0.13   0.0 0.0 0.14  0.0 0.0 0.17  0.0 0.0 0.19  0.0 0.0 0.22"/> -->
+		<MechanicalObject position="
+			0.0 0.0 0.02  0.0 0.0 0.04   0.0 0.0 0.08   0.0 0.0 0.09   0.0 0.0 0.12  0.0 0.0 0.13   0.0 0.0 0.14  0.0 0.0 0.17  0.0 0.0 0.19  0.0 0.0 0.22"/>
  			<!--0.0 0.01 0.02  0.0 0.01 0.04   0.0 0.01 0.08   0.0 0.01 0.09   0.0 0.01 0.12  0.0 0.01 0.13   0.0 0.01 0.14  0.0 0.01 0.17  0.0 0.01 0.19  0.0 0.01 0.22
  			0.0 -0.01 0.02  0.0 -0.01 0.04   0.0 -0.01 0.08   0.0 -0.01 0.09   0.0 -0.01 0.12  0.0 -0.01 0.13   0.0 -0.01 0.14  0.0 -0.01 0.17  0.0 -0.01 0.19  0.0 -0.01 0.22
   			0.01 0.01 0.02  0.01 0.01 0.04   0.01 0.01 0.08   0.01 0.01 0.09   0.01 0.01 0.12  0.01 0.01 0.13   0.01 0.01 0.14  0.01 0.01 0.17  0.01 0.01 0.19  0.01 0.01 0.22
@@ -50,7 +51,7 @@
 <!-- 		<IdentityMapping/> -->
 		<MappedPointsObservationManager name="MOBS" observationStdev="2e-3" noiseStdev="2e-3" listening="1"/>
 <!-- 		<SofaLinearObservationManager name="LinObs"/> -->
-		<SimulatedStateObservationSource name="ObsSource" monitorPrefix="cylinderModulusMonitor"/>
+		<SimulatedStateObservationSource name="ObsSource" monitorPrefix="cylinderModulusMonitorDyn"/>
 	</Node>
 	
 	<Node>
