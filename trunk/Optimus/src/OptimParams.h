@@ -32,6 +32,9 @@
 #include <sofa/defaulttype/defaulttype.h>
 #include <sofa/core/behavior/MechanicalState.h>
 
+#include <sofa/simulation/common/AnimateEndEvent.h>
+#include <sofa/simulation/common/AnimateBeginEvent.h>
+
 namespace sofa
 {
 namespace component
@@ -123,6 +126,7 @@ protected:
     Data< bool > m_optimize;            ///if OptimParams component are used in Verdandi optimization
     Data< size_t > m_numParams;
     Data< int > m_transformParams;
+    Data< helper::vector<double> > m_prescribedParamKeys;
 
     IVec paramIndices;  /// mapping of parameters stored in m_val to Verdandi state vector
 
@@ -140,7 +144,19 @@ public:
         , m_optimize( initData(&m_optimize, true, "optimize", "the parameters handled in the component will be optimized by Verdandi") )
         , m_numParams( initData(&m_numParams, size_t(1), "numParams", "number of params for vectorial data (input values replicated)") )
         , m_transformParams( initData(&m_transformParams, 0, "transformParams", "transform estimated params: 0: do nothing, 1: absolute value, 2: quadratic (not implemented)") )
+        , m_prescribedParamKeys( initData (&m_prescribedParamKeys, "prescribedParamKeys", "prescribed params in list format: ti p1i ... pni") )
     {}
+
+    void init() {
+        if (!m_prescribedParamKeys.getValue().empty()) {
+            if (m_optimize.getValue()) {
+                std::cout << this->getName() << ": WARNING: parameters can be either optimized or prescribed, optimization set to false" << std::endl;
+                m_optimize.setValue(false);
+            }
+
+            this->f_listening.setValue(true);
+        }
+    }
 
     size_t size() {
         return(m_numParams.getValue() * m_dim);
@@ -191,8 +207,11 @@ public:
 template <class DataTypes>
 class OptimParams : public OptimParamsBase
 {
-public:
+public:            
     SOFA_CLASS(SOFA_TEMPLATE(OptimParams, DataTypes), sofa::core::objectmodel::BaseObject);    
+
+    typedef OptimParamsBase Inherit;
+
     OptimParams();
     ~OptimParams();
     void init();
@@ -209,7 +228,8 @@ protected:
     Data< DataTypes > m_initVal;        /// initial value
     Data< DataTypes > m_min;
     Data< DataTypes > m_max;
-    Data< DataTypes > m_stdev;          /// standard deviation    
+    Data< DataTypes > m_stdev;          /// standard deviation
+    std::vector<std::pair<double, DataTypes> > m_paramKeys;
 
     /// must be implemented in specializations
     virtual void getStDevTempl(DVec& /*_stdev*/) {}
@@ -218,6 +238,7 @@ protected:
     virtual void rawVectorToParams(const double* /*_vector*/) {}
     virtual void paramsToRawVector(double* /*_vector*/) {}
 
+    virtual void handleEvent(core::objectmodel::Event *event) {}
 
 };
 

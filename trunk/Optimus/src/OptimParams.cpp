@@ -45,7 +45,7 @@ using namespace defaulttype;
 
 template<>
 void OptimParams<sofa::helper::vector<double> >::getStDevTempl(DVec& _stdev) {
-    _stdev.resize(m_stdev.getValue().size());    
+    _stdev.resize(m_stdev.getValue().size());
     for (size_t i = 0; i < _stdev.size(); i++)
         _stdev[i] = m_stdev.getValue()[i];
 }
@@ -99,10 +99,50 @@ void OptimParams<sofa::helper::vector<double> >::paramsToRawVector(double* _vect
 
 
 template<>
-void OptimParams<sofa::helper::vector<double> >::init() {
+void OptimParams<sofa::helper::vector<double> >::init() {    
+    Inherit::init();
+    m_dim = 1;
+
+    /// if optimization is done, take the initial value and initial stdev
+    if (!this->m_optimize.getValue() && !this->m_prescribedParamKeys.getValue().empty()) {
+        helper::ReadAccessor<Data<helper::vector<double> > >keys = m_prescribedParamKeys;
+
+        size_t numParams = this->m_dim * this->m_numParams.getValue();
+        size_t numKeyValues = keys.size();
+
+        if ((numKeyValues % (numParams+1) ) != 0) {
+            std::cerr << this->getName() << " ERROR: wrong size of keys, should be N x " << numParams+1 << std::endl;
+        } else {
+            size_t numKeys = numKeyValues / (numParams+1);
+            std::cout << this->getName() << " found " << numKeys << " keys for prescribed parameters" << std::endl;
+
+            m_paramKeys.clear();
+            m_paramKeys.resize(numKeys);
+
+            for (size_t i = 0; i < numKeys; i++) {
+                m_paramKeys[i].first = keys[i*(numParams+1)];
+                vector<double> v(numParams);
+                for (size_t j = 0; j < numParams; j++)
+                    v[j] = keys[i*(numParams+1)+j+1];
+                m_paramKeys[i].second = v;
+            }
+
+            /*for (size_t i = 0; i < m_paramKeys.size(); i++) {
+                std::cout << "T = " << m_paramKeys[i].first;
+                for (size_t j = 0; j < m_paramKeys[i].second.size(); j++)
+                    std::cout << " " << m_paramKeys[i].second[j];
+                std::cout << std::endl;
+            }*/
+
+            helper::WriteAccessor<Data<sofa::helper::vector<double> > > initVal = m_initVal;
+            initVal.resize(numParams);
+            for (size_t i = 0; i < numParams; i++)
+                initVal[i] = m_paramKeys[0].second[i];
+        }
+    }
+
     helper::ReadAccessor<Data<sofa::helper::vector<double> > > initVal = m_initVal;
     size_t nInitVal = initVal.size();
-
     m_numParams.setValue(nInitVal);
 
     if (nInitVal == 1 && m_numParams.getValue() > 1) {
@@ -148,8 +188,16 @@ void OptimParams<sofa::helper::vector<double> >::init() {
             for (size_t i = 1; i < nInitVal; i++)
                 stdev[i] = stdev[0];
         }
+    }
+}
 
-
+template<>
+void OptimParams<sofa::helper::vector<double> >::handleEvent(core::objectmodel::Event *event) {
+    if (dynamic_cast<sofa::simulation::AnimateBeginEvent *>(event))
+    {
+        if (!this->m_optimize.getValue()) {
+            std::cout << "Begin event at time: " << this->getTime() << std::endl;
+        }
     }
 }
 
@@ -158,6 +206,7 @@ void OptimParams<sofa::helper::vector<double> >::init() {
 
 template<>
 void OptimParams<Vec3dTypes::VecCoord>::init() {
+    Inherit1::init();
     paramMO = m_paramMOLink.get();
     this->m_dim = 3;
 
@@ -274,22 +323,22 @@ int OptimParamsClass = core::RegisterObject("Optimization Parameters")
         #ifndef SOFA_FLOAT
         .add< OptimParams<double> >(true)
         /*.add< OptimParams<Vec3d> >()
-        .add< OptimParams<Vec2d> >()
-        .add< OptimParams<Vec1d> >()
-        .add< OptimParams<RigidCoord<3,double> > >()
-        .add< OptimParams<RigidCoord<2,double> > >()*/
+                                .add< OptimParams<Vec2d> >()
+                                .add< OptimParams<Vec1d> >()
+                                .add< OptimParams<RigidCoord<3,double> > >()
+                                .add< OptimParams<RigidCoord<2,double> > >()*/
         .add< OptimParams<sofa::helper::vector<double> > >()
         .add< OptimParams<Vec3dTypes::VecCoord> >()
         #endif
         #ifndef SOFA_DOUBLE
         /*.add< OptimParams<float> >(true)
-        .add< OptimParams<Vec3f> >()
-        .add< OptimParams<Vec2f> >()
-        .add< OptimParams<Vec1f> >()
-        .add< OptimParams<RigidCoord<3,float> > >()
-        .add< OptimParams<RigidCoord<2,float> > >()
-        .add< OptimParams<sofa::helper::vector<float> > >()
-        .add< OptimParams<Vec3fTypes::VecCoord> >()*/
+                                .add< OptimParams<Vec3f> >()
+                                .add< OptimParams<Vec2f> >()
+                                .add< OptimParams<Vec1f> >()
+                                .add< OptimParams<RigidCoord<3,float> > >()
+                                .add< OptimParams<RigidCoord<2,float> > >()
+                                .add< OptimParams<sofa::helper::vector<float> > >()
+                                .add< OptimParams<Vec3fTypes::VecCoord> >()*/
         #endif
         ;
 
