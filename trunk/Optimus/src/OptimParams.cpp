@@ -189,6 +189,15 @@ void OptimParams<sofa::helper::vector<double> >::init() {
                 stdev[i] = stdev[0];
         }
     }
+
+    this->saveParam = false;
+    if (!m_exportParamFile.getValue().empty()) {
+        std::ofstream paramFile(m_exportParamFile.getValue().c_str());
+        if (paramFile.is_open()) {
+            this->saveParam = true;
+            paramFile.close();
+        }
+    }
 }
 
 template<>
@@ -211,32 +220,45 @@ void OptimParams<sofa::helper::vector<double> >::handleEvent(core::objectmodel::
             if (timeSlot == -1) {
                 if (actTime > m_paramKeys.back().first) {
                     helper::WriteAccessor<Data<sofa::helper::vector<double> > > val = m_val;
-                    std::cout << "Const val: ";
+                    //std::cout << "Const val: ";
                     for (size_t i = 0; i < val.size(); i++) {
                         val[i] = m_paramKeys.back().second[i];
-                        std::cout << " " << val[i];
+                        //std::cout << " " << val[i];
                     }
-                    std::cout << std::endl;
-                } else
-                    std::cerr << this->getName() << " ERROR: no slot found for time " << actTime << std::endl;
+                    //std::cout << std::endl;
+                } //else
+                //std::cerr << this->getName() << " ERROR: no slot found for time " << actTime << std::endl;
             } else {
                 double t1 = m_paramKeys[timeSlot].first;
                 double t2 = m_paramKeys[timeSlot+1].first;
                 double r1 = (actTime-t1)/(t2-t1);
                 double r2 = (t2-actTime)/(t2-t1);
 
-                std::cout << "Ratii: " << r1 << " " << r2 << std::endl;
+                //std::cout << "Ratii: " << r1 << " " << r2 << std::endl;
 
                 helper::WriteAccessor<Data<sofa::helper::vector<double> > > val = m_val;
-                std::cout << "Value: ";
+                //std::cout << "Value: ";
                 for (size_t i = 0; i < val.size(); i++) {
                     val[i] = r2*m_paramKeys[timeSlot].second[i] + r1*m_paramKeys[timeSlot+1].second[i];
-                    std::cout << " " << val[i];
+                    //std::cout << " " << val[i];
                 }
-                std::cout << std::endl;
+                //std::cout << std::endl;
+
             }
 
         }
+
+        if (this->saveParam) {
+            std::ofstream paramFile(m_exportParamFile.getValue().c_str(), std::ios::app);
+            if (paramFile.is_open()) {
+                helper::ReadAccessor<Data<sofa::helper::vector<double> > > val = m_val;
+                for (size_t i = 0; i < val.size(); i++)
+                    paramFile << val[i] << " ";
+                paramFile << '\n';
+                paramFile.close();
+            }
+        }
+
     }
 }
 
@@ -362,22 +384,22 @@ int OptimParamsClass = core::RegisterObject("Optimization Parameters")
         #ifndef SOFA_FLOAT
         .add< OptimParams<double> >(true)
         /*.add< OptimParams<Vec3d> >()
-                                .add< OptimParams<Vec2d> >()
-                                .add< OptimParams<Vec1d> >()
-                                .add< OptimParams<RigidCoord<3,double> > >()
-                                .add< OptimParams<RigidCoord<2,double> > >()*/
+                                        .add< OptimParams<Vec2d> >()
+                                        .add< OptimParams<Vec1d> >()
+                                        .add< OptimParams<RigidCoord<3,double> > >()
+                                        .add< OptimParams<RigidCoord<2,double> > >()*/
         .add< OptimParams<sofa::helper::vector<double> > >()
         .add< OptimParams<Vec3dTypes::VecCoord> >()
         #endif
         #ifndef SOFA_DOUBLE
         /*.add< OptimParams<float> >(true)
-                                .add< OptimParams<Vec3f> >()
-                                .add< OptimParams<Vec2f> >()
-                                .add< OptimParams<Vec1f> >()
-                                .add< OptimParams<RigidCoord<3,float> > >()
-                                .add< OptimParams<RigidCoord<2,float> > >()
-                                .add< OptimParams<sofa::helper::vector<float> > >()
-                                .add< OptimParams<Vec3fTypes::VecCoord> >()*/
+                                        .add< OptimParams<Vec3f> >()
+                                        .add< OptimParams<Vec2f> >()
+                                        .add< OptimParams<Vec1f> >()
+                                        .add< OptimParams<RigidCoord<3,float> > >()
+                                        .add< OptimParams<RigidCoord<2,float> > >()
+                                        .add< OptimParams<sofa::helper::vector<float> > >()
+                                        .add< OptimParams<Vec3fTypes::VecCoord> >()*/
         #endif
         ;
 
