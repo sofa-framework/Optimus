@@ -196,7 +196,46 @@ void OptimParams<sofa::helper::vector<double> >::handleEvent(core::objectmodel::
     if (dynamic_cast<sofa::simulation::AnimateBeginEvent *>(event))
     {
         if (!this->m_optimize.getValue()) {
-            std::cout << "Begin event at time: " << this->getTime() << std::endl;
+            double actTime = this->getTime();
+            //std::cout << "Begin event at time: " << actTime << std::endl;
+
+            int timeSlot = -1;
+
+            for (size_t i = 1; i < m_paramKeys.size() && timeSlot < 0; i++) {
+                if (m_paramKeys[i-1].first <= actTime && actTime < m_paramKeys[i].first) {
+                    timeSlot = i-1;
+                }
+            }
+
+
+            if (timeSlot == -1) {
+                if (actTime > m_paramKeys.back().first) {
+                    helper::WriteAccessor<Data<sofa::helper::vector<double> > > val = m_val;
+                    std::cout << "Const val: ";
+                    for (size_t i = 0; i < val.size(); i++) {
+                        val[i] = m_paramKeys.back().second[i];
+                        std::cout << " " << val[i];
+                    }
+                    std::cout << std::endl;
+                } else
+                    std::cerr << this->getName() << " ERROR: no slot found for time " << actTime << std::endl;
+            } else {
+                double t1 = m_paramKeys[timeSlot].first;
+                double t2 = m_paramKeys[timeSlot+1].first;
+                double r1 = (actTime-t1)/(t2-t1);
+                double r2 = (t2-actTime)/(t2-t1);
+
+                std::cout << "Ratii: " << r1 << " " << r2 << std::endl;
+
+                helper::WriteAccessor<Data<sofa::helper::vector<double> > > val = m_val;
+                std::cout << "Value: ";
+                for (size_t i = 0; i < val.size(); i++) {
+                    val[i] = r2*m_paramKeys[timeSlot].second[i] + r1*m_paramKeys[timeSlot+1].second[i];
+                    std::cout << " " << val[i];
+                }
+                std::cout << std::endl;
+            }
+
         }
     }
 }

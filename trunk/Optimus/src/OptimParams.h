@@ -238,7 +238,7 @@ protected:
     virtual void rawVectorToParams(const double* /*_vector*/) {}
     virtual void paramsToRawVector(double* /*_vector*/) {}
 
-    virtual void handleEvent(core::objectmodel::Event *event) {}
+    virtual void handleEvent(core::objectmodel::Event */*event*/) {}
 
 };
 
