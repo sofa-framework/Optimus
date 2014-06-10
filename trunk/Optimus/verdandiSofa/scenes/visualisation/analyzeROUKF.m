@@ -1,6 +1,6 @@
 clear 
 
-prefix='cylTest/p6';
+prefix='../daHeteroCylinderConstant/pD2';
 
 Xf=sprintf('%s_estim.out', prefix);
 Pf=sprintf('%s_var.out', prefix);
@@ -8,6 +8,8 @@ Pf=sprintf('%s_var.out', prefix);
 defVals=[10000 5000 7000];
 
 maxT=400;
+
+doStd=1;
 
 
 %================================================
@@ -52,6 +54,12 @@ numCovar=nchoosek(numVar, 2);
 numLines=numVar+numCovar;
 
 varP=(abs(P(:,1:numLines)));
+
+if (doStd)
+    varP=sqrt(varP);
+end
+
+
 for i=1:numVar
     lg{i} = sprintf('Var P%d', i);
 end
