@@ -245,7 +245,14 @@ receive any parameters from XML via \texttt{ModelData} structure.
 \item Container of parameters in given \asn. 
 \item Templated on any numerical type in SOFA, specializations needed.
 \item Abstract pure base \texttt{OptimParamsBase} created to facilitate the manipulation and define the API.
-\item In some cases, it's desirable to keep some properties of the parameters being optimized (e.g positivity for the Young's modulus. 
+\item In \emph{forward mode}, it can be used either as a simple container of parameters which remain constant, or as a \emph{parameter controller} which can change 
+the parameters during the simulation. The change is defined using option \texttt{prescribedParamKeys="T$^0$ v$_0^0$ ... v$_n^0$  T$^1$ v$_0^1$ ... v$_n^1$ ... ... T$^t$ v$^t_0$ ... v$^t_n$"} where the 
+values of parameters are defined in each time T$^t$ (not a time step, but the simulation time). Here, the option \texttt{numParams} is required in order to parse the keys correctly. 
+Finally, the initial value in the XML  file is ignored and only the keys are used so that the 
+real value of the parameter is interpolated for given time step.
+\item The value of parameteres in each time step can be exported using option \texttt{exportParamFile}.
+\item In the \emph{filtering mode}, only the initial value \texttt{initValue} together with the standard deviation \texttt{stdev} are set in the XML file.
+\item In some optimization cases, it's desirable to keep some properties of the parameters being optimized (e.g positivity for the Young's modulus. 
 The option \texttt{transformParams} can be used to choose between: 0 (the no transformation is done) 1: absolute value of the parameters is taken
 before feeding the model.
 \end{itemize}
@@ -292,7 +299,7 @@ Verdandi to SOFA, which would be finally much easier).
 
 \section{Examples}
 
-% \subsection{EX1: Estimation of Young's modulus of cylinder under gravity}
+\subsection{EX1: Estimation of constant Young's modulus of a heterogeneous object under gravity}
 
 The data are generated using \texttt{CylinderModulusForward.scn} and in each step, the entire mechanical object of the cylinder is saved by the
 \texttt{Monitor} component.
@@ -412,14 +419,44 @@ deviation of 2\,mm.}
 \hfill
 %\subfigure[]{
 \includegraphics[width=.49\linewidth]{figures/p6_var.pdf}
-\caption{Parameters: \texttt{initValue="6000"}, \texttt{stdev="2000"}. Observations: 1 points selected in the middle of the cylinder,
+\caption{Parameters: \texttt{initValue="6000"}, \texttt{stdev="2000"}. Observations: 1 point selected in the middle of the cylinder,
 \texttt{observationStdev=2e-3}, \texttt{noiseStdev=2e-3}. An extreme case with fairly limited number of observations (a single point) and a real
 uncertainty of 2\,mm modeled with white Gaussian noise with standard deviation of 2\,mm.}
 \label{fig:Results1}
 \end{center}
 \end{figure}
 
+\subsection{EX1: Estimation of varying Young's modulus of a heterogeneous object under gravity}
+The example is the same as the previous one, except for the fact that the Young's modulus is decreased from 6\,kPa to 2\,kPa between t=3\,s and t=5\,s.
+The result is illustrated in figures (dash line is showing the value of parameters).
 
+\begin{figure}[h]
+\begin{center}
+%\subfigure[]{
+\includegraphics[width=.49\linewidth]{figures/pVar1_estim.pdf}
+\hfill
+%\subfigure[]{
+\includegraphics[width=.49\linewidth]{figures/pVar1_var.pdf}
+\caption{Parameters: \texttt{initValue="6000"}, \texttt{stdev="2000"}. Observations: 10 points selected along the centerline,
+\texttt{observationStdev=1e-4}, \texttt{noiseStdev=1e-4}. Even with no noise and very high confidence in measurement, the filter reacts to the 
+change of the parameter with delay. Surprisingly, the other two parameters are perturbed as well.}
+\label{fig:Results1}
+\end{center}
+\end{figure}
+
+\begin{figure}[h]
+\begin{center}
+%\subfigure[]{
+\includegraphics[width=.49\linewidth]{figures/pVar3_estim.pdf}
+\hfill
+%\subfigure[]{
+\includegraphics[width=.49\linewidth]{figures/pVar3_var.pdf}
+\caption{Parameters: \texttt{initValue="6000"}, \texttt{stdev="2000"}. Observations: 10 points selected along the centerline,
+\texttt{observationStdev=2e-3}, \texttt{noiseStdev=2e-3}. Despite the noise, the behavior of the filter is quite similar to the previous case when speaking about the adaptation of the 
+varying parameter.}
+\label{fig:Results1}
+\end{center}
+\end{figure}
 
 
 \section{Notes}
