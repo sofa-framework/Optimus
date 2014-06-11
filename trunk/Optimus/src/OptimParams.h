@@ -128,6 +128,7 @@ protected:
     Data< int > m_transformParams;
     Data< helper::vector<double> > m_prescribedParamKeys;
     Data< std::string > m_exportParamFile;
+    Data< bool> m_interpolateSmooth;
     bool saveParam;
 
     IVec paramIndices;  /// mapping of parameters stored in m_val to Verdandi state vector
@@ -148,6 +149,7 @@ public:
         , m_transformParams( initData(&m_transformParams, 0, "transformParams", "transform estimated params: 0: do nothing, 1: absolute value, 2: quadratic (not implemented)") )
         , m_prescribedParamKeys( initData (&m_prescribedParamKeys, "prescribedParamKeys", "prescribed params in list format: ti p1i ... pni") )
         , m_exportParamFile( initData(&m_exportParamFile, std::string(""), "exportParamFile", "store the parameter at the begining of each time step") )
+        , m_interpolateSmooth( initData(&m_interpolateSmooth, true, "interpolateSmooth", "use hyperbolic tangent to interpolate the parameters (linear interpolation if false") )
     {}
 
     void init() {

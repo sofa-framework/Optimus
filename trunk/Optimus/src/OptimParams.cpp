@@ -239,7 +239,14 @@ void OptimParams<sofa::helper::vector<double> >::handleEvent(core::objectmodel::
                 helper::WriteAccessor<Data<sofa::helper::vector<double> > > val = m_val;
                 //std::cout << "Value: ";
                 for (size_t i = 0; i < val.size(); i++) {
-                    val[i] = r2*m_paramKeys[timeSlot].second[i] + r1*m_paramKeys[timeSlot+1].second[i];
+                    double v1=m_paramKeys[timeSlot].second[i];
+                    double v2=m_paramKeys[timeSlot+1].second[i];
+
+                    /// (y2-y1)*(tanh(3.5*(a-(t0+t1)/2))+1)/2+y1
+                    if (this->m_interpolateSmooth.getValue())
+                        val[i] =  (v2-v1)*(tanh(2*(actTime-(t1+t2)/2))+1)/2+v1;
+                    else
+                        val[i] = r2*v1 + r1*v2;
                     //std::cout << " " << val[i];
                 }
                 //std::cout << std::endl;
