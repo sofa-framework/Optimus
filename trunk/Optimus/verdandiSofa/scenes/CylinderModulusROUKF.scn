@@ -6,7 +6,7 @@
 	<VisualStyle displayFlags="showBehaviorModels showForceFields showCollisionModels" />
 			
 	<VerdandiAnimationLoop name="verdAnimLoop"  verbose="0"/>
-	<SofaReducedOrderUKF name="sofaROUKF" paramFileName="daHeteroCylinderConstant/pVar3_estim.out" paramVarFileName="daHeteroCylinderConstant/pVar3_var.out"/>
+	<SofaReducedOrderUKF name="sofaROUKF" paramFileName="daHeteroCylinderConstant/pHardSmoothIm3_estim.out" paramVarFileName="daHeteroCylinderConstant/pHardSmoothIm3_var.out"/>
 		
 	<OptimParams name="paramE" template="Vector" initValue="6000 6000 6000" stdev="2000 2000 2000" transformParams="1"/>
 <!-- 	<OptimParams name="paramE" template="Vector" initValue="10000 5000 7000"/>  -->
@@ -15,7 +15,7 @@
 	<StaticSolver applyIncrementFactor="1"/>
 <!-- 	<EulerImplicit name="odeSolver" printLog="false" rayleighStiffness="0.1"/> -->
 	
-	<SparsePARDISOSolver/>
+	<SparsePARDISOSolver/>	
 
 <!-- 	<MeshVTKLoader filename="cylinder363.vtk" name="loader" /> -->
 	<MeshVTKLoader filename="data/cylinder3_770.vtk" name="loader" />
@@ -51,7 +51,7 @@
 <!-- 		<IdentityMapping/> -->
 		<MappedPointsObservationManager name="MOBS" observationStdev="2e-3" noiseStdev="2e-3" listening="1"/>
 <!-- 		<SofaLinearObservationManager name="LinObs"/> -->
-		<SimulatedStateObservationSource name="ObsSource" monitorPrefix="cylinderModulusMonitorStatEvolve1"/>
+		<SimulatedStateObservationSource name="ObsSource" monitorPrefix="cylinderModulusMonitorStatEvolve1Smooth"/>
 	</Node>
 	
 	<Node>

@@ -1,14 +1,15 @@
 clear 
 
-prefixForward='../daHeteroCylinderConstant/pVar';
-prefix='../daHeteroCylinderConstant/pVar3';
+prefixForward='../daHeteroCylinderConstant/pHardSmoothIm';
+prefix='../daHeteroCylinderConstant/pHardSmoothIm3';
 
 Xf=sprintf('%s_estim.out', prefix);
 Pf=sprintf('%s_var.out', prefix);
 Xdf=sprintf('%s_forward.out', prefixForward);
 
 
-maxT=900;
+maxT=1000;
+dt=0.01;
 
 doStd=1;
 
@@ -41,13 +42,13 @@ figure1 = figure('XVisual',...
     'InvertHardcopy','off',...
     'Color',[1 1 1]);
 axes('Ylim',[minY maxY],  'FontSize',16);
-xlabel('#iteration', 'FontSize',16);
+xlabel('time', 'FontSize',16);
 ylabel('parameter value',  'FontSize',16);
 hold on
-plot(X, 'LineWidth', 2); grid on; 
+plot(dt*(1:maxT),X, 'LineWidth', 2); grid on; 
 %leg1=legend('P1', 'P2', 'P3')
 %set(leg1,'Position',[0.736160714285711 0.160714285714285 0.138392857142857 0.229166666666667]);
-plot(Xd, 'LineWidth', 2, 'LineStyle','--'); 
+plot(dt*(1:maxT),Xd, 'LineWidth', 2, 'LineStyle','--'); 
 
 saveas(gcf,sprintf('%s_estim.eps', prefix), 'psc2');
 
@@ -82,10 +83,10 @@ figure1 = figure('XVisual',...
     'InvertHardcopy','off',...
     'Color',[1 1 1]);
 axes('FontSize',16);
-xlabel('#iteration', 'FontSize',16);
+xlabel('time', 'FontSize',16);
 ylabel('variance', 'FontSize',16);
 hold on
-plot(varP, 'LineWidth', 2); grid on; 
+plot(dt*(1:maxT), varP, 'LineWidth', 2); grid on; 
 %plot(-varP, 'LineWidth', 1);
 legend(lg);
 %plot(covarP, 'LineWidth', 1, 'LineStyle','--'); 
