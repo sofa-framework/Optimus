@@ -248,6 +248,7 @@ receive any parameters from XML via \texttt{ModelData} structure.
 \item In \emph{forward mode}, it can be used either as a simple container of parameters which remain constant, or as a \emph{parameter controller} which can change 
 the parameters during the simulation. The change is defined using option \texttt{prescribedParamKeys="T$^0$ v$_0^0$ ... v$_n^0$  T$^1$ v$_0^1$ ... v$_n^1$ ... ... T$^t$ v$^t_0$ ... v$^t_n$"} where the 
 values of parameters are defined in each time T$^t$ (not a time step, but the simulation time). Here, the option \texttt{numParams} is required in order to parse the keys correctly. 
+The transition between two different values can be done smoothly (based on \texttt{tanh}), the option \texttt{interpolateSmooth}.
 Finally, the initial value in the XML  file is ignored and only the keys are used so that the 
 real value of the parameter is interpolated for given time step.
 \item The value of parameteres in each time step can be exported using option \texttt{exportParamFile}.
@@ -433,10 +434,10 @@ The result is illustrated in figures (dash line is showing the value of paramete
 \begin{figure}[h]
 \begin{center}
 %\subfigure[]{
-\includegraphics[width=.49\linewidth]{figures/pVar1_estim.pdf}
+\includegraphics[width=.49\linewidth]{figures/pVarSm1_estim.pdf}
 \hfill
 %\subfigure[]{
-\includegraphics[width=.49\linewidth]{figures/pVar1_var.pdf}
+\includegraphics[width=.49\linewidth]{figures/pVarSm1_var.pdf}
 \caption{Parameters: \texttt{initValue="6000"}, \texttt{stdev="2000"}. Observations: 10 points selected along the centerline,
 \texttt{observationStdev=1e-4}, \texttt{noiseStdev=1e-4}. Even with no noise and very high confidence in measurement, the filter reacts to the 
 change of the parameter with delay. Surprisingly, the other two parameters are perturbed as well.}
@@ -447,16 +448,31 @@ change of the parameter with delay. Surprisingly, the other two parameters are p
 \begin{figure}[h]
 \begin{center}
 %\subfigure[]{
-\includegraphics[width=.49\linewidth]{figures/pVar3_estim.pdf}
+\includegraphics[width=.49\linewidth]{figures/pVarSm3_estim.pdf}
 \hfill
 %\subfigure[]{
-\includegraphics[width=.49\linewidth]{figures/pVar3_var.pdf}
+\includegraphics[width=.49\linewidth]{figures/pVarSm3_var.pdf}
 \caption{Parameters: \texttt{initValue="6000"}, \texttt{stdev="2000"}. Observations: 10 points selected along the centerline,
 \texttt{observationStdev=2e-3}, \texttt{noiseStdev=2e-3}. Despite the noise, the behavior of the filter is quite similar to the previous case when speaking about the adaptation of the 
 varying parameter.}
 \label{fig:Results1}
 \end{center}
 \end{figure}
+
+\begin{figure}[h]
+\begin{center}
+%\subfigure[]{
+\includegraphics[width=.49\linewidth]{figures/pHardSmooth3_estim.pdf}
+\hfill
+%\subfigure[]{
+\includegraphics[width=.49\linewidth]{figures/pHardSmooth3_var.pdf}
+\caption{Parameters: \texttt{initValue="6000"}, \texttt{stdev="2000"}. Observations: 10 points selected along the centerline,
+\texttt{observationStdev=2e-3}, \texttt{noiseStdev=2e-3}, hardening instead of softening.
+varying parameter.}
+\label{fig:Results1}
+\end{center}
+\end{figure}
+
 
 
 \section{Notes}
