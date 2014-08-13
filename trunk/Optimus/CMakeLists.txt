@@ -192,7 +192,7 @@ if(${SOFA-EXTERNAL_VERDANDI})
 
 #   LINUX:
     AddLinkerDependencies(SofaCore SofaValidation lua blas lapack)
-    AddLinkerFlags("-Wl,--no-undefined")
+    #AddLinkerFlags("-Wl,--no-undefined")
 
 endif()
 

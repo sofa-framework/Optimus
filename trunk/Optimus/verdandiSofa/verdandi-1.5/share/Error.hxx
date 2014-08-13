@@ -42,7 +42,7 @@ namespace Verdandi
 
     public:
         // Constructors.
-        Error(string function, string comment);
+        Error(string function= "", string comment= "");
         Error(string description, string function, string comment);
 
         // Destructor.
@@ -60,7 +60,7 @@ namespace Verdandi
     {
     public:
         // Constructor.
-        ErrorConfiguration(string function, string comment);
+        ErrorConfiguration(string function  = "", string comment  = "");
 
         string GetName() const;
     };
@@ -72,7 +72,7 @@ namespace Verdandi
     {
     public:
         // Constructor.
-        ErrorIO(string function, string comment);
+        ErrorIO(string function  = "", string comment  = "");
 
         string GetName() const;
     };
@@ -84,7 +84,7 @@ namespace Verdandi
     {
     public:
         // Constructor.
-        ErrorProcessing(string function, string comment);
+        ErrorProcessing(string function = "", string comment = "");
 
         string GetName() const;
     };
@@ -96,7 +96,7 @@ namespace Verdandi
     {
     public:
         // Constructor.
-        ErrorUndefined(string function, string comment);
+        ErrorUndefined(string function = "", string comment = "");
 
         virtual string What();
         string GetName() const;
@@ -109,7 +109,7 @@ namespace Verdandi
     {
     public:
         // Constructor.
-        ErrorArgument(string function, string comment);
+        ErrorArgument(string function = "", string comment = "");
 
         string GetName() const;
     };
@@ -128,8 +128,8 @@ namespace Verdandi
         string module_;
     public:
         // Constructor.
-        ErrorPythonUndefined(string function, string function_name,
-                             string arguments, string module, string comment);
+        ErrorPythonUndefined(string function = "", string function_name = "",
+                             string arguments = "", string module = "", string comment = "");
 
         // Destructor.
         ~ErrorPythonUndefined();

@@ -45,7 +45,7 @@ namespace Verdandi
       \param[in] function function in which the error occurred.
       \param[in] comment comment associated with the error.
     */
-    Error::Error(string function = "", string comment = ""):
+    Error::Error(string function, string comment):
         description_("An undefined error occurred"),
         function_(function), comment_(comment)
     {
@@ -137,8 +137,8 @@ namespace Verdandi
       \param[in] function function in which the error occurred.
       \param[in] comment comment associated with the error.
     */
-    ErrorConfiguration::ErrorConfiguration(string function = "",
-                                           string comment = ""):
+    ErrorConfiguration::ErrorConfiguration(string function,
+                                           string comment):
         Error("Error while reading a configuration file", function, comment)
     {
 #ifdef VERDANDI_WITH_ABORT
@@ -172,7 +172,7 @@ namespace Verdandi
       \param[in] function function in which the error occurred.
       \param[in] comment comment associated with the error.
     */
-    ErrorIO::ErrorIO(string function = "", string comment = ""):
+    ErrorIO::ErrorIO(string function, string comment):
         Error("Error while performing a I/O operation", function, comment)
     {
 #ifdef VERDANDI_WITH_ABORT
@@ -207,7 +207,7 @@ namespace Verdandi
       \param[in] comment comment associated with the error.
     */
     ErrorProcessing
-    ::ErrorProcessing(string function = "", string comment = ""):
+    ::ErrorProcessing(string function, string comment):
         Error("Error while processing data", function, comment)
     {
 #ifdef VERDANDI_WITH_ABORT
@@ -241,7 +241,7 @@ namespace Verdandi
       \param[in] function function in which the error occurred.
       \param[in] comment comment associated with the error.
     */
-    ErrorUndefined::ErrorUndefined(string function = "", string comment = ""):
+    ErrorUndefined::ErrorUndefined(string function, string comment):
         Error("Undefined function", function, comment)
     {
 #ifdef VERDANDI_WITH_ABORT
@@ -291,7 +291,7 @@ namespace Verdandi
       \param[in] function function in which the error occurred.
       \param[in] comment comment associated with the error.
     */
-    ErrorArgument::ErrorArgument(string function = "", string comment = ""):
+    ErrorArgument::ErrorArgument(string function, string comment):
         Error("Wrong arguments", function, comment)
     {
 #ifdef VERDANDI_WITH_ABORT
@@ -328,11 +328,11 @@ namespace Verdandi
       \param[in] module Python module where the function is searched.
       \param[in] comment comment associated with the error.
     */
-    ErrorPythonUndefined::ErrorPythonUndefined(string function = "",
-                                               string function_name = "",
-                                               string arguments = "",
-                                               string module = "",
-                                               string comment = ""):
+    ErrorPythonUndefined::ErrorPythonUndefined(string function,
+                                               string function_name,
+                                               string arguments,
+                                               string module,
+                                               string comment):
         Error("Call to an undefined Python function", function, comment)
     {
         function_name_ = function_name;
