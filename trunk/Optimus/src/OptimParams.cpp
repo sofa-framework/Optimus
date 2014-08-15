@@ -214,11 +214,10 @@ void OptimParams<sofa::helper::vector<double> >::handleEvent(core::objectmodel::
                 if (m_paramKeys[i-1].first <= actTime && actTime < m_paramKeys[i].first) {
                     timeSlot = i-1;
                 }
-            }
-
+            }           
 
             if (timeSlot == -1) {
-                if (actTime > m_paramKeys.back().first) {
+                if (actTime >= m_paramKeys.back().first) {
                     helper::WriteAccessor<Data<sofa::helper::vector<double> > > val = m_val;
                     //std::cout << "Const val: ";
                     for (size_t i = 0; i < val.size(); i++) {
@@ -226,8 +225,9 @@ void OptimParams<sofa::helper::vector<double> >::handleEvent(core::objectmodel::
                         //std::cout << " " << val[i];
                     }
                     //std::cout << std::endl;
-                } //else
-                //std::cerr << this->getName() << " ERROR: no slot found for time " << actTime << std::endl;
+                } else {
+                    std::cerr << this->getName() << " ERROR: no slot found for time " << actTime << std::endl;
+                }
             } else {
                 double t1 = m_paramKeys[timeSlot].first;
                 double t2 = m_paramKeys[timeSlot+1].first;
