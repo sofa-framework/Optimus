@@ -122,6 +122,8 @@ public:
 };
 
 
+
+
 template <class Type>
 class SOFA_SIMULATION_COMMON_API SofaModelWrapper : public Verdandi::VerdandiBase, public sofa::core::objectmodel::BaseObject
 {
