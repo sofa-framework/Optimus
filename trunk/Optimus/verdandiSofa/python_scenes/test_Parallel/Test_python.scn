@@ -1,0 +1,2 @@
+<Node animate="0" dt="0.001" gravity="0 0 0" name="Root">
+	<RequiredPlugin name="SofaPython" pluginName="SofaPython" /><PythonScriptController classname="Test_python" filename="Test_python.py" listening="1" name="Test_python" /></Node>
