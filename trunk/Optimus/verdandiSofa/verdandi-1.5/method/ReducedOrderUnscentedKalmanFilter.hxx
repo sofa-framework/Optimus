@@ -96,7 +96,7 @@ namespace Verdandi
 
         //! Matrix U in the P SVD decomposition.
         model_state_error_variance_reduced U_;
-        //! Inverse of matrix U.
+        //! Inverse of matrix U. Recomputed each step.
         sigma_point_matrix U_inv_;
         //! Innovation covariance.
         sigma_point_matrix C_;

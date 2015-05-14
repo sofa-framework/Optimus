@@ -390,7 +390,30 @@ namespace Verdandi
             MessageHandler::Send(*this, "all", "::InitializeStep end");
     }
 
+    template<class Model>
+    struct threadApplyOperatorParam_t
+    {
+        Model* model;
+        //typedef typename Model::state_error_variance_row State;
+        typedef Vector<typename Model::state::value_type, VectFull, MallocAlloc<typename Model::state::value_type> > sigmaPoint;
+        sigmaPoint col;
+        bool preserveState;
+        double* out_newTime;
+        // bool _update_force; redundant parameters at this point
+    };
 
+
+    template<class Model>
+    void* threadApplyOperator (void *in_args)
+    {
+        threadApplyOperatorParam_t<Model>* args_structure = (threadApplyOperatorParam_t<Model>*) in_args;
+        *(args_structure->out_newTime)=args_structure->model->ApplyOperatorParallel(&args_structure->col, args_structure->preserveState);
+        // all overwrite, but that is ok
+
+        return 0; // success
+    }
+
+    /** ADJUSTED **/
     //! Performs a step forward, with optimal interpolation at the end.
     template <class Model, class ObservationManager>
     void ReducedOrderUnscentedKalmanFilter<Model, ObservationManager>
@@ -400,6 +423,7 @@ namespace Verdandi
 
         if (sigma_point_type_ == "simplex")
         {
+            MessageHandler::Send(*this, "all", "::Simplex");
 #if defined(VERDANDI_WITH_MPI)
 
             x_.Copy(model_.GetState());
@@ -506,41 +530,127 @@ namespace Verdandi
 
 #else
             model_state_error_variance_row x(Nstate_);
-            Copy(model_.GetState(), x);
+            Copy(model_.GetState(), x); // copy former to latter, former is a verdandi state propagated from sofa state (result of last step?)
 
             /*** Sampling ***/
 
             model_state_error_variance tmp;
-            GetCholesky(U_inv_);
+            GetCholesky(U_inv_); // sqrt U_inv_ ... Cn
 
-            Copy(model_.GetStateErrorVarianceProjector(), tmp);
+            Copy(model_.GetStateErrorVarianceProjector(), tmp); // projector is copied to tmp (created if necessary) ... Ln
             MltAdd(Ts(1), tmp, U_inv_, Ts(0),
-                   model_.GetStateErrorVarianceProjector());
+                   model_.GetStateErrorVarianceProjector()); // 1*projector*Uinv->projector?? ... Ln CnT
 
             // Computes X_n^{(i)+}.
-            Reallocate(X_i_, Nstate_, Nsigma_point_, model_);
+            Reallocate(X_i_, Nstate_, Nsigma_point_, model_); // allocate  Nstate*Nsigma_point_ size to X_i
             for (int i = 0; i < Nsigma_point_; i++)
-                SetCol(x, i, X_i_);
+                SetCol(x, i, X_i_); // Xn+ repeated columns
 
             MltAdd(Ts(1), model_.GetStateErrorVarianceProjector(),
-                   I_, Ts(1), X_i_);
+                   I_, Ts(1), X_i_); // now the samples are in X_i_
 
             /*** Prediction ***/
 
             // Computes X_{n + 1}^-.
             x.Fill(Ts(0));
-            model_state_error_variance_row x_col;
-            Reallocate(x_col, x.GetM(), model_);
-            double new_time(0);
+
+
+            /** ADJUSTED -- parallellized **/
+            sigma_point* verdandi_states = new sigma_point[Nsigma_point_]; // consider false sharing?
+
             for (int i = 0; i < Nsigma_point_; i++)
             {
-                GetCol(X_i_, i, x_col);
-                new_time = model_.ApplyOperator(x_col, false);
-                Add(Ts(alpha_), x_col, x);
-                SetCol(x_col, i, X_i_);
+                cout<<"Nsigmapoint: "<<Nsigma_point_;
+                verdandi_states[i].Nullify();
+                verdandi_states[i].Resize(x.GetM());
             }
-            model_.SetTime(new_time);
 
+            double new_time(0);
+
+
+            if (0)
+            {
+                cout<<">>>DEBUGGING INFORMATION<<<:: New parallel mode\n";
+                sigma_point x_col;
+                Reallocate(x_col, x.GetM(), model_);
+                double new_time(0);
+                for (int i = 0; i < Nsigma_point_; i++)
+                {
+                    GetCol(X_i_, i, x_col);
+                    //model_.AssignWork(x_col, false);
+                    Add(Ts(alpha_), x_col, x); // B<- alpha A + B
+                    SetCol(x_col, i, X_i_);
+                }
+                new_time = 0;
+
+                /**
+                cout<<">>>DEBUGGING INFORMATION<<<:: Standard Mode\n";
+                sigma_point x_col;
+                Reallocate(x_col, x.GetM(), model_);
+                //double new_time(0);
+                for (int i = 0; i < Nsigma_point_; i++)
+                {
+                    GetCol(X_i_, i, x_col);
+                    new_time = model_.ApplyOperator(x_col, false);
+                    Add(Ts(alpha_), x_col, x); // B<- alpha A + B
+                    SetCol(x_col, i, X_i_);
+                }*/
+            }
+            else
+            {
+                cout<<">>>DEBUGGING INFORMATION<<<::Parallel Mode\n";
+
+                threadApplyOperatorParam_t<Model> args[Nsigma_point_];
+
+                cout<<"ready "<<Nsigma_point_<<"\n";
+                for (int i = 0; i < Nsigma_point_; i++)
+                {
+                    // create all inputs for the parallel computation
+                    GetCol(X_i_, i, verdandi_states[i]);
+                    cout<<"1:"<<(*(verdandi_states+i))(0)<<std::endl;
+                    cout<<"2:"<<(*(verdandi_states+i))(1)<<std::endl;
+                    cout<<"3:"<<(*(verdandi_states+i))(2)<<std::endl;
+                }
+                cout<<"steady";
+                // compute the simulation step for all sigma points in parallel
+                new_time =model_.ApplyOperatorParallel(verdandi_states, false);
+
+                for (int i = 0; i < Nsigma_point_; i++)
+                {
+                    // generate apriori state estimate
+                    Add(Ts(alpha_), verdandi_states[i], x);  // B<- alpha A + B, x will be apriori state estimate (apriori mean)
+                    SetCol(verdandi_states[i], i, X_i_); // generating Xn+1 [*]
+                }
+
+                cout<<"go!";
+
+                /**
+                for (int i = 0; i < Nsigma_point_; i++)
+                {
+
+                    Reallocate(args[i].col, x.GetM(), model_);
+                    GetCol(X_i_, i, args[i].col); // get a sigma point
+
+
+                    args[i].model=&model_;//nejde dat rovnitko mezi dva modely, neni copy contructor
+                    args[i].out_newTime=&new_time;
+                    args[i].preserveState=false;
+
+                    pthread_create (threads+i, NULL, threadApplyOperator<Model>, (void*) (args+i)); // run simulation step
+                    pthread_join(threads[i], NULL);
+                }
+                for (int i = 0; i < Nsigma_point_; i++)
+                {
+                    pthread_join(threads[i], NULL);
+
+                    Add(Ts(alpha_), args[i].col, x);  // B<- alpha A + B, x will be apriori state estimate (apriori mean)
+                    SetCol(args[i].col, i, X_i_); // generating Xn+1 [*]
+                }*/
+            }
+            delete[] verdandi_states;
+            /** /ADJUSTED **/
+
+            model_.SetTime(new_time);
             /*** Resampling ***/
 
             if (with_resampling_)
@@ -575,6 +685,7 @@ namespace Verdandi
                                  "implemented yet for the 'no"
                                  " simplex' cases.");
 #else
+            MessageHandler::Send(*this, "all", "::nonSimplex");
             model_state_error_variance_row x(Nstate_);
             Copy(model_.GetState(), x);            
 
@@ -863,6 +974,7 @@ namespace Verdandi
                    reduced_innovation, Ts(1), model_.GetState());
             model_.StateUpdated();
 #else
+            // *correction step* ?
             // Computes [HX_{n+1}^{*}].
             sigma_point_matrix Z_i_trans(Nsigma_point_, Nobservation_);
             model_state_error_variance_row x_col;
@@ -1132,7 +1244,7 @@ namespace Verdandi
         model_.FinalizeStep();
 
         MessageHandler::Send(*this, "all", "::FinalizeStep end");
-    }
+    } // FinalizeStep
 
 
     //! Finalizes the model.
