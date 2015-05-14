@@ -390,28 +390,6 @@ namespace Verdandi
             MessageHandler::Send(*this, "all", "::InitializeStep end");
     }
 
-    template<class Model>
-    struct threadApplyOperatorParam_t
-    {
-        Model* model;
-        //typedef typename Model::state_error_variance_row State;
-        typedef Vector<typename Model::state::value_type, VectFull, MallocAlloc<typename Model::state::value_type> > sigmaPoint;
-        sigmaPoint col;
-        bool preserveState;
-        double* out_newTime;
-        // bool _update_force; redundant parameters at this point
-    };
-
-
-    template<class Model>
-    void* threadApplyOperator (void *in_args)
-    {
-        threadApplyOperatorParam_t<Model>* args_structure = (threadApplyOperatorParam_t<Model>*) in_args;
-        *(args_structure->out_newTime)=args_structure->model->ApplyOperatorParallel(&args_structure->col, args_structure->preserveState);
-        // all overwrite, but that is ok
-
-        return 0; // success
-    }
 
     /** ADJUSTED **/
     //! Performs a step forward, with optimal interpolation at the end.
@@ -530,6 +508,7 @@ namespace Verdandi
 
 #else
             model_state_error_variance_row x(Nstate_);
+
             Copy(model_.GetState(), x); // copy former to latter, former is a verdandi state propagated from sofa state (result of last step?)
 
             /*** Sampling ***/
@@ -560,7 +539,6 @@ namespace Verdandi
 
             for (int i = 0; i < Nsigma_point_; i++)
             {
-                cout<<"Nsigmapoint: "<<Nsigma_point_;
                 verdandi_states[i].Nullify();
                 verdandi_states[i].Resize(x.GetM());
             }
@@ -570,18 +548,7 @@ namespace Verdandi
 
             if (0)
             {
-                cout<<">>>DEBUGGING INFORMATION<<<:: New parallel mode\n";
-                sigma_point x_col;
-                Reallocate(x_col, x.GetM(), model_);
-                double new_time(0);
-                for (int i = 0; i < Nsigma_point_; i++)
-                {
-                    GetCol(X_i_, i, x_col);
-                    //model_.AssignWork(x_col, false);
-                    Add(Ts(alpha_), x_col, x); // B<- alpha A + B
-                    SetCol(x_col, i, X_i_);
-                }
-                new_time = 0;
+                cout<<">>>DEBUGGING INFORMATION<<<:: Original mode, not working\n";
 
                 /**
                 cout<<">>>DEBUGGING INFORMATION<<<:: Standard Mode\n";
@@ -599,8 +566,6 @@ namespace Verdandi
             else
             {
                 cout<<">>>DEBUGGING INFORMATION<<<::Parallel Mode\n";
-
-                threadApplyOperatorParam_t<Model> args[Nsigma_point_];
 
                 cout<<"ready "<<Nsigma_point_<<"\n";
                 for (int i = 0; i < Nsigma_point_; i++)

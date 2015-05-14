@@ -194,17 +194,6 @@ public:
     /// structure to associate OptimParams (found in a node) and indices mapping parameters to Verdandi state
     //typedef std::pair<OptimParams*,helper::vector<size_t> > OPVecInd;
 
-    /// structure associated with a node that contains OptimParams
-    typedef struct {
-        simulation::Node* node;                 /// associated node
-        helper::vector<OptimParams*> oparams;       /// vector of OptimParams points in that node (multiple OptimParams per node allowed)
-        MechStateVec3d* vecMS;                  /// pointer to mechanical state (Vec3D), to be templated
-        MechStateRigid3d* rigidMS;              /// pointer to mechanical state (Rigid3D), to be templated
-        FixedConstraintVec3d* vecFC;            /// pointer to fixed constraints (fixed DoFs must be ommitted from Verdandi state vector)
-        FixedConstraintRigid3d* rigidFC;
-        helper::vector<std::pair<size_t, size_t> > positionPairs;       /// map to match positions in SOFA and Verdandi state vector
-        helper::vector<std::pair<size_t, size_t> > velocityPairs;       /// map to match velocities in SOFA and Verdandi state vector
-    } SofaObject;
 
     typedef struct {
         //string name;
@@ -224,22 +213,13 @@ public:
 
     int current_row_;
     size_t dim_;
-    size_t state_size_;
-    size_t reduced_state_size_;
-    size_t reduced_state_index_;
-    size_t applyOpNum; // useless
+    //size_t state_size_;
+    //size_t reduced_state_size_;
+    //size_t reduced_state_index_;
+    //size_t applyOpNum; // useless
 
-    helper::vector<size_t> listStateBegin;
-    helper::vector<size_t> listStateMiddle;
-    helper::vector<size_t> listStateEnd;
-    helper::vector<size_t> listParamBegin;
-    helper::vector<size_t> listParamEnd;
+    //state state_, duplicated_state_;
 
-    state state_, duplicated_state_;
-
-
-    Data<bool> displayTime;
-    Data<bool> m_solveVelocityConstraintFirst;
 
     typedef struct
     {
@@ -271,14 +251,14 @@ public:
 
     /// list of all SOFA objects: nodes with OptimParams component
     /// initSimuData
-    helper::vector<SofaObject> sofaObjects;
+    //helper::vector<SofaObject> sofaObjects;
 
     helper::vector<SofaObjectParallel> sofaObjectsMaster; // Sofa objects in master scene's scene
     OptimParams* paramsMaster;
     state verdandiStateMaster; /** mine **/
     size_t state_size_parallel;
     size_t reduced_state_size_parallel;
-    size_t reduced_state_index_parallel;
+    //size_t reduced_state_index_parallel;
 
     /// error variance
     //double state_error_variance_state_, state_error_variance_params_;
@@ -329,17 +309,17 @@ public:
 
     /// functions propagating state between SOFA and Verdandi
 
-    void StateSofa2Verdandi();
+    //void StateSofa2Verdandi();
     void StateSofa2VerdandiParallel(const helper::vector<SofaObjectParallel>& mechanicalObjects, OptimParams* oparams, state& verdandiState);
-    void StateVerdandi2Sofa();
+    //void StateVerdandi2Sofa();
     void StateVerdandi2SofaParallel(helper::vector<SofaObjectParallel>& mechanicalObjects, OptimParams* oparams, const state& verdandiState);
 
     /// functions required by Verdandi API:
 
-    int GetNstate() const { return state_size_; }
+    int GetNstate() const { return state_size_parallel; }
     double GetTime() { return time_; }
     state& GetState();
-    void GetStateCopy(state& _copy); // useless
+    //void GetStateCopy(state& _copy); // useless
 
     void Initialize(std::string &) {
         Initialize();
@@ -347,14 +327,15 @@ public:
 
     void Initialize();
     void InitializeParallel();
-    void InitializeStep() { numStep++; time_ = numStep*modelData.gnode->getDt(); applyOpNum = 0; }// might error if change to Dt is made
-    void Finalize() {}
+    void InitializeStep() {}// might error if change to Dt is made
+    //void InitializeStep() { numStep++; time_ = numStep*modelData.gnode->getDt();}// might error if change to Dt is made
+    void Finalize() {} // req by verdandi
     void FinalizeStep();
-    bool HasFinished() { return(false); }
+    bool HasFinished() { return(false); } // req by verdandi
     void StateUpdated();
-    void SetTime(double _time);
+    void SetTime(double _time); // not thread safe
 
-    double ApplyOperator(state& _x, bool _preserve_state = true, bool _update_force = true);
+    double ApplyOperator(state& _x, bool _preserve_state = true, bool _update_force = true){std::cout<<"ERROR\nERROR\nERROR";return 0.0f;}
     double ApplyOperatorParallel(state* sigmaPoints, bool _preserve_state = true, bool _update_force = true);
     void distributeWork();
     void Forward(bool _update_force = true, bool _update_time = true, int thread = -1);
@@ -368,8 +349,6 @@ public:
         if (modelData.verbose)
             std::cout << "[" << this->getName() << "]: " << _s << std::endl;
     }
-
-    void computeCollision();
 
     state_error_variance& GetStateErrorVariance();
     state_error_variance_row& GetStateErrorVarianceRow(int row);
@@ -457,10 +436,12 @@ public:
     }
 
     void SetTime(double _time) {
+        std::cout<<"SofaLinearObservationManagerParallel // time set: //"<<_time;
         this->time_ = _time;
     }
 
     virtual void SetTime(SofaModelWrapperParallel<double>& /*model*/, double _time) {
+        std::cout<<"SofaLinearObservationManagerParallel // time set: //"<<_time;
         this->time_ = _time;
     }
 
@@ -517,7 +498,7 @@ public:
 protected:
 
     SofaModelWrapperParallel<Real1>* sofaModel;
-    typename SofaModelWrapperParallel<Real1>::SofaObjectParallel* sofaObjectParallel;
+    typename SofaModelWrapperParallel<Real1>::SofaObjectParallel* m_sofaObjectParallel;
     size_t masterStateSize;
     size_t mappedStateSize;    
 
@@ -554,8 +535,8 @@ public:
     virtual typename Inherit::observation& GetInnovation(const typename SofaModelWrapperParallel<double>::state& x);
 
     virtual void SetTime(SofaModelWrapperParallel<double>& model, double time) {
-        std::cout << "Setting time: " << time << std::endl;
-        return Inherit::SetTime(model, time);
+        std::cout << "MappedPointsObservationManagerParallel / time set: " << time << std::endl;
+        Inherit::SetTime(time);
     }
 
     virtual int GetNobservation() {
@@ -812,8 +793,12 @@ public:
         VecCoord1& actualState = *actualStateData.beginEdit();
         VecCoord1& mappedState = *mappedStateData.beginEdit();
 
+        std::cout<<"AAAAAA: crash here?\n";
+
         mappedState.resize(mappedMState->getSize());                
         sofaModel->SetSofaVectorFromVerdandiState(actualState, x, sofaObjectParallel);
+
+        std::cout<<"AAA:::: yes indeed!\n";
 
         MechanicalParams mp;
         mapping->apply(&mp, mappedStateData, actualStateData);        

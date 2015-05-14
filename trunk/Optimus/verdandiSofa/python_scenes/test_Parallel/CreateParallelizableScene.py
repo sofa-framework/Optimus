@@ -23,12 +23,12 @@ def createParallelizableScene(in_CreateScene, in_root, in_count):
     
     masterNode=in_root.createChild('MasterScene')
     
-    #if "createMasterScene" in dir(in_CreateScene):
-    #    # createMasterScene is defined
-    #    in_CreateScene.createMasterScene(masterNode)
-    #else:
-    #    in_CreateScene.createSlaveScene(masterNode)
-    in_CreateScene.createSlaveScene(masterNode)
+    if "createMasterScene" in dir(in_CreateScene):
+        # createMasterScene is defined
+        in_CreateScene.createMasterScene(masterNode)
+    else:
+        in_CreateScene.createSlaveScene(masterNode)
+    #in_CreateScene.createSlaveScene(masterNode)
     masterNode.createObject('VisualStyle', name='VisualStyle', displayFlags='showAll') #unadd when final	
     in_CreateScene.createObserverNode(masterNode)
     
@@ -36,7 +36,7 @@ def createParallelizableScene(in_CreateScene, in_root, in_count):
     slaveSubordinate=in_root.createChild('SlaveSubordinate')
     for i in range(0,in_count):
         slave=slaveSubordinate.createChild('SlaveScene_'+str(i))
-        slave.createObject('VisualStyle', name='VisualStyle', displayFlags='hideAll') #add when final	
+        #slave.createObject('VisualStyle', name='VisualStyle', displayFlags='hideAll') #add when final	
         in_CreateScene.createSlaveScene(slave)
         r_slaves.append(slave)
     return r_slaves

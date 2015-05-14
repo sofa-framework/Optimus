@@ -181,10 +181,15 @@ void VerdandiAnimationLoop::step(const core::ExecParams* params, double /*dt*/)
     }
 
     if (roukfDriverParallel) {
+        std::cout<<"XXX:verdandianimationloop:: step 1:\n";
         roukfDriverParallel->GetModel().setInitStepData(params);
+        std::cout<<"XXX:verdandianimationloop:: step 2:\n";
         roukfDriverParallel->InitializeStep();
+        std::cout<<"XXX:verdandianimationloop:: step 3:\n";
         roukfDriverParallel->Forward();
+        std::cout<<"XXX:verdandianimationloop:: step 4:\n";
         roukfDriverParallel->Analyze();
+        std::cout<<"XXX:verdandianimationloop:: step 5:\n";
         roukfDriverParallel->FinalizeStep();
     }
 

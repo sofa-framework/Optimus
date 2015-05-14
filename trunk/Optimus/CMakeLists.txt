@@ -39,9 +39,11 @@ if(${SOFA-EXTERNAL_VERDANDI})
         verdandiSofa/VerdandiAnimationLoop.h
         verdandiSofa/SofaModelWrapper.h
         verdandiSofa/SofaModelWrapper.inl
+        verdandiSofa/SofaModelWrapperParallel.h
+        verdandiSofa/SofaModelWrapperParallel.inl
 	verdandiSofa/VerdandiClasses.h
-	#verdandiSofa/VerdandiROUKFParams.h
-	#verdandiSofa/VerdandiObservationParams.h
+	##verdandiSofa/VerdandiROUKFParams.h
+	##verdandiSofa/VerdandiObservationParams.h
 	verdandiSofa/ObservationSource.h
 	verdandiSofa/SimulatedStateObservationSource.h
 	verdandiSofa/SimulatedStateObservationSource.inl
@@ -168,9 +170,10 @@ if(${SOFA-EXTERNAL_VERDANDI})
     list(APPEND SOURCE_FILES
         verdandiSofa/VerdandiAnimationLoop.cpp
         verdandiSofa/SofaModelWrapper.cpp
+        verdandiSofa/SofaModelWrapperParallel.cpp
 	verdandiSofa/VerdandiClasses.cpp
-	#verdandiSofa/VerdandiROUKFParams.cpp
-        #verdandiSofa/VerdandiObservationParams.cpp
+	##verdandiSofa/VerdandiROUKFParams.cpp
+        ##verdandiSofa/VerdandiObservationParams.cpp
         verdandiSofa/SimulatedStateObservationSource.cpp
     )
 

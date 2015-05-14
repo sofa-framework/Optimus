@@ -289,9 +289,9 @@ public:
 
     void Initialize();
     void InitializeStep() { numStep++; time_ = numStep*modelData.gnode->getDt(); applyOpNum = 0; }
-    void Finalize() {}
+    void Finalize() {} // req by verdandi
     void FinalizeStep();
-    bool HasFinished() { return(false); }
+    bool HasFinished() { return(false); } // req by verdandi
     void StateUpdated();
     void SetTime(double _time);
 

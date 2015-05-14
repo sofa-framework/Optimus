@@ -131,6 +131,7 @@ protected:
     Data< bool> m_interpolateSmooth;
     bool saveParam;
 
+    // I dont like this
     IVec paramIndices;  /// mapping of parameters stored in m_val to Verdandi state vector
 
     virtual void getStDevTempl(DVec& _stdev) = 0;   /// copy standard deviation from a structure of given type to plain helper::vector
@@ -138,6 +139,7 @@ protected:
     //virtual void setValueTempl(const DVec& _value) = 0;   /// copy a value in plain vector to a structure of given type
     virtual void rawVectorToParams(const double* _vector) = 0;  /// copy values from a input vector into parameters at correct positions
     virtual void paramsToRawVector(double* _vector) = 0;  /// copy values from parameters to the output vector at correct positions
+
 
 public:
 
@@ -175,13 +177,18 @@ public:
         rawVectorToParams(_rawVector);
     }
 
-    void paramsToRawVector(double* _rawVector, size_t /*_size*/) {
-        /*if (!_size != size()) {
-            std::cerr << "Vector sizes differ!" << std::endl;
-            return;
-        }*/
-        paramsToRawVector(_rawVector);
+
+
+    void paramsToRawVector(double* _rawVector, size_t _size) {
+
+            paramsToRawVector(_rawVector);
     }
+
+    virtual void rawVectorToParamsParallel(const double* _vector){std::cout<<"failure!\n";}
+    virtual void paramsToRawVectorParallel(double* _vector){std::cout<<"failure!\n";}
+
+    //void rawVectorToParamsParallel(const double* _rawVector);
+    //void paramsToRawVectorParallel(double* __rawVector);
 
     void getStDev(DVec& _stdev) {
         this->getStDevTempl(_stdev);
@@ -203,8 +210,12 @@ public:
         paramIndices = _vector;
     }
 
-    bool optimize()  {
+    bool isOptimized()  {
         return(m_optimize.getValue());
+    }
+    void setOptimize(bool value)
+    {
+        m_optimize.setValue(value);
     }
 };
 
@@ -242,6 +253,12 @@ protected:
     //virtual void setValueTempl(const DVec& /*_value*/) {}
     virtual void rawVectorToParams(const double* /*_vector*/) {}
     virtual void paramsToRawVector(double* /*_vector*/) {}
+
+
+    virtual void rawVectorToParamsParallel(const double* _vector){}
+    virtual void paramsToRawVectorParallel(double* _vector){}
+
+
 
     virtual void handleEvent(core::objectmodel::Event */*event*/) {}
 
