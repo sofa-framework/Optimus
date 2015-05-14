@@ -101,9 +101,16 @@ void VerdandiAnimationLoop::init() {
 
     /// NEW INTERFACE:
     gnode->get(roukfDriver, core::objectmodel::BaseContext::SearchDown);
+
+    gnode->get(roukfDriverParallel, core::objectmodel::BaseContext::SearchDown);
+
     if (roukfDriver) {
         std::cout << this->getName() << "ROUKF driver " << roukfDriver->getName() << " found." << std::endl;
         filterType = ROUKF;
+    } else if (roukfDriverParallel) {
+        std::cout << this->getName() << "ROUKF driver parallel " << roukfDriverParallel->getName() << " found." << std::endl;
+        filterType = ROUKF;
+
     } else {
         std::cerr << this->getName() << "Warning: ROUKF driver not found! "<< std::endl;
     }
@@ -123,6 +130,9 @@ void VerdandiAnimationLoop::bwdInit()
 {    
     if (roukfDriver)
         roukfDriver->InitializeFilter();
+
+    if (roukfDriverParallel)
+        roukfDriverParallel->InitializeFilter();
 
 
     /*switch (filterType) {
@@ -168,6 +178,14 @@ void VerdandiAnimationLoop::step(const core::ExecParams* params, double /*dt*/)
         roukfDriver->Forward();
         roukfDriver->Analyze();
         roukfDriver->FinalizeStep();
+    }
+
+    if (roukfDriverParallel) {
+        roukfDriverParallel->GetModel().setInitStepData(params);
+        roukfDriverParallel->InitializeStep();
+        roukfDriverParallel->Forward();
+        roukfDriverParallel->Analyze();
+        roukfDriverParallel->FinalizeStep();
     }
 
 }

@@ -35,6 +35,7 @@
 #include "../src/OptimParams.h"
 
 #include "SofaModelWrapper.h"
+#include "SofaModelWrapperParallel.h"
 #include "VerdandiClasses.h"
 #include "VerdandiROUKFParams.h"
 #include "VerdandiObservationParams.h"
@@ -84,6 +85,7 @@ private :
     SofaForwardDriver<SofaModelWrapper<double> > *fwdDriver;
     SofaUnscentedKalmanFilter<SofaModelWrapper<double>, SofaLinearObservationManager<double> >* ukfDriver;
     SofaReducedOrderUKF<SofaModelWrapper<double>, SofaLinearObservationManager<double> >* roukfDriver;
+    SofaReducedOrderUKFParallel<SofaModelWrapperParallel<double>, SofaLinearObservationManagerParallel<double> >* roukfDriverParallel;
 
     /// NEW SOFA UKF:
     //SofaReducedOrderUKF<SofaModelWrapper<double>, Verdandi::LinearObservationManager<double> >* roukfDriver2;
