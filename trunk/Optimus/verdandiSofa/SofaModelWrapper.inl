@@ -131,7 +131,7 @@ void SofaModelWrapper<Type>::initSimuData(ModelData &_md)
     for (size_t iop = 0; iop < listOP.size(); iop++) {
         OptimParams* oparam = listOP[iop];
 
-        if (!oparam->optimize())
+        if (!oparam->isOptimized())
             continue;
 
         simulation::Node* opnode = dynamic_cast<simulation::Node*>(oparam->getContext());
