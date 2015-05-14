@@ -69,6 +69,7 @@
 #include <sofa/simulation/common/IntegrateEndEvent.h>
 
 #include "SofaModelWrapper.inl"
+#include "SofaModelWrapperParallel.inl"
 
 /// should be in separated file, but does not actually work because of template functions of template classes
 
@@ -85,7 +86,13 @@ namespace Verdandi {
     template class Verdandi::UnscentedKalmanFilter<sofa::simulation::SofaModelWrapper<double>, sofa::simulation::SofaLinearObservationManager<double> >;
     template class Verdandi::ReducedOrderUnscentedKalmanFilter<sofa::simulation::SofaModelWrapper<double>, sofa::simulation::SofaLinearObservationManager<double> >;
 
+    /* sofaModelWrapperParallel*/
+    template class Verdandi::ForwardDriver<sofa::simulation::SofaModelWrapperParallel<double> >;
+    template class Verdandi::UnscentedKalmanFilter<sofa::simulation::SofaModelWrapperParallel<double>, sofa::simulation::SofaLinearObservationManagerParallel<double> >;
+    template class Verdandi::ReducedOrderUnscentedKalmanFilter<sofa::simulation::SofaModelWrapperParallel<double>, sofa::simulation::SofaLinearObservationManagerParallel<double> >;
+
 }
+
 
 
 
@@ -164,6 +171,78 @@ template class ARObservationManager<sofa::defaulttype::Vec3dTypes, sofa::default
 template class SofaForwardDriver<SofaModelWrapper<double> >;
 template class SofaReducedOrderUKF<SofaModelWrapper<double>,SofaLinearObservationManager<double> >;
 template class SofaUnscentedKalmanFilter<SofaModelWrapper<double>,SofaLinearObservationManager<double> >;
+
+/* SofaModelWrapperParallel */
+
+SOFA_DECL_CLASS(SofaModelWrapperParallel)
+int SofaModelWrapperParallelClass = core::RegisterObject("A class implementing an interface between SOFA and verdandi; parallel version.")
+        #ifndef SOFA_FLOAT
+        //.add< SofaModelWrapperParallel<double> >()
+        #endif
+        ;
+
+SOFA_DECL_CLASS(SofaLinearObservationManagerParallel)
+int SofaLinearObservationManagerParallelClass = core::RegisterObject("A class implementing the observation manager interfaced in SOFA; parallel version.")
+        #ifndef SOFA_FLOAT
+        .add< SofaLinearObservationManagerParallel<double> >()
+        #endif
+        ;
+
+SOFA_DECL_CLASS(MappedPointsObservationManagerParallel)
+int MappedPointsObservationManagerParallelClass = core::RegisterObject("A class implementing the observation manager interfaced in SOFA; parallel version.")
+        #ifndef SOFA_FLOAT
+        .add< MappedPointsObservationManagerParallel<Vec3dTypes, Vec3dTypes> >()
+        #endif
+        ;
+
+SOFA_DECL_CLASS(ARObservationManagerParallel)
+int ARObservationManagerParallelClass = core::RegisterObject("A class implementing the observation manager interfaced in SOFA; parallel version.")
+        #ifndef SOFA_FLOAT
+        .add< ARObservationManagerParallel<Vec3dTypes, Vec3dTypes> >()
+        #endif
+        ;
+
+
+
+SOFA_DECL_CLASS(SofaReducedOrderUKFParallel)
+int SofaReducedOrderUKFParallelClass = core::RegisterObject("A class implementing the observation manager interfaced in SOFA; parallel version.")
+        #ifndef SOFA_FLOAT
+        .add<SofaReducedOrderUKFParallel<SofaModelWrapperParallel<double>,SofaLinearObservationManagerParallel<double> > >()
+        #endif
+        ;
+
+
+SOFA_DECL_CLASS(SofaUnscentedKalmanFilterParallel)
+int SofaUnscentedKalmanFilterParallelClass = core::RegisterObject("A class implementing the observation manager interfaced in SOFA; parallel version.")
+        #ifndef SOFA_FLOAT
+        .add<SofaUnscentedKalmanFilterParallel<SofaModelWrapperParallel<double>,SofaLinearObservationManagerParallel<double> > >()
+        #endif
+        ;
+
+
+SOFA_DECL_CLASS(SofaForwardDriverParallel)
+int SofaForwardDriverParallelClass = core::RegisterObject("A class implementing the observation manager interfaced in SOFA; parallel version.")
+        #ifndef SOFA_FLOAT
+        .add<SofaForwardDriverParallel<SofaModelWrapperParallel<double> > >()
+        #endif
+        ;
+
+
+template class SofaModelWrapperParallel<double>;
+
+/// observation managers:
+template class SofaLinearObservationManagerParallel<double>;
+template class MappedPointsObservationManagerParallel<sofa::defaulttype::Vec3dTypes, sofa::defaulttype::Vec3dTypes>;
+template class ARObservationManagerParallel<sofa::defaulttype::Vec3dTypes, sofa::defaulttype::Vec3dTypes>;
+
+
+/// filters:
+template class SofaForwardDriverParallel<SofaModelWrapperParallel<double> >;
+template class SofaReducedOrderUKFParallel<SofaModelWrapperParallel<double>,SofaLinearObservationManagerParallel<double> >;
+template class SofaUnscentedKalmanFilterParallel<SofaModelWrapperParallel<double>,SofaLinearObservationManagerParallel<double> >;
+
+
+/*-----------------------------*/
 
 
 
