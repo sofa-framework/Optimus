@@ -59,6 +59,10 @@
 
 #include <pthread.h> /* TODO: used for; consider whether handlers necessary*/
 
+#ifdef __APPLE__
+#include "pthread_barrier.h"
+#endif
+
 #define SNCOUTP(arg)     { std::cout << "[" << this->getName() << "] " << arg << std::endl; }
 
 #define SERRP(arg)     { std::cerr << "[" << this->getName() << "] " << arg << std::endl; }
