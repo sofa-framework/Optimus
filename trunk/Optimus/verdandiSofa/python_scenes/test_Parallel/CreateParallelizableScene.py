@@ -10,33 +10,27 @@ def createParallelizableScene(in_CreateScene, in_root, in_count):
     
     Prerequisites:
     Class CreateScene has the following keyword attributes and methods
-    (1) attribute 'self.rootNode' - root of the scene
-    (2) method 'createGlobalComponents' - creates the necessary global components
-    (3) method 'createMasterScene' - creates the master scene
-    (4) method 'createSlaveScene' - creates the slave scene
+    (1) method 'createGlobalComponents' - creates the necessary global components
+    (2) method 'createMasterScene' - creates the master scene
+    (3) method 'createSlaveScene' - creates the slave scene
 
-    !!Global indexing is advised!!
+    N.B. Global components (created by method 1) should be indexed by global indexing
+    N.B. Local components (created by methods 1 and 2) should be indexed by local indexing.
     """
     r_slaves = [] # list of created auxiliary nodes
     in_CreateScene.createGlobalComponents(in_root)
     
     
     masterNode=in_root.createChild('MasterScene')
-    
-    if "createMasterScene" in dir(in_CreateScene):
-        # createMasterScene is defined
-        in_CreateScene.createMasterScene(masterNode)
-    else:
-        in_CreateScene.createSlaveScene(masterNode)
-    #in_CreateScene.createSlaveScene(masterNode)
-    masterNode.createObject('VisualStyle', name='VisualStyle', displayFlags='showAll') #unadd when final	
-    in_CreateScene.createObserverNode(masterNode)
+    in_CreateScene.createMasterScene(masterNode)
+    #masterNode.createObject('VisualStyle', name='VisualStyle', displayFlags='showAll')
+    masterNode.createObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels')
     
 
     slaveSubordinate=in_root.createChild('SlaveSubordinate')
     for i in range(0,in_count):
         slave=slaveSubordinate.createChild('SlaveScene_'+str(i))
-        #slave.createObject('VisualStyle', name='VisualStyle', displayFlags='hideAll') #add when final	
+        #slave.createObject('VisualStyle', name='VisualStyle', displayFlags='hideAll')
         in_CreateScene.createSlaveScene(slave)
         r_slaves.append(slave)
     return r_slaves

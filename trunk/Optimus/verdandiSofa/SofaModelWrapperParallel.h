@@ -57,11 +57,9 @@
 #include <boost/random.hpp>
 #include <boost/random/normal_distribution.hpp>
 
-#include <pthread.h> /* TODO: used for; consider whether handlers necessary*/
+#include <pthread.h> /* pthread_t, pthread_barrier_t */
 
-#ifdef __APPLE__
-#include "pthread_barrier.h"
-#endif
+#include <utility> /* std::pair */
 
 #define SNCOUTP(arg)     { std::cout << "[" << this->getName() << "] " << arg << std::endl; }
 
@@ -77,13 +75,20 @@ namespace sofa
 namespace simulation
 {
 
+/* enumerated types used by the components implemented here */
+enum FilterTypeP { UNDEFP, FORWARDP, UKFP, ROUKFP };
+enum SigmaPointType {SIMPLEX, STAR, CANONICAL};
+enum ThreadSignal {INITIALIZED = 0, WORK_ENQUEUED, NO_WORK, CANCEL_THREAD};
+
+/***********************************************************************************************************
+ ***********************************************************************************************************
+ **************************      START OF THE KALMAN FILTER SECTION      *****************************
+ ***********************************************************************************************************
+ ***********************************************************************************************************/
+
 /**
  *  \brief Wrapper class implementing an interface between SOFA and Verdandi
  */
-
-enum FilterTypeP { UNDEFP, FORWARDP, UKFP, ROUKFP };
-enum ThreadSignal {INITIALIZED = 0, WORK_ENQUEUED, NO_WORK, WORK_DONE, CANCEL_THREAD, UNKNOWN};
-
 template <class Model, class ObservationManager >
 class SOFA_SIMULATION_COMMON_API SofaReducedOrderUKFParallel : public Verdandi::ReducedOrderUnscentedKalmanFilter<Model, ObservationManager>, public sofa::core::objectmodel::BaseObject
 {
@@ -97,8 +102,7 @@ public:
     Data<std::string> m_outputDirectory, m_configFile, m_sigmaPointType, m_observationErrorVariance, m_paramFileName, m_paramVarFileName;
     Data<bool> m_saveVQ, m_showIteration, m_showTime, m_analyzeFirstStep, m_withResampling;
     Data<bool> m_positionInState, m_velocityInState;
-    Data<int> m_threadCount;
-    //Data<int> m_transformParams;
+    //Data<int> m_threadCount;
 
     SofaReducedOrderUKFParallel();
 
@@ -112,22 +116,31 @@ public:
 private:
     bool saveParams, saveParamVar;
 
-};
+}; // class SofaReducedOrderUKFParallel
+
 
 
 template <class Model, class ObservationManager >
 class SOFA_SIMULATION_COMMON_API SofaUnscentedKalmanFilterParallel : public Verdandi::UnscentedKalmanFilter<Model, ObservationManager>, public sofa::core::objectmodel::BaseObject
 {
 public:
-};
+}; // class SofaUnscentedKalmanFilterParallel
+
 
 
 template <class Model>
 class SOFA_SIMULATION_COMMON_API SofaForwardDriverParallel : public Verdandi::ForwardDriver<Model>, public sofa::core::objectmodel::BaseObject
 {
 public:
-};
+}; // class SofaForwardDriverParallel
 
+
+
+/***********************************************************************************************************
+ ***********************************************************************************************************
+ **************************      START OF THE SOFA MODEL PARALLEL SECTION      *****************************
+ ***********************************************************************************************************
+ ***********************************************************************************************************/
 
 template <class Type>
 class SOFA_SIMULATION_COMMON_API SofaModelWrapperParallel : public Verdandi::VerdandiBase, public sofa::core::objectmodel::BaseObject
@@ -185,6 +198,12 @@ public:
     typedef core::behavior::MechanicalState<defaulttype::Rigid3dTypes> MechStateRigid3d;
     typedef component::projectiveconstraintset::FixedConstraint<defaulttype::Rigid3dTypes> FixedConstraintRigid3d;
 
+    typedef sofa::component::container::OptimParamsBase OptimParams;
+
+
+    /**
+      * Structure for launching SofaModelWrapper from SofaReducedOrderUKFParallel
+      */
     typedef struct {
         simulation::Node* gnode;
         FilterTypeP filterTypeP;
@@ -192,15 +211,15 @@ public:
         bool velocityInState;
         double errorVarianceSofaState;        
         bool verbose;
+        SigmaPointType sigmaType;
     } ModelData;
 
-    typedef sofa::component::container::OptimParamsBase OptimParams;
-    /// structure to associate OptimParams (found in a node) and indices mapping parameters to Verdandi state
-    //typedef std::pair<OptimParams*,helper::vector<size_t> > OPVecInd;
 
 
+    /**
+      * Wrapper for sofa mechanical state pointer.
+      */
     typedef struct {
-        //string name;
         simulation::Node* node;                 /// associated node
         MechStateVec3d* vecMS;                  /// pointer to mechanical state (Vec3D), to be templated
         MechStateRigid3d* rigidMS;              /// pointer to mechanical state (Rigid3D), to be templated
@@ -209,63 +228,60 @@ public:
         helper::vector<std::pair<size_t, size_t> > positionPairs;       /// map to match positions in SOFA and Verdandi state vector
         helper::vector<std::pair<size_t, size_t> > velocityPairs;       /// map to match velocities in SOFA and Verdandi state vector
     } SofaObjectParallel;
+
+    /**
+     * structure for ordering SofaObjectParallel objects by name of parent node and name of wrapped mechanical state
+     */
     typedef std::pair<string, SofaObjectParallel> ObjID;
+
 
 public:
     const core::ExecParams* execParams;
-    int numStep; // simulation steps passed - dangerous, time set according to numStep*dt, what if changes
 
-    int current_row_;
-    size_t dim_;
-    //size_t state_size_;
-    //size_t reduced_state_size_;
-    //size_t reduced_state_index_;
-    //size_t applyOpNum; // useless
-
-    //state state_, duplicated_state_;
+    int current_row_; // saves the index of last loaded row of vector variance, which is stored
+    size_t dim_; // dimension of the data [always 3]
 
 
+    /**
+      * Struct specific to each thread. Defines the slave scene the computations are performed on.
+      * Also stores the arguments for work task - thread signal and sigma point indices.
+      * Thread signals might be used in future for half-duplex communication with master, via barriers.
+      **/
     typedef struct
     {
-        simulation::Node* localRoot; // the thread computes subscene rooted at localRoot
-        OptimParams* paramsSlave;
-        helper::vector<SofaObjectParallel> sofaObjectsSlave; // Sofa objects in this state's scene
-        vector<int> sigmaPointIndices;
+        simulation::Node* localRoot; // root of a slave scene
+        OptimParams* paramsSlave; // params governing the scene
+        helper::vector<SofaObjectParallel> sofaObjectsSlave; // Sofa objects in this local scene
+        ThreadSignal threadSignal; // signal for data assimilation step
+        vector<int> sigmaPointIndices; // indices to be computed
     } ThreadData_t;
 
 
 
 
-    int m_sigmaPointCount;
-    int m_slaveCount;
-    //core::ExecParams** t_execParams;
-    state* t_sigmaPoints;
-    pthread_t* t_threadHandlers;
-    ThreadData_t* t_threadData;
-    pthread_barrier_t   t_barrier; /** synchronization of parallel simulations */
-    // 3 bariers for clarity and convenience
-    pthread_barrier_t   t_initDone;
-    pthread_barrier_t   t_workAssigned;
-    pthread_barrier_t   t_workDone;
-    ThreadSignal* t_threadSignals; // signal for the step
+    SigmaPointType m_sigmaType; // type of ROUKF used - simplex, canonical, star
+    int m_sigmaPointCount; // number of sigma points
+    int m_slaveCount; // number of slave nodes, i.e. number of slave threads
+
+    state* t_sigmaPoints; // ROUKF sigma points
+    pthread_t* t_threadHandlers; // thread handlers
+    ThreadData_t* t_threadData; // thread specific data
+    pthread_barrier_t   t_initDone, t_workAssigned, t_workDone; // barriers for thread syncrhonization
     bool t_input_preserveState; // step argument
     bool t_input_updateForce; // step argument
 
 
 
-    /// list of all SOFA objects: nodes with OptimParams component
-    /// initSimuData
-    //helper::vector<SofaObject> sofaObjects;
 
+
+    simulation::Node* rootMaster;
     helper::vector<SofaObjectParallel> sofaObjectsMaster; // Sofa objects in master scene's scene
-    OptimParams* paramsMaster;
-    state verdandiStateMaster; /** mine **/
-    size_t state_size_parallel;
-    size_t reduced_state_size_parallel;
-    //size_t reduced_state_index_parallel;
+    OptimParams* paramsMaster; // optimized params at the master scene
+    state verdandiStateMaster; // verdandi state describing the master scene
 
-    /// error variance
-    //double state_error_variance_state_, state_error_variance_params_;
+    size_t state_size_parallel; // size of verdandi state
+    size_t reduced_state_size_parallel; // reduced size of the verdandi state
+
 
     //! Background error covariance matrix (B).
     state_error_variance state_error_variance_;
@@ -274,10 +290,10 @@ public:
     //! Value of the row of B currently stored.
     state_error_variance_row state_error_variance_row_;
 
-    //! \brief Projector matrix L in the decomposition of the
+    //! Projector matrix L in the decomposition of the
     //  background error covariance matrix (\f$B\f$) as a product LUL^T
     state_error_variance state_error_variance_projector_;
-    //! \brief Reduced matrix U in the decomposition of the
+    //! Reduced matrix U in the decomposition of the
     //  background error covariance matrix (\f$B\f$) as a product LUL^T
     state_error_variance_reduced state_error_variance_reduced_;     /// remains constant during the assimilation
     //! Is state error variance projector allocated?
@@ -292,30 +308,30 @@ public:
     sofa::core::behavior::ConstraintSolver *constraintSolver;
 
 private:
-    static helper::vector<SofaObjectParallel> getSofaObjects(simulation::Node* root);
-    static vector<ObjID> objIDsFromObjects (vector<SofaObjectParallel> objects);
+    static helper::vector<SofaObjectParallel> getSofaObjects(const simulation::Node* root);
+    static vector<ObjID> getObjIDsFromObjects (const vector<SofaObjectParallel>& objects);
+    static vector<ObjID> getSortedObjIDsFromObjects (const helper::vector<SofaObjectParallel>& objects);
+    void synchronizeSofaObjects ();
 
-    vector<ObjID> getSortedIDs (helper::vector<SofaObjectParallel>& objects);
-    bool synchronizeSofaObjects ();
+    void distributeWork();
+
+    void initThreadStructures();
 
 public:
     SofaModelWrapperParallel();
     virtual ~SofaModelWrapperParallel();
 
-    void setInitStepData(const core::ExecParams* _execParams) {
-        execParams = _execParams;
-    }
+    void setInitStepData(const core::ExecParams* _execParams) { execParams = _execParams;}
 
-    void initSimuData(ModelData& _md);
 
-    SofaObjectParallel* getObject(MechStateVec3d *_state);
+    void initSimuData(const ModelData& _md);
+
+    SofaObjectParallel* getObject(const MechStateVec3d *_state);
     void SetSofaVectorFromVerdandiState(defaulttype::Vec3dTypes::VecCoord & vec, const state& _state, SofaObjectParallel *obj); // last change, some stuff in obs
 
     /// functions propagating state between SOFA and Verdandi
 
-    //void StateSofa2Verdandi();
     void StateSofa2VerdandiParallel(const helper::vector<SofaObjectParallel>& mechanicalObjects, OptimParams* oparams, state& verdandiState);
-    //void StateVerdandi2Sofa();
     void StateVerdandi2SofaParallel(helper::vector<SofaObjectParallel>& mechanicalObjects, OptimParams* oparams, const state& verdandiState);
 
     /// functions required by Verdandi API:
@@ -323,53 +339,41 @@ public:
     int GetNstate() const { return state_size_parallel; }
     double GetTime() { return time_; }
     state& GetState();
-    //void GetStateCopy(state& _copy); // useless
 
-    void Initialize(std::string &) {
-        Initialize();
-    }
+    void Initialize(std::string &) { Initialize();  }
 
     void Initialize();
     void InitializeParallel();
-    void InitializeStep() {}// might error if change to Dt is made
-    //void InitializeStep() { numStep++; time_ = numStep*modelData.gnode->getDt();}// might error if change to Dt is made
-    void Finalize() {} // req by verdandi
+    void InitializeStep() {}
+    void Finalize() {}
     void FinalizeStep();
-    bool HasFinished() { return(false); } // req by verdandi
+    bool HasFinished() { return(false); }
     void StateUpdated();
     void SetTime(double _time); // not thread safe
 
-    double ApplyOperator(state& _x, bool _preserve_state = true, bool _update_force = true){std::cout<<"ERROR\nERROR\nERROR";return 0.0f;}
+    double ApplyOperator(state& _x, bool _preserve_state = true, bool _update_force = true){return -2.0f;}
     double ApplyOperatorParallel(state* sigmaPoints, bool _preserve_state = true, bool _update_force = true);
-    void distributeWork();
-    void Forward(bool _update_force = true, bool _update_time = true, int thread = -1);
 
-    void StepDefault(bool _update_force, bool _update_time, int thread = -1);
-    void StepDefaultParallel(bool _update_force, bool _update_time);
+    void Forward(bool _update_force = true, bool _update_time = true, simulation::Node* = NULL);
+
+    void StepDefault(bool _update_force, bool _update_time, simulation::Node* = NULL);
+    void StepDefaultOrig(bool _update_force, bool _update_time, simulation::Node* = NULL);
     void StepFreeMotion(bool _update_force, bool _update_time);
 
     void Message(string _message);
-    void Verb(string _s) {
-        if (modelData.verbose)
-            std::cout << "[" << this->getName() << "]: " << _s << std::endl;
-    }
+
 
     state_error_variance& GetStateErrorVariance();
     state_error_variance_row& GetStateErrorVarianceRow(int row);
     state_error_variance& GetStateErrorVarianceProjector();
     state_error_variance_reduced& GetStateErrorVarianceReduced();
 
+    void Verb(string _s) {
+        if (modelData.verbose)
+            std::cout << "[" << this->getName() << "]: " << _s << std::endl;
+    }
 
-    /// Construction method called by ObjectFactory.
-    //template<class T>
-    //static typename T::SPtr create(T*, BaseContext* context, BaseObjectDescription* arg)
-    //{
-    //    simulation::Node* gnode = dynamic_cast<simulation::Node*>(context);
-    //    typename T::SPtr obj = sofa::core::objectmodel::New<T>(gnode);
-    //    if (context) context->addObject(obj);
-    //    if (arg) obj->parse(arg);
-    //    return obj;
-    //}
+
 
     void printMatrix(Seldon::Matrix<Type>& M, std::ostream &of) {
         for (int i = 0; i < M.GetM(); i++)
@@ -380,6 +384,8 @@ public:
           }
     }
 
+
+
     void printMatrixInRow(Seldon::Matrix<Type>& M, std::ostream &of) {
         for (int i = 0; i < M.GetM(); i++)
           {
@@ -389,41 +395,26 @@ public:
         of << '\n';
     }
 
+
+
     void printVector(Seldon::Vector<Type>& V, std::ofstream &of) {
         for (int i = 0; i < V.GetSize(); i++)
             of << V(i) << '\n';
     }
-};
+
+}; // class SofaModelWrapperParallel
 
 
-/*class SOFA_SIMULATION_COMMON_API SofaObservationManagerBase : public Verdandi::VerdandiBase, public sofa::core::objectmodel::BaseObject
-{
-public:
-    typedef Seldon::Matrix<double> error_variance;
-    typedef Seldon::Vector<double> observation;
-    typedef Seldon::Vector<double> state;
-    typedef SofaModelWrapperParallel<double> model;
-    typedef Seldon::Matrix<double> tangent_linear_operator;
-    typedef Seldon::Vector<double> tangent_linear_operator_row;
 
+/***********************************************************************************************************
+ ***********************************************************************************************************
+ *************************      START OF THE OBSERVATION MANAGERS' SECTION      ****************************
+ ***********************************************************************************************************
+ ***********************************************************************************************************/
 
-    virtual void DiscardObservation(bool _discard_observation) {} // = 0;
-
-    virtual error_variance& GetErrorVariance() const {} //  = 0;
-    virtual error_variance& GetErrorVarianceInverse() const {} //  = 0;
-
-    virtual observation& GetInnovation(const state& _x) {} // = 0;
-
-    virtual int GetNobservation() const {} //  = 0;
-
-    virtual bool HasObservation() const {} //  = 0;
-    virtual bool HasObservation(double time) {} //  = 0;
-
-    virtual void Initialize(model& _model, std::string configuration_file) {} // = 0;
-
-    virtual void SetTime(model& _model, double time) {} // = 0;
-    virtual void SetTime(double time) {} //  = 0;
-};*/
+/***********************************************************************************************************
+ *********************************      Linear observation manager      ************************************
+ ***********************************************************************************************************/
 
 
 template <class T>
@@ -485,8 +476,11 @@ public:
             std::cout << "[" << this->getName() << "]: " << _s << std::endl;
     }
 
-};
+}; // class SofaLinearObservationManagerParallel
 
+/***********************************************************************************************************
+ ******************************      Mapped Points Obervation Manager      *********************************
+ ***********************************************************************************************************/
 
 template <class DataTypes1, class DataTypes2>
 class SOFA_SIMULATION_COMMON_API MappedPointsObservationManagerParallel : public SofaLinearObservationManagerParallel<double>
@@ -560,8 +554,12 @@ public:
     virtual void handleEvent(core::objectmodel::Event *event) {
         if (dynamic_cast<sofa::simulation::AnimateBeginEvent *>(event))
         {
+            Verb("creating noise!");
             if (this->getContext()->getTime() == actualTime)
+            {
+                Verb("not creating noise!");
                 return;
+            }
             actualTime = this->getContext()->getTime();
 
             if (m_noiseStdev.getValue() != 0.0) {
@@ -593,9 +591,11 @@ public:
         }
     }
 
-};
+}; // class MappedPointsObservationManagerParallel
 
-
+/***********************************************************************************************************
+ ***********************************      ARObservation Manager      ***************************************
+ ***********************************************************************************************************/
 
 template <class DataTypes1, class DataTypes2>
 class SOFA_SIMULATION_COMMON_API ARObservationManagerParallel : public SofaLinearObservationManagerParallel<double>
@@ -887,7 +887,7 @@ public:
         glEnable(GL_LIGHTING);*/
     }
 
-};
+}; // class ARObservationManagerParallel
 
 
 

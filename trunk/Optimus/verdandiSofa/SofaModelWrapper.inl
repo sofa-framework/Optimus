@@ -559,31 +559,35 @@ void SofaModelWrapper<Type>::StepDefault(bool _update_force, bool _update_time) 
     }
     simulation::Node* gnode = modelData.gnode;
 
+    int step=0;
     double    dt = gnode->getDt();
 
     //std::cout << "[" << this->getName() << "]: step default begin" << std::endl;
 
     sofa::helper::AdvancedTimer::stepBegin("AnimationStep");
-
+    std::cout<<"step "<<step++<<std::endl;
     sofa::helper::AdvancedTimer::begin("Animate");
+    std::cout<<"step "<<step++<<std::endl;
 
 #ifdef SOFA_DUMP_VISITOR_INFO
     simulation::Visitor::printNode("Step");
 #endif
 
     {
+            std::cout<<"step "<<step++<<std::endl;
         //std::cout << "[" << this->getName() << "]: animate begin" << std::endl;
         AnimateBeginEvent ev ( dt );
         PropagateEventVisitor act ( execParams, &ev );
         gnode->execute ( act );
+            std::cout<<"step "<<step++<<std::endl;
     }
 
     double startTime = gnode->getTime();
-
+    std::cout<<"step "<<step++<<std::endl;
     //std::cout << "[" << this->getName() << "]: behaviour update position" << std::endl;
     BehaviorUpdatePositionVisitor beh(execParams , dt);
     gnode->execute ( beh );
-
+    std::cout<<"step "<<step++<<std::endl;
     //std::cout << "[" << this->getName() << "]: animate" << std::endl;
     AnimateVisitor act(execParams, dt);
     gnode->execute ( act );
@@ -593,7 +597,7 @@ void SofaModelWrapper<Type>::StepDefault(bool _update_force, bool _update_time) 
         gnode->setTime ( startTime + dt );
         gnode->execute< UpdateSimulationContextVisitor >(execParams);
     }
-
+    std::cout<<"step "<<step++<<std::endl;
     {
         //std::cout << "[" << this->getName() << "]: animate end" << std::endl;
         AnimateEndEvent ev ( dt );

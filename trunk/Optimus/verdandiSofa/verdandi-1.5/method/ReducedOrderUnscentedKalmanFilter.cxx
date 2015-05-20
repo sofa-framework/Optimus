@@ -509,7 +509,7 @@ namespace Verdandi
 #else
             model_state_error_variance_row x(Nstate_);
 
-            Copy(model_.GetState(), x); // copy former to latter, former is a verdandi state propagated from sofa state (result of last step?)
+            Copy(model_.GetState(), x); // copy former to latter, former is a verdandi state propagated from sofa state (result of last step)
 
             /*** Sampling ***/
 
@@ -518,108 +518,89 @@ namespace Verdandi
 
             Copy(model_.GetStateErrorVarianceProjector(), tmp); // projector is copied to tmp (created if necessary) ... Ln
             MltAdd(Ts(1), tmp, U_inv_, Ts(0),
-                   model_.GetStateErrorVarianceProjector()); // 1*projector*Uinv->projector?? ... Ln CnT
+                   model_.GetStateErrorVarianceProjector()); // projector*Uinv->projector ... projector returns REFERENCE and can be modified ... Ln CnT
 
             // Computes X_n^{(i)+}.
-            Reallocate(X_i_, Nstate_, Nsigma_point_, model_); // allocate  Nstate*Nsigma_point_ size to X_i
+            Reallocate(X_i_, Nstate_, Nsigma_point_, model_); // allocate  ... Nstate*Nsigma_point_ size to X_i
             for (int i = 0; i < Nsigma_point_; i++)
-                SetCol(x, i, X_i_); // Xn+ repeated columns
+                SetCol(x, i, X_i_); // all columns set to the verdandi state x
 
-            MltAdd(Ts(1), model_.GetStateErrorVarianceProjector(),
-                   I_, Ts(1), X_i_); // now the samples are in X_i_
+            MltAdd(Ts(1), model_.GetStateErrorVarianceProjector(), I_, Ts(1), X_i_); // sigma points ready ... projector*I_ + X_i -> X_i
 
             /*** Prediction ***/
 
             // Computes X_{n + 1}^-.
+
             x.Fill(Ts(0));
+            double new_time(0);
+
+            /**
+             * -----------------------------START OF ADJUSTED SECTION---------------------------------
+             * The following of code has been modified for parallelization.
+             */
+
+            bool parallel_mode = false;
 
 
-            /** ADJUSTED -- parallellized **/
-            sigma_point* verdandi_states = new sigma_point[Nsigma_point_]; // consider false sharing?
+            sigma_point x_col;
+            Reallocate(x_col, x.GetM(), model_);
 
             for (int i = 0; i < Nsigma_point_; i++)
             {
-                verdandi_states[i].Nullify();
-                verdandi_states[i].Resize(x.GetM());
-            }
-
-            double new_time(0);
-
-
-            if (0)
-            {
-                cout<<">>>DEBUGGING INFORMATION<<<:: Original mode, not working\n";
-
-                /**
-                cout<<">>>DEBUGGING INFORMATION<<<:: Standard Mode\n";
-                sigma_point x_col;
-                Reallocate(x_col, x.GetM(), model_);
-                //double new_time(0);
-                for (int i = 0; i < Nsigma_point_; i++)
+                GetCol(X_i_, i, x_col);
+                new_time = model_.ApplyOperator(x_col, false);
+                if (new_time<0.0f)
                 {
-                    GetCol(X_i_, i, x_col);
-                    new_time = model_.ApplyOperator(x_col, false);
-                    Add(Ts(alpha_), x_col, x); // B<- alpha A + B
-                    SetCol(x_col, i, X_i_);
-                }*/
-            }
-            else
-            {
-                cout<<">>>DEBUGGING INFORMATION<<<::Parallel Mode\n";
-
-                cout<<"ready "<<Nsigma_point_<<"\n";
-                for (int i = 0; i < Nsigma_point_; i++)
-                {
-                    // create all inputs for the parallel computation
-                    GetCol(X_i_, i, verdandi_states[i]);
-                    cout<<"1:"<<(*(verdandi_states+i))(0)<<std::endl;
-                    cout<<"2:"<<(*(verdandi_states+i))(1)<<std::endl;
-                    cout<<"3:"<<(*(verdandi_states+i))(2)<<std::endl;
+                    parallel_mode=true;
+                    break;
                 }
-                cout<<"steady";
-                // compute the simulation step for all sigma points in parallel
-                new_time =model_.ApplyOperatorParallel(verdandi_states, false);
+                Add(Ts(alpha_), x_col, x); // B<- alpha A + B
+                SetCol(x_col, i, X_i_);
+            }
 
+            if (parallel_mode)
+            {
+
+                MessageHandler::Send(*this, "all", "::Parallel Mode");
+                // generate sigma points for ROUKF
+                // new allocation every time so as not to disrupt the code in overly many locations
+
+                x.Fill(Ts(0));
+                sigma_point* verdandi_states = new sigma_point[Nsigma_point_]; // dynamic allocation - verdandi_states
                 for (int i = 0; i < Nsigma_point_; i++)
                 {
-                    // generate apriori state estimate
+                    verdandi_states[i].Nullify();
+                    verdandi_states[i].Resize(x.GetM());
+                }
+                for (int i = 0; i < Nsigma_point_; i++)
+                {
+                    GetCol(X_i_, i, verdandi_states[i]);
+                }
+
+                // compute the simulation step for all sigma points in parallel
+                new_time = model_.ApplyOperatorParallel(verdandi_states, false);
+
+                // generate apriori state estimate
+                for (int i = 0; i < Nsigma_point_; i++)
+                {
+
                     Add(Ts(alpha_), verdandi_states[i], x);  // B<- alpha A + B, x will be apriori state estimate (apriori mean)
                     SetCol(verdandi_states[i], i, X_i_); // generating Xn+1 [*]
                 }
 
-                cout<<"go!";
 
-                /**
-                for (int i = 0; i < Nsigma_point_; i++)
-                {
-
-                    Reallocate(args[i].col, x.GetM(), model_);
-                    GetCol(X_i_, i, args[i].col); // get a sigma point
-
-
-                    args[i].model=&model_;//nejde dat rovnitko mezi dva modely, neni copy contructor
-                    args[i].out_newTime=&new_time;
-                    args[i].preserveState=false;
-
-                    pthread_create (threads+i, NULL, threadApplyOperator<Model>, (void*) (args+i)); // run simulation step
-                    pthread_join(threads[i], NULL);
-                }
-                for (int i = 0; i < Nsigma_point_; i++)
-                {
-                    pthread_join(threads[i], NULL);
-
-                    Add(Ts(alpha_), args[i].col, x);  // B<- alpha A + B, x will be apriori state estimate (apriori mean)
-                    SetCol(args[i].col, i, X_i_); // generating Xn+1 [*]
-                }*/
+                //
+                delete[] verdandi_states; // free the memory - verdandi_states
             }
-            delete[] verdandi_states;
-            /** /ADJUSTED **/
+            /**
+             * -----------------------------END OF ADJUSTED SECTION---------------------------------
+             */
 
             model_.SetTime(new_time);
             /*** Resampling ***/
 
             if (with_resampling_)
-            {
+            {std::cout<<"\nRESAMPLING!!\n";
 #if defined(VERDANDI_WITH_PETSC)
                 throw ErrorUndefined("ReducedOrderUnscentedKalmanFilter::"
                                      "Forward()", "'resampling 'option "
@@ -702,8 +683,19 @@ namespace Verdandi
             /*** Prediction ***/
 
             // Computes X_{n + 1}^-.
+
             x.Fill(Ts(0));
             double new_time(0);
+
+            /**
+             * -----------------------------START OF ADJUSTED SECTION---------------------------------
+             * The following of code has been modified for parallelization.
+             */
+
+            bool parallel_mode = false;
+
+            //Reallocate(x_col, x.GetM(), model_);
+
             for (int i = 0; i < Nsigma_point_; i++)
             {
                 GetRow(X_i_trans_, i, x_col);
@@ -714,10 +706,63 @@ namespace Verdandi
                 }
 
                 new_time = model_.ApplyOperator(x_col, false);
+                if (new_time<0.0f)
+                {
+                    parallel_mode=true;
+                    break;
+                }
 
-                Add(Ts(alpha_), x_col, x);                
+                Add(Ts(alpha_), x_col, x);
                 SetRow(x_col, i, X_i_trans_);
             }
+
+            if (parallel_mode)
+            {
+
+                //model_.SetTime(new_time);
+                //model_.GetState().Copy(x);
+                //model_.StateUpdated();
+
+
+                MessageHandler::Send(*this, "all", "::Parallel Mode");
+                cout<<"Sigma points count "<<Nsigma_point_<<std::endl;
+                // generate sigma points for ROUKF
+                // new allocation every time so as not to disrupt the code in too many locations
+                sigma_point* verdandi_states = new sigma_point[Nsigma_point_]; // dynamic allocation - verdandi_states
+                for (int i = 0; i < Nsigma_point_; i++)
+                {
+                    verdandi_states[i].Nullify();
+                    verdandi_states[i].Resize(x.GetM());
+                }
+
+                for (int i = 0; i < Nsigma_point_; i++)
+                {
+                    // GetCol(X_i_, i, verdandi_states[i]);
+                    GetRow(X_i_trans_, i, verdandi_states[i]);
+                    if (saveVQ_){
+                        char name[100];
+                        sprintf(name, "%s/roukf-forecast-sigmastate_%02d.dat", output_directory_.c_str(), i);
+                        output_saver_.WriteText(verdandi_states[i], name);
+                    }
+                }
+
+                // compute the simulation step for all sigma points in parallel
+                new_time = model_.ApplyOperatorParallel(verdandi_states, false);
+
+                for (int i = 0; i < Nsigma_point_; i++)
+                {
+
+                    Add(Ts(alpha_), verdandi_states[i], x);  // B<- alpha A + B, x will be apriori state estimate (apriori mean)
+                    // SetCol(verdandi_states[i], i, X_i_);
+                    SetRow(verdandi_states[i], i, X_i_trans_); // generating Xn+1 [*]
+                }
+                delete[] verdandi_states; // free the memory - verdandi_states
+            }
+
+            /**
+             * -----------------------------END OF ADJUSTED SECTION---------------------------------
+             */
+
             model_.SetTime(new_time);
 
             model_.GetState().Copy(x);

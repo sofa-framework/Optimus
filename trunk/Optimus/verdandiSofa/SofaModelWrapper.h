@@ -296,7 +296,7 @@ public:
     void SetTime(double _time);
 
     double ApplyOperator(state& _x, bool _preserve_state = true, bool _update_force = true);
-    double ApplyOperatorParallel(state* _x, bool _preserve_state = true, bool _update_force = true){}
+    double ApplyOperatorParallel(state* _x, bool _preserve_state = true, bool _update_force = true){ return -2.0f;}
     void Forward(bool _update_force = true, bool _update_time = true);
 
     void StepDefault(bool _update_force, bool _update_time);

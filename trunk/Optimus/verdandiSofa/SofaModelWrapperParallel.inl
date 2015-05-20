@@ -71,10 +71,9 @@
 #include "SofaModelWrapperParallel.h"
 #include "VerdandiClasses.h"
 
-#include <string> /* string */
-#include <algorithm>    // std::sort
-#include <utility>      // std::pair
-#include "boost/bind.hpp"
+#include <algorithm>    /* std::sort */
+#include "boost/bind.hpp" // comparison of std::pair
+
 
 namespace sofa
 {
@@ -82,7 +81,125 @@ namespace sofa
 namespace simulation
 {
 
-// dim is 3!
+/***********************************************************************************************************
+ ***********************************************************************************************************
+ *********************************      START OF THE THREAD SECTION      ***********************************
+ ***********************************************************************************************************
+ ***********************************************************************************************************/
+
+
+
+template <class Type>
+struct threadLoopParam_t
+{
+    SofaModelWrapperParallel<Type>* model; // model the thread computes on
+    int threadID; // the thread's ID in the model
+};
+
+
+
+/**
+  * Function to be used for slave threads.
+  * Recovers sigma points assigned to this thread from t_sigmaPoints and performs a simulation step on its local scene.
+  * Then saves the resulting verdandi state to the sigma point array.
+  *
+  * @param model to perform forward step on
+  * @param structure ThreadData - holds (1) the slaveScene this thread performs computations on and (2) vector of sigma point indices to compute
+  */
+template<class Type>
+void thread_applyOperator(SofaModelWrapperParallel<Type>* const& myModel,
+                   typename SofaModelWrapperParallel<Type>::ThreadData_t& myData)
+{
+
+    //const bool preserve = myModel->t_input_preserveState;
+    const bool update = myModel->t_input_updateForce;
+
+    for (int i=0; i<myData.sigmaPointIndices.size();i++)
+    {
+        // works correctly
+        myModel->StateVerdandi2SofaParallel(myData.sofaObjectsSlave, myData.paramsSlave,
+                                            myModel->t_sigmaPoints[myData.sigmaPointIndices[i]]);
+        myModel->Forward(update, false, myData.localRoot);
+        myModel->StateSofa2VerdandiParallel(myData.sofaObjectsSlave, myData.paramsSlave,
+                                            myModel->t_sigmaPoints[myData.sigmaPointIndices[i]]);
+    }
+
+} // thread_applyOperator
+
+
+
+/**
+ * To be used with pthread_create.
+ * The thread synchronizes with others after initialization.
+ * Then it enters an infinite loop, synchronizing alternately at "await work" and "work done" barriers.
+ * The thread can be passed a signal to cancel itself nonviolently.
+ * @param threadLoopParam_t - loop parameters
+ * @return exit code
+ */
+template<class Type>
+void *thread_startLoop (void *in_args)
+{
+
+    // copy the startLoop arguments and wait for other threads to initialize
+    threadLoopParam_t<Type> args = *((threadLoopParam_t<Type>*) in_args);
+    SofaModelWrapperParallel<Type>* const myModel = args.model; // model the thread computes on
+    const int myTid = args.threadID;
+    typename SofaModelWrapperParallel<Type>::ThreadData_t& myData= myModel->t_threadData[myTid];
+    pthread_barrier_wait (&myModel->t_initDone); // ensure all the threads have initiated correctly
+
+    std::cout<<"[THREAD"<<myTid<<"] started.\n";
+
+    //initiate working loop
+    while (true)
+    {
+        // wait for work to be assigned by master
+        pthread_barrier_wait(&myModel->t_workAssigned);
+
+        switch (myData.threadSignal)
+        {
+        case WORK_ENQUEUED:
+            // work has been assigned to this thread
+            thread_applyOperator(myModel, myData);
+            // inform the master that the work is done
+            pthread_barrier_wait(&myModel->t_workDone);
+            break;
+
+        case NO_WORK:
+            std::cout<<"[THREAD"<<myTid<<"] has no work assigned.\n";
+            // inform the master that the work is done
+            pthread_barrier_wait(&myModel->t_workDone);
+            break;
+
+        case INITIALIZED:
+            // same as work done at this point, no break.
+            std::cout<<"[THREAD"<<myTid<<"] workAssigned barrier passed with signal still in INITIALIZED.\n";
+            return (void*)1;
+
+        case CANCEL_THREAD:
+            std::cout<<"[THREAD"<<myTid<<"] canceled.\n";
+            return 0;
+            break;
+
+        default:
+            std::cout<<"[THREAD"<<myTid<<"] encountered unknown signal.\n";
+            return (void*)1;
+        }
+    }
+
+    // should never get here
+    return (void*)1;
+} // thread_startLoop
+
+/***********************************************************************************************************
+ ***********************************************************************************************************
+ **************************      START OF THE SOFA MODEL PARALLEL SECTION      *****************************
+ ***********************************************************************************************************
+ ***********************************************************************************************************/
+
+
+/**
+ * Parameterless constructor of class SofaModelWrapperParallel.
+ */
 template <class Type>
 SofaModelWrapperParallel<Type>::SofaModelWrapperParallel()
     : Inherit()
@@ -90,14 +207,26 @@ SofaModelWrapperParallel<Type>::SofaModelWrapperParallel()
     , dim_(3)
     , state_size_parallel(0)
     , reduced_state_size_parallel(0)
-    //, reduced_state_index_parallel(0)
 {
     constraintSolver = NULL;
-}
+} // SofaModelWrapperParallel
 
+/**
+ * Destructor of class SofaModelWrapperParallel
+ */
 template <class Type>
 SofaModelWrapperParallel<Type>::~SofaModelWrapperParallel()
-{}
+{
+    pthread_barrier_destroy (&t_initDone);
+    pthread_barrier_destroy (&t_workAssigned);
+    pthread_barrier_destroy (&t_workDone);
+
+    delete [] t_threadData;
+    delete [] t_threadHandlers;
+
+    delete[] t_sigmaPoints; // invokes the respective destructors
+
+} // ~SofaModelWrapperParallel
 
 template <class Type>
 void SofaModelWrapperParallel<Type>::Message(string _message) {
@@ -105,134 +234,29 @@ void SofaModelWrapperParallel<Type>::Message(string _message) {
     if (_message.find("initial condition") != string::npos || _message.find("forecast") != string::npos) {
         //Save();
     }
-}
+} // Message
 
+
+
+/**
+ * Generates a SofaObjectParallel vector, consisting of wrapped rigid3d and vec3d mechanical states from the tree starting at the argument node.
+ * Mapped mechanical objects are excluded from the selection and so are the objects with "aux_" prefix.
+ * Assumes that at most one (rigid3d or vec3d) mechanical object per node.
+ * @param localRoot - root of the subtree to be searched
+ * @return SofaObjectParallel consisting of wrapped mechanical states found in the searched subtree
+ */
 template <class Type>
-struct threadLoopParam_t
+helper::vector<typename SofaModelWrapperParallel<Type>::SofaObjectParallel> SofaModelWrapperParallel<Type>::getSofaObjects(const simulation::Node* localRoot)
 {
-    SofaModelWrapperParallel<Type>* model; // model the thread computes on
-    int threadID; // the thread's ID in the model
+    helper::vector<SofaObjectParallel> objects; // resulting wrapped objects
+    helper::vector<MechStateVec3d*> mechanicalObjectsV; // holds vec3d mechanical objects
+    helper::vector<MechStateRigid3d*> mechanicalObjectsR; // holds rigid3d mechanical objects
 
-};
-
-
-template<class Type>
-void doWork(SofaModelWrapperParallel<Type>* const& myModel, const int& myTid,
-                   typename SofaModelWrapperParallel<Type>::ThreadData_t& myData)
-{
-
-    const bool preserve = myModel->t_input_preserveState; // ignored
-    const bool update = myModel->t_input_updateForce;
-
-    if (myData.localRoot==NULL)
-    {
-        std::cout<<"THREAD "<<myTid<<" reports FAILURE -- NULL local root\n";
-    }
-    for (int i=0; i<myData.sigmaPointIndices.size();i++)
-    {
-        std::cout<<"BB: Thread "<<myTid<<" has job "<<myData.sigmaPointIndices[i]<<" and total of "<<myData.sigmaPointIndices.size()<<"jobs \n";
-
-        // works correctly
-        myModel->StateVerdandi2SofaParallel(myData.sofaObjectsSlave, myData.paramsSlave,
-                                            myModel->t_sigmaPoints[myData.sigmaPointIndices[i]]);
-        myModel->Forward(update, false, myTid);
-        myModel->StateSofa2VerdandiParallel(myData.sofaObjectsSlave, myData.paramsSlave,
-                                            myModel->t_sigmaPoints[myData.sigmaPointIndices[i]]);
-
-        std::cout<<"\n";
-        std::cout<<"\n";
-        std::cout<<"thread "<<myTid<<" managed to get a job done";
-    }
-
-}
-
-
-template<class Type>
-void *startThreadLoop (void *in_args)
-{
-    /** step 1: get args to local copy and sync with others*/
-    threadLoopParam_t<Type> args = *((threadLoopParam_t<Type>*) in_args);
-
-    // for code convenience
-    SofaModelWrapperParallel<Type>* const myModel = args.model; // model the thread computes on
-    const int myTid = args.threadID;
-    typename SofaModelWrapperParallel<Type>::ThreadData_t& myData= myModel->t_threadData[myTid];
-
-    std::cout<<"THREAD "<<myTid<<" started properly\n";
-
-    std::cout<<"node"<<myData.localRoot->getName();
-    std::cout<<"\nSofaObjectsSlave: ";
-
-    for (int i=0;i<myData.sofaObjectsSlave.size();i++)
-    {
-        string temp1=myData.sofaObjectsSlave[0].vecMS->getContext()->getName();
-        simulation::Node* context = dynamic_cast<simulation::Node*>(myData.sofaObjectsSlave[0].vecMS->getContext());
-        string temp2=(context->getParents()[0])->getName();
-        std::cout<<temp2<<"/"<<temp1<<"/"<<myData.sofaObjectsSlave[0].vecMS->getName()<<"\n";
-    }
-
-
-    pthread_barrier_wait (&myModel->t_initDone); // ensure all the threads have initiated correctly
-    /** step 1 done */
-
-    /** initiate working loop */
-    while (true)
-    {
-        std::cout<<"thread "<<myTid<<" waiting for work\n";
-        pthread_barrier_wait(&myModel->t_workAssigned); // wait for master to assign work for everyone
-
-        switch (myModel->t_threadSignals[myTid])
-        {
-        case WORK_ENQUEUED:
-            // work is ready for this thread!
-            doWork(myModel, myTid, myData);
-            std::cout<<"\nAAAAAAAAAAAAA: Thread ";
-            std::cout<<myTid<<" done.\n";
-            pthread_barrier_wait(&myModel->t_workDone); // inform the master that the work is done
-            break;
-        case NO_WORK:
-            std::cout<<"\nAAAAAAAAAA: No work for thread "<<myTid<<"\n";
-            pthread_barrier_wait(&myModel->t_workDone);
-            break;
-        case INITIALIZED:
-            // same as work done at this point, no break.
-            std::cout<<"this should never happen\n";
-            return (void*)1;
-        case WORK_DONE:
-            // wait for work
-            std::cout<<"this should never happen\n";
-            return (void*)1;
-
-        case CANCEL_THREAD:
-            std::cout<<"canceling thread\n";
-            return 0;
-            break;
-        case UNKNOWN:
-            std::cout<<"this should never happen\n";
-            return (void*)1;
-        default:
-            std::cout<<"this should never happen\n";
-            return (void*) 1;
-
-        }
-    }
-    return 0; // success
-}
-
-
-template <class Type>
-helper::vector<typename SofaModelWrapperParallel<Type>::SofaObjectParallel> SofaModelWrapperParallel<Type>::getSofaObjects(simulation::Node* root)
-{
-    helper::vector<SofaObjectParallel> objects;
-
-    std::cout << "Searching sofa objects: " << std::endl;
-    helper::vector<MechStateVec3d*> mechanicalObjectsV;
-    helper::vector<MechStateRigid3d*> mechanicalObjectsR;
-
-    // get all the mechanical objects in the subtree starting with root
-    root->get<MechStateVec3d>
+    // get all the vec3d mechanical objects in the subtree starting with localRoot
+    localRoot->get<MechStateVec3d>
             (&mechanicalObjectsV, BaseContext::SearchDown);
-    root->get<MechStateRigid3d>
+    // get all the vec3d mechanical objects in the subtree starting with localRoot
+    localRoot->get<MechStateRigid3d>
             (&mechanicalObjectsR, BaseContext::SearchDown);
 
     size_t objVCount=mechanicalObjectsV.size();
@@ -252,6 +276,7 @@ helper::vector<typename SofaModelWrapperParallel<Type>::SofaObjectParallel> Sofa
         // authentic node, add to objects
         SofaObjectParallel obj;
         obj.node = context;
+
         context->get(obj.vecMS);
         context->get(obj.vecFC);
         context->get(obj.rigidMS);
@@ -266,13 +291,14 @@ helper::vector<typename SofaModelWrapperParallel<Type>::SofaObjectParallel> Sofa
         MechStateRigid3d* object = mechanicalObjectsR[i];
         simulation::Node* context = dynamic_cast<simulation::Node*>(object->getContext());
 
-        if (object->getName().substr(0,4).compare("aux_")==0) continue; // intentionally uncounted object
+        if (object->getName().substr(0,4).compare("aux_")==0) continue; // intentionally uncounted object, ignore
         context->get(mapping);
-        if (mapping!=NULL) continue; // mapped object
+        if (mapping!=NULL) continue; // mapped object, ignore
 
-        // authentic node
+        // authentic node, add to objects
         SofaObjectParallel obj;
         obj.node = context;
+
         context->get(obj.vecMS);
         context->get(obj.vecFC);
         context->get(obj.rigidMS);
@@ -281,18 +307,17 @@ helper::vector<typename SofaModelWrapperParallel<Type>::SofaObjectParallel> Sofa
 
     }
     return objects;
-}
+} // getSofaObjects
 
-// sort the pair only by the string
-template <class Type>
-bool operator<  (const std::pair<string, typename SofaModelWrapperParallel<Type>::SofaObjectParallel> lhs,
-                 const std::pair<string, typename SofaModelWrapperParallel<Type>::SofaObjectParallel> rhs)
-{
-    return (lhs.first<rhs.first);
-}
 
+
+/**
+ * Creates a vector of objID (name-object pairs) from a vector of objects.
+ * @param SofaObjectParallel vector
+ * @return objID vector
+ */
 template<class Type>
-vector<typename SofaModelWrapperParallel<Type>::ObjID> SofaModelWrapperParallel<Type>::objIDsFromObjects (vector<SofaObjectParallel> objects)
+vector<typename SofaModelWrapperParallel<Type>::ObjID> SofaModelWrapperParallel<Type>::getObjIDsFromObjects (const vector<SofaObjectParallel>& objects)
 {
     vector<ObjID> objectIDs;
     ObjID temp;
@@ -306,67 +331,65 @@ vector<typename SofaModelWrapperParallel<Type>::ObjID> SofaModelWrapperParallel<
     }
 
     return objectIDs;
-}
+} // getObjIDsFromObjects
 
+
+
+/**
+ * Sorts an object vector lexicographically by concatenation of parent name and object name
+ */
 template<class Type>
-vector<typename SofaModelWrapperParallel<Type>::ObjID> SofaModelWrapperParallel<Type>::getSortedIDs (helper::vector<SofaObjectParallel>& objects)
+vector<typename SofaModelWrapperParallel<Type>::ObjID> SofaModelWrapperParallel<Type>::getSortedObjIDsFromObjects (const helper::vector<SofaObjectParallel>& objects)
 {
-    vector<ObjID> objectIDs;
-    ObjID temp;
+    vector<ObjID> objectIDs=getObjIDsFromObjects(objects);
 
-    // bind node name and object name to the object
-    for (int i=0;i<objects.size();i++)
-    {
-        temp.first=objects[i].node->getName()+objects[i].vecMS->getName();
-        temp.second=objects[i];
-        objectIDs.push_back(temp);
-    }
-
-    // sort by node name and object name
-
+    // sort by node name+object name
     std::sort(objectIDs.begin(), objectIDs.end(),
               boost::bind(&ObjID::first, _1) <
               boost::bind(&ObjID::first, _2));
 
     return objectIDs;
-}
+} // getSortedObjIDsFromObjects
 
 
 
-
+/**
+ * Synchronizes slave sofa objects with the of the master.
+ * Each pair of objects must differ in node or object name, or undefined behavior occurs.
+ * No object is allowed in root node of slave or master scene.
+ */
 template <class Type>
-bool SofaModelWrapperParallel<Type>::synchronizeSofaObjects ()
+void SofaModelWrapperParallel<Type>::synchronizeSofaObjects ()
 {
     vector<ObjID> masterIDs;
     vector<ObjID> slaveIDs;
 
     // apply ordering to objects
-    masterIDs=getSortedIDs(sofaObjectsMaster);
+    masterIDs=getSortedObjIDsFromObjects(sofaObjectsMaster);
     for (int i=0;i<masterIDs.size();i++)
     {
         sofaObjectsMaster[i]=masterIDs[i].second;
     }
 
-    // for each slave scene, match its object order to master scene
+    // for each slave scene, match its object order to that of the master scene
     for (int i=0; i<m_slaveCount;i++)
     {
-        std::cout<<"slave "<<i<<std::endl; // remove later
-        slaveIDs=getSortedIDs(t_threadData[i].sofaObjectsSlave);
+        slaveIDs=getSortedObjIDsFromObjects(t_threadData[i].sofaObjectsSlave);
         if (slaveIDs.size() != masterIDs.size())
         {
-            std::cout<<"ERROR: Failed to match Slave to Master; the scenes differ in authentic node count.\n";
-            continue;//return false;
+            SERRP("ERROR: Failed to match Slave to Master; the scenes differ in authentic node count. Undefined behavior.")
+            continue;
         }
 
-        // browse through slaveObjects
+        // compare objects in slave scene to that in master scene so as to ensure same ordering
         for (int j=0;j<slaveIDs.size();j++)
         {
             std::cout<<"Master: "<<masterIDs[j].first<<"\t\tSlave:"<<slaveIDs[j].first<<std::endl; // remove later
             if (masterIDs[j].first.compare(slaveIDs[j].first))
             {
                 // forbids mechanical object in root of subscene!
-                std::cout<<"ERROR: Failed to match Slave to Master; Rename the objects or subnodes.\n";
-                continue;//return false;
+                SERRP("ERROR: Failed to match Slave to Master; the names of nodes or objects in scenes differ. Undefined behavior.")
+                continue;
             }
             {
                 // mechanical objects matched
@@ -375,23 +398,70 @@ bool SofaModelWrapperParallel<Type>::synchronizeSofaObjects ()
             }
         }
     }
-    return true;
 }
 
 
-template <class Type>
-void SofaModelWrapperParallel<Type>::initSimuData(ModelData &_md)
+
+/**
+ * Initializes the thread structures for parallel simulation
+ * Class attribute m_slaveCount must already hold the number of slave threads demanded
+ */
+template<class Type>
+void SofaModelWrapperParallel<Type>::initThreadStructures()
 {
-    /// set variables given by animation loop
+    // init barriers to n+1 as the threads will synchronize with the master
+    pthread_barrier_init (&t_initDone, NULL, m_slaveCount+1);
+    pthread_barrier_init (&t_workAssigned, NULL, m_slaveCount+1);
+    pthread_barrier_init (&t_workDone, NULL, m_slaveCount+1);
+
+    // init other thread structures
+    t_threadData = new ThreadData_t[m_slaveCount];
+    t_threadHandlers = new pthread_t[m_slaveCount];
+
+    for (size_t tid=0; tid <m_slaveCount; tid++)
+    {
+        t_threadData[tid].threadSignal=INITIALIZED;
+    }
+} // initThreadStructures
+
+
+/**
+ * Registers the SofaModelWrapperParallel object to the scene and initializes it. Notably, it starts the slave threads.
+ * @param structure containing params for initializing the object
+ */
+template <class Type>
+void SofaModelWrapperParallel<Type>::initSimuData(const ModelData &_md)
+{
     Verb("initSimuData");
 
+    // set variables given by animation loop
     modelData = _md;
     simulation::Node* gnode = modelData.gnode;
+    m_sigmaType = modelData.sigmaType;
+    switch (m_sigmaType)
+    {
+    case SIMPLEX:
+        std::cout<<"Simplex type in model!\n";
+        break;
+    case CANONICAL:
+        std::cout<<"Canonical type in model!\n";
+        break;
+    case STAR:
+        std::cout<<"Star type in model!\n";
+        break;
+    default:
+        std::cout<<"WARNING: Unknown type in model!\n";
 
-    /// register the object in the scene
+    }
+
+
+    // register the object in the scene
     std::cout << "Registering object: " << this->GetName() << std::endl;
     this->setName("SofaModelWrapperParallel");
     gnode->addObject(this);
+
+
+    // attempt to get constraint solver
     gnode->get(constraintSolver, core::objectmodel::BaseContext::SearchDown);
     if (constraintSolver == NULL)
         std::cout << "No ConstraintSolver found, considering the version with no contacts" << std::endl;
@@ -399,121 +469,73 @@ void SofaModelWrapperParallel<Type>::initSimuData(ModelData &_md)
         std::cout << "Constraint solver " << constraintSolver->getName() << " found, modeling contacts" << std::endl;
 
 
+    // get all optim params to listOP
     std::cout << "Searching optim params: " << std::endl;
-    helper::vector<OptimParams*> listOP; // mechanical objects
-    gnode->get<OptimParams>(&listOP, BaseContext::SearchRoot ); // nall the OptimParams objects from the tree
+    helper::vector<OptimParams*> listOP;
+    gnode->get<OptimParams>(&listOP, BaseContext::SearchRoot );
+    size_t optimParamsCount = listOP.size();
+    std::cout<<"params found: "<<optimParamsCount<<std::endl;
 
-    // context -> pointer na base mapping ->get SearchLocal
 
-    std::cout<<"params found: "<<listOP.size()<<std::endl;
+    m_slaveCount = optimParamsCount-1;
+    initThreadStructures(); // initialize the thread structures
 
-    //destroy all these somewhen
-    m_slaveCount = listOP.size()-1;
-    threadLoopParam_t<Type>* args = new threadLoopParam_t<Type>[listOP.size()];
-    pthread_barrier_init (&t_barrier, NULL, listOP.size());
-    pthread_barrier_init (&t_initDone, NULL, listOP.size());
-    pthread_barrier_init (&t_workAssigned, NULL, listOP.size());
-    pthread_barrier_init (&t_workDone, NULL, listOP.size());
+    /** Establish master scene and slave scenes; each slave scene is equipped with a slave thread.*/
 
-    t_threadSignals = new ThreadSignal[listOP.size()];
-    t_threadData = new ThreadData_t[listOP.size()];
-    t_threadHandlers = new pthread_t[listOP.size()];
-    //t_execParams = new typename core::ExecParams*[listOP.size()];
+    // arguments for launched threads
+    threadLoopParam_t<Type>* args = new threadLoopParam_t<Type>[m_slaveCount];
+    //current indices
+    int masterIndex = 0;
+    int slaveIndex = 0;
 
-    for (size_t iop=0; iop <listOP.size(); iop++)
-    {
-        t_threadSignals[iop]=INITIALIZED;
-    }
-
-    int masterCount = 0; // at this point assumed 1
-    int slaveCount = 0; // at this point assumed listOP.size()-1
-
-    vector<ObjID> masterIDs;
-
+    // it is assumed that there is one master and optimParamsCount-1 scenes
+    // the checks do NOT uncover all incorrectly formed scenes
     for (size_t iop = 0; iop < listOP.size(); iop++) {
 
         OptimParams* oparam = listOP[iop];
         simulation::Node* opnode = dynamic_cast<simulation::Node*>(oparam->getContext()); // node in which oparam is rooted
 
-        std::cout<<"param "<<iop<<std::endl;
-        // !! we assume we have enough slave nodes and they each have their own optimParams, with optimize toggle off !!
-
-        /** fix, want just one in main scene*/
-        /* original*/
-        /**
-        if (!opnode->getName().compare("MasterScene"))
+        if (opnode->getName().compare("MasterScene") == 0)
         {
-            opnode = opnode->getChild("Cylinder");
-            SofaObject obj;
-            obj.node=opnode;
-            opnode->get(obj.vecMS);
-            opnode->get(obj.rigidMS);
-
-            opnode->get(obj.vecFC);
-            opnode->get(obj.rigidFC);
-
-            bool existingObject = false;
-            for (size_t i = 0; i < sofaObjects.size(); i++) {
-                if (sofaObjects[i].node == obj.node) {
-                    sofaObjects[i].oparams.push_back(oparam);
-                    existingObject = true;
-                    break;
-                }
+            if (masterIndex)
+            {
+                SERRP("== Two master nodes detected. Unexpected behavior.")
             }
+            // master node is to be optimized
+            oparam->setOptimize(true);
 
-            if (!existingObject) {
-                obj.oparams.push_back(oparam);
-
-                if (obj.vecMS == NULL && obj.rigidMS == NULL)
-                    std::cerr << "PROBLEM: NO MECHANICAL STATE FOUND! " << std::endl;
-
-                sofaObjects.push_back(obj);
-            }
-
-        }
-        else
-        {
-        }
-        */
-        /* */
-    }
-
-    for (size_t iop = 0; iop < listOP.size(); iop++) {
-
-        OptimParams* oparam = listOP[iop];
-        simulation::Node* opnode = dynamic_cast<simulation::Node*>(oparam->getContext()); // node in which oparam is rooted
-
-        std::cout<<"param "<<iop<<std::endl;
-
-        // !! we assume we have enough slabe nodes
-        if (!opnode->getName().compare("MasterScene"))
-        {
-            oparam->setOptimize(true); // will probably drop optimize entirely
-            std::cout<<"above optimized!\n\n";
-            masterCount++;
-
+            rootMaster = opnode;
             sofaObjectsMaster = getSofaObjects(opnode);
-            paramsMaster=oparam;
+            paramsMaster = oparam;
+
+            masterIndex++;
 
         }
-        else
+        else if (opnode->getName().substr(0,10).compare("SlaveScene") == 0)
         {
+            if (m_slaveCount == slaveIndex)
+            {
+                SERRP("== All slave nodes. A master node must hold the optimParams to be optimized. Exiting.")
+                        exit(1);
+            }
             // sofaObjectsSlave
-            t_threadData[slaveCount].localRoot=opnode;
-            t_threadData[slaveCount].sofaObjectsSlave = getSofaObjects(opnode);
-            t_threadData[slaveCount].paramsSlave=oparam;
-            t_threadData[slaveCount].sigmaPointIndices=vector<int>();
-            // slave scene - warning, not checking for name
+            t_threadData[slaveIndex].localRoot=opnode;
+            t_threadData[slaveIndex].sofaObjectsSlave = getSofaObjects(opnode);
+            t_threadData[slaveIndex].paramsSlave=oparam;
+            t_threadData[slaveIndex].sigmaPointIndices=vector<int>();
+
+            // slave nodes shall not be optimized
             oparam->setOptimize(false);
 
-            /** step 1: create Thread */
-            //std::cout<<"Thread "<<slaveCount<<" started\n";
-            args[slaveCount].model=this;
-            args[slaveCount].threadID=slaveCount;
-            pthread_create(t_threadHandlers+slaveCount, NULL, startThreadLoop<Type>, (void *) (args+slaveCount));
-            //std::cout<<"Thread "<<slaveCount<<" done\n";
+            args[slaveIndex].model=this;
+            args[slaveIndex].threadID=slaveIndex;
+            pthread_create(t_threadHandlers+slaveIndex, NULL, thread_startLoop<Type>, (void *) (args+slaveIndex));
 
-            slaveCount++;
+            slaveIndex++;
+        }
+        else
+        {
+            SERRP("== non-master, non-slave node; ignoring.")
         }
     }
     synchronizeSofaObjects(); // all the threads get their mechanical states correctly paired
@@ -521,113 +543,68 @@ void SofaModelWrapperParallel<Type>::initSimuData(ModelData &_md)
     delete[] args; // can now be freed (only after the threads have initiated!)
 
     std::cout << this->getName() << " NUMBER of SOFA objects: " << sofaObjectsMaster.size() << std::endl;
-    numStep = 0;
-    //delete[] m_threads;
-}
+} // initSimuData
 
 
 
+/**
+ * Searches the master scene for a requested mechanical state <vec3d> and returns a pointer to it (or NULL if not found).
+ * The returned pointer allows for modification of the object!
+ * @param requested mechanical state
+ * @return pointer to the requested state if found, NULL otherwise
+ */
 template<class Type>
-typename SofaModelWrapperParallel<Type>::SofaObjectParallel* SofaModelWrapperParallel<Type>::getObject(typename SofaModelWrapperParallel<Type>::MechStateVec3d *_state) {
-    for (size_t iop = 0; iop < sofaObjectsMaster.size(); iop++) {
-        if (sofaObjectsMaster[iop].vecMS == _state) {
-            std::cout << this->getName() << " : found SOFA object " << iop << std::endl;
-            return &sofaObjectsMaster[iop];
+typename SofaModelWrapperParallel<Type>::SofaObjectParallel* SofaModelWrapperParallel<Type>::getObject(const typename SofaModelWrapperParallel<Type>::MechStateVec3d *_state){
+    for (size_t obj = 0; obj < sofaObjectsMaster.size(); obj++) {
+        if (sofaObjectsMaster[obj].vecMS == _state) {
+            std::cout << this->getName() << " : found SOFA requested object " << obj << std::endl;
+            return &sofaObjectsMaster[obj];
         }
     }
     return(NULL);
-}
+} // getObject
 
 
 
-// works?
+/**
+ * Saves to a given vec3Coord mechanical object vector vector the state that represents - fixed node positions of the wrapped mechanical object AND free node positions defined by the verdandi state
+ * If the first argument is in fact the sofa vector of the SofaObjectParallel used, this function applied the verdandi state to it.
+ * @param sofa mechanical object vector
+ * @param verdandi state
+ * @param wrapped sofa object
+ */
 template<class Type>
 void SofaModelWrapperParallel<Type>::SetSofaVectorFromVerdandiState(defaulttype::Vec3dTypes::VecCoord & vec, const state &_state, SofaObjectParallel* obj) {
     vec.clear();
     typename MechStateVec3d::ReadVecCoord pos = obj->vecMS->readPositions();
     vec.resize(pos.size());
+
+    // save all nodes as in the wrapped object
     for (size_t i = 0; i < vec.size(); i++) {
-        //std::cout << "[" << i << "]: " << pos[i] << std::endl;
         vec[i] = pos[i];
     }
 
+    // overwrite the free nodes by the values in verdandi state
     for (helper::vector<std::pair<size_t, size_t> >::iterator it = obj->positionPairs.begin(); it != obj->positionPairs.end(); it++)
         for (size_t d = 0; d < dim_; d++) {
-            //std::cout << "x[" << it->first << "]: " << vec[it->first] << std::endl;
             vec[it->first][d] = _state(reduced_state_size_parallel+dim_*it->second + d);
         }
 
-}
+} // SetSofaVectorFromVerdandiState
 
 
-/// copy the actual SOFA mechanical object and parameter vector to Verdandi state vector using already created index maps
+
 /**
-template <class Type>
-void SofaModelWrapperParallel<Type>::StateSofa2Verdandi() {
-    std::cout<<"INFO: sofa2Verdandi!\n";
-    /// for all sofaObjects (associated with nodes having OptimParams component)
-    for (size_t iop = 0; iop < sofaObjects.size(); iop++) {
-        SofaObject& obj = sofaObjects[iop];
-
-        if (obj.vecMS != NULL) {
-            typename MechStateVec3d::ReadVecCoord pos = obj.vecMS->readPositions();
-            typename MechStateVec3d::ReadVecDeriv vel = obj.vecMS->readVelocities();
-
-            // free nodes 0 to N mapped onto
-            for (helper::vector<std::pair<size_t, size_t> >::iterator it = obj.positionPairs.begin(); it != obj.positionPairs.end(); it++)
-                for (size_t d = 0; d < dim_; d++)
-                    state_(dim_*it->second + d) = pos[it->first][d];
-
-            for (helper::vector<std::pair<size_t, size_t> >::iterator it = obj.velocityPairs.begin(); it != obj.velocityPairs.end(); it++)
-                for (size_t d = 0; d < dim_; d++)
-                    state_(dim_*it->second + d) = vel[it->first][d];
-        }
-
-        if (obj.rigidMS != NULL) {
-            typename MechStateRigid3d::ReadVecCoord pos = obj.rigidMS->readPositions();
-            typename MechStateRigid3d::ReadVecDeriv vel = obj.rigidMS->readVelocities();
-
-            for (helper::vector<std::pair<size_t, size_t> >::iterator it = obj.positionPairs.begin(); it != obj.positionPairs.end(); it++) {
-                defaulttype::Rigid3dTypes::CPos rpos = defaulttype::Rigid3dTypes::getCPos(pos[it->first]);                
-                for (size_t d = 0; d < dim_; d++)
-                    state_(dim_*it->second + d ) = rpos[d];
-            }
-
-            for (helper::vector<std::pair<size_t, size_t> >::iterator it = obj.velocityPairs.begin(); it != obj.velocityPairs.end(); it++) {
-                defaulttype::Rigid3dTypes::DPos rvel = Rigid3dTypes::getDPos(vel[it->first]);
-                for (size_t d = 0; d < dim_; d++)
-                    state_(dim_*it->second + d ) = rvel[d];
-
-            }
-        }
-
-        for (size_t opi = 0; opi < obj.oparams.size(); opi++)
-        {
-            ///
-            std::cout<<"INFO: going paramstoraw!\n";
-            // takes the vector in params and saves it into the given vector, without checking for its size or alloc.
-            std::cout<<"state size:"<<(state_.GetM())<<std::endl;
-            double test[10];
-            for (int i=0;i<10;i++) test[i]=-2.5;
-            obj.oparams[opi]->paramsToRawVector(test, 10); // redundant parameter protected subfunction
-            for (int i=0;i<10;i++) std::cout<<i<<": "<<test[i]<<std::endl;//
-            obj.oparams[opi]->paramsToRawVector(state_.GetData(), state_.GetM());
-
-        }
-
-
-
-    std::cout<<"ERROR ERROR ERROR: should never call sofa2verdandi anymore\n";
-    std::cout<<"ERROR ERROR ERROR: should never call sofa2verdandi anymore\n";
-    std::cout<<"ERROR ERROR ERROR: should never call sofa2verdandi anymore\n";
-
-}*/
-
+ * Converts a Sofa scene to a verdandi state.
+ * @param vector of wrapped mechanical objects in the scene - already describes the ordering in which the objects are saved to verdandi state
+ * @param the optimParams object governing the Sofa scene
+ * @param verdandiState to save the result to
+ */
 template <class Type>
 void SofaModelWrapperParallel<Type>::StateSofa2VerdandiParallel(const helper::vector<SofaObjectParallel>& mechanicalObjects,
                                                                 OptimParams* oparams, state& verdandiState)
 {
-    /// for all given objects
+    // save the objects' positions to the verdandi state
     for (size_t iop = 0; iop < mechanicalObjects.size(); iop++) {
         const SofaObjectParallel& obj = mechanicalObjects[iop];
 
@@ -637,6 +614,7 @@ void SofaModelWrapperParallel<Type>::StateSofa2VerdandiParallel(const helper::ve
 
             for (helper::vector<std::pair<size_t, size_t> >::const_iterator it = obj.positionPairs.begin(); it != obj.positionPairs.end(); it++)
                 for (size_t d = 0; d < dim_; d++)
+                    // offset by the reduced state size, as the optimized parameters are listed first in the verdandiState
                     verdandiState(reduced_state_size_parallel+dim_*it->second + d) = pos[it->first][d];
 
 
@@ -662,21 +640,20 @@ void SofaModelWrapperParallel<Type>::StateSofa2VerdandiParallel(const helper::ve
 
             }
         }
-
-
-        // save the param values into the verdandi state
-        oparams->paramsToRawVectorParallel(verdandiState.GetData());
-
-        double* data = verdandiState.GetData();
-        std::cout<<"parallel data\n";
-        for (int i=0;i<10;i++)
-        {
-            std::cout<<data[i]<<std::endl;
-        }
-
     }
-}
 
+    // save the param values into the verdandi state
+    oparams->paramsToRawVectorParallel(verdandiState.GetData());
+} // StateSofa2VerdandiParallel
+
+
+
+/**
+ * Uploads the verdandi state into the sofa objects.
+ * @param vector of wrapped mechanical objects in the scene - already describes the ordering in which the objects are saved to verdandi state
+ * @param the optimParams object governing the Sofa scene
+ * @param verdandiState
+ */
 template <class Type>
 void SofaModelWrapperParallel<Type>::StateVerdandi2SofaParallel(helper::vector<SofaObjectParallel>& mechanicalObjects,
                                                                 OptimParams* oparams, const state& verdandiState)
@@ -684,24 +661,20 @@ void SofaModelWrapperParallel<Type>::StateVerdandi2SofaParallel(helper::vector<S
 
     for (size_t iop = 0; iop < mechanicalObjects.size(); iop++) {
         SofaObjectParallel& obj = mechanicalObjects[iop];
-        std::cout << "P: Verdandi => Sofa on " << obj.vecMS->getName() <<  std::endl;
-        std::cout<<obj.vecMS->getContext()->getName();
-        std::cout<<" : "<<(obj.vecMS)->getName()<<"\n";
-
+        std::cout << "Verdandi => Sofa on ";
 
         if (obj.vecMS != NULL) {
-            std::cout<<"mapping "<<obj.vecMS->getName()<<"\n";
+            std::cout<<obj.vecMS->getName()<<"\n";
             typename MechStateVec3d::WriteVecCoord pos = obj.vecMS->writePositions();
             typename MechStateVec3d::WriteVecDeriv vel = obj.vecMS->writeVelocities();
 
-            //size_t ii = 0;
-            // map the mechanical object verdandi position onto sofa
+            // map the mechanical-object's verdandi position onto sofa
             for (helper::vector<std::pair<size_t, size_t> >::iterator it = obj.positionPairs.begin(); it != obj.positionPairs.end(); it++) {
                 for (size_t d = 0; d < dim_; d++) {
+                    // offset by the reduced state size, as the optimized parameters are listed first in the verdandiState
                     pos[it->first][d] = verdandiState(reduced_state_size_parallel+dim_*it->second + d);
                 }
             }
-            //std::cout << std::endl;
 
             //map the mechanical object verdandi velocity onto sofa
             for (helper::vector<std::pair<size_t, size_t> >::iterator it = obj.velocityPairs.begin(); it != obj.velocityPairs.end(); it++)
@@ -709,9 +682,9 @@ void SofaModelWrapperParallel<Type>::StateVerdandi2SofaParallel(helper::vector<S
                     vel[it->first][d] = verdandiState(reduced_state_size_parallel+dim_*it->second + d);
         }
 
-        //std::cout<<"yes indeed";
-
+        // analogously
         if (obj.rigidMS != NULL) {
+            std::cout<<obj.rigidMS->getName()<<"\n";
             typename MechStateRigid3d::WriteVecCoord pos = obj.rigidMS->writePositions();
             typename MechStateRigid3d::WriteVecDeriv vel = obj.rigidMS->writeVelocities();
 
@@ -731,89 +704,33 @@ void SofaModelWrapperParallel<Type>::StateVerdandi2SofaParallel(helper::vector<S
         }
 
         MechanicalParams mp;
-        MechanicalPropagatePositionAndVelocityVisitor(&mp).execute( obj.node ); // snad ok
+        MechanicalPropagatePositionAndVelocityVisitor(&mp).execute( obj.node ); // propagate the changes to mappings below
 
-        /// let the OptimParams to extract the actual values of parameters from the verdandi state
+        // let the OptimParams to extract the actual values of parameters from the verdandi state
         oparams->rawVectorToParamsParallel(verdandiState.GetData());
     }
-    std::cout<<"verd2sofa done!\n";
+} // StateVerdandi2SofaParallel
 
-}
 
-/// copy a Verdandi state to SOFA mechanical object and parameter vector into the corresponding OptimParams
+
 /**
-template <class Type>
-void SofaModelWrapperParallel<Type>::StateVerdandi2Sofa() {
-    for (size_t iop = 0; iop < sofaObjects.size(); iop++) {
-        SofaObject& obj = sofaObjects[iop];
-        std::cout << "Verdandi => Sofa on " << obj.vecMS->getName() <<  std::endl;
-
-        if (obj.vecMS != NULL) {
-            typename MechStateVec3d::WriteVecCoord pos = obj.vecMS->writePositions();
-            typename MechStateVec3d::WriteVecDeriv vel = obj.vecMS->writeVelocities();
-
-            //size_t ii = 0;
-            // map the mechanical object verdandi position onto sofa
-            for (helper::vector<std::pair<size_t, size_t> >::iterator it = obj.positionPairs.begin(); it != obj.positionPairs.end(); it++) {
-                for (size_t d = 0; d < dim_; d++) {
-                    pos[it->first][d] = state_(dim_*it->second + d);                    
-                }
-            }
-            //std::cout << std::endl;
-
-            //map the mechanical object verdandi velocity onto sofa
-            for (helper::vector<std::pair<size_t, size_t> >::iterator it = obj.velocityPairs.begin(); it != obj.velocityPairs.end(); it++)
-                for (size_t d = 0; d < dim_; d++)
-                    vel[it->first][d] = state_(dim_*it->second + d);
-        }
-
-        if (obj.rigidMS != NULL) {
-            typename MechStateRigid3d::WriteVecCoord pos = obj.rigidMS->writePositions();
-            typename MechStateRigid3d::WriteVecDeriv vel = obj.rigidMS->writeVelocities();
-
-            for (helper::vector<std::pair<size_t, size_t> >::iterator it = obj.positionPairs.begin(); it != obj.positionPairs.end(); it++) {
-                defaulttype::Rigid3dTypes::CPos rpos(state_(dim_*it->second), state_(dim_*it->second + 1), state_(dim_*it->second + 2));
-                defaulttype::Rigid3dTypes::setCPos(pos[it->first], rpos);
-                //std::cout << rpos << std::endl;
-            }
-
-            for (helper::vector<std::pair<size_t, size_t> >::iterator it = obj.velocityPairs.begin(); it != obj.velocityPairs.end(); it++) {
-                defaulttype::Rigid3dTypes::DPos rvel(state_(dim_*it->second), state_(dim_*it->second + 1), state_(dim_*it->second + 2));
-                defaulttype::Rigid3dTypes::setDPos(vel[it->first], rvel);
-            }
-        }
-
-        MechanicalParams mp;
-        MechanicalPropagatePositionAndVelocityVisitor(&mp).execute( obj.node );
-
-        /// let the OptimParams to extract the actual values of parameters from the verdandi state
-        for (size_t opi = 0; opi < obj.oparams.size(); opi++)
-            obj.oparams[opi]->rawVectorToParams(state_.GetData(), state_.GetM());
-
-
-    }
-    std::cout<<"ERROR ERROR ERROR: should never call verdandi2sofa anymore!\n";
-    std::cout<<"ERROR ERROR ERROR: should never call verdandi2sofa anymore!\n";
-    std::cout<<"ERROR ERROR ERROR: should never call verdandi2sofa anymore!\n";
-
-}*/
-
+ * Initializes object wrappers for master and slave nodes. Initializes sigma point structures.
+ * Initializes the master verdandi state to match the loaded scene.
+ */
 template <class Type>
 void SofaModelWrapperParallel<Type>::Initialize()
 {
     SNCOUTP("== InitializeParallel started")
-    Verb("initialize SofaModelWrapperParallel");
+
+
     /// get fixed nodes
-
-
     size_t vsi = 0;
-    //size_t vpi = 0;
-    //size_t vsi = 0;
 
-    /** own function, for slaves as well*/
+
     for (size_t iop = 0; iop < sofaObjectsMaster.size(); iop++) {
         SofaObjectParallel& obj = sofaObjectsMaster[iop];
 
+        /** Determine free node count in of this object. */
         helper::vector<size_t> freeNodes; // only include fixed nodes in freeNodes
 
         // ineffectively coded loop
@@ -850,10 +767,16 @@ void SofaModelWrapperParallel<Type>::Initialize()
                     freeNodes.push_back(msi);
             }
         }
-        std::cout<<"P: free nodes: "<<freeNodes.size()<<std::endl;
+        std::cout<<"Free nodes found: "<<freeNodes.size()<<std::endl;
+        /** Free node count of this object established. */
+
+        /** Verdandi state only governs freenodes; create pairings in the wrapper to account for this.*
+         * note: might very well be saved only once per SofaModelWrapperParallel */
 
         obj.positionPairs.clear();
+        for (int j=0; j<m_slaveCount; j++) t_threadData[j].sofaObjectsSlave[iop].positionPairs.clear();
         obj.velocityPairs.clear();
+        for (int j=0; j<m_slaveCount; j++) t_threadData[j].sofaObjectsSlave[iop].velocityPairs.clear();
 
 
         for (size_t i = 0; i < freeNodes.size(); i++)
@@ -870,112 +793,143 @@ void SofaModelWrapperParallel<Type>::Initialize()
                 for (int j=0; j<m_slaveCount; j++) t_threadData[j].sofaObjectsSlave[iop].velocityPairs.push_back(pr);
             }
         }
-
-        //reduced_state_index_parallel = dim_ * vsi; // this many parameters are needed to save the objects so far loaded
-
-
-        /**
-        helper::vector<size_t> opv;
-        for (size_t i = 0; i < paramsMaster->size(); i++) {
-            opv.push_back(i);
-            //opv.push_back(reduced_state_index_+vpi);vpi++;
-        }
-        paramsMaster->setVStateParamIndices(opv);*/
-
-
-
-        //state_size_parallel = dim_* vsi + vpi; // vsi vpi je podezrely u vic objektu
-        //reduced_state_size_parallel = vpi;
-        //reduced_state_index_parallel = 0;
-        state_size_parallel = dim_* vsi + paramsMaster->size();
-        reduced_state_size_parallel = paramsMaster->size();
     }
-    std::cout << "P: Initializing model (filter type " << modelData.filterTypeP << ") with size " << state_size_parallel<< std::endl;
-    std::cout << "P: Reduced state size: " << reduced_state_size_parallel << std::endl;
+
+    state_size_parallel = dim_* vsi + paramsMaster->size(); // total size of verdandi state
+    reduced_state_size_parallel = paramsMaster->size(); // reduced state size
+
+
+
 
     verdandiStateMaster.Nullify();
     verdandiStateMaster.Resize(state_size_parallel);
-    m_sigmaPointCount=4;
+
+    /** establish sigma point structures */
+    switch (m_sigmaType)
+    {
+    case SIMPLEX:
+        m_sigmaPointCount=reduced_state_size_parallel+1;
+        break;
+    case CANONICAL:
+        m_sigmaPointCount=reduced_state_size_parallel*2;
+        break;
+    case STAR:
+        m_sigmaPointCount=reduced_state_size_parallel*2+1;
+        break;
+    default:
+        SERRP("Unknown sigmaPointType; exiting.")
+                exit(1);
+    }
     t_sigmaPoints = new state[m_sigmaPointCount];
-    std::cout<<"sigma point count: "<<m_sigmaPointCount<<"\n";
     for (int i=0;i<m_sigmaPointCount;i++)
     {
         t_sigmaPoints[i].Nullify();
         t_sigmaPoints[i].Resize(state_size_parallel);
     }
-    std::cout<<"\nstate size parallel:"<<state_size_parallel<<std::endl;
 
+    std::cout << "Initializing model (filter type " << modelData.filterTypeP <<")"<<std::endl;
+    std::cout << "Size: " << state_size_parallel<< std::endl;
+    std::cout << "Reduced state size: " << reduced_state_size_parallel << std::endl;
+    std::cout << "Sigma point count: "<<m_sigmaPointCount;
+
+    // initialize the master verdandi state to match the loaded scene
     StateSofa2VerdandiParallel(sofaObjectsMaster, paramsMaster, verdandiStateMaster);
 
     if (modelData.filterTypeP == ROUKFP) {
         variance_projector_allocated_ = false;
         variance_reduced_allocated_ = false;
     }
+    int i;
+    std::cin>>i;
     SNCOUTP("== P: Initialize done")
-}
+} // Initialize
 
+
+
+/**
+ * Prints the actual values of optimized parameters.
+ */
 template <class Type>
 void SofaModelWrapperParallel<Type>::FinalizeStep() {
     std::cout << "Actual parameter values: ";
         for (size_t i = 0; i < reduced_state_size_parallel; i++)
             std::cout << " " << verdandiStateMaster(i);
         std::cout << std::endl;
-}
+} // Finalizestep
 
 
 
-// returns a reference to duplicate state, which is an exact copy of the system state, unique to the model and rewritten each time GetState is called
+/**
+  * Updates the master verdandi state to match the current state of the master scene.
+  * Thereafter returns a REFERENCE to the master verdandi scene, which can be altered outside.
+  * @return reference to the master verdandi state
+  */
 template <class Type>
 typename SofaModelWrapperParallel<Type>::state& SofaModelWrapperParallel<Type>::GetState() {
     /// propagate the SOFA state towards verdandi state
     StateSofa2VerdandiParallel(sofaObjectsMaster, paramsMaster, verdandiStateMaster);
 
-    /// return a reference to duplicate state
-    //std::cout<<"sofa: passing a vector "<<verdandiStateMaster.GetDataSize()<<" long\n";
     return verdandiStateMaster;
-}
+} // GetState
 
 
-// updates verdandi state to the sofa state of the master node
+
+/**
+ * Alters the master scene to match the master verdandi state.
+ */
 template <class Type>
 void SofaModelWrapperParallel<Type>::StateUpdated() {
     if (modelData.verbose)
         std::cout << "[" << this->getName() << "]: state updated " << std::endl;
 
-    StateVerdandi2SofaParallel(sofaObjectsMaster, paramsMaster, verdandiStateMaster);
-}
+    double    dt = rootMaster->getDt();
+    core::ExecParams* params = sofa::core::ExecParams::defaultInstance();
 
+    rootMaster->execute< UpdateMappingVisitor >(params);
+    {
+        UpdateMappingEndEvent ev ( dt );
+        PropagateEventVisitor act ( params , &ev );
+        rootMaster->execute ( act );
+    }
+
+    StateVerdandi2SofaParallel(sofaObjectsMaster, paramsMaster, verdandiStateMaster);
+} // StateUpdated()
+
+
+
+/**
+ * Sets the simulation time of the scene (and propagates it through the scene).
+ * note: not thread safe
+ * @param new time
+ */
 template <class Type>
 void SofaModelWrapperParallel<Type>::SetTime(double _time) {
     time_ = _time;
     simulation::Node* gnode = modelData.gnode;
     gnode->setTime ( _time );
     gnode->execute< UpdateSimulationContextVisitor >(execParams);
-}
+} // SetTime
+
+
 
 /**
-template <class Type>
-void SofaModelWrapperParallel<Type>::GetStateCopy(state& _copy) {
-    Verb("get state copy");
-    _copy.Reallocate(state_.GetM());
-    for (int i = 0; i < state_.GetM(); i++)
-        _copy(i) = state_(i);
-}*/
-
+ * Static distribution of work among the launched threads.
+ * The simulation step takes generally same time no matter the parameter perturbation given.
+ */
 template <class Type>
 void SofaModelWrapperParallel<Type>::distributeWork()
 {
-
+    // set the communication signals
     for (int i=0;i<m_slaveCount;i++)
     {
         t_threadData[i].sigmaPointIndices.clear();
         if (i<m_sigmaPointCount)
         {
-            t_threadSignals[i]=WORK_ENQUEUED;
+            t_threadData[i].threadSignal=WORK_ENQUEUED;
         }
         else
         {
-            t_threadSignals[i]=NO_WORK;
+            t_threadData[i].threadSignal=NO_WORK;
         }
     }
     // distribute the sigma points among the threads in a round robin fashion
@@ -985,95 +939,123 @@ void SofaModelWrapperParallel<Type>::distributeWork()
 
         t_threadData[i%m_slaveCount].sigmaPointIndices.push_back(i);
     }
-}
+} // distributeWork
 
+
+
+/**
+ * Run simulation steps on all slave scenes in parallel, until all the sigma points are computed. Return the new simulation time.
+ * @param array of sigma points
+ * @param not used at this point
+ * @param not used at this point
+ * @return new simulation time
+ */
 template <class Type>
 double SofaModelWrapperParallel<Type>::ApplyOperatorParallel(state* sigmaPoints, bool _preserve_state, bool _update_force)  {
 
-    Verb("apply operator parallel begin\n");
-    for (int i=0;i<m_sigmaPointCount;i++) // sigma point count, need to sort out
+    Verb("Apply operator-parallel begin.");
+
+    double    dt = rootMaster->getDt();
+    core::ExecParams* params = sofa::core::ExecParams::defaultInstance();
+
+    // make a local copy of the sigma points
+    for (int i=0;i<m_sigmaPointCount;i++)
     {
-        //std::cout<<i<<": ";
         for (int j=0;j<state_size_parallel;j++)
         {
             t_sigmaPoints[i](j)=sigmaPoints[i](j);
-            //if (j<30) std::cout<<t_sigmaPoints[i](j)<<", ";
         }
-        //std::cout<<"\n\n";
     }
 
+    // distribute the work among the threads
     distributeWork();
 
-    std::cout<<("work assigned\n");
+    {
+        AnimateBeginEvent ev ( dt );
+        PropagateEventVisitor act ( params, &ev );
+        rootMaster->execute ( act );
+    }
 
-
-    pthread_barrier_wait(&t_workAssigned); // let the threads know they have work
-    std::cout<<"past first";
+    pthread_barrier_wait(&t_workAssigned); // let the threads know they have work ready
+    Verb("Work Assigned.\n");
     pthread_barrier_wait(&t_workDone); // wait for the threads to let the master know they are done
 
-    //SetTime(GetTime()+modelData.gnode->getDt());
-
-    for (int i=0;i<m_sigmaPointCount;i++) // sigma point count, need to sort out
+    // save the results for the Kalman filter
+    for (int i=0;i<m_sigmaPointCount;i++)
     {
-        std::cout<<i<<": ";
         for (int j=0;j<state_size_parallel;j++)
         {
             sigmaPoints[i](j)=t_sigmaPoints[i](j);
-            if (j<30) std::cout<<t_sigmaPoints[i](j)<<", ";
         }
-        std::cout<<"\n\n";
     }
-    Verb("apply operator parallel end\n");
-    return GetTime()+modelData.gnode->getDt();
-}
+
+    {
+        //AnimateEndEvent ev ( dt );
+        //PropagateEventVisitor act ( params, &ev );
+        //rootMaster->execute ( act );
+    }
 
 
+    double newTime=GetTime()+rootMaster->getDt();
+    SetTime(newTime);
+
+#ifndef SOFA_NO_UPDATE_BBOX
+    //rootMaster->execute< UpdateBoundingBoxVisitor >(params);
+#endif
+
+    Verb("Apply operator-parallel end.");
+    return newTime;
+} // ApplyOperatorParallel
+
+
+
+/**
+ * Initiates a simulation step from localRoot, or from the global root if not given.
+ * @param not used at this point
+ * @param not used at this point
+ * @param local root of the subscene where the simulation step is to be performed
+ */
 template <class Type>
-void SofaModelWrapperParallel<Type>::Forward(bool _update_force, bool _update_time, int thread)
+void SofaModelWrapperParallel<Type>::Forward(bool _update_force, bool _update_time, simulation::Node* localRoot)
 {
     Verb("forward begin");
 
+
     if (constraintSolver)
     {
-        Verb("Free motion not implemented yet in parallel.\n");
+        Verb("Free motion not implemented yet in parallel.");
     }
     else
     {
-        StepDefault(_update_force, _update_time, thread);
+        StepDefaultOrig(_update_force, _update_time, localRoot);
     }
 
     Verb("forward end");
-}
+} // Forward
 
 template <class Type>
-void SofaModelWrapperParallel<Type>::StepDefault(bool _update_force, bool _update_time, int thread) {
-    if (_update_force) {
-
-    }
+void SofaModelWrapperParallel<Type>::StepDefaultOrig(bool _update_force, bool _update_time, simulation::Node* localRoot) {
+    Verb("StepDefault begin.");
 
     simulation::Node* gnode; // the simulation will start from here
-    if (thread == -1)
+    if (localRoot == NULL)
     {
-        std::cout<<"XXX:simulation form GLOBAL root\nWRONG WRONG WRONG \n";
+        Verb("Simulation from global root. Undefined behavior may (will) occur.");
         gnode = modelData.gnode;
     }
     else
     {
-        std::cout<<"XXX:simulation form local root\n";
-        gnode=t_threadData[thread].localRoot;
+        Verb("Simulation from local root.");
+        gnode=localRoot;
     }
 
-    //const core::ExecParams*& params = execParams;
-    core::ExecParams* params = sofa::core::ExecParams::defaultInstance();
-    //*params = *execParams;
+    _update_time = false;
 
     double    dt = gnode->getDt();
+    core::ExecParams* params = sofa::core::ExecParams::defaultInstance();
 
-    //std::cout << "[" << this->getName() << "]: step default begin" << std::endl;
 
-    // not thread safe
     //sofa::helper::AdvancedTimer::stepBegin("AnimationStep");
-    // not thread safe
     //sofa::helper::AdvancedTimer::begin("Animate");
 
 #ifdef SOFA_DUMP_VISITOR_INFO
@@ -1081,27 +1063,16 @@ void SofaModelWrapperParallel<Type>::StepDefault(bool _update_force, bool _updat
 #endif
 
     {
-        //std::cout << "[" << this->getName() << "]: animate begin" << std::endl;
         AnimateBeginEvent ev ( dt );
         PropagateEventVisitor act ( params, &ev );
         gnode->execute ( act );
     }
 
     double startTime = gnode->getTime();
-
-    //std::cout << "[" << this->getName() << "]: behaviour update position" << std::endl;
     BehaviorUpdatePositionVisitor beh(params , dt);
     gnode->execute ( beh );
-
-    //std::cout << "[" << this->getName() << "]: animate" << std::endl;
     AnimateVisitor act(params, dt);
     gnode->execute ( act );
-
-    if (_update_time) {
-        //std::cout << "[" << this->getName() << "]: update simulation context" << std::endl;
-        gnode->setTime ( startTime + dt );
-        gnode->execute< UpdateSimulationContextVisitor >(params);
-    }
 
     {
         //std::cout << "[" << this->getName() << "]: animate end" << std::endl;
@@ -1110,50 +1081,124 @@ void SofaModelWrapperParallel<Type>::StepDefault(bool _update_force, bool _updat
         gnode->execute ( act );
     }
 
-
-    // not thread safe
     //sofa::helper::AdvancedTimer::stepBegin("UpdateMapping");
-
-    //Visual Information update: Ray Pick add a MechanicalMapping used as VisualMapping
-    //std::cout << "[" << this->getName() << "]: update mapping" << std::endl;
     gnode->execute< UpdateMappingVisitor >(params);
-
-    // not thread safe
     //sofa::helper::AdvancedTimer::step("UpdateMappingEndEvent");
     {
-        //std::cout << "[" << this->getName() << "]: update mapping end" << std::endl;
         UpdateMappingEndEvent ev ( dt );
         PropagateEventVisitor act ( params , &ev );
         gnode->execute ( act );
     }
-    // not thread safe
     //sofa::helper::AdvancedTimer::stepEnd("UpdateMapping");
 
 #ifndef SOFA_NO_UPDATE_BBOX
-    // not thread safe
     //sofa::helper::AdvancedTimer::stepBegin("UpdateBBox");
     gnode->execute< UpdateBoundingBoxVisitor >(params);
-    // not thread safe
     //sofa::helper::AdvancedTimer::stepEnd("UpdateBBox");
 #endif
 #ifdef SOFA_DUMP_VISITOR_INFO
     simulation::Visitor::printCloseNode("Step");
 #endif
-    // not thread safe
     //sofa::helper::AdvancedTimer::end("Animate");
     //sofa::helper::AdvancedTimer::stepEnd("AnimationStep");
+
 }
 
+/**
+ * Performs a simulation step without collisions on the subtree rooted at localRoot.
+ * The simulation is performed by starting a number of visitors at the localRoot.
+ * note: Timers are ommited as they are not thread safe. Nevertheless, these are only used to provide information for code optimizations and their use is not mandatory.
+ * @param not used at this point
+ * @param not used at this point
+ * @param local root of the subscene where the simulation step is to be performed
+ */
+template <class Type>
+void SofaModelWrapperParallel<Type>::StepDefault(bool _update_force, bool _update_time, simulation::Node* localRoot) {
+
+    Verb("StepDefault begin.");
+
+    simulation::Node* gnode; // the simulation will start from here
+    if (localRoot == NULL)
+    {
+        Verb("Simulation from global root. Undefined behavior may (will) occur.");
+        gnode = modelData.gnode;
+    }
+    else
+    {
+        Verb("Simulation from local root.");
+        gnode=localRoot;
+    }
+
+    core::ExecParams* params = sofa::core::ExecParams::defaultInstance();
+
+    double    dt = gnode->getDt();
+
+#ifdef SOFA_DUMP_VISITOR_INFO
+    simulation::Visitor::printNode("Step");
+#endif
+
+    {
+        AnimateBeginEvent ev ( dt );
+        PropagateEventVisitor act ( params, &ev );
+        gnode->execute ( act );
+    }
+
+    double startTime = gnode->getTime();
+
+    BehaviorUpdatePositionVisitor beh(params , dt);
+    gnode->execute ( beh );
+
+    AnimateVisitor act(params, dt);
+    gnode->execute ( act );
+
+    if (_update_time) {
+        gnode->setTime ( startTime + dt );
+        gnode->execute< UpdateSimulationContextVisitor >(params);
+    }
+
+    {
+        AnimateEndEvent ev ( dt );
+        PropagateEventVisitor act ( params, &ev );
+        gnode->execute ( act );
+    }
+
+    // Visual Information update: Ray Pick add a MechanicalMapping used as VisualMapping
+    gnode->execute< UpdateMappingVisitor >(params);
+
+    {
+        UpdateMappingEndEvent ev ( dt );
+        PropagateEventVisitor act ( params , &ev );
+        gnode->execute ( act );
+    }
+
+#ifndef SOFA_NO_UPDATE_BBOX
+    gnode->execute< UpdateBoundingBoxVisitor >(params);
+#endif
+#ifdef SOFA_DUMP_VISITOR_INFO
+    simulation::Visitor::printCloseNode("Step");
+#endif
+    Verb("StepDefault end.");
+} // StepDefault
 
 
 
+/**
+ * Getter for state error variance.
+ * @return attribute state_error_variance
+ */
 template <class Type>
 typename SofaModelWrapperParallel<Type>::state_error_variance& SofaModelWrapperParallel<Type>::GetStateErrorVariance() {
     std::cout << this->getName() << " " << GetTime() << " getStateErrorVariance" << std::endl;
     return state_error_variance_;
-}
+} // GetStateErrorVariance
 
 
+
+/**
+ * Gets the error variance row desired.
+ * @param row number
+ * @return the variance row in state_error_variance attribute
+ */
 template <class Type>
 typename SofaModelWrapperParallel<Type>::state_error_variance_row& SofaModelWrapperParallel<Type>::GetStateErrorVarianceRow(int row)
 {
@@ -1164,8 +1209,13 @@ typename SofaModelWrapperParallel<Type>::state_error_variance_row& SofaModelWrap
     current_row_ = row;
 
     return state_error_variance_row_;
-}
+} // GetStateErrorVarianceRow
 
+
+
+/**
+ * Establishes Error variance projector; a matrix that on right-multiplication extracts the optimized parameters from a verdandi state.
+ */
 template <class Type>
 typename SofaModelWrapperParallel<Type>::state_error_variance& SofaModelWrapperParallel<Type>::GetStateErrorVarianceProjector() {
 
@@ -1175,18 +1225,17 @@ typename SofaModelWrapperParallel<Type>::state_error_variance& SofaModelWrapperP
         state_error_variance_projector_.Reallocate(state_size_parallel, reduced_state_size_parallel);
         state_error_variance_projector_.Fill(Type(0.0));
 
-        for (size_t i = 0, l = 0; i < 1; i++) {   /// only one reduced state - wtf?
-            for (size_t k = 0; k < reduced_state_size_parallel; k++) {
-                std::cout << "k,l = " << k << " " << l << std::endl;
-                state_error_variance_projector_(k, l++) = 1;
-            }
+        for (size_t k = 0, l = 0; k < reduced_state_size_parallel ; k++, l++) {
+            std::cout << "k,l = " << k << " " << l << std::endl;
+            state_error_variance_projector_(k, l) = 1;
         }
-        //std::cout << "Initialize L: " << std::endl;
-        //printMatrix(state_error_variance_projector_, std::cout);
+
         variance_projector_allocated_ = true;
     }
     return state_error_variance_projector_;
-}
+} // GetStateErrorVarianceProjector
+
+
 
 template <class Type>
 typename SofaModelWrapperParallel<Type>::state_error_variance& SofaModelWrapperParallel<Type>::GetStateErrorVarianceReduced() {
@@ -1199,7 +1248,7 @@ typename SofaModelWrapperParallel<Type>::state_error_variance& SofaModelWrapperP
         helper::vector<double> stdev;
         paramsMaster->getStDev(stdev);
         std::cout<<"stdev:\n";
-        for (size_t i; i<paramsMaster->size();i++)
+        for (size_t i = 0; i<paramsMaster->size();i++)
         {
             state_error_variance_reduced_(i,i)= Type(Type(1.0) / (stdev[i] * stdev[i]));
             std::cout<<"stdev["<<i<<"]\t"<<stdev[i]<<std::endl;
@@ -1207,7 +1256,7 @@ typename SofaModelWrapperParallel<Type>::state_error_variance& SofaModelWrapperP
 
         std::cout << "  Initialize U: " << std::endl;
         printMatrix(state_error_variance_reduced_, std::cout);
-        std::cout<<"testX";
+
         variance_reduced_allocated_ = true;
         std::fstream f;
         f.open("U.mat", std::fstream::out);
@@ -1220,65 +1269,24 @@ typename SofaModelWrapperParallel<Type>::state_error_variance& SofaModelWrapperP
         printMatrixInRow(state_error_variance_reduced_, f);
         f.close();
     }
-    //std::cout << "U = " << state_error_variance_reduced_ << std::endl;
-    std::cout << "OK yes" << std::endl;
 
-return state_error_variance_reduced_;
-/**
-
-    if (!variance_reduced_allocated_)
-    {
-        //int Nreduced = 0;
-        //for (unsigned int i = 0; i < reduced_.size(); i++)
-        //    Nreduced += x_.GetVector(reduced_[i]).GetSize();
-        //std::cout << "  R-Nreduced: " << Nreduced << std::endl;
-        // Initializes U.
-        //SERR("Reduced size: " << reduced_state_size_)
-        state_error_variance_reduced_.Reallocate(reduced_state_size_,  reduced_state_size_);
-        state_error_variance_reduced_.Fill(Type(0.0));
-        //for (size_t i = 0; i < reduced_state_size_; i++)
-        //    state_error_variance_reduced_(i, i) = Type(Type(1.0) / modelData.errorVarianceSofaParams);
-        //SERR("SObjs size: " << sofaObjects.size())
-        std::cout <<"sobjects: "<<sofaObjects.size()<<std::endl;
-
-        for (size_t soi = 0, vpi = 0; soi < sofaObjects.size(); soi++) {
-            SofaObject& obj = sofaObjects[soi];
-            //SERR("SObji size: " << obj.oparams.size())
-            for (size_t opi = 0; opi < obj.oparams.size(); opi++) {
-                OptimParams* oparam = obj.oparams[opi];
-                //const helper::vector<Type>& stdev = op->getStdev();
-                helper::vector<double> stdev;
-                //SERR("getStDev")
-                oparam->getStDev(stdev);
-
-                for (size_t pi = 0; pi < oparam->size(); pi++, vpi++)
-                    state_error_variance_reduced_(vpi, vpi) = Type(Type(1.0) / (stdev[pi] * stdev[pi]));
-            }
-        }
-
-        std::cout << "  Initialize U: " << std::endl;
-        printMatrix(state_error_variance_reduced_, std::cout);
-        variance_reduced_allocated_ = true;
-        std::fstream f;
-        f.open("U.mat", std::fstream::out);
-        printMatrixInRow(state_error_variance_reduced_, f);
-        f.close();
-    } else {
-        printMatrix(state_error_variance_reduced_, std::cout);
-        std::fstream f;
-        f.open("U.mat", std::fstream::out | std::fstream::app);
-        printMatrixInRow(state_error_variance_reduced_, f);
-        f.close();
-    }
-    //std::cout << "U = " << state_error_variance_reduced_ << std::endl;
     std::cout << "OK" << std::endl;
 
     return state_error_variance_reduced_;
-    */
-}
+} // GetStateErrorVarianceReduced
 
 
-/// ROUKF:
+
+/***********************************************************************************************************
+ ***********************************************************************************************************
+ *************************************   START OF ROUKF SECTION   ******************************************
+ **********************************************************************************************************
+ ***********************************************************************************************************/
+
+/**
+ * Parameterless constructor of SofaReducedOrderUKFParallel class.
+ * note: has a number of Data<..> elements initialized by initData
+ */
 template <class Model, class ObservationManager>
 SofaReducedOrderUKFParallel<Model, ObservationManager>::SofaReducedOrderUKFParallel()
     //: Inherit1()
@@ -1296,12 +1304,15 @@ SofaReducedOrderUKFParallel<Model, ObservationManager>::SofaReducedOrderUKFParal
     , m_withResampling( initData(&m_withResampling, false, "withResampling", "withResampling") )
     , m_positionInState( initData(&m_positionInState, true, "positionInState", "include position in the non-reduced state") )
     , m_velocityInState( initData(&m_velocityInState, false, "velocityInState", "include position in the non-reduced state") )
-    , m_threadCount( initData(&m_threadCount, 1, "threadCount", "degree of shared memory parallelism"))
-
+    //, m_threadCount( initData(&m_threadCount, 1, "threadCount", "degree of shared memory parallelism"))
 {
-}
+} // SofaReducedOrderUKFParallel
 
 
+
+/**
+ * Adds the SofaModelWrapperParallel to the scene and performs its basic initialization.
+ */
 template <class Model, class ObservationManager>
 void SofaReducedOrderUKFParallel<Model, ObservationManager>::init() {
     SNCOUTP("== init started")
@@ -1309,18 +1320,40 @@ void SofaReducedOrderUKFParallel<Model, ObservationManager>::init() {
     md.positionInState = m_positionInState.getValue();
     md.velocityInState = m_velocityInState.getValue();    
     md.filterTypeP = ROUKFP;
-    md.gnode = dynamic_cast<simulation::Node*>(this->getContext());    
+    md.gnode = dynamic_cast<simulation::Node*>(this->getContext());
+    if (m_sigmaPointType.getValue().compare("simplex") == 0)
+    {
+        md.sigmaType = SIMPLEX;
+    }
+    else if (m_sigmaPointType.getValue().compare("canonical") == 0)
+    {
+        md.sigmaType = CANONICAL;
+    }
+    else if (m_sigmaPointType.getValue().compare("star") == 0)
+    {
+        md.sigmaType = STAR;
+    }
+    else
+    {
+        SERRP("== ERROR - unknown sigma point type.\n")
+                exit(1);
+    }
 
     this->model_.initSimuData(md);
     SNCOUTP("== init done")
-}
+} // init
 
 
+
+/**
+ * Initializes filter parameters and structures.
+ */
 template <class Model, class ObservationManager>
 void SofaReducedOrderUKFParallel<Model, ObservationManager>::InitializeFilter() { //VerdandiROUKFParams* _roukfParams) {
     SNCOUTP("== InitializeFilter started")
     simulation::Node* gnode = dynamic_cast<simulation::Node*>(this->getContext());
 
+    // observation manager provides observations for the filter
     gnode->get(this->observation_manager_, core::objectmodel::BaseContext::SearchDown);
     if (this->observation_manager_) {
         std::cout << this->getName() << " observation manager found: " << this->observation_manager_->getName() << std::endl;
@@ -1336,10 +1369,8 @@ void SofaReducedOrderUKFParallel<Model, ObservationManager>::InitializeFilter() 
     this->observation_manager_->Initialize(this->model_, this->configuration_file_);
     this->observation_manager_->DiscardObservation(false);
 
-    std::cout<<"alive";
     SNCOUTP("=== InitializeStructures...")
     InitializeStructures();
-    std::cout<<"\ndead?\n";
 
     saveParams=false;
     if (!m_paramFileName.getValue().empty()) {
@@ -1361,9 +1392,13 @@ void SofaReducedOrderUKFParallel<Model, ObservationManager>::InitializeFilter() 
 
 
     SNCOUTP("== InitializeFilter done")
-}
+} // InitializeFilter
 
 
+
+/**
+ * Simple reassignments of params.
+ */
 template <class Model, class ObservationManager>
 void SofaReducedOrderUKFParallel<Model, ObservationManager>::InitializeParams() {
     this->output_directory_ = m_outputDirectory.getValue();
@@ -1389,6 +1424,11 @@ void SofaReducedOrderUKFParallel<Model, ObservationManager>::InitializeParams() 
     system(comm);
 }
 
+
+
+/**
+ * Saves the step results to outputs, if enabled.
+ */
 template <class Model, class ObservationManager>
 void SofaReducedOrderUKFParallel<Model, ObservationManager>::FinalizeStep() {
     Inherit1::FinalizeStep();
@@ -1442,102 +1482,17 @@ void SofaReducedOrderUKFParallel<Model, ObservationManager>::FinalizeStep() {
             paramFile.close();
         }
     }
+} // InitializeParams
 
 
-}
 
-/*template <class Model, class ObservationManager>
-void SofaReducedOrderUKFParallel<Model, ObservationManager>
-::Initialize(std::string configuration_file,
-             bool initialize_model, bool initialize_observation_manager)
-{
-    Verdandi::VerdandiOps configuration(configuration_file);
-    Initialize(configuration, initialize_model,
-               initialize_observation_manager);
-}
-
-template <class Model, class ObservationManager>
-void SofaReducedOrderUKFParallel<Model, ObservationManager>::Initialize(Verdandi::VerdandiOps& configuration, bool initialize_model, bool initialize_observation_manager)
-{
-    Verdandi::MessageHandler::Send(*this, "all", "::Initialize begin");
-
-    this->configuration_file_ = configuration.GetFilePath();
-
-    configuration.Set("output_directory", "", this->configuration_file_, this->output_directory_);
-
-    char comm[100];
-    sprintf(comm, "rm %s/roukf*dat", this->output_directory_.c_str());
-    std::cout << "Executing: " << comm << std::endl;
-    system(comm);
-
-    configuration.SetPrefix("reduced_order_unscented_kalman_filter.");
-
-    configuration.Set("output.saveVQ", this->saveVQ_);
-
-    configuration.Set("model.configuration_file", "", this->configuration_file_,
-                      this->model_configuration_file_);
-
-    configuration.Set("observation_manager.configuration_file", "",
-                      this->configuration_file_,
-                      this->observation_configuration_file_);
-
-    // Should iterations be displayed on screen?
-    configuration.Set("display.show_iteration",
-                      this->option_display_["show_iteration"]);
-    // Should current time be displayed on screen?
-    configuration.Set("display.show_time", this->option_display_["show_time"]);
-
-    configuration.Set("data_assimilation.analyze_first_step",
-                      this->analyze_first_step_);
-    configuration.Set("data_assimilation.with_resampling",
-                      this->with_resampling_);
-    configuration.Set("data_assimilation.observation_error_variance",
-                      "ops_in(v, {'matrix', 'matrix_inverse'})",
-                      this->observation_error_variance_);
-
-    configuration.Set("sigma_point.type",
-                      "ops_in(v, {'canonical', 'star', 'simplex'})",
-                      this->sigma_point_type_);
-
-        configuration.
-            SetPrefix("reduced_order_unscented_kalman_filter"
-                      ".output_saver.");
-        this->output_saver_.Initialize(configuration);
-        this->output_saver_.Empty("forecast_time");
-        this->output_saver_.Empty("forecast_state");
-        this->output_saver_.Empty("analysis_time");
-        this->output_saver_.Empty("analysis_state");
-
-        configuration.SetPrefix("reduced_order_unscented_kalman_filter.");
-
-        if (configuration.Exists("output.configuration"))
-        {
-            std::string output_configuration;
-            configuration.Set("output.configuration",
-                              output_configuration);
-            configuration.WriteLuaDefinition(output_configuration);
-        }
-
-
-    if (configuration.Exists("output.log"))
-        Verdandi::Logger::SetFileName(configuration.Get<std::string>("output.log"));
-
-    if (initialize_model)
-    {
-        this->model_.Initialize(this->model_configuration_file_);
-    }
-    if (initialize_observation_manager)
-    {
-        this->observation_manager_.Initialize(this->model_,
-                                        this->observation_configuration_file_);
-        this->observation_manager_.DiscardObservation(false);
-    }
-}*/
-
+/**
+  * Initializes the filter structures by also performing the necessary maths.
+  */
  template <class Model, class ObservationManager>
  void SofaReducedOrderUKFParallel<Model, ObservationManager>::InitializeStructures() {
-    this->Nstate_ = this->model_.GetNstate();
-    this->Nobservation_ = this->observation_manager_->GetNobservation();
+    this->Nstate_ = this->model_.GetNstate(); // state size of verdandi states of the model
+    this->Nobservation_ = this->observation_manager_->GetNobservation(); // number of observations
 
     Copy(this->model_.GetStateErrorVarianceReduced(), this->U_);
     this->U_inv_.Copy(this->U_);
@@ -1596,22 +1551,34 @@ void SofaReducedOrderUKFParallel<Model, ObservationManager>::Initialize(Verdandi
         throw Verdandi::ErrorUndefined("ReducedOrderUnscentedKalmanFilter::"
                              "Initialize()", "Calculation not "
                              "implemented for no constant alpha_i.");
-    std::cout<<"tha fuck\n";
+
     /*** Assimilation ***/
 
     if (this->analyze_first_step_)
         this->Analyze();
-    std::cout<<"wtf\n";
+
     //if (initialize_model)
     {
         Verdandi::MessageHandler::Send(*this, "model", "initial condition");
         Verdandi::MessageHandler::Send(*this, "driver", "initial condition");
     }
-    std::cout<<"WTF\n";
+
     Verdandi::MessageHandler::Send(*this, "all", "::Initialize end");
-}
+} // InitializeStructures
 
+ /***********************************************************************************************************
+  ***********************************************************************************************************
+  *************************      START OF THE OBSERVATION MANAGERS' SECTION      ****************************
+  ***********************************************************************************************************
+  ***********************************************************************************************************/
 
+ /***********************************************************************************************************
+  ******************************      Mapped Points Obervation Manager      *********************************
+  ***********************************************************************************************************/
+
+ /**
+  * Initialization.
+  */
  template <class DataTypes1, class DataTypes2>
  void MappedPointsObservationManagerParallel<DataTypes1, DataTypes2>::init() {
      simulation::Node* gnode = dynamic_cast<simulation::Node*>(this->getContext());
@@ -1619,25 +1586,25 @@ void SofaReducedOrderUKFParallel<Model, ObservationManager>::Initialize(Verdandi
      SNCOUTP("== init started");
      std::cout<<"gnode is "<<gnode->getName()<<std::endl;
 
-     gnode->get(mapping);
+     gnode->get(mapping); // look for mapping sibling
      if (mapping) {
          std::cout << "[" << this->getName() << "]: " << "found mapping: " << mapping->getName() << std::endl;
      } else
-         std::cerr << "[" << this->getName() << "]: ERROR no mapping found " << std::endl;
+         std::cerr << "[" << this->getName() << "]: ERROR no mapping found. This component will cause a segfault." << std::endl;
 
-     gnode->get(observationSource);
+     gnode->get(observationSource); // look for observation source sibling
      if (observationSource) {
          std::cout << "[" << this->getName() << "]: " << "found observation source: " << observationSource->getName() << std::endl;
      } else
          std::cerr << "[" << this->getName() << "]: ERROR no observation source found " << std::endl;
 
-     gnode->get(sofaModel, core::objectmodel::BaseContext::SearchRoot);/** search in root instead*/
+     gnode->get(sofaModel, core::objectmodel::BaseContext::SearchRoot); // look for sofa model wrapper starting at root
      if (sofaModel) {
          std::cout << "[" << this->getName() << "]: " << "found SOFA model: " << sofaModel->getName() << std::endl;
      } else
          std::cerr << "[" << this->getName() << "]: ERROR no SOFA model found " << std::endl;
 
-     gnode->get(mappedState);
+     gnode->get(mappedState); // look for mapped state as a sibling component
      if (mappedState) {
          std::cout << "[" << this->getName() << "]: " << "found mapped mechanical state: " << mappedState->getName() << std::endl;
          typename MappedState::ReadVecCoord mappedPos = mappedState->readPositions();
@@ -1647,21 +1614,21 @@ void SofaReducedOrderUKFParallel<Model, ObservationManager>::Initialize(Verdandi
 
 
      m_sofaObjectParallel = NULL;
-     masterState = dynamic_cast<MasterState*>(mapping->getFromModel());
+     masterState = dynamic_cast<MasterState*>(mapping->getFromModel()); // takes master state as the input of the mapping
      if (masterState != NULL) {
          m_sofaObjectParallel = sofaModel->getObject(masterState);
          typename MasterState::ReadVecCoord masterPos = masterState->readPositions();
          masterStateSize = masterPos.size();
          simulation::Node* test1=dynamic_cast<simulation::Node*>(masterState->getContext());
          simulation::Node* test=dynamic_cast<simulation::Node*>((test1->getParents())[0]);
-         std::cout<<"MOPS master state is: "<<test->getName()<<"/"<<test1->getName()<<"/"<<masterState->getName()<<std::endl;
-         std::cout<<"its size is "<<masterStateSize<<"\n";
+         std::cout << "[" << this->getName() << "]: " << "master state is: "<<test->getName()<<"/"<<test1->getName()<<"/"<<masterState->getName()<<std::endl;
+         std::cout << "[" << this->getName() << "]: " << "master state size is "<<masterStateSize<<std::endl;
      }
      else
-         std::cerr << this->getName() << "ERROR SOFA MO not found!" << std::endl;
+         std::cerr << "[" << this->getName() << "]: ERROR SOFA MO not found!" << std::endl;
 
      if (!m_sofaObjectParallel)
-         std::cerr << this->getName() << "ERROR SOFA object not found " << std::endl;
+         std::cerr << "[" << this->getName() << "]: ERROR SOFA object not found " << std::endl;
 
      /// initialize noise generator:
      if (m_noiseStdev.getValue() != 0.0) {
@@ -1671,7 +1638,7 @@ void SofaReducedOrderUKFParallel<Model, ObservationManager>::Initialize(Verdandi
      }
 
      SNCOUTP("== init done")
- }
+ } // init
 
  template <class DataTypes1, class DataTypes2>
  void MappedPointsObservationManagerParallel<DataTypes1, DataTypes2>::bwdInit() {
@@ -1688,7 +1655,7 @@ void SofaReducedOrderUKFParallel<Model, ObservationManager>::Initialize(Verdandi
      noise.clear();
      noise.resize(3*mappedObservationData.getValue().size());
      SNCOUTP("== bwdInit done")
- }
+ } // bwdInit
 
 
 
@@ -1762,7 +1729,9 @@ void SofaReducedOrderUKFParallel<Model, ObservationManager>::Initialize(Verdandi
      //std::cout << "MPP: " << mappedObservationData.getValue() << std::endl;
 
      return this->innovation_;
- }
+ } // GetInnovation
+
+
 
  template <class DataTypes1, class DataTypes2>
  void MappedPointsObservationManagerParallel<DataTypes1, DataTypes2>::Initialize(SofaModelWrapperParallel<double>& /*model*/, std::string /*confFile*/) {
@@ -1792,59 +1761,10 @@ void SofaReducedOrderUKFParallel<Model, ObservationManager>::Initialize(Verdandi
      std::cout << this->getName() << " size of observed state: " << this->Nobservation_ << std::endl;
 
      return;
- }
+ } // Initialize
 
-}
 
-}
 
-///temporary hack to compile pthread barriers on apple
-#ifdef __APPLE__
-int pthread_barrier_init(pthread_barrier_t *barrier, const pthread_barrierattr_t *attr, unsigned int count)
-{
-    if(count == 0)
-    {
-        errno = EINVAL;
-        return -1;
-    }
-    if(pthread_mutex_init(&barrier->mutex, 0) < 0)
-    {
-        return -1;
-    }
-    if(pthread_cond_init(&barrier->cond, 0) < 0)
-    {
-        pthread_mutex_destroy(&barrier->mutex);
-        return -1;
-    }
-    barrier->tripCount = count;
-    barrier->count = 0;
+} // namespace simulation
 
-    return 0;
-}
-
-int pthread_barrier_destroy(pthread_barrier_t *barrier)
-{
-    pthread_cond_destroy(&barrier->cond);
-    pthread_mutex_destroy(&barrier->mutex);
-    return 0;
-}
-
-int pthread_barrier_wait(pthread_barrier_t *barrier)
-{
-    pthread_mutex_lock(&barrier->mutex);
-    ++(barrier->count);
-    if(barrier->count >= barrier->tripCount)
-    {
-        barrier->count = 0;
-        pthread_cond_broadcast(&barrier->cond);
-        pthread_mutex_unlock(&barrier->mutex);
-        return 1;
-    }
-    else
-    {
-        pthread_cond_wait(&barrier->cond, &(barrier->mutex));
-        pthread_mutex_unlock(&barrier->mutex);
-        return 0;
-    }
-}
-#endif
+} // namespace sofa

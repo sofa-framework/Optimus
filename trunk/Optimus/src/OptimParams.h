@@ -32,6 +32,8 @@
 #include <sofa/defaulttype/defaulttype.h>
 #include <sofa/core/behavior/MechanicalState.h>
 
+#include <sofa/core/loader/MeshLoader.h>
+
 #include <sofa/simulation/common/AnimateEndEvent.h>
 #include <sofa/simulation/common/AnimateBeginEvent.h>
 
@@ -131,6 +133,9 @@ protected:
     Data< bool> m_interpolateSmooth;
     bool saveParam;
 
+    //SingleLink<OptimParamsBase,mechState,BaseLink::FLAG_NONE> mstate;
+    //SingleLink<OptimParamsBase,mechState,BaseLink::FLAG_STRONGLINK> mstate;
+
     // I dont like this
     IVec paramIndices;  /// mapping of parameters stored in m_val to Verdandi state vector
 
@@ -143,7 +148,6 @@ protected:
 
 public:
 
-
     OptimParamsBase()
         : m_dim(1)
         , m_optimize( initData(&m_optimize, true, "optimize", "the parameters handled in the component will be optimized by Verdandi") )
@@ -152,9 +156,22 @@ public:
         , m_prescribedParamKeys( initData (&m_prescribedParamKeys, "prescribedParamKeys", "prescribed params in list format: ti p1i ... pni") )
         , m_exportParamFile( initData(&m_exportParamFile, std::string(""), "exportParamFile", "store the parameter at the begining of each time step") )
         , m_interpolateSmooth( initData(&m_interpolateSmooth, true, "interpolateSmooth", "use hyperbolic tangent to interpolate the parameters (linear interpolation if false") )
+        //, mstate(initLink("mstate", "MechanicalStatefor which all stiffness coeficients are to be approximated"), mm)
     {}
+    /**
+    template<class DataTypes>
+    ProjectiveConstraintSet<DataTypes>::ProjectiveConstraintSet(MechanicalState<DataTypes> *mm)
+        : endTime( initData(&endTime,(Real)-1,"endTime","The constraint stops acting after the given value.\nUse a negative value for infinite constraints") )
+        , mstate(initLink("mstate", "MechanicalState used by this projective constraint"), mm)
+    {
+    }*/
+
 
     void init() {
+
+        //mstate = dynamic_cast< mechState* >(getContext()->getMechanicalState());
+        //if(!mstate) this->serr<<"ProjectiveConstraintSet<DataTypes>::init(), no mstate . This may be because there is no MechanicalState in the local context, or because the type is not compatible." << this->sendl;
+
         if (!m_prescribedParamKeys.getValue().empty()) {
             if (m_optimize.getValue()) {
                 std::cout << this->getName() << ": WARNING: parameters can be either optimized or prescribed, optimization set to false" << std::endl;
@@ -223,15 +240,19 @@ public:
 template <class DataTypes>
 class OptimParams : public OptimParamsBase
 {
-public:            
+public:
+
+    typedef typename sofa::core::loader::MeshLoader loader_t;
+
     SOFA_CLASS(SOFA_TEMPLATE(OptimParams, DataTypes), sofa::core::objectmodel::BaseObject);    
 
     typedef OptimParamsBase Inherit;
 
-    OptimParams();
+    OptimParams(loader_t* = NULL);
     ~OptimParams();
     void init();
     void reinit();
+    void bwdInit(){};
 
     typedef core::behavior::MechanicalState<defaulttype::Vec3dTypes> MechStateVec3d;
     SingleLink<OptimParams<DataTypes>, MechStateVec3d, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> m_paramMOLink;
@@ -245,7 +266,12 @@ protected:
     Data< DataTypes > m_min;
     Data< DataTypes > m_max;
     Data< DataTypes > m_stdev;          /// standard deviation
+
+    SingleLink<OptimParams<DataTypes>, loader_t, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> m_loader;
     std::vector<std::pair<double, DataTypes> > m_paramKeys;
+
+    //mechState* getMState(){return mstate.get();} nebo tak nejak
+
 
     /// must be implemented in specializations
     virtual void getStDevTempl(DVec& /*_stdev*/) {}
