@@ -16,10 +16,11 @@
 // along with Ops. If not, see http://www.gnu.org/licenses/.
 
 
+
 #ifndef OPS_FILE_CLASSOPS_CXX
 
-
 #include "ClassOps.hxx"
+#include <lua5.1/lua.hpp>
 
 
 namespace Ops
@@ -37,7 +38,7 @@ namespace Ops
   Ops::Ops()
   {
     state_ = lua_open();
-    luaL_openlibs(state_);
+    //IP luaL_openlibs(state_);
 
     // Defines 'ops_in' for the user. It checks whether an element is in a
     // table.
@@ -49,8 +50,8 @@ namespace Ops
     end                                     \
     return false                            \
     end";
-    if (luaL_dostring(state_, code.c_str()))
-      throw Error("Ops()", lua_tostring(state_, -1));
+    //IP if (luaL_dostring(state_, code.c_str()))
+    //IP   throw Error("Ops()", lua_tostring(state_, -1));
   }
 
 
@@ -92,7 +93,7 @@ namespace Ops
       {
         Close();
         state_ = lua_open();
-        luaL_openlibs(state_);
+        //IP luaL_openlibs(state_);
         // Defines 'ops_in' for the user. It checks whether an element is in a
         // table.
         string code = "function ops_in(v, table)\
@@ -103,14 +104,14 @@ namespace Ops
         end                                     \
         return false                            \
         end";
-        if (luaL_dostring(state_, code.c_str()))
-          throw Error("Open(string, bool)", lua_tostring(state_, -1));
+        //IP if (luaL_dostring(state_, code.c_str()))
+        //IP  throw Error("Open(string, bool)", lua_tostring(state_, -1));
       }
 
     ClearPrefix();
     file_path_ = file_path;
-    if (luaL_dofile(state_, file_path_.c_str()))
-      throw Error("Open(string, bool)", lua_tostring(state_, -1));
+    //IP if (luaL_dofile(state_, file_path_.c_str()))
+    //IP  throw Error("Open(string, bool)", lua_tostring(state_, -1));
   }
 
 
@@ -442,10 +443,10 @@ namespace Ops
     string code;
     code = "function ops_check_constraint(v)\nreturn " + constraint \
       + "\nend\nops_result = ops_check_constraint(" + Name(name) + ")";
-    if (luaL_dostring(state_, code.c_str()))
-      throw Error("CheckConstraint",
-                  "While checking " + Entry(name) + ":\n  "
-                  + string(lua_tostring(state_, -1)));
+    //IP if (luaL_dostring(state_, code.c_str()))
+    //IP  throw Error("CheckConstraint",
+    //IP              "While checking " + Entry(name) + ":\n  "
+    //IP              + string(lua_tostring(state_, -1)));
 
     PutOnStack("ops_result");
     if (!lua_isboolean(state_, -1))
@@ -472,10 +473,10 @@ namespace Ops
     string code;
     code = "function ops_check_constraint(v)\nreturn " + constraint \
       + "\nend\nops_result = ops_check_constraint(" + value + ")";
-    if (luaL_dostring(state_, code.c_str()))
-      throw Error("CheckConstraintOnValue",
-                  "While checking the value \"" + value + "\":\n  "
-                  + string(lua_tostring(state_, -1)));
+    //IPif (luaL_dostring(state_, code.c_str()))
+    //IP  throw Error("CheckConstraintOnValue",
+    //IP              "While checking the value \"" + value + "\":\n  "
+    //IP              + string(lua_tostring(state_, -1)));
 
     PutOnStack("ops_result");
     if (!lua_isboolean(state_, -1))
@@ -598,7 +599,7 @@ namespace Ops
   */
   void Ops::PushOnStack(int value)
   {
-    lua_pushinteger(state_, value);
+    //IP lua_pushinteger(state_, value);
   }
 
 
@@ -658,8 +659,8 @@ namespace Ops
   */
   void Ops::DoFile(string file_path)
   {
-    if (luaL_dofile(state_, file_path.c_str()))
-      throw Error("DoFile(string)", lua_tostring(state_, -1));
+    //IPif (luaL_dofile(state_, file_path.c_str()))
+    //IP  throw Error("DoFile(string)", lua_tostring(state_, -1));
   }
 
 
@@ -669,8 +670,8 @@ namespace Ops
   */
   void Ops::DoString(string expression)
   {
-    if (luaL_dostring(state_, expression.c_str()))
-      throw Error("DoString(string)", lua_tostring(state_, -1));
+    //IPif (luaL_dostring(state_, expression.c_str()))
+    //IP  throw Error("DoString(string)", lua_tostring(state_, -1));
   }
 
 
