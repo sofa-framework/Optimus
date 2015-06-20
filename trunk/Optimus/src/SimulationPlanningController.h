@@ -36,7 +36,7 @@
 #ifndef SOFA_COMPONENT_CONTROLLER_SIMULATION_PLANNING_CONTROLLER_H
 #define SOFA_COMPONENT_CONTROLLER_SIMULATION_PLANNING_CONTROLLER_H
 
-#include <sofa/component/controller/Controller.h>
+#include <SofaUserInteraction/Controller.h>
 #include <sofa/simulation/common/AnimateBeginEvent.h>
 #include <sofa/simulation/common/AnimateEndEvent.h>
 #include <sofa/core/topology/Topology.h>

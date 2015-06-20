@@ -119,7 +119,7 @@ void OptimParams<sofa::helper::vector<double> >::rawVectorToParamsParallel(const
 template<>
 void OptimParams<sofa::helper::vector<double> >::paramsToRawVectorParallel(double* _vector)
 {
-    std::cout<<"INFO: paramsToRawVectorParallel\n";
+    std::cout<<"INFO:: paramsToRawVectorParallel\n";
     helper::ReadAccessor<Data<helper::vector<double> > > val = m_val;
     switch (this->m_transformParams.getValue()) {
     case 1:

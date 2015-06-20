@@ -30,7 +30,7 @@
 #endif
 #include "initOptimusPlugin.h"
 #include <sofa/core/behavior/ForceField.h>
-#include <sofa/component/container/MechanicalObject.h>
+#include <SofaBaseMechanics/MechanicalObject.h>
 #include <sofa/helper/fixed_array.h>
 #include <sofa/helper/vector.h>
 #include <sofa/defaulttype/Vec.h>
@@ -131,6 +131,10 @@ class BubblePackingForceField;
 
        /// handle topological changes
        virtual void handleTopologyChange(); //old version
+       
+       virtual double getPotentialEnergy(const sofa::core::MechanicalParams* /*mparams*/ /* PARAMS FIRST */, const DataVecCoord&   x) const {
+           return 0.0;
+       }
 
 
        //Definition of DATA

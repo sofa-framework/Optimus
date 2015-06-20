@@ -4,7 +4,7 @@
 // Copyright (C) 2004        Vincent Zalzal, Sylvain Marleau
 // Copyright (C) 2001, 2004  Richard Gourdeau
 // Copyright (C) 2004        GRPR and DGE's Automation sector
-//                           École Polytechnique de Montréal
+//                           École Polytechnique de Montreal
 //
 // Code adapted from algorithms presented in :
 //      Bierman, G. J. "Factorization Methods for Discrete Sequential
@@ -33,7 +33,7 @@
 #include <sofa/defaulttype/BaseVector.h>
 #include <sofa/helper/vector.h>
 #include <sofa/defaulttype/VecTypes.h>
-#include <sofa/component/linearsolver/FullMatrix.h>
+#include <SofaBaseLinearSolver/FullMatrix.h>
 
 
 namespace Kalman {
