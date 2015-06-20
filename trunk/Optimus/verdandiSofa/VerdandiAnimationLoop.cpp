@@ -62,7 +62,7 @@
 
 #include "VerdandiAnimationLoop.h"
 
-#include <sofa/component/forcefield/TetrahedronFEMForceField.h>
+#include <SofaSimpleFem/TetrahedronFEMForceField.h>
 
 namespace sofa
 {
@@ -189,8 +189,9 @@ void VerdandiAnimationLoop::step(const core::ExecParams* params, double /*dt*/)
         roukfDriverParallel->Forward();
         std::cout<<"Verdandianimationloop:: step 4:\n";
         roukfDriverParallel->Analyze();
-        std::cout<<"Verdandianimationloop:: step 5:\n";
+        std::cout<<"Verdandianimationloop:: step x5:\n";
         roukfDriverParallel->FinalizeStep();
+        std::cout<<"Verdandianimationloop:: step 6:\n";
     }
 
 }

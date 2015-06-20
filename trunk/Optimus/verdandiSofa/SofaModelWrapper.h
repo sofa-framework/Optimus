@@ -34,18 +34,18 @@
 #include <sofa/simulation/common/Simulation.h>
 
 #include <sofa/simulation/common/CollisionAnimationLoop.h>
-#include <sofa/component/constraintset/LCPConstraintSolver.h>
+#include <SofaConstraint/LCPConstraintSolver.h>
 #include <sofa/component/component.h>
 
 #include "../src/OptimParams.h"
 
 #include "VerdandiClasses.h"
-#include "sofa/component/projectiveconstraintset/FixedConstraint.h"
+#include <SofaBoundaryCondition/FixedConstraint.h>
 #include "ObservationSource.h"
 #include "SimulatedStateObservationSource.h"
 
 #include "sofa/core/Mapping.h"
-#include "sofa/component/topology/TriangleSetTopologyContainer.h"
+#include <SofaBaseTopology/TriangleSetTopologyContainer.h>
 
 #include <src/PointProjection.h>
 
@@ -754,7 +754,7 @@ public:
         mappedState.resize(mappedMState->getSize());                
         sofaModel->SetSofaVectorFromVerdandiState(actualState, x, sofaObject);        
 
-        MechanicalParams mp;
+        sofa::core::MechanicalParams mp;
         mapping->apply(&mp, mappedStateData, actualStateData);        
 
         //std::cout << this->getName() << ": size of mapped state: " << mappedState.size() << std::endl;

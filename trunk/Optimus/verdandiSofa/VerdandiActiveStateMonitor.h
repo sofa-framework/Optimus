@@ -1,7 +1,7 @@
 #ifndef SOFA_COMPONENT_MISC_VERDANDI_ACTIVE_STATE_MONITOR_H
 #define SOFA_COMPONENT_MISC_VERDANDI_ACTIVE_STATE_MONITOR_H
 
-#include <sofa/component/misc/Monitor.h>
+#include <SofaValidation/Monitor.h>
 
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/RigidTypes.h>

@@ -263,7 +263,7 @@ helper::vector<typename SofaModelWrapperParallel<Type>::SofaObjectParallel> Sofa
     size_t objRCount=mechanicalObjectsR.size();
 
 
-    BaseMapping* mapping;
+    sofa::core::BaseMapping* mapping;
     for (int i = 0; i<objVCount; i++)
     {
         MechStateVec3d* object = mechanicalObjectsV[i];
@@ -634,7 +634,7 @@ void SofaModelWrapperParallel<Type>::StateSofa2VerdandiParallel(const helper::ve
             }
 
             for (helper::vector<std::pair<size_t, size_t> >::const_iterator it = obj.velocityPairs.begin(); it != obj.velocityPairs.end(); it++) {
-                defaulttype::Rigid3dTypes::DPos rvel = Rigid3dTypes::getDPos(vel[it->first]);
+                defaulttype::Rigid3dTypes::DPos rvel = defaulttype::Rigid3dTypes::getDPos(vel[it->first]);
                 for (size_t d = 0; d < dim_; d++)
                     verdandiState(reduced_state_size_parallel+dim_*it->second + d ) = rvel[d];
 
@@ -696,14 +696,14 @@ void SofaModelWrapperParallel<Type>::StateVerdandi2SofaParallel(helper::vector<S
             }
 
             for (helper::vector<std::pair<size_t, size_t> >::const_iterator it = obj.velocityPairs.begin(); it != obj.velocityPairs.end(); it++) {
-                defaulttype::Rigid3dTypes::DPos rvel = Rigid3dTypes::getDPos(vel[it->first]);
+                defaulttype::Rigid3dTypes::DPos rvel = defaulttype::Rigid3dTypes::getDPos(vel[it->first]);
                 for (size_t d = 0; d < dim_; d++)
                     rvel[d] = verdandiState(reduced_state_size_parallel+dim_*it->second + d );
 
             }
         }
 
-        MechanicalParams mp;
+        sofa::core::MechanicalParams mp;
         MechanicalPropagatePositionAndVelocityVisitor(&mp).execute( obj.node ); // propagate the changes to mappings below
 
         // let the OptimParams to extract the actual values of parameters from the verdandi state
@@ -839,8 +839,7 @@ void SofaModelWrapperParallel<Type>::Initialize()
         variance_projector_allocated_ = false;
         variance_reduced_allocated_ = false;
     }
-    int i;
-    std::cin>>i;
+
     SNCOUTP("== P: Initialize done")
 } // Initialize
 
@@ -880,7 +879,7 @@ typename SofaModelWrapperParallel<Type>::state& SofaModelWrapperParallel<Type>::
 template <class Type>
 void SofaModelWrapperParallel<Type>::StateUpdated() {
     if (modelData.verbose)
-        std::cout << "[" << this->getName() << "]: state updated " << std::endl;
+        std::cout << "[" << this->getName() << "]: state updated begin " << std::endl;
 
     double    dt = rootMaster->getDt();
     core::ExecParams* params = sofa::core::ExecParams::defaultInstance();
@@ -893,6 +892,9 @@ void SofaModelWrapperParallel<Type>::StateUpdated() {
     }
 
     StateVerdandi2SofaParallel(sofaObjectsMaster, paramsMaster, verdandiStateMaster);
+
+    if (modelData.verbose)
+        std::cout << "[" << this->getName() << "]: state updated end" << std::endl;
 } // StateUpdated()
 
 
@@ -1232,6 +1234,7 @@ typename SofaModelWrapperParallel<Type>::state_error_variance& SofaModelWrapperP
 
         variance_projector_allocated_ = true;
     }
+    std::cout << "DONE" << std::endl;
     return state_error_variance_projector_;
 } // GetStateErrorVarianceProjector
 
@@ -1255,7 +1258,7 @@ typename SofaModelWrapperParallel<Type>::state_error_variance& SofaModelWrapperP
         }
 
         std::cout << "  Initialize U: " << std::endl;
-        printMatrix(state_error_variance_reduced_, std::cout);
+        //printMatrix(state_error_variance_reduced_, std::cout);
 
         variance_reduced_allocated_ = true;
         std::fstream f;
@@ -1649,7 +1652,7 @@ void SofaReducedOrderUKFParallel<Model, ObservationManager>::FinalizeStep() {
 
      //std::cout << "Apply mapping on observations" << std::endl;
 
-     MechanicalParams mp;
+     sofa::core::MechanicalParams mp;
      mapping->apply(&mp, mappedObservationData, inputObservationData);
 
      noise.clear();
@@ -1676,7 +1679,7 @@ void SofaReducedOrderUKFParallel<Model, ObservationManager>::FinalizeStep() {
 
      //std::cout << "Apply mapping on observations" << std::endl;
 
-     MechanicalParams mp;
+     sofa::core::MechanicalParams mp;
      mapping->apply(&mp, mappedObservationData, inputObservationData);
 
      //typename DataTypes2::VecCoord mappedObservation = *mappedObservationData.beginEdit();

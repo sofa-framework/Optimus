@@ -232,7 +232,7 @@ void SofaModelWrapper<Type>::StateSofa2Verdandi() {
             }
 
             for (helper::vector<std::pair<size_t, size_t> >::iterator it = obj.velocityPairs.begin(); it != obj.velocityPairs.end(); it++) {
-                defaulttype::Rigid3dTypes::DPos rvel = Rigid3dTypes::getDPos(vel[it->first]);
+                sofa::defaulttype::Rigid3dTypes::DPos rvel = sofa::defaulttype::Rigid3dTypes::getDPos(vel[it->first]);
                 for (size_t d = 0; d < dim_; d++)
                     state_(dim_*it->second + d ) = rvel[d];
 
@@ -289,7 +289,7 @@ void SofaModelWrapper<Type>::StateVerdandi2Sofa() {
             }
         }
 
-        MechanicalParams mp;
+        sofa::core::MechanicalParams mp;
         MechanicalPropagatePositionAndVelocityVisitor(&mp).execute( obj.node );
 
         /// let the OptimParams to extract the actual values of parameters from the verdandi state
@@ -1357,7 +1357,7 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
 
      //std::cout << "Apply mapping on observations" << std::endl;
 
-     MechanicalParams mp;
+     sofa::core::MechanicalParams mp;
      mapping->apply(&mp, mappedObservationData, inputObservationData);
 
      noise.clear();
@@ -1382,7 +1382,7 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
 
      //std::cout << "Apply mapping on observations" << std::endl;
 
-     MechanicalParams mp;
+     sofa::core::MechanicalParams mp;
      mapping->apply(&mp, mappedObservationData, inputObservationData);
 
      //typename DataTypes2::VecCoord mappedObservation = *mappedObservationData.beginEdit();

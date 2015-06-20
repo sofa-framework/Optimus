@@ -124,14 +124,14 @@ int SofaLinearObservationManagerClass = core::RegisterObject("A class implementi
 SOFA_DECL_CLASS(MappedPointsObservationManager)
 int MappedPointsObservationManagerClass = core::RegisterObject("A class implementing the observation manager interfaced in SOFA")
         #ifndef SOFA_FLOAT
-        .add< MappedPointsObservationManager<Vec3dTypes, Vec3dTypes> >()
+        .add< MappedPointsObservationManager<defaulttype::Vec3dTypes, defaulttype::Vec3dTypes> >()
         #endif
         ;
 
 SOFA_DECL_CLASS(ARObservationManager)
 int ARObservationManagerClass = core::RegisterObject("A class implementing the observation manager interfaced in SOFA")
         #ifndef SOFA_FLOAT
-        .add< ARObservationManager<Vec3dTypes, Vec3dTypes> >()
+        .add< ARObservationManager<defaulttype::Vec3dTypes, defaulttype::Vec3dTypes> >()
         #endif
         ;
 
@@ -191,14 +191,14 @@ int SofaLinearObservationManagerParallelClass = core::RegisterObject("A class im
 SOFA_DECL_CLASS(MappedPointsObservationManagerParallel)
 int MappedPointsObservationManagerParallelClass = core::RegisterObject("A class implementing the observation manager interfaced in SOFA; parallel version.")
         #ifndef SOFA_FLOAT
-        .add< MappedPointsObservationManagerParallel<Vec3dTypes, Vec3dTypes> >()
+        .add< MappedPointsObservationManagerParallel<defaulttype::Vec3dTypes, defaulttype::Vec3dTypes> >()
         #endif
         ;
 
 SOFA_DECL_CLASS(ARObservationManagerParallel)
 int ARObservationManagerParallelClass = core::RegisterObject("A class implementing the observation manager interfaced in SOFA; parallel version.")
         #ifndef SOFA_FLOAT
-        .add< ARObservationManagerParallel<Vec3dTypes, Vec3dTypes> >()
+        .add< ARObservationManagerParallel<defaulttype::Vec3dTypes, defaulttype::Vec3dTypes> >()
         #endif
         ;
 
