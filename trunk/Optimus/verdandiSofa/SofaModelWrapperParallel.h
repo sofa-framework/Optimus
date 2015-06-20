@@ -47,7 +47,7 @@
 #include "sofa/core/Mapping.h"
 #include <SofaBaseTopology/TriangleSetTopologyContainer.h>
 
-#include <src/PointProjection.h>
+#include "../src/PointProjection.h"
 
 #include <sofa/helper/gl/template.h>
 
@@ -58,6 +58,10 @@
 #include <boost/random/normal_distribution.hpp>
 
 #include <pthread.h> /* pthread_t, pthread_barrier_t */
+
+#ifdef __APPLE__
+#include "pthread_barrier.h"
+#endif
 
 #include <utility> /* std::pair */
 
