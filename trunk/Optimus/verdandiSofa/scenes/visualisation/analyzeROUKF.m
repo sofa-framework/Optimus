@@ -1,7 +1,12 @@
 clear 
 
-prefixForward='../daHeteroCylinderConstant/pHardSmoothIm';
-prefix='../daHeteroCylinderConstant/pHardSmoothIm3';
+%prefixForward='../daHeteroCylinder2150Constant/pHardSmoothIm';
+%prefix='../daHeteroCylinder2150Constant/pHardSmoothIm3';
+%cc=hsv(3);
+
+prefixForward='../daHeteroCylinder4245Constant/pHardSmoothIm';
+prefix='../daHeteroCylinder4245Constant/pHardSmoothIm3';
+cc=hsv(10);
 
 Xf=sprintf('%s_estim.out', prefix);
 Pf=sprintf('%s_var.out', prefix);
@@ -9,7 +14,7 @@ Xdf=sprintf('%s_forward.out', prefixForward);
 
 
 maxT=1000;
-dt=0.01;
+dt=1;
 
 doStd=1;
 
@@ -18,7 +23,7 @@ doStd=1;
 
 %close all
 
-X=load(Xf);
+X=0.001*load(Xf);
 numPar=size(X,2);
 
 P=load(Pf);
@@ -27,10 +32,8 @@ X=X(1:maxT,:);
 P=P(1:maxT,:);
 
 %Xd=repmat(defVals,size(X,1),1);
-Xd=load(Xdf);
+Xd=0.001*load(Xdf);
 Xd=Xd(1:maxT,:);
-
-
 
 %show parameter assimilation
 maxY=max(max([X; Xd]));
@@ -42,13 +45,16 @@ figure1 = figure('XVisual',...
     'InvertHardcopy','off',...
     'Color',[1 1 1]);
 axes('Ylim',[minY maxY],  'FontSize',16);
-xlabel('time', 'FontSize',16);
-ylabel('parameter value',  'FontSize',16);
+xlabel('#step', 'FontSize',16);
+ylabel('estimated Young''s modulus [kPa]',  'FontSize',16);
 hold on
+set(gca, 'ColorOrder', cc);
 plot(dt*(1:maxT),X, 'LineWidth', 2); grid on; 
 %leg1=legend('P1', 'P2', 'P3')
 %set(leg1,'Position',[0.736160714285711 0.160714285714285 0.138392857142857 0.229166666666667]);
-plot(dt*(1:maxT),Xd, 'LineWidth', 2, 'LineStyle','--'); 
+set(gca, 'ColorOrder', cc);
+plot(dt*(1:maxT),Xd, 'LineWidth', 2, 'LineStyle','--');
+set(gca, 'ColorOrder', cc);
 
 saveas(gcf,sprintf('%s_estim.eps', prefix), 'psc2');
 
