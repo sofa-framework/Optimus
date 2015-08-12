@@ -143,7 +143,7 @@ class CreateScene:
 
     def createMasterScene(self, node):
 
-        node.createObject('OptimParams', name="paramMaster", optimize="0", template="Vector", initValue="6000 6000 6000", stdev="2000 2000 2000", transformParams="1")
+        node.createObject('OptimParams', name="paramMaster", optimize="0", template="Vector", initValue="6000 6000 6000", stdev="2000 2000 2000", transformParams="1", loader="@/loader")
 	node.createObject('Indices2ValuesMapper', name="youngSlaveMapper", inputValues="@/loader.dataset", indices="1 2 3", values="@paramMaster.value")
 
         Cylinder = node.createChild('Cylinder')
@@ -166,7 +166,7 @@ class CreateScene:
         Cylinder.createObject('BoxROI', name="fixedBox2", box="-0.05 -0.05  0.238   0.05 0.05 0.242")
         Cylinder.createObject('MergeSets', name="mergeIndices", in1="@fixedBox1.indices", in2="@fixedBox2.indices")
         Cylinder.createObject('FixedConstraint', indices="@mergeIndices.out")
-        Cylinder.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus="@../youngSlaveMapper.outputValues", poissonRatio="0.45", method="large", computeVonMisesStress="0", drawHeterogeneousTetra="1")
+        Cylinder.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus="@../paramMaster.value", poissonRatio="0.45", method="large", computeVonMisesStress="0", drawHeterogeneousTetra="1")
 
 
         Obs = Cylinder.createChild('obsNode')
@@ -182,7 +182,7 @@ class CreateScene:
  
     def createSlaveScene(self, node):    
 
-        node.createObject('OptimParams', name="paramSlave", optimize="0", template="Vector", initValue="6000 6000 6000", stdev="2000 2000 2000", transformParams="1")
+        node.createObject('OptimParams', name="paramSlave", optimize="0", template="Vector", initValue="6000 6000 6000", stdev="2000 2000 2000", transformParams="1", loader="@/loader")
 	node.createObject('Indices2ValuesMapper', name="youngSlaveMapper", inputValues="@/loader.dataset", indices="1 2 3", values="@paramSlave.value")
 
         Cylinder = node.createChild('Cylinder')
@@ -204,7 +204,7 @@ class CreateScene:
         Cylinder.createObject('BoxROI', name="fixedBox2", box="-0.05 -0.05  0.238   0.05 0.05 0.242")
         Cylinder.createObject('MergeSets', name="mergeIndices", in1="@fixedBox1.indices", in2="@fixedBox2.indices")
         Cylinder.createObject('FixedConstraint', indices="@mergeIndices.out")
-        Cylinder.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus="@../youngSlaveMapper.outputValues", poissonRatio="0.45", method="large", computeVonMisesStress="0", drawHeterogeneousTetra="1")
+        Cylinder.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus="@../paramSlave.value", poissonRatio="0.45", method="large", computeVonMisesStress="0", drawHeterogeneousTetra="1")
 
         self.m_slaveScenesCreated+=1
 
