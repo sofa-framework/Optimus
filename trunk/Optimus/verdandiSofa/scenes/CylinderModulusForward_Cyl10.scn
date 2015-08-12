@@ -10,6 +10,7 @@
 	<StaticSolver applyIncrementFactor="1"/>
 	
 	<SparsePARDISOSolver/>
+<!-- 	<SparseLDLSolver/> -->
 
 	<MeshVTKLoader filename="data/cylinder10_4245.vtk" name="loader" />
 	<MechanicalObject src="@loader" name="Volume" />
