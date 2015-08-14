@@ -89,7 +89,7 @@ VerdandiAnimationLoop::VerdandiAnimationLoop(simulation::Node* _gnode)
 
 VerdandiAnimationLoop::~VerdandiAnimationLoop()
 {
-
+    std::cout << this->getName() << " destructor" << std::endl;
 }
 
 

@@ -93,7 +93,9 @@ SofaModelWrapper<Type>::SofaModelWrapper()
 
 template <class Type>
 SofaModelWrapper<Type>::~SofaModelWrapper()
-{}
+{
+    std::cout << this->getName() << " destructor" << std::endl;
+}
 
 template <class Type>
 void SofaModelWrapper<Type>::Message(string _message) {

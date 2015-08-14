@@ -94,6 +94,9 @@ public:
     //Data<int> m_transformParams;
 
     SofaReducedOrderUKF();
+    ~SofaReducedOrderUKF() {
+        std::cout << this->getName() << " destructor" << std::endl;
+    }
 
     void init();
 
