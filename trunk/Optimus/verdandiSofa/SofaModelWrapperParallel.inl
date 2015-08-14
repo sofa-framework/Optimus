@@ -456,9 +456,9 @@ void SofaModelWrapperParallel<Type>::initSimuData(const ModelData &_md)
 
 
     // register the object in the scene
-    std::cout << "Registering object: " << this->GetName() << std::endl;
+    //std::cout << "Registering object: " << this->GetName() << std::endl;
     this->setName("SofaModelWrapperParallel");
-    gnode->addObject(this);
+    //gnode->addObject(this);
 
 
     // attempt to get constraint solver

@@ -84,7 +84,7 @@ SofaModelWrapper<Type>::SofaModelWrapper()
     , dim_(3)
     , state_size_(0)
     , reduced_state_size_(0)
-    , reduced_state_index_(0)
+    , reduced_state_index_(0)    
 {
     displayTime.setValue(false);
     m_solveVelocityConstraintFirst.setValue(false);
@@ -116,9 +116,10 @@ void SofaModelWrapper<Type>::initSimuData(ModelData &_md)
     simulation::Node* gnode = modelData.gnode;
 
     /// register the object in the scene
-    std::cout << "Registering object: " << this->GetName() << std::endl;
+    //std::cout << "Registering object: " << this->GetName() << std::endl;
     this->setName("sofaModelWrapper");
-    gnode->addObject(this);
+    //gnode->addObject(this);
+    
     gnode->get(constraintSolver, core::objectmodel::BaseContext::SearchDown);
     if (constraintSolver == NULL)
         std::cout << "No ConstraintSolver found, considering the version with no contacts" << std::endl;
@@ -1312,12 +1313,14 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
      } else
          std::cerr << "[" << this->getName() << "]: ERROR no observation source found " << std::endl;
 
-     gnode->get(sofaModel, core::objectmodel::BaseContext::SearchUp);
-     if (sofaModel) {
+     SofaReducedOrderUKF<SofaModelWrapper<Real1>, SofaLinearObservationManager<Real1> >* sofaROUKF;
+     gnode->get(sofaROUKF, core::objectmodel::BaseContext::SearchUp);
+     if (sofaROUKF) {         
+         sofaModel = sofaROUKF->getModel();
          std::cout << "[" << this->getName() << "]: " << "found SOFA model: " << sofaModel->getName() << std::endl;
      } else
          std::cerr << "[" << this->getName() << "]: ERROR no SOFA model found " << std::endl;
-
+     
      gnode->get(mappedState);
      if (mappedState) {
          std::cout << "[" << this->getName() << "]: " << "found mapped mechanical state: " << mappedState->getName() << std::endl;

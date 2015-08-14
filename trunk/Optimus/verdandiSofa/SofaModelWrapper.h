@@ -35,7 +35,7 @@
 
 #include <sofa/simulation/common/CollisionAnimationLoop.h>
 #include <SofaConstraint/LCPConstraintSolver.h>
-#include <sofa/component/component.h>
+//#include <sofa/component/component.h>
 
 #include "../src/OptimParams.h"
 
@@ -104,6 +104,10 @@ public:
     void InitializeParams();
     void InitializeStructures();
     void FinalizeStep();
+    
+    Model* getModel() {
+        return &(this->model_);
+    }
 
 private:
     bool saveParams, saveParamVar;

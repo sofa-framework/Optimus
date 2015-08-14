@@ -116,6 +116,10 @@ public:
     void InitializeParams();
     void InitializeStructures();
     void FinalizeStep();
+    
+    Model* getModel() {
+        return &(this->model_);
+    }
 
 private:
     bool saveParams, saveParamVar;
