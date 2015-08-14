@@ -4,7 +4,7 @@
 {\Large Based on Christian's presentation (2009)}:
 
 \begin{equation}
-M \ddot{x} = F_{ext} + F_{int}(x,\dot{x})
+M \ddot{x} = F_{ext} - F_{int}(x,\dot{x})
 \label{eq:newton}
 \end{equation}
 
@@ -40,12 +40,12 @@ dv & = & v_t - v_{t-1} = \ddot{x}_t dt
 \end{eqnarray}
 So Eq.~\ref{eq:appfint} + Eq.~\ref{eq:newton} become:
 \begin{equation}
-M\ddot{x}_t = F_{ext} + F_{int}(x_{t-1},\dot{x}_{t-1}) + K.(\dot{x}_{t-1}dt + \ddot{x}_t dt^2) - B.(\ddot{x}_t dt)
+M\ddot{x}_t = F_{ext} - F_{int}(x_{t-1},\dot{x}_{t-1}) - K.(\dot{x}_{t-1}dt + \ddot{x}_t dt^2) - B.(\ddot{x}_t dt)
 \end{equation}
 
 After rearragement:
 \begin{equation}
-(M - Bdt - Kdt^2)\ddot{x}_t = F_{ext} +  F_{int} (x_{t-1},\dot{x}_{t-1}) +  K\dot{x}_{t-1}dt
+(M + Bdt + Kdt^2)\ddot{x}_t = F_{ext} -  F_{int} (x_{t-1},\dot{x}_{t-1}) -  K\dot{x}_{t-1}dt
 \end{equation}
 
 
