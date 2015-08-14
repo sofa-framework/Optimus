@@ -43,6 +43,7 @@
 #include <SofaBoundaryCondition/FixedConstraint.h>
 #include "ObservationSource.h"
 #include "SimulatedStateObservationSource.h"
+#include "SofaModelWrapper.h"
 
 #include "sofa/core/Mapping.h"
 #include <SofaBaseTopology/TriangleSetTopologyContainer.h>
@@ -56,6 +57,7 @@
 
 #include <boost/random.hpp>
 #include <boost/random/normal_distribution.hpp>
+
 
 #include <pthread.h> /* pthread_t, pthread_barrier_t */
 
@@ -94,14 +96,16 @@ enum ThreadSignal {INITIALIZED = 0, WORK_ENQUEUED, NO_WORK, CANCEL_THREAD};
  *  \brief Wrapper class implementing an interface between SOFA and Verdandi
  */
 template <class Model, class ObservationManager >
-class SOFA_SIMULATION_COMMON_API SofaReducedOrderUKFParallel : public Verdandi::ReducedOrderUnscentedKalmanFilter<Model, ObservationManager>, public sofa::core::objectmodel::BaseObject
+class SOFA_SIMULATION_COMMON_API SofaReducedOrderUKFParallel : public SofaVerdandiFilter<Model, ObservationManager>
 {
+public:
+    SOFA_CLASS(SOFA_TEMPLATE2(SofaReducedOrderUKFParallel, Model, ObservationManager), SOFA_TEMPLATE2(SofaVerdandiFilter,Model,ObservationManager));
 protected:
     bool positionInState, velocityInState;
 
 public:            
-    typedef typename Verdandi::ReducedOrderUnscentedKalmanFilter<Model, ObservationManager> Inherit1;
-    typedef typename sofa::core::objectmodel::BaseObject Inherit2;
+    //typedef typename Verdandi::ReducedOrderUnscentedKalmanFilter<Model, ObservationManager> Inherit1;
+    //typedef typename sofa::core::objectmodel::BaseObject Inherit2;
 
     Data<std::string> m_outputDirectory, m_configFile, m_sigmaPointType, m_observationErrorVariance, m_paramFileName, m_paramVarFileName;
     Data<bool> m_saveVQ, m_showIteration, m_showTime, m_analyzeFirstStep, m_withResampling;

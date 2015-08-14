@@ -79,15 +79,37 @@ namespace simulation
 enum FilterType { UNDEF, FORWARD, UKF, ROUKF };
 
 template <class Model, class ObservationManager >
-class SOFA_SIMULATION_COMMON_API SofaReducedOrderUKF : public Verdandi::ReducedOrderUnscentedKalmanFilter<Model, ObservationManager>, public sofa::core::objectmodel::BaseObject
+class SOFA_SIMULATION_COMMON_API SofaVerdandiFilter : public Verdandi::ReducedOrderUnscentedKalmanFilter<Model, ObservationManager>, public sofa::core::objectmodel::BaseObject
 {
+public:
+    SOFA_CLASS(SOFA_TEMPLATE2(SofaVerdandiFilter,Model,ObservationManager),sofa::core::objectmodel::BaseObject);
+    typedef typename Verdandi::ReducedOrderUnscentedKalmanFilter<Model, ObservationManager> Inherit2;
+    //typedef typename sofa::core::objectmodel::BaseObject Inherit2;
+
+    SofaVerdandiFilter()
+        : Inherit1()
+        , Inherit2()
+    {}
+
+    Model* getModel() {
+        return &(this->model_);
+    }
+
+    virtual void InitializeFilter() {}
+    virtual void InitializeParams() {}
+    virtual void InitializeStructures() {}
+    virtual void FinalizeStep() {}
+};
+
+template <class Model, class ObservationManager >
+class SOFA_SIMULATION_COMMON_API SofaReducedOrderUKF : public SofaVerdandiFilter<Model, ObservationManager>
+{
+public:
+    SOFA_CLASS(SOFA_TEMPLATE2(SofaReducedOrderUKF, Model, ObservationManager), SOFA_TEMPLATE2(SofaVerdandiFilter,Model,ObservationManager));
 protected:    
     bool positionInState, velocityInState;
 
-public:            
-    typedef typename Verdandi::ReducedOrderUnscentedKalmanFilter<Model, ObservationManager> Inherit1;
-    typedef typename sofa::core::objectmodel::BaseObject Inherit2;
-
+public:                
     Data<std::string> m_outputDirectory, m_configFile, m_sigmaPointType, m_observationErrorVariance, m_paramFileName, m_paramVarFileName;
     Data<bool> m_saveVQ, m_showIteration, m_showTime, m_analyzeFirstStep, m_withResampling;
     Data<bool> m_positionInState, m_velocityInState;    
@@ -104,10 +126,6 @@ public:
     void InitializeParams();
     void InitializeStructures();
     void FinalizeStep();
-    
-    Model* getModel() {
-        return &(this->model_);
-    }
 
 private:
     bool saveParams, saveParamVar;
@@ -128,18 +146,11 @@ class SOFA_SIMULATION_COMMON_API SofaForwardDriver: public Verdandi::ForwardDriv
 public:
 };
 
-
-
-
 template <class Type>
-class SOFA_SIMULATION_COMMON_API SofaModelWrapper : public Verdandi::VerdandiBase, public sofa::core::objectmodel::BaseObject
+class SOFA_SIMULATION_COMMON_API SofaModelWrapperBase : public Verdandi::VerdandiBase, public sofa::core::objectmodel::BaseObject
 {
 public:
-    SOFA_CLASS(SOFA_TEMPLATE(SofaModelWrapper,Type),sofa::core::objectmodel::BaseObject);
-    /// SOFA TYPES
-    typedef sofa::core::objectmodel::BaseObject Inherit;
-
-    /// VERDANDI TYPES
+    SOFA_CLASS(SOFA_TEMPLATE(SofaModelWrapperBase,Type),sofa::core::objectmodel::BaseObject);
 
     //! The numerical type (e.g., double).
     typedef Type value_type;
@@ -189,10 +200,10 @@ public:
 
     typedef struct {
         simulation::Node* gnode;
-        FilterType filterType;        
+        FilterType filterType;
         bool positionInState;
         bool velocityInState;
-        double errorVarianceSofaState;        
+        double errorVarianceSofaState;
         bool verbose;
     } ModelData;
 
@@ -211,6 +222,75 @@ public:
         helper::vector<std::pair<size_t, size_t> > positionPairs;       /// map to match positions in SOFA and Verdandi state vector
         helper::vector<std::pair<size_t, size_t> > velocityPairs;       /// map to match velocities in SOFA and Verdandi state vector
     } SofaObject;
+
+    virtual SofaObject* getObject(MechStateVec3d *_state) {}
+    virtual void SetSofaVectorFromVerdandiState(defaulttype::Vec3dTypes::VecCoord & vec, const state& _state, SofaObject *obj) {}
+
+};
+
+
+template <class Type>
+class SOFA_SIMULATION_COMMON_API SofaModelWrapper : public SofaModelWrapperBase<Type>
+{
+public:
+    SOFA_CLASS(SOFA_TEMPLATE(SofaModelWrapper,Type),SOFA_TEMPLATE(SofaModelWrapperBase,Type));
+    /// SOFA TYPES
+    //typedef sofa::core::objectmodel::BaseObject Inherit;
+
+    /// VERDANDI TYPES
+
+    //! The numerical type (e.g., double).
+    typedef Type value_type;
+    //! Pointer to the numerical type.
+    typedef Type* pointer;
+    //! Const pointer to the numerical type.
+    typedef const Type* const_pointer;
+    //! Reference to the numerical type.
+    typedef Type& reference;
+    //! Const reference to the numerical type.
+    typedef const Type& const_reference;
+#ifdef VERDANDI_SPARSE
+    //! Type of the background error covariance matrix.
+    typedef Seldon::Matrix<Type, General, RowSparse> state_error_variance;
+    //! \brief Type of the reduced matrix \f$U\f$ in the \f$LUL^T\f$
+    //  decomposition of the background error covariance matrix.
+    typedef Seldon::Matrix<Type, General, RowSparse> state_error_variance_reduced;
+    //! Type of a row of the background error variance.
+    typedef Seldon::Vector<Type> state_error_variance_row;
+    //! Type of the model/observation crossed matrix.
+    typedef Seldon::Matrix<Type, General, RowSparse> matrix_state_observation;
+    //! Type of the tangent linear operator.
+    typedef Seldon::Matrix<Type, General, RowSparse> tangent_linear_operator;
+#else
+    //! Type of the background error covariance matrix.
+    typedef Seldon::Matrix<Type> state_error_variance;
+    // ! \brief Type of the reduced matrix \f$U\f$ in the \f$LUL^T\f$
+    //  decomposition of the background error covariance matrix.
+    typedef Seldon::Matrix<Type> state_error_variance_reduced;
+    //! Type of a row of the background error variance.
+    typedef Seldon::Vector<Type> state_error_variance_row;
+    //! Type of the model/observation crossed matrix.
+    typedef Seldon::Matrix<Type> matrix_state_observation;
+    //! Type of the tangent linear operator.
+    typedef Seldon::Matrix<Type> tangent_linear_operator;
+#endif
+    //! Type of the model state vector.
+    typedef Seldon::Vector<Type> state;
+    //! Collection of vector state.
+    typedef Seldon::Vector<state, Seldon::Collection> state_collection;
+
+    typedef core::behavior::MechanicalState<defaulttype::Vec3dTypes> MechStateVec3d;
+    typedef component::projectiveconstraintset::FixedConstraint<defaulttype::Vec3dTypes> FixedConstraintVec3d;
+
+    typedef core::behavior::MechanicalState<defaulttype::Rigid3dTypes> MechStateRigid3d;
+    typedef component::projectiveconstraintset::FixedConstraint<defaulttype::Rigid3dTypes> FixedConstraintRigid3d;
+
+    typedef typename Inherit1::ModelData ModelData;
+    typedef typename Inherit1::SofaObject SofaObject;
+    typedef typename Inherit1::OptimParams OptimParams;
+
+
+
 
 public:
     const core::ExecParams* execParams;

@@ -1291,9 +1291,8 @@ typename SofaModelWrapperParallel<Type>::state_error_variance& SofaModelWrapperP
  * note: has a number of Data<..> elements initialized by initData
  */
 template <class Model, class ObservationManager>
-SofaReducedOrderUKFParallel<Model, ObservationManager>::SofaReducedOrderUKFParallel()
-    //: Inherit1()
-    : Inherit2()
+SofaReducedOrderUKFParallel<Model, ObservationManager>::SofaReducedOrderUKFParallel()    
+    : Inherit1()
     , m_outputDirectory( initData(&m_outputDirectory, std::string("output"), "outputDirectory", "working directory of the filter") )
     //, m_configFile( initData(&m_configFile, "configFile", "lua configuration file (temporary)") )
     , m_sigmaPointType( initData(&m_sigmaPointType, std::string("star"), "sigmaPointType", "type of sigma points (canonical|star|simplex)") )
@@ -1601,9 +1600,10 @@ void SofaReducedOrderUKFParallel<Model, ObservationManager>::FinalizeStep() {
      } else
          std::cerr << "[" << this->getName() << "]: ERROR no observation source found " << std::endl;
 
-     gnode->get(sofaModel, core::objectmodel::BaseContext::SearchRoot); // look for sofa model wrapper starting at root
-     if (sofaModel) {
-         std::cout << "[" << this->getName() << "]: " << "found SOFA model: " << sofaModel->getName() << std::endl;
+     SofaReducedOrderUKFParallel<SofaModelWrapperParallel<Real1>, SofaLinearObservationManagerParallel<Real1> >* sofaFilter;
+     gnode->get(sofaFilter, core::objectmodel::BaseContext::SearchUp);
+     if (sofaFilter) {
+         sofaModel = sofaFilter->getModel();
      } else
          std::cerr << "[" << this->getName() << "]: ERROR no SOFA model found " << std::endl;
 

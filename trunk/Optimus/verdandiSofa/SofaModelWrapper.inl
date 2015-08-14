@@ -79,7 +79,7 @@ namespace simulation
 
 template <class Type>
 SofaModelWrapper<Type>::SofaModelWrapper()
-    : Inherit()
+    : Inherit1()
     , current_row_(-1)
     , dim_(3)
     , state_size_(0)
@@ -694,20 +694,20 @@ void SofaModelWrapper<Type>::StepFreeMotion(bool _update_force, bool _update_tim
 
     // Update the BehaviorModels
     // Required to allow the RayPickInteractor interaction
-    if (f_printLog.getValue())
+    if (this->f_printLog.getValue())
         serr << "updatePos called" << sendl;
 
     AdvancedTimer::stepBegin("UpdatePosition");
     gnode->execute(&beh);
     AdvancedTimer::stepEnd("UpdatePosition");
 
-    if (f_printLog.getValue())
+    if (this->f_printLog.getValue())
         serr << "updatePos performed - beginVisitor called" << sendl;
 
     simulation::MechanicalBeginIntegrationVisitor beginVisitor(execParams, dt);
     gnode->execute(&beginVisitor);
 
-    if (f_printLog.getValue())
+    if (this->f_printLog.getValue())
         serr << "beginVisitor performed - SolveVisitor for freeMotion is called" << sendl;
 
     // Free Motion
@@ -718,7 +718,7 @@ void SofaModelWrapper<Type>::StepFreeMotion(bool _update_force, bool _update_tim
 
     mop.propagateXAndV(freePos, freeVel, true);
 
-    if (f_printLog.getValue())
+    if (this->f_printLog.getValue())
         serr << " SolveVisitor for freeMotion performed" << sendl;
 
     if (displayTime.getValue())
@@ -951,17 +951,17 @@ void SofaModelWrapper<Type>::computeCollision()
     {
         CollisionBeginEvent evBegin;
         PropagateEventVisitor eventPropagation( execParams /* PARAMS FIRST */, &evBegin);
-        eventPropagation.execute(getContext());
+        eventPropagation.execute(this->getContext());
     }
 
     CollisionVisitor act(execParams);
     act.setTags(this->getTags());
-    act.execute( getContext() );
+    act.execute( this->getContext() );
 
     {
         CollisionEndEvent evEnd;
         PropagateEventVisitor eventPropagation( execParams /* PARAMS FIRST */, &evEnd);
-        eventPropagation.execute(getContext());
+        eventPropagation.execute(this->getContext());
     }
 }
 
@@ -969,7 +969,7 @@ void SofaModelWrapper<Type>::computeCollision()
 template <class Model, class ObservationManager>
 SofaReducedOrderUKF<Model, ObservationManager>::SofaReducedOrderUKF()
     //: Inherit1()
-    : Inherit2()
+    : Inherit1()
     , m_outputDirectory( initData(&m_outputDirectory, std::string("output"), "outputDirectory", "working directory of the filter") )
     //, m_configFile( initData(&m_configFile, "configFile", "lua configuration file (temporary)") )
     , m_sigmaPointType( initData(&m_sigmaPointType, std::string("star"), "sigmaPointType", "type of sigma points (canonical|star|simplex)") )
@@ -1313,13 +1313,16 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
      } else
          std::cerr << "[" << this->getName() << "]: ERROR no observation source found " << std::endl;
 
-     SofaReducedOrderUKF<SofaModelWrapper<Real1>, SofaLinearObservationManager<Real1> >* sofaROUKF;
-     gnode->get(sofaROUKF, core::objectmodel::BaseContext::SearchUp);
-     if (sofaROUKF) {         
-         sofaModel = sofaROUKF->getModel();
-         std::cout << "[" << this->getName() << "]: " << "found SOFA model: " << sofaModel->getName() << std::endl;
+     SofaVerdandiFilter<SofaModelWrapper<Real1>, SofaLinearObservationManager<Real1> >* sofaFilter;
+     gnode->get(sofaFilter, core::objectmodel::BaseContext::SearchUp);
+     if (sofaFilter) {
+         /*if (sofaModel = dynamic_cast<SofaModelWrapper<Real1>* >(sofaFilter->getModel()))
+             std::cout << "[" << this->getName() << "]: " << "found SOFA model: " << sofaModel->getName() << std::endl;
+         else
+             std::cerr << "[" << this->getName() << "]: ERROR: filter found, but cannot be casted " << std::endl;*/
+         sofaModel = sofaFilter->getModel();
      } else
-         std::cerr << "[" << this->getName() << "]: ERROR no SOFA model found " << std::endl;
+         std::cerr << "[" << this->getName() << "]: ERROR no SOFA filter found " << std::endl;
      
      gnode->get(mappedState);
      if (mappedState) {
