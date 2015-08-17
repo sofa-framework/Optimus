@@ -26,7 +26,7 @@
 #define OPTIMPARAMS_H_
 
 #include "initOptimusPlugin.h"
-#include <sofa/component/component.h>
+//#include <sofa/component/component.h>
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/RigidTypes.h>
 #include <sofa/defaulttype/defaulttype.h>
@@ -196,13 +196,13 @@ public:
 
 
 
-    void paramsToRawVector(double* _rawVector, size_t _size) {
+    void paramsToRawVector(double* _rawVector, size_t /*_size*/) {
 
             paramsToRawVector(_rawVector);
     }
 
-    virtual void rawVectorToParamsParallel(const double* _vector){std::cout<<"failure!\n";}
-    virtual void paramsToRawVectorParallel(double* _vector){std::cout<<"failure!\n";}
+    virtual void rawVectorToParamsParallel(const double* /*_vector*/){std::cout<<"failure!\n";}
+    virtual void paramsToRawVectorParallel(double* /*_vector*/){std::cout<<"failure!\n";}
 
     //void rawVectorToParamsParallel(const double* _rawVector);
     //void paramsToRawVectorParallel(double* __rawVector);
@@ -281,8 +281,8 @@ protected:
     virtual void paramsToRawVector(double* /*_vector*/) {}
 
 
-    virtual void rawVectorToParamsParallel(const double* _vector){}
-    virtual void paramsToRawVectorParallel(double* _vector){}
+    virtual void rawVectorToParamsParallel(const double* /*_vector*/){}
+    virtual void paramsToRawVectorParallel(double* /*_vector*/){}
 
 
 
