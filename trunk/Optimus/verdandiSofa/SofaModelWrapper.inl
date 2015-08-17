@@ -428,6 +428,8 @@ void SofaModelWrapper<Type>::Initialize()
         variance_projector_allocated_ = false;
         variance_reduced_allocated_ = false;
     }
+    
+    time_=double(0.0);
     SNCOUT("== Initialize done")
 }
 
@@ -489,6 +491,10 @@ void SofaModelWrapper<Type>::GetStateCopy(state& _copy) {
         _copy(i) = state_(i);
 }
 
+template <class Type>
+double SofaModelWrapper<Type>::ApplyOperatorParallel(state* /*_x*/, bool /*_preserve_state*/, bool /*_update_force*/)  {
+    return (-2.0f);    
+}
 
 template <class Type>
 double SofaModelWrapper<Type>::ApplyOperator(state& _x, bool _preserve_state, bool _update_force)  {
@@ -521,7 +527,7 @@ double SofaModelWrapper<Type>::ApplyOperator(state& _x, bool _preserve_state, bo
     GetStateCopy(duplicated_state_);
 
     duplicated_state_.Nullify();
-
+    
     SetTime(saved_time);
 
     /*std::cout << "end _x ";
@@ -562,35 +568,35 @@ void SofaModelWrapper<Type>::StepDefault(bool _update_force, bool _update_time) 
     }
     simulation::Node* gnode = modelData.gnode;
 
-    int step=0;
+    //int step=0;
     double    dt = gnode->getDt();
 
     //std::cout << "[" << this->getName() << "]: step default begin" << std::endl;
 
     sofa::helper::AdvancedTimer::stepBegin("AnimationStep");
-    std::cout<<"step "<<step++<<std::endl;
+    //std::cout<<"step "<<step++<<std::endl;
     sofa::helper::AdvancedTimer::begin("Animate");
-    std::cout<<"step "<<step++<<std::endl;
+    //std::cout<<"step "<<step++<<std::endl;
 
 #ifdef SOFA_DUMP_VISITOR_INFO
     simulation::Visitor::printNode("Step");
 #endif
 
     {
-            std::cout<<"step "<<step++<<std::endl;
+        //std::cout<<"step "<<step++<<std::endl;
         //std::cout << "[" << this->getName() << "]: animate begin" << std::endl;
         AnimateBeginEvent ev ( dt );
         PropagateEventVisitor act ( execParams, &ev );
         gnode->execute ( act );
-            std::cout<<"step "<<step++<<std::endl;
+        //std::cout<<"step "<<step++<<std::endl;
     }
 
     double startTime = gnode->getTime();
-    std::cout<<"step "<<step++<<std::endl;
+    //std::cout<<"step "<<step++<<std::endl;
     //std::cout << "[" << this->getName() << "]: behaviour update position" << std::endl;
     BehaviorUpdatePositionVisitor beh(execParams , dt);
     gnode->execute ( beh );
-    std::cout<<"step "<<step++<<std::endl;
+    //std::cout<<"step "<<step++<<std::endl;
     //std::cout << "[" << this->getName() << "]: animate" << std::endl;
     AnimateVisitor act(execParams, dt);
     gnode->execute ( act );
@@ -600,7 +606,7 @@ void SofaModelWrapper<Type>::StepDefault(bool _update_force, bool _update_time) 
         gnode->setTime ( startTime + dt );
         gnode->execute< UpdateSimulationContextVisitor >(execParams);
     }
-    std::cout<<"step "<<step++<<std::endl;
+    //std::cout<<"step "<<step++<<std::endl;
     {
         //std::cout << "[" << this->getName() << "]: animate end" << std::endl;
         AnimateEndEvent ev ( dt );
@@ -868,7 +874,7 @@ typename SofaModelWrapper<Type>::state_error_variance_row& SofaModelWrapper<Type
 template <class Type>
 typename SofaModelWrapper<Type>::state_error_variance& SofaModelWrapper<Type>::GetStateErrorVarianceProjector() {
     //std::cout << this->getName() << " " << GetTime() << " getStateErrorVarianceProjector" << std::endl;
-    std::cout << "GetSEV_PROJECTOR" << std::endl;
+    //std::cout << "GetSEV_PROJECTOR" << std::endl;
     if (!variance_projector_allocated_)
     {
         //int Nreduced = 0;
@@ -1416,7 +1422,7 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
 
      mapping->apply(&mp, mappedStateData, actualStateData);
 
-     std::cout << this->getName() << ": size of mapped state: " << mappedState.size() << std::endl;
+     //std::cout << this->getName() << ": size of mapped state: " << mappedState.size() << std::endl;
      this->innovation_.Reallocate(mappedState.size()*3);
      for (size_t i = 0; i < mappedState.size(); i++)
          for (size_t d = 0; d < 3; d++)

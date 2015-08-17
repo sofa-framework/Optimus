@@ -79,7 +79,7 @@ namespace simulation
 enum FilterType { UNDEF, FORWARD, UKF, ROUKF };
 
 template <class Model, class ObservationManager >
-class SOFA_SIMULATION_COMMON_API SofaVerdandiFilter : public Verdandi::ReducedOrderUnscentedKalmanFilter<Model, ObservationManager>, public sofa::core::objectmodel::BaseObject
+class SOFA_SIMULATION_COMMON_API SofaVerdandiFilter : public sofa::core::objectmodel::BaseObject, public Verdandi::ReducedOrderUnscentedKalmanFilter<Model, ObservationManager>
 {
 public:
     SOFA_CLASS(SOFA_TEMPLATE2(SofaVerdandiFilter,Model,ObservationManager),sofa::core::objectmodel::BaseObject);
@@ -198,21 +198,30 @@ public:
     typedef core::behavior::MechanicalState<defaulttype::Rigid3dTypes> MechStateRigid3d;
     typedef component::projectiveconstraintset::FixedConstraint<defaulttype::Rigid3dTypes> FixedConstraintRigid3d;
 
-    typedef struct {
-        simulation::Node* gnode;
+    struct ModelData {        
         FilterType filterType;
+        bool verbose;
         bool positionInState;
         bool velocityInState;
         double errorVarianceSofaState;
-        bool verbose;
-    } ModelData;
+        simulation::Node* gnode;
+        
+        
+        ModelData() 
+            : verbose(false)
+            , positionInState(false)
+            ,velocityInState(false)
+            ,errorVarianceSofaState(0.0)
+            ,gnode(NULL)
+        {}
+    };
 
     typedef sofa::component::container::OptimParamsBase OptimParams;
     /// structure to associate OptimParams (found in a node) and indices mapping parameters to Verdandi state
     //typedef std::pair<OptimParams*,helper::vector<size_t> > OPVecInd;
 
     /// structure associated with a node that contains OptimParams
-    typedef struct {
+    struct SofaObject {
         simulation::Node* node;                 /// associated not
         helper::vector<OptimParams*> oparams;       /// vector of OptimParams points in that node (multiple OptimParams per node allowed)
         MechStateVec3d* vecMS;                  /// pointer to mechanical state (Vec3D), to be templated
@@ -221,10 +230,18 @@ public:
         FixedConstraintRigid3d* rigidFC;
         helper::vector<std::pair<size_t, size_t> > positionPairs;       /// map to match positions in SOFA and Verdandi state vector
         helper::vector<std::pair<size_t, size_t> > velocityPairs;       /// map to match velocities in SOFA and Verdandi state vector
-    } SofaObject;
+        
+        SofaObject() 
+            :node(NULL)
+            ,vecMS(NULL)
+            ,rigidMS(NULL)
+            ,vecFC(NULL)
+            ,rigidFC(NULL)
+        {}
+    };
 
-    virtual SofaObject* getObject(MechStateVec3d *_state) {}
-    virtual void SetSofaVectorFromVerdandiState(defaulttype::Vec3dTypes::VecCoord & vec, const state& _state, SofaObject *obj) {}
+    virtual SofaObject* getObject(MechStateVec3d * /*_state*/) { return NULL; }
+    virtual void SetSofaVectorFromVerdandiState(defaulttype::Vec3dTypes::VecCoord & /*vec*/, const state& /*_state*/, SofaObject * /*obj*/) {}
 
 };
 
@@ -383,7 +400,7 @@ public:
     void SetTime(double _time);
 
     double ApplyOperator(state& _x, bool _preserve_state = true, bool _update_force = true);
-    double ApplyOperatorParallel(state* _x, bool _preserve_state = true, bool _update_force = true){ return -2.0f;}
+    double ApplyOperatorParallel(state* _x, bool _preserve_state = true, bool _update_force = true);
     void Forward(bool _update_force = true, bool _update_time = true);
 
     void StepDefault(bool _update_force, bool _update_time);
@@ -494,7 +511,7 @@ public:
         return true;
     }
 
-    bool HasObservation(double time) {
+    bool HasObservation(double /*time*/) {
         return true;
     }
 
@@ -514,7 +531,7 @@ public:
         return Inherit1::GetErrorVarianceInverse();
     }
 
-    virtual void Initialize(SofaModelWrapper<double>& model, std::string confFile) {
+    virtual void Initialize(SofaModelWrapper<double>& /*model*/, std::string /*confFile*/) {
         Verb("initialize sofaLinObsManager");
         //Inherit1::Initialize(model, confFile);
 
@@ -609,7 +626,7 @@ public:
                 std::cout << this->getName() << ": generating noise in the time step: " << std::endl;
                 for (size_t i = 0; i < 3*mappedObservationData.getValue().size(); i++)
                     noise[i] = (*pVarNorm)();
-                std::cout << noise << std::endl;
+                //std::cout << noise << std::endl;
             }
 
             /*std::cout << "Generate noise in the observations in time " << actualTime << std::endl;

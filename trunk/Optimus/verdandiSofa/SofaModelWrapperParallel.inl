@@ -839,7 +839,8 @@ void SofaModelWrapperParallel<Type>::Initialize()
         variance_projector_allocated_ = false;
         variance_reduced_allocated_ = false;
     }
-
+    
+    time_=double(0.0);
     SNCOUTP("== P: Initialize done")
 } // Initialize
 
@@ -905,7 +906,7 @@ void SofaModelWrapperParallel<Type>::StateUpdated() {
  * @param new time
  */
 template <class Type>
-void SofaModelWrapperParallel<Type>::SetTime(double _time) {
+void SofaModelWrapperParallel<Type>::SetTime(double _time) {    
     time_ = _time;
     simulation::Node* gnode = modelData.gnode;
     gnode->setTime ( _time );
@@ -943,6 +944,10 @@ void SofaModelWrapperParallel<Type>::distributeWork()
     }
 } // distributeWork
 
+template <class Type>
+double SofaModelWrapperParallel<Type>::ApplyOperator(state& /*sigmaPoints*/, bool /*_preserve_state*/, bool /*_update_force*/)  {
+    return -2.0f;
+}
 
 
 /**
@@ -953,7 +958,7 @@ void SofaModelWrapperParallel<Type>::distributeWork()
  * @return new simulation time
  */
 template <class Type>
-double SofaModelWrapperParallel<Type>::ApplyOperatorParallel(state* sigmaPoints, bool _preserve_state, bool _update_force)  {
+double SofaModelWrapperParallel<Type>::ApplyOperatorParallel(state* sigmaPoints, bool /*_preserve_state*/, bool /*_update_force*/)  {
 
     Verb("Apply operator-parallel begin.");
 
@@ -997,8 +1002,7 @@ double SofaModelWrapperParallel<Type>::ApplyOperatorParallel(state* sigmaPoints,
         //rootMaster->execute ( act );
     }
 
-
-    double newTime=GetTime()+rootMaster->getDt();
+    double newTime=GetTime()+rootMaster->getDt();    
     SetTime(newTime);
 
 #ifndef SOFA_NO_UPDATE_BBOX
@@ -1036,7 +1040,7 @@ void SofaModelWrapperParallel<Type>::Forward(bool _update_force, bool _update_ti
 } // Forward
 
 template <class Type>
-void SofaModelWrapperParallel<Type>::StepDefaultOrig(bool _update_force, bool _update_time, simulation::Node* localRoot) {
+void SofaModelWrapperParallel<Type>::StepDefaultOrig(bool /*_update_force*/, bool /*_update_time*/, simulation::Node* localRoot) {
     Verb("StepDefault begin.");
 
     simulation::Node* gnode; // the simulation will start from here
@@ -1051,7 +1055,7 @@ void SofaModelWrapperParallel<Type>::StepDefaultOrig(bool _update_force, bool _u
         gnode=localRoot;
     }
 
-    _update_time = false;
+    //_update_time = false;
 
     double    dt = gnode->getDt();
     core::ExecParams* params = sofa::core::ExecParams::defaultInstance();
@@ -1070,7 +1074,7 @@ void SofaModelWrapperParallel<Type>::StepDefaultOrig(bool _update_force, bool _u
         gnode->execute ( act );
     }
 
-    double startTime = gnode->getTime();
+    //double startTime = gnode->getTime();
     BehaviorUpdatePositionVisitor beh(params , dt);
     gnode->execute ( beh );
     AnimateVisitor act(params, dt);
@@ -1115,7 +1119,7 @@ void SofaModelWrapperParallel<Type>::StepDefaultOrig(bool _update_force, bool _u
  * @param local root of the subscene where the simulation step is to be performed
  */
 template <class Type>
-void SofaModelWrapperParallel<Type>::StepDefault(bool _update_force, bool _update_time, simulation::Node* localRoot) {
+void SofaModelWrapperParallel<Type>::StepDefault(bool /*_update_force*/, bool _update_time, simulation::Node* localRoot) {
 
     Verb("StepDefault begin.");
 
@@ -1221,7 +1225,7 @@ typename SofaModelWrapperParallel<Type>::state_error_variance_row& SofaModelWrap
 template <class Type>
 typename SofaModelWrapperParallel<Type>::state_error_variance& SofaModelWrapperParallel<Type>::GetStateErrorVarianceProjector() {
 
-    std::cout << "GetSEV_PROJECTOR" << std::endl;
+    //std::cout << "GetSEV_PROJECTOR" << std::endl;
     if (!variance_projector_allocated_)
     {
         state_error_variance_projector_.Reallocate(state_size_parallel, reduced_state_size_parallel);
@@ -1234,7 +1238,7 @@ typename SofaModelWrapperParallel<Type>::state_error_variance& SofaModelWrapperP
 
         variance_projector_allocated_ = true;
     }
-    std::cout << "DONE" << std::endl;
+    //std::cout << "DONE" << std::endl;
     return state_error_variance_projector_;
 } // GetStateErrorVarianceProjector
 
@@ -1666,7 +1670,7 @@ void SofaReducedOrderUKFParallel<Model, ObservationManager>::FinalizeStep() {
  MappedPointsObservationManagerParallel<DataTypes1,DataTypes2>
  ::Inherit::observation& MappedPointsObservationManagerParallel<DataTypes1, DataTypes2>::GetInnovation(const typename SofaModelWrapperParallel<double>::state& x) {
      std::cout << "[" << this->getName() << "]: new get innovation " << std::endl;
-     std::cout<<"n observation:" <<GetNobservation()<<"\n";
+     //std::cout<<"n observation:" <<GetNobservation()<<"\n";
 
 
      //Data<typename DataTypes1::VecCoord> inputObservationData;
@@ -1674,8 +1678,9 @@ void SofaReducedOrderUKFParallel<Model, ObservationManager>::FinalizeStep() {
 
      typename DataTypes1::VecCoord& inputObservation = *inputObservationData.beginEdit();
 
+     //std::cout<<"getting obs at time "<<this->time_<<"\n\n";
      inputObservation = observationSource->getObservation(this->time_);
-     std::cout<<"getting obs at time "<<this->time_<<"\n\n";
+     
 
      //std::cout << "Apply mapping on observations" << std::endl;
 
@@ -1705,7 +1710,7 @@ void SofaReducedOrderUKFParallel<Model, ObservationManager>::FinalizeStep() {
 
      mapping->apply(&mp, mappedStateData, actualStateData);
 
-     std::cout << this->getName() << ": size of mapped state: " << mappedState.size() << std::endl;
+     //std::cout << this->getName() << ": size of mapped state: " << mappedState.size() << std::endl;
      this->innovation_.Reallocate(mappedState.size()*3);
      for (size_t i = 0; i < mappedState.size(); i++)
          for (size_t d = 0; d < 3; d++)

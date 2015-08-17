@@ -35,7 +35,7 @@
 
 #include <sofa/simulation/common/CollisionAnimationLoop.h>
 #include <SofaConstraint/LCPConstraintSolver.h>
-#include <sofa/component/component.h>
+//#include <sofa/component/component.h>
 
 #include "../src/OptimParams.h"
 
@@ -216,22 +216,32 @@ public:
     /**
       * Structure for launching SofaModelWrapper from SofaReducedOrderUKFParallel
       */
-    typedef struct {
+    struct ModelData {
         simulation::Node* gnode;
         FilterTypeP filterTypeP;
         bool positionInState;
         bool velocityInState;
-        double errorVarianceSofaState;        
+        double errorVarianceSofaState;
         bool verbose;
         SigmaPointType sigmaType;
-    } ModelData;
+        
+        ModelData() 
+            : gnode(NULL)            
+            , positionInState(false)
+            , velocityInState(false)
+            , errorVarianceSofaState(0.0)
+            , verbose(false)
+            , sigmaType(SIMPLEX)
+            
+        {}
+    };
 
 
 
     /**
       * Wrapper for sofa mechanical state pointer.
       */
-    typedef struct {
+    struct SofaObjectParallel {
         simulation::Node* node;                 /// associated node
         MechStateVec3d* vecMS;                  /// pointer to mechanical state (Vec3D), to be templated
         MechStateRigid3d* rigidMS;              /// pointer to mechanical state (Rigid3D), to be templated
@@ -239,7 +249,15 @@ public:
         FixedConstraintRigid3d* rigidFC;
         helper::vector<std::pair<size_t, size_t> > positionPairs;       /// map to match positions in SOFA and Verdandi state vector
         helper::vector<std::pair<size_t, size_t> > velocityPairs;       /// map to match velocities in SOFA and Verdandi state vector
-    } SofaObjectParallel;
+        
+        SofaObjectParallel() 
+            :node(NULL)
+            ,vecMS(NULL)
+            ,rigidMS(NULL)
+            ,vecFC(NULL)
+            ,rigidFC(NULL)
+        {}
+    };
 
     /**
      * structure for ordering SofaObjectParallel objects by name of parent node and name of wrapped mechanical state
@@ -355,7 +373,7 @@ public:
     void Initialize(std::string &) { Initialize();  }
 
     void Initialize();
-    void InitializeParallel();
+    //void InitializeParallel();
     void InitializeStep() {}
     void Finalize() {}
     void FinalizeStep();
@@ -363,7 +381,7 @@ public:
     void StateUpdated();
     void SetTime(double _time); // not thread safe
 
-    double ApplyOperator(state& _x, bool _preserve_state = true, bool _update_force = true){return -2.0f;}
+    double ApplyOperator(state& _x, bool _preserve_state = true, bool _update_force = true);
     double ApplyOperatorParallel(state* sigmaPoints, bool _preserve_state = true, bool _update_force = true);
 
     void Forward(bool _update_force = true, bool _update_time = true, simulation::Node* = NULL);
@@ -443,12 +461,12 @@ public:
     }
 
     void SetTime(double _time) {
-        std::cout<<"SofaLinearObservationManagerParallel // time set: //"<<_time;
+        //std::cout<<"SofaLinearObservationManagerParallel // time set: //"<<_time;
         this->time_ = _time;
     }
 
     virtual void SetTime(SofaModelWrapperParallel<double>& /*model*/, double _time) {
-        std::cout<<"SofaLinearObservationManagerParallel // time set: //"<<_time;
+        //std::cout<<"SofaLinearObservationManagerParallel // time set: //"<<_time;
         this->time_ = _time;
     }
 
@@ -456,7 +474,7 @@ public:
         return true;
     }
 
-    bool HasObservation(double time) {
+    bool HasObservation(double /*time*/) {
         return true;
     }
 
@@ -476,7 +494,7 @@ public:
         return Inherit1::GetErrorVarianceInverse();
     }
 
-    virtual void Initialize(SofaModelWrapperParallel<double>& model, std::string confFile) {
+    virtual void Initialize(SofaModelWrapperParallel<double>& /*model*/, std::string /*confFile*/) {
         Verb("initialize sofaLinObsManager");
         //Inherit1::Initialize(model, confFile);
 
@@ -544,8 +562,8 @@ public:
 
     virtual typename Inherit::observation& GetInnovation(const typename SofaModelWrapperParallel<double>::state& x);
 
-    virtual void SetTime(SofaModelWrapperParallel<double>& model, double time) {
-        std::cout << "MappedPointsObservationManagerParallel / time set: " << time << std::endl;
+    virtual void SetTime(SofaModelWrapperParallel<double>& /*model*/, double time) {
+        //std::cout << "MappedPointsObservationManagerParallel / time set: " << time << std::endl;
         Inherit::SetTime(time);
     }
 
@@ -578,7 +596,7 @@ public:
                 std::cout << this->getName() << ": generating noise in the time step: " << std::endl;
                 for (size_t i = 0; i < 3*mappedObservationData.getValue().size(); i++)
                     noise[i] = (*pVarNorm)();
-                std::cout << noise << std::endl;
+                //std::cout << noise << std::endl;
             }
 
             /*std::cout << "Generate noise in the observations in time " << actualTime << std::endl;
