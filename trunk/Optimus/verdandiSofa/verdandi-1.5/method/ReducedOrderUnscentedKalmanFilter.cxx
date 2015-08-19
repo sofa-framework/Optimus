@@ -30,7 +30,6 @@
 
 #include "seldon/computation/solver/SparseCholeskyFactorisation.cxx"
 
-
 namespace Verdandi
 {
 
@@ -98,6 +97,7 @@ namespace Verdandi
         VerdandiOps configuration(configuration_file);
         Initialize(configuration, initialize_model,
                    initialize_observation_manager);
+        timer = new CTime(); /// ADDIP
     }
 
     //! Initializes the driver.
@@ -121,9 +121,10 @@ namespace Verdandi
         configuration.Set("output_directory", "", configuration_file_, output_directory_);
 
         char comm[100];
-        sprintf(comm, "rm %s/roukf*dat", output_directory_.c_str());
-        std::cout << "Executing: " << comm << std::endl;
-        system(comm);
+        sprintf(comm, "rm %s/roukf*dat", output_directory_.c_str());        
+        int sr = system(comm);
+        if (sr == 0)
+            std::cout << "Executed: " << comm << std::endl;
 
         configuration.SetPrefix("reduced_order_unscented_kalman_filter.");
 
@@ -507,6 +508,7 @@ namespace Verdandi
                        model_.GetStateErrorVarianceProjector());
 
 #else
+            TIC;
             model_state_error_variance_row x(Nstate_);
 
             Copy(model_.GetState(), x); // copy former to latter, former is a verdandi state propagated from sofa state (result of last step)
@@ -515,17 +517,24 @@ namespace Verdandi
 
             model_state_error_variance tmp;
             GetCholesky(U_inv_); // sqrt U_inv_ ... Cn
-
+            TOCTIC("== pre-forward 1== ");            
             Copy(model_.GetStateErrorVarianceProjector(), tmp); // projector is copied to tmp (created if necessary) ... Ln
+            TOCTIC("== pre-forward2a == ");
             MltAdd(Ts(1), tmp, U_inv_, Ts(0),
                    model_.GetStateErrorVarianceProjector()); // projector*Uinv->projector ... projector returns REFERENCE and can be modified ... Ln CnT
 
+            TOCTIC("== pre-forward2b (mltadd) == ");
             // Computes X_n^{(i)+}.
             Reallocate(X_i_, Nstate_, Nsigma_point_, model_); // allocate  ... Nstate*Nsigma_point_ size to X_i
+            TOCTIC("== pre-forward3a == ");            
             for (int i = 0; i < Nsigma_point_; i++)
                 SetCol(x, i, X_i_); // all columns set to the verdandi state x
-
-            MltAdd(Ts(1), model_.GetStateErrorVarianceProjector(), I_, Ts(1), X_i_); // sigma points ready ... projector*I_ + X_i -> X_i
+            TOCTIC("== pre-forward3b == ");            
+            
+            model_state_error_variance& temp = model_.GetStateErrorVarianceProjector();            
+            TOCTIC("== pre-forward3c == ");            
+            MltAdd(Ts(1), temp, I_, Ts(1), X_i_); // sigma points ready ... projector*I_ + X_i -> X_i            
+            TOCTIC("== pre-forward3d (mltadd) == ");
 
             /*** Prediction ***/
 
@@ -533,12 +542,12 @@ namespace Verdandi
 
             x.Fill(Ts(0));
             double new_time(0);
+            TOCTIC("== pre-forward4 == ");
 
             /**
              * -----------------------------START OF ADJUSTED SECTION---------------------------------
              * The following of code has been modified for parallelization.
-             */
-
+             */            
             bool parallel_mode = false;
 
 
@@ -557,7 +566,7 @@ namespace Verdandi
                 Add(Ts(alpha_), x_col, x); // B<- alpha A + B
                 SetCol(x_col, i, X_i_);
             }
-
+            TOCTIC("== seq mode ==");            
             if (parallel_mode)
             {
 
@@ -592,10 +601,10 @@ namespace Verdandi
                 //
                 delete[] verdandi_states; // free the memory - verdandi_states
             }
+            TOCTIC("== par mode ==");
             /**
              * -----------------------------END OF ADJUSTED SECTION---------------------------------
-             */
-
+             */            
             model_.SetTime(new_time);
             /*** Resampling ***/
 
@@ -614,6 +623,7 @@ namespace Verdandi
                        I_, Ts(1), X_i_);
 #endif
             }
+            TOCTIC("== post-forward1 ==");            
 
             // Computes L_{n + 1}.
             MltAdd(Ts(alpha_), X_i_, I_trans_, Ts(0),
@@ -622,6 +632,7 @@ namespace Verdandi
             model_.GetState().Copy(x);
             model_.StateUpdated();
 #endif
+            TOC("== post-forward2 ==");
         }
         else
         {
@@ -631,30 +642,37 @@ namespace Verdandi
                                  "implemented yet for the 'no"
                                  " simplex' cases.");
 #else
+            TIC;
             MessageHandler::Send(*this, "all", "::nonSimplex");
             model_state_error_variance_row x(Nstate_);
-            Copy(model_.GetState(), x);            
-
+            Copy(model_.GetState(), x);
+            
             /*** Sampling ***/
-
+            
             sigma_point_matrix tmp;            
             GetCholesky(U_inv_);
+            TOCTIC(" == nsx pre-forward1 ==");
 
             if (saveVQ_){
                 char name[100];
                 sprintf(name, "%s/roukf-forecast_uinv.dat", output_directory_.c_str());
                 output_saver_.WriteText(U_inv_, name);
             }
+            
+            TOCTIC(" == nsx pre-forward2 ==");
 
             Copy(model_.GetStateErrorVarianceProjector(), tmp);
+            TOCTIC(" == nsx pre-forward3 ==");
             MltAdd(Ts(1), tmp, U_inv_, Ts(0),
                    model_.GetStateErrorVarianceProjector());
+            TOCTIC(" == nsx pre-forward4 (mltadd) ==");
 
             // Computes X_n^{(i)+}.
             X_i_trans_.Reallocate(Nsigma_point_, Nstate_);
             sigma_point x_col;
             for (int i = 0; i < Nsigma_point_; i++)
-                SetRow(x, i, X_i_trans_);           
+                SetRow(x, i, X_i_trans_);
+            TOCTIC(" == nsx pre-forward5 ==");
 
             //// print error variance projector begin
             if (0) {
@@ -679,19 +697,19 @@ namespace Verdandi
             MltAdd(Ts(1), SeldonNoTrans, I_trans_, SeldonTrans,
                    model_.GetStateErrorVarianceProjector(),
                    Ts(1), X_i_trans_);
+            TOCTIC(" == nsx pre-forward6 (mltadd) ==");
 
             /*** Prediction ***/
 
             // Computes X_{n + 1}^-.
 
             x.Fill(Ts(0));
-            double new_time(0);
+            double new_time(0);            
 
             /**
              * -----------------------------START OF ADJUSTED SECTION---------------------------------
              * The following of code has been modified for parallelization.
-             */
-
+             */            
             bool parallel_mode = false;
 
             //Reallocate(x_col, x.GetM(), model_);
@@ -715,7 +733,7 @@ namespace Verdandi
                 Add(Ts(alpha_), x_col, x);
                 SetRow(x_col, i, X_i_trans_);
             }
-
+            TOCTIC("== seq mode nsx == ");            
             if (parallel_mode)
             {
 
@@ -758,15 +776,15 @@ namespace Verdandi
                 }
                 delete[] verdandi_states; // free the memory - verdandi_states
             }
-
+            TOCTIC("== par mode nsx ==");
             /**
              * -----------------------------END OF ADJUSTED SECTION---------------------------------
-             */
-
+             */            
             model_.SetTime(new_time);
 
             model_.GetState().Copy(x);
             model_.StateUpdated();
+            TOCTIC(" == nsx post-forward1 ==");
 
             /*** Resampling with SVD ***/
 
@@ -775,6 +793,7 @@ namespace Verdandi
                 SetRow(x, i, M_trans);
             Mlt(Ts(-1), M_trans);
             Add(Ts(1), X_i_trans_, M_trans);
+            TOCTIC(" == nsx post-forward2 ==");
 
 
             if (alpha_constant_)
@@ -783,25 +802,36 @@ namespace Verdandi
                 throw ErrorUndefined("ReducedOrderUnscentedKalmanFilter::"
                                      "Forward()", "Calculation not "
                                      "implemented for no constant alpha_i.");
-
-            //std::cout << "M = " << M_trans << std::endl;
-
+            TOC(" == nsx post-forward3 ==");
+            
             sigma_point_matrix G(Nsigma_point_, Nsigma_point_);
+            
+            //M_trans.WriteText("Mt.txt");
+            TIC
             MltAdd(Ts(1), SeldonNoTrans, M_trans, SeldonTrans, M_trans,
                    Ts(0), G);
-
-            //std::cout << "G = " << G << std::endl;
-
-            Vector<Ts> lambda;
-            Matrix<Ts> U, V;
-            GetSVD(G, lambda, U, V);
+            TOC(" == nsx post-forward4 (mltadd) ==");
+            //G.WriteText("preSvdG.txt");
+            
+            Vector<Ts> svdLambda;
+            Matrix<Ts> svdU, svdV;
+            TIC
+            GetSVD(G, svdLambda, svdU, svdV);
+            TOC(" == nsx post-forward5 (SVD) ==");
+            
+            //svdU.WriteText("svdU.txt");
+            //svdV.WriteText("svdV.txt");
+            //svdLambda.WriteText("lambda.txt");
+            //G.WriteText("postSvdG.txt");
+            
+            TIC
 
             //std::cout << "Lambda = " << lambda << std::endl;
             //std::cout << "U = " << U << std::endl;
             //std::cout << "V = " << V << std::endl;
 
-            U.Resize(Nsigma_point_, Nreduced_);
-
+            svdU.Resize(Nsigma_point_, Nreduced_);
+            //svdU.WriteText("svdU2.txt");
             //// print error variance projector begin
             if (0) {
                 model_state_error_variance& m1 = model_.GetStateErrorVarianceProjector();
@@ -826,11 +856,11 @@ namespace Verdandi
             sigma_point_matrix
                 working_matrix_rr(Nsigma_point_, Nsigma_point_),
                 working_matrix_rN(X_i_trans_);
-
-            MltAdd(Ts(sqrt(alpha_)), SeldonNoTrans, U, SeldonTrans, I_trans_,
+            TOCTIC(" == nsx post-forward6 ==");            
+                          
+            MltAdd(Ts(sqrt(alpha_)), SeldonNoTrans, svdU, SeldonTrans, I_trans_,
                    Ts(0), working_matrix_rr);
-
-            //std::cout << "Wrr = " << working_matrix_rr << std::endl;
+            TOCTIC(" == nsx post-forward7 (mltadd) ==");
 
             for(int i = 0; i < Nsigma_point_; i++)
                 SetRow(x, i, X_i_trans_);
@@ -842,9 +872,11 @@ namespace Verdandi
                    working_matrix_rN, Ts(1), X_i_trans_);
 
             // Computes L_{n + 1}.
+                                                            
             MltAdd(Ts(alpha_), SeldonTrans, X_i_trans_, SeldonNoTrans,
                    I_trans_, Ts(0), model_.GetStateErrorVarianceProjector());
-
+                                                
+            TOCTIC(" == nsx post-forward8 (mltadd) ==")
             //std::cout << "VarProj = " << model_.GetStateErrorVarianceProjector() << std::endl;
 
             /*std::cout << "END FORWARD: ";
@@ -870,6 +902,7 @@ namespace Verdandi
                     std::cout << std::endl;
                 }
             }
+            TOC("== post-forward nsx ==");
             //// print error variance projector end
 
             if (saveVQ_){
@@ -984,6 +1017,7 @@ namespace Verdandi
                    reduced_innovation, Ts(1), model_.GetState());
             model_.StateUpdated();
 #else
+            TIC
             // *correction step* ?
             // Computes [HX_{n+1}^{*}].
             sigma_point_matrix Z_i_trans(Nsigma_point_, Nobservation_);
@@ -1001,12 +1035,12 @@ namespace Verdandi
                 Add(To(alpha_), z_col, z);
                 SetRow(z_col, i, Z_i_trans);
             }
-
+            TOCTIC("== an1sx == ");            
             sigma_point_matrix HL_trans(Nreduced_, Nobservation_);
             MltAdd(Ts(alpha_), SeldonTrans, I_trans_, SeldonNoTrans, Z_i_trans,
                    Ts(0), HL_trans);
 
-            observation_error_variance R_inv;
+            //observation_error_variance R_inv;
             sigma_point_matrix working_matrix_po(Nreduced_, Nobservation_),
                 tmp;
 
@@ -1020,12 +1054,13 @@ namespace Verdandi
                 GetInverse(R_inv);
                 Mlt(HL_trans, R_inv, working_matrix_po);
             }
-
+            TOCTIC("== an2sx == ");            
             U_inv_.SetIdentity();
             MltAdd(Ts(1), SeldonNoTrans, working_matrix_po,
                    SeldonTrans, HL_trans, Ts(1), U_inv_);
+            TOCTIC("== an3sx == ");
             GetInverse(U_inv_);
-
+            TOCTIC("== an4sx == (inv) ");
             tmp.Reallocate(Nreduced_, Nobservation_);
             tmp.Fill(Ts(0));
 
@@ -1038,6 +1073,7 @@ namespace Verdandi
             MltAdd(Ts(1), model_.GetStateErrorVarianceProjector(),
                    reduced_innovation, Ts(1), x);
             model_.StateUpdated();
+            TOC("== an5sx == ");
 #endif
         }
         else
@@ -1049,6 +1085,7 @@ namespace Verdandi
                                  " simplex' cases.");
 #else
             // Computes [HX_{n+1}^{*}].
+            TIC
             sigma_point_matrix Z_i_trans(Nsigma_point_, Nobservation_);
             sigma_point x_col;
             observation z(Nobservation_);
@@ -1068,7 +1105,7 @@ namespace Verdandi
                 SetRow(z_col, i, Z_i_trans);
                 x_col.Nullify();
             }
-
+            TOCTIC("== an1nsx == ");            
             observation z_col(Nobservation_);
             // Computes [Z] = [HX_{n+1}^{*} - E(HX_{n+1}^{*})].
             for (int i = 0; i < Nsigma_point_; i++)
@@ -1082,7 +1119,7 @@ namespace Verdandi
                 working_matrix_ro(Nsigma_point_, Nobservation_),
                 D_m(Nsigma_point_, Nsigma_point_);
             sigma_point_matrix HL_trans;
-
+            TOCTIC("== an2nsx == ");            
             observation_error_variance R_inv;
             if (observation_error_variance_ == "matrix_inverse")
                 Mlt(Z_i_trans, observation_manager_->GetErrorVarianceInverse(),
@@ -1093,7 +1130,7 @@ namespace Verdandi
                 GetInverse(R_inv);
                 Mlt(Z_i_trans, R_inv, working_matrix_ro);
             }
-
+            TOCTIC("== an3nsx == ");            
             // Computes D_m.
             MltAdd(To(1), SeldonNoTrans, working_matrix_ro, SeldonTrans,
                    Z_i_trans, To(0), D_m);
@@ -1107,25 +1144,32 @@ namespace Verdandi
 
             Copy(D_v_, working_matrix_rr);
             Mlt(Ts(-1), working_matrix_rr);
+            TOCTIC("== an4nsx == ");            
             if (alpha_constant_)
             {
                 for(int i = 0; i < Nsigma_point_; i++ )
                     working_matrix_rr(i, i) += alpha_;
                 MltAdd(Ts(1), D_m, working_matrix_rr, Ts(0),
                        working_matrix_rr2);
+                TOCTIC("  == an5nsx a == (multadd) ");
                 for(int i = 0; i < Nsigma_point_; i++ )
                     working_matrix_rr2(i, i) += 1;
                 GetInverse(working_matrix_rr2);
+                TOCTIC("  == an5nsx b == (getInverse) ");
                 MltAdd(Ts(1), working_matrix_rr2, D_m, Ts(0),
                        working_matrix_rr);
+                TOCTIC("  == an5nsx c == (multadd) ");
                 MltAdd(Ts(alpha_), working_matrix_rr, I_trans_, Ts(0),
                        working_matrix_rp);
+                TOCTIC("  == an5nsx d == (multadd) ");
                 U_.SetIdentity();
                 MltAdd(Ts(alpha_), SeldonTrans, I_trans_, SeldonNoTrans,
                        working_matrix_rp, Ts(1), U_);
+                TOCTIC("  == an5nsx e == ");
 
                 Copy(U_, U_inv_);
                 GetInverse(U_inv_);
+                TOCTIC("  == an5nsx f == ");
 
                 /// added P = L Uint Lt;
                 /*sigma_point_matrix LU(Nstate_, Nreduced_);
@@ -1143,26 +1187,29 @@ namespace Verdandi
                 working_matrix_rr2.SetIdentity();
                 MltAdd(Ts(1), D_v_, working_matrix_rr, Ts(1),
                        working_matrix_rr2);
+                TOCTIC("  == an5nsx g == ");
 
                 working_matrix_rr.SetIdentity();
                 Add(Ts(alpha_), D_m, working_matrix_rr);
                 GetInverse(working_matrix_rr);
+                TOCTIC("  == an5nsx h == (getinverse)");
 
                 Mlt(working_matrix_rr, working_matrix_rr2,
                     working_matrix_rr3);
+                TOCTIC("  == an5nsx i == (mlt)");
 
                 MltAdd(Ts(alpha_), working_matrix_rr3, I_trans_, Ts(0),
                        working_matrix_rp);
+                TOCTIC("  == an5nsx j == (multadd) ");
 
                 MltAdd(Ts(1), SeldonTrans, working_matrix_rp, SeldonNoTrans,
                        Z_i_trans, Ts(0), HL_trans);
-            }
+                TOCTIC("  == an5nsx k == ");
+            }            
             else
                 throw ErrorUndefined("ReducedOrderUnscentedKalmanFilter::"
                                      "Analyse()", "Calculation not "
-                                     "implemented for no constant alpha_i.");                        
-
-
+                                     "implemented for no constant alpha_i.");                                    
             // Computes K.
             sigma_point_matrix K(Nstate_, Nobservation_),
                 working_matrix_po(Nreduced_, Nobservation_),
@@ -1208,6 +1255,7 @@ namespace Verdandi
             for (size_t i = 0; i < 12; i++)
                 std::cout << model_.state_(i) << " ";
             std::cout << std::endl;*/
+            TOC("== an6nsx == ");            
 
             //// print error variance projector begin
             if (0) {

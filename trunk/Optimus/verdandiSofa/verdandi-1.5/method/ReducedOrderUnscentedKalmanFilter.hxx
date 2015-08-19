@@ -25,6 +25,27 @@
 
 #include "seldon/vector/VectorCollection.hxx"
 
+#include <sofa/helper/system/thread/CTime.h>   /// ADDIP
+using namespace sofa::helper::system::thread;  /// ADDIP
+
+#define TIC this->startTime = double(this->timer->getTime());
+#define TOC(arg) this->stopTime = double(this->timer->getTime()); \
+                 std::cout << "WTIME: " << arg << " " << this->stopTime - this->startTime << std::endl;
+
+#define TOCTIC(arg) this->stopTime = double(this->timer->getTime()); \
+                 std::cout << "WTIME: " << arg << " " << this->stopTime - this->startTime << std::endl; \
+                 this->startTime = double(this->timer->getTime());
+
+#define SAVEMAT(name, matrix) { \
+        std::ofstream f1; \
+        f1.open(name); \
+        for (int ii = 0; ii < matrix.GetM(); ii++) { \
+            for (int jj = 0; jj < matrix.GetN(); jj++) \
+                f1 << matrix(ii,jj) << " "; \
+            f1 << std::endl; \
+        } \
+        f1.close(); \
+    }
 
 namespace Verdandi
 {
@@ -201,6 +222,9 @@ namespace Verdandi
 
         //! Output saver.
         OutputSaver output_saver_;
+        
+        sofa::helper::system::thread::CTime *timer; /// ADDIP
+        double startTime, stopTime;                 /// ADDIP
 
     public:
 
