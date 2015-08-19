@@ -32,6 +32,7 @@
 #include <sofa/simulation/common/Node.h>
 #include <sofa/helper/AdvancedTimer.h>
 #include <sofa/simulation/common/Simulation.h>
+#include <sofa/helper/system/thread/CTime.h>
 
 #include <sofa/simulation/common/CollisionAnimationLoop.h>
 #include <SofaConstraint/LCPConstraintSolver.h>
@@ -65,6 +66,7 @@
 
 using namespace sofa::core::objectmodel;
 using namespace sofa::core::behavior;
+using namespace sofa::helper::system::thread;
 
 namespace sofa
 {
@@ -99,6 +101,13 @@ public:
     virtual void InitializeParams() {}
     virtual void InitializeStructures() {}
     virtual void FinalizeStep() {}
+    
+    void Forward() {
+        sofa::helper::AdvancedTimer::stepBegin("ROUKF forward");
+        Inherit2::Forward();
+        sofa::helper::AdvancedTimer::stepEnd("ROUKF forward");
+        
+    }
 };
 
 template <class Model, class ObservationManager >
@@ -242,6 +251,9 @@ public:
 
     virtual SofaObject* getObject(MechStateVec3d * /*_state*/) { return NULL; }
     virtual void SetSofaVectorFromVerdandiState(defaulttype::Vec3dTypes::VecCoord & /*vec*/, const state& /*_state*/, SofaObject * /*obj*/) {}
+    
+    CTime* timer;
+    double startTime, stopTime;
 
 };
 

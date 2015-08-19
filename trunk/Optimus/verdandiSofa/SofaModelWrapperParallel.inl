@@ -202,7 +202,7 @@ void *thread_startLoop (void *in_args)
  */
 template <class Type>
 SofaModelWrapperParallel<Type>::SofaModelWrapperParallel()
-    : Inherit()
+    : Inherit1()
     , current_row_(-1)
     , dim_(3)
     , state_size_parallel(0)
@@ -661,10 +661,10 @@ void SofaModelWrapperParallel<Type>::StateVerdandi2SofaParallel(helper::vector<S
 
     for (size_t iop = 0; iop < mechanicalObjects.size(); iop++) {
         SofaObjectParallel& obj = mechanicalObjects[iop];
-        std::cout << "Verdandi => Sofa on ";
+        //std::cout << "Verdandi => Sofa on ";
 
         if (obj.vecMS != NULL) {
-            std::cout<<obj.vecMS->getName()<<"\n";
+            //std::cout<<obj.vecMS->getName()<<"\n";
             typename MechStateVec3d::WriteVecCoord pos = obj.vecMS->writePositions();
             typename MechStateVec3d::WriteVecDeriv vel = obj.vecMS->writeVelocities();
 
@@ -684,7 +684,7 @@ void SofaModelWrapperParallel<Type>::StateVerdandi2SofaParallel(helper::vector<S
 
         // analogously
         if (obj.rigidMS != NULL) {
-            std::cout<<obj.rigidMS->getName()<<"\n";
+            //std::cout<<obj.rigidMS->getName()<<"\n";
             typename MechStateRigid3d::WriteVecCoord pos = obj.rigidMS->writePositions();
             typename MechStateRigid3d::WriteVecDeriv vel = obj.rigidMS->writeVelocities();
 
@@ -938,7 +938,7 @@ void SofaModelWrapperParallel<Type>::distributeWork()
     // distribute the sigma points among the threads in a round robin fashion
     for (int i=0;i<m_sigmaPointCount;i++)
     {
-        std::cout<<"\nwork "<<i<<"to thread"<<(i%m_slaveCount)<<"\n";
+        //std::cout<<"\nwork "<<i<<"to thread"<<(i%m_slaveCount)<<"\n";
 
         t_threadData[i%m_slaveCount].sigmaPointIndices.push_back(i);
     }
@@ -1227,15 +1227,13 @@ typename SofaModelWrapperParallel<Type>::state_error_variance& SofaModelWrapperP
 
     //std::cout << "GetSEV_PROJECTOR" << std::endl;
     if (!variance_projector_allocated_)
-    {
-        state_error_variance_projector_.Reallocate(state_size_parallel, reduced_state_size_parallel);
-        state_error_variance_projector_.Fill(Type(0.0));
-
+    {        
+        state_error_variance_projector_.Reallocate(state_size_parallel, reduced_state_size_parallel);     
+        state_error_variance_projector_.Fill(Type(0.0));        
         for (size_t k = 0, l = 0; k < reduced_state_size_parallel ; k++, l++) {
-            std::cout << "k,l = " << k << " " << l << std::endl;
+            //std::cout << "k,l = " << k << " " << l << std::endl;
             state_error_variance_projector_(k, l) = 1;
-        }
-
+        }        
         variance_projector_allocated_ = true;
     }
     //std::cout << "DONE" << std::endl;
@@ -1258,23 +1256,23 @@ typename SofaModelWrapperParallel<Type>::state_error_variance& SofaModelWrapperP
         for (size_t i = 0; i<paramsMaster->size();i++)
         {
             state_error_variance_reduced_(i,i)= Type(Type(1.0) / (stdev[i] * stdev[i]));
-            std::cout<<"stdev["<<i<<"]\t"<<stdev[i]<<std::endl;
+            //std::cout<<"stdev["<<i<<"]\t"<<stdev[i]<<std::endl;
         }
 
-        std::cout << "  Initialize U: " << std::endl;
+        //std::cout << "  Initialize U: " << std::endl;
         //printMatrix(state_error_variance_reduced_, std::cout);
 
         variance_reduced_allocated_ = true;
-        std::fstream f;
-        f.open("U.mat", std::fstream::out);
-        printMatrixInRow(state_error_variance_reduced_, f);
-        f.close();
+        //std::fstream f;
+        //f.open("U.mat", std::fstream::out);
+        //printMatrixInRow(state_error_variance_reduced_, f);
+        //f.close();
     } else {
-        printMatrix(state_error_variance_reduced_, std::cout);
-        std::fstream f;
-        f.open("U.mat", std::fstream::out | std::fstream::app);
-        printMatrixInRow(state_error_variance_reduced_, f);
-        f.close();
+        //printMatrix(state_error_variance_reduced_, std::cout);
+        //std::fstream f;
+        //f.open("U.mat", std::fstream::out | std::fstream::app);
+        //printMatrixInRow(state_error_variance_reduced_, f);
+        //f.close();
     }
 
     std::cout << "OK" << std::endl;
@@ -1669,7 +1667,7 @@ void SofaReducedOrderUKFParallel<Model, ObservationManager>::FinalizeStep() {
  template <class DataTypes1, class DataTypes2>
  MappedPointsObservationManagerParallel<DataTypes1,DataTypes2>
  ::Inherit::observation& MappedPointsObservationManagerParallel<DataTypes1, DataTypes2>::GetInnovation(const typename SofaModelWrapperParallel<double>::state& x) {
-     std::cout << "[" << this->getName() << "]: new get innovation " << std::endl;
+     //std::cout << "[" << this->getName() << "]: new get innovation " << std::endl;
      //std::cout<<"n observation:" <<GetNobservation()<<"\n";
 
 

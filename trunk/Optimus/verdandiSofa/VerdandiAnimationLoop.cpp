@@ -56,6 +56,8 @@
 
 #include <sofa/core/visual/VisualParams.h>
 
+#include <sofa/helper/system/thread/CTime.h>
+
 #include <stdlib.h>
 #include <math.h>
 #include <algorithm>
@@ -122,7 +124,8 @@ void VerdandiAnimationLoop::init() {
     char cmd[100];
     sprintf(cmd, "mkdir -p output");
     system(cmd);
-
+    
+    timer = new CTime();
 }
 
 
@@ -175,23 +178,38 @@ void VerdandiAnimationLoop::step(const core::ExecParams* params, double /*dt*/)
     if (roukfDriver) {
         roukfDriver->GetModel().setInitStepData(params);
         roukfDriver->InitializeStep();
+                
+        double startTime, stopTime;
+        startTime = (double)timer->getTime();
         roukfDriver->Forward();
+        stopTime = (double)timer->getTime();
+        std::cout << this->getName() << ": forward wtime: " << stopTime - startTime << std::endl;
+        
+        startTime = (double)timer->getTime();
         roukfDriver->Analyze();
+        stopTime = (double)timer->getTime();
+        std::cout << this->getName() << ": analyze wtime: " << stopTime - startTime << std::endl;
+        
         roukfDriver->FinalizeStep();
     }
 
-    if (roukfDriverParallel) {
-        std::cout<<"Verdandianimationloop:: step 1:\n";
+    if (roukfDriverParallel) {        
         roukfDriverParallel->GetModel().setInitStepData(params);
-        std::cout<<"Verdandianimationloop:: step 2:\n";
+        
         roukfDriverParallel->InitializeStep();
-        std::cout<<"Verdandianimationloop:: step 3:\n";
+        
+        double startTime, stopTime;
+        startTime = (double)timer->getTime();
         roukfDriverParallel->Forward();
-        std::cout<<"Verdandianimationloop:: step 4:\n";
+        stopTime = (double)timer->getTime();
+        std::cout << this->getName() << ": forward wtime: " << stopTime - startTime << std::endl;
+        
+        startTime = (double)timer->getTime();
         roukfDriverParallel->Analyze();
-        std::cout<<"Verdandianimationloop:: step x5:\n";
-        roukfDriverParallel->FinalizeStep();
-        std::cout<<"Verdandianimationloop:: step 6:\n";
+        stopTime = (double)timer->getTime();
+        std::cout << this->getName() << ": analyze wtime: " << stopTime - startTime << std::endl;
+        
+        roukfDriverParallel->FinalizeStep();        
     }
 
 }

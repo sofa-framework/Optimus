@@ -43,6 +43,7 @@
 
 using namespace sofa::core::objectmodel;
 using namespace sofa::core::behavior;
+using namespace sofa::helper::system::thread;
 
 namespace sofa
 {
@@ -93,6 +94,8 @@ private :
     FilterType filterType;
     simulation::Node* gnode;  ///< the node controlled by the loop
     int numStep;
+    
+    sofa::helper::system::thread::CTime *timer;
 
 public:
     VerdandiAnimationLoop(simulation::Node* gnode = NULL);

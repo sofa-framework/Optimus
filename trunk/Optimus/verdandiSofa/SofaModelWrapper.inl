@@ -254,7 +254,7 @@ template <class Type>
 void SofaModelWrapper<Type>::StateVerdandi2Sofa() {
     for (size_t iop = 0; iop < sofaObjects.size(); iop++) {
         SofaObject& obj = sofaObjects[iop];
-        std::cout << "Verdandi => Sofa on " << obj.vecMS->getName() <<  std::endl;
+        //std::cout << "Verdandi => Sofa on " << obj.vecMS->getName() <<  std::endl;
 
         if (obj.vecMS != NULL) {
             typename MechStateVec3d::WriteVecCoord pos = obj.vecMS->writePositions();
@@ -499,7 +499,7 @@ double SofaModelWrapper<Type>::ApplyOperatorParallel(state* /*_x*/, bool /*_pres
 template <class Type>
 double SofaModelWrapper<Type>::ApplyOperator(state& _x, bool _preserve_state, bool _update_force)  {
     Verb("apply operator begin");
-    std::cout << "Apply operator on ";
+    //std::cout << "Apply operator on ";
     //for (size_t i = 0; i < _x.GetSize(); i++)
     //      std::cout << _x(i) << " ";
     //std::cout << std::endl;
@@ -888,7 +888,7 @@ typename SofaModelWrapper<Type>::state_error_variance& SofaModelWrapper<Type>::G
         //for (size_t i = 0, l = 0; i < reduced_state_size_; i++) {
         for (size_t i = 0, l = 0; i < 1; i++) {   /// only one reduced state
             for(size_t k = reduced_state_index_; k < reduced_state_index_ + reduced_state_size_; k++) {
-                std::cout << "k,l = " << k << " " << l << std::endl;
+                //std::cout << "k,l = " << k << " " << l << std::endl;
                 state_error_variance_projector_(k, l++) = 1;
             }
         }
@@ -929,19 +929,19 @@ typename SofaModelWrapper<Type>::state_error_variance& SofaModelWrapper<Type>::G
             }
         }
 
-        std::cout << "  Initialize U: " << std::endl;
-        printMatrix(state_error_variance_reduced_, std::cout);
+        //std::cout << "  Initialize U: " << std::endl;
+        //printMatrix(state_error_variance_reduced_, std::cout);
         variance_reduced_allocated_ = true;
-        std::fstream f;
-        f.open("U.mat", std::fstream::out);
-        printMatrixInRow(state_error_variance_reduced_, f);
-        f.close();
+        //std::fstream f;
+        //f.open("U.mat", std::fstream::out);
+        //printMatrixInRow(state_error_variance_reduced_, f);
+        //f.close();
     } else {        
-        printMatrix(state_error_variance_reduced_, std::cout);
-        std::fstream f;
-        f.open("U.mat", std::fstream::out | std::fstream::app);
-        printMatrixInRow(state_error_variance_reduced_, f);
-        f.close();
+        //printMatrix(state_error_variance_reduced_, std::cout);
+        //std::fstream f;
+        //f.open("U.mat", std::fstream::out | std::fstream::app);
+        //printMatrixInRow(state_error_variance_reduced_, f);
+        //f.close();
     }
     //std::cout << "U = " << state_error_variance_reduced_ << std::endl;
     std::cout << "OK" << std::endl;
@@ -978,7 +978,7 @@ SofaReducedOrderUKF<Model, ObservationManager>::SofaReducedOrderUKF()
     : Inherit1()
     , m_outputDirectory( initData(&m_outputDirectory, std::string("output"), "outputDirectory", "working directory of the filter") )
     //, m_configFile( initData(&m_configFile, "configFile", "lua configuration file (temporary)") )
-    , m_sigmaPointType( initData(&m_sigmaPointType, std::string("star"), "sigmaPointType", "type of sigma points (canonical|star|simplex)") )
+    , m_sigmaPointType( initData(&m_sigmaPointType, std::string("simplex"), "sigmaPointType", "type of sigma points (canonical|star|simplex)") )
     , m_observationErrorVariance( initData(&m_observationErrorVariance, std::string("matrix_inverse"), "observationErrorVariance", "observationErrorVariance") )
     , m_paramFileName( initData(&m_paramFileName, std::string(""), "paramFileName", "store the parameters at the end of each step to a file") )
     , m_paramVarFileName( initData(&m_paramVarFileName, std::string(""), "paramVarFileName", "store the parameter variance (submatrix) at the end of each step to a file") )
@@ -1074,9 +1074,10 @@ void SofaReducedOrderUKF<Model, ObservationManager>::InitializeParams() {
 
 
     char comm[100];
-    sprintf(comm, "rm %s/roukf*dat", this->output_directory_.c_str());
-    std::cout << "Executing: " << comm << std::endl;
-    system(comm);
+    sprintf(comm, "rm %s/roukf*dat", this->output_directory_.c_str());    
+    int sr = system(comm);
+    if (sr == 0)
+        std::cout << "Executed: " << comm << std::endl;
 }
 
 template <class Model, class ObservationManager>
@@ -1384,7 +1385,7 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
  template <class DataTypes1, class DataTypes2>
  MappedPointsObservationManager<DataTypes1,DataTypes2>
  ::Inherit::observation& MappedPointsObservationManager<DataTypes1, DataTypes2>::GetInnovation(const typename SofaModelWrapper<double>::state& x) {
-     std::cout << "[" << this->getName() << "]: new get innovation " << std::endl;
+     //std::cout << "[" << this->getName() << "]: new get innovation " << std::endl;
 
 
      //Data<typename DataTypes1::VecCoord> inputObservationData;

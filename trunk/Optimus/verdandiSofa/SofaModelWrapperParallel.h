@@ -155,10 +155,11 @@ public:
  ***********************************************************************************************************/
 
 template <class Type>
-class SOFA_SIMULATION_COMMON_API SofaModelWrapperParallel : public Verdandi::VerdandiBase, public sofa::core::objectmodel::BaseObject
+class SOFA_SIMULATION_COMMON_API SofaModelWrapperParallel : public SofaModelWrapperBase<Type>
 {
 public:
-    SOFA_CLASS(SOFA_TEMPLATE(SofaModelWrapperParallel,Type),sofa::core::objectmodel::BaseObject);
+    //SOFA_CLASS(SOFA_TEMPLATE(SofaModelWrapperParallel,Type),sofa::core::objectmodel::BaseObject);
+    SOFA_CLASS(SOFA_TEMPLATE(SofaModelWrapperParallel,Type),SOFA_TEMPLATE(SofaModelWrapperBase,Type));
     /// SOFA TYPES
     typedef sofa::core::objectmodel::BaseObject Inherit;
 
