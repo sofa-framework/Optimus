@@ -19,6 +19,8 @@ export SofapythonData
 for i in "$@"
 do
  SofapythonData=$i
+ #valgrind --log-file=val_par1.out runSofa Test_python.scn
  runSofa Test_python.scn
+ #runSofa -g batch -n 1 Test_python.scn
 
 done
