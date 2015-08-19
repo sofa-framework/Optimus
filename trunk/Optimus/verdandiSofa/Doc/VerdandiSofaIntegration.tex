@@ -17,7 +17,7 @@
 %\usepackage{algorithm,algorithmic}
 \usepackage{graphicx}
 %\usepackage{fancyhdr}
-%\usepackage{subfigure}
+\usepackage{subfigure}
 %\usepackage{url}
 %\usepackage{hyperref}
 
@@ -302,7 +302,7 @@ Actually, the compilation is tested only under Linux. GCC version 4.8 is require
 
 \section{Examples}
 
-\subsection{EX1: Estimation of constant Young's modulus of a heterogeneous object under gravity}
+\subsection{EX1: Estimation of constant Young's moduli of segments of a heterogeneous object under gravity}
 
 The data are generated using \texttt{CylinderModulusForward.scn} and in each step, the entire mechanical object of the cylinder is saved by the
 \texttt{Monitor} component.
@@ -429,7 +429,7 @@ uncertainty of 2\,mm modeled with white Gaussian noise with standard deviation o
 \end{center}
 \end{figure}
 
-\subsection{EX1: Estimation of varying Young's modulus of a heterogeneous object under gravity}
+\subsection{EX2: Estimation of varying Young's moduli of segements of a heterogeneous object under gravity}
 The example is the same as the previous one, except for the fact that the Young's modulus is decreased from 6\,kPa to 2\,kPa between t=3\,s and t=5\,s.
 The result is illustrated in figures (dash line is showing the value of parameters).
 
@@ -475,6 +475,45 @@ varying parameter.}
 \end{center}
 \end{figure}
 
+
+\subsection{EX3: Estimation of a constant Young's modulus of each element of a heterogeneous object under gravity}
+In the forward simulation, the object is subject to gravity, while being composed of 3 segments, each having a different 
+Young's modulus ($E$) (10\,kPa, 2\,kPa, 8\,kPa). In the DA, the value of $E$ is treated as unknown independent coefficient for each element
+(\ie\ 770 parameters to be assimilated). The assimilation was tested for simplex and star $\sigma$-points.
+
+\begin{figure}[h]
+\begin{center}
+%\subfigure[]{
+\subfigure[]{\includegraphics[width=.49\linewidth]{figures/cyl3AE_simplexAll.pdf}}
+\subfigure[]{\includegraphics[width=.49\linewidth]{figures/cyl3AE_simplexS1.pdf}}
+\subfigure[]{\includegraphics[width=.49\linewidth]{figures/cyl3AE_simplexS2.pdf}}
+\subfigure[]{\includegraphics[width=.49\linewidth]{figures/cyl3AE_simplexS3.pdf}}
+\caption{Estimation of the constant $E$ for each element using {\bf simplex} $\sigma$-points: noise variance 0.002\,mm, using all degrees of freedom 
+as observations), assimilation executed for about 300 time steps (with dt=0.01s).
+(a) Assimilation of all the parameters; 
+(b) assimilation of parameters of elements beloning to segment 1 ($E_1$=10,000\,Pa, estimated mean: $\tilde{E}_1$ = 8,842\,Pa), 
+(c) segment 2 ($E_2$=2,000\,Pa, estimated mean: $\tilde{E}_2$ = 3,330\,Pa), 
+(d) segment 3 ($E_3$=8,000\,Pa, estimated mean: $\tilde{E}_1$ = 7,582\,Pa).}
+\label{fig:Results7}
+\end{center}
+\end{figure}
+
+\begin{figure}[h]
+\begin{center}
+%\subfigure[]{
+\subfigure[]{\includegraphics[width=.49\linewidth]{figures/cyl3AE_starAll.pdf}}
+\subfigure[]{\includegraphics[width=.49\linewidth]{figures/cyl3AE_starS1.pdf}}
+\subfigure[]{\includegraphics[width=.49\linewidth]{figures/cyl3AE_starS2.pdf}}
+\subfigure[]{\includegraphics[width=.49\linewidth]{figures/cyl3AE_starS3.pdf}}
+\caption{Estimation of the constant $E$ for each element using {\bf star} $\sigma$-points: noise variance 0.002\,mm, using all degrees of freedom 
+as observations), assimilation executed for about 300 time steps (with dt=0.01s).
+(a) Assimilation of all the parameters; 
+(b) assimilation of parameters of elements beloning to segment 1 ($E_1$=10,000\,Pa, estimated mean: $\tilde{E}_1$ = 8,515\,Pa), 
+(c) segment 2 ($E_2$=2,000\,Pa, estimated mean: $\tilde{E}_2$ = 3,487\,Pa), 
+(d) segment 3 ($E_3$=8,000\,Pa, estimated mean: $\tilde{E}_1$ = 7,394\,Pa).}
+\label{fig:Results7}
+\end{center}
+\end{figure}
 
 
 \section{Notes}
