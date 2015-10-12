@@ -85,7 +85,7 @@ class CreateScene:
         node.createObject('VerdandiAnimationLoop', name="verdAnimLoop", verbose="0")
         
         # simplex, canoncal, star
-        ROUKF = node.createObject('SofaReducedOrderUKF', name="sofaROUKF", paramFileName="daHeteroCylinderConstant/pHardSmoothIm3_estim.out", paramVarFileName="daHeteroCylinderConstant/pHardSmoothIm3_var.out")
+        ROUKF = node.createObject('SofaReducedOrderUKF', name="sofaROUKF", paramFileName="daCyl3AE/surfNoise2_params.out", paramVarFileName="")
         ROUKF.findData('sigmaPointType').value=self.m_sigmaPointType
         node.createObject('OptimParams', name="paramE", template="Vector", initValue="6000 6000 6000", stdev="2000 2000 2000", transformParams="1")
         
@@ -116,7 +116,7 @@ class CreateScene:
         Obs.createObject('Sphere', radius="0.002", color="1 0 0 1")
         Obs.createObject('BarycentricMapping')
         Obs.createObject('MappedPointsObservationManager', name="MOBS", observationStdev="2e-3", noiseStdev="2e-3", listening="1")
-        Obs.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix="cylinderModulusMonitorStatEvolve1Smooth")
+        Obs.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix="../../scenes/cylinder3_770_YMStat")
 
         Src = node.createChild('SourceMO')
         Src.createObject('MechanicalObject', name="SourceMO", position="@/obsNode/MOBS.mappedObservations")
@@ -136,15 +136,15 @@ class CreateScene:
         node.createObject('VerdandiAnimationLoop', name="verdAnimLoop", verbose="0")
 
         #simplex, canonical, star
-        ROUKF = node.createObject('SofaReducedOrderUKFParallel', name="sofaROUKF", sigmaPointType="simplex", paramFileName="daHeteroCylinderConstant/pHardSmoothIm3_estim.out", paramVarFileName="daHeteroCylinderConstant/pHardSmoothIm3_var.out")
+        ROUKF = node.createObject('SofaReducedOrderUKFParallel', name="sofaROUKF", sigmaPointType="simplex", paramFileName="daCyl3AE/surfNoise2_params.out", paramVarFileName="")
         ROUKF.findData('sigmaPointType').value=self.m_sigmaPointType
         node.createObject('MeshVTKLoader', filename="data/cylinder3_770.vtk", name="loader")
 
 
     def createMasterScene(self, node):
 
-        node.createObject('OptimParams', name="paramMaster", optimize="0", template="Vector", initValue="6000 6000 6000", stdev="2000 2000 2000", transformParams="1")
-	node.createObject('Indices2ValuesMapper', name="youngSlaveMapper", inputValues="@/loader.dataset", indices="1 2 3", values="@paramMaster.value")
+        node.createObject('OptimParams', name="paramMaster", optimize="0", template="Vector", initValue="6000 6000 6000", stdev="2000 2000 2000", transformParams="1", loader="@/loader")
+	#node.createObject('Indices2ValuesMapper', name="youngSlaveMapper", inputValues="@/loader.dataset", indices="1 2 3", values="@paramMaster.value")
 
         Cylinder = node.createChild('Cylinder')
         Cylinder.findData('activated').value="1"
@@ -166,15 +166,21 @@ class CreateScene:
         Cylinder.createObject('BoxROI', name="fixedBox2", box="-0.05 -0.05  0.238   0.05 0.05 0.242")
         Cylinder.createObject('MergeSets', name="mergeIndices", in1="@fixedBox1.indices", in2="@fixedBox2.indices")
         Cylinder.createObject('FixedConstraint', indices="@mergeIndices.out")
-        Cylinder.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus="@../youngSlaveMapper.outputValues", poissonRatio="0.45", method="large", computeVonMisesStress="0", drawHeterogeneousTetra="1")
+        Cylinder.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus="@../paramMaster.value", poissonRatio="0.45", method="large", computeVonMisesStress="0", drawHeterogeneousTetra="1")
 
 
         Obs = Cylinder.createChild('obsNode')
-        test=Obs.createObject('MechanicalObject', name='SourceMO', position="0.0 0.0 0.02  0.0 0.0 0.04   0.0 0.0 0.08   0.0 0.0 0.09   0.0 0.0 0.12   0.0 0.0 0.13   0.0 0.0 0.14  0.0 0.0 0.17  0.0 0.0 0.19  0.0 0.0 0.22")
+        # test=Obs.createObject('MechanicalObject', name='SourceMO', position="0.0 0.0 0.02  0.0 0.0 0.04   0.0 0.0 0.08   0.0 0.0 0.09   0.0 0.0 0.12   0.0 0.0 0.13   0.0 0.0 0.14  0.0 0.0 0.17  0.0 0.0 0.19  0.0 0.0 0.22")
+        #test=Obs.createObject('MechanicalObject', name='SourceMO', position="@../Volume.position")
+        test=Obs.createObject('MechanicalObject', name='SourceMO', position="0.02 0 0.08    0.02 0 0.16    0.0141 0.0141 0.08    0.0141 -0.0141 0.08    0.0141 0.0141 0.16    0.0141 -0.0141 0.16    0.02 0 0.0533    0.02 0 0.107   \
+		    0.02 0 0.133    0.02 0 0.187    0.02 0 0.213    0.0175 0.00961 0.0649    0.00925 0.0177 0.0647    0.0139 0.0144 0.0398    0.00961 -0.0175 0.0649    0.0177 -0.00925 0.0647  \
+		    0.0144 -0.0139 0.0402    0.0177 0.00936 0.145    0.0095 0.0176 0.145    0.0175 0.00961 0.0951    0.00925 0.0177 0.0953    0.0139 0.0144 0.12    0.00937 -0.0177 0.145   \
+		    0.0176 -0.00949 0.145    0.00935 -0.0177 0.0953    0.0176 -0.00949 0.095    0.0142 -0.0141 0.12    0.0177 0.00937 0.175    0.00949 0.0176 0.175    0.014 0.0143 0.2   \
+		    0.00959 -0.0175 0.175    0.0177 -0.00924 0.175    0.0143 -0.014 0.2")
         Obs.createObject('Sphere', radius="0.002", color="1 0 0 1")
         Obs.createObject('BarycentricMapping')
         Obs.createObject('MappedPointsObservationManagerParallel', name="MOBS", observationStdev="2e-3", noiseStdev="2e-3", listening="1")
-        Obs.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix="cylinderModulusMonitorStatEvolve1Smooth")
+        Obs.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix="../../scenes/cylinder3_770_YMStat")
 
         Src = Cylinder.createChild('SourceNode')
         Src.createObject('MechanicalObject', name="aux_Source", position="@../obsNode/MOBS.mappedObservations")
@@ -182,8 +188,8 @@ class CreateScene:
  
     def createSlaveScene(self, node):    
 
-        node.createObject('OptimParams', name="paramSlave", optimize="0", template="Vector", initValue="6000 6000 6000", stdev="2000 2000 2000", transformParams="1")
-	node.createObject('Indices2ValuesMapper', name="youngSlaveMapper", inputValues="@/loader.dataset", indices="1 2 3", values="@paramSlave.value")
+        node.createObject('OptimParams', name="paramSlave", optimize="0", template="Vector", initValue="6000 6000 6000", stdev="2000 2000 2000", transformParams="1", loader="@/loader")
+	#node.createObject('Indices2ValuesMapper', name="youngSlaveMapper", inputValues="@/loader.dataset", indices="1 2 3", values="@paramSlave.value")
 
         Cylinder = node.createChild('Cylinder')
         Cylinder.findData('activated').value="1"
@@ -204,7 +210,7 @@ class CreateScene:
         Cylinder.createObject('BoxROI', name="fixedBox2", box="-0.05 -0.05  0.238   0.05 0.05 0.242")
         Cylinder.createObject('MergeSets', name="mergeIndices", in1="@fixedBox1.indices", in2="@fixedBox2.indices")
         Cylinder.createObject('FixedConstraint', indices="@mergeIndices.out")
-        Cylinder.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus="@../youngSlaveMapper.outputValues", poissonRatio="0.45", method="large", computeVonMisesStress="0", drawHeterogeneousTetra="1")
+        Cylinder.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus="@../paramSlave.value", poissonRatio="0.45", method="large", computeVonMisesStress="0", drawHeterogeneousTetra="1")
 
         self.m_slaveScenesCreated+=1
 
