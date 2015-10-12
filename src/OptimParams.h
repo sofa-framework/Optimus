@@ -142,11 +142,13 @@ protected:
     virtual void getStDevTempl(DVec& _stdev) = 0;   /// copy standard deviation from a structure of given type to plain helper::vector
     //virtual void getValueTempl(DVec& _value) = 0;   /// copy the actual value from a structure of given type to plain helper::vector
     //virtual void setValueTempl(const DVec& _value) = 0;   /// copy a value in plain vector to a structure of given type
-    virtual void rawVectorToParams(const double* _vector) = 0;  /// copy values from a input vector into parameters at correct positions
-    virtual void paramsToRawVector(double* _vector) = 0;  /// copy values from parameters to the output vector at correct positions
-
+    
 
 public:
+    
+    virtual void rawVectorToParams(const double* _vector) = 0;  /// copy values from a input vector into parameters at correct positions
+    virtual void paramsToRawVector(double* _vector) = 0;  /// copy values from parameters to the output vector at correct positions
+    
 
     OptimParamsBase()
         : m_dim(1)
@@ -252,7 +254,7 @@ public:
     ~OptimParams();
     void init();
     void reinit();
-    void bwdInit(){};
+    void bwdInit(){}
 
     typedef core::behavior::MechanicalState<defaulttype::Vec3dTypes> MechStateVec3d;
     SingleLink<OptimParams<DataTypes>, MechStateVec3d, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> m_paramMOLink;

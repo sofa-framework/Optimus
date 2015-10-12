@@ -5,7 +5,7 @@
 	<RequiredPlugin pluginName="BilikimoAux"/>
 	<VisualStyle displayFlags="showBehaviorModels showForceFields showCollisionModels" />
 						
-	<OptimParams name="paramE" template="Vector" optimize="0" numParams="3" prescribedParamKeys="0.0 10000 2000 8000  5.0 10000 2000 8000" exportParamFile="xxx_daHeteroCylinder2150Constant/pHardSmoothIm_forward.out"/> 
+	<OptimParams name="paramE" template="Vector" optimize="0" numParams="3" prescribedParamKeys="0.0 10000 2000 8000  5.0 10000 2000 8000" exportParamFile="daCyl3/params.out"/> 
 	
 <!--         <EulerImplicit name="odeSolver" printLog="false" rayleighStiffness="0.1"/> -->
 	<StaticSolver applyIncrementFactor="1"/>
@@ -28,7 +28,7 @@
 	<FixedConstraint indices="@mergeIndices.out" />
 	
 	<BoxROI name="allDOFs" box="-1 -1 -1 1 1 1"/>
-	<Monitor name="cylinder3_770_YMStat" indices="@allDOFs.indices" ExportPositions="1" ExportVelocities="1" ExportForces="1"/>
+	<Monitor name="observations/cylinder3_770_YMStat" indices="@allDOFs.indices" ExportPositions="1" ExportVelocities="1" ExportForces="1"/>
 
 <!-- 	<BoxROI name="fixedBox2" box="-0.05 -0.05 0.176   0.05 0.05 0.180"/> -->
 <!-- 	<FixedConstraint indices="@fixedBox2.indices" /> -->

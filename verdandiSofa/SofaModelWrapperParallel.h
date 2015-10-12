@@ -312,6 +312,7 @@ public:
 
     size_t state_size_parallel; // size of verdandi state
     size_t reduced_state_size_parallel; // reduced size of the verdandi state
+    size_t reduced_state_index_parallel;    // where the params start in the Verdandi state 
 
 
     //! Background error covariance matrix (B).
@@ -539,6 +540,8 @@ public:
         , inputObservationData( initData (&inputObservationData, "observations", "observations read from a file") )
         , mappedObservationData( initData (&mappedObservationData, "mappedObservations", "mapped observations") )
         , m_noiseStdev( initData(&m_noiseStdev, double(0.0), "noiseStdev", "standard deviation of generated noise") )
+        , m_abberantIndex( initData(&m_abberantIndex, int(-1), "abberantIndex", "index of an aberrant point") )
+
     {
     }
 
@@ -550,10 +553,13 @@ public:
     Data<typename DataTypes1::VecCoord> inputObservationData;
     Data<typename DataTypes2::VecCoord> mappedObservationData;
     Data<double> m_noiseStdev;
+    Data<int> m_abberantIndex;
 
     boost::mt19937* pRandGen; // I don't seed it on purpouse (it's not relevant)
     boost::normal_distribution<>* pNormDist;
     boost::variate_generator<boost::mt19937&, boost::normal_distribution<> >* pVarNorm;
+
+    int actualStep;
 
 
     helper::vector<double> noise;
@@ -592,6 +598,7 @@ public:
                 return;
             }
             actualTime = this->getContext()->getTime();
+            actualStep++;
 
             if (m_noiseStdev.getValue() != 0.0) {
                 std::cout << this->getName() << ": generating noise in the time step: " << std::endl;
@@ -815,7 +822,7 @@ public:
         std::cout << "[" << this->getName() << "]: new get innovation " << std::endl;
 
         /// the observation already projected on the liver surface => copying to verdandi vector (TODO optimize)
-        helper::ReadAccessor<Data<VecCoord1> > fX = *featureMState->read(sofa::core::VecCoordId::position());        
+        helper::ReadAccessor<Data<VecCoord1> > fX = *featureMState->read(sofa::core::VecCoordId::position());
 
         Inherit::observation actualObs(fX.size()*3);
         for (size_t i = 0; i < fX.size(); i++)

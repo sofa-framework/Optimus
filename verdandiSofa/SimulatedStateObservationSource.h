@@ -77,10 +77,9 @@ public:
 
     int parseMonitorFile(std::string& _name);
     VecCoord& getObservation(double time) {
-	// fix out-of-bounds violation from pre-e15969e0932f428a46d53ed2e670d2647e8b053a
-        size_t ix = (dt != 0) ? size_t(time/dt) : 0; 
+        int ix = int(time/dt);
 
-        if (ix >= positions.size()) {
+        if (ix >= int(positions.size())) {
             std::cerr << this->getName() << " ERROR: no observation for time " << time << " , using the last one from " << positions.size()-1 << std::endl;
             ix = positions.size() - 1;
         } else {

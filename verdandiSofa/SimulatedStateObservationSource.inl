@@ -53,7 +53,7 @@ SimulatedStateObservationSource<DataTypes>::SimulatedStateObservationSource()
     , m_monitorPrefix( initData(&m_monitorPrefix, std::string("monitor1"), "monitorPrefix", "prefix of the monitor-generated file") )
     , m_actualObservation( initData (&m_actualObservation, "actualObservation", "actual observation") )
 {
-	dt = getContext()->getDt();
+
 }
 
 template<class DataTypes>

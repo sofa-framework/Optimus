@@ -214,10 +214,11 @@ void SofaModelWrapper<Type>::StateSofa2Verdandi() {
         if (obj.vecMS != NULL) {
             typename MechStateVec3d::ReadVecCoord pos = obj.vecMS->readPositions();
             typename MechStateVec3d::ReadVecDeriv vel = obj.vecMS->readVelocities();
-
+            
             for (helper::vector<std::pair<size_t, size_t> >::iterator it = obj.positionPairs.begin(); it != obj.positionPairs.end(); it++)
-                for (size_t d = 0; d < dim_; d++)
+                for (size_t d = 0; d < dim_; d++) {
                     state_(dim_*it->second + d) = pos[it->first][d];
+                }
 
             for (helper::vector<std::pair<size_t, size_t> >::iterator it = obj.velocityPairs.begin(); it != obj.velocityPairs.end(); it++)
                 for (size_t d = 0; d < dim_; d++)
@@ -274,6 +275,10 @@ void SofaModelWrapper<Type>::StateVerdandi2Sofa() {
             for (helper::vector<std::pair<size_t, size_t> >::iterator it = obj.velocityPairs.begin(); it != obj.velocityPairs.end(); it++)
                 for (size_t d = 0; d < dim_; d++)
                     vel[it->first][d] = state_(dim_*it->second + d);
+
+            /*std::cout << "VERDANDI -> SOFA" << std::endl;
+            for (size_t i = 0; i < 5; i++)
+                std::cout << pos[100+i] << std::endl;*/
         }
 
         if (obj.rigidMS != NULL) {
@@ -462,6 +467,9 @@ typename SofaModelWrapper<Type>::state& SofaModelWrapper<Type>::GetState() {
     duplicated_state_.Reallocate(state_.GetM());
     for (int i = 0; i < state_.GetM(); i++)
         duplicated_state_(i) = state_(i);
+
+    //std::cout << "AKDEBUG " << duplicated_state_(0) << " " << duplicated_state_(3234) << std::endl;
+
     return duplicated_state_;
 
 }
@@ -472,6 +480,15 @@ void SofaModelWrapper<Type>::StateUpdated() {
         std::cout << "[" << this->getName() << "]: state updated " << std::endl;
     for (int i = 0; i < state_.GetM(); i++)
         state_(i) = duplicated_state_(i);
+
+    /*std::cout << "AKDEBUG State updated with: " << std::endl;
+    for (size_t i = 0; i < 10; i++)
+        std::cout << state_(100+i) << " ";
+    std::cout << " ; ";
+    for (size_t i = 0; i < 10; i++)
+        std::cout << state_(3234+i) << " ";
+    std::cout << std::endl;*/
+
     StateVerdandi2Sofa();
 }
 
@@ -874,7 +891,8 @@ typename SofaModelWrapper<Type>::state_error_variance_row& SofaModelWrapper<Type
 template <class Type>
 typename SofaModelWrapper<Type>::state_error_variance& SofaModelWrapper<Type>::GetStateErrorVarianceProjector() {
     //std::cout << this->getName() << " " << GetTime() << " getStateErrorVarianceProjector" << std::endl;
-    //std::cout << "GetSEV_PROJECTOR" << std::endl;
+    std::cout << "GetSEV_PROJECTOR" << std::endl;
+    std::cout << "START: " << reduced_state_index_ << " " << reduced_state_size_ << std::endl;
     if (!variance_projector_allocated_)
     {
         //int Nreduced = 0;
@@ -1393,7 +1411,9 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
 
      typename DataTypes1::VecCoord& inputObservation = *inputObservationData.beginEdit();
 
+     //std::cout<<"AKDEBUG getting obs at time "<<this->time_<<"\n\n";
      inputObservation = observationSource->getObservation(this->time_);
+     //std::cout << "AKDEBUG GI " << inputObservation[50] << " " << inputObservation[100] << std::endl;
 
      //std::cout << "Apply mapping on observations" << std::endl;
 
@@ -1403,6 +1423,7 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
      //typename DataTypes2::VecCoord mappedObservation = *mappedObservationData.beginEdit();
 
      sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > mappedObservation = mappedObservationData;
+     //std::cout << "AKDEBUG " << mappedObservation << std::endl;
 
      //std::cout << this->getName() << ": size of mapped observation: " << mappedObservation.size() << std::endl;
      Inherit::observation actualObs(mappedObservation.size()*3);
@@ -1411,6 +1432,8 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
              mappedObservation[i][d] += noise[3*i+d];
              actualObs(3*i+d) = mappedObservation[i][d];
          }
+
+     //std::cout << "AKDEBUG " << mappedObservation << std::endl;
 
      Data<typename DataTypes1::VecCoord> actualStateData;
      Data<typename DataTypes2::VecCoord> mappedStateData;
@@ -1421,6 +1444,8 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
      mappedState.resize(mappedStateSize);
      sofaModel->SetSofaVectorFromVerdandiState(actualState, x, sofaObject);
 
+     //std::cout << "AKDEBUG2 GI " << actualState[50] << " " << actualState[100] << std::endl;
+
      mapping->apply(&mp, mappedStateData, actualStateData);
 
      //std::cout << this->getName() << ": size of mapped state: " << mappedState.size() << std::endl;
@@ -1428,6 +1453,9 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
      for (size_t i = 0; i < mappedState.size(); i++)
          for (size_t d = 0; d < 3; d++)
              this->innovation_(3*i+d) = mappedState[i][d];
+
+     //std::cout << "AKDEBUG " << this->innovation_ << std::endl;
+
 
      //this->innovation_.Reallocate(this->Nobservation_);
      //this->ApplyOperator(x, this->innovation_);     

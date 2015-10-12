@@ -79,6 +79,27 @@ void OptimParams<sofa::helper::vector<double> >::rawVectorToParams(const double*
         for (size_t i = 0; i < this->paramIndices.size(); i++)
             val[i] = _vector[this->paramIndices[i]];
     }
+
+    //std::cout << this->getContext()->getName() << "::" << this->getName() << " params: " << val << std::endl;
+}
+
+template<>
+void OptimParams<sofa::helper::vector<double> >::rawVectorToParamsParallel(const double* _vector)
+{
+    //std::cout<<"INFO: rawVectorToParamsParallel\n";
+    //std::cout << this->getContext()->getName() << "::" << this->getName() << " paramIdx size: " << this->paramIndices << std::endl;
+    helper::WriteAccessor<Data<helper::vector<double> > > val = m_val;
+    switch (this->m_transformParams.getValue()) {
+    case 1:
+        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+            val[i]=fabs(_vector[this->paramIndices[i]]);
+        }
+        break;
+    default:
+        for (size_t i = 0; i < this->paramIndices.size(); i++)
+            val[i] = _vector[this->paramIndices[i]];
+    }
+    //std::cout << this->getContext()->getName() << "::" << this->getName() << " params: " << val << std::endl;
 }
 
 template<>
@@ -86,7 +107,7 @@ template<>
 void OptimParams<sofa::helper::vector<double> >::paramsToRawVector(double* _vector) {
     helper::ReadAccessor<Data<helper::vector<double> > > val = m_val; // real values of parameters
 
-    std::cout<<"INFO: paramsToRawVectorDouble\n";
+    //std::cout<<"INFO: paramsToRawVectorDouble\n";
     switch (this->m_transformParams.getValue()) {
     case 1:
         for (size_t i = 0; i < paramIndices.size(); i++)
@@ -100,35 +121,18 @@ void OptimParams<sofa::helper::vector<double> >::paramsToRawVector(double* _vect
 }
 
 template<>
-void OptimParams<sofa::helper::vector<double> >::rawVectorToParamsParallel(const double* _vector)
-{
-    std::cout<<"INFO: rawVectorToParamsParallel\n";
-    helper::WriteAccessor<Data<helper::vector<double> > > val = m_val;
-    switch (this->m_transformParams.getValue()) {
-    case 1:
-        for (size_t i = 0; i < this->size(); i++) {
-            val[i]=fabs(_vector[i]);
-        }
-        break;
-    default:
-        for (size_t i = 0; i < this->size(); i++)
-            val[i] = _vector[i];
-    }
-}
-
-template<>
 void OptimParams<sofa::helper::vector<double> >::paramsToRawVectorParallel(double* _vector)
-{
-    std::cout<<"INFO:: paramsToRawVectorParallel\n";
+{    
+    //std::cout<<"INFO:: paramsToRawVectorParallel\n";
     helper::ReadAccessor<Data<helper::vector<double> > > val = m_val;
     switch (this->m_transformParams.getValue()) {
     case 1:
-        for (size_t i = 0; i < this->size(); i++)
-            _vector[i] = fabs(val[i]);
+        for (size_t i = 0; i < paramIndices.size(); i++)
+            _vector[paramIndices[i]] = fabs(val[i]);
         break;
     default:
-        for (size_t i = 0; i < this->size(); i++)
-            _vector[i] = val[i];
+        for (size_t i = 0; i < paramIndices.size(); i++)
+            _vector[paramIndices[i]] = val[i];
     }
 }
 
@@ -374,7 +378,7 @@ void OptimParams<Vec3dTypes::VecCoord>::rawVectorToParams(const double* _vector)
 
 template<>
 void OptimParams<Vec3dTypes::VecCoord>::paramsToRawVector(double* _vector) {
-    std::cout<<"INFO: paramsToRawVectorVec3d\n";
+    //std::cout<<"INFO: paramsToRawVectorVec3d\n";
     size_t numParams = m_numParams.getValue();
     if (paramMO != NULL) {
         typename MechStateVec3d::ReadVecCoord moRPos = paramMO->readPositions();

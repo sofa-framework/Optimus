@@ -5,7 +5,7 @@
 	<RequiredPlugin pluginName="BilikimoAux"/>
 	<VisualStyle displayFlags="showBehaviorModels showForceFields showCollisionModels" />
 						
-	<OptimParams name="paramE" template="Vector" optimize="0" numParams="10" prescribedParamKeys="0.0 10000 2000 8000 5000 9000 4000 6000 7000 3000 1000    5.0 10000 2000 8000 5000 9000 4000 6000 7000 3000 1000" exportParamFile="daHeteroCylinder4245Constant/pHardSmoothIm_forward.out"/> 
+	<OptimParams name="paramE" template="Vector" optimize="0" numParams="10" prescribedParamKeys="0.0 10000 2000 8000 5000 9000 4000 6000 7000 3000 1000    5.0 10000 2000 8000 5000 9000 4000 6000 7000 3000 1000" exportParamFile="daCyl10/params_forward.out"/> 
 	
 	<StaticSolver applyIncrementFactor="1"/>
 	
@@ -26,7 +26,7 @@
 	<FixedConstraint indices="@mergeIndices.out" />
 	
 	<BoxROI name="allDOFs" box="-1 -1 -1 1 1 1"/>
-	<Monitor name="cylinder4245_YMStat" indices="@allDOFs.indices" ExportPositions="1" ExportVelocities="1" ExportForces="1"/>
+	<Monitor name="observations/cylinder4245_YMStat" indices="@allDOFs.indices" ExportPositions="1" ExportVelocities="1" ExportForces="1"/>
 
 	<Indices2ValuesMapper name="youngMapper" inputValues="@loader.dataset" indices="1 2 3 4 5 6 7 8 9 10" values="@paramE.value"/>
 	<TetrahedronFEMForceField name="FEM" listening="true" updateStiffness="1"  youngModulus="@youngMapper.outputValues" poissonRatio="0.45" method="large"  computeVonMisesStress="0" drawHeterogeneousTetra="1"/>

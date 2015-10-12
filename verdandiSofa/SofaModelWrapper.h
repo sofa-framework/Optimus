@@ -584,6 +584,7 @@ public:
         , inputObservationData( initData (&inputObservationData, "observations", "observations read from a file") )
         , mappedObservationData( initData (&mappedObservationData, "mappedObservations", "mapped observations") )
         , m_noiseStdev( initData(&m_noiseStdev, double(0.0), "noiseStdev", "standard deviation of generated noise") )
+        , m_abberantIndex( initData(&m_abberantIndex, int(-1), "abberantIndex", "index of an aberrant point") )
     {
     }
 
@@ -595,6 +596,7 @@ public:
     Data<typename DataTypes1::VecCoord> inputObservationData;
     Data<typename DataTypes2::VecCoord> mappedObservationData;
     Data<double> m_noiseStdev;
+    Data<int> m_abberantIndex;
 
     boost::mt19937* pRandGen; // I don't seed it on purpouse (it's not relevant)
     boost::normal_distribution<>* pNormDist;

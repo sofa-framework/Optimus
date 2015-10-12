@@ -190,7 +190,10 @@ void VerdandiAnimationLoop::step(const core::ExecParams* params, double /*dt*/)
         stopTime = (double)timer->getTime();
         std::cout << this->getName() << ": analyze wtime: " << stopTime - startTime << std::endl;
         
+        startTime = (double)timer->getTime();
         roukfDriver->FinalizeStep();
+        stopTime = (double)timer->getTime();
+        std::cout << this->getName() << ": finalize step wtime: " << stopTime - startTime << std::endl;
     }
 
     if (roukfDriverParallel) {        

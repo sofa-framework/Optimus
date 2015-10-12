@@ -587,7 +587,7 @@ void SofaModelWrapperParallel<Type>::SetSofaVectorFromVerdandiState(defaulttype:
     // overwrite the free nodes by the values in verdandi state
     for (helper::vector<std::pair<size_t, size_t> >::iterator it = obj->positionPairs.begin(); it != obj->positionPairs.end(); it++)
         for (size_t d = 0; d < dim_; d++) {
-            vec[it->first][d] = _state(reduced_state_size_parallel+dim_*it->second + d);
+            vec[it->first][d] = _state(dim_*it->second + d);
         }
 
 } // SetSofaVectorFromVerdandiState
@@ -608,19 +608,20 @@ void SofaModelWrapperParallel<Type>::StateSofa2VerdandiParallel(const helper::ve
     for (size_t iop = 0; iop < mechanicalObjects.size(); iop++) {
         const SofaObjectParallel& obj = mechanicalObjects[iop];
 
-        if (obj.vecMS != NULL) {
+        if (obj.vecMS != NULL) {            
             typename MechStateVec3d::ReadVecCoord pos = obj.vecMS->readPositions();
             typename MechStateVec3d::ReadVecDeriv vel = obj.vecMS->readVelocities();
-
+            
             for (helper::vector<std::pair<size_t, size_t> >::const_iterator it = obj.positionPairs.begin(); it != obj.positionPairs.end(); it++)
-                for (size_t d = 0; d < dim_; d++)
+                for (size_t d = 0; d < dim_; d++) {
                     // offset by the reduced state size, as the optimized parameters are listed first in the verdandiState
-                    verdandiState(reduced_state_size_parallel+dim_*it->second + d) = pos[it->first][d];
+                    verdandiState(dim_*it->second + d) = pos[it->first][d];
+                }
 
 
             for (helper::vector<std::pair<size_t, size_t> >::const_iterator it = obj.velocityPairs.begin(); it != obj.velocityPairs.end(); it++)
                 for (size_t d = 0; d < dim_; d++)
-                    verdandiState(reduced_state_size_parallel+dim_*it->second + d) = vel[it->first][d];
+                    verdandiState(dim_*it->second + d) = vel[it->first][d];
         }
 
         if (obj.rigidMS != NULL) {
@@ -630,19 +631,19 @@ void SofaModelWrapperParallel<Type>::StateSofa2VerdandiParallel(const helper::ve
             for (helper::vector<std::pair<size_t, size_t> >::const_iterator it = obj.positionPairs.begin(); it != obj.positionPairs.end(); it++) {
                 defaulttype::Rigid3dTypes::CPos rpos = defaulttype::Rigid3dTypes::getCPos(pos[it->first]);
                 for (size_t d = 0; d < dim_; d++)
-                    verdandiState(reduced_state_size_parallel+dim_*it->second + d ) = rpos[d];
+                    verdandiState(dim_*it->second + d ) = rpos[d];
             }
 
             for (helper::vector<std::pair<size_t, size_t> >::const_iterator it = obj.velocityPairs.begin(); it != obj.velocityPairs.end(); it++) {
                 defaulttype::Rigid3dTypes::DPos rvel = defaulttype::Rigid3dTypes::getDPos(vel[it->first]);
                 for (size_t d = 0; d < dim_; d++)
-                    verdandiState(reduced_state_size_parallel+dim_*it->second + d ) = rvel[d];
+                    verdandiState(dim_*it->second + d ) = rvel[d];
 
             }
         }
     }
 
-    // save the param values into the verdandi state
+    // save the param values into the verdandi state    
     oparams->paramsToRawVectorParallel(verdandiState.GetData());
 } // StateSofa2VerdandiParallel
 
@@ -661,7 +662,7 @@ void SofaModelWrapperParallel<Type>::StateVerdandi2SofaParallel(helper::vector<S
 
     for (size_t iop = 0; iop < mechanicalObjects.size(); iop++) {
         SofaObjectParallel& obj = mechanicalObjects[iop];
-        //std::cout << "Verdandi => Sofa on ";
+        //std::cout << "Verdandi => Sofa on ";        
 
         if (obj.vecMS != NULL) {
             //std::cout<<obj.vecMS->getName()<<"\n";
@@ -672,14 +673,18 @@ void SofaModelWrapperParallel<Type>::StateVerdandi2SofaParallel(helper::vector<S
             for (helper::vector<std::pair<size_t, size_t> >::iterator it = obj.positionPairs.begin(); it != obj.positionPairs.end(); it++) {
                 for (size_t d = 0; d < dim_; d++) {
                     // offset by the reduced state size, as the optimized parameters are listed first in the verdandiState
-                    pos[it->first][d] = verdandiState(reduced_state_size_parallel+dim_*it->second + d);
+                    pos[it->first][d] = verdandiState(dim_*it->second + d);
                 }
             }
 
             //map the mechanical object verdandi velocity onto sofa
             for (helper::vector<std::pair<size_t, size_t> >::iterator it = obj.velocityPairs.begin(); it != obj.velocityPairs.end(); it++)
                 for (size_t d = 0; d < dim_; d++)
-                    vel[it->first][d] = verdandiState(reduced_state_size_parallel+dim_*it->second + d);
+                    vel[it->first][d] = verdandiState(dim_*it->second + d);
+
+            /*std::cout << "VERDANDI -> SOFA" << std::endl;
+            for (size_t i = 0; i < 5; i++)
+                std::cout << pos[100+i] << std::endl;*/
         }
 
         // analogously
@@ -692,13 +697,13 @@ void SofaModelWrapperParallel<Type>::StateVerdandi2SofaParallel(helper::vector<S
             for (helper::vector<std::pair<size_t, size_t> >::const_iterator it = obj.positionPairs.begin(); it != obj.positionPairs.end(); it++) {
                 defaulttype::Rigid3dTypes::CPos rpos = defaulttype::Rigid3dTypes::getCPos(pos[it->first]);
                 for (size_t d = 0; d < dim_; d++)
-                    rpos[d] = verdandiState(reduced_state_size_parallel+dim_*it->second + d );
+                    rpos[d] = verdandiState(dim_*it->second + d );
             }
 
             for (helper::vector<std::pair<size_t, size_t> >::const_iterator it = obj.velocityPairs.begin(); it != obj.velocityPairs.end(); it++) {
                 defaulttype::Rigid3dTypes::DPos rvel = defaulttype::Rigid3dTypes::getDPos(vel[it->first]);
                 for (size_t d = 0; d < dim_; d++)
-                    rvel[d] = verdandiState(reduced_state_size_parallel+dim_*it->second + d );
+                    rvel[d] = verdandiState(dim_*it->second + d );
 
             }
         }
@@ -708,6 +713,10 @@ void SofaModelWrapperParallel<Type>::StateVerdandi2SofaParallel(helper::vector<S
 
         // let the OptimParams to extract the actual values of parameters from the verdandi state
         oparams->rawVectorToParamsParallel(verdandiState.GetData());
+
+
+
+
     }
 } // StateVerdandi2SofaParallel
 
@@ -724,9 +733,8 @@ void SofaModelWrapperParallel<Type>::Initialize()
 
 
     /// get fixed nodes
-    size_t vsi = 0;
-
-
+    size_t vsi = 0;    
+    
     for (size_t iop = 0; iop < sofaObjectsMaster.size(); iop++) {
         SofaObjectParallel& obj = sofaObjectsMaster[iop];
 
@@ -793,11 +801,25 @@ void SofaModelWrapperParallel<Type>::Initialize()
                 for (int j=0; j<m_slaveCount; j++) t_threadData[j].sofaObjectsSlave[iop].velocityPairs.push_back(pr);
             }
         }
+                
     }
 
     state_size_parallel = dim_* vsi + paramsMaster->size(); // total size of verdandi state
     reduced_state_size_parallel = paramsMaster->size(); // reduced state size
+    reduced_state_index_parallel = dim_ * vsi;
 
+    size_t vpi = 0;
+
+    helper::vector<size_t> opv;
+    for (size_t i = 0; i < paramsMaster->size(); i++, vpi++) {
+        opv.push_back(reduced_state_index_parallel+vpi);
+    }
+    paramsMaster->setVStateParamIndices(opv);
+
+    for (size_t i = 0; i < m_slaveCount; i++) {
+        std::cout << "Setting indices to " << this->t_threadData[i].paramsSlave->getContext()->getName() << "::" << this->t_threadData[i].paramsSlave->getName() << std::endl;
+        this->t_threadData[i].paramsSlave->setVStateParamIndices(opv);
+    }
 
 
 
@@ -869,6 +891,12 @@ typename SofaModelWrapperParallel<Type>::state& SofaModelWrapperParallel<Type>::
     /// propagate the SOFA state towards verdandi state
     StateSofa2VerdandiParallel(sofaObjectsMaster, paramsMaster, verdandiStateMaster);
 
+
+    //std::cout << "AKDEBUG " << sofaObjectsMaster.size() << std::endl;
+    //std::cout << "AKDEBUG " << sofaObjectsMaster[0].vecMS->getName() << std::endl;
+
+    //std::cout << "AKDEBUG " << verdandiStateMaster(0) << " " << verdandiStateMaster(3234) << std::endl;
+
     return verdandiStateMaster;
 } // GetState
 
@@ -891,6 +919,14 @@ void SofaModelWrapperParallel<Type>::StateUpdated() {
         PropagateEventVisitor act ( params , &ev );
         rootMaster->execute ( act );
     }
+
+    /*std::cout << "AKDEBUG State updated with: " << std::endl;
+    for (size_t i = 0; i < 10; i++)
+        std::cout << verdandiStateMaster(100+i) << " ";
+    std::cout << " ; ";
+    for (size_t i = 0; i < 10; i++)
+        std::cout << verdandiStateMaster(3234+i) << " ";
+    std::cout << std::endl;*/
 
     StateVerdandi2SofaParallel(sofaObjectsMaster, paramsMaster, verdandiStateMaster);
 
@@ -922,6 +958,7 @@ void SofaModelWrapperParallel<Type>::SetTime(double _time) {
 template <class Type>
 void SofaModelWrapperParallel<Type>::distributeWork()
 {
+    std::cout << "Distribute work of " << m_sigmaPointCount << " sigma points  among " << m_slaveCount << std::endl;
     // set the communication signals
     for (int i=0;i<m_slaveCount;i++)
     {
@@ -938,7 +975,7 @@ void SofaModelWrapperParallel<Type>::distributeWork()
     // distribute the sigma points among the threads in a round robin fashion
     for (int i=0;i<m_sigmaPointCount;i++)
     {
-        //std::cout<<"\nwork "<<i<<"to thread"<<(i%m_slaveCount)<<"\n";
+        //std::cout<<"\n work "<<i<<"to thread"<<(i%m_slaveCount)<<"\n";
 
         t_threadData[i%m_slaveCount].sigmaPointIndices.push_back(i);
     }
@@ -966,12 +1003,18 @@ double SofaModelWrapperParallel<Type>::ApplyOperatorParallel(state* sigmaPoints,
     core::ExecParams* params = sofa::core::ExecParams::defaultInstance();
 
     // make a local copy of the sigma points
+    std::cout << "i to: " << m_sigmaPointCount << " j to: " << state_size_parallel << std::endl;
     for (int i=0;i<m_sigmaPointCount;i++)
     {
         for (int j=0;j<state_size_parallel;j++)
         {
             t_sigmaPoints[i](j)=sigmaPoints[i](j);
         }
+
+        /*std::cout << "SPPPPPP: " << i << std::endl;
+        for (int j = 0; j < 10; j++)
+            std::cout << sigmaPoints[i](3234+j) << " ";
+        std::cout << std::endl;*/
     }
 
     // distribute the work among the threads
@@ -1225,12 +1268,13 @@ typename SofaModelWrapperParallel<Type>::state_error_variance_row& SofaModelWrap
 template <class Type>
 typename SofaModelWrapperParallel<Type>::state_error_variance& SofaModelWrapperParallel<Type>::GetStateErrorVarianceProjector() {
 
-    //std::cout << "GetSEV_PROJECTOR" << std::endl;
+    //std::cout << "GetSEV_PROJECTOR parallel" << std::endl;
+    //std::cout << "START: " << reduced_state_index_parallel << " " << reduced_state_size_parallel << std::endl;
     if (!variance_projector_allocated_)
     {        
         state_error_variance_projector_.Reallocate(state_size_parallel, reduced_state_size_parallel);     
         state_error_variance_projector_.Fill(Type(0.0));        
-        for (size_t k = 0, l = 0; k < reduced_state_size_parallel ; k++, l++) {
+        for (size_t k = reduced_state_index_parallel, l = 0; k < reduced_state_index_parallel + reduced_state_size_parallel ; k++, l++) {
             //std::cout << "k,l = " << k << " " << l << std::endl;
             state_error_variance_projector_(k, l) = 1;
         }        
@@ -1546,20 +1590,25 @@ void SofaReducedOrderUKFParallel<Model, ObservationManager>::FinalizeStep() {
     this->I_.Copy(this->I_trans_);
     Transpose(this->I_);
 
+
     // Initializes D_v.
     this->D_v_.Reallocate(this->Nsigma_point_, this->Nsigma_point_);
-    if (this->alpha_constant_)
+    if (this->alpha_constant_) {
         MltAdd(typename Inherit1::Ts(this->alpha_ * this->alpha_), Seldon::SeldonNoTrans, this->I_trans_, Seldon::SeldonTrans,
                this->I_trans_, typename Inherit1::Ts(0), this->D_v_);
-    else
+    }
+    else {
         throw Verdandi::ErrorUndefined("ReducedOrderUnscentedKalmanFilter::"
                              "Initialize()", "Calculation not "
                              "implemented for no constant alpha_i.");
+    }
 
     /*** Assimilation ***/
 
     if (this->analyze_first_step_)
         this->Analyze();
+
+    std::cout << "HERE3" << std::endl;
 
     //if (initialize_model)
     {
@@ -1568,6 +1617,9 @@ void SofaReducedOrderUKFParallel<Model, ObservationManager>::FinalizeStep() {
     }
 
     Verdandi::MessageHandler::Send(*this, "all", "::Initialize end");
+
+    std::cout << "HERE4" << std::endl;
+
 } // InitializeStructures
 
  /***********************************************************************************************************
@@ -1642,6 +1694,8 @@ void SofaReducedOrderUKFParallel<Model, ObservationManager>::FinalizeStep() {
          pVarNorm = new boost::variate_generator<boost::mt19937&, boost::normal_distribution<> >(*pRandGen, *pNormDist);
      }
 
+     actualStep = -1;
+
      SNCOUTP("== init done")
  } // init
 
@@ -1676,8 +1730,10 @@ void SofaReducedOrderUKFParallel<Model, ObservationManager>::FinalizeStep() {
 
      typename DataTypes1::VecCoord& inputObservation = *inputObservationData.beginEdit();
 
-     //std::cout<<"getting obs at time "<<this->time_<<"\n\n";
+
+     //std::cout<<"AKDEBUG getting obs at time "<<this->time_<<"\n\n";
      inputObservation = observationSource->getObservation(this->time_);
+     //std::cout << "AKDEBUG GI " << inputObservation[50] << " " << inputObservation[100] << std::endl;
      
 
      //std::cout << "Apply mapping on observations" << std::endl;
@@ -1688,14 +1744,23 @@ void SofaReducedOrderUKFParallel<Model, ObservationManager>::FinalizeStep() {
      //typename DataTypes2::VecCoord mappedObservation = *mappedObservationData.beginEdit();
 
      sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > mappedObservation = mappedObservationData;
+     //std::cout << "AKDEBUG " << mappedObservation << std::endl;
 
      //std::cout << this->getName() << ": size of mapped observation: " << mappedObservation.size() << std::endl;
+
+     int abberIx = m_abberantIndex.getValue();
+     bool doAbber = (abberIx > -1 && abberIx < mappedObservation.size());
+
      Inherit::observation actualObs(mappedObservation.size()*3);
-     for (size_t i = 0; i < mappedObservation.size(); i++)
+     for (size_t i = 0; i < mappedObservation.size(); i++) {
+         if (doAbber && i == abberIx)
+             mappedObservation[i][0] += actualStep*0.001;
+
          for (size_t d = 0; d < 3; d++) {
              mappedObservation[i][d] += noise[3*i+d];
              actualObs(3*i+d) = mappedObservation[i][d];
-         }
+         }     
+     }
 
      Data<typename DataTypes1::VecCoord> actualStateData;
      Data<typename DataTypes2::VecCoord> mappedStateData;
@@ -1706,6 +1771,8 @@ void SofaReducedOrderUKFParallel<Model, ObservationManager>::FinalizeStep() {
      mappedState.resize(mappedStateSize);
      sofaModel->SetSofaVectorFromVerdandiState(actualState, x, m_sofaObjectParallel);
 
+     //std::cout << "AKDEBUG2 GI " << actualState[50] << " " << actualState[100] << std::endl;
+
      mapping->apply(&mp, mappedStateData, actualStateData);
 
      //std::cout << this->getName() << ": size of mapped state: " << mappedState.size() << std::endl;
@@ -1713,6 +1780,9 @@ void SofaReducedOrderUKFParallel<Model, ObservationManager>::FinalizeStep() {
      for (size_t i = 0; i < mappedState.size(); i++)
          for (size_t d = 0; d < 3; d++)
              this->innovation_(3*i+d) = mappedState[i][d];
+
+     //std::cout << "AKDEBUG " << this->innovation_ << std::endl;
+     //std::cout << "AKDEBUG " << actualObs << std::endl;
 
      //this->innovation_.Reallocate(this->Nobservation_);
      //this->ApplyOperator(x, this->innovation_);     

@@ -6,7 +6,7 @@
  	<VisualStyle displayFlags="showBehaviorModels showForceFields showCollisionModels" />
 			
 	<VerdandiAnimationLoop name="verdAnimLoop"  verbose="0"/>
-	<SofaReducedOrderUKF name="sofaROUKF" sigmaPointType="simplex" paramFileName="daHeteroCylinderConstant/pHardSmoothIm3_estim.out" paramVarFileName="daHeteroCylinderConstant/pHardSmoothIm3_var.out"/>
+	<SofaReducedOrderUKF name="sofaROUKF" sigmaPointType="simplex" paramFileName="daCyl3/exp1_params.out" paramVarFileName="daCyl3/exp1_vars.out"/>
 		
 	<OptimParams name="paramE" template="Vector" initValue="6000 6000 6000" stdev="2000 2000 2000" transformParams="1"/>
 <!-- 	<OptimParams name="paramE" template="Vector" initValue="10000 5000 7000"/>  -->
@@ -38,17 +38,22 @@
 
 	<Node name="obsNode" activated="1">
 <!-- 		<MechanicalObject position="@../Volume.position"/> -->
-		<MechanicalObject position="0.0 0.0 0.02  0.0 0.0 0.04   0.0 0.0 0.08   0.0 0.0 0.09   0.0 0.0 0.12   0.0 0.0 0.13   0.0 0.0 0.14  0.0 0.0 0.17  0.0 0.0 0.19  0.0 0.0 0.22"/> 
+<!-- 		<MechanicalObject position="0.0 0.0 0.02  0.0 0.0 0.04   0.0 0.0 0.08   0.0 0.0 0.09   0.0 0.0 0.12   0.0 0.0 0.13   0.0 0.0 0.14  0.0 0.0 0.17  0.0 0.0 0.19  0.0 0.0 0.22"/>  -->
  			<!--0.0 0.01 0.02  0.0 0.01 0.04   0.0 0.01 0.08   0.0 0.01 0.09   0.0 0.01 0.12  0.0 0.01 0.13   0.0 0.01 0.14  0.0 0.01 0.17  0.0 0.01 0.19  0.0 0.01 0.22
  			0.0 -0.01 0.02  0.0 -0.01 0.04   0.0 -0.01 0.08   0.0 -0.01 0.09   0.0 -0.01 0.12  0.0 -0.01 0.13   0.0 -0.01 0.14  0.0 -0.01 0.17  0.0 -0.01 0.19  0.0 -0.01 0.22
   			0.01 0.01 0.02  0.01 0.01 0.04   0.01 0.01 0.08   0.01 0.01 0.09   0.01 0.01 0.12  0.01 0.01 0.13   0.01 0.01 0.14  0.01 0.01 0.17  0.01 0.01 0.19  0.01 0.01 0.22
 			-0.01 -0.01 0.02  -0.01 -0.01 0.04   -0.01 -0.01 0.08   -0.01 -0.01 0.09   -0.01 -0.01 0.12  -0.01 -0.01 0.13   -0.01 -0.01 0.14  -0.01 -0.01 0.17  -0.01 -0.01 0.19  -0.01 -0.01 0.22"/>-->
+		<MechanicalObject position="0.02 0 0.08    0.02 0 0.16    0.0141 0.0141 0.08    0.0141 -0.0141 0.08    0.0141 0.0141 0.16    0.0141 -0.0141 0.16    0.02 0 0.0533    0.02 0 0.107   
+		    0.02 0 0.133    0.02 0 0.187    0.02 0 0.213    0.0175 0.00961 0.0649    0.00925 0.0177 0.0647    0.0139 0.0144 0.0398    0.00961 -0.0175 0.0649    0.0177 -0.00925 0.0647  
+		    0.0144 -0.0139 0.0402    0.0177 0.00936 0.145    0.0095 0.0176 0.145    0.0175 0.00961 0.0951    0.00925 0.0177 0.0953    0.0139 0.0144 0.12    0.00937 -0.0177 0.145   
+		    0.0176 -0.00949 0.145    0.00935 -0.0177 0.0953    0.0176 -0.00949 0.095    0.0142 -0.0141 0.12    0.0177 0.00937 0.175    0.00949 0.0176 0.175    0.014 0.0143 0.2   
+		    0.00959 -0.0175 0.175    0.0177 -0.00924 0.175    0.0143 -0.014 0.2"/>
 		<Sphere radius="0.002" color="1 0 0"/>
 		<BarycentricMapping/>
 <!-- 		<IdentityMapping/> -->
 		<MappedPointsObservationManager name="MOBS" observationStdev="2e-3" noiseStdev="2e-3" listening="1"/>
 <!-- 		<SofaLinearObservationManager name="LinObs"/> -->
-		<SimulatedStateObservationSource name="ObsSource" monitorPrefix="cylinder3_770_YMStat"/>
+		<SimulatedStateObservationSource name="ObsSource" monitorPrefix="observations/cylinder3_770_YMStat"/>
 	</Node>
 	
 	<Node>
