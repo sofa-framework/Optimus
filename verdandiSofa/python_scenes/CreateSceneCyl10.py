@@ -2,7 +2,7 @@ import Sofa
 import math
 import os
 
-import numpy as np
+#import numpy as np
 from decimal import Decimal
 
 from CreateParallelizableScene import createParallelizableScene
@@ -205,7 +205,7 @@ class CreateScene:
 		    0.00959 -0.0175 0.175    0.0177 -0.00924 0.175    0.0143 -0.014 0.2")
         Obs.createObject('Sphere', radius="0.002", color="1 0 0 1")
         Obs.createObject('BarycentricMapping')
-        Obs.createObject('MappedPointsObservationManagerParallel', name="MOBS", observationStdev="10e-3", noiseStdev="2e-3", listening="1", abberantIndex="20")
+        Obs.createObject('MappedPointsObservationManagerParallel', name="MOBS", observationStdev="2e-3", noiseStdev="0.0", listening="1", abberantIndex="-1")
         
         #Obs.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix="cylinderModulusMonitorStatEvolve1Smooth")
         Obs.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix="../scenes/observations/cylinder4245_YMStat")
