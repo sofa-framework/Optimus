@@ -2,7 +2,7 @@ import Sofa
 import math
 import os
 
-import numpy as np
+#import numpy as np
 from decimal import Decimal
 
 from CreateParallelizableScene import createParallelizableScene
