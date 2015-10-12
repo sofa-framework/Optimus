@@ -1,0 +1,144 @@
+\documentclass[10pt,conference]{IEEEtran}
+\ifCLASSOPTIONcompsoc
+  % IEEE Computer Society needs nocompress option
+  % requires cite.sty v4.0 or later (November 2003)
+  \usepackage[nocompress]{cite}
+\else
+  % normal IEEE
+  \usepackage{cite}
+\fi
+
+\IEEEoverridecommandlockouts
+
+\usepackage{mathptmx}
+\usepackage{graphicx}
+\usepackage{times}
+\usepackage{subfigure}
+\usepackage{capt-of}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{siunitx}
+\usepackage{amsbsy}
+\usepackage{MnSymbol}
+\usepackage{url}
+\usepackage{mathtools,xparse}
+\usepackage{amsfonts}
+\usepackage{color}
+\usepackage{xfrac}
+
+\renewcommand{\arraystretch}{1.2}
+
+\def\wrt{w.\,r.\,t.~}
+\def\eg{e.\,g.~}
+\def\ie{i.\,e.}
+\def\Dash{\nobreak\,---\penalty-500\,}
+
+%\usepackage{bbm} 
+\newcommand\id{\ensuremath{{I}}}
+\newcommand\ev{\ensuremath{{E}}}
+
+\newcommand{\code}[1]{\texttt{#1}}
+
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\Cov}{\operatorname{Cov}}
+
+\definecolor{gray}{rgb}{0.3,0.3,0.3}
+
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+\NewDocumentCommand{\normL}{ s O{} m }{%
+  \IfBooleanTF{#1}{\norm*{#3}}{\norm[#2]{#3}}_{L_2(\Omega)}%
+}
+
+\newcommand{\defeq}{\vcentcolon=}
+\newcommand{\eqdef}{\mathrel{\mathop=}:}
+
+\newenvironment{descr}[1]{\list{}{%
+  \setlength{\topsep}{0pt}
+  \setlength{\itemsep}{0pt}
+  \setlength{\parsep}{0pt}
+  \setlength{\itemindent}{0pt}
+  \settowidth{\labelwidth}{#1}
+  \setlength{\labelsep}{2ex}
+  \setlength{\leftmargin}{\parindent}
+  \addtolength{\leftmargin}{\labelwidth}
+  \addtolength{\leftmargin}{\labelsep}
+  }}
+  {\endlist}
+\newcommand{\itemdesc}[1]{\item[#1\hspace*{\fill}]}
+
+
+
+\begin{document}
+\title{Towards an Efficient Data Assimilation in Physically-Based Medical Simulations}
+
+%%\author{Nazim~Haouchine,~\IEEEmembership{Member,~IEEE,}
+%%        Stephane~Cotin,~\IEEEmembership{Member,~IEEE,}
+%%        Jeremie~Dequidt,~\IEEEmembership{Member,~IEEE,}
+%%        Igor~Peterlik,~\IEEEmembership{Member,~IEEE,}
+%%        Mario~Sanz~Lopez,~\IEEEmembership{Member,~IEEE,}
+%%        Errwan~Kerien,~\IEEEmembership{Member,~IEEE,}
+%%        and~Marie-Odile~Berger,~\IEEEmembership{Member,~IEEE,}% <-this % stops a space
+
+
+\author{Igor~Peterlik and Anton\'{\i}n~Kl\'{\i}ma%
+\IEEEcompsocitemizethanks{
+\IEEEcompsocthanksitem Igor Peterlik is with the Institute of Computer Science, Masaryk University, Czech Republic, E-mail: peterlik@ics.muni.cz.
+\IEEEcompsocthanksitem Anton\'{\i}n Kl\'{\i}ma is with the Faculty of Informatics, Masaryk University, Czech Republic.
+\IEEEcompsocthanksitem Access to computing and storage facilities owned by parties and projects contributing to the National Grid Infrastructure MetaCentrum, provided under the programme "Projects of Large Infrastructure for Research, Development, and Innovations" (LM2010005), is greatly appreciated.
+}% <-this % stops a space
+
+
+\thanks{}}
+
+
+\IEEEtitleabstractindextext{%
+\begin{abstract}
+Computer simulation of soft tissues is rapidly becoming an important aspect in medical training, pre-operative planning and intra-operative navigation.
+Whereas in medical training, generic models are usually employed, both planing and navigation require patient-specific modeling. However, creating a patient-specific model is a challenging task, as many of the mechanical parameters of the organ tissues are unknown. One way of addressing the issue is to extend the deterministic simulation by methods based on stochastic modeling.
+
+In this paper we focus on parameter estimation in models with large number of degrees of freedom based on a variant Kalman filtering. 
+The main contribution of the paper is a detailed description of an integration of two advanced concepts of numerical modeling: on one side, 
+we employ a state-of-the-art method of data assimilation based on reduced-order Kalman filtering in order to perform 
+parameter estimation of a finite-element model of non-linear elasticity used in medical simulations. 
+
+In order to assess the method, we present a preliminary evaluation of the accuracy of the parameter estimation as well as the performance 
+using synthetic data with added noise. We also evaluate the parallelized version of the prediction phase and finally 
+we describe further perspectives which, as we believe, will bring the data assimilation of models with many parameters 
+closer to the real-time processing. 
+\end{abstract}
+
+\smallskip
+
+% Note that keywords are not normally used for peerreview papers.
+\begin{IEEEkeywords}
+Data Assimilation, Kalman Filtering, Non-linear elasticity, Finite Element Method, Patient-specific Modeling
+\end{IEEEkeywords}}
+
+
+% make the title area
+\maketitle
+
+
+\IEEEdisplaynontitleabstractindextext
+
+\IEEEpeerreviewmaketitle
+
+\input{intro.tex}
+\input{method.tex}
+\input{results.tex}
+%\input{discussion.tex}
+\input{conclusion.tex}
+
+%\enlargethispage{1mm}
+\bigskip
+
+\bibliographystyle{IEEEtran}
+\bibliography{biblio}
+
+
+
+% that's all folks
+\end{document}
+
+
