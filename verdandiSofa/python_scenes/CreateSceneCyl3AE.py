@@ -89,7 +89,7 @@ class CreateScene:
         ROUKF.findData('sigmaPointType').value=self.m_sigmaPointType
         node.createObject('OptimParams', name="paramE", template="Vector", initValue="6000 6000 6000", stdev="2000 2000 2000", transformParams="1")
         
-        node.createObject('MeshVTKLoader', filename="data/cylinder3_770.vtk", name="loader")
+        node.createObject('MeshVTKLoader', filename="../scenes/data/cylinder3_770.vtk", name="loader")
         node.createObject('Indices2ValuesMapper', name="youngMapper", inputValues="@loader.dataset", indices="1 2 3", values="@paramE.value")
         
         # place the cylinder inside the root node
@@ -116,7 +116,7 @@ class CreateScene:
         Obs.createObject('Sphere', radius="0.002", color="1 0 0 1")
         Obs.createObject('BarycentricMapping')
         Obs.createObject('MappedPointsObservationManager', name="MOBS", observationStdev="2e-3", noiseStdev="2e-3", listening="1")
-        Obs.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix="../../scenes/cylinder3_770_YMStat")
+        Obs.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix="../scenes/observations/cylinder3_770_YMStat")
 
         Src = node.createChild('SourceMO')
         Src.createObject('MechanicalObject', name="SourceMO", position="@/obsNode/MOBS.mappedObservations")
@@ -138,7 +138,7 @@ class CreateScene:
         #simplex, canonical, star
         ROUKF = node.createObject('SofaReducedOrderUKFParallel', name="sofaROUKF", sigmaPointType="simplex", paramFileName="daCyl3AE/surfNoise2_params.out", paramVarFileName="")
         ROUKF.findData('sigmaPointType').value=self.m_sigmaPointType
-        node.createObject('MeshVTKLoader', filename="data/cylinder3_770.vtk", name="loader")
+        node.createObject('MeshVTKLoader', filename="../scenes/data/cylinder3_770.vtk", name="loader")
 
 
     def createMasterScene(self, node):
@@ -180,7 +180,7 @@ class CreateScene:
         Obs.createObject('Sphere', radius="0.002", color="1 0 0 1")
         Obs.createObject('BarycentricMapping')
         Obs.createObject('MappedPointsObservationManagerParallel', name="MOBS", observationStdev="2e-3", noiseStdev="2e-3", listening="1")
-        Obs.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix="../../scenes/cylinder3_770_YMStat")
+        Obs.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix="../scenes/observations/cylinder3_770_YMStat")
 
         Src = Cylinder.createChild('SourceNode')
         Src.createObject('MechanicalObject', name="aux_Source", position="@../obsNode/MOBS.mappedObservations")

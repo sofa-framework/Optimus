@@ -87,14 +87,14 @@ class CreateScene:
         node.createObject('VerdandiAnimationLoop', name="verdAnimLoop", verbose="0")
         
         # simplex, canoncal, star
-        ROUKF = node.createObject('SofaReducedOrderUKF', name="sofaROUKF", paramFileName="daHeteroCylinderConstant/pHardSmoothIm3_estim.out", paramVarFileName="daHeteroCylinderConstant/pHardSmoothIm3_var.out")
+        ROUKF = node.createObject('SofaReducedOrderUKF', name="sofaROUKF", paramFileName="", paramVarFileName="")
         ROUKF.findData('sigmaPointType').value=self.m_sigmaPointType
         
         #node.createObject('OptimParams', name="paramE", template="Vector", initValue="6000 6000 6000", stdev="2000 2000 2000", transformParams="1")
         node.createObject('OptimParams', name="paramE", template="Vector", initValue="6000 6000 6000 6000 6000 6000 6000 6000 6000 6000", stdev="2000 2000 2000 2000 2000 2000 2000 2000 2000 2000", transformParams="1")
         
         #node.createObject('MeshVTKLoader', filename="data/cylinder3_770.vtk", name="loader")
-        node.createObject('MeshVTKLoader', filename="data/cylinder10_4245.vtk", name="loader")
+        node.createObject('MeshVTKLoader', filename="../scenes/data/cylinder10_4245.vtk", name="loader")
                 
         
         # place the cylinder inside the root node
@@ -133,7 +133,7 @@ class CreateScene:
         Obs.createObject('BarycentricMapping')
         Obs.createObject('MappedPointsObservationManager', name="MOBS", observationStdev="0.0", noiseStdev="0.0", listening="1")
         #Obs.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix="cylinderModulusMonitorStatEvolve1Smooth")
-        Obs.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix="../../scenes/cylinder4245_YMStat")
+        Obs.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix="../scenes/observations/cylinder4245_YMStat")
         
 
         Src = node.createChild('SourceMO')
@@ -154,10 +154,10 @@ class CreateScene:
         node.createObject('VerdandiAnimationLoop', name="verdAnimLoop", verbose="0")
 
         #simplex, canonical, star
-        ROUKF = node.createObject('SofaReducedOrderUKFParallel', name="sofaROUKF", sigmaPointType="simplex", paramFileName="daCyl10Par/surfNoise2Ab20_params.out", paramVarFileName="daCyl10Par/surfNoise2Ab20_vars.out")
+        ROUKF = node.createObject('SofaReducedOrderUKFParallel', name="sofaROUKF", sigmaPointType="simplex", paramFileName="daCyl10/surfNoise2Ab20_params.out", paramVarFileName="daCyl10/surfNoise2Ab20_vars.out")
         ROUKF.findData('sigmaPointType').value=self.m_sigmaPointType
         #node.createObject('MeshVTKLoader', filename="data/cylinder3_770.vtk", name="loader")
-        node.createObject('MeshVTKLoader', filename="data/cylinder10_4245.vtk", name="loader")
+        node.createObject('MeshVTKLoader', filename="../scenes/data/cylinder10_4245.vtk", name="loader")
         
 
 
@@ -208,7 +208,7 @@ class CreateScene:
         Obs.createObject('MappedPointsObservationManagerParallel', name="MOBS", observationStdev="10e-3", noiseStdev="2e-3", listening="1", abberantIndex="20")
         
         #Obs.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix="cylinderModulusMonitorStatEvolve1Smooth")
-        Obs.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix="../../scenes/cylinder4245_YMStat")
+        Obs.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix="../scenes/observations/cylinder4245_YMStat")
 
         Src = Cylinder.createChild('SourceNode')
         Src.createObject('MechanicalObject', name="aux_Source", position="@../obsNode/MOBS.mappedObservations")
