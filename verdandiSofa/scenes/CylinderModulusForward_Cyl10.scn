@@ -26,10 +26,10 @@
 	<FixedConstraint indices="@mergeIndices.out" />
 	
 	<BoxROI name="allDOFs" box="-1 -1 -1 1 1 1"/>
-	<Monitor name="observations/cylinder4245_YMStat" indices="@allDOFs.indices" ExportPositions="1" ExportVelocities="1" ExportForces="1"/>
+	<!--<Monitor name="observations/cylinder4245_YMStat" indices="@allDOFs.indices" ExportPositions="1" ExportVelocities="1" ExportForces="1"/>-->
 
 	<Indices2ValuesMapper name="youngMapper" inputValues="@loader.dataset" indices="1 2 3 4 5 6 7 8 9 10" values="@paramE.value"/>
 	<TetrahedronFEMForceField name="FEM" listening="true" updateStiffness="1"  youngModulus="@youngMapper.outputValues" poissonRatio="0.45" method="large"  computeVonMisesStress="0" drawHeterogeneousTetra="1"/>
 
-	<VTKExporter filename="cylinder.vtk" XMLformat="true" listening="true" edges="0" triangles="0" quads="0" tetras="1" exportAtEnd="true"/>
+	<!--<VTKExporter filename="cylinder.vtk" XMLformat="true" listening="true" edges="0" triangles="0" quads="0" tetras="1" exportAtEnd="true"/>-->
 </Node>

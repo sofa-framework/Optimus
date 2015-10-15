@@ -31,9 +31,9 @@ if [ -L CreateScene.py ]; then
  export SofapythonData=$2
  export OMP_NUM_THREADS=1
  #valgrind --log-file=val_par1.out runSofa Test_python.scn
- runSofa Test_python.scn
+ #runSofa Test_python.scn
+ runSofa -g batch -n 50 Test_python.scn
 else
  echo "Cannot execute scene, CreateScene.py is not a symbolic link"
- #runSofa -g batch -n 1 Test_python.scn
 fi
 
