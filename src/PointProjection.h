@@ -9,7 +9,7 @@
 
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/Vec.h>
-
+#include <sofa/defaulttype/Mat.h>
 #include <sofa/helper/vector.h>
 
 namespace sofa
