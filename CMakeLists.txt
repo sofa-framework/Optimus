@@ -1,26 +1,19 @@
 cmake_minimum_required(VERSION 2.8.12)
 project(Optimus)
 
-
 set(OPTIMUS_MAJOR_VERSION 0)
 set(OPTIMUS_MINOR_VERSION 1)
 set(OPTIMUS_VERSION ${OPTIMUS_MAJOR_VERSION}.${OPTIMUS_MINOR_VERSION})
 
-
-
 find_package(SofaFramework REQUIRED)
 find_package(SofaBase REQUIRED)
 find_package(SofaGeneral REQUIRED)
-
-find_package(lua QUIET)
-
 
 set(LINKER_DEPENDENCIES SofaComponentBase SofaComponentGeneral SofaBaseTopology )
 set(COMPILATION_FLAGS -DSOFA_BUILD_OPTIMUS)
 
 
 set(HEADER_FILES
-
     src/initOptimusPlugin.h
     src/OptimParams.h
     src/OptimParams.inl
@@ -38,7 +31,6 @@ set(HEADER_FILES
     )
 
 set(SOURCE_FILES
-
     src/initOptimusPlugin.cpp
     src/PointProjection.cpp
     src/OptimParams.cpp
@@ -56,6 +48,8 @@ set(README_FILES
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${README_FILES})
 
 if(${SOFA-EXTERNAL_VERDANDI})
+	find_package(lua QUIET)
+
 	if(!lua_FOUND)
 		add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}extlibs/lua/cmake")
 		find_package(lua REQUIRED)
@@ -247,8 +241,6 @@ set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${HEADER_FILES}"
 
 target_link_libraries(${PROJECT_NAME} ${LINKER_DEPENDENCIES})
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src")
-
-
 
 install(TARGETS Optimus
         EXPORT  OptimusTargets
