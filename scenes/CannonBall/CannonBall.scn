@@ -1,0 +1,46 @@
+
+<Node name="root" dt="0.01" gravity="0 0 -9.81">
+    <RequiredPlugin name="SofaPython" pluginName="SofaPython" />
+    
+    <VisualStyle displayFlags="showBehavior showCollisionModels" 	/>
+     <Node name="RealSphere" > 
+    	    <EulerImplicitSolver name="EulerImplicit" />
+	    <CGLinearSolver name="CG Solver" iterations="50" tolerance="1e-6" threshold="1e-6"/>
+
+	    <MechanicalObject name="realDOFs" position="0 0 0" velocity="100 0 50" />
+	    <UniformMass name="Mass" totalmass="10"/>
+	    <UniformVelocityDampingForceField dampingCoefficient="2" />
+	    <Sphere radius="20" color="1 0 0 1" />
+    
+	    <BoxROI box=" 0 0 0 1000 1000 1000 " />
+
+      </Node> 
+      
+     <Node name="SimuSphere" > 
+        
+	    <EulerImplicitSolver name="EulerImplicit" />
+	    <CGLinearSolver name="CG Solver" iterations="50" tolerance="1e-6" threshold="1e-6"/>
+	    
+	    <MechanicalObject name="simDOFs" position="0 0 0" velocity="100 0 50" />
+	    <UniformMass name="SimuMass" totalmass="4"/>
+	    <UniformVelocityDampingForceField dampingCoefficient="2" />
+	    <Sphere radius="30" color="0 0 1 1" />
+
+      </Node>
+      
+      
+     <Node name="TestSphere" > 
+        
+	    <EulerImplicitSolver name="EulerImplicit" />
+	    <CGLinearSolver name="CG Solver" iterations="50" tolerance="1e-6" threshold="1e-6"/>
+	    
+	    <MechanicalObject name="testDOFs" position="0 0 0" velocity="100 0 50" />
+	    <UniformMass name="TestMass" totalmass="4"/>
+	    <UniformVelocityDampingForceField dampingCoefficient="2" />
+	    <Sphere radius="30" color="0 1 0 1" />
+
+      </Node>-->
+
+  <PythonScriptController name="KalmanTest" filename="CannonBallKalman.py" classname="Kalman"/>
+	
+</Node>
