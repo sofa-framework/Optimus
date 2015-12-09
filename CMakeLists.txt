@@ -45,18 +45,17 @@ set(README_FILES
     )
 
 
-add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${README_FILES})
 
 if(${SOFA-EXTERNAL_VERDANDI})
-	find_package(lua QUIET)
-
-	if(!lua_FOUND)
-		add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}extlibs/lua/cmake")
-		find_package(lua REQUIRED)
-	endif()
+	set(SOFA-EXTERNAL_VERDANDI_PATH "verdandiSofa/verdandi-1.5")
 
 	find_package(BLAS REQUIRED)
 	find_package(LAPACK REQUIRED)
+        #message(WARNING "Compiling Optimus with verdandi ${SOFA-EXTERNAL_VERDANDI} at path ${SOFA-EXTERNAL_VERDANDI_PATH}")
+	# we probably need to compile LUA
+	add_subdirectory(extlibs/lua)
+
+	message(STATUS "Compiling Optimus with verdandi available in ${SOFA-EXTERNAL_VERDANDI_PATH}")
 
 
     list(APPEND HEADER_FILES
@@ -202,34 +201,11 @@ if(${SOFA-EXTERNAL_VERDANDI})
         ##verdandiSofa/VerdandiObservationParams.cpp        
         )
 
-    include_directories(${SOFA-EXTERNAL_VERDANDI_PATH})
-    include_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/share)
-    include_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include)
-    include_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon)
-    include_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/computation/interfaces)
-    #include_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/
-
-    ###link_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/python)
-    ###link_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon)
-
-    #set(COMPILATION_FLAGS \"${COMPILATION_FLAGS} -DSOFA_HAVE_VERDANDI -DSELDON_WITH_CBLAS\"})
-    set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-DSOFA_HAVE_VERDANDI -DSELDON_WITH_CBLAS")
-    target_link_libraries(${PROJECT_NAME} SofaCore)
-
-    # MAC:
-    ###FIND_LIBRARY(BlasLapackLib Accelerate)
-    ###TARGET_LINK_LIBRARIES(${BlasLapackLib})
-    ###AddLinkerDependencies(SofaCore SofaValidation  ${BlasLapackLib} lua)
-
-    # LINUX:
-    #set(LINKER_DEPENDENCIES "${LINKER_DEPENDENCIES} -lSofaCore -lSofaValidation -llua -lblas -llapack")
-    ###AddLinkerFlags("-Wl,--no-undefined")
 endif()
 
 
 #set(LINKER_DEPENDENCIES "${LINKER_DEPENDENCIES} SofaBaseLinearSolver SofaBoundaryCondition")
-
-
+add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${README_FILES})
 
 target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>")
@@ -241,6 +217,31 @@ set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${HEADER_FILES}"
 
 target_link_libraries(${PROJECT_NAME} ${LINKER_DEPENDENCIES})
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src")
+
+
+if(${SOFA-EXTERNAL_VERDANDI})
+    include_directories(${SOFA-EXTERNAL_VERDANDI_PATH})
+    include_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/share)
+    include_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include)
+    include_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon)
+    include_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/computation/interfaces)
+    include_directories(/Users/ip/Work/sofa/MyPlugins/Optimus/extlibs/lua/src)
+
+    ###link_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/python)
+    ###link_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon)
+
+    set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-DSOFA_HAVE_VERDANDI -DSELDON_WITH_CBLAS")
+    target_link_libraries(${PROJECT_NAME} SofaCore blas cblas lapack liblua)
+
+    # MAC:
+    ###FIND_LIBRARY(BlasLapackLib Accelerate)
+    ###TARGET_LINK_LIBRARIES(${BlasLapackLib})
+    ###AddLinkerDependencies(SofaCore SofaValidation  ${BlasLapackLib} lua)
+
+    # LINUX:
+    #set(LINKER_DEPENDENCIES "${LINKER_DEPENDENCIES} -lSofaCore -lSofaValidation -llua -lblas -llapack")
+    ###AddLinkerFlags("-Wl,--no-undefined")
+endif()
 
 install(TARGETS Optimus
         EXPORT  OptimusTargets
