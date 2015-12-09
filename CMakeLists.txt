@@ -230,7 +230,7 @@ endif()
 
 
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${README_FILES})
-set(LINKER_DEPENDENCIES "${LINKER_DEPENDENCIES} -lSofaBaseLinearSolver -lSofaBoundaryCondition")
+#set(LINKER_DEPENDENCIES "${LINKER_DEPENDENCIES} SofaBaseLinearSolver SofaBoundaryCondition")
 
 
 
