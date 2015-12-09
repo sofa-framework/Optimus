@@ -14,14 +14,6 @@ find_package(SofaGeneral REQUIRED)
 
 find_package(lua QUIET)
 
-if(!lua_FOUND)
-	add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}extlibs/lua/cmake")
-	find_package(lua REQUIRED)
-endif()
-
-find_package(BLAS REQUIRED)
-find_package(LAPACK REQUIRED)
-
 
 set(LINKER_DEPENDENCIES SofaComponentBase SofaComponentGeneral SofaBaseTopology )
 set(COMPILATION_FLAGS -DSOFA_BUILD_OPTIMUS)
@@ -61,8 +53,18 @@ set(README_FILES
     )
 
 
+add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${README_FILES})
 
 if(${SOFA-EXTERNAL_VERDANDI})
+	if(!lua_FOUND)
+		add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}extlibs/lua/cmake")
+		find_package(lua REQUIRED)
+	endif()
+
+	find_package(BLAS REQUIRED)
+	find_package(LAPACK REQUIRED)
+
+
     list(APPEND HEADER_FILES
 
         verdandiSofa/VerdandiAnimationLoop.h
@@ -211,11 +213,14 @@ if(${SOFA-EXTERNAL_VERDANDI})
     include_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include)
     include_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon)
     include_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/computation/interfaces)
+    #include_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/
 
     ###link_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/python)
     ###link_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon)
 
-    set(COMPILATION_FLAGS \"${COMPILATION_FLAGS} -DSOFA_HAVE_VERDANDI -DSELDON_WITH_CBLAS\"})
+    #set(COMPILATION_FLAGS \"${COMPILATION_FLAGS} -DSOFA_HAVE_VERDANDI -DSELDON_WITH_CBLAS\"})
+    set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-DSOFA_HAVE_VERDANDI -DSELDON_WITH_CBLAS")
+    target_link_libraries(${PROJECT_NAME} SofaCore)
 
     # MAC:
     ###FIND_LIBRARY(BlasLapackLib Accelerate)
@@ -223,13 +228,11 @@ if(${SOFA-EXTERNAL_VERDANDI})
     ###AddLinkerDependencies(SofaCore SofaValidation  ${BlasLapackLib} lua)
 
     # LINUX:
-    set(LINKER_DEPENDENCIES "${LINKER_DEPENDENCIES} -lSofaCore -lSofaValidation -llua -lblas -llapack")
+    #set(LINKER_DEPENDENCIES "${LINKER_DEPENDENCIES} -lSofaCore -lSofaValidation -llua -lblas -llapack")
     ###AddLinkerFlags("-Wl,--no-undefined")
-
 endif()
 
 
-add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${README_FILES})
 #set(LINKER_DEPENDENCIES "${LINKER_DEPENDENCIES} SofaBaseLinearSolver SofaBoundaryCondition")
 
 
