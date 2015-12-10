@@ -231,7 +231,7 @@ if(${SOFA-EXTERNAL_VERDANDI})
     ###link_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon)
 
     set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-DSOFA_HAVE_VERDANDI -DSELDON_WITH_CBLAS")
-    target_link_libraries(${PROJECT_NAME} SofaCore blas cblas lapack liblua)
+    target_link_libraries(${PROJECT_NAME} SofaCore blas lapack liblua pthread)
 
     # MAC:
     ###FIND_LIBRARY(BlasLapackLib Accelerate)
