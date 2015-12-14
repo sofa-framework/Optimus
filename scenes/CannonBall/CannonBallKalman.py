@@ -29,9 +29,6 @@ class Kalman(Sofa.PythonScriptController):
 
 
 
-	#M = (np.array(self.posSimu) + np.array(self.posReal)) / 2
-        ##c=np.average(data, axis=0)
-	#M=c.split(",")
 	N=np.mean( np.array([ self.posSimu, self.posReal]), axis=0 )
 	self.M= N.tolist()
         print 'Mean sphere position' +str(self.M)
@@ -40,9 +37,7 @@ class Kalman(Sofa.PythonScriptController):
         return 0
 
     def onEndAnimationStep(self,dt):
-	#for i in range(len(self.posSimu)):
-	  #self.posSimu[i]=self.M[i]
-	  #self.simDOFs.findData('velocity').value = self.M
+	  self.simDOFs.findData('position').value = self.M
 	  return 0
         
   
