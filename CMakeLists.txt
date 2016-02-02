@@ -8,6 +8,7 @@ set(OPTIMUS_VERSION ${OPTIMUS_MAJOR_VERSION}.${OPTIMUS_MINOR_VERSION})
 find_package(SofaFramework REQUIRED)
 find_package(SofaBase REQUIRED)
 find_package(SofaGeneral REQUIRED)
+find_package(SofaPardisoSolver QUIET)
 
 set(LINKER_DEPENDENCIES SofaComponentBase SofaComponentGeneral SofaBaseTopology )
 set(COMPILATION_FLAGS -DSOFA_BUILD_OPTIMUS)
@@ -201,6 +202,13 @@ if(${SOFA-EXTERNAL_VERDANDI})
         ##verdandiSofa/VerdandiObservationParams.cpp        
         )
 
+endif()
+
+
+if(SofaPardisoSolver_FOUND)
+    set(LINKER_DEPENDENCIES ${LINKER_DEPENDENCIES} SofaPardisoSolver )
+else()
+    message("SofaPardisoSolver not found, some scenes may not work")
 endif()
 
 
