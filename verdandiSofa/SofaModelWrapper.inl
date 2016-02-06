@@ -970,7 +970,7 @@ typename SofaModelWrapper<Type>::state_error_variance& SofaModelWrapper<Type>::G
 template<class Type>
 void SofaModelWrapper<Type>::computeCollision()
 {
-    if (this->f_printLog.getValue()) std::cerr<<"CollisionAnimationLoop::computeCollision()"<<endl;
+    if (this->f_printLog.getValue()) std::cerr<<"CollisionAnimationLoop::computeCollision()"<<std::endl;
 
     {
         CollisionBeginEvent evBegin;

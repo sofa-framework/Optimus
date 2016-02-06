@@ -317,9 +317,9 @@ helper::vector<typename SofaModelWrapperParallel<Type>::SofaObjectParallel> Sofa
  * @return objID vector
  */
 template<class Type>
-vector<typename SofaModelWrapperParallel<Type>::ObjID> SofaModelWrapperParallel<Type>::getObjIDsFromObjects (const vector<SofaObjectParallel>& objects)
+helper::vector<typename SofaModelWrapperParallel<Type>::ObjID> SofaModelWrapperParallel<Type>::getObjIDsFromObjects (const helper::vector<SofaObjectParallel>& objects)
 {
-    vector<ObjID> objectIDs;
+    helper::vector<ObjID> objectIDs;
     ObjID temp;
 
     // bind node name and object name to the object
@@ -339,9 +339,9 @@ vector<typename SofaModelWrapperParallel<Type>::ObjID> SofaModelWrapperParallel<
  * Sorts an object vector lexicographically by concatenation of parent name and object name
  */
 template<class Type>
-vector<typename SofaModelWrapperParallel<Type>::ObjID> SofaModelWrapperParallel<Type>::getSortedObjIDsFromObjects (const helper::vector<SofaObjectParallel>& objects)
+helper::vector<typename SofaModelWrapperParallel<Type>::ObjID> SofaModelWrapperParallel<Type>::getSortedObjIDsFromObjects (const helper::vector<SofaObjectParallel>& objects)
 {
-    vector<ObjID> objectIDs=getObjIDsFromObjects(objects);
+    helper::vector<ObjID> objectIDs=getObjIDsFromObjects(objects);
 
     // sort by node name+object name
     std::sort(objectIDs.begin(), objectIDs.end(),
@@ -361,8 +361,8 @@ vector<typename SofaModelWrapperParallel<Type>::ObjID> SofaModelWrapperParallel<
 template <class Type>
 void SofaModelWrapperParallel<Type>::synchronizeSofaObjects ()
 {
-    vector<ObjID> masterIDs;
-    vector<ObjID> slaveIDs;
+    helper::vector<ObjID> masterIDs;
+    helper::vector<ObjID> slaveIDs;
 
     // apply ordering to objects
     masterIDs=getSortedObjIDsFromObjects(sofaObjectsMaster);
@@ -522,7 +522,7 @@ void SofaModelWrapperParallel<Type>::initSimuData(const ModelData &_md)
             t_threadData[slaveIndex].localRoot=opnode;
             t_threadData[slaveIndex].sofaObjectsSlave = getSofaObjects(opnode);
             t_threadData[slaveIndex].paramsSlave=oparam;
-            t_threadData[slaveIndex].sigmaPointIndices=vector<int>();
+            t_threadData[slaveIndex].sigmaPointIndices=helper::vector<int>();
 
             // slave nodes shall not be optimized
             oparam->setOptimize(false);

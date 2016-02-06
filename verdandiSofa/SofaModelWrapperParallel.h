@@ -284,7 +284,7 @@ public:
         OptimParams* paramsSlave; // params governing the scene
         helper::vector<SofaObjectParallel> sofaObjectsSlave; // Sofa objects in this local scene
         ThreadSignal threadSignal; // signal for data assimilation step
-        vector<int> sigmaPointIndices; // indices to be computed
+        helper::vector<int> sigmaPointIndices; // indices to be computed
     } ThreadData_t;
 
 
@@ -341,8 +341,8 @@ public:
 
 private:
     static helper::vector<SofaObjectParallel> getSofaObjects(const simulation::Node* root);
-    static vector<ObjID> getObjIDsFromObjects (const vector<SofaObjectParallel>& objects);
-    static vector<ObjID> getSortedObjIDsFromObjects (const helper::vector<SofaObjectParallel>& objects);
+    static helper::vector<ObjID> getObjIDsFromObjects (const helper::vector<SofaObjectParallel>& objects);
+    static helper::vector<ObjID> getSortedObjIDsFromObjects (const helper::vector<SofaObjectParallel>& objects);
     void synchronizeSofaObjects ();
 
     void distributeWork();
