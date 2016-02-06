@@ -1,8 +1,9 @@
 <?xml version="1.0" ?>
 <Node name="root" dt="0.01" showBoundingTree="0" gravity="0 -9.81 0">
 	<RequiredPlugin pluginName="Optimus"/>
-	<RequiredPlugin pluginName="SofaPardisoWrapper"/>
-	<RequiredPlugin pluginName="BilikimoAux"/>
+	<!-- <RequiredPlugin pluginName="SofaPardisoWrapper"/> -->
+	<!-- <RequiredPlugin pluginName="BilikimoAux"/> -->
+	<RequiredPlugin pluginName="SofaPardisoSolver"/>
  	<VisualStyle displayFlags="showBehaviorModels showForceFields showCollisionModels" />
 			
 	<VerdandiAnimationLoop name="verdAnimLoop"  verbose="0"/>
@@ -48,7 +49,7 @@
 		    0.0144 -0.0139 0.0402    0.0177 0.00936 0.145    0.0095 0.0176 0.145    0.0175 0.00961 0.0951    0.00925 0.0177 0.0953    0.0139 0.0144 0.12    0.00937 -0.0177 0.145   
 		    0.0176 -0.00949 0.145    0.00935 -0.0177 0.0953    0.0176 -0.00949 0.095    0.0142 -0.0141 0.12    0.0177 0.00937 0.175    0.00949 0.0176 0.175    0.014 0.0143 0.2   
 		    0.00959 -0.0175 0.175    0.0177 -0.00924 0.175    0.0143 -0.014 0.2"/>
-		<Sphere radius="0.002" color="1 0 0"/>
+		<Sphere radius="0.002" color="1 0 0 1"/>
 		<BarycentricMapping/>
 <!-- 		<IdentityMapping/> -->
 		<MappedPointsObservationManager name="MOBS" observationStdev="2e-3" noiseStdev="2e-3" listening="1"/>
@@ -58,7 +59,7 @@
 	
 	<Node>
 		<MechanicalObject name="SourceMO" position="@../obsNode/MOBS.mappedObservations"/>
-		<Sphere radius="0.002" color="0 0 0.3"/>
+		<Sphere radius="0.002" color="0 0 0.3 1"/>
 	</Node>
 	
 <!-- 	<VTKExporter filename="cylinder.vtk" XMLformat="true" listening="true" edges="0" triangles="0" quads="0" tetras="1" exportAtEnd="true"/>  -->
