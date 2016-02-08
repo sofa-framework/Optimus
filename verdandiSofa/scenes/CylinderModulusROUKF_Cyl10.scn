@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Node name="root" dt="0.01" showBoundingTree="0" gravity="0 -9.81 0">
 	<RequiredPlugin pluginName="Optimus"/>
-	<RequiredPlugin pluginName="SofaPardisoWrapper"/>
+	<RequiredPlugin pluginName="SofaPardisoSolver"/>
 <!-- 	<RequiredPlugin pluginName="BilikimoAux"/> -->
 	<VisualStyle displayFlags="showBehaviorModels showForceFields showCollisionModels" />
 			

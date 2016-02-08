@@ -1,8 +1,8 @@
 <?xml version="1.0" ?>
 <Node name="root" dt="0.01" showBoundingTree="0" gravity="0 -9.81 0">
 	<RequiredPlugin pluginName="Optimus"/>
-	<RequiredPlugin pluginName="SofaPardisoWrapper"/>
-	<RequiredPlugin pluginName="BilikimoAux"/>
+	<RequiredPlugin pluginName="SofaPardisoSolver"/>
+<!-- 	<RequiredPlugin pluginName="BilikimoAux"/> -->
 	<VisualStyle displayFlags="showBehaviorModels showForceFields showCollisionModels" />
 						
 	<OptimParams name="paramE" template="Vector" optimize="0" numParams="3" prescribedParamKeys="0.0 10000 2000 8000  5.0 10000 2000 8000" exportParamFile="daCyl3/params.out"/> 
@@ -20,6 +20,8 @@
 	<include href="Objects/TetrahedronSetTopology.xml" src="@loader" />
 	<UniformMass totalMass="0.2513"/>
 
+	<BoxROI name="dummyBox" box="0 0 0 0.1 0.1 0.1"/>
+	
 	<BoxROI name="fixedBox1" box="-0.05 -0.05 -0.002   0.05 0.05 0.002"/>
 	<BoxROI name="fixedBox2" box="-0.05 -0.05  0.238   0.05 0.05 0.242"/>
 	
