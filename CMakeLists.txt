@@ -233,7 +233,7 @@ if(${SOFA-EXTERNAL_VERDANDI})
     include_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include)
     include_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon)
     include_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/computation/interfaces)
-    include_directories(/Users/ip/Work/sofa/MyPlugins/Optimus/extlibs/lua/src)
+    include_directories(${LUA_INCLUDE_DIR})
 
     ###link_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/python)
     ###link_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon)
