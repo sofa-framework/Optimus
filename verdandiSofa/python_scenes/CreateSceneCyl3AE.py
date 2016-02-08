@@ -73,7 +73,7 @@ class CreateScene:
     def createConsciseScene(self, node):
         # scene global stuff
         node.createObject('RequiredPlugin', pluginName='Optimus', name='Optimus')
-        node.createObject('RequiredPlugin', pluginName='SofaPardisoWrapper', name='SofaPardisoWrapper')
+        node.createObject('RequiredPlugin', pluginName='SofaPardisoSolver', name='SofaPardisoSolver')
         node.createObject('RequiredPlugin', pluginName='BilikimoAux', name='BilikimoAux')
         node.findData('gravity').value="0 -9.81 0"
         node.findData('dt').value="0.01"
@@ -125,7 +125,7 @@ class CreateScene:
     def createGlobalComponents(self, node):
         # scene global stuff
         node.createObject('RequiredPlugin', pluginName='Optimus', name='Optimus')
-        node.createObject('RequiredPlugin', pluginName='SofaPardisoWrapper', name='SofaPardisoWrapper')
+        node.createObject('RequiredPlugin', pluginName='SofaPardisoSolver', name='SofaPardisoSolver')
         node.createObject('RequiredPlugin', pluginName='BilikimoAux', name='BilikimoAux')
         node.findData('gravity').value="0 -9.81 0"
         node.findData('dt').value="0.01"
