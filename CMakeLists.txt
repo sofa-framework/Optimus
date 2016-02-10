@@ -205,15 +205,15 @@ if(${SOFA-EXTERNAL_VERDANDI})
 endif()
 
 
+add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${README_FILES})
+
+
 if(SofaPardisoSolver_FOUND)
     set(LINKER_DEPENDENCIES ${LINKER_DEPENDENCIES} SofaPardisoSolver )
 else()
     message("SofaPardisoSolver not found, some scenes may not work")
 endif()
 
-
-#set(LINKER_DEPENDENCIES "${LINKER_DEPENDENCIES} SofaBaseLinearSolver SofaBoundaryCondition")
-add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${README_FILES})
 
 target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>")
