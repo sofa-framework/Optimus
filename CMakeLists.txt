@@ -215,6 +215,11 @@ else()
 endif()
 
 
+if(${SOFA-EXTERNAL_VERDANDI})
+    target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/extlibs/lua/src")
+endif()
+
+
 target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>")
 target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>")
@@ -225,6 +230,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${HEADER_FILES}"
 
 target_link_libraries(${PROJECT_NAME} ${LINKER_DEPENDENCIES})
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src")
+
 
 
 if(${SOFA-EXTERNAL_VERDANDI})
