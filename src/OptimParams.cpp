@@ -143,6 +143,7 @@ void OptimParams<sofa::helper::vector<double> >::init() {
     Inherit::init();
     m_dim = 1;
 
+    sout << ": initializing " << sendl;
     /// if optimization is done, take the initial value and initial stdev
     if (!this->m_optimize.getValue() && !this->m_prescribedParamKeys.getValue().empty()) {
         helper::ReadAccessor<Data<helper::vector<double> > >keys = m_prescribedParamKeys;
@@ -151,7 +152,7 @@ void OptimParams<sofa::helper::vector<double> >::init() {
         size_t numKeyValues = keys.size();
 
         if ((numKeyValues % (numParams+1) ) != 0) {
-            std::cerr << this->getName() << " ERROR: wrong size of keys, should be N x " << numParams+1 << std::endl;
+            serr << this->getName() << " ERROR: wrong size of keys, should be N x " << numParams+1 << sendl;
         } else {
             size_t numKeys = numKeyValues / (numParams+1);
             std::cout << this->getName() << " found " << numKeys << " keys for prescribed parameters" << std::endl;
@@ -183,11 +184,13 @@ void OptimParams<sofa::helper::vector<double> >::init() {
 
     helper::ReadAccessor<Data<sofa::helper::vector<double> > > initVal = m_initVal;
     size_t nInitVal = initVal.size();
-    m_numParams.setValue(nInitVal);
+    //m_numParams.setValue(nInitVal);
+    sout << "# init val: " << nInitVal << " numParams = " << m_numParams.getValue() << sendl;
 
-    if (nInitVal == 1 && m_numParams.getValue() > 1) {
+    if (nInitVal == 1 && m_numParams.getValue() > 1) {        
         double value = initVal[0];
         nInitVal = m_numParams.getValue();
+        sout << ": Resizing init value vector to " << nInitVal << sendl;
         helper::WriteAccessor<Data<sofa::helper::vector<double> > > wInitVal = m_initVal;
         wInitVal.wref().resize(nInitVal);
         for (size_t i = 0; i < nInitVal; i++)
