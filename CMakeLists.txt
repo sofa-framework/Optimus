@@ -205,6 +205,9 @@ if(${SOFA-EXTERNAL_VERDANDI})
 endif()
 
 
+add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${README_FILES})
+
+
 if(SofaPardisoSolver_FOUND)
     set(LINKER_DEPENDENCIES ${LINKER_DEPENDENCIES} SofaPardisoSolver )
 else()
@@ -212,8 +215,10 @@ else()
 endif()
 
 
-#set(LINKER_DEPENDENCIES "${LINKER_DEPENDENCIES} SofaBaseLinearSolver SofaBoundaryCondition")
-add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${README_FILES})
+if(${SOFA-EXTERNAL_VERDANDI})
+    target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/extlibs/lua/src")
+endif()
+
 
 target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>")
@@ -227,13 +232,14 @@ target_link_libraries(${PROJECT_NAME} ${LINKER_DEPENDENCIES})
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 
+
 if(${SOFA-EXTERNAL_VERDANDI})
     include_directories(${SOFA-EXTERNAL_VERDANDI_PATH})
     include_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/share)
     include_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include)
     include_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon)
     include_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon/computation/interfaces)
-    include_directories(/Users/ip/Work/sofa/MyPlugins/Optimus/extlibs/lua/src)
+    include_directories(${LUA_INCLUDE_DIR})
 
     ###link_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/python)
     ###link_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon)

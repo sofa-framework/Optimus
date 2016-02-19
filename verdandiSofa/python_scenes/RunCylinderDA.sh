@@ -25,15 +25,25 @@ fi
 	
 echo "Executing version $1 with parameters $2" 
 
+DO_RUN=0
 if [ -L CreateScene.py ]; then
- rm CreateScene.py
- ln -s $1 CreateScene.py 
- export SofapythonData=$2
- export OMP_NUM_THREADS=1
- #valgrind --log-file=val_par1.out runSofa Test_python.scn
- #runSofa Test_python.scn
- runSofa -g batch -n 50 Test_python.scn
-else
- echo "Cannot execute scene, CreateScene.py is not a symbolic link"
+	rm CreateScene.py
+	DO_RUN=1
 fi
+
+if [ ! -f CreateScene.py ]; then
+	DO_RUN=1
+fi
+
+if [ "$DO_RUN" -eq 0 ]; then
+ 	echo "Cannot execute scene, CreateScene.py is not a symbolic link"
+	exit
+fi
+
+ln -s $1 CreateScene.py 
+export SofapythonData=$2
+export OMP_NUM_THREADS=1
+#valgrind --log-file=val_par1.out runSofa Test_python.scn
+runSofa Test_python.scn
+#runSofa -g batch -n 50 Test_python.scn
 
