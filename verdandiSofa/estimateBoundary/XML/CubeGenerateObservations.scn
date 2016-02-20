@@ -18,11 +18,11 @@
             <StaticSolver applyIncrementFactor="0"/>	
             <SparsePARDISOSolver/>
 
-            <MeshVTKLoader filename="../Data/beam1_1635.vtk" name="loader" />
+            <MeshVTKLoader filename="../../Data/beam1_1635.vtk" name="loader" />
             <MechanicalObject src="@loader" name="Volume" />
             
             <BoxROI name="allDOFs" box="-1 -1 -1 1 1 1"/>
-            <Monitor name="observations/beam1635_A" indices="@allDOFs.indices" ExportPositions="1" ExportVelocities="1" ExportForces="1"/>
+            <Monitor name="../observations/beam1635_A" indices="@allDOFs.indices" ExportPositions="1" ExportVelocities="1" ExportForces="1"/>
             
             <include href="Objects/TetrahedronSetTopology.xml" src="@loader" />
             <UniformMass totalMass="0.2513"/>
@@ -53,7 +53,7 @@
     <!-- 		<SimulatedStateObservationSource name="ObsSource" monitorPrefix="cylinder4245_YMStat"/> -->
     <!-- 	</Node> -->
             <Node name="visualization" activated="1">
-                    <MeshSTLLoader filename="../Data/beam1_1635.stl" name="loader" />
+                    <MeshSTLLoader filename="../../Data/beam1_1635.stl" name="loader" />
                     <include href="Objects/TriangleSetTopology.xml" src="@loader" />
                     <MechanicalObject src="@loader" name="Surface"/>
                     <Line color="0 0 0 1"/>

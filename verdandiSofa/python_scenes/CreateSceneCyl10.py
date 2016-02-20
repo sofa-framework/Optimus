@@ -154,7 +154,7 @@ class CreateScene:
         node.createObject('VerdandiAnimationLoop', name="verdAnimLoop", verbose="0")
 
         #simplex, canonical, star
-        ROUKF = node.createObject('SofaReducedOrderUKFParallel', name="sofaROUKF", sigmaPointType="simplex", paramFileName="daCyl10/surfNoise2Ab20_params.out", paramVarFileName="daCyl10/surfNoise2Ab20_vars.out")
+        ROUKF = node.createObject('SofaReducedOrderUKFParallel', name="sofaROUKF", sigmaPointType="simplex", paramFileName="daCyl10/exp1.out", paramVarFileName="daCyl10/vars1.out")
         ROUKF.findData('sigmaPointType').value=self.m_sigmaPointType
         #node.createObject('MeshVTKLoader', filename="data/cylinder3_770.vtk", name="loader")
         node.createObject('MeshVTKLoader', filename="../scenes/data/cylinder10_4245.vtk", name="loader")
@@ -164,7 +164,7 @@ class CreateScene:
     def createMasterScene(self, node):
 
         #node.createObject('OptimParams', name="paramE", template="Vector", initValue="6000 6000 6000", stdev="2000 2000 2000", transformParams="1")
-        node.createObject('OptimParams', name="paramE", template="Vector", initValue="6000 6000 6000 6000 6000 6000 6000 6000 6000 6000", stdev="2000 2000 2000 2000 2000 2000 2000 2000 2000 2000", transformParams="1")
+        node.createObject('OptimParams', name="paramE", template="Vector", initValue="6000 6000 6000 6000 6000 6000 6000 6000 6000 6000", stdev="2000 2000 2000 2000 2000 2000 2000 2000 2000 2000", transformParams="1", printLog="1")
         
         #node.createObject('Indices2ValuesMapper', name="youngMapper", inputValues="@loader.dataset", indices="1 2 3", values="@paramE.value")
         node.createObject('Indices2ValuesMapper', name="youngSlaveMapper", inputValues="@loader.dataset", indices="1 2 3 4 5 6 7 8 9 10", values="@paramE.value")
@@ -174,27 +174,26 @@ class CreateScene:
 
         Cylinder.createObject('StaticSolver', applyIncrementFactor="1")
 
-        PARDISO = Cylinder.createObject('SparsePARDISOSolver')
-        if (self.m_saveToFile != 0):
-            pardisoLabel = "Master"
-            PARDISO.findData("saveDataToFile").value="1"
-            PARDISO.findData("fileLabel").value=pardisoLabel
+        Cylinder.createObject('CGLinearSolver',maxIterations="1");
+        #PARDISO = Cylinder.createObject('SparsePARDISOSolver')
+        #if (self.m_saveToFile != 0):
+            #pardisoLabel = "Master"
+            #PARDISO.findData("saveDataToFile").value="1"
+            #PARDISO.findData("fileLabel").value=pardisoLabel
         Cylinder.createObject('MechanicalObject', src="@/loader", name="VolumeMaster")
         Cylinder.createObject('TetrahedronSetTopologyModifier', name="Modifier")
         Cylinder.createObject('TetrahedronSetTopologyContainer', name="Container", src="@/loader", tags=" ")
-        Cylinder.createObject('TetrahedronSetTopologyAlgorithms', name="TopoAlgo", template="Vec3d")
-        Cylinder.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo", template="Vec3d")
-        Cylinder.createObject('UniformMass', totalMass="0.2513")
-        
-        #Cylinder.createObject('BoxROI', name="fixedBox1", box="-0.05 -0.05 -0.002   0.05 0.05 0.002")
-        #Cylinder.createObject('BoxROI', name="fixedBox2", box="-0.05 -0.05  0.238   0.05 0.05 0.242")
-        Cylinder.createObject('BoxROI', name="fixedBox1", box="-0.05 -0.05 -0.002   0.05 0.05 0.002")
-        Cylinder.createObject('BoxROI', name="fixedBox2", box="-0.05 -0.05  0.298   0.05 0.05 0.302")
-        
-        Cylinder.createObject('MergeSets', name="mergeIndices", in1="@fixedBox1.indices", in2="@fixedBox2.indices")
-        Cylinder.createObject('FixedConstraint', indices="@mergeIndices.out")
+        #Cylinder.createObject('TetrahedronSetTopologyAlgorithms', name="TopoAlgo", template="Vec3d")
+        #Cylinder.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo", template="Vec3d")
+        #Cylinder.createObject('UniformMass', totalMass="0.2513")
                 
-        Cylinder.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus="@../youngSlaveMapper.outputValues", poissonRatio="0.45", method="large", computeVonMisesStress="0", drawHeterogeneousTetra="1")
+        #Cylinder.createObject('BoxROI', name="fixedBox1", box="-0.05 -0.05 -0.002   0.05 0.05 0.002")
+        #Cylinder.createObject('BoxROI', name="fixedBox2", box="-0.05 -0.05  0.298   0.05 0.05 0.302")
+        
+        #Cylinder.createObject('MergeSets', name="mergeIndices", in1="@fixedBox1.indices", in2="@fixedBox2.indices")
+        #Cylinder.createObject('FixedConstraint', indices="@mergeIndices.out")
+                
+        #Cylinder.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus="@../youngSlaveMapper.outputValues", poissonRatio="0.45", method="large", computeVonMisesStress="0", drawHeterogeneousTetra="1")
 
 
         Obs = Cylinder.createChild('obsNode')
@@ -208,7 +207,7 @@ class CreateScene:
         Obs.createObject('MappedPointsObservationManagerParallel', name="MOBS", observationStdev="2e-3", noiseStdev="0.0", listening="1", abberantIndex="-1")
         
         #Obs.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix="cylinderModulusMonitorStatEvolve1Smooth")
-        Obs.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix="../scenes/observations/cylinder4245_YMStat")
+        Obs.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix="../scenes/observations/cylinder4245_YMStat", printLog="1")
 
         Src = Cylinder.createChild('SourceNode')
         Src.createObject('MechanicalObject', name="aux_Source", position="@../obsNode/MOBS.mappedObservations")
