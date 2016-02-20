@@ -31,6 +31,7 @@
 #include <sofa/simulation/common/common.h>
 #include <sofa/core/objectmodel/BaseObject.h>
 #include <sofa/core/objectmodel/Data.h>
+
 #include <string>
 #include <iterator>
 #include <sstream>
@@ -65,42 +66,35 @@ SimulatedStateObservationSource<DataTypes>::~SimulatedStateObservationSource()
 template<class DataTypes>
 void SimulatedStateObservationSource<DataTypes>::init()
 {
-    std::cout << "[" << this->getName() << "]: ==init start" << std::endl;
+    sout << this->getName() << " Init started" << sendl;
     std::string posFile = m_monitorPrefix.getValue() + "_x.txt";
 
-    int numPos = parseMonitorFile(posFile);
+    parseMonitorFile(posFile);
+    m_actualObservation.setValue(positions[0]);  // OK, since there is at least the dummy observation
 
-    if (numPos >= 0) {
-        std::cout << "[" << this->getName() << "]: number of parsed positions: " << numPos << std::endl;
-        m_actualObservation.setValue(positions[0]);
-
-    } else {
-        std::cerr << "[" << this->getName() << "]: ERROR: " << numPos << std::endl;
-    }
-    std::cout << "[" << this->getName() << "]: ==init done" << std::endl;
-
+    sout << "Init done" << sendl;
 }
 
 template<class DataTypes>
-int SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _name) {
+void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _name) {
     std::ifstream file(_name.c_str());
 
     nParticles = 0;
-    nStates = 0;
+    nObservations = 0;
     if (file.good()) {
         /// parse the header of a monitor-generated file:
         std::string line;
 
         getline(file, line);
         if (line[0] != '#') {
-            std::cerr << this->getName() << ": ERROR on line 2 in " << name << std::endl;
-            return(-2);
+            serr << "ERROR on line 2 in " << name << sendl;
+            return;
         }
 
         getline(file, line);
         if (line[0] != '#') {
-            std::cerr << this->getName() << ": ERROR on line 2 in " << name << std::endl;
-            return(-3);
+            serr << "ERROR on line 2 in " << name << sendl;
+            return;
         }
 
         std::stringstream ss(line);
@@ -113,8 +107,7 @@ int SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _n
 
         nParticles = tokens.size() - tki;
 
-        std::cout << "[" << this->getName() << "]: number of particles: " << nParticles << std::endl;
-
+        sout << "Number of observed particles: " << nParticles << sendl;
 
         getline(file, line);
         std::stringstream ss2(line);
@@ -126,14 +119,14 @@ int SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _n
         while (tokens.size() > 1) {
             int dim = (tokens.size() -1)/nParticles;
             if (dim != 3) {
-                std::cerr << this->getName() << ": ERROR on line " << 3+nStates << " dim: " << dim << std::endl;
-                return(-4);
+                serr << "ERROR on line " << 3+nObservations << " dim: " << dim << sendl;
+                return;
             }
 
-            if (nStates == 0)
+            if (nObservations == 0)
                 dt = atof(tokens[0].c_str());
 
-            if (nStates == 1)
+            if (nObservations == 1)
                 dt = atof(tokens[0].c_str()) - dt;
 
             VecCoord position(nParticles);
@@ -141,17 +134,10 @@ int SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _n
                 for (int d = 0; d < 3; d++)
                     position[i][d] = atof(tokens[3*i+d+1].c_str());
 
-            //positions[time] = position;
             positions.push_back(position);
+            nObservations++;
 
-            //std::cout << "Reading # observations for time " << time << " : " << positions[time].size() << std::endl;
-            //std::cout << int(time/0.001d) << std::endl;
-
-            /*std::cout << "State at time " << time << std::endl;
-            for (int i = 0; i < nParticles; i++)
-                std::cout << positions[time][i] << std::endl;*/
-
-            nStates++;
+            //sout << " positions size: " << positions.size() << sendl;
 
             getline(file, line);
             std::stringstream ss(line);
@@ -162,16 +148,24 @@ int SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _n
             tokens=tk;
         }
     } else {
-        std::cerr << this->getName() << ": ERROR cannot open " << name << std::endl;
-        return(-1);
+        serr << ": ERROR cannot open " << name << sendl;
+        return;
     }
 
-
-
-    //std::cout << this->getName() << " successfully read"
-    return(nStates);
-
-
+    if (nObservations > 0) {
+        sout << "Valid observations available: #observations: " << nObservations << " #particles: " << nParticles << sendl;
+    } else {
+        // workaround in the case when no observations are available
+        if (nParticles > 0) {
+            VecCoord position(size_t(nParticles), Coord(0.0,0.0,0.0));
+            positions.push_back(position);
+            serr << "ERROR: no positions, adding zero observations of length " << nParticles << sendl;
+        } else  {
+            VecCoord position(size_t(1000), Coord(0.0,0.0,0.0));
+            positions.push_back(position);
+            serr << "OBSERVATION FATAL ERROR: no positions and no particles, adding dummy zero observation vector of length 1000!" << sendl;
+        }
+    }
 }
 
 

@@ -28,6 +28,8 @@
 #include <sofa/simulation/common/common.h>
 #include <sofa/core/objectmodel/BaseObject.h>
 #include <sofa/core/objectmodel/Data.h>
+#include <SofaBaseMechanics/MechanicalObject.h>
+
 #include <string>
 
 #include "ObservationSource.h"
@@ -53,10 +55,12 @@ class SOFA_SIMULATION_COMMON_API SimulatedStateObservationSource : public BaseOb
 public:
     typedef sofa::core::objectmodel::BaseObject Inherit;
     typedef typename DataTypes::VecCoord VecCoord;
+    typedef typename DataTypes::Coord Coord;
+    typedef typename DataTypes::Real Real;
     typedef typename std::vector<VecCoord> VecVecCoord;
 
 protected:
-    int nParticles, nStates;
+    int nParticles, nObservations;
     double dt;
 
 public:
@@ -69,30 +73,22 @@ public:
 
     /// maps:  time + vector
     //std::map<double, VecCoord> positions;
-    std::vector<VecCoord> positions;
-
-
+    std::vector<VecCoord> positions;    
 
     void init();
 
-    int parseMonitorFile(std::string& _name);
-    VecCoord& getObservation(double time) {
-        int ix = int(time/dt);
+    void bwdInit() {}
 
+    void parseMonitorFile(std::string& _name);
+    VecCoord& getObservation(double time) {
+
+        size_t ix = (fabs(dt) < 1e-10) ? 0 : size_t(time/dt);
+        sout << "Getting observation for time " << time << " index: " << ix << sendl;
         if (ix >= int(positions.size())) {
-            std::cerr << this->getName() << " ERROR: no observation for time " << time << " , using the last one from " << positions.size()-1 << std::endl;
+            serr << "ERROR: no observation for time " << time << " , using the last one from " << positions.size()-1 << sendl;
             ix = positions.size() - 1;
-        } else {
-            //std::cout << this->getName() << " observation in time " << time << ": " << positions[ix] << std::endl;
-            /*if (ix > 0) {
-                std::cout << this->getName() << " difference w.r.t. previous: ";
-                for (size_t ii = 0; ii < positions[ix].size(); ii++)
-                    std::cout << positions[ix][ii] - positions[ix-1][ii] << " ";
-                std::cout << std::endl;
-            }*/
         }
         m_actualObservation.setValue(positions[ix]);
-
         return(positions[ix]);
     }
 
@@ -101,7 +97,7 @@ public:
     }
 
     int getNStates() {
-        return nStates;
+        return nObservations;
     }
 
 

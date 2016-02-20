@@ -1143,9 +1143,9 @@ void SofaReducedOrderUKF<Model, ObservationManager>::FinalizeStep() {
                 for (int j = 0; j < i; j++)
                     paramFile << tmp2(i,j) << " ";
 
-            for (int i = 1; i < this->Nreduced_; i++)
+            /*for (int i = 1; i < this->Nreduced_; i++)
                 for (int j = 0; j < i; j++)
-                    paramFile << tmp2(j,i) << " ";
+                    paramFile << tmp2(j,i) << " ";*/
 
             paramFile << '\n';
             paramFile.close();
