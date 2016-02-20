@@ -184,19 +184,26 @@ void OptimParams<sofa::helper::vector<double> >::init() {
 
     helper::ReadAccessor<Data<sofa::helper::vector<double> > > initVal = m_initVal;
     size_t nInitVal = initVal.size();
-    //m_numParams.setValue(nInitVal);
-    sout << "# init val: " << nInitVal << " numParams = " << m_numParams.getValue() << sendl;
 
-    if (nInitVal == 1 && m_numParams.getValue() > 1) {        
-        double value = initVal[0];
-        nInitVal = m_numParams.getValue();
-        sout << ": Resizing init value vector to " << nInitVal << sendl;
-        helper::WriteAccessor<Data<sofa::helper::vector<double> > > wInitVal = m_initVal;
-        wInitVal.wref().resize(nInitVal);
-        for (size_t i = 0; i < nInitVal; i++)
-            wInitVal[i] = value;
+    if (m_numParams.getValue() == 0 && nInitVal > 0) {
+        sout << this->getName() << ": setting parameter number according to init. value vector: " << nInitVal << sendl;
+        m_numParams.setValue(nInitVal);
+    } else {
+        if (m_numParams.getValue() > 0 && nInitVal == 1) {
+            nInitVal = m_numParams.getValue();
+            sout << this->getName() << ": copying initial value to " << nInitVal << " positions" << sendl;
+            double value = initVal[0];
+
+            sout << this->getName() << ": Resizing init value vector to " << nInitVal << sendl;
+            helper::WriteAccessor<Data<sofa::helper::vector<double> > > wInitVal = m_initVal;
+            wInitVal.wref().resize(nInitVal);
+            for (size_t i = 0; i < nInitVal; i++)
+                wInitVal[i] = value;
+        } else {
+            serr << this->getName() << ": Incompatible input: numParams: " << m_numParams.getValue() << " |initVal| = " << nInitVal << sendl;
+            return;
+        }
     }
-
 
     if (nInitVal != 0) {
         helper::WriteAccessor<Data<sofa::helper::vector<double> > > val = m_val;

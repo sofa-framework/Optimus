@@ -557,7 +557,9 @@ namespace Verdandi
             for (int i = 0; i < Nsigma_point_; i++)
             {
                 GetCol(X_i_, i, x_col);
+                //std::cout << "Apply operator start..." << std::endl;
                 new_time = model_.ApplyOperator(x_col, false);
+                //std::cout << "Apply operator done!" << std::endl;
                 if (new_time<0.0f)
                 {
                     parallel_mode=true;
@@ -601,6 +603,7 @@ namespace Verdandi
                 //
                 delete[] verdandi_states; // free the memory - verdandi_states
             }
+            std::cout << "X = " << x << std::endl;
             TOCTIC("== par mode ==");
             /**
              * -----------------------------END OF ADJUSTED SECTION---------------------------------

@@ -529,6 +529,7 @@ double SofaModelWrapper<Type>::ApplyOperator(state& _x, bool _preserve_state, bo
     double saved_time = 0;
     state saved_state;
     saved_time = GetTime();
+    SetTime(saved_time);
 
     if (_preserve_state)
         saved_state.SetData(duplicated_state_);
@@ -537,16 +538,14 @@ double SofaModelWrapper<Type>::ApplyOperator(state& _x, bool _preserve_state, bo
     duplicated_state_.SetData(_x);
     StateUpdated();
 
-    Forward(_update_force, false);
+    Forward(_update_force, false);    
     StateSofa2Verdandi();
-    double new_time = GetTime();
+    double new_time = GetTime();        
 
     GetStateCopy(duplicated_state_);
 
     duplicated_state_.Nullify();
-    
-    SetTime(saved_time);
-
+            
     /*std::cout << "end _x ";
     for (size_t i = 0; i < _x.GetSize(); i++)
         std::cout << _x(i) << " ";
@@ -588,7 +587,7 @@ void SofaModelWrapper<Type>::StepDefault(bool _update_force, bool _update_time) 
     //int step=0;
     double    dt = gnode->getDt();
 
-    //std::cout << "[" << this->getName() << "]: step default begin" << std::endl;
+    //std::cout << "[" << this->getName() << "]: step default begin at time = " << gnode->getTime() << " update time: " << _update_time << std::endl;
 
     sofa::helper::AdvancedTimer::stepBegin("AnimationStep");
     //std::cout<<"step "<<step++<<std::endl;
@@ -608,7 +607,7 @@ void SofaModelWrapper<Type>::StepDefault(bool _update_force, bool _update_time) 
         //std::cout<<"step "<<step++<<std::endl;
     }
 
-    double startTime = gnode->getTime();
+    double startTime = gnode->getTime();    
     //std::cout<<"step "<<step++<<std::endl;
     //std::cout << "[" << this->getName() << "]: behaviour update position" << std::endl;
     BehaviorUpdatePositionVisitor beh(execParams , dt);

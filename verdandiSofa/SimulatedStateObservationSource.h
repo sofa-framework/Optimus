@@ -82,7 +82,7 @@ public:
     void parseMonitorFile(std::string& _name);
     VecCoord& getObservation(double time) {
 
-        size_t ix = (fabs(dt) < 1e-10) ? 0 : size_t(time/dt);
+        size_t ix = (fabs(dt) < 1e-10) ? 0 : size_t(round(time/dt));
         sout << "Getting observation for time " << time << " index: " << ix << sendl;
         if (ix >= int(positions.size())) {
             serr << "ERROR: no observation for time " << time << " , using the last one from " << positions.size()-1 << sendl;
