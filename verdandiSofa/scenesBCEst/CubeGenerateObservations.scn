@@ -12,7 +12,7 @@
         </Node>
         
         <Node name="defObject">
-            <OptimParams name="springStiffness" template="Vector" optimize="0" numParams="30" initValue="1e4" printLog="1" />
+            <OptimParams name="springStiffness" template="Vector" optimize="0" numParams="15" initValue="1e4" printLog="1" />
 <!--                          prescribedParamKeys="0.0 10000 2000 8000  5.0 10000 2000 8000" exportParamFile=""/> -->
 <!--             <EulerImplicit name="odeSolver" printLog="false" rayleighStiffness="0.1"/> -->
             <StaticSolver applyIncrementFactor="0"/>	
@@ -27,7 +27,7 @@
             <include href="Objects/TetrahedronSetTopology.xml" src="@loader" />
             <UniformMass totalMass="0.2513"/>
 
-            <BoxROI name="fixedBox1" box="-0.001 -0.001 -0.001   0.05 0.001 0.08"/>
+            <BoxROI name="fixedBox1" box="-0.001 -0.001 -0.001   0.02 0.001 0.08"/>
             <ExtendedRestShapeSpringForceField name="toolSpring" points="@fixedBox1.indices" angularStiffness="0" stiffness="@springStiffness.value" drawSpring="1" listening="1" forceDir="springForces"/>
 <!--             <FixedConstraint indices="@fixedBox1.indices" /> -->
                                     

@@ -1,0 +1,65 @@
+<?xml version="1.0" ?>
+<Node name="root" dt="0.01" showBoundingTree="0" gravity="0 0 0">
+	<RequiredPlugin pluginName="Optimus"/>
+	<RequiredPlugin pluginName="SofaPardisoSolver"/>
+	<RequiredPlugin pluginName="ImageMeshAux"/>
+	<VisualStyle displayFlags="showBehaviorModels showForceFields showCollisionModels" />
+
+        <VerdandiAnimationLoop name="verdAnimLoop"  verbose="0"/>
+	<SofaReducedOrderUKF name="sofaROUKF" sigmaPointType="simplex" paramFileName="estimations/exp1.out" paramVarFileName="estimations/exp1_vars.out"/>
+        
+        <Node name="toolEmu">
+            <MechanicalObject name="MO" position="0.16 0.06 0.01  0.16 0.06 0.025  0.16 0.06 0.040  0.16 0.06 0.055   0.16 0.06 0.070   0.175 0.06 0.01  0.175 0.06 0.025  0.175 0.06 0.040  0.175 0.06 0.055   0.175 0.06 0.070"/>
+            <LinearMotionStateController indices="0 1 2 3 4 5 6 7 8 9" keyDisplacements="0 0 0    0.05 0.05 0" keyTimes="0 2"/>
+            <Sphere radius="0.002"/>
+        </Node>
+        
+        <Node name="defObject">
+            <OptimParams name="springStiffness" template="Vector" optimize="1" numParams="30" initValue="50" stdev="10" printLog="1" transformParams="1"/>
+<!--             <EulerImplicit name="odeSolver" printLog="false" rayleighStiffness="0.1"/> -->
+            <StaticSolver applyIncrementFactor="0"/>	
+            <SparsePARDISOSolver/>
+
+            <MeshVTKLoader filename="../Data/beam1_1635.vtk" name="loader" />
+            <MechanicalObject src="@loader" name="Volume" />
+                        
+            <include href="Objects/TetrahedronSetTopology.xml" src="@loader" />
+            <UniformMass totalMass="0.2513"/>
+
+            <BoxROI name="fixedBox1" box="-0.001 -0.001 -0.001   0.05 0.001 0.08"/>
+            <ExtendedRestShapeSpringForceField name="fixedSpring" points="@fixedBox1.indices" angularStiffness="0" stiffness="@springStiffness.value" drawSpring="1" listening="1" forceDir="springForces" updateStiffness="1" printLog="1"/>
+            <ColorMap colorScheme="Blue to Red" />
+
+            <TetrahedronFEMForceField name="FEM" listening="true" updateStiffness="1"  youngModulus="1e5" poissonRatio="0.45" method="large"  computeVonMisesStress="0" drawHeterogeneousTetra="1"/>
+            
+            <Node name="obsNode" activated="1">
+                    <MechanicalObject position="@../Volume.position"/>    
+                    <Sphere radius="0.001" color="1 0 0"/>
+                    <BarycentricMapping/>    
+                    <MappedPointsObservationManager name="MOBS" observationStdev="1e-4" noiseStdev="0" listening="1"/>    
+                    <SimulatedStateObservationSource name="ObsSource" monitorPrefix="observations/beam1635_A" printLog="1"/>
+            </Node>
+            
+            <Node>
+                    <MechanicalObject name="SourceMO" position="@../obsNode/MOBS.mappedObservations" rest_position="@../Volume.position"/>
+                    <Sphere radius="0.001" color="0.2 0.8 0.2 1"/>                    
+            </Node>
+            
+            <Node name="visualization" activated="1">
+                    <MeshSTLLoader filename="../Data/beam1_1635.stl" name="loader" />
+                    <include href="Objects/TriangleSetTopology.xml" src="@loader" />
+                    <MechanicalObject src="@loader" name="Surface"/>
+                    <Line color="0 0 0 1"/>
+                    <Triangle color="1 0 0 1"/>
+                    <BarycentricMapping/>
+            </Node>
+            
+            <Mapped3DoFForceField mappedFEM="mappedTool/toolSpring" mappedMechObject="mappedTool/MO" mapping="mappedTool/baryMapping" printLog="1"/>
+            <Node name="mappedTool">
+                    <MechanicalObject name="MO" position="0.16 0.06 0.01  0.16 0.06 0.025  0.16 0.06 0.040  0.16 0.06 0.055   0.16 0.06 0.070   0.175 0.06 0.01  0.175 0.06 0.025  0.175 0.06 0.040  0.175 0.06 0.055   0.175 0.06 0.070"/>            
+                    <ExtendedRestShapeSpringForceField name="toolSpring" angularStiffness="0" stiffness="1e5" external_rest_shape="../../toolEmu/MO" startTimeSpringOn="0" numStepsSpringOn="10000" drawSpring="1" listening="1" updateStiffness="1" springColor="0 1 0 1" />
+                    <Sphere radius="0.002" color="0 0 1 1"/> 
+                    <BarycentricMapping name="baryMapping"/>
+            </Node>
+        </Node>
+</Node>
