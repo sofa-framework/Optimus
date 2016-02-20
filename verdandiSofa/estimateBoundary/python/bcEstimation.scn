@@ -1,0 +1,5 @@
+<?xml version="1.0" ?>
+<Node animate="0" dt="0.001" gravity="0 0 0" name="Root">
+	<RequiredPlugin name="SofaPython" pluginName="SofaPython" />
+	<PythonScriptController classname="bcEstimation" filename="bcEstimation.py" listening="1" name="Test_python" />
+</Node>
