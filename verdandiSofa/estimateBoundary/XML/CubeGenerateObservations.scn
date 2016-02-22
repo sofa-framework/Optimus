@@ -59,6 +59,7 @@
                     <Line color="0 0 0 1"/>
                     <Triangle color="1 0 0 1"/>
                     <BarycentricMapping/>
+                    <VTKExporter filename="vtkExp/beam" XMLformat="true" listening="true" edges="0" triangles="1" quads="0" tetras="0" exportAtEnd="0" exportEveryNumberOfSteps="1"/>
             </Node>
             
             <Mapped3DoFForceField mappedFEM="mappedTool/toolSpring" mappedMechObject="mappedTool/MO" mapping="mappedTool/baryMapping" printLog="1"/>

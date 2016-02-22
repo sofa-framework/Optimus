@@ -142,6 +142,7 @@ class CreateScene:
         vis.createObject('Line',color="0 0 0 1")
         vis.createObject('Triangle',color="1 0 0 1")
         vis.createObject('BarycentricMapping')
+        vis.createObject('VTKExporter',filename="vtkExp/beam",XMLformat="true",listening="true",edges="0",triangles="1",quads="0",tetras="0",exportAtBegin="1",exportAtEnd="0",exportEveryNumberOfSteps="1")
  
     def createSlaveScene(self, node):    
         
