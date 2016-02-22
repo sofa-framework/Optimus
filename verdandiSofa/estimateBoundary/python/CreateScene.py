@@ -122,14 +122,14 @@ class CreateScene:
         tool.createObject('BarycentricMapping',name="baryMapping")
  
         Obs = bcs.createChild('obsNode')
-        Obs.createObject('MechanicalObject', name='SourceMO', position="@../Volume.position")
-        Obs.createObject('Sphere', radius="0.001", color="1 0 0 1")
+        Obs.createObject('MechanicalObject', name='MO', position="0.01 0.06 0.01  0.01 0.06 0.04  0.01 0.06 0.07  0.03 0.06 0.01  0.03 0.06 0.04  0.03 0.06 0.07  0.05 0.06 0.01  0.05 0.06 0.04  0.05 0.06 0.07  0.07 0.06 0.01  0.07 0.06 0.04  0.07 0.06 0.07  0.09 0.06 0.01  0.09 0.06 0.04  0.09 0.06 0.07  0.11 0.06 0.01  0.11 0.06 0.04  0.11 0.06 0.07  0.13 0.06 0.01  0.13 0.06 0.04  0.13 0.06 0.07  0.15 0.06 0.01  0.15 0.06 0.04  0.15 0.06 0.07   0.18 0.01 0.01  0.18 0.01 0.04  0.18 0.01 0.07  0.18 0.03 0.01  0.18 0.03 0.04  0.18 0.03 0.07  0.18 0.05 0.01  0.18 0.05 0.04  0.18 0.05 0.07")
+        Obs.createObject('Sphere', radius="0.001", color="0.2 0.8 0.2 1")
         Obs.createObject('BarycentricMapping')
-        Obs.createObject('MappedPointsObservationManagerParallel', name="MOBS", observationStdev="1e-4", noiseStdev="0.0", listening="1")                
+        Obs.createObject('MappedPointsObservationManagerParallel', name="MOBS", observationStdev="1e-4", noiseStdev="0.0", listening="1")
         Obs.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix="../observations/beam1635_A",printLog="1")
  
         #visobs = bcs.createChild('SourceNode')
-        #visobs.createObject('MechanicalObject', name="MO", position="@../obsNode/MOBS.mappedObservations", rest_position="@../Volume.position")
+        #visobs.createObject('MechanicalObject', name="MO", position="@../obsNode/MOBS.mappedObservations", rest_position="@../obsNode/MO.position")
         #visobs.createObject('Sphere', radius="0.001", color="0.2 0.8 0.2 1")
         
         vis = bcs.createChild('visualization')

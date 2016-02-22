@@ -3,7 +3,7 @@
 	<RequiredPlugin pluginName="Optimus"/>
 	<RequiredPlugin pluginName="SofaPardisoSolver"/>
 	<RequiredPlugin pluginName="ImageMeshAux"/>
-	<VisualStyle displayFlags="showBehaviorModels showForceFields showCollisionModels" />
+	<VisualStyle displayFlags="hideBehaviorModels showForceFields showCollisionModels" />
 
         <VerdandiAnimationLoop name="verdAnimLoop"  verbose="0"/>
 	<SofaReducedOrderUKF name="sofaROUKF" sigmaPointType="simplex" paramFileName="../estimations/exp1.out" paramVarFileName="../estimations/exp1_vars.out"/>
@@ -32,17 +32,18 @@
             <ColorMap colorScheme="Blue to Red" />
 
             <TetrahedronFEMForceField name="FEM" listening="true" updateStiffness="1"  youngModulus="1e5" poissonRatio="0.45" method="large"  computeVonMisesStress="0" drawHeterogeneousTetra="1"/>
-            
+                                                
             <Node name="obsNode" activated="1">
-                    <MechanicalObject position="@../Volume.position"/>    
+<!--                     <MechanicalObject position="@../Volume.position"/>     -->
+                    <MechanicalObject name="MO" position="0.01 0.06 0.01  0.01 0.06 0.04  0.01 0.06 0.07  0.03 0.06 0.01  0.03 0.06 0.04  0.03 0.06 0.07  0.05 0.06 0.01  0.05 0.06 0.04  0.05 0.06 0.07  0.07 0.06 0.01  0.07 0.06 0.04  0.07 0.06 0.07  0.09 0.06 0.01  0.09 0.06 0.04  0.09 0.06 0.07  0.11 0.06 0.01  0.11 0.06 0.04  0.11 0.06 0.07  0.13 0.06 0.01  0.13 0.06 0.04  0.13 0.06 0.07  0.15 0.06 0.01  0.15 0.06 0.04  0.15 0.06 0.07"/>
                     <Sphere radius="0.001" color="1 0 0"/>
                     <BarycentricMapping/>    
                     <MappedPointsObservationManager name="MOBS" observationStdev="1e-4" noiseStdev="0" listening="1"/>    
                     <SimulatedStateObservationSource name="ObsSource" monitorPrefix="../observations/beam1635_A" printLog="1"/>
             </Node>
-            
+                                    
             <Node>
-                    <MechanicalObject name="SourceMO" position="@../obsNode/MOBS.mappedObservations" rest_position="@../Volume.position"/>
+                    <MechanicalObject name="SourceMO" position="@../obsNode/MOBS.mappedObservations" rest_position="@../obsNode/MO.position"/>
                     <Sphere radius="0.001" color="0.2 0.8 0.2 1"/>                    
             </Node>
             
