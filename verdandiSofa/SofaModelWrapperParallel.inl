@@ -1040,9 +1040,9 @@ double SofaModelWrapperParallel<Type>::ApplyOperatorParallel(state* sigmaPoints,
     }
 
     {
-        //AnimateEndEvent ev ( dt );
-        //PropagateEventVisitor act ( params, &ev );
-        //rootMaster->execute ( act );
+        AnimateEndEvent ev ( dt );
+        PropagateEventVisitor act ( params, &ev );
+        rootMaster->execute ( act );
     }
 
     double newTime=GetTime()+rootMaster->getDt();    

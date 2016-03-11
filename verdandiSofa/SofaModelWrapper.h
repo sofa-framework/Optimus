@@ -585,6 +585,7 @@ public:
         , mappedObservationData( initData (&mappedObservationData, "mappedObservations", "mapped observations") )
         , m_noiseStdev( initData(&m_noiseStdev, double(0.0), "noiseStdev", "standard deviation of generated noise") )
         , m_abberantIndex( initData(&m_abberantIndex, int(-1), "abberantIndex", "index of an aberrant point") )
+        , m_doNotMapObservations( initData(&m_doNotMapObservations, false, "doNotMapObservations", "if real observations are read from a file (not the mechanical object)") )
     {
     }
 
@@ -597,11 +598,11 @@ public:
     Data<typename DataTypes2::VecCoord> mappedObservationData;
     Data<double> m_noiseStdev;
     Data<int> m_abberantIndex;
+    Data<bool> m_doNotMapObservations;
 
     boost::mt19937* pRandGen; // I don't seed it on purpouse (it's not relevant)
     boost::normal_distribution<>* pNormDist;
     boost::variate_generator<boost::mt19937&, boost::normal_distribution<> >* pVarNorm;
-
 
     helper::vector<double> noise;
 
