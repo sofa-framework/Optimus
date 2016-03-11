@@ -143,9 +143,8 @@ void OptimParams<sofa::helper::vector<double> >::init() {
     Inherit::init();
     m_dim = 1;
 
-    sout << ": initializing " << sendl;
-    /// if optimization is done, take the initial value and initial stdev
-    if (!this->m_optimize.getValue() && !this->m_prescribedParamKeys.getValue().empty()) {
+    /// take the initial value and initial stdev
+    if (!this->m_prescribedParamKeys.getValue().empty()) {
         helper::ReadAccessor<Data<helper::vector<double> > >keys = m_prescribedParamKeys;
 
         size_t numParams = this->m_dim * this->m_numParams.getValue();
@@ -185,7 +184,7 @@ void OptimParams<sofa::helper::vector<double> >::init() {
     helper::ReadAccessor<Data<sofa::helper::vector<double> > > initVal = m_initVal;
     size_t nInitVal = initVal.size();
 
-    if (m_numParams.getValue() == 0 && nInitVal > 0) {
+    if ( (m_numParams.getValue() == 0 && nInitVal > 0) || m_numParams.getValue() == nInitVal) {
         sout << this->getName() << ": setting parameter number according to init. value vector: " << nInitVal << sendl;
         m_numParams.setValue(nInitVal);
     } else {
@@ -254,8 +253,8 @@ template<>
 void OptimParams<sofa::helper::vector<double> >::handleEvent(core::objectmodel::Event *event) {
     if (dynamic_cast<sofa::simulation::AnimateBeginEvent *>(event))
     {
-        if (!this->m_optimize.getValue()) {
-            double actTime = this->getTime();
+        //if (!this->m_optimize.getValue()) {
+            double actTime = this->getTime() + this->getContext()->getDt(); /// the time has not been increased yet
             //std::cout << "Begin event at time: " << actTime << std::endl;
 
             int timeSlot = -1;
@@ -284,10 +283,10 @@ void OptimParams<sofa::helper::vector<double> >::handleEvent(core::objectmodel::
                 double r1 = (actTime-t1)/(t2-t1);
                 double r2 = (t2-actTime)/(t2-t1);
 
-                //std::cout << "Ratii: " << r1 << " " << r2 << std::endl;
+                //std::cout << "Time slot: " << timeSlot << " actual time: " << actTime << " ratii: " << r1 << " " << r2 << std::endl;
 
                 helper::WriteAccessor<Data<sofa::helper::vector<double> > > val = m_val;
-                //std::cout << "Value: ";
+                sout << "Value: ";
                 for (size_t i = 0; i < val.size(); i++) {
                     double v1=m_paramKeys[timeSlot].second[i];
                     double v2=m_paramKeys[timeSlot+1].second[i];
@@ -297,11 +296,11 @@ void OptimParams<sofa::helper::vector<double> >::handleEvent(core::objectmodel::
                         val[i] =  (v2-v1)*(tanh(2*(actTime-(t1+t2)/2))+1)/2+v1;
                     else
                         val[i] = r2*v1 + r1*v2;
-                    //std::cout << " " << val[i];
+                    sout << " " << val[i];
                 }
-                //std::cout << std::endl;
+                sout << sendl;
 
-            }
+            //}
 
         }
 
