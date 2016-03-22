@@ -1387,10 +1387,18 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
 
      inputObservation = observationSource->getObservation(0.0);
 
-     //std::cout << "Apply mapping on observations" << std::endl;
+     if (m_doNotMapObservations.getValue()) {
+        sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > mappedObservation = mappedObservationData;
+        mappedObservation.resize(inputObservation.size());
+        SNCOUT("== not mapping observations, using directly the input observations provided by the source");
 
-     sofa::core::MechanicalParams mp;
-     mapping->apply(&mp, mappedObservationData, inputObservationData);
+        for (size_t i = 0; i < mappedObservation.size(); i++)
+            mappedObservation[i] = inputObservation[i];
+     } else {
+        sofa::core::MechanicalParams mp;
+        mapping->apply(&mp, mappedObservationData, inputObservationData);
+     }
+
 
      noise.clear();
      noise.resize(3*mappedObservationData.getValue().size());
@@ -1414,25 +1422,34 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
      inputObservation = observationSource->getObservation(this->time_);
      //std::cout << "AKDEBUG GI " << inputObservation[50] << " " << inputObservation[100] << std::endl;
 
-     //std::cout << "Apply mapping on observations" << std::endl;
-
      sofa::core::MechanicalParams mp;
-     mapping->apply(&mp, mappedObservationData, inputObservationData);
+     Inherit::observation actualObs(3*mappedObservationData.getValue().size());
+     if (!this->m_doNotMapObservations.getValue()) {
+        //std::cout << "Apply mapping on observations" << std::endl;
+        mapping->apply(&mp, mappedObservationData, inputObservationData);
+        sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > mappedObservation = mappedObservationData;
 
-     //typename DataTypes2::VecCoord mappedObservation = *mappedObservationData.beginEdit();
-
-     sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > mappedObservation = mappedObservationData;
-     //std::cout << "AKDEBUG " << mappedObservation << std::endl;
-
-     //std::cout << this->getName() << ": size of mapped observation: " << mappedObservation.size() << std::endl;
-     Inherit::observation actualObs(mappedObservation.size()*3);
-     for (size_t i = 0; i < mappedObservation.size(); i++)
-         for (size_t d = 0; d < 3; d++) {
-             mappedObservation[i][d] += noise[3*i+d];
-             actualObs(3*i+d) = mappedObservation[i][d];
+         for (size_t i = 0; i < mappedObservation.size(); i++) {
+             for (size_t d = 0; d < 3; d++) {
+                 mappedObservation[i][d] += noise[3*i+d];
+                 actualObs(3*i+d) = mappedObservation[i][d];
+             }
+         }
+     } else {
+         sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > mappedObservation = mappedObservationData;
+         if (mappedObservation.size() != inputObservation.size()) {
+             SERR("== bwdInit different mapped and input observation size!");
          }
 
-     //std::cout << "AKDEBUG " << mappedObservation << std::endl;
+         for (size_t i = 0; i < mappedObservation.size(); i++)
+             mappedObservation[i] = inputObservation[i];
+
+         for (size_t i = 0; i < mappedObservation.size(); i++) {
+             for (size_t d = 0; d < 3; d++) {
+                 actualObs(3*i+d) = mappedObservation[i][d];
+             }
+         }
+     }
 
      Data<typename DataTypes1::VecCoord> actualStateData;
      Data<typename DataTypes2::VecCoord> mappedStateData;
@@ -1490,10 +1507,10 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
      this->final_time_ = 1000.0;
 
 
-     if (int(masterStateSize) != observationSource->getNParticles()) {
-         std::cerr << this->getName() << " ERROR: number of nodes in master state " << masterStateSize << " and observation source " << observationSource->getNParticles() << " differ!" << std::endl;
-         return;
-     }
+//     if (int(masterStateSize) != observationSource->getNParticles()) {
+//         std::cerr << this->getName() << " ERROR: number of nodes in master state " << masterStateSize << " and observation source " << observationSource->getNParticles() << " differ!" << std::endl;
+//         return;
+//     }
 
      this->error_variance_value_ = m_observationStdev.getValue() * m_observationStdev.getValue();
      this->Nobservation_ = 3*mappedStateSize;

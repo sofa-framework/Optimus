@@ -53,6 +53,8 @@ SimulatedStateObservationSource<DataTypes>::SimulatedStateObservationSource()
     : Inherit()
     , m_monitorPrefix( initData(&m_monitorPrefix, std::string("monitor1"), "monitorPrefix", "prefix of the monitor-generated file") )
     , m_actualObservation( initData (&m_actualObservation, "actualObservation", "actual observation") )
+    , m_drawSize( initData(&m_drawSize, SReal(0.0),"drawSize","size of observation spheres in each time step") )
+    , m_controllerMode( initData(&m_controllerMode, false,"controllerMode","if true, sets the mechanical object in begin animation step") )
 {
 
 }
@@ -65,14 +67,17 @@ SimulatedStateObservationSource<DataTypes>::~SimulatedStateObservationSource()
 
 template<class DataTypes>
 void SimulatedStateObservationSource<DataTypes>::init()
-{
-    sout << this->getName() << " Init started" << sendl;
+{    
+    std::cout << this->getName() << " Init started" << std::endl;
     std::string posFile = m_monitorPrefix.getValue() + "_x.txt";
 
     parseMonitorFile(posFile);
-    m_actualObservation.setValue(positions[0]);  // OK, since there is at least the dummy observation
+    m_actualObservation.setValue(positions[0]);  // OK, since there is at least the dummy observation        
 
-    sout << "Init done" << sendl;
+    if (m_controllerMode.getValue())
+        this->f_listening.setValue(true);
+
+    std::cout << "Init done" << std::endl;
 }
 
 template<class DataTypes>
@@ -83,31 +88,33 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _
     nObservations = 0;
     if (file.good()) {
         /// parse the header of a monitor-generated file:
-        std::string line;
+        std::string line;        
 
         getline(file, line);
+        std::cout << "Here: " << line << std::endl;
         if (line[0] != '#') {
-            serr << "ERROR on line 2 in " << name << sendl;
+            std::cout << "ERROR on line 2 in " << name << std::endl;
             return;
         }
 
         getline(file, line);
+        std::cout << "Here: " << line << std::endl;
         if (line[0] != '#') {
-            serr << "ERROR on line 2 in " << name << sendl;
+            std::cout << "ERROR on line 2 in " << name << std::endl;
             return;
         }
 
-        std::stringstream ss(line);
-        std::istream_iterator<std::string> it(ss);
-        std::istream_iterator<std::string> end;
-        std::vector<std::string> tokens(it, end);
+        std::stringstream ss(line);         
+        std::istream_iterator<std::string> it(ss);         
+        std::istream_iterator<std::string> end;         
+        std::vector<std::string> tokens(it, end);        
 
-        int tki = 0;
+        int tki = 0;        
         while (std::strcmp(tokens[tki++].c_str(),"number")!=0) ;
 
         nParticles = tokens.size() - tki;
 
-        sout << "Number of observed particles: " << nParticles << sendl;
+        std::cout << "Number of observed particles: " << nParticles << std::endl;
 
         getline(file, line);
         std::stringstream ss2(line);
@@ -119,7 +126,7 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _
         while (tokens.size() > 1) {
             int dim = (tokens.size() -1)/nParticles;
             if (dim != 3) {
-                serr << "ERROR on line " << 3+nObservations << " dim: " << dim << sendl;
+                std::cout << "ERROR on line " << 3+nObservations << " dim: " << dim << std::endl;
                 return;
             }
 
@@ -137,7 +144,7 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _
             positions.push_back(position);
             nObservations++;
 
-            //sout << " positions size: " << positions.size() << sendl;
+            //std::cout << " positions size: " << positions.size() << std::endl;
 
             getline(file, line);
             std::stringstream ss(line);
@@ -148,26 +155,66 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _
             tokens=tk;
         }
     } else {
-        serr << ": ERROR cannot open " << name << sendl;
+        std::cout << ": ERROR cannot open " << name << std::endl;
         return;
     }
 
     if (nObservations > 0) {
-        sout << "Valid observations available: #observations: " << nObservations << " #particles: " << nParticles << sendl;
+        sout << "Valid observations available: #observations: " << nObservations << " #particles: " << nParticles << std::endl;
     } else {
         // workaround in the case when no observations are available
         if (nParticles > 0) {
             VecCoord position(size_t(nParticles), Coord(0.0,0.0,0.0));
             positions.push_back(position);
-            serr << "ERROR: no positions, adding zero observations of length " << nParticles << sendl;
+            std::cout << "ERROR: no positions, adding zero observations of length " << nParticles << std::endl;
         } else  {
             VecCoord position(size_t(1000), Coord(0.0,0.0,0.0));
             positions.push_back(position);
-            serr << "OBSERVATION FATAL ERROR: no positions and no particles, adding dummy zero observation vector of length 1000!" << sendl;
+            std::cout << "OBSERVATION FATAL ERROR: no positions and no particles, adding dummy zero observation vector of length 1000!" << std::endl;
         }
     }
 }
 
+
+template<class DataTypes>
+void SimulatedStateObservationSource<DataTypes>::draw(const core::visual::VisualParams* vparams) {
+    if (!vparams->displayFlags().getShowBehaviorModels())
+        return;
+
+    double time = this->getTime();
+    size_t ix = (fabs(dt) < 1e-10) ? 0 : size_t(round(time/dt));
+    if (ix >= int(positions.size()))
+        ix = positions.size() - 1;
+
+    std::vector<sofa::defaulttype::Vec3d> points;
+    points.resize(positions[ix].size());
+
+    for (size_t i = 0;  i < points.size(); i++)
+        points[i] = positions[ix][i];
+
+    vparams->drawTool()->drawSpheres(points, float(m_drawSize.getValue()), sofa::defaulttype::Vec<4, float> (0.0f, 0.0f, 1.0f, 1.0f));
+}
+
+template<class DataTypes>
+void SimulatedStateObservationSource<DataTypes>::handleEvent(core::objectmodel::Event *event)
+{
+    if (dynamic_cast<sofa::simulation::AnimateBeginEvent *>(event))
+    {
+        double time = this->getTime();
+        size_t ix = (fabs(dt) < 1e-10) ? 0 : size_t(round(time/dt));
+        if (ix >= int(positions.size()))
+            ix = positions.size() - 1;
+
+        core::behavior::MechanicalState<DataTypes> *mState = dynamic_cast<core::behavior::MechanicalState<DataTypes>*> (this->getContext()->getMechanicalState());
+
+        helper::WriteAccessor<Data<VecCoord> > x = *mState->write(sofa::core::VecCoordId::position());
+
+        //std::cout << "Sizes: mstate: " << x.size() << " positions: " << positions[ix].size() << std::endl;
+        for (size_t i = 0; i < x.size(); i++)
+            x[i] = positions[ix][i];
+
+    }
+}
 
 
 } // namespace container

@@ -30,6 +30,13 @@
 #include <sofa/core/objectmodel/Data.h>
 #include <SofaBaseMechanics/MechanicalObject.h>
 
+#include <sofa/core/visual/VisualParams.h>
+#include <sofa/helper/gl/template.h>
+#include <sofa/helper/gl/BasicShapes.h>
+
+#include <sofa/simulation/common/AnimateBeginEvent.h>
+#include <sofa/simulation/common/AnimateEndEvent.h>
+
 #include <string>
 
 #include "ObservationSource.h"
@@ -69,7 +76,9 @@ public:
     ~SimulatedStateObservationSource();
 
     Data<std::string> m_monitorPrefix;
-    Data<VecCoord> m_actualObservation;    
+    Data<VecCoord> m_actualObservation;
+    Data<SReal> m_drawSize;
+    Data<bool> m_controllerMode;
 
     /// maps:  time + vector
     //std::map<double, VecCoord> positions;
@@ -78,6 +87,8 @@ public:
     void init();
 
     void bwdInit() {}
+
+    void draw(const core::visual::VisualParams* vparams);
 
     void parseMonitorFile(std::string& _name);
     VecCoord& getObservation(double time) {
@@ -99,6 +110,8 @@ public:
     int getNStates() {
         return nObservations;
     }
+
+    void handleEvent(core::objectmodel::Event *event);
 
 
 };
