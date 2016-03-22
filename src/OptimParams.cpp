@@ -162,7 +162,7 @@ void OptimParams<sofa::helper::vector<double> >::init() {
 
             for (size_t i = 0; i < numKeys; i++) {
                 m_paramKeys[i].first = keys[i*(numParams+1)];
-                vector<double> v(numParams);
+                helper::vector<double> v(numParams);
                 for (size_t j = 0; j < numParams; j++)
                     v[j] = keys[i*(numParams+1)+j+1];
                 m_paramKeys[i].second = v;

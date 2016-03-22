@@ -85,10 +85,10 @@ void BubblePackingForceField<DataTypes>::init()
 {
     this->Inherited::init();
     if( (m_l01.getValue() <= 0.0) || (m_l02.getValue() <= 0.0) )
-        serr<<"ERROR in the parameters l01/l02"<<sout;
+        std::cerr<<"ERROR in the parameters l01/l02"<<std::endl;
 
     if( (m_nbActive.getValue() == 0) || (m_nbPassive.getValue() == 0) )
-        serr<<"ERROR in the nb of bubbles"<<sout;
+        std::cerr<<"ERROR in the nb of bubbles"<<std::endl;
 
     // Computation of the parameters: alpha, beta. gamma, epsilon
     l01 = m_l01.getValue();
@@ -137,7 +137,7 @@ void BubblePackingForceField<DataTypes>::handleTopologyChange()
 template <class DataTypes>
 double BubblePackingForceField<DataTypes>::getPotentialEnergy(const VecCoord& /*x*/) const
 {
-    serr<<"BubblePackingForceField::getPotentialEnergy-not-implemented !!!"<<sendl;
+    std::cerr<<"BubblePackingForceField::getPotentialEnergy-not-implemented !!!"<<sendl;
     return 0;
 }
 
