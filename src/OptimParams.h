@@ -151,7 +151,7 @@ public:
 
     OptimParamsBase()
         : m_dim(1)
-        , m_optimize( initData(&m_optimize, true, "optimize", "the parameters handled in the component will be optimized by Verdandi") )
+        , m_optimize( initData(&m_optimize, false, "optimize", "the parameters handled in the component will be optimized by Verdandi") )
         , m_numParams( initData(&m_numParams, size_t(0), "numParams", "number of params for vectorial data (input values replicated)") )
         , m_transformParams( initData(&m_transformParams, 0, "transformParams", "transform estimated params: 0: do nothing, 1: absolute value, 2: quadratic (not implemented)") )
         , m_prescribedParamKeys( initData (&m_prescribedParamKeys, "prescribedParamKeys", "prescribed params in list format: ti p1i ... pni") )
