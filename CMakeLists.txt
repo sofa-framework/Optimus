@@ -13,37 +13,59 @@ find_package(SofaPardisoSolver QUIET)
 set(LINKER_DEPENDENCIES SofaComponentBase SofaComponentGeneral SofaBaseTopology )
 set(COMPILATION_FLAGS -DSOFA_BUILD_OPTIMUS)
 
+set ( SOFA-EXTERNAL_VERDANDI "0" CACHE BOOL "Set to activate the compilation of filtering using Verdandi" )
+set ( STOCHASTIC_FILTERING "0" CACHE BOOL "Set to activate the compilation the new filtering module replacing Verdandi" )
 
 set(HEADER_FILES
     src/initOptimusPlugin.h
     src/OptimParams.h
     src/OptimParams.inl
-    src/ekfilter.hpp
-    src/ekfilter_impl.inl
-    src/kfilter.hpp
-    src/kfilter_impl.inl
-    src/KalmanFilter.h
-    src/KalmanFilter.inl
-    src/TestingParams.h
-    src/BubblePackingForceField.h
-    src/BubblePackingForceField.inl 
-    src/PointProjection.h
-    src/PointProjection.inl
+#    src/ekfilter.hpp
+#    src/ekfilter_impl.inl
+#    src/kfilter.hpp
+#    src/kfilter_impl.inl
+#    src/KalmanFilter.h
+#    src/KalmanFilter.inl
+#    src/TestingParams.h
+#    src/BubblePackingForceField.h
+#    src/BubblePackingForceField.inl 
+#    src/PointProjection.h
+#    src/PointProjection.inl
     )
 
 set(SOURCE_FILES
     src/initOptimusPlugin.cpp
-    src/PointProjection.cpp
     src/OptimParams.cpp
-    src/KalmanFilter.cpp
-    src/TestingParams.cpp
-    src/BubblePackingForceField.cpp
+#    src/PointProjection.cpp
+#    src/KalmanFilter.cpp
+#    src/TestingParams.cpp
+#    src/BubblePackingForceField.cpp
     )
 
 set(README_FILES 
 
     Optimus.txt 
     )
+
+if ( ${STOCHASTIC_FILTERING} )
+	message(STATUS "Activating stochastic filtering")
+	list(APPEND HEADER_FILES
+		src/stochasticFiltering/FilteringAnimationLoop.h
+		src/stochasticFiltering/StochasticFilterBase.h
+		src/stochasticFiltering/ROUKFilter.h
+		src/stochasticFiltering/ROUKFilter.inl
+		src/stochasticFiltering/StochasticStateWrapperBase.h
+		src/stochasticFiltering/StochasticStateWrapper.h
+		src/stochasticFiltering/StochasticStateWrapper.inl
+	)
+
+	list(APPEND SOURCE_FILES
+		src/stochasticFiltering/FilteringAnimationLoop.cpp
+		src/stochasticFiltering/ROUKFilter.cpp
+		src/stochasticFiltering/StochasticStateWrapper.cpp
+	)
+
+endif()
 
 
 
