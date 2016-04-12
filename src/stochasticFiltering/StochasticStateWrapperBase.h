@@ -30,6 +30,11 @@
 
 #include "initOptimusPlugin.h"
 
+#ifdef Success
+#undef Success // dirty workaround to cope with the (dirtier) X11 define. See http://eigen.tuxfamily.org/bz/show_bug.cgi?id=253
+#endif
+#include <Eigen/Dense>
+
 namespace sofa
 {
 namespace component
@@ -64,8 +69,35 @@ public:
         }
 
     }
+}; /// class
+
+template <class FilterType>
+class StochasticStateWrapperBaseT: public sofa::component::stochastic::StochasticStateWrapperBase
+{
+public:
+    typedef sofa::component::stochastic::StochasticStateWrapperBase Inherit;
+
+    typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, Eigen::Dynamic> EMatrixX;
+    typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, 1> EVectorX;
 
 
+    StochasticStateWrapperBaseT()
+        : Inherit()        {
+    }
+
+protected:
+
+
+
+public:
+    virtual EMatrixX& getStateErrorVariance() = 0;
+    virtual EMatrixX& getStateErrorVarianceProjector() = 0;
+    virtual EMatrixX& getStateErrorVarianceReduced() = 0;
+    virtual EVectorX& getStateErrorVarianceRow(int row) = 0;
+
+    void init() {
+        Inherit::init();
+    }
 }; /// class
 
 

@@ -27,6 +27,7 @@
 
 #include "initOptimusPlugin.h"
 #include "StochasticFilterBase.h"
+#include "StochasticStateWrapper.h"
 
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/RigidTypes.h>
@@ -50,22 +51,31 @@ namespace stochastic
 
 using namespace defaulttype;
 
-template <class DataTypes>
+template <class FilterType>
 class ROUKFilter: public sofa::component::stochastic::StochasticFilterBase
 {
 public:
-    typedef typename Eigen::Matrix<DataTypes, Eigen::Dynamic, Eigen::Dynamic> MatrixX;
+    typedef sofa::component::stochastic::StochasticFilterBase Inherit;
+
+    typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, Eigen::Dynamic> EMatrixX;
+    typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, 1> EVectorX;
 
 ROUKFilter();
 ~ROUKFilter();
 
-protected:    
+protected:
+    StochasticStateWrapperBaseT<FilterType>* stateWrapper;
+
+    size_t nObservations, nState, nReducedState;
+
+    EMatrixX matU, matUinv;
 public:
 
-virtual void computePrediction();
-virtual void computeCorrection();
+    virtual void computePrediction();
+    virtual void computeCorrection();
 
-void bwdInit();
+    void init();
+    void bwdInit();
 
 
 }; /// class

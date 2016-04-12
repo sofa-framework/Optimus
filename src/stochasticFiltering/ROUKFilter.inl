@@ -35,44 +35,61 @@ namespace component
 namespace stochastic
 {
 
-template <class DataTypes>
-ROUKFilter<DataTypes>::ROUKFilter()
+template <class FilterType>
+ROUKFilter<FilterType>::ROUKFilter()
 {    
 }
 
-template <class DataTypes>
-ROUKFilter<DataTypes>::~ROUKFilter()
+template <class FilterType>
+ROUKFilter<FilterType>::~ROUKFilter()
 {
 }
 
-template <class DataTypes>
-void ROUKFilter<DataTypes>::computePrediction()
+template <class FilterType>
+void ROUKFilter<FilterType>::computePrediction()
 {
     PRNS("computing prediction");
 }
 
 
-template <class DataTypes>
-void ROUKFilter<DataTypes>::computeCorrection()
+template <class FilterType>
+void ROUKFilter<FilterType>::computeCorrection()
 {
     PRNS("computing correction");
 }
 
-template <class DataTypes>
-void ROUKFilter<DataTypes>::bwdInit() {
+template <class FilterType>
+void ROUKFilter<FilterType>::bwdInit() {
     PRNS("bwdInit");
+
+    /// get observations TODO
+    EMatrixX temp = stateWrapper->getStateErrorVarianceReduced();
+    matU = temp;
+
+    PRNW("size: " << matU.rows() << " X " << matU.cols());
+    std::cout << matU << std::endl;
 }
 
 
+template <class FilterType>
+void ROUKFilter<FilterType>::init() {
+    Inherit::init();
+    gnode->get(stateWrapper, core::objectmodel::BaseContext::SearchDown);
 
-//template <class DataTypes>
-//void ROUKFilter<DataTypes>::init()
+    if (stateWrapper) {
+        PRNS("found stochastic state wrapper: " << stateWrapper->getName());
+    } else
+        PRNE("no state wrapper found!");
+}
+
+//template <class FilterType>
+//void ROUKFilter<FilterType>::init()
 //{
 //
 //}
 //
-//template <class DataTypes>
-//void ROUKFilter<DataTypes>::reinit()
+//template <class FilterType>
+//void ROUKFilter<FilterType>::reinit()
 //{
 //}
 

@@ -60,8 +60,7 @@ public:
 
     ~StochasticFilterBase() {}
 
-protected:
-    StochasticStateWrapperBase* stateWrapper;
+protected:    
     sofa::simulation::Node* gnode;
 
 public:
@@ -69,20 +68,11 @@ public:
 
     void init() {
         Inherit::init();
-
         gnode = dynamic_cast<sofa::simulation::Node*>(this->getContext());
 
         if (!gnode) {
-            PRNE("Cannot find node!");
-            return;
-        }
-
-        gnode->get(stateWrapper, core::objectmodel::BaseContext::SearchDown);
-
-        if (stateWrapper) {
-            PRNS("found stochastic state wrapper: " << stateWrapper->getName());
-        } else
-            PRNE(" no state wrapper found!");
+            PRNE("Cannot find node!");         
+        }        
     }
 
     virtual void computePrediction() = 0;

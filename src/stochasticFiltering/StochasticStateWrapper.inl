@@ -39,7 +39,8 @@ namespace stochastic
 
 template <class DataTypes, class FilterType>
 StochasticStateWrapper<DataTypes, FilterType>::StochasticStateWrapper()
-    : velocityInState( initData(&velocityInState, false, "includeVelocity", "include the velocity in the stochastic state") )
+    :Inherit()
+    , velocityInState( this->initData(&velocityInState, false, "includeVelocity", "include the velocity in the stochastic state") )
 {    
 }
 
@@ -54,7 +55,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::init()
     Inherit::init();
     valid = true;
     /// get a mechanical state
-    gnode->get(mechanicalState,  core::objectmodel::BaseContext::SearchRoot);
+    this->gnode->get(mechanicalState,  core::objectmodel::BaseContext::SearchRoot);
     if (!mechanicalState) {
         PRNE("No mechanical state found");
         valid=false;
@@ -64,13 +65,13 @@ void StochasticStateWrapper<DataTypes, FilterType>::init()
 
     /// get optim params (multiple per node, at least one)
     vecOptimParams.clear();
-    gnode->get<OptimParamsBase>(&vecOptimParams, core::objectmodel::BaseContext::SearchRoot );
+    this->gnode->template get<OptimParamsBase>(&vecOptimParams, core::objectmodel::BaseContext::SearchRoot );
     if (vecOptimParams.empty()) {
         PRNE("No OptimParams found");
         valid=false;
     } else {
         PRNSC("OptimParams found " << vecOptimParams.size() << "x: ");
-        if (verbose.getValue()) {
+        if (this->verbose.getValue()) {
             for (size_t i = 0; i < vecOptimParams.size(); i++)
                 std::cout << vecOptimParams[i]->getName() << " ";
             std::cout << std::endl;
@@ -78,7 +79,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::init()
     }
 
     /// get fixed constraints (optional)
-    gnode->get(fixedConstraint,  core::objectmodel::BaseContext::SearchRoot);
+    this->gnode->get(fixedConstraint,  core::objectmodel::BaseContext::SearchRoot);
     if (fixedConstraint) {
         PRNS("Fixed constraint found: " << fixedConstraint->getName());
     }
@@ -92,7 +93,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
 
     /// extract free nodes (fixed nodes cannot be included in the stochastic state)
     helper::vector<size_t> freeNodes;
-    for (int msi = 0; msi < mechanicalState->getSize(); msi++) {
+    for (size_t msi = 0; msi < mechanicalState->getSize(); msi++) {
         bool found = false;
         if (fixedConstraint) {
             const typename FixedConstraint::SetIndexArray& fix = fixedConstraint->f_indices.getValue();
@@ -162,7 +163,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::copyStateVerdandi2Sofa() {
     }
 
     sofa::core::MechanicalParams mp;
-    sofa::simulation::MechanicalPropagatePositionAndVelocityVisitor(&mp).execute( gnode );
+    sofa::simulation::MechanicalPropagatePositionAndVelocityVisitor(&mp).execute( this->gnode );
 
     /// let the OptimParams to extract the actual values of parameters from the verdandi state
     /// actually: rawVector functions in optimParams do nothing, so we omit it here...

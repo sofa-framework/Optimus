@@ -34,6 +34,17 @@
 #define SOFA_OptimusPlugin_API  SOFA_IMPORT_DYNAMIC_LIBRARY
 #endif
 
+#ifdef SOFA_BUILD_OPTIMUSPLUGIN
+#define SOFA_STOCHASTIC_API SOFA_EXPORT_DYNAMIC_LIBRARY
+#else
+#define SOFA_STOCHASTIC_API  SOFA_IMPORT_DYNAMIC_LIBRARY
+#endif
+
+#define PRNW(ARG) std::cout << "[" << this->getName() << "] WARNING: " << ARG << std::endl;
+#define PRNE(ARG) std::cerr << "[" << this->getName() << "] ERROR: " << ARG << std::endl;
+#define PRNS(ARG) if (this->verbose.getValue()) { std::cout << "[" << this->getName() << "]: " << ARG << std::endl; }
+#define PRNSC(ARG) if (this->verbose.getValue()) { std::cout << "[" << this->getName() << "]: " << ARG; }
+
 /** \mainpage
   This plugin contains a set of Optimization Methods (initially mainly Bayesian Filtering techniques)
   */

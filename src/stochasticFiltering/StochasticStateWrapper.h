@@ -51,14 +51,15 @@ namespace stochastic
 using namespace defaulttype;
 
 template <class DataTypes, class FilterType>
-class StochasticStateWrapper: public sofa::component::stochastic::StochasticStateWrapperBase
+class StochasticStateWrapper: public sofa::component::stochastic::StochasticStateWrapperBaseT<FilterType>
 {
 public:
-    typedef sofa::component::stochastic::StochasticStateWrapperBase Inherit;
+    typedef sofa::component::stochastic::StochasticStateWrapperBaseT<FilterType> Inherit;
     typedef typename DataTypes::VecCoord VecCoord;
     typedef typename DataTypes::VecDeriv VecDeriv;
     typedef typename DataTypes::Coord Coord;
     typedef typename DataTypes::Coord Deriv;
+    typedef FilterType Type;
 
     enum { Dim = Coord::spatial_dimensions };
 
@@ -73,7 +74,7 @@ public:
     StochasticStateWrapper();
     ~StochasticStateWrapper();
 
-protected:    
+protected:            
     MechanicalState *mechanicalState;
     FixedConstraint* fixedConstraint;
     helper::vector<OptimParamsBase*> vecOptimParams;
@@ -89,6 +90,8 @@ protected:
     void copyStateSofa2Verdandi();
 
     EVectorX state;
+    EMatrixX stateErrorVariance;
+    EMatrixX stateErrorVarianceReduced;
 
 public:    
     Data<bool> velocityInState;
@@ -96,6 +99,34 @@ public:
     void applyOperator();
     void init();
     void bwdInit();
+
+    virtual EMatrixX& getStateErrorVariance() {
+        return stateErrorVariance;
+    }
+
+    virtual EMatrixX& getStateErrorVarianceProjector() {
+    }
+
+    virtual EMatrixX& getStateErrorVarianceReduced() {
+        if (stateErrorVarianceReduced.rows() == 0) {
+            stateErrorVarianceReduced.resize(reducedStateSize,reducedStateSize);
+            stateErrorVarianceReduced.setZero();
+
+            size_t vpi = 0;
+            for (size_t opi = 0; opi < vecOptimParams.size(); opi++) {
+                helper::vector<double> stdev;
+                vecOptimParams[opi]->getStDev(stdev);
+
+                for (size_t pi = 0; pi < vecOptimParams.size(); pi++, vpi++)
+                    stateErrorVarianceReduced(vpi,vpi) = Type(Type(1.0) / (stdev[pi] * stdev[pi]));
+            }
+        }
+        return stateErrorVarianceReduced;
+    }
+
+    virtual EVectorX& getStateErrorVarianceRow(int row) {
+        //return
+    }
 }; /// class
 
 
