@@ -66,6 +66,38 @@ void OptimParams<sofa::helper::vector<double> >::setValueTempl(const DVec& _valu
 }*/
 
 template<>
+void OptimParams<sofa::helper::vector<double> >::vectorToParams(VectorXd& _vector) {
+    helper::WriteAccessor<Data<helper::vector<double> > > val = m_val;
+
+    switch (this->m_transformParams.getValue()) {
+    case 1:
+        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+            val[i]=fabs(_vector[this->paramIndices[i]]);
+        }
+        break;
+    default:
+        for (size_t i = 0; i < this->paramIndices.size(); i++)
+            val[i] = _vector[this->paramIndices[i]];
+    }
+}
+
+template<>
+void OptimParams<sofa::helper::vector<double> >::vectorToParams(VectorXf& _vector) {
+    helper::WriteAccessor<Data<helper::vector<double> > > val = m_val;
+
+    switch (this->m_transformParams.getValue()) {
+    case 1:
+        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+            val[i]=double(fabs(_vector[this->paramIndices[i]]));
+        }
+        break;
+    default:
+        for (size_t i = 0; i < this->paramIndices.size(); i++)
+            val[i] = double(_vector[this->paramIndices[i]]);
+    }
+}
+
+template<>
 void OptimParams<sofa::helper::vector<double> >::rawVectorToParams(const double* _vector) {
     helper::WriteAccessor<Data<helper::vector<double> > > val = m_val;
 
@@ -101,6 +133,37 @@ void OptimParams<sofa::helper::vector<double> >::rawVectorToParamsParallel(const
     }
     //std::cout << this->getContext()->getName() << "::" << this->getName() << " params: " << val << std::endl;
 }
+
+template<>
+void OptimParams<sofa::helper::vector<double> >::paramsToVector(VectorXd& _vector) {
+    helper::ReadAccessor<Data<helper::vector<double> > > val = m_val; // real values of parameters
+
+    switch (this->m_transformParams.getValue()) {
+    case 1:
+        for (size_t i = 0; i < paramIndices.size(); i++)
+            _vector[paramIndices[i]] = double(fabs(val[i]));
+        break;
+    default:
+        for (size_t i = 0; i < paramIndices.size(); i++)
+            _vector[paramIndices[i]] = val[i];
+    }
+}
+
+template<>
+void OptimParams<sofa::helper::vector<double> >::paramsToVector(VectorXf& _vector) {
+    helper::ReadAccessor<Data<helper::vector<double> > > val = m_val; // real values of parameters
+
+    switch (this->m_transformParams.getValue()) {
+    case 1:
+        for (size_t i = 0; i < paramIndices.size(); i++)
+            _vector[paramIndices[i]] = float(fabs(val[i]));
+        break;
+    default:
+        for (size_t i = 0; i < paramIndices.size(); i++)
+            _vector[paramIndices[i]] = float(val[i]);
+    }
+}
+
 
 template<>
 // puts the params at the known indices

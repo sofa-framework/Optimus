@@ -74,6 +74,7 @@ protected:
     EMatrixX matU, matUinv;
     EMatrixX matItrans, matI;
     EMatrixX matDv;
+    EMatrixX matXi;
 
     Type alpha;
 

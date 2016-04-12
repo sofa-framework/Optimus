@@ -85,13 +85,21 @@ protected:
 
     void copyStateVerdandi2Sofa();
     void copyStateSofa2Verdandi();
+    void computeSofaStep(bool _updateTime);
 
 public:    
     Data<bool> velocityInState;
 
-    void applyOperator();
     void init();
     void bwdInit();
+
+    void applyOperator(EVectorX& _vecX, bool _preserveState, bool _updateForce);
+    //void setSofaTime(const core::ExecParams* _execParams);
+
+    void setState(EVectorX& _state) {
+        this->state = _state;
+        copyStateVerdandi2Sofa();
+    }
 
     virtual EMatrixX& getStateErrorVarianceReduced() {
         if (this->stateErrorVarianceReduced.rows() == 0) {
@@ -108,6 +116,17 @@ public:
             }
         }
         return this->stateErrorVarianceReduced;
+    }
+
+    virtual EMatrixX& getStateErrorVarianceProjector() {
+        if (this->stateErrorVarianceProjector.rows() == 0) {
+            this->stateErrorVarianceProjector.resize(this->stateSize, this->reducedStateSize);
+            this->stateErrorVarianceProjector.setZero();
+
+            for (size_t i = 0; i < this->reducedStateSize; i++)
+                this->stateErrorVarianceProjector(i+this->reducedStateIndex,i) = Type(1.0);
+        }
+        return this->stateErrorVarianceProjector;
     }
 
 

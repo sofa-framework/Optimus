@@ -33,6 +33,8 @@
 #include <sofa/simulation/common/AnimateEndEvent.h>
 #include <sofa/simulation/common/AnimateBeginEvent.h>
 
+#include <sofa/simulation/common/UpdateContextVisitor.h>
+
 #include <sofa/simulation/common/Node.h>
 
 #include "initOptimusPlugin.h"
@@ -53,7 +55,7 @@ public:
     typedef sofa::core::objectmodel::BaseObject Inherit;
 
     StochasticFilterBase()
-        : Inherit()
+        : Inherit()        
         , verbose( initData(&verbose, false, "verbose", "print tracing informations") ) {
 
     }
@@ -62,9 +64,13 @@ public:
 
 protected:    
     sofa::simulation::Node* gnode;
+    sofa::component::stochastic::StochasticStateWrapperBase* stateWrapperBase;
+    size_t stepNumber;
+    double actualTime;
+    const core::ExecParams* execParams;
 
 public:
-    Data<bool> verbose;
+    Data<bool> verbose;    
 
     void init() {
         Inherit::init();
@@ -72,7 +78,25 @@ public:
 
         if (!gnode) {
             PRNE("Cannot find node!");         
-        }        
+        } else {
+            gnode->get(stateWrapperBase, core::objectmodel::BaseContext::SearchDown);
+        }
+
+        if (!stateWrapperBase) {
+            PRNE("Cannot find state wrapper!");
+        }
+        stepNumber = 0;
+        actualTime = 0.0;
+    }
+
+    virtual void initializeStep(const core::ExecParams* _params) {
+        execParams=_params;
+        stepNumber++;
+        actualTime = double(stepNumber)*gnode->getDt();
+        this->gnode->setTime(this->actualTime);
+        this->gnode->template execute< sofa::simulation::UpdateSimulationContextVisitor >(execParams);
+
+        stateWrapperBase->initializeStep(_params, stepNumber);
     }
 
     virtual void computePrediction() = 0;

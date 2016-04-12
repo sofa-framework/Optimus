@@ -55,10 +55,14 @@ public:
 
 protected:
     sofa::simulation::Node* gnode;
+    size_t stepNumber;
+    double actualTime;
+
+    const core::ExecParams* execParams;
+
 public:
     Data<bool> verbose;
 
-    virtual void applyOperator() = 0;
     void init() {
         Inherit::init();
 
@@ -67,7 +71,13 @@ public:
             PRNE("Cannot find node!");
             return;
         }
+    }
 
+    virtual void initializeStep(const core::ExecParams* _execParams, size_t _stepNumber) {
+        execParams = _execParams;
+        stepNumber = _stepNumber;
+        actualTime = double(stepNumber)*gnode->getDt();
+        std::cout << "initialize step with " << actualTime << std::endl;
     }
 }; /// class
 
@@ -86,22 +96,33 @@ public:
     }
 
 protected:
-    int reducedStateIndex;
-    int stateSize, reducedStateSize;
+    size_t reducedStateIndex;
+    size_t stateSize, reducedStateSize;
 
     EVectorX state;
 
     EMatrixX stateErrorVariance;
     EMatrixX stateErrorVarianceReduced;
+    EMatrixX stateErrorVarianceProjector;
 
     EVectorX stateErrorVarianceRow;
 
+
 public:
+    virtual void applyOperator(EVectorX& _vecX,  bool _preserveState = true, bool _updateForce = true) = 0;
+    //virtual void setSofaTime(const core::ExecParams* _execParams) = 0;
+
+    virtual void setStateErrorVarianceProjector(EMatrixX& _mat) {
+        stateErrorVarianceProjector = _mat;
+    }
+
     virtual EMatrixX& getStateErrorVariance() {
         return stateErrorVariance;
     }
 
-    //virtual EMatrixX& getStateErrorVarianceProjector() = 0;
+    virtual EMatrixX& getStateErrorVarianceProjector()  {
+        return stateErrorVarianceProjector;
+    }
 
     virtual EMatrixX& getStateErrorVarianceReduced() {
         return stateErrorVarianceReduced;
@@ -114,6 +135,14 @@ public:
 
     EVectorX& getState() {
         return state;
+    }
+
+    void setState(EVectorX& _state) {
+        state = _state;
+    }
+
+    size_t getStateSize() {
+        return state.rows();
     }
 
     void init() {

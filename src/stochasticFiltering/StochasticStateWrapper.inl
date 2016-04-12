@@ -25,7 +25,35 @@
 #ifndef SOFASTATEWRAPPER_INL
 #define SOFASTATEWRAPPER_INL
 
+#include <sofa/simulation/common/PrintVisitor.h>
+#include <sofa/simulation/common/FindByTypeVisitor.h>
+#include <sofa/simulation/common/ExportGnuplotVisitor.h>
+#include <sofa/simulation/common/InitVisitor.h>
+#include <sofa/simulation/common/AnimateVisitor.h>
 #include <sofa/simulation/common/MechanicalVisitor.h>
+#include <sofa/simulation/common/CollisionVisitor.h>
+#include <sofa/simulation/common/CollisionBeginEvent.h>
+#include <sofa/simulation/common/CollisionEndEvent.h>
+#include <sofa/simulation/common/UpdateContextVisitor.h>
+#include <sofa/simulation/common/UpdateMappingVisitor.h>
+#include <sofa/simulation/common/ResetVisitor.h>
+#include <sofa/simulation/common/VisualVisitor.h>
+#include <sofa/simulation/common/ExportOBJVisitor.h>
+#include <sofa/simulation/common/WriteStateVisitor.h>
+#include <sofa/simulation/common/XMLPrintVisitor.h>
+#include <sofa/simulation/common/PropagateEventVisitor.h>
+#include <sofa/simulation/common/BehaviorUpdatePositionVisitor.h>
+#include <sofa/simulation/common/AnimateBeginEvent.h>
+#include <sofa/simulation/common/AnimateEndEvent.h>
+#include <sofa/simulation/common/UpdateMappingEndEvent.h>
+#include <sofa/simulation/common/CleanupVisitor.h>
+#include <sofa/simulation/common/DeleteVisitor.h>
+#include <sofa/simulation/common/UpdateBoundingBoxVisitor.h>
+#include <sofa/helper/system/SetDirectory.h>
+#include <sofa/helper/system/PipeProcess.h>
+#include <sofa/helper/AdvancedTimer.h>
+
+
 
 #include "StochasticStateWrapper.h"
 
@@ -98,7 +126,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
         if (fixedConstraint) {
             const typename FixedConstraint::SetIndexArray& fix = fixedConstraint->f_indices.getValue();
             for (size_t j = 0; j < fix.size(); j++) {
-                if (int(fix[j]) == msi) {
+                if (int(fix[j]) == int(msi)) {
                     found = true;
                     break;
                 }
@@ -166,10 +194,8 @@ void StochasticStateWrapper<DataTypes, FilterType>::copyStateVerdandi2Sofa() {
     sofa::simulation::MechanicalPropagatePositionAndVelocityVisitor(&mp).execute( this->gnode );
 
     /// let the OptimParams to extract the actual values of parameters from the verdandi state
-    /// actually: rawVector functions in optimParams do nothing, so we omit it here...
-    /*for (size_t opi = 0; opi < vecOptimParams.size(); opi++)
-        vecOptimParams[opi]->rawVectorToParams(state_.GetData(), state_.GetM());*/
-
+    for (size_t opi = 0; opi < vecOptimParams.size(); opi++)
+        vecOptimParams[opi]->vectorToParams(this->state);
 }
 
 template <class DataTypes, class FilterType>
@@ -186,16 +212,110 @@ void StochasticStateWrapper<DataTypes, FilterType>::copyStateSofa2Verdandi() {
         for (size_t d = 0; d < Dim; d++)
             this->state(Dim*it->second + d) = vel[it->first][d];
 
+    for (size_t opi = 0; opi < vecOptimParams.size(); opi++)
+        vecOptimParams[opi]->paramsToVector(this->state);
+
 }
 
 template <class DataTypes, class FilterType>
-void StochasticStateWrapper<DataTypes, FilterType>::applyOperator() {
+void StochasticStateWrapper<DataTypes, FilterType>::applyOperator(EVectorX &_vecX, bool _preserveState, bool _updateForce) {
+    EVectorX savedState;
+    if (_preserveState)
+        savedState = this->state;
+
+    this->state = _vecX;
+    copyStateVerdandi2Sofa();
+    computeSofaStep(false);
+    copyStateSofa2Verdandi();
+    _vecX = this->state;
+
+    if (_preserveState) {
+        this->state = savedState;
+        copyStateVerdandi2Sofa();
+    }
 }
 
-//template <class DataTypes>
-//void StochasticStateWrapper<DataTypes>::reinit()
-//{
-//}
+/*template <class DataTypes, class FilterType>
+void StochasticStateWrapper<DataTypes, FilterType>::setSofaTime(const core::ExecParams* _execParams) {
+    std::cout << "Setting SOFA time with " << this->actualTime << std::endl;
+    this->gnode->setTime (this->actualTime);
+    this->gnode->template execute< sofa::simulation::UpdateSimulationContextVisitor >(_execParams);
+}*/
+
+template <class DataTypes, class FilterType>
+void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStep(bool _updateTime) {
+    double    dt = this->gnode->getDt();
+
+    //std::cout << "[" << this->getName() << "]: step default begin at time = " << gnode->getTime() << " update time: " << _update_time << std::endl;
+
+    sofa::helper::AdvancedTimer::stepBegin("AnimationStep");
+    //std::cout<<"step "<<step++<<std::endl;
+    sofa::helper::AdvancedTimer::begin("Animate");
+    //std::cout<<"step "<<step++<<std::endl;
+
+#ifdef SOFA_DUMP_VISITOR_INFO
+    simulation::Visitor::printNode("Step");
+#endif
+
+    {
+        //std::cout<<"step "<<step++<<std::endl;
+        //std::cout << "[" << this->getName() << "]: animate begin" << std::endl;
+        sofa::simulation::AnimateBeginEvent ev ( dt );
+        sofa::simulation::PropagateEventVisitor act ( this->execParams, &ev );
+        this->gnode->execute ( act );
+        //std::cout<<"step "<<step++<<std::endl;
+    }
+
+    double startTime = this->gnode->getTime();
+    //std::cout<<"step "<<step++<<std::endl;
+    //std::cout << "[" << this->getName() << "]: behaviour update position" << std::endl;
+    sofa::simulation::BehaviorUpdatePositionVisitor beh(this->execParams , dt);
+    this->gnode->execute ( beh );
+    //std::cout<<"step "<<step++<<std::endl;
+    //std::cout << "[" << this->getName() << "]: animate" << std::endl;
+    sofa::simulation::AnimateVisitor act(this->execParams, dt);
+    this->gnode->execute ( act );
+
+    if (_updateTime) {
+        //std::cout << "[" << this->getName() << "]: update simulation context" << std::endl;
+        this->gnode->setTime ( startTime + dt );
+        this->gnode->template execute<  sofa::simulation::UpdateSimulationContextVisitor >(this->execParams);
+    }
+    //std::cout<<"step "<<step++<<std::endl;
+    {
+        //std::cout << "[" << this->getName() << "]: animate end" << std::endl;
+        sofa::simulation::AnimateEndEvent ev ( dt );
+        sofa::simulation::PropagateEventVisitor act (this->execParams, &ev );
+        this->gnode->execute ( act );
+    }
+
+    sofa::helper::AdvancedTimer::stepBegin("UpdateMapping");
+    //Visual Information update: Ray Pick add a MechanicalMapping used as VisualMapping
+    //std::cout << "[" << this->getName() << "]: update mapping" << std::endl;
+    this->gnode->template execute<  sofa::simulation::UpdateMappingVisitor >(this->execParams);
+    sofa::helper::AdvancedTimer::step("UpdateMappingEndEvent");
+    {
+        //std::cout << "[" << this->getName() << "]: update mapping end" << std::endl;
+        sofa::simulation::UpdateMappingEndEvent ev ( dt );
+        sofa::simulation::PropagateEventVisitor act ( this->execParams , &ev );
+        this->gnode->execute ( act );
+    }
+    sofa::helper::AdvancedTimer::stepEnd("UpdateMapping");
+
+#ifndef SOFA_NO_UPDATE_BBOX
+    sofa::helper::AdvancedTimer::stepBegin("UpdateBBox");
+    this->gnode->template execute<  sofa::simulation::UpdateBoundingBoxVisitor >(this->execParams);
+    sofa::helper::AdvancedTimer::stepEnd("UpdateBBox");
+#endif
+#ifdef SOFA_DUMP_VISITOR_INFO
+    simulation::Visitor::printCloseNode("Step");
+#endif
+    sofa::helper::AdvancedTimer::end("Animate");
+    sofa::helper::AdvancedTimer::stepEnd("AnimationStep");
+
+}
+
+
 
 } // simulation
 } // component

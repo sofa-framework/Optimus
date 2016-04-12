@@ -63,7 +63,7 @@ public:
     FilteringAnimationLoop(sofa::simulation::Node* _gnode);
 
 
-virtual void step(const core::ExecParams* params, SReal dt);
+virtual void step(const core::ExecParams* _params, SReal _dt);
 
 protected:    
 public:

@@ -84,12 +84,13 @@ void FilteringAnimationLoop::bwdInit() {
 }
 
 
-void FilteringAnimationLoop::step(const core::ExecParams* params, SReal dt) {
+void FilteringAnimationLoop::step(const core::ExecParams* _params, SReal _dt) {
     if (!filter) {
         PRNE("No filter defined!");
         return;
     }
 
+    filter->initializeStep(_params);
     filter->computePrediction();
     filter->computeCorrection();
 

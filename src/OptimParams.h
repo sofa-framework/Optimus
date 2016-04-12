@@ -36,6 +36,11 @@
 #include <sofa/simulation/common/AnimateEndEvent.h>
 #include <sofa/simulation/common/AnimateBeginEvent.h>
 
+#ifdef Success
+#undef Success // dirty workaround to cope with the (dirtier) X11 define. See http://eigen.tuxfamily.org/bz/show_bug.cgi?id=253
+#endif
+#include <Eigen/Dense>
+
 namespace sofa
 {
 namespace component
@@ -122,6 +127,9 @@ public:
     typedef helper::vector<double> DVec;
     typedef helper::vector<size_t> IVec;
 
+    typedef Eigen::Matrix<float, Eigen::Dynamic, 1> VectorXf;
+    typedef Eigen::Matrix<double, Eigen::Dynamic, 1> VectorXd;
+
 protected:    
     size_t m_dim;
     Data< bool > m_optimize;            ///if OptimParams component are used in Verdandi optimization
@@ -147,6 +155,11 @@ public:
     
     virtual void rawVectorToParams(const double* _vector) = 0;  /// copy values from a input vector into parameters at correct positions
     virtual void paramsToRawVector(double* _vector) = 0;  /// copy values from parameters to the output vector at correct positions
+
+    virtual void vectorToParams(VectorXf& _vector) = 0;
+    virtual void vectorToParams(VectorXd& _vector) = 0;
+    virtual void paramsToVector(VectorXf& _vector) = 0;
+    virtual void paramsToVector(VectorXd& _vector) = 0;
     
 
     OptimParamsBase()
@@ -278,14 +291,33 @@ protected:
     virtual void getStDevTempl(DVec& /*_stdev*/) {}
     //virtual void getValueTempl(DVec& /*_value*/) {}
     //virtual void setValueTempl(const DVec& /*_value*/) {}
-    virtual void rawVectorToParams(const double* /*_vector*/) {}
-    virtual void paramsToRawVector(double* /*_vector*/) {}
 
+    virtual void rawVectorToParams(const double* /*_vector*/) {
+        std::cerr << "[" << this->getName() << "] ERROR: rawVectorToParams not implemented!" << std::endl;
+    }
+
+    virtual void paramsToRawVector(double* /*_vector*/) {
+        std::cerr << "[" << this->getName() << "] ERROR: paramsToRawVector not implemented!" << std::endl;
+    }
+
+    virtual void vectorToParams(VectorXf& /*_vector*/) {
+        std::cerr << "[" << this->getName() << "] ERROR: vectorToParams not implemented!" << std::endl;
+    }
+
+    virtual void vectorToParams(VectorXd& /*_vector*/) {
+        std::cerr << "[" << this->getName() << "] ERROR: vectorToParams not implemented!" << std::endl;
+    }
+
+    virtual void paramsToVector(VectorXf& /*_vector*/) {
+        std::cerr << "[" << this->getName() << "] ERROR: paramsToVector not implemented!" << std::endl;
+    }
+
+    virtual void paramsToVector(VectorXd& /*_vector*/) {
+        std::cerr << "[" << this->getName() << "] ERROR: paramsToVector not implemented!" << std::endl;
+    }
 
     virtual void rawVectorToParamsParallel(const double* /*_vector*/){}
     virtual void paramsToRawVectorParallel(double* /*_vector*/){}
-
-
 
     virtual void handleEvent(core::objectmodel::Event */*event*/) {}
 

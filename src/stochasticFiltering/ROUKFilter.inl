@@ -48,9 +48,32 @@ ROUKFilter<FilterType>::~ROUKFilter()
 template <class FilterType>
 void ROUKFilter<FilterType>::computePrediction()
 {
-    PRNS("computing prediction");
-    EVectorX x = stateWrapper->getState();
-    std::cout << "State: " << x << std::endl;
+    PRNS("Computing prediction");
+    EVectorX vecX = stateWrapper->getState();
+    Eigen::LLT<EMatrixX> lltU(matUinv);
+    matUinv = lltU.matrixL();
+    EMatrixX tmpStateVarProj = stateWrapper->getStateErrorVarianceProjector() * matUinv;
+    stateWrapper->setStateErrorVarianceProjector(tmpStateVarProj);
+
+    matXi.resize(stateSize, sigmaPointsNum);
+    for (size_t i = 0; i < sigmaPointsNum; i++)
+        matXi.col(i) = vecX;
+    matXi = matXi + tmpStateVarProj * matI;
+
+    vecX.setZero();
+    EVectorX xCol(stateSize);
+
+    for (size_t i = 0; i < sigmaPointsNum; i++) {
+        xCol = matXi.col(i);
+        stateWrapper->applyOperator(xCol);
+        vecX = vecX + alpha*xCol;
+        matXi.col(i) = xCol;
+    }
+
+    /// TODO: add resampling!!!
+    tmpStateVarProj = alpha*matXi * matItrans;
+    stateWrapper->setStateErrorVarianceProjector(tmpStateVarProj);
+    stateWrapper->setState(vecX);
 }
 
 
@@ -76,21 +99,23 @@ void ROUKFilter<FilterType>::bwdInit() {
     PRNS("bwdInit");
 
     /// get observations TODO
+    // observationSize =
+    stateSize = stateWrapper->getStateSize();
     EMatrixX temp = stateWrapper->getStateErrorVarianceReduced();
     matU = temp;
 
     reducedStateSize = matU.cols();
     matUinv = matU.inverse();
 
-    PRNW("size: " << matU.rows() << " X " << matU.cols());
-    std::cout << matUinv << std::endl;
+    //PRNW("size: " << matU.rows() << " X " << matU.cols());
 
     /// compute sigma points
     EMatrixX matVtrans;
     computeSimplexSigmaPoints(matVtrans);
     sigmaPointsNum = matVtrans.rows();
 
-    PRNW("number of sigma points: " << sigmaPointsNum);
+    PRNS("Reduced state size: " << reducedStateSize);
+    PRNS("Number of sigma points: " << sigmaPointsNum);
 
     EMatrixX matPalphaV(reducedStateSize, reducedStateSize);
     matItrans.resize(sigmaPointsNum, reducedStateSize);
