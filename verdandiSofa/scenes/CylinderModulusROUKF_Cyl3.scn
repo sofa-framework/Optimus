@@ -7,9 +7,9 @@
  	<VisualStyle displayFlags="showBehaviorModels showForceFields showCollisionModels" />
 			
 	<VerdandiAnimationLoop name="verdAnimLoop"  verbose="0"/>
-	<SofaReducedOrderUKF name="sofaROUKF" sigmaPointType="simplex" paramFileName="daCyl3/exp1_params.out" paramVarFileName="daCyl3/exp1_vars.out"/>
+	<SofaReducedOrderUKF name="sofaROUKF" sigmaPointType="simplex" paramFileName="" paramVarFileName=""/>
 		
-	<OptimParams name="paramE" template="Vector" initValue="6000 6000 6000" stdev="2000 2000 2000" transformParams="1"/>
+	<OptimParams name="paramE" template="Vector" initValue="6000 6000 6000" stdev="2000 2000 2000" transformParams="1" optimize="1"/>
 <!-- 	<OptimParams name="paramE" template="Vector" initValue="10000 5000 7000"/>  -->
 	
 <!--         <EulerImplicit name="odeSolver" printLog="false"/> -->

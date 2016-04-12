@@ -3,9 +3,10 @@
 	<RequiredPlugin pluginName="Optimus"/>
 	<RequiredPlugin pluginName="SofaPardisoSolver"/>
 	<RequiredPlugin pluginName="ImageMeshAux"/>
+
 	<VisualStyle displayFlags="hideBehaviorModels showForceFields showCollisionModels" />
 
-        <VerdandiAnimationLoop name="verdAnimLoop"  verbose="0"/>
+    <VerdandiAnimationLoop name="verdAnimLoop"  verbose="0"/>
 	<SofaReducedOrderUKF name="sofaROUKF" sigmaPointType="simplex" paramFileName="../estimations/exp1.out" paramVarFileName="../estimations/exp1_vars.out"/>
                     
         <Node name="bcScene">       
@@ -21,7 +22,7 @@
             <StaticSolver applyIncrementFactor="0"/>	
             <SparsePARDISOSolver/>
 
-            <MeshVTKLoader filename="../../Data/beam1_1635.vtk" name="loader" />
+            <MeshVTKLoader filename="../../Data/beamA1_1635.vtk" name="loader" />
             <MechanicalObject src="@loader" name="Volume" />
                         
             <include href="Objects/TetrahedronSetTopology.xml" src="@loader" />

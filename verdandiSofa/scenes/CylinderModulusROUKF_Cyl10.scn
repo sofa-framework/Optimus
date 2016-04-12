@@ -8,7 +8,7 @@
 	<VerdandiAnimationLoop name="verdAnimLoop"  verbose="0"/>
 	<SofaReducedOrderUKF name="sofaROUKF" sigmaPointType="simplex" paramFileName="daCyl10/params.out" paramVarFileName="daCyl10/paramVars.out"/>
 		
-	<OptimParams name="paramE" template="Vector" initValue="6000 6000 6000 6000 6000 6000 6000 6000 6000 6000" stdev="2000 2000 2000 2000 2000 2000 2000 2000 2000 2000" transformParams="1" printLog="1"/>
+	<OptimParams name="paramE" template="Vector" initValue="6000 6000 6000 6000 6000 6000 6000 6000 6000 6000" stdev="2000 2000 2000 2000 2000 2000 2000 2000 2000 2000" transformParams="1" printLog="1" optimize="1"/>
 <!-- 	<OptimParams name="paramE" template="Vector" initValue="10000 5000 7000"/>  -->
 	
 <!--         <EulerImplicit name="odeSolver" printLog="false"/> -->
