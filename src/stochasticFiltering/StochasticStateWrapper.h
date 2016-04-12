@@ -83,15 +83,8 @@ protected:
     helper::vector<std::pair<size_t, size_t> > positionPairs;
     helper::vector<std::pair<size_t, size_t> > velocityPairs;
 
-    int reducedStateIndex;
-    int stateSize, reducedStateSize;
-
     void copyStateVerdandi2Sofa();
     void copyStateSofa2Verdandi();
-
-    EVectorX state;
-    EMatrixX stateErrorVariance;
-    EMatrixX stateErrorVarianceReduced;
 
 public:    
     Data<bool> velocityInState;
@@ -100,33 +93,24 @@ public:
     void init();
     void bwdInit();
 
-    virtual EMatrixX& getStateErrorVariance() {
-        return stateErrorVariance;
-    }
-
-    virtual EMatrixX& getStateErrorVarianceProjector() {
-    }
-
     virtual EMatrixX& getStateErrorVarianceReduced() {
-        if (stateErrorVarianceReduced.rows() == 0) {
-            stateErrorVarianceReduced.resize(reducedStateSize,reducedStateSize);
-            stateErrorVarianceReduced.setZero();
+        if (this->stateErrorVarianceReduced.rows() == 0) {
+            this->stateErrorVarianceReduced.resize(this->reducedStateSize,this->reducedStateSize);
+            this->stateErrorVarianceReduced.setZero();
 
             size_t vpi = 0;
-            for (size_t opi = 0; opi < vecOptimParams.size(); opi++) {
+            for (size_t opi = 0; opi < this->vecOptimParams.size(); opi++) {
                 helper::vector<double> stdev;
-                vecOptimParams[opi]->getStDev(stdev);
+                this->vecOptimParams[opi]->getStDev(stdev);
 
-                for (size_t pi = 0; pi < vecOptimParams.size(); pi++, vpi++)
-                    stateErrorVarianceReduced(vpi,vpi) = Type(Type(1.0) / (stdev[pi] * stdev[pi]));
+                for (size_t pi = 0; pi < this->vecOptimParams[opi]->size(); pi++, vpi++)
+                    this->stateErrorVarianceReduced(vpi,vpi) = Type(Type(1.0) / (stdev[pi] * stdev[pi]));
             }
         }
-        return stateErrorVarianceReduced;
+        return this->stateErrorVarianceReduced;
     }
 
-    virtual EVectorX& getStateErrorVarianceRow(int row) {
-        //return
-    }
+
 }; /// class
 
 

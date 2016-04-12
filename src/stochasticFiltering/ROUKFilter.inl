@@ -49,6 +49,8 @@ template <class FilterType>
 void ROUKFilter<FilterType>::computePrediction()
 {
     PRNS("computing prediction");
+    EVectorX x = stateWrapper->getState();
+    std::cout << "State: " << x << std::endl;
 }
 
 
@@ -57,19 +59,6 @@ void ROUKFilter<FilterType>::computeCorrection()
 {
     PRNS("computing correction");
 }
-
-template <class FilterType>
-void ROUKFilter<FilterType>::bwdInit() {
-    PRNS("bwdInit");
-
-    /// get observations TODO
-    EMatrixX temp = stateWrapper->getStateErrorVarianceReduced();
-    matU = temp;
-
-    PRNW("size: " << matU.rows() << " X " << matU.cols());
-    std::cout << matU << std::endl;
-}
-
 
 template <class FilterType>
 void ROUKFilter<FilterType>::init() {
@@ -81,6 +70,77 @@ void ROUKFilter<FilterType>::init() {
     } else
         PRNE("no state wrapper found!");
 }
+
+template <class FilterType>
+void ROUKFilter<FilterType>::bwdInit() {
+    PRNS("bwdInit");
+
+    /// get observations TODO
+    EMatrixX temp = stateWrapper->getStateErrorVarianceReduced();
+    matU = temp;
+
+    reducedStateSize = matU.cols();
+    matUinv = matU.inverse();
+
+    PRNW("size: " << matU.rows() << " X " << matU.cols());
+    std::cout << matUinv << std::endl;
+
+    /// compute sigma points
+    EMatrixX matVtrans;
+    computeSimplexSigmaPoints(matVtrans);
+    sigmaPointsNum = matVtrans.rows();
+
+    PRNW("number of sigma points: " << sigmaPointsNum);
+
+    EMatrixX matPalphaV(reducedStateSize, reducedStateSize);
+    matItrans.resize(sigmaPointsNum, reducedStateSize);
+
+    if (alphaConstant) {
+        alpha=vecAlpha(0);
+        matPalphaV = alpha*matVtrans.transpose()*matVtrans;
+        matPalphaV = matPalphaV.inverse();
+        matItrans = matVtrans*matPalphaV.transpose();
+    } else {
+        PRNE(" simplex method implemented only for constant alpha");
+        return;
+    }
+    matI = matItrans.transpose();
+
+    matDv.resize(sigmaPointsNum, sigmaPointsNum);
+    matDv = alpha*alpha*matItrans*matI;
+}
+
+template <class FilterType>
+void ROUKFilter<FilterType>::computeSimplexSigmaPoints(EMatrixX& sigmaMat) {
+    size_t p = reducedStateSize;
+    size_t r = reducedStateSize + 1;
+
+    EMatrixX workingMatrix = EMatrixX::Zero(p, r);
+
+    Type scal, beta, sqrt_p;
+    beta = Type(p) / Type(p+1);
+    sqrt_p = sqrt(Type(p));
+    scal = Type(1.0)/sqrt(Type(2) * beta);
+    workingMatrix(0,0) = -scal;
+    workingMatrix(0,1) = scal;
+
+    for (size_t i = 1; i < p; i++) {
+        scal = Type(1.0) / sqrt(beta * Type(i+1) * Type(i+2));
+
+        for (size_t j = 0; j < i+1; j++)
+            workingMatrix(i,j) = scal;
+        workingMatrix(i,i+1) = -Type(i+1) * scal;
+    }
+
+    sigmaMat.resize(r,p);
+    for (size_t i = 0; i < r; i++)
+        sigmaMat.row(i) = workingMatrix.col(i) * sqrt_p;
+
+    vecAlpha.resize(r);
+    vecAlpha.fill(Type(1.0)/Type(r));
+    alphaConstant = true;
+}
+
 
 //template <class FilterType>
 //void ROUKFilter<FilterType>::init()

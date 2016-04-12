@@ -56,6 +56,7 @@ class ROUKFilter: public sofa::component::stochastic::StochasticFilterBase
 {
 public:
     typedef sofa::component::stochastic::StochasticFilterBase Inherit;
+    typedef FilterType Type;
 
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, Eigen::Dynamic> EMatrixX;
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, 1> EVectorX;
@@ -66,16 +67,24 @@ ROUKFilter();
 protected:
     StochasticStateWrapperBaseT<FilterType>* stateWrapper;
 
-    size_t nObservations, nState, nReducedState;
+    size_t observationSize, stateSize, reducedStateSize, sigmaPointsNum;
+    bool alphaConstant;
 
+    EVectorX vecAlpha;
     EMatrixX matU, matUinv;
+    EMatrixX matItrans, matI;
+    EMatrixX matDv;
+
+    Type alpha;
+
+    void computeSimplexSigmaPoints(EMatrixX& sigmaMat);
 public:
+    void init();
+    void bwdInit();
 
     virtual void computePrediction();
     virtual void computeCorrection();
 
-    void init();
-    void bwdInit();
 
 
 }; /// class

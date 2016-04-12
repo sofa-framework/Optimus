@@ -126,22 +126,22 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
         }
     }
 
-    reducedStateIndex = Dim * vsi;
+    this->reducedStateIndex = Dim * vsi;
     for (size_t pi = 0; pi < vecOptimParams.size(); pi++) {
         helper::vector<size_t> opv;
         for (size_t i = 0; i < vecOptimParams[pi]->size(); i++, vpi++) {
-            opv.push_back(reducedStateIndex+vpi);
+            opv.push_back(this->reducedStateIndex+vpi);
         }
         vecOptimParams[pi]->setVStateParamIndices(opv);
     }
 
-    stateSize = Dim * vsi + vpi;
-    reducedStateSize = vpi;
+    this->stateSize = Dim * vsi + vpi;
+    this->reducedStateSize = vpi;
 
-    PRNS("Initializing stochastic state with size " << stateSize);
-    PRNS("Reduced state index: " << reducedStateIndex << " size: " << reducedStateSize);
+    PRNS("Initializing stochastic state with size " << this->stateSize);
+    PRNS("Reduced state index: " << this->reducedStateIndex << " size: " << this->reducedStateSize);
 
-    state.resize(stateSize);
+    this->state.resize(this->stateSize);
     copyStateSofa2Verdandi();
 }
 
@@ -152,13 +152,13 @@ void StochasticStateWrapper<DataTypes, FilterType>::copyStateVerdandi2Sofa() {
 
     for (helper::vector<std::pair<size_t, size_t> >::iterator it = positionPairs.begin(); it != positionPairs.end(); it++) {
         for (size_t d = 0; d < Dim; d++) {
-            pos[it->first][d] = state(Dim*it->second + d);
+            pos[it->first][d] = this->state(Dim*it->second + d);
         }
     }
 
     for (helper::vector<std::pair<size_t, size_t> >::iterator it = velocityPairs.begin(); it != velocityPairs.end(); it++) {
         for (size_t d = 0; d < Dim; d++) {
-            vel[it->first][d] = state(Dim*it->second + d);
+            vel[it->first][d] = this->state(Dim*it->second + d);
         }
     }
 
@@ -179,12 +179,12 @@ void StochasticStateWrapper<DataTypes, FilterType>::copyStateSofa2Verdandi() {
 
     for (helper::vector<std::pair<size_t, size_t> >::iterator it = positionPairs.begin(); it != positionPairs.end(); it++)
         for (size_t d = 0; d < Dim; d++) {
-            state(Dim*it->second + d) = pos[it->first][d];
+            this->state(Dim*it->second + d) = pos[it->first][d];
         }
 
     for (helper::vector<std::pair<size_t, size_t> >::iterator it = velocityPairs.begin(); it != velocityPairs.end(); it++)
         for (size_t d = 0; d < Dim; d++)
-            state(Dim*it->second + d) = vel[it->first][d];
+            this->state(Dim*it->second + d) = vel[it->first][d];
 
 }
 

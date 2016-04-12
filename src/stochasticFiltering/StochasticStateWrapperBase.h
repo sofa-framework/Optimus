@@ -86,14 +86,35 @@ public:
     }
 
 protected:
+    int reducedStateIndex;
+    int stateSize, reducedStateSize;
 
+    EVectorX state;
 
+    EMatrixX stateErrorVariance;
+    EMatrixX stateErrorVarianceReduced;
+
+    EVectorX stateErrorVarianceRow;
 
 public:
-    virtual EMatrixX& getStateErrorVariance() = 0;
-    virtual EMatrixX& getStateErrorVarianceProjector() = 0;
-    virtual EMatrixX& getStateErrorVarianceReduced() = 0;
-    virtual EVectorX& getStateErrorVarianceRow(int row) = 0;
+    virtual EMatrixX& getStateErrorVariance() {
+        return stateErrorVariance;
+    }
+
+    //virtual EMatrixX& getStateErrorVarianceProjector() = 0;
+
+    virtual EMatrixX& getStateErrorVarianceReduced() {
+        return stateErrorVarianceReduced;
+    }
+
+    virtual EVectorX& getStateErrorVarianceRow(int rowIndex) {
+        stateErrorVarianceRow = stateErrorVariance.row(rowIndex);
+        return stateErrorVarianceRow;
+    }
+
+    EVectorX& getState() {
+        return state;
+    }
 
     void init() {
         Inherit::init();
