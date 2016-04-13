@@ -68,8 +68,8 @@ public:
     typedef typename component::projectiveconstraintset::FixedConstraint<DataTypes> FixedConstraint;
     typedef sofa::component::container::OptimParamsBase OptimParamsBase;
 
-    typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, Eigen::Dynamic> EMatrixX;
-    typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, 1> EVectorX;
+    typedef typename Inherit::EMatrixX EMatrixX;
+    typedef typename Inherit::EVectorX EVectorX;
 
     StochasticStateWrapper();
     ~StochasticStateWrapper();

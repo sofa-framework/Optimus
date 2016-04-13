@@ -57,12 +57,16 @@ if ( ${STOCHASTIC_FILTERING} )
 		src/stochasticFiltering/StochasticStateWrapperBase.h
 		src/stochasticFiltering/StochasticStateWrapper.h
 		src/stochasticFiltering/StochasticStateWrapper.inl
+		src/stochasticFiltering/ObservationManagerBase.h
+		src/stochasticFiltering/MappedStateObservationManager.h
+		src/stochasticFiltering/MappedStateObservationManager.inl
 	)
 
 	list(APPEND SOURCE_FILES
 		src/stochasticFiltering/FilteringAnimationLoop.cpp
 		src/stochasticFiltering/ROUKFilter.cpp
 		src/stochasticFiltering/StochasticStateWrapper.cpp
+		src/stochasticFiltering/MappedStateObservationManager.cpp
 	)
 
 endif()
