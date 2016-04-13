@@ -32,7 +32,7 @@
 #include <sofa/simulation/common/Node.h>
 #include <sofa/helper/AdvancedTimer.h>
 
-#include "../src/OptimParams.h"
+#include "../src/genericComponents/OptimParams.h"
 
 #include "SofaModelWrapper.h"
 #include "SofaModelWrapperParallel.h"

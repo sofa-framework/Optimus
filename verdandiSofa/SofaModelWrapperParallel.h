@@ -37,18 +37,18 @@
 #include <SofaConstraint/LCPConstraintSolver.h>
 //#include <sofa/component/component.h>
 
-#include "../src/OptimParams.h"
+#include "../src/genericComponents/OptimParams.h"
 
 #include "VerdandiClasses.h"
 #include <SofaBoundaryCondition/FixedConstraint.h>
-#include "ObservationSource.h"
-#include "SimulatedStateObservationSource.h"
+#include "../src/genericComponents/ObservationSource.h"
+#include "../src/genericComponents/SimulatedStateObservationSource.h"
 #include "SofaModelWrapper.h"
 
 #include "sofa/core/Mapping.h"
 #include <SofaBaseTopology/TriangleSetTopologyContainer.h>
 
-#include "../src/PointProjection.h"
+#include "../src/genericComponents/PointProjection.h"
 
 #include <sofa/helper/gl/template.h>
 

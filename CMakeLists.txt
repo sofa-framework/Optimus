@@ -18,25 +18,22 @@ set ( STOCHASTIC_FILTERING "0" CACHE BOOL "Set to activate the compilation the n
 
 set(HEADER_FILES
     src/initOptimusPlugin.h
-    src/OptimParams.h
-    src/OptimParams.inl
-#    src/ekfilter.hpp
-#    src/ekfilter_impl.inl
-#    src/kfilter.hpp
-#    src/kfilter_impl.inl
-#    src/KalmanFilter.h
-#    src/KalmanFilter.inl
-#    src/TestingParams.h
-#    src/BubblePackingForceField.h
-#    src/BubblePackingForceField.inl 
-#    src/PointProjection.h
-#    src/PointProjection.inl
+    src/genericComponents/OptimParams.h
+    src/genericComponents/OptimParams.inl
+    src/genericComponents/PointProjection.h
+    src/genericComponents/PointProjection.inl
+    src/genericComponents/ObservationSource.h
+    src/genericComponents/SimulatedStateObservationSource.h
+    src/genericComponents/SimulatedStateObservationSource.inl
+
     )
 
 set(SOURCE_FILES
     src/initOptimusPlugin.cpp
-    src/OptimParams.cpp
-#    src/PointProjection.cpp
+    src/genericComponents/OptimParams.cpp
+    src/genericComponents/PointProjection.cpp
+    src/genericComponents/SimulatedStateObservationSource.cpp
+
 #    src/KalmanFilter.cpp
 #    src/TestingParams.cpp
 #    src/BubblePackingForceField.cpp
@@ -95,10 +92,7 @@ if(${SOFA-EXTERNAL_VERDANDI})
         verdandiSofa/VerdandiClasses.h
         ##verdandiSofa/VerdandiROUKFParams.h
         ##verdandiSofa/VerdandiObservationParams.h
-        verdandiSofa/ObservationSource.h
-        verdandiSofa/SimulatedStateObservationSource.h
-        verdandiSofa/SimulatedStateObservationSource.inl
-        ${SOFA-EXTERNAL_VERDANDI_PATH}/Verdandi.hxx
+               ${SOFA-EXTERNAL_VERDANDI_PATH}/Verdandi.hxx
         ${SOFA-EXTERNAL_VERDANDI_PATH}/model/QuadraticModel.hxx
         ${SOFA-EXTERNAL_VERDANDI_PATH}/model/ClampedBar.hxx
         ${SOFA-EXTERNAL_VERDANDI_PATH}/model/ModelTemplate.hxx
@@ -223,7 +217,7 @@ if(${SOFA-EXTERNAL_VERDANDI})
         verdandiSofa/SofaModelWrapper.cpp
         verdandiSofa/SofaModelWrapperParallel.cpp
         verdandiSofa/VerdandiClasses.cpp
-        verdandiSofa/SimulatedStateObservationSource.cpp
+        ##verdandiSofa/SimulatedStateObservationSource.cpp
         ##verdandiSofa/VerdandiROUKFParams.cpp
         ##verdandiSofa/VerdandiObservationParams.cpp        
         )
