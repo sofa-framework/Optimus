@@ -25,6 +25,8 @@
 #ifndef MAPPEDSTATEOBSERVATIONMANAGER_INL
 #define MAPPEDSTATEOBSERVATIONMANAGER_INL
 
+#include <sofa/simulation/common/Node.h>
+
 #include "MappedStateObservationManager.h"
 
 
@@ -38,6 +40,11 @@ namespace stochastic
 template <class FilterType, class DataTypes1, class DataTypes2>
 MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::MappedStateObservationManager()
     : Inherit()
+    , inputObservationData( this->initData (&inputObservationData, "observations", "observations read from a file") )
+    , mappedObservationData( this->initData (&mappedObservationData, "mappedObservations", "mapped observations") )
+    , noiseStdev( this->initData(&noiseStdev, double(0.0), "noiseStdev", "standard deviation of generated noise") )
+    , abberantIndex( this->initData(&abberantIndex, int(-1), "abberantIndex", "index of an aberrant point") )
+    , doNotMapObservations( this->initData(&doNotMapObservations, false, "doNotMapObservations", "if real observations are read from a file (not the mechanical object)") )
 {    
 }
 

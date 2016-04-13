@@ -39,7 +39,7 @@
 
 #include "initOptimusPlugin.h"
 #include "StochasticStateWrapperBase.h"
-#include "../OptimParams.h"
+#include "../genericComponents/OptimParams.h"
 
 namespace sofa
 {

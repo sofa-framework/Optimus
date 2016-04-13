@@ -33,8 +33,12 @@
 #include <sofa/simulation/common/AnimateEndEvent.h>
 #include <sofa/simulation/common/AnimateBeginEvent.h>
 
+#include <boost/random.hpp>
+#include <boost/random/normal_distribution.hpp>
+
 #include "initOptimusPlugin.h"
 #include "ObservationManagerBase.h"
+#include "../genericComponents/SimulatedStateObservationSource.h"
 
 namespace sofa
 {
@@ -55,16 +59,37 @@ public:
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, Eigen::Dynamic> EMatrixX;
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, 1> EVectorX;
 
+    typedef typename DataTypes1::Real Real1;
+    typedef core::behavior::MechanicalState<DataTypes1> MasterState;
+    typedef core::behavior::MechanicalState<DataTypes2> MappedState;
+    typedef sofa::core::Mapping<DataTypes1, DataTypes2> Mapping;
+    typedef sofa::component::container::SimulatedStateObservationSource<DataTypes1> ObservationSource;
+
     MappedStateObservationManager();
     ~MappedStateObservationManager() {}
 
-protected:    
+protected:
+    Mapping* mapping;
+    MappedState* mappedState;
+    MasterState* masterState;
+    ObservationSource *observationSource;
 public:
     void init();
     void bwdInit();
 
     virtual bool hasObservation() { } /// TODO
     virtual EVectorX& getInnovation(EVectorX& _state);
+
+    Data<typename DataTypes1::VecCoord> inputObservationData;
+    Data<typename DataTypes2::VecCoord> mappedObservationData;
+    Data<double> noiseStdev;
+    Data<int> abberantIndex;
+    Data<bool> doNotMapObservations;
+
+    boost::mt19937* pRandGen; // I don't seed it on purpouse (it's not relevant)
+    boost::normal_distribution<>* pNormDist;
+    boost::variate_generator<boost::mt19937&, boost::normal_distribution<> >* pVarNorm;
+
 
 
 }; /// class
