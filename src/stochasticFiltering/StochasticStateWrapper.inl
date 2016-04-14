@@ -68,7 +68,7 @@ namespace stochastic
 template <class DataTypes, class FilterType>
 StochasticStateWrapper<DataTypes, FilterType>::StochasticStateWrapper()
     :Inherit()
-    , velocityInState( this->initData(&velocityInState, false, "includeVelocity", "include the velocity in the stochastic state") )
+    , velocityInState( initData(&velocityInState, false, "includeVelocity", "include the velocity in the stochastic state") )
 {    
 }
 
@@ -119,21 +119,23 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
     if (!valid)
         return;
 
-    /// extract free nodes (fixed nodes cannot be included in the stochastic state)
-    helper::vector<size_t> freeNodes;
-    for (size_t msi = 0; msi < mechanicalState->getSize(); msi++) {
-        bool found = false;
-        if (fixedConstraint) {
-            const typename FixedConstraint::SetIndexArray& fix = fixedConstraint->f_indices.getValue();
-            for (size_t j = 0; j < fix.size(); j++) {
-                if (int(fix[j]) == int(msi)) {
-                    found = true;
-                    break;
-                }
-            }
+    /// extract free and fixed nodes (fixed nodes cannot be included in the stochastic state)
+    fixedNodes.clear();
+    freeNodes.clear();
+    if (fixedConstraint) {
+        const typename FixedConstraint::SetIndexArray& fix = fixedConstraint->f_indices.getValue();
+        for (size_t i = 0; i < fix.size(); i++)
+            fixedNodes.push_back(size_t(fix[i]));
+
+        for (size_t i = 0; i < mechanicalState->getSize(); i++) {
+            helper::vector<size_t>::iterator it = find(fixedNodes.begin(), fixedNodes.end(), i);
+
+            if (it != fixedNodes.end())
+                freeNodes.push_back(i);
         }
-        if (!found)
-            freeNodes.push_back(msi);
+    } else {
+        for (size_t i = 0; i < mechanicalState->getSize(); i++)
+            freeNodes.push_back(i);
     }
 
     positionPairs.clear();
@@ -171,6 +173,38 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
 
     this->state.resize(this->stateSize);
     copyStateSofa2Verdandi();
+}
+
+template <class DataTypes, class FilterType>
+void StochasticStateWrapper<DataTypes, FilterType>::setSofaVectorFromVerdandiVector(EVectorX& _state, typename DataTypes::VecCoord& _vec) {
+    if (_vec.size() != mechanicalState->getSize()) {
+        PRNE("Input vector not compatible with the actual Sofa state size");
+        return;
+    }
+
+    typename MechanicalState::ReadVecCoord pos = mechanicalState->readPositions();
+    for (size_t fni = 0; fni < fixedNodes.size(); fni++) {
+        size_t fn = fixedNodes[fni];
+        _vec[fn] = pos[fn];
+        PRNS("Setting fixed[" << fn << "] = " << _vec[fn]);
+    }
+
+    for (helper::vector<std::pair<size_t, size_t> >::iterator it = positionPairs.begin(); it != positionPairs.end(); it++) {
+        if (it->first >= _vec.size()) {
+            PRNE("Accessing Sofa vector out of bounds: " << it->first <<  " vs. " << _vec.size());
+            return;
+        }
+
+        if ((Dim*it->second + Dim) >= _state.rows()) {
+            PRNE("Accessing DA vector out of bounds: " << Dim*it->second + Dim <<  " vs. " << _state.rows());
+            return;
+        }
+
+        for (size_t d = 0; d < Dim; d++) {
+            _vec[it->first][d] = _state(Dim*it->second + d);
+        }
+        PRNS("Setting free[" << it->first << "] = " << _vec[it->first]);
+    }
 }
 
 template <class DataTypes, class FilterType>

@@ -41,6 +41,8 @@ using namespace defaulttype;
 class ObservationManagerBase: public sofa::core::objectmodel::BaseObject
 {
 public:
+    SOFA_ABSTRACT_CLASS(ObservationManagerBase, BaseObject);
+
     typedef sofa::core::objectmodel::BaseObject Inherit;
     ObservationManagerBase()
         : Inherit()
@@ -51,6 +53,7 @@ public:
 
 protected:    
     sofa::simulation::Node* gnode;
+    size_t stepNumber;
     double actualTime;
 
 public:
@@ -66,6 +69,11 @@ public:
         }
     }
 
+    virtual void initializeStep(size_t _stepNumber) {
+        stepNumber = _stepNumber;
+        actualTime = double(stepNumber)*gnode->getDt();
+    }
+
 
 }; /// class
 
@@ -74,6 +82,8 @@ template <class FilterType>
 class ObservationManager: public sofa::component::stochastic::ObservationManagerBase
 {
 public:
+    SOFA_CLASS(SOFA_TEMPLATE(ObservationManager, FilterType), ObservationManagerBase);
+
     typedef sofa::component::stochastic::ObservationManagerBase Inherit;
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, Eigen::Dynamic> EMatrixX;
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, 1> EVectorX;
@@ -86,7 +96,8 @@ public:
     ~ObservationManager() {}
 
 protected:
-    size_t observationsNumber;
+    size_t observationSize;     /// size of the observation vector
+    size_t observationsNumber;  /// number of observations
 
     FilterType errorVarianceValue;
     EMatrixX errorVariance;
@@ -98,8 +109,8 @@ public:
     virtual bool hasObservation() = 0;
     virtual EVectorX& getInnovation(EVectorX& state) = 0;
 
-    virtual size_t getObservationNumber() {
-        return observationsNumber;
+    size_t getObservationSize() {
+        return observationSize;
     }
 
     virtual EMatrixX& getErrorVariance() {
@@ -112,19 +123,25 @@ public:
 
     void init() {
         Inherit::init();
+
+        gnode = dynamic_cast<sofa::simulation::Node*>(this->getContext());
+        if (!gnode) {
+            PRNE("Cannot find node!");
+            return;
+        }
     }
 
     void bwdInit() {
         Inherit::bwdInit();
 
-        if (observationsNumber == 0) {
+        if (observationSize == 0) {
             PRNE("No observations available, cannot allocate the structures!");
         }
 
         FilterType obsStDev = observationStdev.getValue();
         errorVarianceValue = obsStDev * obsStDev;
-        errorVariance = EMatrixX::Identity(observationsNumber, observationsNumber) * errorVarianceValue;
-        errorVarianceInverse = EMatrixX::Identity(observationsNumber, observationsNumber) / errorVarianceValue;
+        errorVariance = EMatrixX::Identity(observationSize, observationSize) * errorVarianceValue;
+        errorVarianceInverse = EMatrixX::Identity(observationSize, observationSize) / errorVarianceValue;
     }
 
 }; /// class

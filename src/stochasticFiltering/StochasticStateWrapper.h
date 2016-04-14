@@ -54,6 +54,8 @@ template <class DataTypes, class FilterType>
 class StochasticStateWrapper: public sofa::component::stochastic::StochasticStateWrapperBaseT<FilterType>
 {
 public:
+    SOFA_CLASS(SOFA_TEMPLATE2(StochasticStateWrapper, DataTypes, FilterType), SOFA_TEMPLATE(StochasticStateWrapperBaseT, FilterType));
+
     typedef sofa::component::stochastic::StochasticStateWrapperBaseT<FilterType> Inherit;
     typedef typename DataTypes::VecCoord VecCoord;
     typedef typename DataTypes::VecDeriv VecDeriv;
@@ -80,11 +82,12 @@ protected:
     helper::vector<OptimParamsBase*> vecOptimParams;
 
     bool valid;
+    helper::vector<size_t> fixedNodes, freeNodes;
     helper::vector<std::pair<size_t, size_t> > positionPairs;
     helper::vector<std::pair<size_t, size_t> > velocityPairs;
 
-    void copyStateVerdandi2Sofa();
-    void copyStateSofa2Verdandi();
+    void copyStateVerdandi2Sofa();  // copy actual DA state to SOFA state and propagate to mappings
+    void copyStateSofa2Verdandi();  // copy the actual SOFA state to DA state
     void computeSofaStep(bool _updateTime);
 
 public:    
@@ -100,6 +103,8 @@ public:
         this->state = _state;
         copyStateVerdandi2Sofa();
     }
+
+    void setSofaVectorFromVerdandiVector(EVectorX& _state, typename DataTypes::VecCoord& _vec);
 
     virtual EMatrixX& getStateErrorVarianceReduced() {
         if (this->stateErrorVarianceReduced.rows() == 0) {

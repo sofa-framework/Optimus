@@ -39,6 +39,7 @@
 
 #include <string>
 
+#include "../initOptimusPlugin.h"
 #include "ObservationSource.h"
 
 using namespace sofa::core::objectmodel;
@@ -60,14 +61,20 @@ template<class DataTypes>
 class SOFA_SIMULATION_COMMON_API SimulatedStateObservationSource : public BaseObject //  ObservationSource
 {
 public:
+    SOFA_CLASS(SOFA_TEMPLATE(SimulatedStateObservationSource, DataTypes) ,BaseObject);
+
     typedef sofa::core::objectmodel::BaseObject Inherit;
     typedef typename DataTypes::VecCoord VecCoord;
     typedef typename DataTypes::Coord Coord;
     typedef typename DataTypes::Real Real;
     typedef typename std::vector<VecCoord> VecVecCoord;
+    typedef typename std::map<double, VecCoord> ObservationTable;
 
 protected:
+    ObservationTable observationTable;
+
     int nParticles, nObservations;
+    double initTime, finalTime;
     double dt;
 
 public:
@@ -75,6 +82,7 @@ public:
     SimulatedStateObservationSource();
     ~SimulatedStateObservationSource();
 
+    Data<bool> verbose;
     Data<std::string> m_monitorPrefix;
     Data<VecCoord> m_actualObservation;
     Data<SReal> m_drawSize;
@@ -91,16 +99,44 @@ public:
     void draw(const core::visual::VisualParams* vparams);
 
     void parseMonitorFile(std::string& _name);
-    VecCoord& getObservation(double time) {
 
-        size_t ix = (fabs(dt) < 1e-10) ? 0 : size_t(round(time/dt));
-        sout << "Getting observation for time " << time << " index: " << ix << sendl;
+    bool getObservation(double _time, VecCoord& _observation) {
+        size_t ix = (fabs(dt) < 1e-10) ? 0 : size_t(round(_time/dt));
+        std::cout << "Getting observation for time " << _time << " index: " << ix << std::endl;
         if (ix >= int(positions.size())) {
-            serr << "ERROR: no observation for time " << time << " , using the last one from " << positions.size()-1 << sendl;
+            serr << "ERROR: no observation for time " << _time << " , using the last one from " << positions.size()-1 << sendl;
             ix = positions.size() - 1;
         }
         m_actualObservation.setValue(positions[ix]);
-        return(positions[ix]);
+        _observation = positions[ix];
+
+        return(true);
+
+        /// TODO: switch to the new way of storing and gettting the observations!!!
+        /*double firstTime = observationTable.begin()->first;
+        if (_time <= firstTime) {
+            PRNW("Requested observation time " << _time << ", given observation for time " << firstTime);
+            _observation = observationTable.begin()->second;
+            return(true);
+        }
+
+        double lastTime = observationTable.rbegin()->first;
+        if (_time >= lastTime) {
+            PRNW("Requested observation time " << _time << ", given observation for time " << lastTime);
+            _observation = observationTable.rbegin()->second;
+            return(true);
+        }
+
+        typename ObservationTable::iterator it = observationTable.find(_time);
+        if (it != observationTable.end()) {
+            PRNS("Giving observation in time " << _time);
+            _observation = it->second;
+            return(true);
+        }
+
+        PRNE("No observation found for time " << _time);
+        return(false);*/
+
     }
 
     int getNParticles() {

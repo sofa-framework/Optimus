@@ -39,6 +39,7 @@
 #include "initOptimusPlugin.h"
 #include "ObservationManagerBase.h"
 #include "../genericComponents/SimulatedStateObservationSource.h"
+#include "StochasticStateWrapper.h"
 
 namespace sofa
 {
@@ -53,6 +54,8 @@ template <class FilterType, class DataTypes1, class DataTypes2>
 class MappedStateObservationManager: public sofa::component::stochastic::ObservationManager<FilterType>
 {
 public:
+    SOFA_CLASS(SOFA_TEMPLATE3(MappedStateObservationManager, FilterType, DataTypes1, DataTypes2), SOFA_TEMPLATE(ObservationManager, FilterType));
+
     typedef typename sofa::component::stochastic::ObservationManager<FilterType> Inherit;
     //typedef typename Inherit::EVectorX EVectorX;
     //typedef typename Inherit::EMatrixX EMatrixX;
@@ -64,6 +67,7 @@ public:
     typedef core::behavior::MechanicalState<DataTypes2> MappedState;
     typedef sofa::core::Mapping<DataTypes1, DataTypes2> Mapping;
     typedef sofa::component::container::SimulatedStateObservationSource<DataTypes1> ObservationSource;
+    typedef StochasticStateWrapper<DataTypes1,FilterType> StateWrapper;
 
     MappedStateObservationManager();
     ~MappedStateObservationManager() {}
@@ -73,6 +77,8 @@ protected:
     MappedState* mappedState;
     MasterState* masterState;
     ObservationSource *observationSource;
+    StateWrapper* stateWrapper;
+
 public:
     void init();
     void bwdInit();
@@ -85,10 +91,12 @@ public:
     Data<double> noiseStdev;
     Data<int> abberantIndex;
     Data<bool> doNotMapObservations;
+    SingleLink<MappedStateObservationManager<FilterType, DataTypes1, DataTypes2>, StateWrapper, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> stateWrapperLink;
 
     boost::mt19937* pRandGen; // I don't seed it on purpouse (it's not relevant)
     boost::normal_distribution<>* pNormDist;
     boost::variate_generator<boost::mt19937&, boost::normal_distribution<> >* pVarNorm;
+    helper::vector<double> noise;
 
 
 

@@ -28,6 +28,7 @@
 #include "initOptimusPlugin.h"
 #include "StochasticFilterBase.h"
 #include "StochasticStateWrapper.h"
+#include "ObservationManagerBase.h"
 
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/RigidTypes.h>
@@ -55,6 +56,8 @@ template <class FilterType>
 class ROUKFilter: public sofa::component::stochastic::StochasticFilterBase
 {
 public:
+    SOFA_CLASS(SOFA_TEMPLATE(ROUKFilter, FilterType), StochasticFilterBase);
+
     typedef sofa::component::stochastic::StochasticFilterBase Inherit;
     typedef FilterType Type;
 
@@ -66,8 +69,10 @@ ROUKFilter();
 
 protected:
     StochasticStateWrapperBaseT<FilterType>* stateWrapper;
+    ObservationManager<FilterType>* observationManager;
 
-    size_t observationSize, stateSize, reducedStateSize, sigmaPointsNum;
+
+    size_t observationsNum, stateSize, reducedStateSize, sigmaPointsNum;
     bool alphaConstant;
 
     EVectorX vecAlpha;

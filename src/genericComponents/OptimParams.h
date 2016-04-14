@@ -124,6 +124,8 @@ struct templateName<sofa::helper::vector<float> >
 class OptimParamsBase : public sofa::core::objectmodel::BaseObject
 {
 public:
+    SOFA_ABSTRACT_CLASS(OptimParamsBase, BaseObject);
+
     typedef helper::vector<double> DVec;
     typedef helper::vector<size_t> IVec;
 
@@ -255,11 +257,9 @@ template <class DataTypes>
 class OptimParams : public OptimParamsBase
 {
 public:
+    SOFA_CLASS(SOFA_TEMPLATE(OptimParams, DataTypes), OptimParamsBase);
 
     typedef typename sofa::core::loader::MeshLoader loader_t;
-
-    SOFA_CLASS(SOFA_TEMPLATE(OptimParams, DataTypes), sofa::core::objectmodel::BaseObject);    
-
     typedef OptimParamsBase Inherit;
 
     OptimParams(loader_t* = NULL);

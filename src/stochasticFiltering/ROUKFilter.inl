@@ -81,25 +81,55 @@ template <class FilterType>
 void ROUKFilter<FilterType>::computeCorrection()
 {
     PRNS("computing correction");
+    EMatrixX matZitrans(sigmaPointsNum, observationsNum);
+
+    /*TIC
+    sigma_point_matrix Z_i_trans(Nsigma_point_, Nobservation_);
+    sigma_point x_col;
+    observation z(Nobservation_);
+    z.Fill(To(0));
+    if (!alpha_constant_)
+        throw ErrorUndefined("ReducedOrderUnscentedKalmanFilter::"
+                             "Analyse()", "Calculation not "
+                             "implemented for non constant alpha_i.");
+
+    for (int i = 0; i < Nsigma_point_; i++)
+    {
+        GetRowPointer(X_i_trans_, i, x_col);
+        observation& z_col =
+            observation_manager_->GetInnovation(x_col);
+        Add(To(alpha_), z_col, z);
+        //std::cout << "Innovation: " << z_col << std::endl;
+        SetRow(z_col, i, Z_i_trans);
+        x_col.Nullify();
+    }*/
 }
 
 template <class FilterType>
 void ROUKFilter<FilterType>::init() {
     Inherit::init();
-    gnode->get(stateWrapper, core::objectmodel::BaseContext::SearchDown);
+    assert(this->gnode);
+    this->gnode->get(stateWrapper, core::objectmodel::BaseContext::SearchDown);
+    this->gnode->get(observationManager, core::objectmodel::BaseContext::SearchDown);
 
     if (stateWrapper) {
         PRNS("found stochastic state wrapper: " << stateWrapper->getName());
     } else
         PRNE("no state wrapper found!");
+
+    if (observationManager) {
+        PRNS("found observation manager: " << observationManager->getName());
+    } else
+        PRNE("no observation manager found!");
 }
 
 template <class FilterType>
 void ROUKFilter<FilterType>::bwdInit() {
     PRNS("bwdInit");
+    assert(stateWrapper);
+    assert(this->observationManagerBase);
 
-    /// get observations TODO
-    // observationSize =
+    observationsNum = this->observationManager->getObservationSize();
     stateSize = stateWrapper->getStateSize();
     EMatrixX temp = stateWrapper->getStateErrorVarianceReduced();
     matU = temp;
@@ -116,6 +146,7 @@ void ROUKFilter<FilterType>::bwdInit() {
 
     PRNS("Reduced state size: " << reducedStateSize);
     PRNS("Number of sigma points: " << sigmaPointsNum);
+    PRNS("Observation size: " << observationsNum);
 
     EMatrixX matPalphaV(reducedStateSize, reducedStateSize);
     matItrans.resize(sigmaPointsNum, reducedStateSize);

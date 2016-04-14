@@ -51,6 +51,7 @@ namespace container
 template<class DataTypes>
 SimulatedStateObservationSource<DataTypes>::SimulatedStateObservationSource()
     : Inherit()
+    , verbose( initData(&verbose, false, "verbose", "print tracing informations") )
     , m_monitorPrefix( initData(&m_monitorPrefix, std::string("monitor1"), "monitorPrefix", "prefix of the monitor-generated file") )
     , m_actualObservation( initData (&m_actualObservation, "actualObservation", "actual observation") )
     , m_drawSize( initData(&m_drawSize, SReal(0.0),"drawSize","size of observation spheres in each time step") )
@@ -82,25 +83,32 @@ void SimulatedStateObservationSource<DataTypes>::init()
 
 template<class DataTypes>
 void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _name) {
+    observationTable.clear();
+
     std::ifstream file(_name.c_str());
 
     nParticles = 0;
     nObservations = 0;
+    initTime = -1.0;
+
     if (file.good()) {
         /// parse the header of a monitor-generated file:
-        std::string line;        
+        std::string line;
+        size_t nLine = 0;
 
         getline(file, line);
+        nLine++;
         std::cout << "Here: " << line << std::endl;
         if (line[0] != '#') {
-            std::cout << "ERROR on line 2 in " << name << std::endl;
+            PRNE(" On line " << nLine << " in " << name);
             return;
         }
 
         getline(file, line);
+        nLine++;
         std::cout << "Here: " << line << std::endl;
         if (line[0] != '#') {
-            std::cout << "ERROR on line 2 in " << name << std::endl;
+            PRNE(" On line " << nLine << " in " << name);
             return;
         }
 
@@ -114,9 +122,10 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _
 
         nParticles = tokens.size() - tki;
 
-        std::cout << "Number of observed particles: " << nParticles << std::endl;
+        PRNS("Number of observed particles: " << nParticles);
 
         getline(file, line);
+        nLine++;
         std::stringstream ss2(line);
         std::istream_iterator<std::string> it2(ss2);
         std::istream_iterator<std::string> end2;
@@ -126,9 +135,14 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _
         while (tokens.size() > 1) {
             int dim = (tokens.size() -1)/nParticles;
             if (dim != 3) {
-                std::cout << "ERROR on line " << 3+nObservations << " dim: " << dim << std::endl;
+                PRNE(" On line " << nLine << " dim: " << dim);
                 return;
             }
+
+            double lineTime = atof(tokens[0].c_str()) ;
+            if (initTime < 0.0)
+                initTime = lineTime;
+            finalTime = lineTime;
 
             if (nObservations == 0)
                 dt = atof(tokens[0].c_str());
@@ -142,11 +156,14 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _
                     position[i][d] = atof(tokens[3*i+d+1].c_str());
 
             positions.push_back(position);
+            //std::cout << "###### adding position to obsTable at " << lineTime << std::endl;
+            observationTable[lineTime] = position;
             nObservations++;
 
             //std::cout << " positions size: " << positions.size() << std::endl;
 
             getline(file, line);
+            nLine++;
             std::stringstream ss(line);
             std::istream_iterator<std::string> it(ss);
             std::istream_iterator<std::string> end;
@@ -155,9 +172,11 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _
             tokens=tk;
         }
     } else {
-        std::cout << ": ERROR cannot open " << name << std::endl;
+        PRNE("Cannot open " << name);
         return;
     }
+
+    std::cout << "NObs = " << nObservations << " |tbl| = " << observationTable.size() << std::endl;
 
     if (nObservations > 0) {
         sout << "Valid observations available: #observations: " << nObservations << " #particles: " << nParticles << std::endl;

@@ -39,6 +39,7 @@
 
 #include "initOptimusPlugin.h"
 #include "StochasticStateWrapperBase.h"
+#include "ObservationManagerBase.h"
 
 namespace sofa
 {
@@ -52,6 +53,7 @@ using namespace defaulttype;
 class StochasticFilterBase: public sofa::core::objectmodel::BaseObject
 {
 public:
+    SOFA_ABSTRACT_CLASS(StochasticFilterBase, BaseObject);
     typedef sofa::core::objectmodel::BaseObject Inherit;
 
     StochasticFilterBase()
@@ -65,12 +67,13 @@ public:
 protected:    
     sofa::simulation::Node* gnode;
     sofa::component::stochastic::StochasticStateWrapperBase* stateWrapperBase;
+    sofa::component::stochastic::ObservationManagerBase* observationManagerBase;
     size_t stepNumber;
     double actualTime;
     const core::ExecParams* execParams;
 
 public:
-    Data<bool> verbose;    
+    Data<bool> verbose;
 
     void init() {
         Inherit::init();
@@ -80,11 +83,17 @@ public:
             PRNE("Cannot find node!");         
         } else {
             gnode->get(stateWrapperBase, core::objectmodel::BaseContext::SearchDown);
+            gnode->get(observationManagerBase, core::objectmodel::BaseContext::SearchDown);
         }
 
         if (!stateWrapperBase) {
-            PRNE("Cannot find state wrapper!");
+            PRNE("Cannot find state wrapper base!");
         }
+
+        if (!observationManagerBase) {
+            PRNE("Cannot find observation manager base!");
+        }
+
         stepNumber = 0;
         actualTime = 0.0;
     }
@@ -94,9 +103,10 @@ public:
         stepNumber++;
         actualTime = double(stepNumber)*gnode->getDt();
         this->gnode->setTime(this->actualTime);
-        this->gnode->template execute< sofa::simulation::UpdateSimulationContextVisitor >(execParams);
+        this->gnode->execute< sofa::simulation::UpdateSimulationContextVisitor >(execParams);
 
         stateWrapperBase->initializeStep(_params, stepNumber);
+        observationManagerBase->initializeStep(stepNumber);
     }
 
     virtual void computePrediction() = 0;

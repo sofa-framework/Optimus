@@ -52,10 +52,10 @@ using namespace defaulttype;
 class FilteringAnimationLoop: public sofa::core::behavior::BaseAnimationLoop
 {
 public:
+    SOFA_CLASS(FilteringAnimationLoop,sofa::core::behavior::BaseAnimationLoop);
+
     typedef sofa::core::behavior::BaseAnimationLoop Inherit;
     typedef sofa::component::stochastic::StochasticFilterBase StochasticFilterBase;
-
-    SOFA_CLASS(FilteringAnimationLoop,sofa::core::behavior::BaseAnimationLoop);
 
     ~FilteringAnimationLoop() {}
 
