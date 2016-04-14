@@ -192,15 +192,16 @@ void SofaModelWrapper<Type>::SetSofaVectorFromVerdandiState(defaulttype::Vec3dTy
     typename MechStateVec3d::ReadVecCoord pos = obj->vecMS->readPositions();
     vec.resize(pos.size());
     for (size_t i = 0; i < vec.size(); i++) {
-        //std::cout << "[" << i << "]: " << pos[i] << std::endl;
+        //std::cout << "!!!!! VEC1[" << i << "]: " << pos[i] << std::endl;
         vec[i] = pos[i];
     }
 
-    for (helper::vector<std::pair<size_t, size_t> >::iterator it = obj->positionPairs.begin(); it != obj->positionPairs.end(); it++)
-        for (size_t d = 0; d < dim_; d++) {
-            //std::cout << "x[" << it->first << "]: " << vec[it->first] << std::endl;
+    for (helper::vector<std::pair<size_t, size_t> >::iterator it = obj->positionPairs.begin(); it != obj->positionPairs.end(); it++) {
+        for (size_t d = 0; d < dim_; d++) {            
             vec[it->first][d] = _state(dim_*it->second + d);
         }
+        //std::cout << "!!!!! VEC2[" << it->first << "]: " << vec[it->first] << std::endl;
+    }
 
 }
 
@@ -1385,7 +1386,11 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
      SNCOUT("== bwdInit started")
      typename DataTypes1::VecCoord& inputObservation = *inputObservationData.beginEdit();
 
-     inputObservation = observationSource->getObservation(0.0);
+     bool hasObservation = observationSource->getObservation(0.0, inputObservation);
+
+     if (!hasObservation) {
+         PRNE("Problem, cannot find observation for time 0.0");
+     }
 
      if (m_doNotMapObservations.getValue()) {
         sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > mappedObservation = mappedObservationData;
@@ -1419,7 +1424,7 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
      typename DataTypes1::VecCoord& inputObservation = *inputObservationData.beginEdit();
 
      //std::cout<<"AKDEBUG getting obs at time "<<this->time_<<"\n\n";
-     inputObservation = observationSource->getObservation(this->time_);
+     bool hasObservation = observationSource->getObservation(this->time_, inputObservation);
      //std::cout << "AKDEBUG GI " << inputObservation[50] << " " << inputObservation[100] << std::endl;
 
      sofa::core::MechanicalParams mp;

@@ -1704,8 +1704,11 @@ void SofaReducedOrderUKFParallel<Model, ObservationManager>::FinalizeStep() {
      SNCOUTP("== bwdInit started")
      typename DataTypes1::VecCoord& inputObservation = *inputObservationData.beginEdit();
 
-     inputObservation = observationSource->getObservation(0.0);
+     bool hasObservation = observationSource->getObservation(0.0, inputObservation);
 
+     if (!hasObservation) {
+         PRNE("Problem, cannot find observation for time 0.0");
+     }
      //std::cout << "Apply mapping on observations" << std::endl;
 
      sofa::core::MechanicalParams mp;
@@ -1732,7 +1735,7 @@ void SofaReducedOrderUKFParallel<Model, ObservationManager>::FinalizeStep() {
 
 
      //std::cout<<"AKDEBUG getting obs at time "<<this->time_<<"\n\n";
-     inputObservation = observationSource->getObservation(this->time_);
+     bool hasObservation = observationSource->getObservation(this->time_, inputObservation);
      //std::cout << "AKDEBUG GI " << inputObservation[50] << " " << inputObservation[100] << std::endl;
      
 
