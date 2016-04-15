@@ -603,7 +603,7 @@ namespace Verdandi
                 //
                 delete[] verdandi_states; // free the memory - verdandi_states
             }
-            std::cout << "X = " << x << std::endl;
+            //std::cout << "X = " << x << std::endl;
             TOCTIC("== par mode ==");
             /**
              * -----------------------------END OF ADJUSTED SECTION---------------------------------
