@@ -100,11 +100,16 @@ public:
 
     void parseMonitorFile(std::string& _name);
 
+    /// an "alias" for better naming
+    bool getStateAtTime(double _time, VecCoord& _state) {
+        return(getObservation(_time, _state));
+    }
+
     bool getObservation(double _time, VecCoord& _observation) {
         size_t ix = (fabs(dt) < 1e-10) ? 0 : size_t(round(_time/dt));
-        std::cout << "Getting observation for time " << _time << " index: " << ix << std::endl;
+        PRNS("Getting observation for time " << _time << " index: " << ix);
         if (ix >= int(positions.size())) {
-            serr << "ERROR: no observation for time " << _time << " , using the last one from " << positions.size()-1 << sendl;
+            PRNE("No observation for time " << _time << " , using the last one from " << positions.size()-1);
             ix = positions.size() - 1;
         }
         m_actualObservation.setValue(positions[ix]);
@@ -140,6 +145,10 @@ public:
     }
 
     int getNParticles() {
+        return nParticles;
+    }
+
+    int getStateSize() {
         return nParticles;
     }
 

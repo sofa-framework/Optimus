@@ -69,7 +69,7 @@ SimulatedStateObservationSource<DataTypes>::~SimulatedStateObservationSource()
 template<class DataTypes>
 void SimulatedStateObservationSource<DataTypes>::init()
 {    
-    std::cout << this->getName() << " Init started" << std::endl;
+    //std::cout << this->getName() << " Init started" << std::endl;
     std::string posFile = m_monitorPrefix.getValue() + "_x.txt";
 
     parseMonitorFile(posFile);
@@ -78,7 +78,7 @@ void SimulatedStateObservationSource<DataTypes>::init()
     if (m_controllerMode.getValue())
         this->f_listening.setValue(true);
 
-    std::cout << "Init done" << std::endl;
+    //std::cout << "Init done" << std::endl;
 }
 
 template<class DataTypes>
@@ -98,7 +98,7 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _
 
         getline(file, line);
         nLine++;
-        std::cout << "Here: " << line << std::endl;
+        //std::cout << "Here: " << line << std::endl;
         if (line[0] != '#') {
             PRNE(" On line " << nLine << " in " << name);
             return;
@@ -106,7 +106,7 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _
 
         getline(file, line);
         nLine++;
-        std::cout << "Here: " << line << std::endl;
+        //std::cout << "Here: " << line << std::endl;
         if (line[0] != '#') {
             PRNE(" On line " << nLine << " in " << name);
             return;
@@ -176,7 +176,7 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _
         return;
     }
 
-    std::cout << "NObs = " << nObservations << " |tbl| = " << observationTable.size() << std::endl;
+    //std::cout << "NObs = " << nObservations << " |tbl| = " << observationTable.size() << std::endl;
 
     if (nObservations > 0) {
         sout << "Valid observations available: #observations: " << nObservations << " #particles: " << nParticles << std::endl;
