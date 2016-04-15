@@ -45,7 +45,7 @@ MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::MappedStateObse
     , noiseStdev( initData(&noiseStdev, double(0.0), "noiseStdev", "standard deviation of generated noise") )
     , abberantIndex( initData(&abberantIndex, int(-1), "abberantIndex", "index of an aberrant point") )
     , doNotMapObservations( initData(&doNotMapObservations, false, "doNotMapObservations", "if real observations are read from a file (not the mechanical object)") )
-    , stateWrapperLink(initLink("stateWrapper", "link to the state wrapper needed to perform apply (perhaps to be changed)"), stateWrapper)
+    , stateWrapperLink(initLink("stateWrapper", "link to the state wrapper needed to perform apply (perhaps to be changed)"))
 {    
 }
 
@@ -68,18 +68,12 @@ void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::init()
         PRNE("No observation source found!");
     }
 
+    stateWrapper = stateWrapperLink.get();
     if (stateWrapper) {
         PRNS("Link to state wrapper: " << stateWrapper->getName());
     } else {
         PRNE("Link to state wrapper not initialized!");
     }
-
-    /*SofaVerdandiFilter<SofaModelWrapper<Real1>, SofaLinearObservationManager<Real1> >* sofaFilter;
-    gnode->get(sofaFilter, core::objectmodel::BaseContext::SearchUp);
-    if (sofaFilter) {
-        sofaModel = sofaFilter->getModel();
-    } else
-        std::cerr << "[" << this->getName() << "]: ERROR no SOFA filter found " << std::endl;*/
 
     this->gnode->get(mappedState);
     if (mappedState) {
@@ -107,83 +101,126 @@ void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::init()
 template <class FilterType, class DataTypes1, class DataTypes2>
 void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::bwdInit()
 {
-    typename DataTypes1::VecCoord& inputObservation = *inputObservationData.beginEdit();
+    inputStateSize = observationSource->getStateSize();
+    masterStateSize = masterState->getSize();
+    mappedStateSize = mappedState->getSize();
 
-    this->observationSize = observationSource->getNParticles()*DataTypes1::spatial_dimensions;
+    inputVectorSize = inputStateSize*DataTypes1::spatial_dimensions;
+    masterVectorSize = masterStateSize*DataTypes1::spatial_dimensions;
+    mappedVectorSize = mappedStateSize*DataTypes1::spatial_dimensions;
 
-    observationSource->getObservation(0.0, inputObservation);
+    typename DataTypes1::VecCoord& inputObsState = *inputObservationData.beginEdit();
+    inputObsState.resize(inputStateSize);
+    observationSource->getStateAtTime(0.0, inputObsState);
 
     if (doNotMapObservations.getValue()) {
-       sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > mappedObservation = mappedObservationData;
-       mappedObservation.resize(inputObservation.size());
-       PRNS("Not mapping observations, using directly the input observations provided by the source.");
+        if (inputStateSize != mappedStateSize) {
+            PRNE("In non-mapping version, |input observation state| !=  |mapped state| " << inputStateSize << " vs. " << mappedStateSize);
+            return;
+        }
+        PRNS("Non-mapping version, |observations| = |input observation state| = |mapped state| = " << inputStateSize);
+        sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > mappedObsState = mappedObservationData;
+        mappedObsState.resize(mappedStateSize);
+        this->observationSize = mappedVectorSize;
+        for (size_t i = 0; i < mappedStateSize; i++)
+            mappedObsState[i] = inputObsState[i];
 
-       for (size_t i = 0; i < mappedObservation.size(); i++)
-           mappedObservation[i] = inputObservation[i];
     } else {
-       sofa::core::MechanicalParams mp;
-       mapping->apply(&mp, mappedObservationData, inputObservationData);
+        if (inputStateSize != masterStateSize) {
+            PRNE("In mapping version, |input observation state| !=  |master state| " << inputStateSize << " vs. " << masterStateSize);
+            return;
+        }
+        PRNS("Mapping version, |observations| = " << mappedVectorSize << " |input observation state| = |master state| = " << inputStateSize);
+        sofa::core::MechanicalParams mp;
+        mapping->apply(&mp, mappedObservationData, inputObservationData);
+        this->observationSize = mappedVectorSize;
     }
 
+    actualObservation.resize(this->observationSize);
     noise.clear();
     noise.resize(this->observationSize);
-
     Inherit::bwdInit();
 }
 
 template <class FilterType, class DataTypes1, class DataTypes2>
-typename MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::EVectorX &
-    MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovation(EVectorX& _state)
-{
-    typename DataTypes1::VecCoord& inputObservation = *inputObservationData.beginEdit();
+bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::hasObservation(double _time) {
+    typename DataTypes1::VecCoord& inputObsState = *inputObservationData.beginEdit();
+    PRNS("Getting observation at time " << this->actualTime);
+    bool hasObservation = observationSource->getObservation(this->actualTime, inputObsState);
 
-    bool hasObservation = observationSource->getObservation(this->actualTime, inputObservation);
+    if (!hasObservation) {
+        PRNE("No observation for time " << _time);
+        return(false);
+    }
 
-    sofa::core::MechanicalParams mp;
-    EVectorX actualObs(3*mappedObservationData.getValue().size());
+    actualObservation.setZero();
     if (!this->doNotMapObservations.getValue()) {
+       sofa::core::MechanicalParams mp;
+       //std::cout << "Input observation: " << inputObsState << std::endl;
        mapping->apply(&mp, mappedObservationData, inputObservationData);
-       sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > mappedObservation = mappedObservationData;
+       sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > mappedObsState = mappedObservationData;
+       //std::cout << "Mapped observation: " << mappedObsState << std::endl;
 
-        for (size_t i = 0; i < mappedObservation.size(); i++) {
+        for (size_t i = 0; i < mappedStateSize; i++) {
             for (size_t d = 0; d < 3; d++) {
-                mappedObservation[i][d] += noise[3*i+d];
-                actualObs(3*i+d) = mappedObservation[i][d];
+                //mappedObsState[i][d] += noise[3*i+d];
+                actualObservation(3*i+d) = mappedObsState[i][d];
             }
         }
     } else {
-        sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > mappedObservation = mappedObservationData;
-        if (mappedObservation.size() != inputObservation.size()) {
+        sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > mappedObsState = mappedObservationData;
+        if (mappedObsState.size() != inputObsState.size()) {
             PRNE("Different mapped and input observation size!");
+            return(false);
         }
 
-        for (size_t i = 0; i < mappedObservation.size(); i++)
-            mappedObservation[i] = inputObservation[i];
+        for (size_t i = 0; i < mappedObsState.size(); i++)
+            mappedObsState[i] = inputObsState[i];
 
-        for (size_t i = 0; i < mappedObservation.size(); i++) {
+        for (size_t i = 0; i < mappedObsState.size(); i++) {
             for (size_t d = 0; d < 3; d++) {
-                actualObs(3*i+d) = mappedObservation[i][d];
+                actualObservation(3*i+d) = mappedObsState[i][d];
             }
         }
     }
+    return(true);
+}
 
-    Data<typename DataTypes1::VecCoord> masterStateTempData;
-    Data<typename DataTypes2::VecCoord> mappedStateTempData;
+template <class FilterType, class DataTypes1, class DataTypes2>
+bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovation(double _time, EVectorX& _state, EVectorX& _innovation)
+{
+    if (_time != this->actualTime) {
+        PRNE("Observation for time " << this->actualTime << " not prepare, call hasObservation first!");
+        return(false);
+    }
 
-    typename DataTypes1::VecCoord& masterStateTemp = *masterStateTempData.beginEdit();
-    typename DataTypes2::VecCoord& mappedStateTemp = *mappedStateTempData.beginEdit();
+    if (_innovation.rows() != long(this->observationSize)) {
+        PRNE("Wrong innovation size: " << _innovation.rows() << " should be " << this->observationSize);
+        return(false);
+    }
 
-    masterStateTemp.resize(masterState->getSize());
-    mappedStateTemp.resize(mappedState->getSize());
+    Data<typename DataTypes1::VecCoord> predictedMasterState;
+    Data<typename DataTypes2::VecCoord> predictedMappedState;
 
-    //mappedState.resize(mappedStateSize);
-    stateWrapper->setSofaVectorFromVerdandiVector(_state, masterStateTemp);
-    /*sofaModel->SetSofaVectorFromVerdandiState(actualState, x, sofaObject);
+    typename DataTypes1::VecCoord& predictedMasterStateEdit = *predictedMasterState.beginEdit();
+    typename DataTypes2::VecCoord& predictedMappedStateEdit = *predictedMappedState.beginEdit();
 
-    //std::cout << "AKDEBUG2 GI " << actualState[50] << " " << actualState[100] << std::endl;
+    predictedMasterStateEdit.resize(masterState->getSize());
+    predictedMappedStateEdit.resize(mappedState->getSize());
 
-    mapping->apply(&mp, mappedStateData, actualStateData);
+    stateWrapper->setSofaVectorFromVerdandiVector(_state, predictedMasterStateEdit);
+    sofa::core::MechanicalParams mp;
+    mapping->apply(&mp, predictedMappedState, predictedMasterState);
 
+    _innovation.resize(this->observationSize);
+    for (size_t i = 0; i < predictedMappedStateEdit.size(); i++)
+        for (size_t d = 0; d < 3; d++)
+            _innovation(3*i+d) = actualObservation(3*i+d) - predictedMappedStateEdit[i][d];
+
+    return(true);
+
+
+    /*
     //std::cout << this->getName() << ": size of mapped state: " << mappedState.size() << std::endl;
     this->innovation_.Reallocate(mappedState.size()*3);
     for (size_t i = 0; i < mappedState.size(); i++)

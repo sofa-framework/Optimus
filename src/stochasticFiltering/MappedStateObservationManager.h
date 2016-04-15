@@ -73,18 +73,24 @@ public:
     ~MappedStateObservationManager() {}
 
 protected:
+    size_t inputVectorSize, masterVectorSize, mappedVectorSize;     /// real sizes of vectors
+    size_t inputStateSize, masterStateSize, mappedStateSize;        /// number of points in each vector
+
     Mapping* mapping;
     MappedState* mappedState;
     MasterState* masterState;
     ObservationSource *observationSource;
     StateWrapper* stateWrapper;
 
+    double actualObservationTime;
+    EVectorX actualObservation;
+
 public:
     void init();
     void bwdInit();
 
-    virtual bool hasObservation() { } /// TODO
-    virtual EVectorX& getInnovation(EVectorX& _state);
+    virtual bool hasObservation(double _time); /// TODO
+    virtual bool getInnovation(double _time, EVectorX& _state, EVectorX& _innovation);
 
     Data<typename DataTypes1::VecCoord> inputObservationData;
     Data<typename DataTypes2::VecCoord> mappedObservationData;

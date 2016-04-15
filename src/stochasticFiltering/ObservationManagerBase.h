@@ -97,7 +97,6 @@ public:
 
 protected:
     size_t observationSize;     /// size of the observation vector
-    size_t observationsNumber;  /// number of observations
 
     FilterType errorVarianceValue;
     EMatrixX errorVariance;
@@ -106,8 +105,8 @@ protected:
 public:
     Data<FilterType> observationStdev;
 
-    virtual bool hasObservation() = 0;
-    virtual EVectorX& getInnovation(EVectorX& state) = 0;
+    virtual bool hasObservation(double _time) = 0;
+    virtual bool getInnovation(double _time, EVectorX& _state, EVectorX& _innovation) = 0;
 
     size_t getObservationSize() {
         return observationSize;

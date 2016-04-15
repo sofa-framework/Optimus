@@ -37,6 +37,8 @@ namespace stochastic
 
 template <class FilterType>
 ROUKFilter<FilterType>::ROUKFilter()
+    : Inherit()
+    , observationErrorVarianceType( initData(&observationErrorVarianceType, std::string("inverse"), "observationErrorVarianceType", "if set to inverse, work directly with the inverse of the matrix" ) )
 {    
 }
 
@@ -80,28 +82,69 @@ void ROUKFilter<FilterType>::computePrediction()
 template <class FilterType>
 void ROUKFilter<FilterType>::computeCorrection()
 {
-    PRNS("computing correction");
-    EMatrixX matZitrans(sigmaPointsNum, observationsNum);
+    PRNS("Computing correction in time " << this->actualTime);
 
-    /*TIC
-    sigma_point_matrix Z_i_trans(Nsigma_point_, Nobservation_);
-    sigma_point x_col;
-    observation z(Nobservation_);
-    z.Fill(To(0));
-    if (!alpha_constant_)
-        throw ErrorUndefined("ReducedOrderUnscentedKalmanFilter::"
-                             "Analyse()", "Calculation not "
-                             "implemented for non constant alpha_i.");
+    if (!alphaConstant) {
+        PRNE("Version for non-constant alpha not implemented!");
+        return;
+    }
 
-    for (int i = 0; i < Nsigma_point_; i++)
-    {
-        GetRowPointer(X_i_trans_, i, x_col);
-        observation& z_col =
-            observation_manager_->GetInnovation(x_col);
-        Add(To(alpha_), z_col, z);
-        //std::cout << "Innovation: " << z_col << std::endl;
-        SetRow(z_col, i, Z_i_trans);
-        x_col.Nullify();
+    if (observationManager->hasObservation(this->actualTime)) {
+        EVectorX vecXCol;
+        EVectorX vecZCol(observationSize), vecZ(observationSize);
+        EMatrixX matZItrans(sigmaPointsNum, observationSize);
+        vecZ.setZero();
+        for (size_t i = 0; i < sigmaPointsNum; i++) {
+            vecXCol = matXi.col(i);
+            vecZCol.setZero();
+            observationManager->getInnovation(this->actualTime, vecXCol, vecZCol);
+            vecZ = vecZ + alpha * vecZCol;
+            matZItrans.row(i) = vecZCol;
+        }
+
+        EMatrixX matHLtrans(reducedStateSize, observationSize);
+        matHLtrans = alpha*matItrans.transpose()*matZItrans;
+
+        EMatrixX matWorkingPO(reducedStateSize, observationSize), matTemp;
+        if (observationErrorVarianceType.getValue() == "inverse")
+            matWorkingPO = matHLtrans * observationManager->getErrorVarianceInverse();
+        else {
+            EMatrixX matR;
+            matR = observationManager->getErrorVariance();
+            matWorkingPO = matHLtrans * matR.inverse();
+        }
+        matTemp = EMatrixX::Identity(matUinv.rows(), matUinv.cols()) + matWorkingPO * matHLtrans.transpose();
+        matUinv = matTemp.inverse();
+
+        EVectorX reducedInnovation(reducedStateSize);
+        reducedInnovation = Type(-1.0) * matUinv*matWorkingPO*vecZ;
+
+        EVectorX state = stateWrapper->getState();
+        EMatrixX errorVarProj = stateWrapper->getStateErrorVarianceProjector();
+        state = state + errorVarProj*reducedInnovation;
+
+        std::cout << "ReducedInnovation = " << reducedInnovation << std::endl;
+        std::cout << "New state = " << state << std::endl;
+        stateWrapper->setState(state);
+
+
+    }
+
+    /*
+
+    tmp.Reallocate(Nreduced_, Nobservation_);
+    tmp.Fill(Ts(0));
+
+    observation reduced_innovation(Nreduced_);
+    MltAdd(Ts(1), U_inv_, working_matrix_po, Ts(0), tmp);
+    MltAdd(Ts(-1), tmp, z, Ts(0), reduced_innovation);
+
+    // Updates.
+    model_state& x =  model_.GetState();
+    MltAdd(Ts(1), model_.GetStateErrorVarianceProjector(),
+           reduced_innovation, Ts(1), x);
+    model_.StateUpdated();
+    TOC("== an5sx == ");
     }*/
 }
 
@@ -129,7 +172,7 @@ void ROUKFilter<FilterType>::bwdInit() {
     assert(stateWrapper);
     assert(this->observationManagerBase);
 
-    observationsNum = this->observationManager->getObservationSize();
+    observationSize = this->observationManager->getObservationSize();
     stateSize = stateWrapper->getStateSize();
     EMatrixX temp = stateWrapper->getStateErrorVarianceReduced();
     matU = temp;
@@ -146,7 +189,7 @@ void ROUKFilter<FilterType>::bwdInit() {
 
     PRNS("Reduced state size: " << reducedStateSize);
     PRNS("Number of sigma points: " << sigmaPointsNum);
-    PRNS("Observation size: " << observationsNum);
+    PRNS("Observation size: " << observationSize);
 
     EMatrixX matPalphaV(reducedStateSize, reducedStateSize);
     matItrans.resize(sigmaPointsNum, reducedStateSize);

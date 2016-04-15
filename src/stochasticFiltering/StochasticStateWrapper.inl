@@ -130,13 +130,23 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
         for (size_t i = 0; i < mechanicalState->getSize(); i++) {
             helper::vector<size_t>::iterator it = find(fixedNodes.begin(), fixedNodes.end(), i);
 
-            if (it != fixedNodes.end())
+            if (it == fixedNodes.end())
                 freeNodes.push_back(i);
         }
     } else {
         for (size_t i = 0; i < mechanicalState->getSize(); i++)
             freeNodes.push_back(i);
     }
+
+    /*std::cout << "Fixed nodes: " << std::endl;
+    for (size_t i = 0; i < fixedNodes.size(); i++)
+        std::cout << fixedNodes[i] << " ";
+    std::cout << std::endl;
+
+    std::cout << "Free nodes: " << std::endl;
+    for (size_t i = 0; i < freeNodes.size(); i++)
+        std::cout << freeNodes[i] << " ";
+    std::cout << std::endl;*/
 
     positionPairs.clear();
     velocityPairs.clear();
@@ -186,7 +196,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::setSofaVectorFromVerdandiVec
     for (size_t fni = 0; fni < fixedNodes.size(); fni++) {
         size_t fn = fixedNodes[fni];
         _vec[fn] = pos[fn];
-        PRNS("Setting fixed[" << fn << "] = " << _vec[fn]);
+        //PRNS("Setting fixed[" << fn << "] = " << _vec[fn]);
     }
 
     for (helper::vector<std::pair<size_t, size_t> >::iterator it = positionPairs.begin(); it != positionPairs.end(); it++) {
@@ -203,7 +213,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::setSofaVectorFromVerdandiVec
         for (size_t d = 0; d < Dim; d++) {
             _vec[it->first][d] = _state(Dim*it->second + d);
         }
-        PRNS("Setting free[" << it->first << "] = " << _vec[it->first]);
+        //PRNS("Setting free[" << it->first << "] = " << _vec[it->first]);
     }
 }
 

@@ -71,8 +71,11 @@ protected:
     StochasticStateWrapperBaseT<FilterType>* stateWrapper;
     ObservationManager<FilterType>* observationManager;
 
+    // vector sizes
+    size_t observationSize, stateSize, reducedStateSize;
 
-    size_t observationsNum, stateSize, reducedStateSize, sigmaPointsNum;
+    // number of sigma points (according to the filter type)
+    size_t sigmaPointsNum;
     bool alphaConstant;
 
     EVectorX vecAlpha;
@@ -85,11 +88,15 @@ protected:
 
     void computeSimplexSigmaPoints(EMatrixX& sigmaMat);
 public:
+    Data<std::string> observationErrorVarianceType;
+
     void init();
     void bwdInit();
 
     virtual void computePrediction();
     virtual void computeCorrection();
+
+
 
 
 

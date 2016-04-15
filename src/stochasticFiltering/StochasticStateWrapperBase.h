@@ -45,6 +45,7 @@ namespace stochastic
 class StochasticStateWrapperBase: public sofa::core::objectmodel::BaseObject
 {
 public:
+    SOFA_ABSTRACT_CLASS(StochasticStateWrapperBase, BaseObject);
     typedef sofa::core::objectmodel::BaseObject Inherit;
 
     StochasticStateWrapperBase()
@@ -85,6 +86,8 @@ template <class FilterType>
 class StochasticStateWrapperBaseT: public sofa::component::stochastic::StochasticStateWrapperBase
 {
 public:
+    SOFA_CLASS(SOFA_TEMPLATE(StochasticStateWrapperBaseT, FilterType), StochasticStateWrapperBase);
+
     typedef sofa::component::stochastic::StochasticStateWrapperBase Inherit;
 
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, Eigen::Dynamic> EMatrixX;
@@ -133,11 +136,11 @@ public:
         return stateErrorVarianceRow;
     }
 
-    EVectorX& getState() {
+    virtual EVectorX& getState() {
         return state;
     }
 
-    void setState(EVectorX& _state) {
+    virtual void setState(EVectorX& _state) {
         state = _state;
     }
 
