@@ -1372,7 +1372,7 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
          std::cerr << this->getName() << "ERROR SOFA object not found " << std::endl;
 
      /// initialize noise generator:
-     if (m_noiseStdev.getValue() != 0.0) {
+     if (m_noiseStdev.getValue() > 0.0) {
          pRandGen = new boost::mt19937;
          pNormDist = new boost::normal_distribution<>(0.0, m_noiseStdev.getValue());
          pVarNorm = new boost::variate_generator<boost::mt19937&, boost::normal_distribution<> >(*pRandGen, *pNormDist);
@@ -1404,9 +1404,10 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
         mapping->apply(&mp, mappedObservationData, inputObservationData);
      }
 
-
-     noise.clear();
-     noise.resize(3*mappedObservationData.getValue().size());
+     if (this->m_noiseStdev.getValue() > 0.0) {
+        noise.clear();
+        noise.resize(3*mappedObservationData.getValue().size());
+     }
      SNCOUT("== bwdInit done")
  }
 
@@ -1436,7 +1437,8 @@ void SofaReducedOrderUKF<Model, ObservationManager>::Initialize(Verdandi::Verdan
 
          for (size_t i = 0; i < mappedObservation.size(); i++) {
              for (size_t d = 0; d < 3; d++) {
-                 mappedObservation[i][d] += noise[3*i+d];
+                 if (m_noiseStdev.getValue() > 0.0)
+                    mappedObservation[i][d] += noise[3*i+d];
                  actualObs(3*i+d) = mappedObservation[i][d];
              }
          }

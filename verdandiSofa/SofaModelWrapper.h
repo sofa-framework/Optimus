@@ -638,13 +638,12 @@ public:
                 return;
             actualTime = this->getContext()->getTime();
 
-            if (m_noiseStdev.getValue() != 0.0) {
+            if (m_noiseStdev.getValue() > 0.0) {
                 std::cout << this->getName() << ": generating noise in the time step: " << std::endl;
                 for (size_t i = 0; i < 3*mappedObservationData.getValue().size(); i++)
                     noise[i] = (*pVarNorm)();
                 //std::cout << noise << std::endl;
             }
-
             /*std::cout << "Generate noise in the observations in time " << actualTime << std::endl;
 
 
