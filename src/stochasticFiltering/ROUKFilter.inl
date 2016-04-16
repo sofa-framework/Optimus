@@ -116,7 +116,6 @@ void ROUKFilter<FilterType>::computePrediction()
 
     stateWrapper->setStateErrorVarianceProjector(tmpStateVarProj2);
     stateWrapper->setState(vecX);
-
 }
 
 
@@ -167,32 +166,14 @@ void ROUKFilter<FilterType>::computeCorrection()
         EVectorX state = stateWrapper->getState();
         EMatrixX errorVarProj = stateWrapper->getStateErrorVarianceProjector();
         state = state + errorVarProj*reducedInnovation;
+        stateWrapper->setState(state);
+        TOC("== an5sx == ");
 
         std::cout << "New state = " << std::endl;
         for (size_t i = stateSize-20; i < stateSize; i++)
             std::cout << state(i) << " ";
         std::cout << std::endl;
-        stateWrapper->setState(state);
-        TOC("== an5sx == ");
-
     }
-
-    /*
-
-    tmp.Reallocate(Nreduced_, Nobservation_);
-    tmp.Fill(Ts(0));
-
-    observation reduced_innovation(Nreduced_);
-    MltAdd(Ts(1), U_inv_, working_matrix_po, Ts(0), tmp);
-    MltAdd(Ts(-1), tmp, z, Ts(0), reduced_innovation);
-
-    // Updates.
-    model_state& x =  model_.GetState();
-    MltAdd(Ts(1), model_.GetStateErrorVarianceProjector(),
-           reduced_innovation, Ts(1), x);
-    model_.StateUpdated();
-    TOC("== an5sx == ");
-    }*/
 }
 
 template <class FilterType>
