@@ -59,6 +59,9 @@ protected:
     size_t stepNumber;
     double actualTime;
 
+    sofa::helper::system::thread::CTime *timer;
+    double startTime, stopTime;
+
     const core::ExecParams* execParams;
 
 public:
