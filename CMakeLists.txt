@@ -10,8 +10,8 @@ find_package(SofaBase REQUIRED)
 find_package(SofaGeneral REQUIRED)
 find_package(SofaPardisoSolver QUIET)
 
-set(LINKER_DEPENDENCIES SofaComponentBase SofaComponentGeneral SofaBaseTopology )
-set(COMPILATION_FLAGS -DSOFA_BUILD_OPTIMUS)
+set(LINKER_DEPENDENCIES SofaComponentBase SofaComponentGeneral SofaBaseTopology)
+set(COMPILATION_FLAGS "-DSOFA_BUILD_OPTIMUS -Wno-unused-local-typedef -Wno-deprecated")
 
 set ( SOFA-EXTERNAL_VERDANDI "0" CACHE BOOL "Set to activate the compilation of filtering using Verdandi" )
 set ( STOCHASTIC_FILTERING "0" CACHE BOOL "Set to activate the compilation the new filtering module replacing Verdandi" )
@@ -237,23 +237,6 @@ endif()
 
 if(${SOFA-EXTERNAL_VERDANDI})
     target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/extlibs/lua/src")
-endif()
-
-
-target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
-target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>")
-target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>")
-set_target_properties(${PROJECT_NAME} PROPERTIES VERSION "${OPTIMUS_VERSION}")
-set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "${COMPILATION_FLAGS}")
-set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${HEADER_FILES}")
-
-
-target_link_libraries(${PROJECT_NAME} ${LINKER_DEPENDENCIES})
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src")
-
-
-
-if(${SOFA-EXTERNAL_VERDANDI})
     include_directories(${SOFA-EXTERNAL_VERDANDI_PATH})
     include_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/share)
     include_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include)
@@ -264,8 +247,11 @@ if(${SOFA-EXTERNAL_VERDANDI})
     ###link_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/python)
     ###link_directories(${SOFA-EXTERNAL_VERDANDI_PATH}/include/seldon)
 
-    set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-DSOFA_HAVE_VERDANDI -DSELDON_WITH_CBLAS")
-    target_link_libraries(${PROJECT_NAME} SofaCore blas lapack liblua pthread)
+    set(COMPILATION_FLAGS "${COMPILATION_FLAGS} -DSOFA_HAVE_VERDANDI -DSELDON_WITH_CBLAS")
+    set(LINKER_DEPENDENCIES ${LINKER_DEPENDENCIES}  SofaCore blas lapack liblua pthread)
+
+    #set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-DSOFA_HAVE_VERDANDI -DSELDON_WITH_CBLAS")
+    #target_link_libraries(${PROJECT_NAME} SofaCore blas lapack liblua pthread)
 
     # MAC:
     ###FIND_LIBRARY(BlasLapackLib Accelerate)
@@ -276,6 +262,18 @@ if(${SOFA-EXTERNAL_VERDANDI})
     #set(LINKER_DEPENDENCIES "${LINKER_DEPENDENCIES} -lSofaCore -lSofaValidation -llua -lblas -llapack")
     ###AddLinkerFlags("-Wl,--no-undefined")
 endif()
+
+target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>")
+target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>")
+set_target_properties(${PROJECT_NAME} PROPERTIES VERSION "${OPTIMUS_VERSION}")
+set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "${COMPILATION_FLAGS}")
+set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${HEADER_FILES}")
+target_link_libraries(${PROJECT_NAME} ${LINKER_DEPENDENCIES})
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src")
+
+get_target_property(compile_defs ${PROJECT_NAME} COMPILE_FLAGS)
+message(STATUS "Compile definitions: ${compile_defs}")
 
 install(TARGETS Optimus
         EXPORT  OptimusTargets
