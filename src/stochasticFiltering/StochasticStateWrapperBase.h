@@ -78,7 +78,7 @@ public:
         execParams = _execParams;
         stepNumber = _stepNumber;
         actualTime = double(stepNumber)*gnode->getDt();
-        std::cout << "initialize step with " << actualTime << std::endl;
+        PRNS("========= Initialize DA step T = " << actualTime);
     }
 }; /// class
 

@@ -50,7 +50,7 @@ int ROUKFilterClass = core::RegisterObject("ROUKFilter")
         .add< ROUKFilter<double> >(true)
         #endif
         #ifndef SOFA_DOUBLE
-        .add< ROUKFilter<float> >()
+        //.add< ROUKFilter<float> >()
         #endif
         ;
 
@@ -58,7 +58,7 @@ int ROUKFilterClass = core::RegisterObject("ROUKFilter")
 template class SOFA_STOCHASTIC_API ROUKFilter<double>;
 #endif
 #ifndef SOFA_DOUBLE
-template class SOFA_STOCHASTIC_API ROUKFilter<float>;
+//template class SOFA_STOCHASTIC_API ROUKFilter<float>;
 #endif
 
 

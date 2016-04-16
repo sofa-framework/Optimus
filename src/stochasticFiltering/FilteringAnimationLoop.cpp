@@ -91,8 +91,11 @@ void FilteringAnimationLoop::step(const core::ExecParams* _params, SReal _dt) {
     }
 
     filter->initializeStep(_params);
+    TIC
     filter->computePrediction();
+    TOCTIC("== prediction total");
     filter->computeCorrection();
+    TOC("== correction total");
 
 }
 

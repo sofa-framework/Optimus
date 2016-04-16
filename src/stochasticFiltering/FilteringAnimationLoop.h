@@ -66,6 +66,8 @@ public:
 virtual void step(const core::ExecParams* _params, SReal _dt);
 
 protected:    
+    sofa::helper::system::thread::CTime *timer;
+    double startTime, stopTime;
 public:
     sofa::simulation::Node* gnode;
     int numStep;

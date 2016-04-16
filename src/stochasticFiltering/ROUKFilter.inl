@@ -27,7 +27,6 @@
 
 #include "ROUKFilter.h"
 
-
 namespace sofa
 {
 namespace component
@@ -35,10 +34,24 @@ namespace component
 namespace stochastic
 {
 
+/// C = alpha*A*B + beta*C;
+template <class FilterType>
+void ROUKFilter<FilterType>::blasMultAdd(EMatrixX& _a, EMatrixX& _b, EMatrixX& _c, Type _alpha, Type _beta) {
+    char trans = 'N';
+    int m = _a.rows();
+    int n = _b.cols();
+    int k = _b.rows();
+    Type* _adata = _a.data();
+    Type* _bdata = _b.data();
+    Type* _cdata = _c.data();
+    dgemm_(&trans,&trans, &m, &n, &k, &_alpha, _adata, &m, _bdata, &k, &_beta, _cdata, &m);
+}
+
 template <class FilterType>
 ROUKFilter<FilterType>::ROUKFilter()
     : Inherit()
     , observationErrorVarianceType( initData(&observationErrorVarianceType, std::string("inverse"), "observationErrorVarianceType", "if set to inverse, work directly with the inverse of the matrix" ) )
+    , useBlasToMultiply( initData(&useBlasToMultiply, true, "useBlasToMultiply", "use BLAS to multiply the dense matrices instead of Eigen" ) )
 {    
 }
 
@@ -50,39 +63,67 @@ ROUKFilter<FilterType>::~ROUKFilter()
 template <class FilterType>
 void ROUKFilter<FilterType>::computePrediction()
 {
-    PRNS("Computing prediction");
+    PRNS("Computing prediction, T= " << this->actualTime);
+
+    EMatrixX tmpStateVarProj(stateSize, reducedStateSize);
+    EMatrixX tmpStateVarProj2(stateSize, reducedStateSize);
+
+    TIC
     EVectorX vecX = stateWrapper->getState();
     Eigen::LLT<EMatrixX> lltU(matUinv);
     matUinv = lltU.matrixL();
-    EMatrixX tmpStateVarProj = stateWrapper->getStateErrorVarianceProjector() * matUinv;
-    stateWrapper->setStateErrorVarianceProjector(tmpStateVarProj);
+    TOC("== prediction: Cholesky ");
 
-    matXi.resize(stateSize, sigmaPointsNum);
+    tmpStateVarProj = stateWrapper->getStateErrorVarianceProjector();
+
+    TIC
+    if (useBlasToMultiply.getValue())
+        blasMultAdd(tmpStateVarProj, matUinv, tmpStateVarProj2, 1.0, 0.0);
+    else
+        tmpStateVarProj2.noalias() = tmpStateVarProj * matUinv;
+    TOC("== prediction multiplication1 == ");
+
+    stateWrapper->setStateErrorVarianceProjector(tmpStateVarProj2);
     for (size_t i = 0; i < sigmaPointsNum; i++)
         matXi.col(i) = vecX;
-    matXi = matXi + tmpStateVarProj * matI;
+
+    TIC
+    if (useBlasToMultiply.getValue())
+        blasMultAdd(tmpStateVarProj2, matI, matXi, 1.0, 1.0);
+    else
+        matXi = matXi + tmpStateVarProj2 * matI;
+    TOC("== prediction multiplication2 == ");
 
     vecX.setZero();
     EVectorX xCol(stateSize);
 
+    TIC
     for (size_t i = 0; i < sigmaPointsNum; i++) {
         xCol = matXi.col(i);
         stateWrapper->applyOperator(xCol);
         vecX = vecX + alpha*xCol;
         matXi.col(i) = xCol;
     }
+    TOCTIC("== prediction applyOperator ==");
 
     /// TODO: add resampling!!!
-    tmpStateVarProj = alpha*matXi * matItrans;
-    stateWrapper->setStateErrorVarianceProjector(tmpStateVarProj);
+
+    if (useBlasToMultiply.getValue())
+        blasMultAdd(matXi, matItrans, tmpStateVarProj2, alpha, 0.0);
+    else
+        tmpStateVarProj2 = alpha*matXi * matItrans;
+    TOC("== prediction multiplication3 ==");
+
+    stateWrapper->setStateErrorVarianceProjector(tmpStateVarProj2);
     stateWrapper->setState(vecX);
+
 }
 
 
 template <class FilterType>
 void ROUKFilter<FilterType>::computeCorrection()
 {
-    PRNS("Computing correction in time " << this->actualTime);
+    PRNS("Computing correction, T= " << this->actualTime);
 
     if (!alphaConstant) {
         PRNE("Version for non-constant alpha not implemented!");
@@ -90,6 +131,7 @@ void ROUKFilter<FilterType>::computeCorrection()
     }
 
     if (observationManager->hasObservation(this->actualTime)) {
+        TIC
         EVectorX vecXCol;
         EVectorX vecZCol(observationSize), vecZ(observationSize);
         EMatrixX matZItrans(sigmaPointsNum, observationSize);
@@ -101,6 +143,7 @@ void ROUKFilter<FilterType>::computeCorrection()
             vecZ = vecZ + alpha * vecZCol;
             matZItrans.row(i) = vecZCol;
         }
+        TOCTIC("== an1sx == ");
 
         EMatrixX matHLtrans(reducedStateSize, observationSize);
         matHLtrans = alpha*matItrans.transpose()*matZItrans;
@@ -114,7 +157,9 @@ void ROUKFilter<FilterType>::computeCorrection()
             matWorkingPO = matHLtrans * matR.inverse();
         }
         matTemp = EMatrixX::Identity(matUinv.rows(), matUinv.cols()) + matWorkingPO * matHLtrans.transpose();
+        TOCTIC("== an3sx == ");
         matUinv = matTemp.inverse();
+        TOCTIC("== an4sx == (inv) ");
 
         EVectorX reducedInnovation(reducedStateSize);
         reducedInnovation = Type(-1.0) * matUinv*matWorkingPO*vecZ;
@@ -123,10 +168,12 @@ void ROUKFilter<FilterType>::computeCorrection()
         EMatrixX errorVarProj = stateWrapper->getStateErrorVarianceProjector();
         state = state + errorVarProj*reducedInnovation;
 
-        std::cout << "ReducedInnovation = " << reducedInnovation << std::endl;
-        std::cout << "New state = " << state << std::endl;
+        std::cout << "New state = " << std::endl;
+        for (size_t i = stateSize-20; i < stateSize; i++)
+            std::cout << state(i) << " ";
+        std::cout << std::endl;
         stateWrapper->setState(state);
-
+        TOC("== an5sx == ");
 
     }
 
@@ -174,8 +221,7 @@ void ROUKFilter<FilterType>::bwdInit() {
 
     observationSize = this->observationManager->getObservationSize();
     stateSize = stateWrapper->getStateSize();
-    EMatrixX temp = stateWrapper->getStateErrorVarianceReduced();
-    matU = temp;
+    matU = stateWrapper->getStateErrorVarianceReduced();
 
     reducedStateSize = matU.cols();
     matUinv = matU.inverse();
@@ -187,6 +233,7 @@ void ROUKFilter<FilterType>::bwdInit() {
     computeSimplexSigmaPoints(matVtrans);
     sigmaPointsNum = matVtrans.rows();
 
+    PRNS("State size: " << stateSize);
     PRNS("Reduced state size: " << reducedStateSize);
     PRNS("Number of sigma points: " << sigmaPointsNum);
     PRNS("Observation size: " << observationSize);
@@ -207,6 +254,8 @@ void ROUKFilter<FilterType>::bwdInit() {
 
     matDv.resize(sigmaPointsNum, sigmaPointsNum);
     matDv = alpha*alpha*matItrans*matI;
+
+    matXi.resize(stateSize, sigmaPointsNum);
 }
 
 template <class FilterType>

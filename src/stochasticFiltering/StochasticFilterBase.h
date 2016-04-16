@@ -65,6 +65,9 @@ public:
     ~StochasticFilterBase() {}
 
 protected:    
+    sofa::helper::system::thread::CTime *timer;
+    double startTime, stopTime;
+
     sofa::simulation::Node* gnode;
     sofa::component::stochastic::StochasticStateWrapperBase* stateWrapperBase;
     sofa::component::stochastic::ObservationManagerBase* observationManagerBase;

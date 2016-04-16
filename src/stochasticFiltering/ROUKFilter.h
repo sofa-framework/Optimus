@@ -43,12 +43,26 @@
 #endif
 #include <Eigen/Dense>
 
+#include <Accelerate/Accelerate.h>
+
 namespace sofa
 {
 namespace component
 {
 namespace stochastic
 {
+
+extern "C"{
+    // product C= alphaA.B + betaC
+   void dgemm_(char* TRANSA, char* TRANSB, const int* M,
+               const int* N, const int* K, double* alpha, double* A,
+               const int* LDA, double* B, const int* LDB, double* beta,
+               double* C, const int* LDC);
+    // product Y= alphaA.X + betaY
+   void dgemv_(char* TRANS, const int* M, const int* N,
+               double* alpha, double* A, const int* LDA, double* X,
+               const int* INCX, double* beta, double* C, const int* INCY);
+   }
 
 using namespace defaulttype;
 
@@ -87,8 +101,11 @@ protected:
     Type alpha;
 
     void computeSimplexSigmaPoints(EMatrixX& sigmaMat);
+    void blasMultAdd(EMatrixX& _a, EMatrixX& _b, EMatrixX& _c, Type _alpha, Type _beta);
+
 public:
     Data<std::string> observationErrorVarianceType;
+    Data<bool> useBlasToMultiply;
 
     void init();
     void bwdInit();
