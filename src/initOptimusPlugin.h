@@ -45,6 +45,16 @@
 #define PRNS(ARG) if (this->verbose.getValue()) { std::cout << "[" << this->getName() << "]: " << ARG << std::endl; }
 #define PRNSC(ARG) if (this->verbose.getValue()) { std::cout << "[" << this->getName() << "]: " << ARG; }
 
+#define TIC this->startTime = double(this->timer->getTime());
+#define TOC(arg) this->stopTime = double(this->timer->getTime()); \
+                 std::cout <<  "[" << this->getName() << "] WTIME: " << arg << " " << this->stopTime - this->startTime << std::endl;
+
+#define TOCTIC(arg) this->stopTime = double(this->timer->getTime()); \
+                 std::cout << "[" << this->getName() << "] WTIME: " << arg << " " << this->stopTime - this->startTime << std::endl; \
+                 this->startTime = double(this->timer->getTime());
+
+#define SHOW_SIZE(name, A) std::cout << "Size of " << name << ": " << A.rows() << " x " << A.cols() << std::endl;
+
 /** \mainpage
   This plugin contains a set of Optimization Methods (initially mainly Bayesian Filtering techniques)
   */
