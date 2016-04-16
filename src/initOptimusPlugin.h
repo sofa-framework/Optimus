@@ -55,6 +55,34 @@
 
 #define SHOW_SIZE(name, A) std::cout << "Size of " << name << ": " << A.rows() << " x " << A.cols() << std::endl;
 
+#define asumSMat(NAME, MAT) { double sm = 0.0; \
+for (size_t i = 0; i < MAT.GetM(); i++) \
+    for (size_t j = 0; j < MAT.GetN(); j++) \
+        sm += fabs(MAT(i,j)); \
+    std::cout << "@@@ ABS. SUM OF " << NAME << ": " << sm << std::endl; \
+} \
+
+#define asumSVec(NAME, VEC) { double sm = 0.0; \
+    for (size_t i = 0; i < VEC.GetM(); i++) \
+        sm += fabs(VEC(i)); \
+    std::cout << "@@@ ABS. SUM OF " << NAME << ": " << sm << std::endl; \
+} \
+
+#define asumEMat(NAME, MAT) { double sm = 0.0; \
+for (size_t i = 0; i < MAT.rows(); i++) \
+    for (size_t j = 0; j < MAT.cols(); j++) \
+        sm += fabs(MAT(i,j)); \
+    std::cout << "@@@ ABS. SUM OF " << NAME << ": " << sm << std::endl; \
+} \
+
+#define asumEVec(NAME, VEC) { double sm = 0.0; \
+    for (size_t i = 0; i < VEC.rows(); i++) \
+        sm += fabs(VEC(i)); \
+    std::cout << "@@@ ABS. SUM OF " << NAME << ": " << sm << std::endl; \
+} \
+
+
+
 /** \mainpage
   This plugin contains a set of Optimization Methods (initially mainly Bayesian Filtering techniques)
   */
