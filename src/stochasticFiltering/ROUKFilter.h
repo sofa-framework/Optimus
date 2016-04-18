@@ -45,6 +45,20 @@
 
 #include <Accelerate/Accelerate.h>
 #include <pthread.h> /* pthread_t, pthread_barrier_t */
+#include <fstream>
+
+#ifdef __APPLE__
+typedef int pthread_barrierattr_t;
+typedef struct
+{
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+    int count;
+    int tripCount;
+} pthread_barrier_t;
+
+#endif
+
 
 namespace sofa
 {
@@ -57,10 +71,59 @@ template <class FilterType>
 struct WorkerThreadData
 {
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, Eigen::Dynamic> EMatrixX;
+
     StochasticStateWrapperBaseT<FilterType>* wrapper;
-    size_t threadID, observationID;
+    size_t threadID;
+    helper::vector<size_t>* sigmaIDs;
     EMatrixX* stateMatrix;
+    const core::ExecParams* execParams;
+    bool saveLog;
+
+    void set(size_t _threadID,StochasticStateWrapperBaseT<FilterType>* _wrapper,  helper::vector<size_t> *_sigID,
+             EMatrixX* _stateMat, const core::ExecParams* _execParams, bool _saveLog) {
+        threadID=_threadID;
+        sigmaIDs=_sigID;
+        stateMatrix=_stateMat;
+        saveLog = _saveLog;
+        wrapper = _wrapper;
+        execParams = _execParams;
+    }
 };
+
+template <class FilterType>
+void* threadFunction(void* inArgs) {
+    char name[100];
+    std::ofstream fd;
+    WorkerThreadData<FilterType>* threadData = reinterpret_cast<WorkerThreadData<FilterType>* >(inArgs);
+    helper::vector<size_t>& sigIDs = *(threadData->sigmaIDs);
+    size_t id = threadData->threadID;
+    StochasticStateWrapperBaseT<FilterType>* wrapper = threadData->wrapper;
+
+    const core::ExecParams* execParams = threadData->execParams;
+    core::MechanicalParams* mechParams;
+    //if (wrapper->isSlave())
+        mechParams = new core::MechanicalParams;
+    //else
+    //    mechParams = new core::MechanicalParams(*execParams);
+
+    bool saveLog = threadData->saveLog;
+
+    if (saveLog) {
+        sprintf(name, "thread%02d.out", id);
+        fd.open(name);
+        fd << "Thread " << id << std::endl;
+        //fd << "Sigma points to process: " << sigIDs << std::endl;
+    }
+
+    Eigen::Matrix<FilterType, Eigen::Dynamic, Eigen::Dynamic>& xMat = *(threadData->stateMatrix);
+    Eigen::Matrix<FilterType, Eigen::Dynamic, 1> xCol(xMat.rows());
+    for (size_t i = 0; i < sigIDs.size(); i++) {
+        xCol = xMat.col(sigIDs[i]);
+        wrapper->applyOperator(xCol, mechParams);
+        xMat.col(sigIDs[i]) = xCol;
+    }
+    fd.close();
+}
 
 extern "C"{
     // product C= alphaA.B + betaC
@@ -112,8 +175,9 @@ protected:
     Type alpha;
 
     /// structures for parallel computing:
-    helper::vector<size_t> sigmaPointsWrapperIDs;
-    size_t numSlaveWrappers;
+    helper::vector<size_t> sigmaPoints2WrapperIDs;
+    helper::vector<helper::vector<size_t> > wrapper2SigmaPointsIDs;
+    size_t numSlaveWrappers, numThreads;
 
     /// functions
     void computeSimplexSigmaPoints(EMatrixX& sigmaMat);
@@ -127,19 +191,15 @@ public:
     void bwdInit();
 
     virtual void computePrediction();
-    virtual void computePerturbedStates(EVectorX &_sumVec);
+    virtual void computePerturbedStates(EVectorX &_meanState);
 
     virtual void computeCorrection();
 
     virtual void initializeStep(const core::ExecParams* _params);
 
-
-
-
-
 }; /// class
 
-/*#ifdef __APPLE__
+#ifdef __APPLE__
 int pthread_barrier_init(pthread_barrier_t *barrier, const pthread_barrierattr_t *attr, unsigned int count)
 {
     if(count == 0)
@@ -187,7 +247,7 @@ int pthread_barrier_wait(pthread_barrier_t *barrier)
         return 0;
     }
 }
-#endif*/
+#endif
 
 
 } // stochastic

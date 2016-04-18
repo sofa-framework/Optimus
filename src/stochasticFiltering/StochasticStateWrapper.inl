@@ -234,8 +234,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::copyStateVerdandi2Sofa() {
         }
     }
 
-    sofa::core::MechanicalParams mp;
-    sofa::simulation::MechanicalPropagatePositionAndVelocityVisitor(&mp).execute( this->gnode );
+    sofa::simulation::MechanicalPropagatePositionAndVelocityVisitor(this->mechParams).execute( this->gnode );
 
     /// let the OptimParams to extract the actual values of parameters from the verdandi state
     for (size_t opi = 0; opi < vecOptimParams.size(); opi++)
@@ -262,13 +261,16 @@ void StochasticStateWrapper<DataTypes, FilterType>::copyStateSofa2Verdandi() {
 }
 
 template <class DataTypes, class FilterType>
-void StochasticStateWrapper<DataTypes, FilterType>::applyOperator(EVectorX &_vecX, bool _preserveState, bool _updateForce) {
+void StochasticStateWrapper<DataTypes, FilterType>::applyOperator(EVectorX &_vecX, const core::MechanicalParams *mparams, bool _preserveState, bool _updateForce) {
     EVectorX savedState;
+    this->mechParams=mparams;
+    this->execParams=mparams;
+
     if (_preserveState)
         savedState = this->state;
 
-    this->state = _vecX;
-    copyStateVerdandi2Sofa();
+    this->state = _vecX;    
+    copyStateVerdandi2Sofa();    
     computeSofaStep(false);
     copyStateSofa2Verdandi();
     _vecX = this->state;
@@ -280,15 +282,16 @@ void StochasticStateWrapper<DataTypes, FilterType>::applyOperator(EVectorX &_vec
 }
 
 /*template <class DataTypes, class FilterType>
-void StochasticStateWrapper<DataTypes, FilterType>::setSofaTime(const core::ExecParams* _execParams) {
+void StochasticStateWrapper<DataTypes, FilterType>::setSofaTime(const core::ExecParams* _this->execParams) {
     std::cout << "Setting SOFA time with " << this->actualTime << std::endl;
     this->gnode->setTime (this->actualTime);
-    this->gnode->template execute< sofa::simulation::UpdateSimulationContextVisitor >(_execParams);
+    this->gnode->template execute< sofa::simulation::UpdateSimulationContextVisitor >(_this->execParams);
 }*/
 
 template <class DataTypes, class FilterType>
-void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStep(bool _updateTime) {
+void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStep(bool _updateTime) {    
     double    dt = this->gnode->getDt();
+    //core::ExecParams* this->execParams = sofa::core::ExecParams::defaultInstance();
 
     //std::cout << "[" << this->getName() << "]: step default begin at time = " << gnode->getTime() << " update time: " << _update_time << std::endl;
 

@@ -58,7 +58,8 @@ public:
 
     StochasticFilterBase()
         : Inherit()        
-        , verbose( initData(&verbose, false, "verbose", "print tracing informations") ) {
+        , verbose( initData(&verbose, false, "verbose", "print tracing informations") )
+        , mechParams(0) {
 
     }
 
@@ -72,6 +73,7 @@ protected:
     size_t stepNumber;
     double actualTime;
     const core::ExecParams* execParams;
+    const core::MechanicalParams* mechParams;
 
 public:
     Data<bool> verbose;
@@ -89,6 +91,8 @@ public:
     }
 
     virtual void initializeStep(const core::ExecParams* _params) {
+        if (mechParams==0)
+            mechParams = new core::MechanicalParams(*_params);
         execParams=_params;
         stepNumber++;
         actualTime = double(stepNumber)*gnode->getDt();

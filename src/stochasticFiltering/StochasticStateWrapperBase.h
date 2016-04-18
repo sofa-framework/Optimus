@@ -64,6 +64,7 @@ protected:
     double startTime, stopTime;
 
     const core::ExecParams* execParams;
+    const core::MechanicalParams* mechParams;
 
 public:
     Data<bool> verbose;
@@ -77,10 +78,11 @@ public:
             PRNE("Cannot find node!");
             return;
         }
+        //this->execParams = new sofa::core::ExecParams();
+        //std::cout << "Valid storage: " << this->execParams->checkValidStorage() << std::endl;
     }
 
-    virtual void initializeStep(const core::ExecParams* _execParams, size_t _stepNumber) {
-        execParams = _execParams;
+    virtual void initializeStep(size_t _stepNumber) {
         stepNumber = _stepNumber;
         actualTime = double(stepNumber)*gnode->getDt();
         PRNS("========= Initialize DA step T = " << actualTime);
@@ -121,7 +123,7 @@ protected:
 
 
 public:
-    virtual void applyOperator(EVectorX& _vecX,  bool _preserveState = true, bool _updateForce = true) = 0;
+    virtual void applyOperator(EVectorX& _vecX, const core::MechanicalParams* mparams,  bool _preserveState = true, bool _updateForce = true) = 0;
     //virtual void setSofaTime(const core::ExecParams* _execParams) = 0;
 
     virtual void setStateErrorVarianceProjector(EMatrixX& _mat) {

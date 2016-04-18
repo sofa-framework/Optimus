@@ -56,23 +56,33 @@ ROUKFilter<FilterType>::ROUKFilter()
 }
 
 template <class FilterType>
-ROUKFilter<FilterType>::~ROUKFilter()
-{
-}
+ROUKFilter<FilterType>::~ROUKFilter() {}
 
 template <class FilterType>
-void ROUKFilter<FilterType>::computePerturbedStates(EVectorX& _sumVec) {
-    _sumVec.setZero();
+void ROUKFilter<FilterType>::computePerturbedStates(EVectorX& _meanState) {
     if (numSlaveWrappers == 0) {
         EVectorX xCol(stateSize);
         for (size_t i = 0; i < sigmaPointsNum; i++) {
             xCol = matXi.col(i);
-            stateWrappers[sigmaPointsWrapperIDs[i]]->applyOperator(xCol);
-            _sumVec = _sumVec + alpha*xCol;
+            stateWrappers[sigmaPoints2WrapperIDs[i]]->applyOperator(xCol, mechParams);
             matXi.col(i) = xCol;
         }
+        _meanState = alpha * matXi.rowwise().sum();
     } else {
-        pthread_t *tid;
+        pthread_t* tid = new pthread_t[numThreads];
+        WorkerThreadData<FilterType>* threadData = new WorkerThreadData<FilterType>[numThreads];
+        for (size_t i = 0; i < numThreads; i++) {
+            threadData[i].set(i, stateWrappers[i], &wrapper2SigmaPointsIDs[i], &matXi, this->execParams, 1);
+            PRNS("Creating thread " << i);
+            pthread_create(&tid[i], NULL, threadFunction<FilterType>, (void*)&threadData[i]);
+        }
+
+        for (size_t i = 0; i < numThreads; i++) {
+            int s = pthread_join(tid[i], NULL);
+            if (s != 0)
+                PRNE("Thread " << i << " problem: " << s);
+        }
+        _meanState = alpha * matXi.rowwise().sum();
     }
 }
 
@@ -192,6 +202,7 @@ void ROUKFilter<FilterType>::init() {
     PRNS("found " << stateWrappers.size() << " stochastic filters");
     stateWrapper=NULL;
     numSlaveWrappers = 0;
+    numThreads = 0;
     for (size_t i = 0; i < stateWrappers.size(); i++) {
         if (stateWrappers[i]->isSlave()) {
             numSlaveWrappers++;
@@ -208,10 +219,12 @@ void ROUKFilter<FilterType>::init() {
     }
     if (!stateWrapper) {
         PRNE("no master state wrapper found!");
+        return;
     }
 
     if (numSlaveWrappers > 0) {
         PRNS("number of slave wrappers: " << numSlaveWrappers);
+        numThreads=numSlaveWrappers+1;   /// slaves + master
     }
 
 
@@ -267,12 +280,17 @@ void ROUKFilter<FilterType>::bwdInit() {
     matXi.resize(stateSize, sigmaPointsNum);
 
     /// prepare structures for parallel computing
-    sigmaPointsWrapperIDs.resize(sigmaPointsNum, 0);
+    sigmaPoints2WrapperIDs.resize(sigmaPointsNum, 0);
+    wrapper2SigmaPointsIDs.resize(numThreads);
     if (numSlaveWrappers > 0) {
         for (size_t i = 0; i < sigmaPointsNum; i++) {
-            sigmaPointsWrapperIDs[i] = i%(numSlaveWrappers+1);
+            size_t threadID = i%(numThreads);
+            sigmaPoints2WrapperIDs[i] = threadID;
+            wrapper2SigmaPointsIDs[threadID].push_back(i);
         }
-        std::cout << sigmaPointsWrapperIDs << std::endl;
+
+        //std::cout << "SigmaWrapper: " << sigmaPoints2WrapperIDs << std::endl;
+        //std::cout << "WrapperSigma: " << wrapper2SigmaPointsIDs << std::endl;
     }
 
 }
@@ -282,7 +300,7 @@ void ROUKFilter<FilterType>::initializeStep(const core::ExecParams* _params) {
     Inherit::initializeStep(_params);
 
     for (size_t i = 0; i < stateWrappers.size(); i++)
-        stateWrappers[i]->initializeStep(_params, stepNumber);
+        stateWrappers[i]->initializeStep(stepNumber);
 
     observationManager->initializeStep(stepNumber);
 }
