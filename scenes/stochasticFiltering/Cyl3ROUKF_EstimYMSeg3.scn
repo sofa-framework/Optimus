@@ -7,6 +7,7 @@
 
 	<FilteringAnimationLoop name="StochAnimLoop" verbose="1"/>
 	<ROUKFilter name="ROUKF" verbose="1"/>
+	<MeshVTKLoader filename="../../data/cylinder3_770.vtk" name="loader" />		
 
 	<Node>
 		<StochasticStateWrapper name="StateWrapper" verbose="1"/>
@@ -16,10 +17,9 @@
 		
 		<OptimParams name="paramE" template="Vector" initValue="6000 6000 6000" stdev="2000 2000 2000" transformParams="1" optimize="1"/>
 		<!-- 	<OptimParams name="paramE" template="Vector" initValue="10000 5000 7000"/>  -->
-
-		<MeshVTKLoader filename="../../data/cylinder3_770.vtk" name="loader" />		
-		<MechanicalObject src="@loader" name="Volume" />	
-		<include href="Objects/TetrahedronSetTopology.xml" src="@loader" />
+		
+		<MechanicalObject src="@../loader" name="Volume" />	
+		<include href="Objects/TetrahedronSetTopology.xml" src="@../loader" />
 		<UniformMass totalMass="0.2513" />
 
 		<BoxROI name="fixedBox1" box="-0.05 -0.05 -0.002   0.05 0.05 0.002"/>
@@ -27,7 +27,7 @@
 		<MergeSets name="mergeIndices" in1="@fixedBox1.indices" in2="@fixedBox2.indices"/>
 		<FixedConstraint indices="@mergeIndices.out" />
 		
-		<Indices2ValuesMapper name="youngMapper" inputValues="@loader.dataset" indices="1 2 3" values="@paramE.value"/>
+		<Indices2ValuesMapper name="youngMapper" inputValues="@../loader.dataset" indices="1 2 3" values="@paramE.value"/>
 		<TetrahedronFEMForceField name="FEM" listening="true" updateStiffness="1"  youngModulus="@youngMapper.outputValues" poissonRatio="0.45" method="large" drawHeterogeneousTetra="1"/>
 
 		<Node name="obsNode" activated="1">
