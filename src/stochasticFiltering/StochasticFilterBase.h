@@ -68,9 +68,7 @@ protected:
     sofa::helper::system::thread::CTime *timer;
     double startTime, stopTime;
 
-    sofa::simulation::Node* gnode;
-    sofa::component::stochastic::StochasticStateWrapperBase* stateWrapperBase;
-    sofa::component::stochastic::ObservationManagerBase* observationManagerBase;
+    sofa::simulation::Node* gnode;    
     size_t stepNumber;
     double actualTime;
     const core::ExecParams* execParams;
@@ -84,17 +82,6 @@ public:
 
         if (!gnode) {
             PRNE("Cannot find node!");         
-        } else {
-            gnode->get(stateWrapperBase, core::objectmodel::BaseContext::SearchDown);
-            gnode->get(observationManagerBase, core::objectmodel::BaseContext::SearchDown);
-        }
-
-        if (!stateWrapperBase) {
-            PRNE("Cannot find state wrapper base!");
-        }
-
-        if (!observationManagerBase) {
-            PRNE("Cannot find observation manager base!");
         }
 
         stepNumber = 0;
@@ -107,9 +94,6 @@ public:
         actualTime = double(stepNumber)*gnode->getDt();
         this->gnode->setTime(this->actualTime);
         this->gnode->execute< sofa::simulation::UpdateSimulationContextVisitor >(execParams);
-
-        stateWrapperBase->initializeStep(_params, stepNumber);
-        observationManagerBase->initializeStep(stepNumber);
     }
 
     virtual void computePrediction() = 0;

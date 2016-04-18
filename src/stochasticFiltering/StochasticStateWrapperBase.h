@@ -50,7 +50,8 @@ public:
 
     StochasticStateWrapperBase()
         : Inherit()
-        , verbose( initData(&verbose, false, "verbose", "print tracing informations") ) {
+        , verbose( initData(&verbose, false, "verbose", "print tracing informations") )
+        , slave( initData(&slave, false, "slave", "slave wrapper (needed only for parallelization") ) {
 
     }
 
@@ -66,6 +67,7 @@ protected:
 
 public:
     Data<bool> verbose;
+    Data<bool> slave;
 
     void init() {
         Inherit::init();
@@ -82,6 +84,10 @@ public:
         stepNumber = _stepNumber;
         actualTime = double(stepNumber)*gnode->getDt();
         PRNS("========= Initialize DA step T = " << actualTime);
+    }
+
+    bool isSlave() {
+        return slave.getValue();
     }
 }; /// class
 

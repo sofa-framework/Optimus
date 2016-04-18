@@ -83,7 +83,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::init()
     Inherit::init();
     valid = true;
     /// get a mechanical state
-    this->gnode->get(mechanicalState,  core::objectmodel::BaseContext::SearchRoot);
+    this->gnode->get(mechanicalState,  core::objectmodel::BaseContext::SearchDown);
     if (!mechanicalState) {
         PRNE("No mechanical state found");
         valid=false;
@@ -93,7 +93,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::init()
 
     /// get optim params (multiple per node, at least one)
     vecOptimParams.clear();
-    this->gnode->template get<OptimParamsBase>(&vecOptimParams, core::objectmodel::BaseContext::SearchRoot );
+    this->gnode->template get<OptimParamsBase>(&vecOptimParams, core::objectmodel::BaseContext::SearchDown );
     if (vecOptimParams.empty()) {
         PRNE("No OptimParams found");
         valid=false;
@@ -107,7 +107,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::init()
     }
 
     /// get fixed constraints (optional)
-    this->gnode->get(fixedConstraint,  core::objectmodel::BaseContext::SearchRoot);
+    this->gnode->get(fixedConstraint,  core::objectmodel::BaseContext::SearchDown);
     if (fixedConstraint) {
         PRNS("Fixed constraint found: " << fixedConstraint->getName());
     }

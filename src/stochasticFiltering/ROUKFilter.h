@@ -44,6 +44,7 @@
 #include <Eigen/Dense>
 
 #include <Accelerate/Accelerate.h>
+#include <pthread.h> /* pthread_t, pthread_barrier_t */
 
 namespace sofa
 {
@@ -51,6 +52,15 @@ namespace component
 {
 namespace stochastic
 {
+
+template <class FilterType>
+struct WorkerThreadData
+{
+    typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, Eigen::Dynamic> EMatrixX;
+    StochasticStateWrapperBaseT<FilterType>* wrapper;
+    size_t threadID, observationID;
+    EMatrixX* stateMatrix;
+};
 
 extern "C"{
     // product C= alphaA.B + betaC
@@ -83,12 +93,13 @@ ROUKFilter();
 
 protected:
     StochasticStateWrapperBaseT<FilterType>* stateWrapper;
+    helper::vector<StochasticStateWrapperBaseT<FilterType>*> stateWrappers;
     ObservationManager<FilterType>* observationManager;
 
-    // vector sizes
+    /// vector sizes
     size_t observationSize, stateSize, reducedStateSize;
 
-    // number of sigma points (according to the filter type)
+    /// number of sigma points (according to the filter type)
     size_t sigmaPointsNum;
     bool alphaConstant;
 
@@ -100,6 +111,11 @@ protected:
 
     Type alpha;
 
+    /// structures for parallel computing:
+    helper::vector<size_t> sigmaPointsWrapperIDs;
+    size_t numSlaveWrappers;
+
+    /// functions
     void computeSimplexSigmaPoints(EMatrixX& sigmaMat);
     void blasMultAdd(EMatrixX& _a, EMatrixX& _b, EMatrixX& _c, Type _alpha, Type _beta);
 
@@ -111,13 +127,67 @@ public:
     void bwdInit();
 
     virtual void computePrediction();
+    virtual void computePerturbedStates(EVectorX &_sumVec);
+
     virtual void computeCorrection();
+
+    virtual void initializeStep(const core::ExecParams* _params);
 
 
 
 
 
 }; /// class
+
+/*#ifdef __APPLE__
+int pthread_barrier_init(pthread_barrier_t *barrier, const pthread_barrierattr_t *attr, unsigned int count)
+{
+    if(count == 0)
+    {
+        errno = EINVAL;
+        return -1;
+    }
+    if(pthread_mutex_init(&barrier->mutex, 0) < 0)
+    {
+        return -1;
+    }
+    if(pthread_cond_init(&barrier->cond, 0) < 0)
+    {
+        pthread_mutex_destroy(&barrier->mutex);
+        return -1;
+    }
+    barrier->tripCount = count;
+    barrier->count = 0;
+
+    return 0;
+}
+
+int pthread_barrier_destroy(pthread_barrier_t *barrier)
+{
+    pthread_cond_destroy(&barrier->cond);
+    pthread_mutex_destroy(&barrier->mutex);
+    return 0;
+}
+
+int pthread_barrier_wait(pthread_barrier_t *barrier)
+{
+    pthread_mutex_lock(&barrier->mutex);
+    ++(barrier->count);
+    if(barrier->count >= barrier->tripCount)
+    {
+        barrier->count = 0;
+        pthread_cond_broadcast(&barrier->cond);
+        pthread_mutex_unlock(&barrier->mutex);
+        return 1;
+    }
+    else
+    {
+        pthread_cond_wait(&barrier->cond, &(barrier->mutex));
+        pthread_mutex_unlock(&barrier->mutex);
+        return 0;
+    }
+}
+#endif*/
 
 
 } // stochastic

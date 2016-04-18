@@ -61,6 +61,22 @@ ROUKFilter<FilterType>::~ROUKFilter()
 }
 
 template <class FilterType>
+void ROUKFilter<FilterType>::computePerturbedStates(EVectorX& _sumVec) {
+    _sumVec.setZero();
+    if (numSlaveWrappers == 0) {
+        EVectorX xCol(stateSize);
+        for (size_t i = 0; i < sigmaPointsNum; i++) {
+            xCol = matXi.col(i);
+            stateWrappers[sigmaPointsWrapperIDs[i]]->applyOperator(xCol);
+            _sumVec = _sumVec + alpha*xCol;
+            matXi.col(i) = xCol;
+        }
+    } else {
+        pthread_t *tid;
+    }
+}
+
+template <class FilterType>
 void ROUKFilter<FilterType>::computePrediction()
 {
     PRNS("Computing prediction, T= " << this->actualTime);
@@ -93,17 +109,9 @@ void ROUKFilter<FilterType>::computePrediction()
     else
         matXi = matXi + tmpStateVarProj2 * matI;
     TOC("== prediction multiplication2 == ");
+    computePerturbedStates(vecX);
+    TIC;
 
-    vecX.setZero();
-    EVectorX xCol(stateSize);
-
-    TIC
-    for (size_t i = 0; i < sigmaPointsNum; i++) {
-        xCol = matXi.col(i);
-        stateWrapper->applyOperator(xCol);
-        vecX = vecX + alpha*xCol;
-        matXi.col(i) = xCol;
-    }
     TOCTIC("== prediction applyOperator ==");
 
     /// TODO: add resampling!!!
@@ -180,14 +188,34 @@ template <class FilterType>
 void ROUKFilter<FilterType>::init() {
     Inherit::init();
     assert(this->gnode);
-    this->gnode->get(stateWrapper, core::objectmodel::BaseContext::SearchDown);
+    this->gnode->template get<StochasticStateWrapperBaseT<FilterType> >(&stateWrappers, this->getTags(), sofa::core::objectmodel::BaseContext::SearchDown);
+    PRNS("found " << stateWrappers.size() << " stochastic filters");
+    stateWrapper=NULL;
+    numSlaveWrappers = 0;
+    for (size_t i = 0; i < stateWrappers.size(); i++) {
+        if (stateWrappers[i]->isSlave()) {
+            numSlaveWrappers++;
+            PRNS("found stochastic state slave wrapper: " << stateWrappers[i]->getName());
+        } else {
+            if (!stateWrapper) {
+                stateWrapper = stateWrappers[i];
+                PRNS("found stochastic state master wrapper: " << stateWrapper->getName());
+            } else {
+                PRNE("Master wrapper already assigned, cannot have two of them!");
+                return;
+            }
+        }
+    }
+    if (!stateWrapper) {
+        PRNE("no master state wrapper found!");
+    }
+
+    if (numSlaveWrappers > 0) {
+        PRNS("number of slave wrappers: " << numSlaveWrappers);
+    }
+
+
     this->gnode->get(observationManager, core::objectmodel::BaseContext::SearchDown);
-
-    if (stateWrapper) {
-        PRNS("found stochastic state wrapper: " << stateWrapper->getName());
-    } else
-        PRNE("no state wrapper found!");
-
     if (observationManager) {
         PRNS("found observation manager: " << observationManager->getName());
     } else
@@ -237,6 +265,26 @@ void ROUKFilter<FilterType>::bwdInit() {
     matDv = alpha*alpha*matItrans*matI;
 
     matXi.resize(stateSize, sigmaPointsNum);
+
+    /// prepare structures for parallel computing
+    sigmaPointsWrapperIDs.resize(sigmaPointsNum, 0);
+    if (numSlaveWrappers > 0) {
+        for (size_t i = 0; i < sigmaPointsNum; i++) {
+            sigmaPointsWrapperIDs[i] = i%(numSlaveWrappers+1);
+        }
+        std::cout << sigmaPointsWrapperIDs << std::endl;
+    }
+
+}
+
+template <class FilterType>
+void ROUKFilter<FilterType>::initializeStep(const core::ExecParams* _params) {
+    Inherit::initializeStep(_params);
+
+    for (size_t i = 0; i < stateWrappers.size(); i++)
+        stateWrappers[i]->initializeStep(_params, stepNumber);
+
+    observationManager->initializeStep(stepNumber);
 }
 
 template <class FilterType>
