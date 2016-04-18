@@ -80,7 +80,7 @@ class CreateScene:
         #simplex, canonical, star
         ROUKF = node.createObject('SofaReducedOrderUKFParallel', name="sofaROUKF", sigmaPointType="simplex", paramFileName="../estimationPython/exp1.out", paramVarFileName="../estimationPython/exp1_vars.out")
         ROUKF.findData('sigmaPointType').value=self.m_sigmaPointType        
-        node.createObject('MeshVTKLoader', filename="../../Data/beam1_1635.vtk", name="loader")
+        node.createObject('MeshVTKLoader', filename="../../Data/beamA1_1635.vtk", name="loader")
         
 
 
