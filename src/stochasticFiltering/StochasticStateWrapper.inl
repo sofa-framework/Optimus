@@ -218,7 +218,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::setSofaVectorFromVerdandiVec
 }
 
 template <class DataTypes, class FilterType>
-void StochasticStateWrapper<DataTypes, FilterType>::copyStateVerdandi2Sofa() {
+void StochasticStateWrapper<DataTypes, FilterType>::copyStateVerdandi2Sofa(const core::MechanicalParams* _mechParams) {
     typename MechanicalState::WriteVecCoord pos = mechanicalState->writePositions();
     typename MechanicalState::WriteVecDeriv vel = mechanicalState->writeVelocities();
 
@@ -234,7 +234,9 @@ void StochasticStateWrapper<DataTypes, FilterType>::copyStateVerdandi2Sofa() {
         }
     }
 
-    sofa::simulation::MechanicalPropagatePositionAndVelocityVisitor(this->mechParams).execute( this->gnode );
+
+    sofa::simulation::MechanicalPropagatePositionAndVelocityVisitor(_mechParams).execute( this->gnode );
+
 
     /// let the OptimParams to extract the actual values of parameters from the verdandi state
     for (size_t opi = 0; opi < vecOptimParams.size(); opi++)
@@ -261,37 +263,35 @@ void StochasticStateWrapper<DataTypes, FilterType>::copyStateSofa2Verdandi() {
 }
 
 template <class DataTypes, class FilterType>
-void StochasticStateWrapper<DataTypes, FilterType>::applyOperator(EVectorX &_vecX, const core::MechanicalParams *mparams, bool _preserveState, bool _updateForce) {
+void StochasticStateWrapper<DataTypes, FilterType>::applyOperator(EVectorX &_vecX, const core::MechanicalParams *_mparams, bool _preserveState, bool _updateForce) {
     EVectorX savedState;
-    this->mechParams=mparams;
-    this->execParams=mparams;
 
     if (_preserveState)
         savedState = this->state;
 
     this->state = _vecX;    
-    copyStateVerdandi2Sofa();    
-    computeSofaStep(false);
+    copyStateVerdandi2Sofa(_mparams);
+    computeSofaStep(_mparams, false);
     copyStateSofa2Verdandi();
     _vecX = this->state;
 
     if (_preserveState) {
         this->state = savedState;
-        copyStateVerdandi2Sofa();
+        copyStateVerdandi2Sofa(_mparams);
     }
 }
 
 /*template <class DataTypes, class FilterType>
-void StochasticStateWrapper<DataTypes, FilterType>::setSofaTime(const core::ExecParams* _this->execParams) {
+void StochasticStateWrapper<DataTypes, FilterType>::setSofaTime(const core::ExecParams* _execParams) {
     std::cout << "Setting SOFA time with " << this->actualTime << std::endl;
     this->gnode->setTime (this->actualTime);
-    this->gnode->template execute< sofa::simulation::UpdateSimulationContextVisitor >(_this->execParams);
+    this->gnode->template execute< sofa::simulation::UpdateSimulationContextVisitor >(_execParams);
 }*/
 
 template <class DataTypes, class FilterType>
-void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStep(bool _updateTime) {    
+void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStep(const core::ExecParams* execParams, bool _updateTime) {
     double    dt = this->gnode->getDt();
-    //core::ExecParams* this->execParams = sofa::core::ExecParams::defaultInstance();
+    //core::ExecParams* execParams = sofa::core::ExecParams::defaultInstance();
 
     //std::cout << "[" << this->getName() << "]: step default begin at time = " << gnode->getTime() << " update time: " << _update_time << std::endl;
 
@@ -308,7 +308,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStep(bool _update
         //std::cout<<"step "<<step++<<std::endl;
         //std::cout << "[" << this->getName() << "]: animate begin" << std::endl;
         sofa::simulation::AnimateBeginEvent ev ( dt );
-        sofa::simulation::PropagateEventVisitor act ( this->execParams, &ev );
+        sofa::simulation::PropagateEventVisitor act ( execParams, &ev );
         this->gnode->execute ( act );
         //std::cout<<"step "<<step++<<std::endl;
     }
@@ -316,42 +316,42 @@ void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStep(bool _update
     double startTime = this->gnode->getTime();
     //std::cout<<"step "<<step++<<std::endl;
     //std::cout << "[" << this->getName() << "]: behaviour update position" << std::endl;
-    sofa::simulation::BehaviorUpdatePositionVisitor beh(this->execParams , dt);
+    sofa::simulation::BehaviorUpdatePositionVisitor beh(execParams , dt);
     this->gnode->execute ( beh );
     //std::cout<<"step "<<step++<<std::endl;
     //std::cout << "[" << this->getName() << "]: animate" << std::endl;
-    sofa::simulation::AnimateVisitor act(this->execParams, dt);
+    sofa::simulation::AnimateVisitor act(execParams, dt);
     this->gnode->execute ( act );
 
     if (_updateTime) {
         //std::cout << "[" << this->getName() << "]: update simulation context" << std::endl;
         this->gnode->setTime ( startTime + dt );
-        this->gnode->template execute<  sofa::simulation::UpdateSimulationContextVisitor >(this->execParams);
+        this->gnode->template execute<  sofa::simulation::UpdateSimulationContextVisitor >(execParams);
     }
     //std::cout<<"step "<<step++<<std::endl;
     {
         //std::cout << "[" << this->getName() << "]: animate end" << std::endl;
         sofa::simulation::AnimateEndEvent ev ( dt );
-        sofa::simulation::PropagateEventVisitor act (this->execParams, &ev );
+        sofa::simulation::PropagateEventVisitor act (execParams, &ev );
         this->gnode->execute ( act );
     }
 
     sofa::helper::AdvancedTimer::stepBegin("UpdateMapping");
     //Visual Information update: Ray Pick add a MechanicalMapping used as VisualMapping
     //std::cout << "[" << this->getName() << "]: update mapping" << std::endl;
-    this->gnode->template execute<  sofa::simulation::UpdateMappingVisitor >(this->execParams);
+    this->gnode->template execute<  sofa::simulation::UpdateMappingVisitor >(execParams);
     sofa::helper::AdvancedTimer::step("UpdateMappingEndEvent");
     {
         //std::cout << "[" << this->getName() << "]: update mapping end" << std::endl;
         sofa::simulation::UpdateMappingEndEvent ev ( dt );
-        sofa::simulation::PropagateEventVisitor act ( this->execParams , &ev );
+        sofa::simulation::PropagateEventVisitor act ( execParams , &ev );
         this->gnode->execute ( act );
     }
     sofa::helper::AdvancedTimer::stepEnd("UpdateMapping");
 
 #ifndef SOFA_NO_UPDATE_BBOX
     sofa::helper::AdvancedTimer::stepBegin("UpdateBBox");
-    this->gnode->template execute<  sofa::simulation::UpdateBoundingBoxVisitor >(this->execParams);
+    this->gnode->template execute<  sofa::simulation::UpdateBoundingBoxVisitor >(execParams);
     sofa::helper::AdvancedTimer::stepEnd("UpdateBBox");
 #endif
 #ifdef SOFA_DUMP_VISITOR_INFO

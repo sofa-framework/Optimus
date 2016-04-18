@@ -86,9 +86,9 @@ protected:
     helper::vector<std::pair<size_t, size_t> > positionPairs;
     helper::vector<std::pair<size_t, size_t> > velocityPairs;
 
-    void copyStateVerdandi2Sofa();  // copy actual DA state to SOFA state and propagate to mappings
+    void copyStateVerdandi2Sofa(const core::MechanicalParams *_mechParams);  // copy actual DA state to SOFA state and propagate to mappings
     void copyStateSofa2Verdandi();  // copy the actual SOFA state to DA state
-    void computeSofaStep(bool _updateTime);
+    void computeSofaStep(const core::ExecParams* execParams, bool _updateTime);
 
 public:    
     Data<bool> velocityInState;
@@ -96,12 +96,12 @@ public:
     void init();
     void bwdInit();
 
-    void applyOperator(EVectorX& _vecX, const core::MechanicalParams* mparams, bool _preserveState, bool _updateForce);
+    void applyOperator(EVectorX& _vecX, const core::MechanicalParams* _mparams, bool _preserveState, bool _updateForce);
     //void setSofaTime(const core::ExecParams* _execParams);
 
-    void setState(EVectorX& _state) {
+    void setState(EVectorX& _state, const core::MechanicalParams* _mparams) {
         this->state = _state;
-        copyStateVerdandi2Sofa();
+        copyStateVerdandi2Sofa(_mparams);
     }
 
     void setSofaVectorFromVerdandiVector(EVectorX& _state, typename DataTypes::VecCoord& _vec);

@@ -63,9 +63,6 @@ protected:
     sofa::helper::system::thread::CTime *timer;
     double startTime, stopTime;
 
-    const core::ExecParams* execParams;
-    const core::MechanicalParams* mechParams;
-
 public:
     Data<bool> verbose;
     Data<bool> slave;
@@ -151,7 +148,7 @@ public:
         return state;
     }
 
-    virtual void setState(EVectorX& _state) {
+    virtual void setState(EVectorX& _state, const core::MechanicalParams* /*_mparams*/) {
         state = _state;
     }
 

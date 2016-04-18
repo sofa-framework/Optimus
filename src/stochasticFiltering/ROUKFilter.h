@@ -99,12 +99,14 @@ void* threadFunction(void* inArgs) {
     size_t id = threadData->threadID;
     StochasticStateWrapperBaseT<FilterType>* wrapper = threadData->wrapper;
 
-    const core::ExecParams* execParams = threadData->execParams;
-    core::MechanicalParams* mechParams;
+    //const core::ExecParams* execParams = threadData->execParams;
+    //core::MechanicalParams* mechParams;
     //if (wrapper->isSlave())
-        mechParams = new core::MechanicalParams;
+        //mechParams = new core::MechanicalParams;
+        //mechParams->setThreadID(id);
     //else
-    //    mechParams = new core::MechanicalParams(*execParams);
+    core::MechanicalParams* mechParams = new core::MechanicalParams;
+    mechParams->setThreadID(0);
 
     bool saveLog = threadData->saveLog;
 

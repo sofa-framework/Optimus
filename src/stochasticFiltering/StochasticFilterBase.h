@@ -58,9 +58,8 @@ public:
 
     StochasticFilterBase()
         : Inherit()        
-        , verbose( initData(&verbose, false, "verbose", "print tracing informations") )
-        , mechParams(0) {
-
+        , mechParams(0)
+        , verbose( initData(&verbose, false, "verbose", "print tracing informations") ) {
     }
 
     ~StochasticFilterBase() {}

@@ -133,7 +133,7 @@ void ROUKFilter<FilterType>::computePrediction()
     TOC("== prediction multiplication3 ==");
 
     stateWrapper->setStateErrorVarianceProjector(tmpStateVarProj2);
-    stateWrapper->setState(vecX);
+    stateWrapper->setState(vecX, this->mechParams);
 }
 
 
@@ -184,13 +184,21 @@ void ROUKFilter<FilterType>::computeCorrection()
         EVectorX state = stateWrapper->getState();
         EMatrixX errorVarProj = stateWrapper->getStateErrorVarianceProjector();
         state = state + errorVarProj*reducedInnovation;
-        stateWrapper->setState(state);
+        stateWrapper->setState(state,mechParams);
         TOC("== an5sx == ");
 
         std::cout << "New state = " << std::endl;
         for (size_t i = stateSize-20; i < stateSize; i++)
             std::cout << state(i) << " ";
         std::cout << std::endl;
+        Type maxState = 0.0, minState = 1e10;
+        for (size_t i = stateSize - reducedStateSize; i < stateSize; i++) {
+            maxState = (state(i) > maxState) ? state(i) : maxState;
+            minState = (state(i) < minState) ? state(i) : minState;
+        }
+
+        std::cout << "Max = " << maxState << " min = " << minState << std::endl;
+
     }
 }
 
