@@ -158,7 +158,7 @@ ROUKFilter();
 ~ROUKFilter();
 
 protected:
-    StochasticStateWrapperBaseT<FilterType>* stateWrapper;
+    StochasticStateWrapperBaseT<FilterType>* masterStateWrapper;
     helper::vector<StochasticStateWrapperBaseT<FilterType>*> stateWrappers;
     ObservationManager<FilterType>* observationManager;
 
@@ -180,7 +180,7 @@ protected:
     /// structures for parallel computing:
     helper::vector<size_t> sigmaPoints2WrapperIDs;
     helper::vector<helper::vector<size_t> > wrapper2SigmaPointsIDs;
-    size_t numSlaveWrappers, numThreads;
+    size_t numThreads;
 
     /// functions
     void computeSimplexSigmaPoints(EMatrixX& sigmaMat);

@@ -59,8 +59,8 @@ template <class FilterType>
 ROUKFilter<FilterType>::~ROUKFilter() {}
 
 template <class FilterType>
-void ROUKFilter<FilterType>::computePerturbedStates(EVectorX& _meanState) {
-    if (numSlaveWrappers == 0) {
+void ROUKFilter<FilterType>::computePerturbedStates(EVectorX& _meanState) {    
+    if (numThreads == 1) {
         EVectorX xCol(stateSize);
         for (size_t i = 0; i < sigmaPointsNum; i++) {
             xCol = matXi.col(i);
@@ -72,7 +72,7 @@ void ROUKFilter<FilterType>::computePerturbedStates(EVectorX& _meanState) {
         pthread_t* tid = new pthread_t[numThreads];
         WorkerThreadData<FilterType>* threadData = new WorkerThreadData<FilterType>[numThreads];
         for (size_t i = 0; i < numThreads; i++) {
-            threadData[i].set(i, stateWrappers[i], &wrapper2SigmaPointsIDs[i], &matXi, this->execParams, 1);
+            threadData[i].set(i, stateWrappers[i], &wrapper2SigmaPointsIDs[i], &matXi, this->execParams, 0);
             PRNS("Creating thread " << i);
             pthread_create(&tid[i], NULL, threadFunction<FilterType>, (void*)&threadData[i]);
         }
@@ -95,12 +95,12 @@ void ROUKFilter<FilterType>::computePrediction()
     EMatrixX tmpStateVarProj2(stateSize, reducedStateSize);
 
     TIC
-    EVectorX vecX = stateWrapper->getState();
+    EVectorX vecX = masterStateWrapper->getState();
     Eigen::LLT<EMatrixX> lltU(matUinv);
     matUinv = lltU.matrixL();
     TOC("== prediction: Cholesky ");
 
-    tmpStateVarProj = stateWrapper->getStateErrorVarianceProjector();
+    tmpStateVarProj = masterStateWrapper->getStateErrorVarianceProjector();
 
     TIC
     if (useBlasToMultiply.getValue())
@@ -109,7 +109,7 @@ void ROUKFilter<FilterType>::computePrediction()
         tmpStateVarProj2.noalias() = tmpStateVarProj * matUinv;
     TOC("== prediction multiplication1 == ");
 
-    stateWrapper->setStateErrorVarianceProjector(tmpStateVarProj2);
+    masterStateWrapper->setStateErrorVarianceProjector(tmpStateVarProj2);
     for (size_t i = 0; i < sigmaPointsNum; i++)
         matXi.col(i) = vecX;
 
@@ -119,10 +119,11 @@ void ROUKFilter<FilterType>::computePrediction()
     else
         matXi = matXi + tmpStateVarProj2 * matI;
     TOC("== prediction multiplication2 == ");
-    computePerturbedStates(vecX);
-    TIC;
 
-    TOCTIC("== prediction applyOperator ==");
+    TIC;
+    computePerturbedStates(vecX);   
+    //asumEVec("summPred",vecX);
+    TOCTIC("== prediction compute perturbations ==");
 
     /// TODO: add resampling!!!
 
@@ -132,8 +133,8 @@ void ROUKFilter<FilterType>::computePrediction()
         tmpStateVarProj2 = alpha*matXi * matItrans;
     TOC("== prediction multiplication3 ==");
 
-    stateWrapper->setStateErrorVarianceProjector(tmpStateVarProj2);
-    stateWrapper->setState(vecX, this->mechParams);
+    masterStateWrapper->setStateErrorVarianceProjector(tmpStateVarProj2);
+    masterStateWrapper->setState(vecX, this->mechParams);
 }
 
 
@@ -153,6 +154,7 @@ void ROUKFilter<FilterType>::computeCorrection()
         EVectorX vecZCol(observationSize), vecZ(observationSize);
         EMatrixX matZItrans(sigmaPointsNum, observationSize);
         vecZ.setZero();
+        //asumEMat("correction input mat",matXi);
         for (size_t i = 0; i < sigmaPointsNum; i++) {
             vecXCol = matXi.col(i);
             vecZCol.setZero();
@@ -161,18 +163,20 @@ void ROUKFilter<FilterType>::computeCorrection()
             matZItrans.row(i) = vecZCol;
         }
         TOCTIC("== an1sx == ");
+        //asumEVec("correction accumInnov",vecZ);
 
         EMatrixX matHLtrans(reducedStateSize, observationSize);
         matHLtrans = alpha*matItrans.transpose()*matZItrans;
+        //asumEMat("HL_trans", matHLtrans);
 
         EMatrixX matWorkingPO(reducedStateSize, observationSize), matTemp;
-        if (observationErrorVarianceType.getValue() == "inverse")
+        if (observationErrorVarianceType.getValue() == "inverse") {
             matWorkingPO = matHLtrans * observationManager->getErrorVarianceInverse();
-        else {
+        } else {
             EMatrixX matR;
             matR = observationManager->getErrorVariance();
             matWorkingPO = matHLtrans * matR.inverse();
-        }
+        }        
         matTemp = EMatrixX::Identity(matUinv.rows(), matUinv.cols()) + matWorkingPO * matHLtrans.transpose();
         TOCTIC("== an3sx == ");
         matUinv = matTemp.inverse();
@@ -180,24 +184,28 @@ void ROUKFilter<FilterType>::computeCorrection()
 
         EVectorX reducedInnovation(reducedStateSize);
         reducedInnovation = Type(-1.0) * matUinv*matWorkingPO*vecZ;
+        //asumEMat("matUinv", matUinv);
+        //asumEMat("matWorkingPO", matWorkingPO);
+        //asumEVec("reduced innovation", reducedInnovation);
 
-        EVectorX state = stateWrapper->getState();
-        EMatrixX errorVarProj = stateWrapper->getStateErrorVarianceProjector();
+        EVectorX state = masterStateWrapper->getState();
+        EMatrixX errorVarProj = masterStateWrapper->getStateErrorVarianceProjector();
         state = state + errorVarProj*reducedInnovation;
-        stateWrapper->setState(state,mechParams);
+        masterStateWrapper->setState(state,mechParams);
         TOC("== an5sx == ");
 
-        std::cout << "New state = " << std::endl;
+        /*std::cout << "New state = " << std::endl;
         for (size_t i = stateSize-20; i < stateSize; i++)
             std::cout << state(i) << " ";
-        std::cout << std::endl;
+        std::cout << std::endl;*/
         Type maxState = 0.0, minState = 1e10;
         for (size_t i = stateSize - reducedStateSize; i < stateSize; i++) {
             maxState = (state(i) > maxState) ? state(i) : maxState;
             minState = (state(i) < minState) ? state(i) : minState;
         }
 
-        std::cout << "Max = " << maxState << " min = " << minState << std::endl;
+        asumEVec("############# final state", state);
+        //std::cout << "Max = " << maxState << " min = " << minState << std::endl;
 
     }
 }
@@ -208,33 +216,31 @@ void ROUKFilter<FilterType>::init() {
     assert(this->gnode);
     this->gnode->template get<StochasticStateWrapperBaseT<FilterType> >(&stateWrappers, this->getTags(), sofa::core::objectmodel::BaseContext::SearchDown);
     PRNS("found " << stateWrappers.size() << " stochastic filters");
-    stateWrapper=NULL;
-    numSlaveWrappers = 0;
+    masterStateWrapper=NULL;
+    size_t numSlaveWrappers = 0;
+    size_t numMasterWrappers = 0;
     numThreads = 0;
     for (size_t i = 0; i < stateWrappers.size(); i++) {
         if (stateWrappers[i]->isSlave()) {
             numSlaveWrappers++;
             PRNS("found stochastic state slave wrapper: " << stateWrappers[i]->getName());
         } else {
-            if (!stateWrapper) {
-                stateWrapper = stateWrappers[i];
-                PRNS("found stochastic state master wrapper: " << stateWrapper->getName());
-            } else {
-                PRNE("Master wrapper already assigned, cannot have two of them!");
-                return;
-            }
+            masterStateWrapper = stateWrappers[i];
+            numMasterWrappers++;
+            PRNS("found stochastic state master wrapper: " << masterStateWrapper->getName());
         }
     }
-    if (!stateWrapper) {
-        PRNE("no master state wrapper found!");
+
+    if (numMasterWrappers != 1) {
+        PRNE("Wrong number of master wrappers: " << numMasterWrappers);
         return;
     }
 
-    if (numSlaveWrappers > 0) {
-        PRNS("number of slave wrappers: " << numSlaveWrappers);
-        numThreads=numSlaveWrappers+1;   /// slaves + master
+    if (numThreads > 0) {
+        PRNS("number of slave wrappers: " << numThreads-1);
+           /// slaves + master
     }
-
+    numThreads=numSlaveWrappers+numMasterWrappers;
 
     this->gnode->get(observationManager, core::objectmodel::BaseContext::SearchDown);
     if (observationManager) {
@@ -246,12 +252,12 @@ void ROUKFilter<FilterType>::init() {
 template <class FilterType>
 void ROUKFilter<FilterType>::bwdInit() {
     PRNS("bwdInit");
-    assert(stateWrapper);
+    assert(masterStateWrapper);
     assert(this->observationManagerBase);
 
     observationSize = this->observationManager->getObservationSize();
-    stateSize = stateWrapper->getStateSize();
-    matU = stateWrapper->getStateErrorVarianceReduced();
+    stateSize = masterStateWrapper->getStateSize();
+    matU = masterStateWrapper->getStateErrorVarianceReduced();
 
     reducedStateSize = matU.cols();
     matUinv = matU.inverse();
@@ -289,18 +295,15 @@ void ROUKFilter<FilterType>::bwdInit() {
 
     /// prepare structures for parallel computing
     sigmaPoints2WrapperIDs.resize(sigmaPointsNum, 0);
-    wrapper2SigmaPointsIDs.resize(numThreads);
-    if (numSlaveWrappers > 0) {
-        for (size_t i = 0; i < sigmaPointsNum; i++) {
-            size_t threadID = i%(numThreads);
-            sigmaPoints2WrapperIDs[i] = threadID;
-            wrapper2SigmaPointsIDs[threadID].push_back(i);
-        }
-
-        //std::cout << "SigmaWrapper: " << sigmaPoints2WrapperIDs << std::endl;
-        //std::cout << "WrapperSigma: " << wrapper2SigmaPointsIDs << std::endl;
+    wrapper2SigmaPointsIDs.resize(numThreads);    
+    for (size_t i = 0; i < sigmaPointsNum; i++) {
+        size_t threadID = i%(numThreads);
+        sigmaPoints2WrapperIDs[i] = threadID;
+        wrapper2SigmaPointsIDs[threadID].push_back(i);
     }
 
+    //std::cout << "SigmaWrapper: " << sigmaPoints2WrapperIDs << std::endl;
+    //std::cout << "WrapperSigma: " << wrapper2SigmaPointsIDs << std::endl;
 }
 
 template <class FilterType>
