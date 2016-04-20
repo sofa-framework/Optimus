@@ -45,5 +45,5 @@ export SofaPythonData=$2
 export OMP_NUM_THREADS=1
 #valgrind --log-file=val_par1.out runSofa Test_python.scn
 runSofa pythonDA.scn
-#runSofa -g batch -n 50 Test_python.scn
+#runSofa -g batch -n 10 pythonDA.scn
 
