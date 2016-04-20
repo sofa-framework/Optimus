@@ -104,7 +104,7 @@ class CreateScene:
         obsNode.createObject('Sphere', radius="0.002", color="1 0 0 1")
         obsNode.createObject('BarycentricMapping')
         obsNode.createObject('MappedStateObservationManager', name="MOBS", observationStdev="2e-3", noiseStdev="0.0", listening="1", stateWrapper="@../StateWrapper", verbose="1")
-        obsNode.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix="../stiffnessDAObservations/cylinder3_770_YMStat")
+        obsNode.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix="../obsStiffnessDA/cylinder3_770_YMStat")
 
         obsVisuNode = node.createChild('SourceNode')
         obsVisuNode.createObject('MechanicalObject', name="aux_Source", position="@../obsNode/MOBS.mappedObservations")
