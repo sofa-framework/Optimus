@@ -39,7 +39,7 @@
 				<Sphere radius="0.002" color="1 0 0 1"/>
 				<BarycentricMapping/>
 				<MappedStateObservationManager name="MOBS" observationStdev="2e-3" noiseStdev="0.0" listening="1" stateWrapper="@../StateWrapper" verbose="1"/>
-				<SimulatedStateObservationSource name="ObsSource" monitorPrefix="observations/cylinder3_770_YMStat"/>
+				<SimulatedStateObservationSource name="ObsSource" monitorPrefix="../obsStiffnessDA/cylinder3_770_YMStat"/>
 		</Node>
 
 		<Node>
