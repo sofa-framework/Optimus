@@ -106,7 +106,7 @@ void* threadFunction(void* inArgs) {
         //mechParams->setThreadID(id);
     //else
     core::MechanicalParams* mechParams = new core::MechanicalParams;
-    mechParams->setThreadID(0);
+    //mechParams->setThreadID(0);
 
     bool saveLog = threadData->saveLog;
 
@@ -125,6 +125,7 @@ void* threadFunction(void* inArgs) {
         xMat.col(sigIDs[i]) = xCol;
     }
     fd.close();
+    delete mechParams;
 }
 
 extern "C"{
