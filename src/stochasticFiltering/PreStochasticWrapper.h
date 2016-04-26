@@ -22,75 +22,52 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef FILTERINGANIMATIONLOOP_H_
-#define FILTERINGANIMATIONLOOP_H_
+#ifndef PRESTOCHASTICWRAPPER_H_
+#define PRESTOCHASTICWRAPPER_H_
 
+#include "initOptimusPlugin.h"
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/RigidTypes.h>
 #include <sofa/defaulttype/defaulttype.h>
 #include <sofa/core/behavior/MechanicalState.h>
 
-#include <sofa/core/objectmodel/BaseObject.h>
-#include <sofa/core/behavior/BaseAnimationLoop.h>
-#include <sofa/core/ExecParams.h>
-#include <sofa/simulation/common/common.h>
-#include <sofa/simulation/common/Node.h>
-#include <sofa/helper/AdvancedTimer.h>
-
-#include "initOptimusPlugin.h"
-#include "StochasticFilterBase.h"
-#include "PreStochasticWrapper.h"
+#include <sofa/simulation/common/AnimateEndEvent.h>
+#include <sofa/simulation/common/AnimateBeginEvent.h>
 
 namespace sofa
 {
 namespace component
 {
-namespace simulation
+namespace stochastic
 {
 
 using namespace defaulttype;
 
-class FilteringAnimationLoop: public sofa::core::behavior::BaseAnimationLoop
+class PreStochasticWrapper: public sofa::core::objectmodel::BaseObject
 {
 public:
-    SOFA_CLASS(FilteringAnimationLoop,sofa::core::behavior::BaseAnimationLoop);
+    SOFA_CLASS(PreStochasticWrapper,sofa::core::objectmodel::BaseObject);
 
-    typedef sofa::core::behavior::BaseAnimationLoop Inherit;
-    typedef sofa::component::stochastic::StochasticFilterBase StochasticFilterBase;
+    PreStochasticWrapper();
+    ~PreStochasticWrapper() {}
 
-    ~FilteringAnimationLoop() {}
-
-    FilteringAnimationLoop();
-    FilteringAnimationLoop(sofa::simulation::Node* _gnode);
-
-
-virtual void step(const core::ExecParams* _params, SReal _dt);
+    virtual void step(const core::ExecParams* _params, const size_t _step);
+    void init();
 
 protected:    
-    sofa::helper::system::thread::CTime *timer;
-    double startTime, stopTime;
 
-    size_t actualStep;
-
-    helper::vector<stochastic::PreStochasticWrapper*> preStochasticWrappers;
 public:
-    sofa::simulation::Node* gnode;
-    int numStep;
     Data<bool> verbose;
-
-    void init();
-    void bwdInit();
-
-    StochasticFilterBase* filter;
+    sofa::simulation::Node* gnode;
 
 
 }; /// class
 
 
-} // simulation
+} // stochastic
 } // component
 } // sofa
 
-#endif // FILTERINGANIMATIONLOOP_H
+#endif // PRESTOCHASTICWRAPPER_H
 
 

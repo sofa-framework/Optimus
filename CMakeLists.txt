@@ -57,6 +57,7 @@ if ( ${STOCHASTIC_FILTERING} )
 		src/stochasticFiltering/ObservationManagerBase.h
 		src/stochasticFiltering/MappedStateObservationManager.h
 		src/stochasticFiltering/MappedStateObservationManager.inl
+		src/stochasticFiltering/PreStochasticWrapper.h
 	)
 
 	list(APPEND SOURCE_FILES
@@ -64,6 +65,7 @@ if ( ${STOCHASTIC_FILTERING} )
 		src/stochasticFiltering/ROUKFilter.cpp
 		src/stochasticFiltering/StochasticStateWrapper.cpp
 		src/stochasticFiltering/MappedStateObservationManager.cpp
+		src/stochasticFiltering/PreStochasticWrapper.cpp
 	)
 
 endif()

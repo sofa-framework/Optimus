@@ -77,20 +77,34 @@ void FilteringAnimationLoop::init() {
         PRNS("found stochastic filter: " << filter->getName());
     } else
         PRNE(" no stochastic filter found!");
+
+    gnode->get<sofa::component::stochastic::PreStochasticWrapper>(&preStochasticWrappers, this->getTags(), sofa::core::objectmodel::BaseContext::SearchDown);
+
+    for (size_t i = 0; i < preStochasticWrappers.size(); i++)
+        PRNS("pre-stochastic filter " << preStochasticWrappers[i]->getName() << " found");
+
+    actualStep = 0;
 }
 
 void FilteringAnimationLoop::bwdInit() {
-    PRNS("bwdInit");
+    //PRNS("bwdInit");
 }
 
 
-void FilteringAnimationLoop::step(const core::ExecParams* _params, SReal _dt) {
+void FilteringAnimationLoop::step(const core::ExecParams* _params, SReal /*_dt*/) {
+    actualStep++;
+    if (verbose.getValue()) {
+        PRNS("======================= TIME STEP " << actualStep << "=======================");
+    }
     if (!filter) {
         PRNE("No filter defined!");
         return;
     }
 
-    filter->initializeStep(_params);
+    for (size_t i = 0; i < preStochasticWrappers.size(); i++)
+        preStochasticWrappers[i]->step(_params, actualStep);
+
+    filter->initializeStep(_params, actualStep);
     TIC
     filter->computePrediction();
     TOCTIC("== prediction total");
