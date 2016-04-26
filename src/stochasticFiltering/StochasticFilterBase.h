@@ -89,11 +89,11 @@ public:
         actualTime = 0.0;
     }
 
-    virtual void initializeStep(const core::ExecParams* _params) {
+    virtual void initializeStep(const core::ExecParams* _params, const size_t _step) {
         if (mechParams==0)
             mechParams = new core::MechanicalParams(*_params);
         execParams=_params;
-        stepNumber++;
+        stepNumber=_step;
         actualTime = double(stepNumber)*gnode->getDt();
         this->gnode->setTime(this->actualTime);
         this->gnode->execute< sofa::simulation::UpdateSimulationContextVisitor >(execParams);

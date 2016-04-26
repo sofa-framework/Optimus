@@ -82,7 +82,7 @@ public:
     virtual void initializeStep(size_t _stepNumber) {
         stepNumber = _stepNumber;
         actualTime = double(stepNumber)*gnode->getDt();
-        PRNS("========= Initialize DA step T = " << actualTime);
+        //PRNS("========= Initialize DA step T = " << actualTime);
     }
 
     bool isSlave() {

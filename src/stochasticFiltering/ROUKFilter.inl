@@ -307,8 +307,8 @@ void ROUKFilter<FilterType>::bwdInit() {
 }
 
 template <class FilterType>
-void ROUKFilter<FilterType>::initializeStep(const core::ExecParams* _params) {
-    Inherit::initializeStep(_params);
+void ROUKFilter<FilterType>::initializeStep(const core::ExecParams* _params, const size_t _step) {
+    Inherit::initializeStep(_params, _step);
 
     for (size_t i = 0; i < stateWrappers.size(); i++)
         stateWrappers[i]->initializeStep(stepNumber);

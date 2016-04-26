@@ -198,7 +198,7 @@ public:
 
     virtual void computeCorrection();
 
-    virtual void initializeStep(const core::ExecParams* _params);
+    virtual void initializeStep(const core::ExecParams* _params, const size_t _step);
 
 }; /// class
 
