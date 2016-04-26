@@ -18,9 +18,17 @@
 
 #2
 
-if [ ! "$#" -eq 2 ]; then
+if [  "$#" -lt 2 ]; then
 	echo Two parameters needed, e.g.   CreateSceneCyl10.py  simplex_8_0
 	exit
+fi
+
+doBatch=-1
+if [ "$#" -eq 3 ]; then
+	doBatch=$3
+	echo "Executing batch mode in $doBatch iterations"
+else 
+	echo "Executing GUI mode"
 fi
 	
 echo "Executing version $1 with parameters $2" 
@@ -43,7 +51,10 @@ fi
 ln -s $1 CreateScene.py 
 export SofaPythonData=$2
 export OMP_NUM_THREADS=1
-#valgrind --log-file=val_par1.out runSofa Test_python.scn
-runSofa pythonDA.scn
-#runSofa -g batch -n 50 Test_python.scn
+
+if [ "$doBatch" -eq -1  ]; then
+	runSofa pythonDA.scn
+else
+	runSofa -g batch -n $doBatch pythonDA.scn
+fi
 
