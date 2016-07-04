@@ -28,7 +28,6 @@
 #include "SimulatedStateObservationSource.h"
 
 #include <sofa/core/objectmodel/Event.h>
-#include <sofa/simulation/common/common.h>
 #include <sofa/core/objectmodel/BaseObject.h>
 #include <sofa/core/objectmodel/Data.h>
 

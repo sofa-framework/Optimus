@@ -25,7 +25,6 @@
 #ifndef SOFA_CONTAINER_OBSERVATIONSOURCE_H
 #define SOFA_CONTAINER_OBSERVATIONSOURCE_H
 
-#include <sofa/simulation/common/common.h>
 #include <sofa/core/objectmodel/BaseObject.h>
 
 using namespace sofa::core::objectmodel;

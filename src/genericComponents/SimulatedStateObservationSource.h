@@ -25,7 +25,7 @@
 #ifndef SOFA_CONTAINER_SIMULATED_STATE_OBSERVATIONSOURCE_H
 #define SOFA_CONTAINER_SIMULATED_STATE_OBSERVATIONSOURCE_H
 
-#include <sofa/simulation/common/common.h>
+
 #include <sofa/core/objectmodel/BaseObject.h>
 #include <sofa/core/objectmodel/Data.h>
 #include <SofaBaseMechanics/MechanicalObject.h>
@@ -34,8 +34,8 @@
 #include <sofa/helper/gl/template.h>
 #include <sofa/helper/gl/BasicShapes.h>
 
-#include <sofa/simulation/common/AnimateBeginEvent.h>
-#include <sofa/simulation/common/AnimateEndEvent.h>
+#include <sofa/simulation/AnimateBeginEvent.h>
+#include <sofa/simulation/AnimateEndEvent.h>
 
 #include <string>
 

@@ -33,8 +33,8 @@
 
 #include <sofa/core/loader/MeshLoader.h>
 
-#include <sofa/simulation/common/AnimateEndEvent.h>
-#include <sofa/simulation/common/AnimateBeginEvent.h>
+#include <sofa/simulation/AnimateEndEvent.h>
+#include <sofa/simulation/AnimateBeginEvent.h>
 
 #ifdef Success
 #undef Success // dirty workaround to cope with the (dirtier) X11 define. See http://eigen.tuxfamily.org/bz/show_bug.cgi?id=253
