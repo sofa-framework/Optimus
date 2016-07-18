@@ -30,8 +30,8 @@
 #include <sofa/defaulttype/defaulttype.h>
 #include <sofa/core/behavior/MechanicalState.h>
 
-#include <sofa/simulation/common/AnimateEndEvent.h>
-#include <sofa/simulation/common/AnimateBeginEvent.h>
+#include <sofa/simulation/AnimateEndEvent.h>
+#include <sofa/simulation/AnimateBeginEvent.h>
 
 #include <SofaBoundaryCondition/FixedConstraint.h>
 

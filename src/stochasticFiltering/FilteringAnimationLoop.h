@@ -33,8 +33,8 @@
 #include <sofa/core/objectmodel/BaseObject.h>
 #include <sofa/core/behavior/BaseAnimationLoop.h>
 #include <sofa/core/ExecParams.h>
-#include <sofa/simulation/common/common.h>
-#include <sofa/simulation/common/Node.h>
+#include <SofaSimulationCommon/common.h>
+#include <sofa/simulation/Node.h>
 #include <sofa/helper/AdvancedTimer.h>
 
 #include "initOptimusPlugin.h"

@@ -25,7 +25,7 @@
 #ifndef MAPPEDSTATEOBSERVATIONMANAGER_INL
 #define MAPPEDSTATEOBSERVATIONMANAGER_INL
 
-#include <sofa/simulation/common/Node.h>
+#include <sofa/simulation/Node.h>
 
 #include "MappedStateObservationManager.h"
 
