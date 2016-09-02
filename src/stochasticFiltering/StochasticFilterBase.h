@@ -59,7 +59,8 @@ public:
     StochasticFilterBase()
         : Inherit()        
         , mechParams(0)
-        , verbose( initData(&verbose, false, "verbose", "print tracing informations") ) {
+        , verbose( initData(&verbose, false, "verbose", "print tracing informations") )
+        , reducedOrder( initData(&reducedOrder, false, "reducedOrder", "reduced order type of the filter") ) {
     }
 
     ~StochasticFilterBase() {}
@@ -76,6 +77,7 @@ protected:
 
 public:
     Data<bool> verbose;
+    Data<bool> reducedOrder;
 
     void init() {
         Inherit::init();
