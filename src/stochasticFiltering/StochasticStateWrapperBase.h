@@ -107,42 +107,27 @@ public:
     }
 
 protected:
-    size_t reducedStateIndex;
-    size_t stateSize, reducedStateSize;
-
+    size_t stateSize;
     EVectorX state;
 
     EMatrixX stateErrorVariance;
+    //EVectorX stateErrorVarianceRow;
+
+    /// for reduced-order filtering
     EMatrixX stateErrorVarianceReduced;
     EMatrixX stateErrorVarianceProjector;
 
-    EVectorX stateErrorVarianceRow;
+    size_t reducedStateIndex;
+    size_t reducedStateSize;
 
 
 public:
+    void init() {
+        Inherit::init();
+    }
+
     virtual void applyOperator(EVectorX& _vecX, const core::MechanicalParams* mparams,  bool _preserveState = true, bool _updateForce = true) = 0;
-    //virtual void setSofaTime(const core::ExecParams* _execParams) = 0;
-
-    virtual void setStateErrorVarianceProjector(EMatrixX& _mat) {
-        stateErrorVarianceProjector = _mat;
-    }
-
-    virtual EMatrixX& getStateErrorVariance() {
-        return stateErrorVariance;
-    }
-
-    virtual EMatrixX& getStateErrorVarianceProjector()  {
-        return stateErrorVarianceProjector;
-    }
-
-    virtual EMatrixX& getStateErrorVarianceReduced() {
-        return stateErrorVarianceReduced;
-    }
-
-    virtual EVectorX& getStateErrorVarianceRow(int rowIndex) {
-        stateErrorVarianceRow = stateErrorVariance.row(rowIndex);
-        return stateErrorVarianceRow;
-    }
+    //virtual void setSofaTime(const core::ExecParams* _execParams) = 0;    
 
     virtual EVectorX& getState() {
         return state;
@@ -156,9 +141,28 @@ public:
         return state.rows();
     }
 
-    void init() {
-        Inherit::init();
+    virtual EMatrixX& getStateErrorVariance() {
+        return stateErrorVariance;
     }
+
+    /// for reduced-order filtering
+    virtual void setStateErrorVarianceProjector(EMatrixX& _mat) {
+        stateErrorVarianceProjector = _mat;
+    }
+
+    virtual EMatrixX& getStateErrorVarianceProjector()  {
+        return stateErrorVarianceProjector;
+    }
+
+    virtual EMatrixX& getStateErrorVarianceReduced() {
+        return stateErrorVarianceReduced;
+    }
+
+    //virtual EVectorX& getStateErrorVarianceRow(int rowIndex) {
+    //    stateErrorVarianceRow = stateErrorVariance.row(rowIndex);
+    //    return stateErrorVarianceRow;
+    //}
+
 }; /// class
 
 
