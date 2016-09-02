@@ -86,12 +86,13 @@ protected:
     helper::vector<std::pair<size_t, size_t> > positionPairs;
     helper::vector<std::pair<size_t, size_t> > velocityPairs;
 
-    void copyStateVerdandi2Sofa(const core::MechanicalParams *_mechParams);  // copy actual DA state to SOFA state and propagate to mappings
-    void copyStateSofa2Verdandi();  // copy the actual SOFA state to DA state
+    void copyStateFilter2Sofa(const core::MechanicalParams *_mechParams);  // copy actual DA state to SOFA state and propagate to mappings
+    void copyStateSofa2Filter();  // copy the actual SOFA state to DA state
     void computeSofaStep(const core::ExecParams* execParams, bool _updateTime);
 
 public:    
-    Data<bool> velocityInState;
+    Data<bool> estimatePosition;
+    Data<bool> estimateVelocity;
 
     void init();
     void bwdInit();
@@ -101,10 +102,10 @@ public:
 
     void setState(EVectorX& _state, const core::MechanicalParams* _mparams) {
         this->state = _state;
-        copyStateVerdandi2Sofa(_mparams);
+        copyStateFilter2Sofa(_mparams);
     }
 
-    void setSofaVectorFromVerdandiVector(EVectorX& _state, typename DataTypes::VecCoord& _vec);
+    void setSofaVectorFromFilterVector(EVectorX& _state, typename DataTypes::VecCoord& _vec);
 
     virtual EMatrixX& getStateErrorVarianceReduced() {
         if (this->stateErrorVarianceReduced.rows() == 0) {

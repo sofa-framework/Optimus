@@ -65,7 +65,7 @@ protected:
 
 public:
     Data<bool> verbose;
-    Data<bool> slave;
+    Data<bool> slave;    
 
     void init() {
         Inherit::init();

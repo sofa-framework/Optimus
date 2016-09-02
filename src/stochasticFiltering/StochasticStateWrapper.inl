@@ -68,7 +68,8 @@ namespace stochastic
 template <class DataTypes, class FilterType>
 StochasticStateWrapper<DataTypes, FilterType>::StochasticStateWrapper()
     :Inherit()
-    , velocityInState( initData(&velocityInState, false, "includeVelocity", "include the velocity in the stochastic state") )
+    , estimatePosition( initData(&estimatePosition, true, "estimatePosition", "estimate the position (e.g., if initial conditions with uncertainty") )
+    , estimateVelocity( initData(&estimateVelocity, false, "estimateVelocity", "estimate the velocity (e.g., if initial conditions with uncertainty") )
 {    
 }
 
@@ -154,12 +155,14 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
     size_t vsi = 0;
     size_t vpi = 0;
 
-    for (size_t i = 0; i < freeNodes.size(); i++) {
-        std::pair<size_t, size_t> pr(freeNodes[i], vsi++);
-        positionPairs.push_back(pr);
+    if (estimatePosition.getValue()) {
+        for (size_t i = 0; i < freeNodes.size(); i++) {
+            std::pair<size_t, size_t> pr(freeNodes[i], vsi++);
+            positionPairs.push_back(pr);
+        }
     }
 
-    if (velocityInState.getValue()) {
+    if (estimateVelocity.getValue()) {
         for (size_t i = 0; i < freeNodes.size(); i++) {
             std::pair<size_t, size_t> pr(freeNodes[i], vsi++);
             velocityPairs.push_back(pr);
@@ -182,11 +185,11 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
     PRNS("Reduced state index: " << this->reducedStateIndex << " size: " << this->reducedStateSize);
 
     this->state.resize(this->stateSize);
-    copyStateSofa2Verdandi();
+    copyStateSofa2Filter();
 }
 
 template <class DataTypes, class FilterType>
-void StochasticStateWrapper<DataTypes, FilterType>::setSofaVectorFromVerdandiVector(EVectorX& _state, typename DataTypes::VecCoord& _vec) {
+void StochasticStateWrapper<DataTypes, FilterType>::setSofaVectorFromFilterVector(EVectorX& _state, typename DataTypes::VecCoord& _vec) {
     if (_vec.size() != mechanicalState->getSize()) {
         PRNE("Input vector not compatible with the actual Sofa state size");
         return;
@@ -218,7 +221,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::setSofaVectorFromVerdandiVec
 }
 
 template <class DataTypes, class FilterType>
-void StochasticStateWrapper<DataTypes, FilterType>::copyStateVerdandi2Sofa(const core::MechanicalParams* _mechParams) {
+void StochasticStateWrapper<DataTypes, FilterType>::copyStateFilter2Sofa(const core::MechanicalParams* _mechParams) {
     typename MechanicalState::WriteVecCoord pos = mechanicalState->writePositions();
     typename MechanicalState::WriteVecDeriv vel = mechanicalState->writeVelocities();
 
@@ -244,7 +247,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::copyStateVerdandi2Sofa(const
 }
 
 template <class DataTypes, class FilterType>
-void StochasticStateWrapper<DataTypes, FilterType>::copyStateSofa2Verdandi() {
+void StochasticStateWrapper<DataTypes, FilterType>::copyStateSofa2Filter() {
     typename MechanicalState::ReadVecCoord pos = mechanicalState->readPositions();
     typename MechanicalState::ReadVecDeriv vel = mechanicalState->readVelocities();
 
@@ -270,14 +273,14 @@ void StochasticStateWrapper<DataTypes, FilterType>::applyOperator(EVectorX &_vec
         savedState = this->state;
 
     this->state = _vecX;    
-    copyStateVerdandi2Sofa(_mparams);
+    copyStateFilter2Sofa(_mparams);
     computeSofaStep(_mparams, false);
-    copyStateSofa2Verdandi();
+    copyStateSofa2Filter();
     _vecX = this->state;
 
     if (_preserveState) {
         this->state = savedState;
-        copyStateVerdandi2Sofa(_mparams);
+        copyStateFilter2Sofa(_mparams);
     }
 }
 
