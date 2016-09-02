@@ -10,7 +10,7 @@ find_package(SofaBase REQUIRED)
 find_package(SofaGeneral REQUIRED)
 find_package(SofaPardisoSolver QUIET)
 
-set(LINKER_DEPENDENCIES SofaComponentBase SofaComponentGeneral SofaBaseTopology)
+set(LINKER_DEPENDENCIES SofaComponentBase SofaComponentGeneral SofaBaseTopology blas)
 set(COMPILATION_FLAGS "-DSOFA_BUILD_OPTIMUS -Wno-unused-local-typedef -Wno-deprecated")
 
 set ( STOCHASTIC_FILTERING "0" CACHE BOOL "Set to activate the compilation the new filtering module replacing Verdandi" )
@@ -44,6 +44,8 @@ if ( ${STOCHASTIC_FILTERING} )
 		src/stochasticFiltering/StochasticFilterBase.h
 		src/stochasticFiltering/ROUKFilter.h
 		src/stochasticFiltering/ROUKFilter.inl
+		src/stochasticFiltering/EKFilter.h
+		src/stochasticFiltering/EKFilter.inl
 		src/stochasticFiltering/StochasticStateWrapperBase.h
 		src/stochasticFiltering/StochasticStateWrapper.h
 		src/stochasticFiltering/StochasticStateWrapper.inl
@@ -56,6 +58,7 @@ if ( ${STOCHASTIC_FILTERING} )
 	list(APPEND SOURCE_FILES
 		src/stochasticFiltering/FilteringAnimationLoop.cpp
 		src/stochasticFiltering/ROUKFilter.cpp
+		src/stochasticFiltering/EKFilter.cpp
 		src/stochasticFiltering/StochasticStateWrapper.cpp
 		src/stochasticFiltering/MappedStateObservationManager.cpp
 		src/stochasticFiltering/PreStochasticWrapper.cpp
