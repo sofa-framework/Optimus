@@ -53,6 +53,7 @@ ROUKFilter<FilterType>::ROUKFilter()
     , observationErrorVarianceType( initData(&observationErrorVarianceType, std::string("inverse"), "observationErrorVarianceType", "if set to inverse, work directly with the inverse of the matrix" ) )
     , useBlasToMultiply( initData(&useBlasToMultiply, true, "useBlasToMultiply", "use BLAS to multiply the dense matrices instead of Eigen" ) )
 {    
+    this->reducedOrder.setValue(true);
 }
 
 template <class FilterType>
@@ -215,7 +216,7 @@ void ROUKFilter<FilterType>::init() {
     Inherit::init();
     assert(this->gnode);
     this->gnode->template get<StochasticStateWrapperBaseT<FilterType> >(&stateWrappers, this->getTags(), sofa::core::objectmodel::BaseContext::SearchDown);
-    PRNS("found " << stateWrappers.size() << " stochastic filters");
+    PRNS("found " << stateWrappers.size() << " state wrappers");
     masterStateWrapper=NULL;
     size_t numSlaveWrappers = 0;
     size_t numMasterWrappers = 0;
@@ -253,7 +254,6 @@ template <class FilterType>
 void ROUKFilter<FilterType>::bwdInit() {
     PRNS("bwdInit");
     assert(masterStateWrapper);
-    assert(this->observationManagerBase);
 
     observationSize = this->observationManager->getObservationSize();
     stateSize = masterStateWrapper->getStateSize();
