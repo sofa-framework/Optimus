@@ -27,6 +27,20 @@
 
 
 #include <sofa/helper/system/config.h>
+#include <pthread.h> /* pthread_t, pthread_barrier_t */
+#include <sys/errno.h>
+
+#ifdef __APPLE__
+typedef int pthread_barrierattr_t;
+typedef struct
+{
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+    int count;
+    int tripCount;
+} pthread_barrier_t;
+
+#endif
 
 #ifdef SOFA_BUILD_OPTIMUSPLUGIN
 #define SOFA_OptimusPlugin_API SOFA_EXPORT_DYNAMIC_LIBRARY
@@ -80,8 +94,6 @@ for (size_t i = 0; i < MAT.rows(); i++) \
         sm += fabs(VEC(i)); \
     std::cout << "@@@ ABS. SUM OF " << NAME << ": " << sm << std::endl; \
 } \
-
-
 
 /** \mainpage
   This plugin contains a set of Optimization Methods (initially mainly Bayesian Filtering techniques)
