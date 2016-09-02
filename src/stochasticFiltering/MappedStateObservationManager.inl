@@ -208,7 +208,7 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovat
     predictedMasterStateEdit.resize(masterState->getSize());
     predictedMappedStateEdit.resize(mappedState->getSize());
 
-    stateWrapper->setSofaVectorFromVerdandiVector(_state, predictedMasterStateEdit);
+    stateWrapper->setSofaVectorFromFilterVector(_state, predictedMasterStateEdit);
     sofa::core::MechanicalParams mp;
     mapping->apply(&mp, predictedMappedState, predictedMasterState);
 
