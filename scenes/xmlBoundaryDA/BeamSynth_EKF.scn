@@ -1,0 +1,75 @@
+<?xml version="1.0" ?>
+<Node name="root" dt="0.01" showBoundingTree="0" gravity="0 0 0">
+	<RequiredPlugin pluginName="Optimus"/>
+	<RequiredPlugin pluginName="SofaPardisoSolver"/>
+	<RequiredPlugin pluginName="ImageMeshAux"/>
+    <RequiredPlugin pluginName="SofaMJEDFEM"/>
+
+    <VisualStyle displayFlags="hideBehaviorModels showForceFields showCollisionModels" />
+
+    <FilteringAnimationLoop name="StochAnimLoop" verbose="1"/>
+    <EKFilter name="EKF" verbose="1"/>
+    <MeshVTKLoader filename="../../Data/beamA1_1635.vtk" name="loader" />
+    <MeshSTLLoader filename="../../Data/beamA1_1635.stl" name="surfLoader" />
+
+    <!-- <Node name="bcScene">             -->
+        <Node name="toolEmu" tags="preanim">
+            <PreStochasticWrapper name="PreStochasticWrap" verbose="1"/>
+            <MechanicalObject name="MO" position="0.16 0.06 0.01  0.16 0.06 0.025  0.16 0.06 0.040  0.16 0.06 0.055   0.16 0.06 0.070   0.175 0.06 0.01  0.175 0.06 0.025  0.175 0.06 0.040  0.175 0.06 0.055   0.175 0.06 0.070"/>
+            <LinearMotionStateController indices="0 1 2 3 4 5 6 7 8 9" keyDisplacements="0 0 0    0.05 0.05 0" keyTimes="0 2" printLog="1"/>
+            <Sphere radius="0.002"/>
+        </Node>
+
+        <Node name="daObject">
+            <StochasticStateWrapper name="StateWrapper" verbose="1" estimatePosition="0"/>   
+            <OptimParams name="springStiffness" template="Vector" optimize="1" numParams="46" initValue="50" stdev="10" printLog="1" transformParams="1"/>
+
+            <!--             <EulerImplicit name="odeSolver" printLog="false" rayleighStiffness="0.1"/> -->
+            <!-- <StaticSolver applyIncrementFactor="0"/>	 -->
+            <NewtonStaticSolver name="NewtonStatic" printLog="1" correctionTolerance="1e-8" residualTolerance="1e-8" convergeOnResidual="1" maxIt="1"/>   
+            <StepPCGLinearSolver name="StepPCG" iterations="10000" tolerance="1e-12" preconditioners="precond" verbose="1" precondOnTimeStep="1"/>
+            <SparsePARDISOSolver name="precond" symmetric="2" exportDataToDir="" iterativeSolverNumbering="0"/>
+            <!-- <SparsePARDISOSolver symmetric="1"/> -->
+
+
+            <MechanicalObject src="@/loader" name="Volume" />
+
+            <include href="Objects/TetrahedronSetTopology.xml" src="@/loader" />
+            <UniformMass totalMass="0.2513"/>
+
+            <BoxROI name="fixedBox1" box="-0.001 -0.001 -0.001   0.08 0.001 0.08"/>
+            <!-- X = 0.05:  N=30;    X = 0.08  N=46 -->
+            <ColorMap colorScheme="Blue to Red" />
+            <ExtendedRestShapeSpringForceField name="fixedSpring" points="@fixedBox1.indices" angularStiffness="0" stiffness="@springStiffness.value" springThickness="1" listening="1" forceDir="springForces" updateStiffness="1" printLog="0"/>            
+
+            <TetrahedronFEMForceField name="FEM" listening="true" updateStiffness="1"  youngModulus="1e5" poissonRatio="0.45" method="large" drawHeterogeneousTetra="1"/>
+            <!-- <MJEDTetrahedralForceField materialName="StVenantKirchhoff" ParameterSet="3.4483e+04 3.1034e+05"/> -->
+
+            <Node name="obsNode" activated="1">
+                <!--                     <MechanicalObject position="@../Volume.position"/>     -->
+                <MechanicalObject name="MO" position="0.01 0.06 0.01  0.01 0.06 0.04  0.01 0.06 0.07  0.03 0.06 0.01  0.03 0.06 0.04  0.03 0.06 0.07  0.05 0.06 0.01  0.05 0.06 0.04  0.05 0.06 0.07  0.07 0.06 0.01  0.07 0.06 0.04  0.07 0.06 0.07  0.09 0.06 0.01  0.09 0.06 0.04  0.09 0.06 0.07  0.11 0.06 0.01  0.11 0.06 0.04  0.11 0.06 0.07  0.13 0.06 0.01  0.13 0.06 0.04  0.13 0.06 0.07  0.15 0.06 0.01  0.15 0.06 0.04  0.15 0.06 0.07"/>
+                <Sphere radius="0.001" color="1 0 0"/>
+                <BarycentricMapping/>                        
+                <MappedStateObservationManager name="MOBS" observationStdev="1e-4" noiseStdev="0.0" listening="1" stateWrapper="@../StateWrapper" verbose="1"/>
+                <SimulatedStateObservationSource name="ObsSource" monitorPrefix="../obsBoundaryDA/beam1635_A"/>
+            </Node>                                    
+
+            <Node name="visualization" activated="1">                    
+                <include href="Objects/TriangleSetTopology.xml" src="@/surfLoader" />
+                <MechanicalObject src="@/surfLoader" name="Surface"/>
+                <Line color="0 0 0 1"/>
+                <Triangle color="1 0 0 1"/>
+                <BarycentricMapping/>
+            </Node>
+
+            <Mapped3DoFForceField mappedFEM="mappedTool/toolSpring" mappedMechObject="mappedTool/MO" mapping="mappedTool/baryMapping" printLog="0"/>
+            <Node name="mappedTool">
+                <MechanicalObject name="MO" position="0.16 0.06 0.01  0.16 0.06 0.025  0.16 0.06 0.040  0.16 0.06 0.055   0.16 0.06 0.070   0.175 0.06 0.01  0.175 0.06 0.025  0.175 0.06 0.040  0.175 0.06 0.055   0.175 0.06 0.070"/>            
+                <ExtendedRestShapeSpringForceField name="toolSpring" angularStiffness="0" stiffness="1e5" external_rest_shape="../../toolEmu/MO" startTimeSpringOn="0" numStepsSpringOn="10000" springThickness="1" listening="1" updateStiffness="1" springColor="0 1 0 1" printLog="0" />
+                <ColorMap colorScheme="Blue to Red" />
+                <Sphere radius="0.002" color="0 0 1 1"/> 
+                <BarycentricMapping name="baryMapping"/>
+            </Node>
+        </Node>
+    <!-- </Node>         -->
+</Node>
