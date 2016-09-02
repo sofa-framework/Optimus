@@ -91,6 +91,7 @@ protected:
 
     /// number of sigma points (according to the filter type)
     EVectorX vecState;
+    EMatrixX matStateErrorCovar;
     /*EVectorX vecAlpha;
     EMatrixX matU, matUinv;
     EMatrixX matItrans, matI;

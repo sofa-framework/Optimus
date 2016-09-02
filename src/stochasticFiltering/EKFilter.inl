@@ -65,8 +65,16 @@ void EKFilter<FilterType>::computePrediction()
 {
     PRNS("Computing prediction, T= " << this->actualTime);
 
-    EVectorX state =sofaStateWrapper->getState();
-    sofaStateWrapper->applyOperator(state, mechParams);
+    /// apply the operator (perform 1 step with the actual state theta)
+    vecState = sofaStateWrapper->getState();
+    sofaStateWrapper->applyOperator(vecState, mechParams);
+
+    /// update the covariance matrix  P = P + Q;
+    matStateErrorCovar += sofaStateWrapper->getStateErrorVariance();
+
+    /// compute the FE sensitivities: since h(theta) = J*u(theta)
+    /// dh/dtheta = du(theta)/dtheta = -J * inv(dK/du) * dK/dtheta
+    /// dK/du is the tangent stiffness matrix, dK/dtheta is the FE sensitivity matrix, J is the mapping between observations and u
 
     /*EMatrixX tmpStateVarProj(stateSize, reducedStateSize);
     EMatrixX tmpStateVarProj2(stateSize, reducedStateSize);
@@ -118,9 +126,9 @@ void EKFilter<FilterType>::computePrediction()
 template <class FilterType>
 void EKFilter<FilterType>::computeCorrection()
 {
-    /*PRNS("Computing correction, T= " << this->actualTime);
+    PRNS("Computing correction, T= " << this->actualTime);
 
-    if (!alphaConstant) {
+    /*if (!alphaConstant) {
         PRNE("Version for non-constant alpha not implemented!");
         return;
     }
@@ -217,6 +225,8 @@ void EKFilter<FilterType>::bwdInit() {
     PRNS("|observation| = " << observationSize);
 
     vecState.resize(stateSize);
+    matStateErrorCovar.resize(stateSize, stateSize);
+    matStateErrorCovar.setZero();
 
     /*matU = masterStateWrapper->getStateErrorVarianceReduced();
 
