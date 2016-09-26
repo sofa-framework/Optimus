@@ -53,6 +53,7 @@ if ( ${STOCHASTIC_FILTERING} )
 		src/stochasticFiltering/MappedStateObservationManager.h
 		src/stochasticFiltering/MappedStateObservationManager.inl
 		src/stochasticFiltering/PreStochasticWrapper.h
+		src/stochasticFiltering/ForceFieldSensitivity.h
 	)
 
 	list(APPEND SOURCE_FILES
