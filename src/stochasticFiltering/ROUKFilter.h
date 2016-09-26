@@ -43,7 +43,7 @@
 #endif
 #include <Eigen/Dense>
 
-#include <Accelerate/Accelerate.h>
+//#include <Accelerate/Accelerate.h>
 #include <fstream>
 
 namespace sofa
