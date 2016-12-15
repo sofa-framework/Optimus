@@ -515,26 +515,28 @@ namespace Verdandi
 
             /*** Sampling ***/
 
-            model_state_error_variance tmp;
+            model_state_error_variance tmp;            
             GetCholesky(U_inv_); // sqrt U_inv_ ... Cn
-            TOCTIC("== pre-forward 1== ");            
+            TOCTIC("== pre-forward 1== ");
+
+
             Copy(model_.GetStateErrorVarianceProjector(), tmp); // projector is copied to tmp (created if necessary) ... Ln
-            TOCTIC("== pre-forward2a == ");
+            //TOCTIC("== pre-forward2a == ");
             MltAdd(Ts(1), tmp, U_inv_, Ts(0),
                    model_.GetStateErrorVarianceProjector()); // projector*Uinv->projector ... projector returns REFERENCE and can be modified ... Ln CnT
 
-            TOCTIC("== pre-forward2b (mltadd) == ");
+            //TOCTIC("== pre-forward2b (mltadd) == ");
             // Computes X_n^{(i)+}.
             Reallocate(X_i_, Nstate_, Nsigma_point_, model_); // allocate  ... Nstate*Nsigma_point_ size to X_i
-            TOCTIC("== pre-forward3a == ");            
+            //TOCTIC("== pre-forward3a == ");
             for (int i = 0; i < Nsigma_point_; i++)
                 SetCol(x, i, X_i_); // all columns set to the verdandi state x
-            TOCTIC("== pre-forward3b == ");            
+            //TOCTIC("== pre-forward3b == ");
             
             model_state_error_variance& temp = model_.GetStateErrorVarianceProjector();            
-            TOCTIC("== pre-forward3c == ");            
+            //TOCTIC("== pre-forward3c == ");
             MltAdd(Ts(1), temp, I_, Ts(1), X_i_); // sigma points ready ... projector*I_ + X_i -> X_i            
-            TOCTIC("== pre-forward3d (mltadd) == ");
+            //TOCTIC("== pre-forward3d (mltadd) == ");
 
             /*** Prediction ***/
 
@@ -568,7 +570,8 @@ namespace Verdandi
                 Add(Ts(alpha_), x_col, x); // B<- alpha A + B
                 SetCol(x_col, i, X_i_);
             }
-            TOCTIC("== seq mode ==");            
+            //asumSVec("summPred",x);
+            //TOCTIC("== seq mode ==");
             if (parallel_mode)
             {
 
@@ -604,7 +607,7 @@ namespace Verdandi
                 delete[] verdandi_states; // free the memory - verdandi_states
             }
             //std::cout << "X = " << x << std::endl;
-            TOCTIC("== par mode ==");
+            TOCTIC("== forward ==");
             /**
              * -----------------------------END OF ADJUSTED SECTION---------------------------------
              */            
@@ -626,14 +629,16 @@ namespace Verdandi
                        I_, Ts(1), X_i_);
 #endif
             }
-            TOCTIC("== post-forward1 ==");            
+            //TOCTIC("== post-forward1 ==");
 
             // Computes L_{n + 1}.
             MltAdd(Ts(alpha_), X_i_, I_trans_, Ts(0),
                    model_.GetStateErrorVarianceProjector());
 
             model_.GetState().Copy(x);
+            //asumSVec("sumFinPred",x);
             model_.StateUpdated();
+            ////asumSVec("state endpred.: ", x);
 #endif
             TOC("== post-forward2 ==");
         }
@@ -1030,6 +1035,7 @@ namespace Verdandi
 
             observation z(Nobservation_);
             z.Fill(To(0));
+            //asumSMat("correction input mat",X_i_);
             for (int i = 0; i < Nsigma_point_; i++)
             {
                 GetCol(X_i_, i, x_col);
@@ -1038,11 +1044,12 @@ namespace Verdandi
                 Add(To(alpha_), z_col, z);
                 SetRow(z_col, i, Z_i_trans);
             }
+            //asumSVec("correction accumInnov",z);
             TOCTIC("== an1sx == ");            
             sigma_point_matrix HL_trans(Nreduced_, Nobservation_);
             MltAdd(Ts(alpha_), SeldonTrans, I_trans_, SeldonNoTrans, Z_i_trans,
                    Ts(0), HL_trans);
-
+            //asumSMat("HL_trans", HL_trans);
             //observation_error_variance R_inv;
             sigma_point_matrix working_matrix_po(Nreduced_, Nobservation_),
                 tmp;
@@ -1057,26 +1064,37 @@ namespace Verdandi
                 GetInverse(R_inv);
                 Mlt(HL_trans, R_inv, working_matrix_po);
             }
-            TOCTIC("== an2sx == ");            
+            //TOCTIC("== an2sx == ");
             U_inv_.SetIdentity();
             MltAdd(Ts(1), SeldonNoTrans, working_matrix_po,
-                   SeldonTrans, HL_trans, Ts(1), U_inv_);
+                   SeldonTrans, HL_trans, Ts(1), U_inv_);            
             TOCTIC("== an3sx == ");
             GetInverse(U_inv_);
-            TOCTIC("== an4sx == (inv) ");
+            TOCTIC("== an4sx == (inv) ");            
             tmp.Reallocate(Nreduced_, Nobservation_);
             tmp.Fill(Ts(0));
 
             observation reduced_innovation(Nreduced_);
             MltAdd(Ts(1), U_inv_, working_matrix_po, Ts(0), tmp);
             MltAdd(Ts(-1), tmp, z, Ts(0), reduced_innovation);
+            TOC("== an5sx == ");
+            //asumSMat("matUinv", U_inv_);
+            //asumSMat("matWorkingPO", working_matrix_po);
+            //asumSVec("reduced innovation", reduced_innovation);
 
             // Updates.
             model_state& x =  model_.GetState();
             MltAdd(Ts(1), model_.GetStateErrorVarianceProjector(),
                    reduced_innovation, Ts(1), x);
             model_.StateUpdated();
-            TOC("== an5sx == ");
+
+            /*std::cout << "New state = " << std::endl;
+            for (size_t i = Nstate_-20; i < Nstate_; i++)
+                std::cout << x(i) << " ";
+            std::cout << std::endl;*/
+            asumSVec("############# final state", x);
+
+
 #endif
         }
         else
