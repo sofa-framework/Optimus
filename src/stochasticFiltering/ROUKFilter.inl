@@ -60,7 +60,7 @@ template <class FilterType>
 ROUKFilter<FilterType>::~ROUKFilter() {}
 
 template <class FilterType>
-void ROUKFilter<FilterType>::computePerturbedStates(EVectorX& _meanState) {    
+void ROUKFilter<FilterType>::computePerturbedStates(EVectorX& _meanState) {
     if (numThreads == 1) {
         EVectorX xCol(stateSize);
         for (size_t i = 0; i < sigmaPointsNum; i++) {
@@ -136,6 +136,7 @@ void ROUKFilter<FilterType>::computePrediction()
 
     masterStateWrapper->setStateErrorVarianceProjector(tmpStateVarProj2);
     masterStateWrapper->setState(vecX, this->mechParams);
+    masterStateWrapper->writeState(this->getTime());
 }
 
 
@@ -301,6 +302,8 @@ void ROUKFilter<FilterType>::bwdInit() {
         sigmaPoints2WrapperIDs[i] = threadID;
         wrapper2SigmaPointsIDs[threadID].push_back(i);
     }
+
+    masterStateWrapper->writeState(double(0.0));
 
     //std::cout << "SigmaWrapper: " << sigmaPoints2WrapperIDs << std::endl;
     //std::cout << "WrapperSigma: " << wrapper2SigmaPointsIDs << std::endl;

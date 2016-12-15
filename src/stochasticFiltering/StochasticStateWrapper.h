@@ -40,6 +40,7 @@
 #include "initOptimusPlugin.h"
 #include "StochasticStateWrapperBase.h"
 #include "../genericComponents/OptimParams.h"
+#include <fstream>
 
 namespace sofa
 {
@@ -92,8 +93,7 @@ protected:
 
 public:    
     Data<bool> estimatePosition;
-    Data<bool> estimateVelocity;
-
+    Data<bool> estimateVelocity;    
     void init();
     void bwdInit();
 

@@ -318,7 +318,7 @@ void OptimParams<sofa::helper::vector<double> >::handleEvent(core::objectmodel::
     {
         //if (!this->m_optimize.getValue()) {
             double actTime = this->getTime() + this->getContext()->getDt(); /// the time has not been increased yet
-            //std::cout << "Begin event at time: " << actTime << std::endl;
+            std::cout << this->getName() << " begin event at time: " << actTime << std::endl;
 
             int timeSlot = -1;
 
@@ -331,12 +331,12 @@ void OptimParams<sofa::helper::vector<double> >::handleEvent(core::objectmodel::
             if (timeSlot == -1) {
                 if (actTime >= m_paramKeys.back().first) {
                     helper::WriteAccessor<Data<sofa::helper::vector<double> > > val = m_val;
-                    //std::cout << "Const val: ";
+                    std::cout << "Const val: ";
                     for (size_t i = 0; i < val.size(); i++) {
                         val[i] = m_paramKeys.back().second[i];
-                        //std::cout << " " << val[i];
+                        std::cout << " " << val[i];
                     }
-                    //std::cout << std::endl;
+                    std::cout << std::endl;
                 } else {
                     std::cerr << this->getName() << " ERROR: no slot found for time " << actTime << std::endl;
                 }
@@ -349,7 +349,7 @@ void OptimParams<sofa::helper::vector<double> >::handleEvent(core::objectmodel::
                 //std::cout << "Time slot: " << timeSlot << " actual time: " << actTime << " ratii: " << r1 << " " << r2 << std::endl;
 
                 helper::WriteAccessor<Data<sofa::helper::vector<double> > > val = m_val;
-                sout << "Value: ";
+                std::cout << "Value: ";
                 for (size_t i = 0; i < val.size(); i++) {
                     double v1=m_paramKeys[timeSlot].second[i];
                     double v2=m_paramKeys[timeSlot+1].second[i];
@@ -359,9 +359,9 @@ void OptimParams<sofa::helper::vector<double> >::handleEvent(core::objectmodel::
                         val[i] =  (v2-v1)*(tanh(2*(actTime-(t1+t2)/2))+1)/2+v1;
                     else
                         val[i] = r2*v1 + r1*v2;
-                    sout << " " << val[i];
+                    std::cout << " " << val[i];
                 }
-                sout << sendl;
+                std::cout << std::endl;
 
             //}
 
@@ -478,6 +478,162 @@ void OptimParams<Vec3dTypes::VecCoord>::getStDevTempl(DVec& _stdev) {
             _stdev[ij] = m_stdev.getValue()[i][j];
 }
 
+template<>
+void OptimParams<Vec3dTypes::VecCoord>::handleEvent(core::objectmodel::Event *event) {
+    if (dynamic_cast<sofa::simulation::AnimateBeginEvent *>(event))
+    {
+        //if (!this->m_optimize.getValue()) {
+            double actTime = this->getTime() + this->getContext()->getDt(); /// the time has not been increased yet
+            std::cout << "[" << this->getName() << "] begin event at time: " << actTime << std::endl;
+
+            int timeSlot = -1;
+
+            for (size_t i = 1; i < m_paramKeys.size() && timeSlot < 0; i++) {
+                if (m_paramKeys[i-1].first <= actTime && actTime < m_paramKeys[i].first) {
+                    timeSlot = i-1;
+                }
+            }
+            std::cout << "HERE" << std::endl;
+            if (timeSlot == -1) {
+                if (actTime >= m_paramKeys.back().first) {
+                    helper::WriteAccessor<Data<Vec3dTypes::VecCoord> > val = m_val;
+                    std::cout << "["  << this->getName() << "] const val: ";
+                    for (size_t i = 0; i < val.size(); i++) {
+                        val[i] = m_paramKeys.back().second[i];
+                        std::cout << " " << val[i];
+                    }
+                    std::cout << std::endl;
+                } else {
+                    std::cerr << this->getName() << " ERROR: no slot found for time " << actTime << std::endl;
+                }
+            } else {
+                double t1 = m_paramKeys[timeSlot].first;
+                double t2 = m_paramKeys[timeSlot+1].first;
+                double r1 = (actTime-t1)/(t2-t1);
+                double r2 = (t2-actTime)/(t2-t1);
+
+                //std::cout << "Time slot: " << timeSlot << " actual time: " << actTime << " ratii: " << r1 << " " << r2 << std::endl;
+
+                helper::WriteAccessor<Data<Vec3dTypes::VecCoord > > val = m_val;
+                std::cout << "[" << this->getName() << "] Value: ";
+                for (size_t i = 0; i < val.size(); i++) {
+                    Vec3dTypes::Coord v1=m_paramKeys[timeSlot].second[i];
+                    Vec3dTypes::Coord v2=m_paramKeys[timeSlot+1].second[i];
+
+                    /// (y2-y1)*(tanh(3.5*(a-(t0+t1)/2))+1)/2+y1
+                    if (this->m_interpolateSmooth.getValue())
+                        val[i] =  (v2-v1)*(tanh(2*(actTime-(t1+t2)/2))+1)/2+v1;
+                    else
+                        val[i] = r2*v1 + r1*v2;
+                    std::cout << " " << val[i];
+                }
+                std::cout << std::endl;
+
+            }
+
+        //}
+
+        if (this->saveParam) {
+            std::ofstream paramFile(m_exportParamFile.getValue().c_str(), std::ios::app);
+            if (paramFile.is_open()) {
+                helper::ReadAccessor<Data<Vec3dTypes::VecCoord> > val = m_val;
+                for (size_t i = 0; i < val.size(); i++)
+                    paramFile << val[i] << " ";
+                paramFile << '\n';
+                paramFile.close();
+            }
+        }
+
+    }
+}
+
+
+template<>
+void OptimParams<double>::init() {
+    Inherit::init();
+    m_dim = 1;
+
+    /// take the initial value and initial stdev
+    if (!this->m_prescribedParamKeys.getValue().empty()) {
+        helper::ReadAccessor<Data<helper::vector<double> > >keys = m_prescribedParamKeys;
+
+        size_t numKeyValues = keys.size();
+
+        if ((numKeyValues % 2 ) != 0) {
+            serr << this->getName() << " ERROR: wrong size of keys, should be N x " << 2 << sendl;
+        } else {
+            size_t numKeys = numKeyValues / 2;
+            std::cout << this->getName() << " found " << numKeys << " keys for prescribed parameters" << std::endl;
+
+            m_paramKeys.clear();
+            m_paramKeys.resize(numKeys);
+
+            for (size_t i = 0; i < numKeys; i++) {
+                m_paramKeys[i].first = keys[2*i];
+                m_paramKeys[i].second = keys[2*i+1];
+            }
+
+            /*for (size_t i = 0; i < m_paramKeys.size(); i++) {
+                std::cout << "T = " << m_paramKeys[i].first;
+                for (size_t j = 0; j < m_paramKeys[i].second.size(); j++)
+                    std::cout << " " << m_paramKeys[i].second[j];
+                std::cout << std::endl;
+            }*/
+
+            m_initVal.setValue(m_paramKeys[0].second);
+        }
+    }
+}
+
+
+template<>
+void OptimParams<double>::handleEvent(core::objectmodel::Event *event) {
+    if (dynamic_cast<sofa::simulation::AnimateBeginEvent *>(event))
+    {
+        //if (!this->m_optimize.getValue()) {
+            double actTime = this->getTime() + this->getContext()->getDt(); /// the time has not been increased yet
+            std::cout << "[" << this->getName() << "] begin event at time: " << actTime << std::endl;
+
+            int timeSlot = -1;
+
+            std::cout << "Keys size: " << m_paramKeys.size() << std::endl;
+            for (size_t i = 1; i < m_paramKeys.size() && timeSlot < 0; i++) {
+                if (m_paramKeys[i-1].first <= actTime && actTime < m_paramKeys[i].first) {
+                    timeSlot = i-1;
+                }
+            }
+            if (timeSlot == -1) {
+                if (actTime >= m_paramKeys.back().first) {
+                    //helper::WriteAccessor<Data<double> > val = m_val;
+                    double val = m_paramKeys.back().second;
+                    std::cout << "["  << this->getName() << "] const val: " << val << std::endl;
+                    m_val.setValue(val);
+                } else {
+                    std::cerr << this->getName() << " ERROR: no slot found for time " << actTime << std::endl;
+                }
+            } else {
+                double t1 = m_paramKeys[timeSlot].first;
+                double t2 = m_paramKeys[timeSlot+1].first;
+                double r1 = (actTime-t1)/(t2-t1);
+                double r2 = (t2-actTime)/(t2-t1);
+
+                //std::cout << "Time slot: " << timeSlot << " actual time: " << actTime << " ratii: " << r1 << " " << r2 << std::endl;
+
+                //helper::WriteAccessor<Data<double > > val = m_val;
+                double val;
+                double v1=m_paramKeys[timeSlot].second;
+                double v2=m_paramKeys[timeSlot+1].second;
+
+                /// (y2-y1)*(tanh(3.5*(a-(t0+t1)/2))+1)/2+y1
+                if (this->m_interpolateSmooth.getValue())
+                    val =  (v2-v1)*(tanh(2*(actTime-(t1+t2)/2))+1)/2+v1;
+                else
+                    val = r2*v1 + r1*v2;
+                std::cout << "[" << this->getName() << "] Value: " << val << std::endl;
+                m_val.setValue(val);
+            }
+    }
+}
 /*template<>
 void OptimParams<Vec3dTypes::VecCoord>::getValueTempl(DVec& _value) {
     _value.resize(m_val.getValue().size());
