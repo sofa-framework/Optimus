@@ -77,8 +77,8 @@ void OptimParams<helper::vector<double> >::bwdInit()
     loader_t* myLoader = m_loader.get();
     if (myLoader)
     {
-        myLoader->tetrahedra.getValue().size();
-        size_t count = myLoader->tetrahedra.getValue().size() + myLoader->hexahedra.getValue().size();
+        myLoader->d_tetrahedra.getValue().size();
+        size_t count = myLoader->d_tetrahedra.getValue().size() + myLoader->d_hexahedra.getValue().size();
         std::cout<<"Optim params <"<<getName()<<"> found loader <"<<myLoader->getName()<<"> with "<<count<<" elements.\n";
 
 
