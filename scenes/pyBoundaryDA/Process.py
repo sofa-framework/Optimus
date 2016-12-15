@@ -3,7 +3,7 @@ import Sofa # Required in every python scene
 import os # To accesss environment variables
 import time # For execution time
 
-import numpy as np # for maths
+#import numpy as np # for maths
 from decimal import Decimal # for maths
 import math # for maths
 

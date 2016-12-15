@@ -12,7 +12,7 @@
     <MeshVTKLoader filename="../../Data/beamA1_1635.vtk" name="loader" />
     <MeshSTLLoader filename="../../Data/beamA1_1635.stl" name="surfLoader" />
 
-    <!-- <Node name="bcScene">             -->
+    <!-- <Node name="bcScene">             -->            
         <Node name="toolEmu" tags="preanim">
             <PreStochasticWrapper name="PreStochasticWrap" verbose="1"/>
             <MechanicalObject name="MO" position="0.16 0.06 0.01  0.16 0.06 0.025  0.16 0.06 0.040  0.16 0.06 0.055   0.16 0.06 0.070   0.175 0.06 0.01  0.175 0.06 0.025  0.175 0.06 0.040  0.175 0.06 0.055   0.175 0.06 0.070"/>
@@ -21,8 +21,8 @@
         </Node>
 
         <Node name="daObject">
-            <StochasticStateWrapper name="StateWrapper" verbose="1"/>   
-            <OptimParams name="springStiffness" template="Vector" optimize="1" numParams="30" initValue="50" stdev="10" printLog="1" transformParams="1"/>
+            <StochasticStateWrapper name="StateWrapper" verbose="1" writeStateFile="states/beamA1_1635_A_ROUKF103_E30_s10_som2.state"/>   
+            <OptimParams name="springStiffness" template="Vector" optimize="1" numParams="103" initValue="30" stdev="10" printLog="1" transformParams="1"/>
 
             <!--             <EulerImplicit name="odeSolver" printLog="false" rayleighStiffness="0.1"/> -->
             <!-- <StaticSolver applyIncrementFactor="0"/>	 -->
@@ -37,19 +37,26 @@
             <include href="Objects/TetrahedronSetTopology.xml" src="@/loader" />
             <UniformMass totalMass="0.2513"/>
 
-            <BoxROI name="fixedBox1" box="-0.001 -0.001 -0.001   0.05 0.001 0.08"/>
+            <BoxROI name="fixedBox1" box="-0.001 -0.001 -0.001   0.18 0.001 0.08"/>
+            <!-- X = 0.05:  N=30;    X = 0.08  N=46    X = 0.18  N = 103-->
             <ColorMap colorScheme="Blue to Red" />
             <ExtendedRestShapeSpringForceField name="fixedSpring" points="@fixedBox1.indices" angularStiffness="0" stiffness="@springStiffness.value" springThickness="1" listening="1" forceDir="springForces" updateStiffness="1" printLog="0"/>            
 
             <TetrahedronFEMForceField name="FEM" listening="true" updateStiffness="1"  youngModulus="1e5" poissonRatio="0.45" method="large" drawHeterogeneousTetra="1"/>
             <!-- <MJEDTetrahedralForceField materialName="StVenantKirchhoff" ParameterSet="3.4483e+04 3.1034e+05"/> -->
 
+            <TargetFeatureErrorMetric listening="1" name="errorMetric" targetPositions="@/markers/MO.position" sourcePositions="@MO.position" simpleComparison="1"/>
+            <VTKExporter listening="1" filename="vtk/BeamA1_" exportEveryNumberOfSteps="1" XMLformat="0" edges="0" tetras="1" pointsDataFields="errorMetric.errorPerPoint"/>
+
+            <!-- <WriteState filename="states/beamA1_1635_A_ROUKF.state"/> -->
+
+
             <Node name="obsNode" activated="1">
                 <!--                     <MechanicalObject position="@../Volume.position"/>     -->
                 <MechanicalObject name="MO" position="0.01 0.06 0.01  0.01 0.06 0.04  0.01 0.06 0.07  0.03 0.06 0.01  0.03 0.06 0.04  0.03 0.06 0.07  0.05 0.06 0.01  0.05 0.06 0.04  0.05 0.06 0.07  0.07 0.06 0.01  0.07 0.06 0.04  0.07 0.06 0.07  0.09 0.06 0.01  0.09 0.06 0.04  0.09 0.06 0.07  0.11 0.06 0.01  0.11 0.06 0.04  0.11 0.06 0.07  0.13 0.06 0.01  0.13 0.06 0.04  0.13 0.06 0.07  0.15 0.06 0.01  0.15 0.06 0.04  0.15 0.06 0.07"/>
                 <Sphere radius="0.001" color="1 0 0"/>
                 <BarycentricMapping/>                        
-                <MappedStateObservationManager name="MOBS" observationStdev="1e-4" noiseStdev="0.0" listening="1" stateWrapper="@../StateWrapper" verbose="1"/>
+                <MappedStateObservationManager name="MOBS" observationStdev="1e-2" noiseStdev="0.0" listening="1" stateWrapper="@../StateWrapper" verbose="1"/>
                 <SimulatedStateObservationSource name="ObsSource" monitorPrefix="../obsBoundaryDA/beam1635_A"/>
             </Node>                                    
 

@@ -3,17 +3,18 @@
 	<RequiredPlugin pluginName="Optimus"/>
 	<RequiredPlugin pluginName="SofaPardisoSolver"/>
 <!-- 	<RequiredPlugin pluginName="BilikimoAux"/> -->
-	<VisualStyle displayFlags="showBehaviorModels showForceFields showCollisionModels" />
+	<VisualStyle displayFlags="showBehaviorModels showForceFields showCollisionModels hideVisual" />
 						
 	<OptimParams name="paramE" template="Vector" optimize="0" numParams="3" prescribedParamKeys="0.0 10000 2000 8000  5.0 10000 2000 8000" exportParamFile="daCyl3/params.out"/> 
 	
-<!--         <EulerImplicit name="odeSolver" printLog="false" rayleighStiffness="0.1"/> -->
-	<StaticSolver applyIncrementFactor="1"/>
-	
-	<SparsePARDISOSolver/>
+        <EulerImplicit name="odeSolver" printLog="false" rayleighStiffness="0.1"/>
+	<!-- <StaticSolver applyIncrementFactor="1"/> -->
+		
 <!-- 	<SparseLDLSolver/> -->
+	<ShewchukPCGLinearSolver iterations="500" tolerance="1e-8" threshold="1e-8" verbose="1" preconditioners="LDLSolver" update_step="5"/>
+	<SparsePARDISOSolver name="LDLSolver" verbose="0"/>
 
-	<MeshVTKLoader filename="data/cylinder3_770.vtk" name="loader" />
+	<MeshVTKLoader filename="../../data/cylinder3_770.vtk" name="loader" />
 <!-- 	<MeshVTKLoader filename="data/cylinder3_2150.vtk" name="loader" /> -->	
 	<MechanicalObject src="@loader" name="Volume" />
 	
@@ -37,7 +38,7 @@
 	<Indices2ValuesMapper name="youngMapper" inputValues="@loader.dataset" indices="1 2 3" values="@paramE.value"/>
 	<TetrahedronFEMForceField name="FEM" listening="true" updateStiffness="1"  youngModulus="@youngMapper.outputValues" poissonRatio="0.45" method="large"  computeVonMisesStress="0" drawHeterogeneousTetra="1"/>
 <!-- 	<TetrahedronFEMForceField name="FEM" listening="true" updateStiffness="1"  youngModulus="@paramE.value" poissonRatio="0.45" method="large"  computeVonMisesStress="0" drawHeterogeneousTetra="1"/> -->
-<!-- 	<VTKExporter filename="cylinder.vtk" XMLformat="true" listening="true" edges="0" triangles="0" quads="0" tetras="1" exportAtEnd="true"/> -->
+	<VTKExporter filename="cylinderCG.vtk" XMLformat="true" listening="true" edges="0" triangles="0" quads="0" tetras="1" exportAtEnd="true"/>
 	
 	<Node name="obsNode" activated="1">
 <!-- 		<MechanicalObject position="@../Volume.position"/> -->
@@ -52,5 +53,8 @@
 <!-- 		<MappedPointsObservationManager name="MOBS" observationStdev="2e-3" noiseStdev="0" listening="1"/> -->
 <!-- 		<SofaLinearObservationManager name="LinObs"/> -->
 <!-- 		<SimulatedStateObservationSource name="ObsSource" monitorPrefix="cylinder4245_YMStat"/> -->
+	</Node>
+	<Node>
+		<OglModel color="1 0 0 1"/>
 	</Node>
 </Node>
