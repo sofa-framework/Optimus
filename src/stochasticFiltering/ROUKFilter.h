@@ -45,6 +45,10 @@
 
 //#include <Accelerate/Accelerate.h>
 #include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 namespace sofa
 {
@@ -175,6 +179,10 @@ protected:
 public:
     Data<std::string> observationErrorVarianceType;
     Data<bool> useBlasToMultiply;
+    Data<helper::vector<FilterType> > reducedState;
+    Data<helper::vector<FilterType> > reducedVariance;
+    Data<helper::vector<FilterType> > reducedCovariance;
+
 
     void init();
     void bwdInit();

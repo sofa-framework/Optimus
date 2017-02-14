@@ -52,6 +52,9 @@ ROUKFilter<FilterType>::ROUKFilter()
     : Inherit()
     , observationErrorVarianceType( initData(&observationErrorVarianceType, std::string("inverse"), "observationErrorVarianceType", "if set to inverse, work directly with the inverse of the matrix" ) )
     , useBlasToMultiply( initData(&useBlasToMultiply, true, "useBlasToMultiply", "use BLAS to multiply the dense matrices instead of Eigen" ) )
+    , reducedState( initData(&reducedState, "reducedState", "actual expected value of reduced state (parameters) estimated by the filter" ) )
+    , reducedVariance( initData(&reducedVariance, "reducedVariance", "actual variance  of reduced state (parameters) estimated by the filter" ) )
+    , reducedCovariance( initData(&reducedCovariance, "reducedCovariance", "actual co-variance  of reduced state (parameters) estimated by the filter" ) )
 {    
     this->reducedOrder.setValue(true);
 }
@@ -103,28 +106,28 @@ void ROUKFilter<FilterType>::computePrediction()
 
     tmpStateVarProj = masterStateWrapper->getStateErrorVarianceProjector();
 
-    TIC
+    //TIC
     if (useBlasToMultiply.getValue())
         blasMultAdd(tmpStateVarProj, matUinv, tmpStateVarProj2, 1.0, 0.0);
     else
         tmpStateVarProj2.noalias() = tmpStateVarProj * matUinv;
-    TOC("== prediction multiplication1 == ");
+    //TOC("== prediction multiplication1 == ");
 
     masterStateWrapper->setStateErrorVarianceProjector(tmpStateVarProj2);
     for (size_t i = 0; i < sigmaPointsNum; i++)
         matXi.col(i) = vecX;
 
-    TIC
+    //TIC
     if (useBlasToMultiply.getValue())
         blasMultAdd(tmpStateVarProj2, matI, matXi, 1.0, 1.0);
     else
         matXi = matXi + tmpStateVarProj2 * matI;
-    TOC("== prediction multiplication2 == ");
+    //TOC("== prediction multiplication2 == ");
 
-    TIC;
+    //TIC;
     computePerturbedStates(vecX);   
     //asumEVec("summPred",vecX);
-    TOCTIC("== prediction compute perturbations ==");
+    //TOCTIC("== prediction compute perturbations ==");
 
     /// TODO: add resampling!!!
 
@@ -132,7 +135,7 @@ void ROUKFilter<FilterType>::computePrediction()
         blasMultAdd(matXi, matItrans, tmpStateVarProj2, alpha, 0.0);
     else
         tmpStateVarProj2 = alpha*matXi * matItrans;
-    TOC("== prediction multiplication3 ==");
+    //TOC("== prediction multiplication3 ==");
 
     masterStateWrapper->setStateErrorVarianceProjector(tmpStateVarProj2);
     masterStateWrapper->setState(vecX, this->mechParams);
@@ -164,7 +167,7 @@ void ROUKFilter<FilterType>::computeCorrection()
             vecZ = vecZ + alpha * vecZCol;
             matZItrans.row(i) = vecZCol;
         }
-        TOCTIC("== an1sx == ");
+        //TOCTIC("== an1sx == ");
         //asumEVec("correction accumInnov",vecZ);
 
         EMatrixX matHLtrans(reducedStateSize, observationSize);
@@ -180,9 +183,9 @@ void ROUKFilter<FilterType>::computeCorrection()
             matWorkingPO = matHLtrans * matR.inverse();
         }        
         matTemp = EMatrixX::Identity(matUinv.rows(), matUinv.cols()) + matWorkingPO * matHLtrans.transpose();
-        TOCTIC("== an3sx == ");
+        //TOCTIC("== an3sx == ");
         matUinv = matTemp.inverse();
-        TOCTIC("== an4sx == (inv) ");
+        //TOCTIC("== an4sx == (inv) ");
 
         EVectorX reducedInnovation(reducedStateSize);
         reducedInnovation = Type(-1.0) * matUinv*matWorkingPO*vecZ;
@@ -194,20 +197,63 @@ void ROUKFilter<FilterType>::computeCorrection()
         EMatrixX errorVarProj = masterStateWrapper->getStateErrorVarianceProjector();
         state = state + errorVarProj*reducedInnovation;
         masterStateWrapper->setState(state,mechParams);
-        TOC("== an5sx == ");
 
-        /*std::cout << "New state = " << std::endl;
-        for (size_t i = stateSize-20; i < stateSize; i++)
-            std::cout << state(i) << " ";
-        std::cout << std::endl;*/
-        Type maxState = 0.0, minState = 1e10;
+        //std::cout << "FST " << this->stepNumber << " " << this->actualTime << std::endl;
+
+        size_t reducedStateIndex = stateSize - reducedStateSize;
+        EMatrixX parErrorVarProj(reducedStateSize,reducedStateSize);
+
+        for (size_t i = 0; i < reducedStateSize; i++)
+            for (size_t j = 0; j < reducedStateSize; j++)
+                parErrorVarProj(i,j) = errorVarProj(reducedStateIndex+i,j);
+
+        EMatrixX covarianceMatrix(reducedStateSize, reducedStateSize);
+        covarianceMatrix = parErrorVarProj * matUinv * parErrorVarProj.transpose();
+
+        helper::WriteAccessor<Data <helper::vector<FilterType> > > redState = reducedState;
+        helper::WriteAccessor<Data <helper::vector<FilterType> > > redVar = reducedVariance;
+        helper::WriteAccessor<Data <helper::vector<FilterType> > > redCovar = reducedCovariance;
+
+        redState.resize(reducedStateSize);
+        redVar.resize(reducedStateSize);
+        size_t numCovariances = (reducedStateSize*(reducedStateSize-1))/2;
+        redCovar.resize(numCovariances);
+
+        size_t gli = 0;
+        for (size_t i = 0; i < reducedStateSize; i++) {
+            redState[i] = state[reducedStateIndex+i];
+            redVar[i] = covarianceMatrix(i,i);
+            for (size_t j = i+1; j < reducedStateSize; j++) {
+                redCovar[gli++] = covarianceMatrix(i,j);
+            }
+        }
+
+        /*char fileName[100];
+        sprintf(fileName, "outVar/parL_%03d.txt", this->stepNumber);
+        std::ofstream cvmFile;
+        cvmFile.open(fileName);
+        cvmFile << parErrorVarProj << std::endl;
+        cvmFile.close();
+
+        sprintf(fileName, "outVar/invU_%03d.txt", this->stepNumber);
+        cvmFile.open(fileName);
+        cvmFile << matUinv << std::endl;
+        cvmFile.close();
+
+        sprintf(fileName, "outVar/covar_%03d.txt", this->stepNumber);
+        cvmFile.open(fileName);
+        cvmFile << covarianceMatrix << std::endl;
+        cvmFile.close();*/
+
+        //TOC("== an5sx == ");
+        /*Type maxState = 0.0, minState = 1e10;
         for (size_t i = stateSize - reducedStateSize; i < stateSize; i++) {
             maxState = (state(i) > maxState) ? state(i) : maxState;
             minState = (state(i) < minState) ? state(i) : minState;
         }
 
         asumEVec("############# final state", state);
-        //std::cout << "Max = " << maxState << " min = " << minState << std::endl;
+        std::cout << "Max = " << maxState << " min = " << minState << std::endl;*/
 
     }
 }
