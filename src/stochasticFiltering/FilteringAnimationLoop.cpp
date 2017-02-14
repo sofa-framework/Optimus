@@ -91,7 +91,12 @@ void FilteringAnimationLoop::bwdInit() {
 }
 
 
-void FilteringAnimationLoop::step(const core::ExecParams* _params, SReal /*_dt*/) {
+void FilteringAnimationLoop::step(const core::ExecParams* _params, SReal /*_dt*/) {    
+    SReal dt = gnode->getDt();
+    sofa::simulation::AnimateBeginEvent ev(dt);
+    SingleLevelEventVisitor act ( _params, &ev, gnode );
+    gnode->execute ( act );
+
     actualStep++;
     if (verbose.getValue()) {
         PRNS("======================= TIME STEP " << actualStep << "=======================");
@@ -105,14 +110,46 @@ void FilteringAnimationLoop::step(const core::ExecParams* _params, SReal /*_dt*/
         preStochasticWrappers[i]->step(_params, actualStep);
 
     filter->initializeStep(_params, actualStep);
-    TIC
+    //TIC
     filter->computePrediction();
-    TOCTIC("== prediction total");
+    //TOCTIC("== prediction total");
     filter->computeCorrection();
-    TOC("== correction total");
+    //TOC("== correction total");
+
+    sofa::simulation::AnimateEndEvent ev2(dt);
+    SingleLevelEventVisitor act2 ( _params, &ev2, gnode );
+    gnode->execute ( act2 );
 
 }
 
+SingleLevelEventVisitor::SingleLevelEventVisitor(const core::ExecParams* params, sofa::core::objectmodel::Event* e, sofa::simulation::Node* node)
+    : sofa::simulation::Visitor(params)
+    , m_event(e)
+    , m_node(node)
+{}
+
+
+SingleLevelEventVisitor::~SingleLevelEventVisitor()
+{}
+
+sofa::simulation::Visitor::Result SingleLevelEventVisitor::processNodeTopDown(sofa::simulation::Node* node)
+{
+    if (node == m_node) {
+        for_each(this, node, node->object, &SingleLevelEventVisitor::processObject);
+
+        if( m_event->isHandled() )
+            return Visitor::RESULT_PRUNE;
+        else
+            return Visitor::RESULT_CONTINUE;
+    } else
+        return Visitor::RESULT_PRUNE;
+}
+
+void SingleLevelEventVisitor::processObject(sofa::simulation::Node*, core::objectmodel::BaseObject* obj)
+{
+    if( obj->f_listening.getValue()==true )
+        obj->handleEvent( m_event );
+}
 
 } // namespace simulation
 } // namespace component

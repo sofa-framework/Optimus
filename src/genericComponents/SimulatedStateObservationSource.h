@@ -107,7 +107,7 @@ public:
 
     bool getObservation(double _time, VecCoord& _observation) {
         size_t ix = (fabs(dt) < 1e-10) ? 0 : size_t(round(_time/dt));
-        PRNS("Getting observation for time " << _time << " index: " << ix);
+        //PRNS("Getting observation for time " << _time << " index: " << ix);
         if (ix >= int(positions.size())) {
             PRNE("No observation for time " << _time << " , using the last one from " << positions.size()-1);
             ix = positions.size() - 1;

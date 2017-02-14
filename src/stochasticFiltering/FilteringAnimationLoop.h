@@ -37,6 +37,12 @@
 #include <sofa/simulation/Node.h>
 #include <sofa/helper/AdvancedTimer.h>
 
+#include <sofa/core/objectmodel/Event.h>
+#include <sofa/simulation/Visitor.h>
+#include <sofa/simulation/PropagateEventVisitor.h>
+#include <sofa/simulation/AnimateBeginEvent.h>
+#include <sofa/simulation/AnimateEndEvent.h>
+
 #include "initOptimusPlugin.h"
 #include "StochasticFilterBase.h"
 #include "PreStochasticWrapper.h"
@@ -49,6 +55,37 @@ namespace simulation
 {
 
 using namespace defaulttype;
+
+class SingleLevelEventVisitor : public sofa::simulation::Visitor
+{
+public:
+    SingleLevelEventVisitor(const core::ExecParams* params, sofa::core::objectmodel::Event* e, sofa::simulation::Node* node);
+
+    ~SingleLevelEventVisitor();
+
+    Visitor::Result processNodeTopDown(sofa::simulation::Node* node);
+    void processObject(sofa::simulation::Node*, core::objectmodel::BaseObject* obj);
+
+    virtual const char* getClassName() const { return "PropagateEventVisitor"; }
+    virtual std::string getInfos() const { return std::string(m_event->getClassName());  }
+protected:
+    sofa::core::objectmodel::Event* m_event;
+    sofa::simulation::Node* m_node;
+};
+
+class FilteringEvent : public sofa::core::objectmodel::Event
+{
+public:
+    FilteringEvent() {}
+    ~FilteringEvent() {}
+
+    int type;
+
+    virtual const char* getClassName() const { return "FilteringEvent"; }
+    virtual size_t getEventTypeIndex() const { return 0; }
+
+};
+
 
 class FilteringAnimationLoop: public sofa::core::behavior::BaseAnimationLoop
 {
