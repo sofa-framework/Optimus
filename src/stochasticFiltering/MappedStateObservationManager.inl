@@ -145,7 +145,7 @@ void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::bwdInit()
 template <class FilterType, class DataTypes1, class DataTypes2>
 bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::hasObservation(double _time) {
     typename DataTypes1::VecCoord& inputObsState = *inputObservationData.beginEdit();
-    PRNS("Getting observation at time " << this->actualTime);
+    //PRNS("Getting observation at time " << this->actualTime);
     bool hasObservation = observationSource->getObservation(this->actualTime, inputObsState);
 
     if (!hasObservation) {
