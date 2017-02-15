@@ -17,25 +17,33 @@ class pigLiver1_knownBC (Sofa.PythonScriptController):
         rootNode.createObject('ViewerSetting', resolution='800 450')
         rootNode.createObject('DefaultAnimationLoop')
 
-        # rootNode/Vision
-        Vision = rootNode.createChild('Vision')
-        Vision.createObject('LKOpticalFlowTrackerSimple', maskName='../../Data/pigLiver/porcineLiverMask.png', vidName='../../Data/pigLiver/porcineLiverCut1.avi', name='LK', winSize='31', detectorThresh='190', scaleImg='1', displayFeatures='1', view='1')
-        Vision.createObject('MechanicalObject', scale3d='1 1 1', position='@LK.outputFeatures', name='DOFs')
-        # Vision.createObject('Sphere', color='0.0 0.0 1.0 1', radius='5', template='Vec3d')
-        #original video start: Vision.createObject('BoxROI', name="ToolIx", box='480 160 -10 580 180 10', drawBoxes='1')
-        Vision.createObject('BoxROI', name="ToolIx", box='520 140 -10 620 160 10', drawBoxes='1')
-        Vision.createObject('PointsFromIndices', name='ToolPoints', indices='@ToolIx.indices')
-        #original video start: Vision.createObject('BoxROI', name="ObsIx", box='320 120 -10 370 160 10   220 200 -10 280 280 10    510 260 -10   550 300  10', drawBoxes='1')
-        Vision.createObject('BoxROI', name="ObsIx", box='320 120 -10 390 160 10   280 200 -10 320 280 10    510 260 -10   550 280  10    330 320 -10  350 340 10', drawBoxes='1')
-        Vision.createObject('PointsFromIndices', name='ObsPoints', indices='@ObsIx.indices')
+        # rootNode/features
+        features = rootNode.createChild('features')
+        features.createObject('LKOpticalFlowTrackerSimple', maskName='../../Data/pigLiver/porcineLiverMask.png', vidName='../../Data/pigLiver/porcineLiverCut1.avi', name='LK', winSize='31', detectorThresh='190', scaleImg='1', displayFeatures='1', view='1')
+        features.createObject('MechanicalObject', scale3d='1 1 1', position='@LK.outputFeatures', name='DOFs')
+        # features.createObject('Sphere', color='0.0 0.0 1.0 1', radius='5', template='Vec3d')
+        #original video start: features.createObject('BoxROI', name="ToolIx", box='480 160 -10 580 180 10', drawBoxes='1')
+        features.createObject('BoxROI', name="ToolIx", box='520 140 -10 620 160 10', drawBoxes='1')
+        features.createObject('PointsFromIndices', name='ToolPoints', indices='@ToolIx.indices')
+        #original video start: features.createObject('BoxROI', name="ObsIx", box='320 120 -10 370 160 10   220 200 -10 280 280 10    510 260 -10   550 300  10', drawBoxes='1')
+        features.createObject('BoxROI', name="ObsIx", box='320 120 -10 390 160 10   280 200 -10 320 280 10    510 260 -10   550 280  10', drawBoxes='1')
+        features.createObject('PointsFromIndices', name='ObsPoints', indices='@ObsIx.indices')
 
-        ToolNode = rootNode.createChild('tool')
-        ToolNode.createObject('MechanicalObject', scale3d='1 1 1', position='@../Vision/ToolPoints.indices_position', name='MO')
-        ToolNode.createObject('Sphere', color='1.0 0.0 1.0 1', radius='5', template='Vec3d')
+        features.createObject('BoxROI', name="LandmarkIX", box='330 320 -10  350 350 10', drawBoxes='1')
+        features.createObject('PointsFromIndices', template='Vec3d', name='LandPoints', indices='@LandmarkIX.indices')
 
-        ToolNode = rootNode.createChild('obs')
-        ToolNode.createObject('MechanicalObject', scale3d='1 1 1', position='@../Vision/ObsPoints.indices_position', name='MO')
-        ToolNode.createObject('Sphere', color='1.0 1.0 0.0 1', radius='5', template='Vec3d')
+        toolNode = rootNode.createChild('tool')
+        toolNode.createObject('MechanicalObject', scale3d='1 1 1', position='@../features/ToolPoints.indices_position', name='MO')
+        toolNode.createObject('Sphere', color='1.0 0.0 1.0 1', radius='5', template='Vec3d')
+
+        obsNode = rootNode.createChild('obs')
+        obsNode.createObject('MechanicalObject', scale3d='1 1 1', position='@../features/ObsPoints.indices_position', name='MO')
+        obsNode.createObject('Sphere', color='1.0 1.0 0.0 1', radius='5', template='Vec3d')
+
+        landNode = rootNode.createChild('land')
+        landNode.createObject('MechanicalObject', scale3d='1 1 1', position='@/features/LandPoints.indices_position', name='MO')
+        landNode.createObject('Sphere', color='1.0 0.0 0.8 1', radius='5', template='Vec3d')
+
 
 
         rootNode.createObject('NewtonStaticSolver', maxIt='10', name='NewtonStatic', correctionTolerance='1e-8', convergeOnResidual='1', residualTolerance='1e-8', printLog='1')
@@ -59,15 +67,21 @@ class pigLiver1_knownBC (Sofa.PythonScriptController):
 
         rootNode.createObject('Mapped3DoFForceField', mappedFEM='mappedTool/toolSpring', mappedMechObject='mappedTool/MO', printLog='0', mapping='mappedTool/baryMapping')
         mappedTool = rootNode.createChild('mappedTool')
-        mappedTool.createObject('MechanicalObject', scale3d='1 1 1', rest_position='@../Vision/ToolPoints.indices_position', name='MO')
+        mappedTool.createObject('MechanicalObject', scale3d='1 1 1', rest_position='@../features/ToolPoints.indices_position', name='MO')
         mappedTool.createObject('Sphere', color='0.0 1.0 1.0 1', radius='5', template='Vec3d')
         self.toolSprings=mappedTool.createObject('ExtendedRestShapeSpringForceField', external_rest_shape='/tool/MO', numStepsSpringOn='10000', stiffness='1e5', name='toolSpring', springColor='0 1 0 1', drawSpring='1', updateStiffness='1', printLog='0', listening='1', angularStiffness='0', startTimeSpringOn='0')
         mappedTool.createObject('BarycentricMapping', name="baryMapping")
 
         mappedObs = rootNode.createChild('mappedObs')
-        mappedObs.createObject('MechanicalObject', scale3d='1 1 1', rest_position='@../Vision/ObsPoints.indices_position', name='MO')
+        mappedObs.createObject('MechanicalObject', scale3d='1 1 1', rest_position='@../features/ObsPoints.indices_position', name='MO')
         mappedObs.createObject('Sphere', color='0.8 0.5 1.0 1', radius='3', template='Vec3d')
         mappedObs.createObject('BarycentricMapping', name="baryMapping")
+
+        landNode = rootNode.createChild('landNode')
+        landNode.createObject('MechanicalObject', scale3d='1 1 1', rest_position='@/features/LandPoints.indices_position', name='MO')
+        landNode.createObject('Sphere', color='0.5 0.6 1.0 1', radius='3', template='Vec3d')
+        landNode.createObject('BarycentricMapping', name="baryMapping")
+
         
         visNode = rootNode.createChild('visNode')
         visNode.createObject('VisualStyle', displayFlags='hideVisualModels showBehaviorModels showCollisionModels hideMappings hideForceFields showWireframe')
