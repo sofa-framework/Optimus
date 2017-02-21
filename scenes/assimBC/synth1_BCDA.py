@@ -7,6 +7,60 @@ import csv
 
 # Class definition 
 class synth1_BCDA(Sofa.PythonScriptController):
+
+
+    def createGraph(self,node):          
+        self.cameraReactivated=False
+        self.rootNode=node              
+         
+        print  "Create graph called (Python side)\n"
+
+        E=5000
+        nu=0.45
+        lamb=(E*nu)/((1+nu)*(1-2*nu))
+        mu=E/(2+2*nu)
+        self.materialParams='{} {}'.format(mu,lamb)
+        
+        self.ogridID=4
+        inputDir='observations/brickD_ogrid'+str(self.ogridID)
+        outDir='outSynth1'
+        self.volumeVTK=inputDir+'/object_0.vtk'
+        self.surfaceSTL='../../data/brickD/brickD_536.stl'
+        self.obsVTK=inputDir+'/observations_0.vtk'
+        self.toolVTK=inputDir+'/tool_0.vtk'
+
+        self.obsMonitorPrefix=inputDir+'/observations'
+        self.toolMonitorPrefix=inputDir+'/tool'
+        
+        self.m_slaveSceneCount = 4
+        self.m_saveToFile = 0
+        self.m_slaveScenesCreated = 0 # auxiliary, circumvents attribute of instance method
+
+        self.saveState = 1
+        self.saveToolForces=1
+
+        self.paramInitExp = 0.0
+        self.paramInitSD = 2
+        self.obsInitSD= 1e-4
+
+        self.suffix='psd'+str(self.paramInitSD)+'#osd'+str(self.obsInitSD)+'#ogrid'+str(self.ogridID)
+
+        if self.saveState:
+            self.stateExpFile=outDir+'/state_'+self.suffix+'.txt'
+            self.stateVarFile=outDir+'/variance_'+self.suffix+'.txt'
+            self.stateCovarFile=outDir+'/covariance_'+self.suffix+'.txt'
+            os.system('rm '+self.stateExpFile)
+            os.system('rm '+self.stateVarFile)
+            os.system('rm '+self.stateCovarFile)
+      
+        if self.saveToolForces:
+            self.toolForceFile=outDir+'/toolForce_'+self.suffix+'.txt'
+            os.system('rm '+self.toolForceFile);
+
+        self.createScene(node)
+        
+        return 0
+
     
     def createGlobalComponents(self, node):
         # scene global stuff
@@ -17,7 +71,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         # node.createObject('RequiredPlugin', pluginName='image', name='image')
         
         node.findData('gravity').value="0 0 0"
-        node.findData('dt').value="0.02"
+        node.findData('dt').value="1"
         
         node.createObject('ViewerSetting', cameraMode='Perspective', resolution='1000 700', objectPickingMethod='Ray casting')
         node.createObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels')
@@ -53,7 +107,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         # node.createObject('BoxROI', name='fixedBox1', box='-0.001 -0.001 -0.011 0.011 0.001 0.001', drawBoxes='1')
         node.createObject('BoxROI', name='fixedBox1', box='-0.001 -0.001 -0.011 0.101 0.001 0.001', drawBoxes='1')
         # node.createObject('BoxROI', name="fixedBox1", box="-0.001 0.052 -0.001   0.1631 0.054 0.0131")        
-        self.optimParams = node.createObject('OptimParams', name="springStiffness", template="Vector", numParams="@fixedBox1.nbIndices",initValue="0", stdev="40", transformParams="1", optimize="1", printLog="1")
+        self.optimParams = node.createObject('OptimParams', name="springStiffness", template="Vector", numParams="@fixedBox1.nbIndices",initValue=self.paramInitExp, stdev=self.paramInitSD, transformParams="1", optimize="1", printLog="1")
         node.createObject('ExtendedRestShapeSpringForceField', name="fixedSpring", points="@fixedBox1.indices", stiffness="@springStiffness.value", springThickness="3", listening="1", updateStiffness="1", printLog="0")
         node.createObject('ColorMap',colorScheme="Blue to Red")                                                                  
         node.createObject('MJEDTetrahedralForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=self.materialParams)
@@ -62,6 +116,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
         toolEmu = node.createChild('toolEmu')        
         toolEmu.createObject('MechanicalObject',name="MO",src="@/toolLoader")
+        print self.toolMonitorPrefix
         toolEmu.createObject('SimulatedStateObservationSource', name="ToolA",printLog="1", monitorPrefix=self.toolMonitorPrefix,drawSize="0.0015",controllerMode="1")
         
         node.createObject('Mapped3DoFForceField', mappedFEM="mappedTool/toolSpring", mappedMechObject="mappedTool/MO", mapping="mappedTool/baryMapping", printLog="0")        
@@ -85,7 +140,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         obsNode.createObject('MechanicalObject', name='MO', src="@/obsLoader")        
         obsNode.createObject('Sphere', radius="0.001", color="0.2 0.8 0.2 1")
         obsNode.createObject('BarycentricMapping')                   
-        obsNode.createObject('MappedStateObservationManager', name="MOBS", observationStdev="1e-4", listening="1", stateWrapper="@../StateWrapper",doNotMapObservations="1",verbose="1")
+        obsNode.createObject('MappedStateObservationManager', name="MOBS", observationStdev=self.obsInitSD, listening="1", stateWrapper="@../StateWrapper",doNotMapObservations="1",verbose="1")
         obsNode.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix=self.obsMonitorPrefix, drawSize="0.001")
     
         visNode = node.createChild('ObjectVisualization')
@@ -138,51 +193,6 @@ class synth1_BCDA(Sofa.PythonScriptController):
         return 0
 
 
-               
-    def createGraph(self,node):          
-        self.cameraReactivated=False
-        self.rootNode=node              
-         
-        print  "Create graph called (Python side)\n"
-
-        E=7500
-        nu=0.45
-        lamb=(E*nu)/((1+nu)*(1-2*nu))
-        mu=E/(2+2*nu)
-        self.materialParams='{} {}'.format(mu,lamb)
-        
-        inputDir='observations/brickD_ogrid4/'
-        self.volumeVTK=inputDir+'object_0.vtk'
-        self.surfaceSTL='../../data/brickD/brickD_536.stl'
-        self.obsVTK=inputDir+'observations_0.vtk'
-        self.toolVTK=inputDir+'tool_0.vtk'
-
-        self.obsMonitorPrefix=inputDir+'observations'
-        self.toolMonitorPrefix=inputDir+'tool'
-
-        self.m_sigmaPointType = 'simplex'
-        self.m_slaveSceneCount = 4
-        self.m_saveToFile = 0
-        self.m_slaveScenesCreated = 0 # auxiliary, circumvents attribute of instance method
-
-        self.saveState = 1;
-
-        if self.saveState:
-            self.stateExpFile='out/state_SD40par.txt'
-            self.stateVarFile='out/variance_SD40par.txt'
-            self.stateCovarFile='out/covariance_SD40par.txt'
-            os.system('rm '+self.stateExpFile)
-            os.system('rm '+self.stateVarFile)
-            os.system('rm '+self.stateCovarFile)
-
-        
-
-        self.createScene(node)
-        
-        return 0
-
-    #def draw(self):
-    #    print 'Draw!!!!'
 
     def initGraph(self,node):
         print 'Init graph called (python side)'
@@ -225,9 +235,14 @@ class synth1_BCDA(Sofa.PythonScriptController):
             f3.write('\n')
             f3.close()
 
-        tsp=self.toolSprings.findData('totalForce').value
-        print 'Tool forces:'
-        print tsp
+        if self.saveToolForces:
+            tsp=self.toolSprings.findData('totalForce').value
+            f4 = open(self.toolForceFile, "a")
+            f4.write(" ".join(map(lambda x: str(x), tsp[0])))
+            f4.write('\n')
+            f4.close()            
+            print 'Tool forces:'
+            print tsp
 
         return 0
 

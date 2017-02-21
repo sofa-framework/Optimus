@@ -5,13 +5,13 @@ class synth1_GenObs (Sofa.PythonScriptController):
 
     def createGraph(self,rootNode):
         nu=0.45
-        E=7500
+        E=5000
         volumeFileName='../../data/brickD/brickD_536.vtk'
         surfaceSTL='../../data/brickD/brickD_536.stl'
         outputDir='observations/brickD_ogrid4'
         os.system('mv '+outputDir+ ' observations/arch')
         os.system('mkdir -p '+outputDir)
-        saveObservations=0
+        saveObservations=1
 
         self.toolForceFile = open("toolForce.txt", "w")        
 
@@ -23,13 +23,13 @@ class synth1_GenObs (Sofa.PythonScriptController):
         rootNode.createObject('RequiredPlugin', pluginName='SofaMJEDFEM')
 
         rootNode.findData('gravity').value="0 0 0"
-        rootNode.findData('dt').value="0.1"
+        rootNode.findData('dt').value="1"
 
         # rootNode/tool
         tool = rootNode.createChild('tool')
         tool.createObject('MechanicalObject', name='MO', position='0.045 0.1 0.0   0.05 0.1 0.0   0.055 0.1 0.0   0.045 0.1 -0.005   0.05 0.1 -0.005   0.055 0.1 -0.005    0.045 0.1 -0.01   0.05 0.1 -0.01   0.055 0.1 -0.01')
         tool.createObject('Sphere', color='1 0 0 1', radius='0.001')
-        tool.createObject('LinearMotionStateController', indices='0 1 2 3 4 5 6 7 8', keyTimes='0 5', keyDisplacements='0 0 0    0.0 0.04 0')
+        tool.createObject('LinearMotionStateController', indices='0 1 2 3 4 5 6 7 8', keyTimes='0 200', keyDisplacements='0 0 0    0.0 0.04 0')
 
         if saveObservations:
             tool.createObject('VTKExporter', position="@MO.position", edges="0", listening="0" , XMLformat='0', exportAtBegin='1', exportEveryNumberOfSteps="0", filename=outputDir+'/tool.vtk')
