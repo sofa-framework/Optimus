@@ -1,0 +1,2 @@
+<Node dt="0.01" gravity="0 0 0" name="root" showBoundingTree="0">
+	<RequiredPlugin name="SofaPython" pluginName="SofaPython" /><PythonScriptController classname="silicon1_BCDA" filename="silicon1_BCDA.py" listening="1" name="silicon1_BCDA" /></Node>

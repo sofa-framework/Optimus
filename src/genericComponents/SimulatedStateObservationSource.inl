@@ -52,9 +52,10 @@ SimulatedStateObservationSource<DataTypes>::SimulatedStateObservationSource()
     : Inherit()
     , verbose( initData(&verbose, false, "verbose", "print tracing informations") )
     , m_monitorPrefix( initData(&m_monitorPrefix, std::string("monitor1"), "monitorPrefix", "prefix of the monitor-generated file") )
-    , m_actualObservation( initData (&m_actualObservation, "actualObservation", "actual observation") )
+    , m_actualObservation( initData (&m_actualObservation, "actualObservation", "actual observation") )    
     , m_drawSize( initData(&m_drawSize, SReal(0.0),"drawSize","size of observation spheres in each time step") )
     , m_controllerMode( initData(&m_controllerMode, false,"controllerMode","if true, sets the mechanical object in begin animation step") )
+    , m_trackedObservations( initData (&m_trackedObservations, "trackedObservations", "tracked observations: temporary solution!!!") )
 {
 
 }
@@ -68,11 +69,20 @@ SimulatedStateObservationSource<DataTypes>::~SimulatedStateObservationSource()
 template<class DataTypes>
 void SimulatedStateObservationSource<DataTypes>::init()
 {    
-    //std::cout << this->getName() << " Init started" << std::endl;
-    std::string posFile = m_monitorPrefix.getValue() + "_x.txt";
+    helper::ReadAccessor<Data<VecCoord> > tracObs = m_trackedObservations;
 
-    parseMonitorFile(posFile);
-    m_actualObservation.setValue(positions[0]);  // OK, since there is at least the dummy observation        
+    /// take observations from another component (tracking)
+    if (tracObs.size() > 0) {
+        nParticles = tracObs.size();
+        std::cout << "[" << this->getName() << "]: taking observations from other source, size: " << tracObs.size() << std::endl;
+        m_actualObservation.setValue(m_trackedObservations.getValue());
+    } else {   /// read observations from a file
+        //std::cout << this->getName() << " Init started" << std::endl;
+        std::string posFile = m_monitorPrefix.getValue() + "_x.txt";
+
+        parseMonitorFile(posFile);
+        m_actualObservation.setValue(positions[0]);  // OK, since there is at least the dummy observation
+    }
 
     if (m_controllerMode.getValue())
         this->f_listening.setValue(true);
@@ -199,16 +209,22 @@ void SimulatedStateObservationSource<DataTypes>::draw(const core::visual::Visual
     if (!vparams->displayFlags().getShowBehaviorModels())
         return;
 
-    double time = this->getTime();
-    size_t ix = (fabs(dt) < 1e-10) ? 0 : size_t(round(time/dt));
-    if (ix >= int(positions.size()))
-        ix = positions.size() - 1;
+    helper::ReadAccessor<Data<VecCoord> > tracObs = m_trackedObservations;
 
     std::vector<sofa::defaulttype::Vec3d> points;
-    points.resize(positions[ix].size());
+    if (tracObs.size() > 0 ) {
 
-    for (size_t i = 0;  i < points.size(); i++)
-        points[i] = positions[ix][i];
+    } else {
+        double time = this->getTime();
+        size_t ix = (fabs(dt) < 1e-10) ? 0 : size_t(round(time/dt));
+        if (ix >= int(positions.size()))
+            ix = positions.size() - 1;
+
+        points.resize(positions[ix].size());
+
+        for (size_t i = 0;  i < points.size(); i++)
+            points[i] = positions[ix][i];
+    }
 
     vparams->drawTool()->drawSpheres(points, float(m_drawSize.getValue()), sofa::defaulttype::Vec<4, float> (0.0f, 0.0f, 1.0f, 1.0f));
 }
@@ -218,19 +234,22 @@ void SimulatedStateObservationSource<DataTypes>::handleEvent(core::objectmodel::
 {
     if (dynamic_cast<sofa::simulation::AnimateBeginEvent *>(event))
     {
-        double time = this->getTime();
-        size_t ix = (fabs(dt) < 1e-10) ? 0 : size_t(round(time/dt));
-        if (ix >= int(positions.size()))
-            ix = positions.size() - 1;
+        helper::ReadAccessor<Data<VecCoord> > tracObs = m_trackedObservations;
+        if (tracObs.size() > 0 ) {
+        } else {
+            double time = this->getTime();
+            size_t ix = (fabs(dt) < 1e-10) ? 0 : size_t(round(time/dt));
+            if (ix >= int(positions.size()))
+                ix = positions.size() - 1;
 
-        core::behavior::MechanicalState<DataTypes> *mState = dynamic_cast<core::behavior::MechanicalState<DataTypes>*> (this->getContext()->getMechanicalState());
+            core::behavior::MechanicalState<DataTypes> *mState = dynamic_cast<core::behavior::MechanicalState<DataTypes>*> (this->getContext()->getMechanicalState());
 
-        helper::WriteAccessor<Data<VecCoord> > x = *mState->write(sofa::core::VecCoordId::position());
+            helper::WriteAccessor<Data<VecCoord> > x = *mState->write(sofa::core::VecCoordId::position());
 
-        //std::cout << "Sizes: mstate: " << x.size() << " positions: " << positions[ix].size() << std::endl;
-        for (size_t i = 0; i < x.size(); i++)
-            x[i] = positions[ix][i];
-
+            //std::cout << "Sizes: mstate: " << x.size() << " positions: " << positions[ix].size() << std::endl;
+            for (size_t i = 0; i < x.size(); i++)
+                x[i] = positions[ix][i];
+        }
     }
 }
 

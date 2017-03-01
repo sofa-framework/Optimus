@@ -88,6 +88,8 @@ public:
     Data<SReal> m_drawSize;
     Data<bool> m_controllerMode;
 
+    Data<VecCoord> m_trackedObservations;
+
     /// maps:  time + vector
     //std::map<double, VecCoord> positions;
     std::vector<VecCoord> positions;    
@@ -106,14 +108,21 @@ public:
     }
 
     bool getObservation(double _time, VecCoord& _observation) {
-        size_t ix = (fabs(dt) < 1e-10) ? 0 : size_t(round(_time/dt));
-        PRNS("Getting observation for time " << _time << " index: " << ix);
-        if (ix >= int(positions.size())) {
-            PRNE("No observation for time " << _time << " , using the last one from " << positions.size()-1);
-            ix = positions.size() - 1;
+
+        helper::ReadAccessor<Data<VecCoord> > tracObs = m_trackedObservations;
+        if (tracObs.size() > 0 ) {
+            m_actualObservation.setValue(m_trackedObservations.getValue());
+            _observation = m_actualObservation.getValue();
+        } else {
+            size_t ix = (fabs(dt) < 1e-10) ? 0 : size_t(round(_time/dt));
+            //PRNS("Getting observation for time " << _time << " index: " << ix);
+            if (ix >= int(positions.size())) {
+                PRNE("No observation for time " << _time << " , using the last one from " << positions.size()-1);
+                ix = positions.size() - 1;
+            }
+            m_actualObservation.setValue(positions[ix]);
+            _observation = positions[ix];
         }
-        m_actualObservation.setValue(positions[ix]);
-        _observation = positions[ix];
 
         return(true);
 

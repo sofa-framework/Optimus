@@ -47,6 +47,10 @@
 			<Sphere radius="0.002" color="0 0 0.3 1"/>
 		</Node>
 
+		<Node>
+			<OglModel/>
+		</Node>
+
 			<!-- <VTKExporter filename="cylinder.vtk" XMLformat="true" listening="true" edges="0" triangles="0" quads="0" tetras="1" exportAtEnd="true"/>  -->
 	</Node>
 </Node>

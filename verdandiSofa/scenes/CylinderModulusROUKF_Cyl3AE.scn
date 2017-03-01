@@ -1,8 +1,8 @@
 <?xml version="1.0" ?>
 <Node name="root" dt="0.01" showBoundingTree="0" gravity="0 -9.81 0">
 	<RequiredPlugin pluginName="Optimus"/>
-	<RequiredPlugin pluginName="SofaPardisoWrapper"/>
-	<RequiredPlugin pluginName="BilikimoAux"/>
+	<RequiredPlugin pluginName="SofaPardisoSolver"/>
+	
  	<VisualStyle displayFlags="showBehaviorModels showForceFields showCollisionModels" />
 			
 	<VerdandiAnimationLoop name="verdAnimLoop"  verbose="0"/>
@@ -10,7 +10,7 @@
 	
 	<MeshVTKLoader filename="data/cylinder3_770.vtk" name="loader" />
 		
-	<OptimParams name="paramE" template="Vector" initValue="6000" stdev="2000" transformParams="1" loader="@./loader"/>
+	<OptimParams name="paramE" template="Vector" initValue="6000" stdev="2000" transformParams="1" loader="@./loader" optimize="1"/>
 <!-- 	<OptimParams name="paramE" template="Vector" initValue="10000 5000 7000"/>  -->
 	
 <!--         <EulerImplicit name="odeSolver" printLog="false"/> -->
@@ -53,7 +53,7 @@
 		<Sphere radius="0.002" color="1 0 0"/>
 		<BarycentricMapping/>
 <!-- 		<IdentityMapping/> -->
-		<MappedPointsObservationManager name="MOBS" observationStdev="2e-3" noiseStdev="2e-3" listening="1"/>
+		<MappedPointsObservationManager name="MOBS" observationStdev="2e-3" noiseStdev="0.0" listening="1"/>
 <!-- 		<SofaLinearObservationManager name="LinObs"/> -->
 		<SimulatedStateObservationSource name="ObsSource" monitorPrefix="observations/cylinder3_770_YMStat"/>
 	</Node>

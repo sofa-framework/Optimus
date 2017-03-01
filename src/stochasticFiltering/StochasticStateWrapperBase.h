@@ -51,8 +51,9 @@ public:
     StochasticStateWrapperBase()
         : Inherit()
         , verbose( initData(&verbose, false, "verbose", "print tracing informations") )
-        , slave( initData(&slave, false, "slave", "slave wrapper (needed only for parallelization") ) {
-
+        , slave( initData(&slave, false, "slave", "slave wrapper (needed only for parallelization") )
+        , writeStateFile( initData(&writeStateFile, "writeStateFile", "write state at the end of the correction (writeState mode)") )
+    {
     }
 
 protected:
@@ -65,9 +66,11 @@ protected:
 
 public:
     Data<bool> verbose;
-    Data<bool> slave;    
+    Data<bool> slave;
+    sofa::core::objectmodel::DataFileName writeStateFile;
+    std::fstream stateFile;
 
-    void init() {
+    void init() {        
         Inherit::init();
 
         gnode = dynamic_cast<sofa::simulation::Node*>(this->getContext());
@@ -77,6 +80,11 @@ public:
         }
         //this->execParams = new sofa::core::ExecParams();
         //std::cout << "Valid storage: " << this->execParams->checkValidStorage() << std::endl;
+
+        std::string sfile = writeStateFile.getValue();
+        if (sfile != "") {
+            stateFile.open(sfile, std::ios::out);
+        }
     }
 
     virtual void initializeStep(size_t _stepNumber) {
@@ -87,6 +95,9 @@ public:
 
     bool isSlave() {
         return slave.getValue();
+    }
+
+    virtual void writeState(double) {
     }
 }; /// class
 
@@ -156,6 +167,16 @@ public:
 
     virtual EMatrixX& getStateErrorVarianceReduced() {
         return stateErrorVarianceReduced;
+    }
+
+    virtual void writeState(double timeStep) {
+        if (this->stateFile.is_open()) {
+            this->stateFile << "T= " << timeStep << std::endl << "  X= ";
+            for (size_t i = 0; i < reducedStateIndex; i++)
+                this->stateFile << state[i] << " ";
+            this->stateFile << std::endl;
+        }
+
     }
 
     //virtual EVectorX& getStateErrorVarianceRow(int rowIndex) {

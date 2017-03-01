@@ -95,7 +95,7 @@ void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::init()
         pRandGen = new boost::mt19937;
         pNormDist = new boost::normal_distribution<>(0.0, noiseStdev.getValue());
         pVarNorm = new boost::variate_generator<boost::mt19937&, boost::normal_distribution<> >(*pRandGen, *pNormDist);
-    }
+    }    
 }
 
 template <class FilterType, class DataTypes1, class DataTypes2>
@@ -103,7 +103,7 @@ void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::bwdInit()
 {
     inputStateSize = observationSource->getStateSize();
     masterStateSize = masterState->getSize();
-    mappedStateSize = mappedState->getSize();
+    mappedStateSize = mappedState->getSize();    
 
     inputVectorSize = inputStateSize*DataTypes1::spatial_dimensions;
     masterVectorSize = masterStateSize*DataTypes1::spatial_dimensions;
@@ -139,13 +139,13 @@ void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::bwdInit()
     actualObservation.resize(this->observationSize);
     noise.clear();
     noise.resize(this->observationSize);
-    Inherit::bwdInit();
+    Inherit::bwdInit();    
 }
 
 template <class FilterType, class DataTypes1, class DataTypes2>
 bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::hasObservation(double _time) {
     typename DataTypes1::VecCoord& inputObsState = *inputObservationData.beginEdit();
-    PRNS("Getting observation at time " << this->actualTime);
+    //PRNS("Getting observation at time " << this->actualTime);
     bool hasObservation = observationSource->getObservation(this->actualTime, inputObsState);
 
     if (!hasObservation) {
@@ -170,7 +170,7 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::hasObserva
     } else {
         sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > mappedObsState = mappedObservationData;
         if (mappedObsState.size() != inputObsState.size()) {
-            PRNE("Different mapped and input observation size!");
+            PRNE("Different mapped and input observation size: " << mappedObsState.size() << " vs " << inputObsState.size());
             return(false);
         }
 

@@ -69,7 +69,7 @@ template <class DataTypes, class FilterType>
 StochasticStateWrapper<DataTypes, FilterType>::StochasticStateWrapper()
     :Inherit()
     , estimatePosition( initData(&estimatePosition, true, "estimatePosition", "estimate the position (e.g., if initial conditions with uncertainty") )
-    , estimateVelocity( initData(&estimateVelocity, false, "estimateVelocity", "estimate the velocity (e.g., if initial conditions with uncertainty") )
+    , estimateVelocity( initData(&estimateVelocity, false, "estimateVelocity", "estimate the velocity (e.g., if initial conditions with uncertainty") )    
 {    
 }
 
@@ -111,8 +111,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::init()
     this->gnode->get(fixedConstraint,  core::objectmodel::BaseContext::SearchDown);
     if (fixedConstraint) {
         PRNS("Fixed constraint found: " << fixedConstraint->getName());
-    }
-
+    }    
 }
 
 template <class DataTypes, class FilterType>

@@ -30,10 +30,10 @@ using namespace sofa::helper::system::thread;  /// ADDIP
 
 #define TIC this->startTime = double(this->timer->getTime());
 #define TOC(arg) this->stopTime = double(this->timer->getTime()); \
-                 std::cout << "WTIME: " << arg << " " << this->stopTime - this->startTime << std::endl;
+                 std::cout << "[ROUKF] WTIME ==" << arg << " " << this->stopTime - this->startTime << std::endl;
 
 #define TOCTIC(arg) this->stopTime = double(this->timer->getTime()); \
-                 std::cout << "WTIME: " << arg << " " << this->stopTime - this->startTime << std::endl; \
+                 std::cout << "[ROUKF] WTIME == " << arg << " " << this->stopTime - this->startTime << std::endl; \
                  this->startTime = double(this->timer->getTime());
 
 #define SAVEMAT(name, matrix) { \

@@ -39,7 +39,7 @@ namespace container
 {
 
 template<class DataTypes>
-class SOFA_SIMULATION_COMMON_API ObservationSource : public sofa::core::objectmodel::BaseObject
+class ObservationSource : public sofa::core::objectmodel::BaseObject
 {
 public:
     typedef sofa::core::objectmodel::BaseObject Inherit;
