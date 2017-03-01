@@ -8,10 +8,12 @@ class synth1_GenObs (Sofa.PythonScriptController):
         E=5000
         volumeFileName='../../data/brickD/brickD_536.vtk'
         surfaceSTL='../../data/brickD/brickD_536.stl'
-        outputDir='observations/brickD_ogrid4'
-        os.system('mv '+outputDir+ ' observations/arch')
-        os.system('mkdir -p '+outputDir)
-        saveObservations=0
+        outputDir='observations/brickD_ogrid4'        
+        saveObservations=1
+
+        if saveObservations:
+        	os.system('mv '+outputDir+ ' observations/arch')
+        	os.system('mkdir -p '+outputDir)
 
         self.toolForceFile = open("toolForce.txt", "w")        
 

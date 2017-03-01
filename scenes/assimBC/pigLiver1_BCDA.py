@@ -9,7 +9,7 @@ class pigLiver1_BCDA(Sofa.PythonScriptController):
         print  "Create graph called (Python side)\n"
 
         # filtering parameters parameters:
-        self.givenStiffness=0             # <0: do filtering,  >=0: no filtering, value determines the actual stiffness        
+        self.givenStiffness=-1             # <0: do filtering,  >=0: no filtering, value determines the actual stiffness        
 
         self.estimatedStiffness=[]
 
@@ -20,8 +20,8 @@ class pigLiver1_BCDA(Sofa.PythonScriptController):
         #self.estimatedStiffness=[0.0503930003429,0.118892643534,0.352365299848,2.55007805898,0.280714598378,0.170030317639,0.102737512529,0.262473186394,0.313235176649,0.236778939147,0.0417311014687,2.49618192949,1.40611374571,3.34133828332,4.3218739461,0.344480530676,0.303068988454,3.9829290212,0.141242705325,0.110135081928,0.315370320569,0.196903180664,5.70428436096,5.37791658386,0.228066881081,0.144180183905,0.118512825719,0.410681847038,0.361364755675,0.16069332385,3.04463362132,0.527573642036,0.478733701219,0.119395325158,0.106566095058]
         
         self.statParams=[0, 0.01, 1e-6]           # initial param value, init param stdev, measurement stdev
-        #self.fixedIX=[56, 57, 78, 81, 82, 83, 85, 86, 95, 96, 98, 124, 125, 126, 127, 133, 135, 141, 142, 143, 144, 145, 153, 154, 158, 159, 183, 185, 187, 188, 209, 212, 213, 221, 232]        
-        self.fixedIX=[56]
+        self.fixedIX=[56, 57, 78, 81, 82, 83, 85, 86, 95, 96, 98, 124, 125, 126, 127, 133, 135, 141, 142, 143, 144, 145, 153, 154, 158, 159, 183, 185, 187, 188, 209, 212, 213, 221, 232]        
+        #self.fixedIX=[56]
         self.obsControl = 3                  # 0: pull only in tool points, 1: pull also in auxiliary points               
 
         print len(self.estimatedStiffness)
@@ -117,14 +117,14 @@ class pigLiver1_BCDA(Sofa.PythonScriptController):
         node.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")        
         self.filter=node.createObject('ROUKFilter', name="ROUKF", verbose="1")        
 
-        node.createObject('MeshVTKLoader', name='objectLoader', filename='../../Data/pigLiver/liverLobe0_992.vtk', scale3d=self.meshScale, translation=self.meshTranslation, rotation=self.meshRotation)
-        node.createObject('MeshSTLLoader', name='objectSLoader', filename='../../Data/pigLiver/liverLobe0_3914.stl', scale3d=self.meshScale, translation=self.meshTranslation, rotation=self.meshRotation)
-        node.createObject('MeshVTKLoader', name='fixedPointsLoader', filename='../../Data/pigLiver/fixedPoints992_35.vtk', scale3d=self.meshScale, translation=self.meshTranslation, rotation=self.meshRotation)
+        node.createObject('MeshVTKLoader', name='objectLoader', filename='../../data/pigLiver/liverLobe0_992.vtk', scale3d=self.meshScale, translation=self.meshTranslation, rotation=self.meshRotation)
+        node.createObject('MeshSTLLoader', name='objectSLoader', filename='../../data/pigLiver/liverLobe0_3914.stl', scale3d=self.meshScale, translation=self.meshTranslation, rotation=self.meshRotation)
+        node.createObject('MeshVTKLoader', name='fixedPointsLoader', filename='../../data/pigLiver/fixedPoints992_35.vtk', scale3d=self.meshScale, translation=self.meshTranslation, rotation=self.meshRotation)
 
         
         features = node.createChild('features')
         features.createObject('PreStochasticWrapper')
-        features.createObject('LKOpticalFlowTrackerSimple', maskName='', vidName='../../Data/pigLiver/porcineLiverCut1.avi', name='LK', winSize='31', detectorThresh='190', scaleImg=self.videoScaleFactor, displayFeatures=self.dispFeatures, view='1')
+        features.createObject('LKOpticalFlowTrackerSimple', maskName='', vidName='../../data/pigLiver/porcineLiverCut1.avi', name='LK', winSize='31', detectorThresh='190', scaleImg=self.videoScaleFactor, displayFeatures=self.dispFeatures, view='1')
         features.createObject('TransformEngine',name='scaleFeatures',input_position='@LK.outputFeatures',scale=self.featuresScaleFactor)
         features.createObject('MechanicalObject', position='@scaleFeatures.output_position', name='DOFs')
         

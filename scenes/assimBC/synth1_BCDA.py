@@ -38,7 +38,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
         self.saveState = 0
         self.saveToolForces=0
-        self.saveAssess=1
+        self.saveAssess=0
 
         self.paramInitExp = 0.0
         self.paramInitSD = 5
