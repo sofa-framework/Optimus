@@ -1,10 +1,10 @@
-suffix='psd0.01#osd1e-06#ctr3#MJED';
-%suffix='psd0.0002#osd1e-06#ctr0#MJED'
+%suffix='psd0.01#osd1e-06#ctr3#MJED';
+suffix='psd5#osd1e-05#matSV'
 
-directory='../outLiver';
-numStep = 140;
-exportToFiles=1;
-showGraph=0;
+directory='../outSilicon';
+numStep = 300;
+exportToFiles=0;
+showGraph=1;
 
 %close all
 

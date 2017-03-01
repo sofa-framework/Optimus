@@ -2,7 +2,7 @@ suffix='psd2#osd0.0001#ogrid4';
 %suffix='psd0.0003#osd1e-06#ctr0#MJED'
 
 directory='../outSynth1';
-numStep = 300;
+numStep = 250;
 %close all
 
 s=load(sprintf('%s/state_%s.txt', directory, suffix));
@@ -50,6 +50,24 @@ ylabel('Stiffness [N/m]')
 set(axes1,'FontSize',14);
 
 if showForces
-    figure; 
-    plot(1:numStep, abs(tf(1:numStep,:)), 'r-', 1:numStep, abs(gtf(1:numStep,:)), 'b-');
+    figure2 = figure;
+    set(figure2,'Renderer','OpenGL');
+    set(figure2,'Position', [0 0 400 120]);
+    %set(figure1,'OuterPosition', [0 0 850 250]);
+    set(figure2,'Color',[1 1 1]);
+    set(figure2,'InvertHardcopy','off');
+    axes2 = axes('Parent',figure2);
+    hold(axes2, 'on');
+    plot(1:numStep, abs(tf(1:numStep,1)), 'Color', [0 0 0], 'LineWidth', 2, 'LineStyle','--') 
+    plot(1:numStep, abs(tf(1:numStep,2)), 'Color', [0 0 1], 'LineWidth', 2, 'LineStyle','--') 
+    plot(1:numStep, abs(gtf(1:numStep,1)), 'Color', [0 0 0], 'LineWidth', 2) 
+    plot(1:numStep, abs(gtf(1:numStep,2)), 'Color', [0 0 1], 'LineWidth', 2) 
+    %plot(1:numStep, abs(tf(1:numStep,2)), 'Color', [0 0.3 0.7], 'LineWidth', 2) 
+    %1:numStep, abs(gtf(1:numStep,:)), 'b-', 'LineWidth', 2);
+    grid on
+    xlabel('Time step')
+    ylabel('Force [N]') 
+    set(axes2,'FontSize',14);
+    legend('Predicted fx', 'Predicted fy', 'Ground truth fx', 'Ground truth fy');
+
 end

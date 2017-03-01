@@ -1,6 +1,37 @@
 %visualization of the feature error for pig: requires featError
 %file to be exported (3 features) by the pigLiver scene
 
+directory='../outSynth1';
+file1='assessmentPositionsGT_allBC.txt';
+file2='assess_psd5#osd0.0001#ogrid4.txt';
+
+fe1=1000*load(sprintf('%s/%s', directory, file1));
+fe2=1000*load(sprintf('%s/%s', directory, file2));
+
+ns=200;
+nf=size(fe1,2)/3;
+
+meanErr=zeros(1,ns);
+maxErr=zeros(1,ns);
+
+for i=1:ns
+    f1=fe1(i,:);
+    f2=fe2(i,:);
+    
+    for j=1:nf
+        a=[f1((j-1)*3+1) f1((j-1)*3+2)];
+        b=[f2((j-1)*3+1) f2((j-1)*3+2)];
+        err(j) = norm(a-b);
+    end
+    maxErr(i) = max(err);
+    meanErr(i) = mean(err);    
+end
+
+
+
+plot(1:ns,maxErr,'r-', 1:ns, meanErr, 'b-')
+
+return
 
 suffix1='psd0.01#osd1e-06#ctr3#MJED';
 ctr=3;
