@@ -1,162 +1,210 @@
 import Sofa
-import math
 import os
 
-# Class definition 
-class silicon1_BCDA(Sofa.PythonScriptController):
-    
-    def createGlobalComponents(self, node):
-        # scene global stuff
-        node.createObject('RequiredPlugin', pluginName='Optimus', name='Optimus')
-        node.createObject('RequiredPlugin', pluginName='SofaPardisoSolver', name='SofaPardisoSolver')
-        node.createObject('RequiredPlugin', pluginName='ImageMeshAux', name='ImageMeshAux')
-        node.createObject('RequiredPlugin', pluginName='image', name='image')
-        
-        node.findData('gravity').value="0 0 0"
-        node.findData('dt').value="0.01"
-        
-        node.createObject('ViewerSetting', cameraMode='Perspective', resolution='1000 700', objectPickingMethod='Ray casting')
-        node.createObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels')
-
-        node.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")        
-        node.createObject('ROUKFilter', name="ROUKF", sigmaPointType="simplex", verbose="1")        
-
-        node.createObject('MeshVTKLoader', name="objectLoader", filename="../../data/brickC/brickC_1216.vtk")    
-        node.createObject('MeshSTLLoader', name="objectSLoader",filename="../../data/brickC/brickC_1216.stl")
-        node.createObject('MeshVTKLoader', name="obsLoader", filename="../obsBoundaryDA/brickC_150316/obsRestA.vtk")
-        node.createObject('MeshVTKLoader', name="toolLoader", filename="../obsBoundaryDA/brickC_150316/toolRestA.vtk")
-
-        return 0
-        
+class silicon1_BCDA (Sofa.PythonScriptController):
 
 
-    #components common for both master and slave: the simulation itself (without observations and visualizations)
-    def createCommonComponents(self, node):                           
-        #node.createObject('StaticSolver', applyIncrementFactor="0")
-        #node.createObject('SparsePARDISOSolver')        
+    def createGraph(self,rootNode):
+        self.showVideo=1
+        self.saveState=1
+        self.statParams=[0, 5, 1e-5]
+        self.nu=0.45
+        self.E=1e5
+        self.material="SV"
 
-        node.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="1", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="1")   
-        node.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
-        node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToDir="", iterativeSolverNumbering="0")
 
-        node.createObject('MechanicalObject', src="@/objectLoader", name="Volume")
-        node.createObject('TetrahedronSetTopologyContainer', name="Container", src="@/objectLoader", tags=" ")
-        node.createObject('TetrahedronSetTopologyModifier', name="Modifier")        
-        node.createObject('TetrahedronSetTopologyAlgorithms', name="TopoAlgo")
-        node.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
-        node.createObject('UniformMass', totalMass="0.2513")
+        self.suffix='psd'+str(self.statParams[1])+'#osd'+str(self.statParams[2])+'#mat'+self.material
 
-        node.createObject('BoxROI', name="fixedBox1", box="-0.001 0.052 -0.001   0.1631 0.054 0.0131")
-        node.createObject('OptimParams', name="springStiffness", template="Vector", numParams="@fixedBox1.nbIndices",initValue="50", stdev="10", transformParams="1", optimize="1", printLog="1")
+        os.system('mkdir -p outSilicon')
+        if self.saveState:
+            self.stateExpFile='outSilicon/state_'+self.suffix+'.txt'
+            self.stateVarFile='outSilicon/variance_'+self.suffix+'.txt'
+            self.stateCovarFile='outSilicon/covariance_'+self.suffix+'.txt'
+            os.system('rm '+self.stateExpFile)
+            os.system('rm '+self.stateVarFile)
+            os.system('rm '+self.stateCovarFile)
 
-        node.createObject('ExtendedRestShapeSpringForceField', name="fixedSpring", points="@fixedBox1.indices", stiffness="@springStiffness.value", springThickness="3", listening="1", updateStiffness="1", printLog="0")
-        node.createObject('ColorMap',colorScheme="Blue to Red")                                                                  
-        node.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus="1e5", poissonRatio="0.45", method="large")
-
-        toolEmu = node.createChild('toolEmu')
-        toolEmu.createObject('MechanicalObject',name="MO",src="@/toolLoader")
-        toolEmu.createObject('SimulatedStateObservationSource', name="ToolA",printLog="1", monitorPrefix="../obsBoundaryDA/brickC_150316/toolA",drawSize="0.0015",controllerMode="1")
-        
-        node.createObject('Mapped3DoFForceField', mappedFEM="mappedTool/toolSpring", mappedMechObject="mappedTool/MO", mapping="mappedTool/baryMapping", printLog="0")        
-        toolMapped = node.createChild('mappedTool');
-        toolMapped.createObject('MechanicalObject',name="MO",src="@/toolLoader")
-        toolMapped.createObject('ExtendedRestShapeSpringForceField', name="toolSpring", stiffness="1e5", external_rest_shape="../toolEmu/MO", springThickness="1", listening="1", updateStiffness="1", springColor="0 1 0 1",startTimeSpringOn="0",numStepsSpringOn="10000")
-        toolMapped.createObject('ColorMap',colorScheme="Blue to Red")                                                                  
-        toolMapped.createObject('Sphere',radius="0.002",color="0 0 1 1") 
-        toolMapped.createObject('BarycentricMapping',name="baryMapping")
-
+        self.createScene(rootNode)
         return 0
 
 
+    def createScene(self,rootNode):
+        # rootNode
+        rootNode.createObject('RequiredPlugin', pluginName='Optimus')
+        rootNode.createObject('RequiredPlugin', pluginName='SofaPardisoSolver')
+        rootNode.createObject('RequiredPlugin', pluginName='ImageMeshAux')
+        rootNode.createObject('RequiredPlugin', pluginName='image')
+        rootNode.createObject('RequiredPlugin', pluginName='SofaMJEDFEM')
+        rootNode.createObject('VisualStyle', displayFlags='showBehaviorModels hideForceFields showCollisionModels hideWireframe')
+        rootNode.createObject('MeshVTKLoader', name='objectLoader', filename='../../data/brickC/brickC_1216.vtk')
+        rootNode.createObject('MeshSTLLoader', name='objectSLoader', filename='../../data/brickC/brickC_1216.stl')
+        rootNode.createObject('MeshVTKLoader', name='obsLoader', filename='../obsBoundaryDA/brickC_150316/obsRestA.vtk')
+        rootNode.createObject('MeshVTKLoader', name='toolLoader', filename='../obsBoundaryDA/brickC_150316/toolRestA.vtk')
+        rootNode.createObject('FilteringAnimationLoop', name='StochAnimLoop', verbose='1')
+        self.filter=rootNode.createObject('ROUKFilter', name='ROUKF', verbose='1')
 
-    def createMasterScene(self, node):
-        node.createObject('StochasticStateWrapper',name="StateWrapper",verbose="1")
-        
-        self.createCommonComponents(node)
+        if self.showVideo:            
+            video = rootNode.createChild('video')
+            video.createObject('PreStochasticWrapper', name='PreStochasticWrap', verbose='1')
+            video.createObject('ImageContainer', filename='../../data/videoSilicon1/testMirr_0-12.avi', transform='0.205 0.105 0 0 0 178 0.000219 0.000219 15 0 0.01 1', name='image')
+            video.createObject('ImageViewer', src='@image', enableHistogram='0', name='viewer')
 
-        obsNode = node.createChild('obsNode')
-        obsNode.createObject('MechanicalObject', name='MO', src="@/obsLoader")
-        #obsNode.createObject('MechanicalObject', name='MO', position="0.01 0.06 0.01  0.01 0.06 0.04  0.01 0.06 0.07  0.03 0.06 0.01  0.03 0.06 0.04  0.03 0.06 0.07  0.05 0.06 0.01  0.05 0.06 0.04  0.05 0.06 0.07  0.07 0.06 0.01  0.07 0.06 0.04  0.07 0.06 0.07  0.09 0.06 0.01  0.09 0.06 0.04  0.09 0.06 0.07  0.11 0.06 0.01  0.11 0.06 0.04  0.11 0.06 0.07  0.13 0.06 0.01  0.13 0.06 0.04  0.13 0.06 0.07  0.15 0.06 0.01  0.15 0.06 0.04  0.15 0.06 0.07   0.18 0.01 0.01  0.18 0.01 0.04  0.18 0.01 0.07  0.18 0.03 0.01  0.18 0.03 0.04  0.18 0.03 0.07  0.18 0.05 0.01  0.18 0.05 0.04  0.18 0.05 0.07")
-        obsNode.createObject('Sphere', radius="0.001", color="0.2 0.8 0.2 1")
-        obsNode.createObject('BarycentricMapping')                   
-        obsNode.createObject('MappedStateObservationManager', name="MOBS", observationStdev="1e-5", noiseStdev="0.0", listening="1", stateWrapper="@../StateWrapper",doNotMapObservations="1",verbose="1")
-        obsNode.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix="../obsBoundaryDA/brickC_150316/obsA")
-    
-        visNode = node.createChild('ObjectVisualization')
-        visNode.createObject('MechanicalObject',src="@/objectSLoader",name="Surface")
-        visNode.createObject('TriangleSetTopologyContainer', name="Container", src="@/objectSLoader", tags=" ")
-        visNode.createObject('TriangleSetTopologyModifier', name="Modifier")        
-        visNode.createObject('TriangleSetTopologyAlgorithms', name="TopoAlgo")
-        visNode.createObject('TriangleSetGeometryAlgorithms', name="GeomAlgo")        
-        visNode.createObject('Line',color="0 0 0 1")
-        visNode.createObject('Triangle',color="1 0 0 1")
-        visNode.createObject('BarycentricMapping')
-        #visNode.createObject('VTKExporter',filename="vtkExp/beam",XMLformat="true",listening="true",edges="0",triangles="1",quads="0",tetras="0",exportAtBegin="1",exportAtEnd="0",exportEveryNumberOfSteps="1")
+        # rootNode/model
+        model = rootNode.createChild('model')
+        model.createObject('StochasticStateWrapper', name='StateWrapper', verbose='1')
+        model.createObject('OptimParams', initValue=self.statParams[0],  stdev=self.statParams[1], transformParams='1', name='springStiffness', numParams='53', printLog='1', template='Vector', optimize='1')
+        model.createObject('NewtonStaticSolver', maxIt='1', name='NewtonStatic', correctionTolerance='1e-8', convergeOnResidual='1', residualTolerance='1e-8', printLog='1')
+        model.createObject('StepPCGLinearSolver', preconditioners='precond', precondOnTimeStep='1', name='StepPCG', iterations='10000', tolerance='1e-12', verbose='1')
+        model.createObject('SparsePARDISOSolver', symmetric='1', exportDataToDir='', name='precond', iterativeSolverNumbering='0')
+        model.createObject('MechanicalObject', src='@/objectLoader', name='Volume')        
+        model.createObject('TetrahedronSetTopologyContainer', name='Container', src="@/objectLoader")
+        model.createObject('TetrahedronSetTopologyModifier', name='Modifier')
+        model.createObject('TetrahedronSetTopologyAlgorithms', name='TopoAlgs')
+        model.createObject('TetrahedronSetGeometryAlgorithms', name='GeomAlgs')
+        model.createObject('UniformMass', totalMass='0.2513')
+        model.createObject('BoxROI', box='-0.001 0.052 -0.001   0.1631 0.054 0.0131', drawBoxes='0', name='fixedBox1')
+        model.createObject('ExtendedRestShapeSpringForceField', stiffness='@springStiffness.value', pointSize='2', name='fixedSpring', showIndicesScale='0', forceDir='', springThickness='3', updateStiffness='1', points='@fixedBox1.indices', printLog='0', listening='1')
+        model.createObject('ColorMap', colorScheme='Blue to Red')        
 
-        obsVisuNode = node.createChild('ObservationVisualization')
-        obsVisuNode.createObject('MechanicalObject', name="aux_Source", position="@../obsNode/MOBS.mappedObservations")
-        obsVisuNode.createObject('Sphere', radius="0.002", color="0.2 0.8 0.2 1")
+        E=self.E;
+        nu=self.nu;        
 
-        return 0
- 
- 
+        if self.material=='SV':        
+            lamb=(E*nu)/((1+nu)*(1-2*nu))
+            mu=E/(2+2*nu)
+            materialParams='{} {}'.format(mu,lamb)
+            model.createObject('MJEDTetrahedralForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=materialParams)
+        elif self.material=='CR':
+            model.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus=E, poissonRatio=nu, method="large")
 
-    def createSlaveScene(self, node):
-        node.createObject('VisualStyle', name='VisualStyle', displayFlags='hideBehaviorModels hideForceFields hideCollisionModels')
-        wrapper=node.createObject('StochasticStateWrapper',name="StateWrapper",verbose="1")
-        wrapper.findData("name").value = "StochasticWrapperSlave"
-        wrapper.findData("slave").value = 1;        
-        
-        self.createCommonComponents(node)        
-        self.m_slaveScenesCreated+=1
+        # rootNode/model/obsNode
+        obsNode = model.createChild('obsNode')
+        obsNode.activated = '1'
+        obsNode.createObject('MechanicalObject', src='@/obsLoader')
+        obsNode.createObject('Sphere', color='0.0 0.5 0.0 1', radius='0.0014')
+        obsNode.createObject('BarycentricMapping')
+        obsNode.createObject('MappedStateObservationManager', stateWrapper='@../StateWrapper', verbose='1', name='MOBS', listening='1', observationStdev=self.statParams[2], noiseStdev='0.0', doNotMapObservations='1')
+        obsNode.createObject('SimulatedStateObservationSource', drawSize='0.000', monitorPrefix='../obsBoundaryDA/brickC_150316/obsA', name='ObsSource', printLog='1')
 
-        return 0
+        # rootNode/model/toolTarget
+        toolTarget = model.createChild('toolTarget')
+        toolTarget.createObject('MechanicalObject', src='@/toolLoader', name='MO')
+        toolTarget.createObject('Sphere', color='0.0 0.0 1.0 1.0', radius='0.0014')
+        toolTarget.createObject('SimulatedStateObservationSource', drawSize='0.000', monitorPrefix='../obsBoundaryDA/brickC_150316/toolA', printLog='1', name='ToolA', controllerMode='1')
+        model.createObject('Mapped3DoFForceField', mappedFEM='tool/toolSpring', mappedMechObject='tool/MO', printLog='0', mapping='tool/baryMapping')
 
-    
+        # rootNode/model/tool
+        tool = model.createChild('tool')
+        tool.createObject('MechanicalObject', src='@/toolLoader', name='MO')
+        tool.createObject('ExtendedRestShapeSpringForceField', numStepsSpringOn='10000', stiffness='1e5', name='toolSpring', springColor='0 1 0 1', showIndicesScale='0', springThickness='1', updateStiffness='1', listening='1', startTimeSpringOn='0', external_rest_shape='../toolTarget/MO')
+        tool.createObject('BarycentricMapping', name='baryMapping')
 
-    def createScene(self,node):
-        r_slaves = [] # list of created auxiliary nodes
-        self.createGlobalComponents(node)
-                
-        masterNode=node.createChild('MasterScene')
-        self.createMasterScene(masterNode)        
-        masterNode.createObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels')
-        
-        slaveSubordinate=node.createChild('SlaveSubordinate')
-        for i in range(1,self.m_slaveSceneCount):
-            slave=slaveSubordinate.createChild('SlaveScene_'+str(i))
-            #slave.createObject('VisualStyle', name='VisualStyle', displayFlags='hideAll')
-            self.createSlaveScene(slave)
-            r_slaves.append(slave)        
+        # rootNode/model/visualization
+        visualization = model.createChild('visualization')
+        visualization.activated = '1'
+        visualization.createObject('VisualStyle', displayFlags='showBehaviorModels hideForceFields showCollisionModels showWireframe')
+        visualization.createObject('MechanicalObject', src='@/objectSLoader', name='Surface')
+        visualization.createObject('TriangleSetTopologyContainer', name='Container', src="@/objectSLoader")
+        visualization.createObject('TriangleSetTopologyModifier', name='Modifier')
+        visualization.createObject('TriangleSetTopologyAlgorithms', name='TopoAlgs')
+        visualization.createObject('TriangleSetGeometryAlgorithms', name='GeomAlgs')                  
+        visualization.createObject('Line', color='0 0 0 1')
+        visualization.createObject('Triangle', color='1 0 0 1')
+        visualization.createObject('BarycentricMapping')
+
+        # rootNode/model/visualization2
+        # visualization2 = model.createChild('visualization2')
+        # visualization2.activated = '1'
+        # visualization2.createObject('MechanicalObject', src='@/objectSLoader', name='Surface')
+        # visualization2.createObject('TriangleSetTopologyContainer', name='Container', src="@/objectSLoader")
+        # visualization2.createObject('TriangleSetTopologyModifier', name='Modifier')
+        # visualization2.createObject('TriangleSetTopologyAlgorithms', name='TopoAlgs')
+        # visualization2.createObject('TriangleSetGeometryAlgorithms', name='GeomAlgs')                  
+        # visualization2.createObject('include', src='@/objectSLoader', href='Objects/TriangleSetTopology.xml')
+        # visualization2.createObject('Line', color='0 0 0 1')
+        # visualization2.createObject('Triangle', color='1 0 0 0.18')
+        # visualization2.createObject('BarycentricMapping')
+
+        return 0;
+
+    def onEndAnimationStep(self, deltaTime):
+        if self.saveState:              
+            rs=self.filter.findData('reducedState').value
+            reducedState = [val for sublist in rs for val in sublist]
+            #print 'Reduced state:'
+            #print reducedState
+
+            f1 = open(self.stateExpFile, "a")        
+            f1.write(" ".join(map(lambda x: str(x), reducedState)))
+            f1.write('\n')
+            f1.close()    
+                    
+            rv=self.filter.findData('reducedVariance').value
+            reducedVariance = [val for sublist in rv for val in sublist]
+            #print 'Reduced variance:'
+            #print reducedVariance
+
+            f2 = open(self.stateVarFile, "a")        
+            f2.write(" ".join(map(lambda x: str(x), reducedVariance)))
+            f2.write('\n')
+            f2.close()
+
+            rcv=self.filter.findData('reducedCovariance').value
+            reducedCovariance = [val for sublist in rcv for val in sublist]
+            #print 'Reduced Covariance:'
+            #print reducedCovariance
+
+            f3 = open(self.stateCovarFile, "a")
+            f3.write(" ".join(map(lambda x: str(x), reducedCovariance)))
+            f3.write('\n')
+            f3.close()
             
-        return 0
+        return 0;
 
 
-               
-    def createGraph(self,node):          
-        self.cameraReactivated=False
-        self.rootNode=node              
-         
-        print  "Create graph called (Python side)\n"
-
-        self.m_sigmaPointType = 'simplex'
-        self.m_slaveSceneCount = 2
-        self.m_saveToFile = 0
-        self.m_slaveScenesCreated = 0 # auxiliary, circumvents attribute of instance method
-
-        self.createScene(node)
-        
-        return 0
 
 
-    def initGraph(self,node):
-        print 'Init graph called (python side)'
-        self.step    =     0
-        self.total_time =     0
+    def onKeyPressed(self, c):
+        return 0;
 
-        print self.fixedROI.findData("indices").value
-        
-        
-        # self.process.initializationObjects(node)
-        return 0
+    def onKeyReleased(self, c):
+        return 0;
 
+    def onLoaded(self, node):
+        return 0;
+
+    def onMouseButtonLeft(self, mouseX,mouseY,isPressed):
+        return 0;
+
+    def onMouseButtonRight(self, mouseX,mouseY,isPressed):
+        return 0;
+
+    def onMouseButtonMiddle(self, mouseX,mouseY,isPressed):
+        return 0;
+
+    def onMouseWheel(self, mouseX,mouseY,wheelDelta):
+        return 0;
+
+    def onGUIEvent(self, strControlID,valueName,strValue):
+        return 0;
+
+    def onBeginAnimationStep(self, deltaTime):
+        return 0;
+
+    def onScriptEvent(self, senderNode, eventName,data):
+        return 0;
+
+    def initGraph(self, node):
+        return 0;
+
+    def bwdInitGraph(self, node):
+        return 0;
+
+    def storeResetState(self):
+        return 0;
+
+    def reset(self):
+        return 0;
+
+    def cleanup(self):
+        return 0;

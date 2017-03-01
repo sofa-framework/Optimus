@@ -36,11 +36,12 @@ class synth1_BCDA(Sofa.PythonScriptController):
         self.m_saveToFile = 0
         self.m_slaveScenesCreated = 0 # auxiliary, circumvents attribute of instance method
 
-        self.saveState = 1
-        self.saveToolForces=1
+        self.saveState = 0
+        self.saveToolForces=0
+        self.saveAssess=1
 
         self.paramInitExp = 0.0
-        self.paramInitSD = 2
+        self.paramInitSD = 5
         self.obsInitSD= 1e-4
 
         self.suffix='psd'+str(self.paramInitSD)+'#osd'+str(self.obsInitSD)+'#ogrid'+str(self.ogridID)
@@ -56,6 +57,11 @@ class synth1_BCDA(Sofa.PythonScriptController):
         if self.saveToolForces:
             self.toolForceFile=outDir+'/toolForce_'+self.suffix+'.txt'
             os.system('rm '+self.toolForceFile);
+
+
+        if self.saveAssess:
+            self.assessFile=outDir+'/assess_'+self.suffix+'.txt'
+            os.system('rm '+self.assessFile);            
 
         self.createScene(node)
         
@@ -94,7 +100,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         #node.createObject('SparsePARDISOSolver')        
 
         node.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")   
-        # node.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
+        node.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
         node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToDir="", iterativeSolverNumbering="0")
 
         node.createObject('MechanicalObject', src="@/objectLoader", name="Volume")
@@ -108,11 +114,35 @@ class synth1_BCDA(Sofa.PythonScriptController):
         node.createObject('BoxROI', name='fixedBox1', box='-0.001 -0.001 -0.011 0.101 0.001 0.001', drawBoxes='1')
         # node.createObject('BoxROI', name="fixedBox1", box="-0.001 0.052 -0.001   0.1631 0.054 0.0131")        
         self.optimParams = node.createObject('OptimParams', name="springStiffness", template="Vector", numParams="@fixedBox1.nbIndices",initValue=self.paramInitExp, stdev=self.paramInitSD, transformParams="1", optimize="1", printLog="1")
-        node.createObject('ExtendedRestShapeSpringForceField', name="fixedSpring", points="@fixedBox1.indices", stiffness="@springStiffness.value", springThickness="3", listening="1", updateStiffness="1", printLog="0")
+        node.createObject('ExtendedRestShapeSpringForceField', name="fixedSpring", points="@fixedBox1.indices", stiffness="@springStiffness.value",showIndicesScale='0', springThickness="3", listening="1", updateStiffness="1", printLog="0")
         node.createObject('ColorMap',colorScheme="Blue to Red")                                                                  
         node.createObject('MJEDTetrahedralForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=self.materialParams)
         # node.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus="1e5", poissonRatio="0.45", method="large")
 
+        node.createObject('BoxROI', name='fixedBoxA', box='-0.001 -0.001 -0.011 0.003 0.001 0.001', drawBoxes='0')
+        node.createObject('PointsFromIndices', template='Vec3d', name='fixedA', indices='@fixedBoxA.indices', position="@Volume.rest_position")
+        node.createObject('BoxROI', name='fixedBoxB', box='0.013 -0.001 -0.011 0.016 0.001 0.001', drawBoxes='0')
+        node.createObject('PointsFromIndices', template='Vec3d', name='fixedB', indices='@fixedBoxB.indices', position="@Volume.rest_position")
+        node.createObject('BoxROI', name='fixedBoxC', box='0.025 -0.001 -0.011 0.030 0.001 0.001', drawBoxes='0')
+        node.createObject('PointsFromIndices', template='Vec3d', name='fixedC', indices='@fixedBoxC.indices', position="@Volume.rest_position")
+        node.createObject('BoxROI', name='fixedBoxD', box='0.035 -0.001 -0.011 0.101 0.001 0.001', drawBoxes='0')
+        node.createObject('PointsFromIndices', template='Vec3d', name='fixedD', indices='@fixedBoxD.indices', position="@Volume.rest_position")
+
+        fixedA = node.createChild('fixedNA')
+        fixedA.createObject('MechanicalObject',name='MO', position='@../fixedA.indices_position')
+        fixedA.createObject('Sphere', color='1.0 0.0 0.0 1', radius="0.0019", template='Vec3d')
+
+        fixedB = node.createChild('fixedNB')
+        fixedB.createObject('MechanicalObject',name='MO', position='@../fixedB.indices_position')
+        fixedB.createObject('Sphere', color='0.0 0.8 0.0 1', radius="0.0019", template='Vec3d')
+
+        fixedC = node.createChild('fixedNC')
+        fixedC.createObject('MechanicalObject',name='MO', position='@../fixedC.indices_position')
+        fixedC.createObject('Sphere', color='1.0 0.64 0.0 1', radius="0.0019", template='Vec3d')
+
+        fixedD = node.createChild('fixedND')
+        fixedD.createObject('MechanicalObject',name='MO', position='@../fixedD.indices_position')
+        fixedD.createObject('Sphere', color='0.0 1.0 1.0 1', radius="0.0019", template='Vec3d')
 
         toolEmu = node.createChild('toolEmu')        
         toolEmu.createObject('MechanicalObject',name="MO",src="@/toolLoader")
@@ -137,26 +167,49 @@ class synth1_BCDA(Sofa.PythonScriptController):
         self.createCommonComponents(node)
 
         obsNode = node.createChild('obsNode')
-        obsNode.createObject('MechanicalObject', name='MO', src="@/obsLoader")        
-        obsNode.createObject('Sphere', radius="0.001", color="0.2 0.8 0.2 1")
+        obsNode.createObject('MechanicalObject', name='MO', src="@/obsLoader")                
+        obsNode.createObject('Sphere', color='0.0 0.5 0.0 1', radius="0.0014", template='Vec3d')
+
         obsNode.createObject('BarycentricMapping')                   
         obsNode.createObject('MappedStateObservationManager', name="MOBS", observationStdev=self.obsInitSD, listening="1", stateWrapper="@../StateWrapper",doNotMapObservations="1",verbose="1")
-        obsNode.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix=self.obsMonitorPrefix, drawSize="0.001")
+        obsNode.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix=self.obsMonitorPrefix, drawSize="0.000")
     
         visNode = node.createChild('ObjectVisualization')
+        visNode.createObject('VisualStyle', displayFlags='showVisual showBehavior showCollision hideMapping showWireframe hideNormals')
         visNode.createObject('MechanicalObject',src="@/objectSLoader",name="Surface")
-        visNode.createObject('TriangleSetTopologyContainer', name="Container", src="@/objectSLoader", tags=" ")
-        visNode.createObject('TriangleSetTopologyModifier', name="Modifier")        
-        visNode.createObject('TriangleSetTopologyAlgorithms', name="TopoAlgo")
-        visNode.createObject('TriangleSetGeometryAlgorithms', name="GeomAlgo")        
+        visNode.createObject('TriangleSetTopologyContainer', name="Container", src="@/objectSLoader", tags=" ")        
         visNode.createObject('Line',color="0 0 0 1")
         visNode.createObject('Triangle',color="1 0 0 1")
         visNode.createObject('BarycentricMapping')
         #visNode.createObject('VTKExporter',filename="vtkExp/beam",XMLformat="true",listening="true",edges="0",triangles="1",quads="0",tetras="0",exportAtBegin="1",exportAtEnd="0",exportEveryNumberOfSteps="1")
 
+        visNode2 = node.createChild('ObjectVisualization2')
+        visNode2.createObject('VisualStyle', displayFlags='showVisual showBehavior showCollision hideMapping hideWireframe hideNormals')
+        visNode2.createObject('MechanicalObject',src="@/objectSLoader",name="Surface")
+        visNode2.createObject('TriangleSetTopologyContainer', name="Container", src="@/objectSLoader", tags=" ")                
+        visNode2.createObject('Triangle',color="1 0 0 0.2")
+        visNode2.createObject('BarycentricMapping')
+
+        node.createObject('BoxROI', box='-0.001 -0.001 -0.011 0.105 0.001 0.001', drawBoxes='0', name='baseROI')
+        self.basePoints=node.createObject('PointsFromIndices', template='Vec3d', name='fixedA', indices='@baseROI.indices', position="@Volume.position")
+
+
+        # visNode2 = node.createChild('ObjectVisualization2')
+        # visNode2.createObject('VisualStyle', displayFlags='showVisual showBehavior showCollision hideMapping hideWireframe hideNormals')        
+        # visNode.createObject('MechanicalObject',src="@/objectSLoader",name="Surface")
+        # visNode2.createObject('TriangleSetTopologyContainer', name="Container", src="@objectSLoader", tags=" ")                
+        # visNode2.createObject('Triangle',color="1 0 0 0.2")
+        # visNode2.createObject('BarycentricMapping')
+
         obsVisuNode = node.createChild('ObservationVisualization')
         obsVisuNode.createObject('MechanicalObject', name="aux_Source", position="@../obsNode/MOBS.observations")
         obsVisuNode.createObject('Sphere', radius="0.002", color="0.2 0.8 0.2 1")
+
+        asNode = node.createChild('assessNode')
+        asNode.createObject('RegularGrid', name="grid", min='0.01 0.005 -0.005', max='0.09 0.07 -0.005', n='8 5 1')  # obs. grid4
+        self.asMO=asNode.createObject('MechanicalObject', src='@grid', showIndicesScale='0.00025', name='MO', template='Vec3d', showIndices='1')
+        asNode.createObject('Sphere', color='1 0 1 1', radius="0.001", template='Vec3d')
+        asNode.createObject('BarycentricMapping')
 
         return 0
  
@@ -243,6 +296,15 @@ class synth1_BCDA(Sofa.PythonScriptController):
             f4.close()            
             print 'Tool forces:'
             print tsp
+
+        if self.saveAssess:
+            tsp=self.asMO.findData('position').value
+            f5 = open(self.assessFile, "a")
+            f5.write(" ".join(map(lambda x: str(x), tsp)))
+            f5.write('\n')
+            f5.close()                        
+
+        print self.basePoints.findData('indices_position').value
 
         return 0
 

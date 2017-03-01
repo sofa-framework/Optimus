@@ -9,7 +9,7 @@ class pigLiver1_BCDA(Sofa.PythonScriptController):
         print  "Create graph called (Python side)\n"
 
         # filtering parameters parameters:
-        self.givenStiffness=-1             # <0: do filtering,  >=0: no filtering, value determines the actual stiffness        
+        self.givenStiffness=0             # <0: do filtering,  >=0: no filtering, value determines the actual stiffness        
 
         self.estimatedStiffness=[]
 
@@ -20,7 +20,8 @@ class pigLiver1_BCDA(Sofa.PythonScriptController):
         #self.estimatedStiffness=[0.0503930003429,0.118892643534,0.352365299848,2.55007805898,0.280714598378,0.170030317639,0.102737512529,0.262473186394,0.313235176649,0.236778939147,0.0417311014687,2.49618192949,1.40611374571,3.34133828332,4.3218739461,0.344480530676,0.303068988454,3.9829290212,0.141242705325,0.110135081928,0.315370320569,0.196903180664,5.70428436096,5.37791658386,0.228066881081,0.144180183905,0.118512825719,0.410681847038,0.361364755675,0.16069332385,3.04463362132,0.527573642036,0.478733701219,0.119395325158,0.106566095058]
         
         self.statParams=[0, 0.01, 1e-6]           # initial param value, init param stdev, measurement stdev
-        self.fixedIX=[56, 57, 78, 81, 82, 83, 85, 86, 95, 96, 98, 124, 125, 126, 127, 133, 135, 141, 142, 143, 144, 145, 153, 154, 158, 159, 183, 185, 187, 188, 209, 212, 213, 221, 232]        
+        #self.fixedIX=[56, 57, 78, 81, 82, 83, 85, 86, 95, 96, 98, 124, 125, 126, 127, 133, 135, 141, 142, 143, 144, 145, 153, 154, 158, 159, 183, 185, 187, 188, 209, 212, 213, 221, 232]        
+        self.fixedIX=[56]
         self.obsControl = 3                  # 0: pull only in tool points, 1: pull also in auxiliary points               
 
         print len(self.estimatedStiffness)
@@ -46,6 +47,7 @@ class pigLiver1_BCDA(Sofa.PythonScriptController):
         self.saveState=0
         self.saveToolForces=0
         self.saveFeatError=0
+        self.saveTrackedPositions=0
 
         #initial registration parameters
         self.videoScaleFactor='0.000342'
@@ -80,6 +82,12 @@ class pigLiver1_BCDA(Sofa.PythonScriptController):
         if self.saveFeatError:
             self.featErrorFile='outLiver/featError_'+self.suffix+'.txt'
             os.system('rm '+self.featErrorFile);
+
+        if self.saveTrackedPositions:
+            self.toolFile='outLiver/toolPoints.txt';
+            self.obsFile='outLiver/obsPoints.txt';
+            self.assFile='outLiver/assessPoints.txt';
+            os.system('rm '+self.toolFile+' '+self.obsFile+' '+self.assFile);
 
 
         # create the simulation graph
@@ -155,11 +163,13 @@ class pigLiver1_BCDA(Sofa.PythonScriptController):
         features.createObject('PointsFromIndices', template='Vec3d', name='LandmarkPoints', indices='@LandmIx.output')
 
         toolNode = node.createChild('tool')
-        toolNode.createObject('MechanicalObject', scale3d='1 1 1', position='@/features/ControlPoints.indices_position', name='MO')
+        self.trackToolMO=toolNode.createObject('MechanicalObject', scale3d='1 1 1', position='@/features/ControlPoints.indices_position', name='MO')
         toolNode.createObject('Sphere', color='0.0 0.0 1.0 1', radius=self.sr5, template='Vec3d')
+        # toolNode.createObject('BoxROI', name="allBox", box='-1 -1 -1 1 1 1', drawBoxes="0", drawSize="3")
+        # toolNode.createObject('Monitor', name='outLiver/tool', showPositions='1', indices="@allBox.indices", ExportPositions="1", ExportVelocities="0", ExportForces="0")
 
         obsNode = node.createChild('obs')
-        obsNode.createObject('MechanicalObject', scale3d='1 1 1', position='@/features/ObservPoints.indices_position', name='MO')
+        self.trackObsMO=obsNode.createObject('MechanicalObject', scale3d='1 1 1', position='@/features/ObservPoints.indices_position', name='MO')
         obsNode.createObject('Sphere', color='0.0 0.5 0.0 1', radius=self.sr4, template='Vec3d')
 
         landNode = node.createChild('land')
@@ -267,12 +277,12 @@ class pigLiver1_BCDA(Sofa.PythonScriptController):
 
         obsVisuNode = node.createChild('ObservationVisualization')
         obsVisuNode.createObject('MechanicalObject', name="aux_Source", position="@../obsNode/MOBS.mappedObservations")
-        #obsVisuNode.createObject('Sphere', radius=self.sr2, color="0.2 0.8 0.2 1")
+        # obsVisuNode.createObject('Sphere', radius=self.sr2, color="0.2 0.8 0.2 1")
 
         #node.createObject('MeshSubsetEngine', name='attachPoints', inputPosition='@../MO.position', indices=self.fixedIX)
         attachmentVisu=node.createChild('AttachmentVisu')        
         attachmentVisu.createObject('MechanicalObject', name='MO', src="@/fixedPointsLoader")
-        #attachmentVisu.createObject('Sphere', color='0.5 0.6 1.0 1', radius=self.sr4, template='Vec3d')
+        attachmentVisu.createObject('Sphere', color='0.5 0.6 1.0 1', radius=self.sr4, template='Vec3d')
 
 
         return 0
@@ -381,6 +391,26 @@ class pigLiver1_BCDA(Sofa.PythonScriptController):
             f4.write(" ".join(map(lambda x: str(x), dst)))  
             f4.write('\n')
             f4.close
+
+        if self.saveTrackedPositions:
+            posTool=self.trackToolMO.findData('position').value            
+            posObs=self.trackObsMO.findData('position').value
+            posAssess=self.imageLM.findData('position').value            
+            g1 = open(self.toolFile, "a")
+            g1.write(" ".join(map(lambda x: str(x), posTool)))  
+            g1.write('\n')
+            g1.close
+
+            g2 = open(self.obsFile, "a")
+            g2.write(" ".join(map(lambda x: str(x), posObs)))  
+            g2.write('\n')
+            g2.close
+
+            g3 = open(self.assFile, "a")
+            g3.write(" ".join(map(lambda x: str(x), posAssess)))  
+            g3.write('\n')
+            g3.close
+
 
 
         return 0

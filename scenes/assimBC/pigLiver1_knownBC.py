@@ -6,7 +6,8 @@ class pigLiver1_knownBC (Sofa.PythonScriptController):
         nu=0.45
         E=0.1
         rootNode.findData('dt').value="1"
-        fixedIX=[56, 57, 78, 81, 82, 83, 85, 86, 95, 96, 98, 124, 125, 126, 127, 133, 135, 141, 142, 143, 144, 145, 153, 154, 158, 159, 183, 185, 187, 188, 209, 212, 213, 221, 232]
+        #fixedIX=[56, 57, 78, 81, 82, 83, 85, 86, 95, 96, 98, 124, 125, 126, 127, 133, 135, 141, 142, 143, 144, 145, 153, 154, 158, 159, 183, 185, 187, 188, 209, 212, 213, 221, 232]
+        fixedIX=[56]
         videoScaleFactor='0.000342'
         featuresScaleFactor=videoScaleFactor+' '+videoScaleFactor+' '+videoScaleFactor
         meshRotation='-15 180 191'
@@ -29,7 +30,7 @@ class pigLiver1_knownBC (Sofa.PythonScriptController):
         features.createObject('LKOpticalFlowTrackerSimple', maskName='../../Data/pigLiver/porcineLiverMask.png', vidName='../../Data/pigLiver/porcineLiverCut1.avi', name='LK', winSize='31', detectorThresh='190', scaleImg=videoScaleFactor, displayFeatures=displayFeatures, view='1')
         features.createObject('TransformEngine',name='scaleFeatures',input_position='@LK.outputFeatures',scale=featuresScaleFactor)
         features.createObject('MechanicalObject', position='@scaleFeatures.output_position', name='DOFs')
-        features.createObject('Sphere', color='0.0 0.0 1.0 1', radius='0.001', template='Vec3d')
+        features.createObject('Sphere', color='0.0 0.0 1.0 1', radius='0.0014', template='Vec3d')
         # #original video start: features.createObject('BoxROI', name="ToolIx", box='480 160 -10 580 180 10', drawBoxes='1')
         # features.createObject('BoxROI', name="ToolIx", box='520 140 -10 620 160 10', drawBoxes='0')
         # features.createObject('PointsFromIndices', name='ToolPoints', indices='@ToolIx.indices')

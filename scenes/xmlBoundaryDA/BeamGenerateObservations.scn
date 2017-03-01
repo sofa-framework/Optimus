@@ -32,7 +32,7 @@
 
             
             <BoxROI name="allDOFs" box="-1 -1 -1 1 1 1"/>
-            <Monitor name="../obsBoundaryDA/beam1635_A_new" indices="@allDOFs.indices" ExportPositions="1" ExportVelocities="1" ExportForces="1"/>
+            <!-- <Monitor name="../obsBoundaryDA/beam1635_A_new" indices="@allDOFs.indices" ExportPositions="1" ExportVelocities="1" ExportForces="1"/> -->
             
             <include href="Objects/TetrahedronSetTopology.xml" src="@/loader" />
             <UniformMass totalMass="0.2513"/>
