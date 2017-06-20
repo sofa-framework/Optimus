@@ -10,7 +10,7 @@ find_package(SofaBase REQUIRED)
 find_package(SofaGeneral REQUIRED)
 find_package(SofaPardisoSolver QUIET)
 
-set(LINKER_DEPENDENCIES SofaComponentBase SofaComponentGeneral SofaBaseTopology blas)
+set(LINKER_DEPENDENCIES SofaComponentBase SofaComponentGeneral SofaBaseTopology blas gsl)
 set(COMPILATION_FLAGS "-DSOFA_BUILD_OPTIMUS -Wno-unused-local-typedef -Wno-deprecated")
 
 set ( STOCHASTIC_FILTERING "0" CACHE BOOL "Set to activate the compilation the new filtering module replacing Verdandi" )
@@ -24,6 +24,8 @@ set(HEADER_FILES
     src/genericComponents/ObservationSource.h
     src/genericComponents/SimulatedStateObservationSource.h
     src/genericComponents/SimulatedStateObservationSource.inl
+    src/genericComponents/AddNoiseEngine.h
+    src/genericComponents/AddNoiseEngine.inl
     )
 
 set(SOURCE_FILES
@@ -31,6 +33,7 @@ set(SOURCE_FILES
     src/genericComponents/OptimParams.cpp
     src/genericComponents/PointProjection.cpp
     src/genericComponents/SimulatedStateObservationSource.cpp
+    src/genericComponents/AddNoiseEngine.cpp
     )
 
 set(README_FILES 
@@ -44,14 +47,18 @@ if ( ${STOCHASTIC_FILTERING} )
 		src/stochasticFiltering/StochasticFilterBase.h
 		src/stochasticFiltering/ROUKFilter.h
 		src/stochasticFiltering/ROUKFilter.inl
+		src/stochasticFiltering/StochasticStateWrapperBase.h
 		src/stochasticFiltering/EKFilter.h
 		src/stochasticFiltering/EKFilter.inl
-		src/stochasticFiltering/StochasticStateWrapperBase.h
+		src/stochasticFiltering/KFilter.h
+		src/stochasticFiltering/KFilter.inl
 		src/stochasticFiltering/StochasticStateWrapper.h
 		src/stochasticFiltering/StochasticStateWrapper.inl
 		src/stochasticFiltering/ObservationManagerBase.h
 		src/stochasticFiltering/MappedStateObservationManager.h
 		src/stochasticFiltering/MappedStateObservationManager.inl
+		src/stochasticFiltering/SimpleObservationManager.h
+		src/stochasticFiltering/SimpleObservationManager.inl
 		src/stochasticFiltering/PreStochasticWrapper.h
 		src/stochasticFiltering/ForceFieldSensitivity.h
 	)
@@ -60,8 +67,10 @@ if ( ${STOCHASTIC_FILTERING} )
 		src/stochasticFiltering/FilteringAnimationLoop.cpp
 		src/stochasticFiltering/ROUKFilter.cpp
 		src/stochasticFiltering/EKFilter.cpp
+		src/stochasticFiltering/KFilter.cpp
 		src/stochasticFiltering/StochasticStateWrapper.cpp
 		src/stochasticFiltering/MappedStateObservationManager.cpp
+		src/stochasticFiltering/SimpleObservationManager.cpp
 		src/stochasticFiltering/PreStochasticWrapper.cpp
 	)
 

@@ -1,0 +1,33 @@
+<?xml version="1.0" ?>
+<Node gravity="0 0 0" dt="0.1" >
+	<RequiredPlugin pluginName="Optimus"/>
+	<RequiredPlugin pluginName="SofaPardisoSolver"/>
+	<RequiredPlugin pluginName="ImageMeshAux"/>
+    <!-- <RequiredPlugin pluginName="image"/> -->
+	<VisualStyle displayFlags="showVisualModels hideBehaviorModels showCollisionModels hideMappings hideForceFields hideWireframe" />	
+			
+	<Node name="source"> 
+		<EulerImplicitSolver rayleighMass="0.1" rayleighStiffness="0.1" />
+		<!-- <SparsePARDISOSolver name="warpingsolver"  /> -->
+		<!-- <SparseLDLSolver name="warpingsolver"/> -->
+		<CGLinearSolver/>
+		
+		<MechanicalObject template="Vec3d" name="MO" position="0 0 0" velocity="0.1 0 0" showObject="0"/>
+		<!-- <UniformMass totalMass="0.01" /> -->
+		<Sphere radius="0.1" color="1 0 0 1"/>
+		<AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@MO.position" noiseOrthogonalVariance="0.01" noisePrincipalVariance="0.01" noisePrincipalDirection="1 0 0"/>
+		<!-- <ShowSpheres radius="0.1" position="@NoiseEngine.outputPositions"/> -->
+
+		<Node>
+			<OglModel/>
+		</Node>
+	</Node>
+
+	<Node name="target"> 
+		<!-- <EulerImplicitSolver rayleighMass="0.1" rayleighStiffness="0.1" /> -->
+		<!-- <SparseLDLSolver name="warpingsolver"/> -->
+		
+		<MechanicalObject template="Vec3d" name="MO" position="@../source/NoiseEngine.outputPositions" showObject="0"/>		
+		<Sphere radius="0.11" color="0 0 1 1"/>		
+	</Node>
+</Node>

@@ -1,0 +1,56 @@
+<?xml version="1.0" ?>
+<Node gravity="0 0 0" dt="0.1" >
+	<RequiredPlugin pluginName="Optimus"/>
+	<RequiredPlugin pluginName="SofaPardisoSolver"/>
+	<RequiredPlugin pluginName="ImageMeshAux"/>
+    <!-- <RequiredPlugin pluginName="image"/> -->
+	<VisualStyle displayFlags="showVisualModels hideBehaviorModels showCollisionModels hideMappings hideForceFields hideWireframe" />	
+			
+	<Node name="source"> 
+		<!-- <EulerImplicitSolver rayleighMass="0.1" rayleighStiffness="0.1" /> -->
+<!-- 		<SparsePARDISOSolver name="warpingsolver"  /> -->
+		<!-- <SparseLDLSolver name="warpingsolver"/> -->
+		
+		<MechanicalObject template="Vec3d" name="MO" position="0 0 0" showObject="0"/>
+		<!-- <UniformMass totalMass="0.01" /> -->
+		<Sphere radius="0.1" color="1 0 0 1"/>
+		<AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@MO.position" noiseOrthogonalVariance="0.01" noisePrincipalVariance="0.1" noisePrincipalDirection="1 0 0"/>
+		<!-- <ShowSpheres radius="0.1" position="@NoiseEngine.outputPositions"/> -->
+
+		<Node>
+			<OglModel/>
+		</Node>
+	</Node>
+
+	<Node name="target"> 
+		<!-- <EulerImplicitSolver rayleighMass="0.1" rayleighStiffness="0.1" /> -->
+		<!-- <SparseLDLSolver name="warpingsolver"/> -->
+		
+		<MechanicalObject template="Vec3d" name="MO" position="@../source/NoiseEngine.outputPositions" showObject="0"/>		
+		<Sphere radius="0.11" color="0 0 1 1"/>		
+	</Node>
+</Node>
+				
+		<TetrahedronFEMForceField name="FEM" youngModulus="1e4" poissonRatio="0.1" computeVonMisesStress="2" />
+		
+<!-- 		<BoxConstraint box="-0.001 0.049 -0.001   0.001 0.051 0.031  " drawBoxes="true" /> -->
+
+		<Node name="Colli" activated="1">
+			<MeshSTLLoader name="loader" filename="../../data/Sphere1/sphere1_980.stl" scale3d="0.05 0.05 0.05" translation="0 0.4 0"/>
+			<MeshTopology src="@loader"/>
+			
+			<MechanicalObject name="dofsVisual" template="Vec3d" src="@loader" />
+			
+			<Triangle contactFriction="0.001" />
+			<Line contactFriction="0.001"/>
+			<Point contactFriction="0.001"/>
+						
+			<BarycentricMapping />
+		</Node>
+
+ 		<LinearSolverConstraintCorrection solverName="warpingsolver"/>
+		
+		<VTKExporter filename="outBall/sphere.vtk" XMLformat="true" listening="true" edges="0" triangles="0" quads="0" tetras="1" exportAtBegin="1" exportEveryNumberOfSteps="1" cellsDataFields="FEM.vonMisesPerElement"/>
+	</Node>
+	
+</Node>	

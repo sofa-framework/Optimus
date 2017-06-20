@@ -1,0 +1,38 @@
+<?xml version="1.0" ?>
+<Node gravity="0 0 0" dt="0.1" >
+	<RequiredPlugin pluginName="Optimus"/>
+	<RequiredPlugin pluginName="SofaPardisoSolver"/>
+	<RequiredPlugin pluginName="ImageMeshAux"/>
+    <!-- <RequiredPlugin pluginName="image"/> -->
+	<VisualStyle displayFlags="showVisualModels hideBehaviorModels showCollisionModels hideMappings hideForceFields hideWireframe" />	
+		
+	<FilteringAnimationLoop name="StochAnimLoop" verbose="1"/>
+	<KFilter/>	
+	<Node name="model"> 
+		<StochasticStateWrapper/>
+		<EulerImplicitSolver rayleighMass="0.1" rayleighStiffness="0.1" />
+		<CGLinearSolver/>		
+		<MechanicalObject template="Vec3d" name="MO" position="0 0 0" showObject="0"/>		
+		<Sphere radius="0.1" color="1 0 0 1"/>
+		<!-- <AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@MO.position" noiseOrthogonalVariance="0.01" noisePrincipalVariance="0.1" noisePrincipalDirection="1 0 0"/>		 -->
+
+		<Node>
+			<OglModel/>
+		</Node>
+	</Node>
+
+	<Node name="obsNode" activated="1">        
+        <MechanicalObject position="0 0 0"/>
+        <Sphere radius="0.001" color="1 0 0"/>                
+        <SimpleObservationManager name="MOBS" observationStdev="1e-2" noiseStdev="0.0" listening="1" stateWrapper="@../StateWrapper" verbose="1"/>
+        <SimulatedStateObservationSource name="ObsSource" monitorPrefix="../obsBoundaryDA/beam1635_A"/>
+    </Node> 
+
+	<!-- <Node name="target">  -->
+		<!-- <EulerImplicitSolver rayleighMass="0.1" rayleighStiffness="0.1" /> -->
+		<!-- <SparseLDLSolver name="warpingsolver"/> -->
+		
+		<!-- <MechanicalObject template="Vec3d" name="MO" position="@../source/NoiseEngine.outputPositions" showObject="0"/>		 -->
+		<!-- <Sphere radius="0.11" color="0 0 1 1"/>		 -->
+	<!-- </Node> -->
+</Node>			
