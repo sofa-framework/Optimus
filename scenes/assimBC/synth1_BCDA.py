@@ -32,7 +32,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         self.obsMonitorPrefix=inputDir+'/observations'
         self.toolMonitorPrefix=inputDir+'/tool'
         
-        self.m_slaveSceneCount = 4
+        self.m_slaveSceneCount = 0
         self.m_saveToFile = 0
         self.m_slaveScenesCreated = 0 # auxiliary, circumvents attribute of instance method
 
@@ -119,30 +119,30 @@ class synth1_BCDA(Sofa.PythonScriptController):
         node.createObject('MJEDTetrahedralForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=self.materialParams)
         # node.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus="1e5", poissonRatio="0.45", method="large")
 
-        node.createObject('BoxROI', name='fixedBoxA', box='-0.001 -0.001 -0.011 0.003 0.001 0.001', drawBoxes='0')
-        node.createObject('PointsFromIndices', template='Vec3d', name='fixedA', indices='@fixedBoxA.indices', position="@Volume.rest_position")
-        node.createObject('BoxROI', name='fixedBoxB', box='0.013 -0.001 -0.011 0.016 0.001 0.001', drawBoxes='0')
-        node.createObject('PointsFromIndices', template='Vec3d', name='fixedB', indices='@fixedBoxB.indices', position="@Volume.rest_position")
-        node.createObject('BoxROI', name='fixedBoxC', box='0.025 -0.001 -0.011 0.030 0.001 0.001', drawBoxes='0')
-        node.createObject('PointsFromIndices', template='Vec3d', name='fixedC', indices='@fixedBoxC.indices', position="@Volume.rest_position")
-        node.createObject('BoxROI', name='fixedBoxD', box='0.035 -0.001 -0.011 0.101 0.001 0.001', drawBoxes='0')
-        node.createObject('PointsFromIndices', template='Vec3d', name='fixedD', indices='@fixedBoxD.indices', position="@Volume.rest_position")
+        #node.createObject('BoxROI', name='fixedBoxA', box='-0.001 -0.001 -0.011 0.003 0.001 0.001', drawBoxes='0')
+        #node.createObject('PointsFromIndices', template='Vec3d', name='fixedA', indices='@fixedBoxA.indices', position="@Volume.rest_position")
+        #node.createObject('BoxROI', name='fixedBoxB', box='0.013 -0.001 -0.011 0.016 0.001 0.001', drawBoxes='0')
+        #node.createObject('PointsFromIndices', template='Vec3d', name='fixedB', indices='@fixedBoxB.indices', position="@Volume.rest_position")
+        #node.createObject('BoxROI', name='fixedBoxC', box='0.025 -0.001 -0.011 0.030 0.001 0.001', drawBoxes='0')
+        #node.createObject('PointsFromIndices', template='Vec3d', name='fixedC', indices='@fixedBoxC.indices', position="@Volume.rest_position")
+        #node.createObject('BoxROI', name='fixedBoxD', box='0.035 -0.001 -0.011 0.101 0.001 0.001', drawBoxes='0')
+        #node.createObject('PointsFromIndices', template='Vec3d', name='fixedD', indices='@fixedBoxD.indices', position="@Volume.rest_position")
 
-        fixedA = node.createChild('fixedNA')
-        fixedA.createObject('MechanicalObject',name='MO', position='@../fixedA.indices_position')
-        fixedA.createObject('Sphere', color='1.0 0.0 0.0 1', radius="0.0019", template='Vec3d')
+        #fixedA = node.createChild('fixedNA')
+        #fixedA.createObject('MechanicalObject',name='MO', position='@../fixedA.indices_position')
+        #fixedA.createObject('Sphere', color='1.0 0.0 0.0 1', radius="0.0019", template='Vec3d')
 
-        fixedB = node.createChild('fixedNB')
-        fixedB.createObject('MechanicalObject',name='MO', position='@../fixedB.indices_position')
-        fixedB.createObject('Sphere', color='0.0 0.8 0.0 1', radius="0.0019", template='Vec3d')
+        #fixedB = node.createChild('fixedNB')
+        #fixedB.createObject('MechanicalObject',name='MO', position='@../fixedB.indices_position')
+        #fixedB.createObject('Sphere', color='0.0 0.8 0.0 1', radius="0.0019", template='Vec3d')
 
-        fixedC = node.createChild('fixedNC')
-        fixedC.createObject('MechanicalObject',name='MO', position='@../fixedC.indices_position')
-        fixedC.createObject('Sphere', color='1.0 0.64 0.0 1', radius="0.0019", template='Vec3d')
+        #fixedC = node.createChild('fixedNC')
+        #fixedC.createObject('MechanicalObject',name='MO', position='@../fixedC.indices_position')
+        #fixedC.createObject('Sphere', color='1.0 0.64 0.0 1', radius="0.0019", template='Vec3d')
 
-        fixedD = node.createChild('fixedND')
-        fixedD.createObject('MechanicalObject',name='MO', position='@../fixedD.indices_position')
-        fixedD.createObject('Sphere', color='0.0 1.0 1.0 1', radius="0.0019", template='Vec3d')
+        #fixedD = node.createChild('fixedND')
+        #fixedD.createObject('MechanicalObject',name='MO', position='@../fixedD.indices_position')
+        #fixedD.createObject('Sphere', color='0.0 1.0 1.0 1', radius="0.0019", template='Vec3d')
 
         toolEmu = node.createChild('toolEmu')        
         toolEmu.createObject('MechanicalObject',name="MO",src="@/toolLoader")
@@ -183,12 +183,12 @@ class synth1_BCDA(Sofa.PythonScriptController):
         visNode.createObject('BarycentricMapping')
         #visNode.createObject('VTKExporter',filename="vtkExp/beam",XMLformat="true",listening="true",edges="0",triangles="1",quads="0",tetras="0",exportAtBegin="1",exportAtEnd="0",exportEveryNumberOfSteps="1")
 
-        visNode2 = node.createChild('ObjectVisualization2')
-        visNode2.createObject('VisualStyle', displayFlags='showVisual showBehavior showCollision hideMapping hideWireframe hideNormals')
-        visNode2.createObject('MechanicalObject',src="@/objectSLoader",name="Surface")
-        visNode2.createObject('TriangleSetTopologyContainer', name="Container", src="@/objectSLoader", tags=" ")                
-        visNode2.createObject('Triangle',color="1 0 0 0.2")
-        visNode2.createObject('BarycentricMapping')
+        #visNode2 = node.createChild('ObjectVisualization2')
+        #visNode2.createObject('VisualStyle', displayFlags='showVisual showBehavior showCollision hideMapping hideWireframe hideNormals')
+        #visNode2.createObject('MechanicalObject',src="@/objectSLoader",name="Surface")
+        #visNode2.createObject('TriangleSetTopologyContainer', name="Container", src="@/objectSLoader", tags=" ")                
+        #visNode2.createObject('Triangle',color="1 0 0 0.2")
+        #visNode2.createObject('BarycentricMapping')
 
         node.createObject('BoxROI', box='-0.001 -0.001 -0.011 0.105 0.001 0.001', drawBoxes='0', name='baseROI')
         self.basePoints=node.createObject('PointsFromIndices', template='Vec3d', name='fixedA', indices='@baseROI.indices', position="@Volume.position")
@@ -201,15 +201,15 @@ class synth1_BCDA(Sofa.PythonScriptController):
         # visNode2.createObject('Triangle',color="1 0 0 0.2")
         # visNode2.createObject('BarycentricMapping')
 
-        obsVisuNode = node.createChild('ObservationVisualization')
-        obsVisuNode.createObject('MechanicalObject', name="aux_Source", position="@../obsNode/MOBS.observations")
-        obsVisuNode.createObject('Sphere', radius="0.002", color="0.2 0.8 0.2 1")
+        #obsVisuNode = node.createChild('ObservationVisualization')
+        #obsVisuNode.createObject('MechanicalObject', name="aux_Source", position="@../obsNode/MOBS.observations")
+        #obsVisuNode.createObject('Sphere', radius="0.002", color="0.2 0.8 0.2 1")
 
-        asNode = node.createChild('assessNode')
-        asNode.createObject('RegularGrid', name="grid", min='0.01 0.005 -0.005', max='0.09 0.07 -0.005', n='8 5 1')  # obs. grid4
-        self.asMO=asNode.createObject('MechanicalObject', src='@grid', showIndicesScale='0.00025', name='MO', template='Vec3d', showIndices='1')
-        asNode.createObject('Sphere', color='1 0 1 1', radius="0.001", template='Vec3d')
-        asNode.createObject('BarycentricMapping')
+        #asNode = node.createChild('assessNode')
+        #asNode.createObject('RegularGrid', name="grid", min='0.01 0.005 -0.005', max='0.09 0.07 -0.005', n='8 5 1')  # obs. grid4
+        #self.asMO=asNode.createObject('MechanicalObject', src='@grid', showIndicesScale='0.00025', name='MO', template='Vec3d', showIndices='1')
+        #asNode.createObject('Sphere', color='1 0 1 1', radius="0.001", template='Vec3d')
+        #asNode.createObject('BarycentricMapping')
 
         return 0
  

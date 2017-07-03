@@ -83,7 +83,7 @@ class synth1_GenObs (Sofa.PythonScriptController):
         simuNode.createObject('PointsFromIndices', template='Vec3d', name='FixedPoints', indices='@FROI1.indices')
 
         if saveObservations:
-            simuNode.createObject('VTKExporter', position="@MO.position", listening="1" , XMLformat='0', exportAtBegin="1", exportAtEnd='0', exportEveryNumberOfSteps="1", 
+            simuNode.createObject('VTKExporter', position="@MO.position", listening="1" , XMLformat='0', exportAtBegin="1", exportAtEnd='0', exportEveryNumberOfSteps="0", 
                 filename=outputDir+'/object.vtk', tetras='1', edges='0')
 
         # rootNode/object/mappedTool
