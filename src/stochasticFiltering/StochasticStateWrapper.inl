@@ -237,7 +237,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::copyStateFilter2Sofa(const c
     }
 
 
-    sofa::simulation::MechanicalPropagatePositionAndVelocityVisitor(_mechParams).execute( this->gnode );
+    sofa::simulation::MechanicalPropagateOnlyPositionAndVelocityVisitor(_mechParams).execute( this->gnode );
 
 
     /// let the OptimParams to extract the actual values of parameters from the verdandi state
