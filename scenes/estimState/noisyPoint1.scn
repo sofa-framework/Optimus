@@ -17,6 +17,7 @@
 		<Sphere radius="0.1" color="1 0 0 1"/>
 		<AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@MO.position" noiseOrthogonalVariance="0.01" noisePrincipalVariance="0.01" noisePrincipalDirection="1 0 0"/>
 		<!-- <ShowSpheres radius="0.1" position="@NoiseEngine.outputPositions"/> -->
+		<!-- <ExtraMonitor name='simpleSphereMoving' ExportPositions="1" ExportVelocities="1" indices="0"/> -->
 
 		<Node>
 			<OglModel/>

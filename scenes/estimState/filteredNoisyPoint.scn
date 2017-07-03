@@ -7,26 +7,23 @@
 	<VisualStyle displayFlags="showVisualModels hideBehaviorModels showCollisionModels hideMappings hideForceFields hideWireframe" />	
 		
 	<FilteringAnimationLoop name="StochAnimLoop" verbose="1"/>
-	<KFilter/>	
+	<KFilter verbose="1"/>	
+
 	<Node name="model"> 
-		<StochasticStateWrapper/>
+		<StochasticStateWrapper name="StateWrapper" verbose="1" estimatePosition="1" estimateVelocity="1"/>
+		<OptimParams name="optimParams"/>
 		<EulerImplicitSolver rayleighMass="0.1" rayleighStiffness="0.1" />
 		<CGLinearSolver/>		
 		<MechanicalObject template="Vec3d" name="MO" position="0 0 0" showObject="0"/>		
-		<Sphere radius="0.1" color="1 0 0 1"/>
-		<!-- <AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@MO.position" noiseOrthogonalVariance="0.01" noisePrincipalVariance="0.1" noisePrincipalDirection="1 0 0"/>		 -->
+		<Sphere radius="0.001" color="1 0 0 1"/>					
 
-		<Node>
-			<OglModel/>
-		</Node>
+		<Node name="obsNode" activated="1">        
+	        <MechanicalObject position="0 0 0"/>
+	        <Sphere radius="0.001" color="1 1 0"/>
+	        <SimpleObservationManager name="MOBS" observationStdev="1e-2" noiseStdev="0.0" listening="1" stateWrapper="@../StateWrapper" verbose="1"/>
+	        <SimulatedStateObservationSource printLog="1" name="ObsSource" monitorPrefix="simpleSphereMoving"/>
+	    </Node> 
 	</Node>
-
-	<Node name="obsNode" activated="1">        
-        <MechanicalObject position="0 0 0"/>
-        <Sphere radius="0.001" color="1 0 0"/>                
-        <SimpleObservationManager name="MOBS" observationStdev="1e-2" noiseStdev="0.0" listening="1" stateWrapper="@../StateWrapper" verbose="1"/>
-        <SimulatedStateObservationSource name="ObsSource" monitorPrefix="../obsBoundaryDA/beam1635_A"/>
-    </Node> 
 
 	<!-- <Node name="target">  -->
 		<!-- <EulerImplicitSolver rayleighMass="0.1" rayleighStiffness="0.1" /> -->
@@ -35,4 +32,11 @@
 		<!-- <MechanicalObject template="Vec3d" name="MO" position="@../source/NoiseEngine.outputPositions" showObject="0"/>		 -->
 		<!-- <Sphere radius="0.11" color="0 0 1 1"/>		 -->
 	<!-- </Node> -->
+
+	<!-- <AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@MO.position" noiseOrthogonalVariance="0.01" noisePrincipalVariance="0.1" noisePrincipalDirection="1 0 0"/>		 -->
+
+	<Node>
+		<OglModel/>
+	</Node>
+
 </Node>			

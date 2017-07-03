@@ -128,6 +128,13 @@ void KFilter<FilterType>::computeCorrection()
 {
     PRNS("Computing correction, T= " << this->actualTime);
 
+    if (observationManager->hasObservation(this->actualTime)) {
+        PRNS("Has observation");
+        EVectorX vecXCol;
+        EVectorX vecZCol(observationSize), vecZ(observationSize);
+        observationManager->getInnovation(this->actualTime, vecXCol, vecZCol);
+    }
+
     /*if (!alphaConstant) {
         PRNE("Version for non-constant alpha not implemented!");
         return;

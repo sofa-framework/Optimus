@@ -87,7 +87,7 @@ class CreateScene:
         node.createObject('BoxROI', name="fixedBox2", box="-0.05 -0.05  0.238   0.05 0.05 0.242")
         node.createObject('MergeSets', name="mergeIndices", in1="@fixedBox1.indices", in2="@fixedBox2.indices")
         node.createObject('FixedConstraint', indices="@mergeIndices.out")
-        node.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus="@paramE.value", poissonRatio="0.45", method="large", computeVonMisesStress="0", drawHeterogeneousTetra="1")
+        # node.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus="@paramE.value", poissonRatio="0.45", method="large", computeVonMisesStress="0", drawHeterogeneousTetra="1")
 
 
     def createMasterScene(self, node):
