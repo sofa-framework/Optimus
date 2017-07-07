@@ -22,7 +22,7 @@ class synth1_GenObs (Sofa.PythonScriptController):
         rootNode.createObject('RequiredPlugin', pluginName='Optimus')
         rootNode.createObject('RequiredPlugin', pluginName='SofaPardisoSolver')
         rootNode.createObject('RequiredPlugin', pluginName='ImageMeshAux')
-        rootNode.createObject('RequiredPlugin', pluginName='SofaMJEDFEM')
+        #rootNode.createObject('RequiredPlugin', pluginName='SofaMJEDFEM')
 
         rootNode.findData('gravity').value="0 0 0"
         rootNode.findData('dt').value="1"
@@ -66,7 +66,8 @@ class synth1_GenObs (Sofa.PythonScriptController):
         lamb=(E*nu)/((1+nu)*(1-2*nu))
         mu=E/(2+2*nu)
         materialParams='{} {}'.format(mu,lamb)
-        simuNode.createObject('MJEDTetrahedralForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=materialParams)
+        #simuNode.createObject('MJEDTetrahedralForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=materialParams)        
+        simuNode.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=materialParams)
         
         # simuNode.createObject('TetrahedronFEMForceField', name='FEM', youngModulus=E, poissonRatio=nu, computeVonMisesStress='0', method='large')
         # simuNode.createObject('FastTetrahedralCorotationalForceField', name='FEM', youngModulus=E, poissonRatio=nu)    

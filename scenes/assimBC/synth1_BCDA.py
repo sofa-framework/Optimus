@@ -73,7 +73,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         node.createObject('RequiredPlugin', pluginName='Optimus', name='Optimus')
         node.createObject('RequiredPlugin', pluginName='SofaPardisoSolver', name='SofaPardisoSolver')
         node.createObject('RequiredPlugin', pluginName='ImageMeshAux', name='ImageMeshAux')
-        node.createObject('RequiredPlugin', pluginName='SofaMJEDFEM')
+        #node.createObject('RequiredPlugin', pluginName='SofaMJEDFEM')
         # node.createObject('RequiredPlugin', pluginName='image', name='image')
         
         node.findData('gravity').value="0 0 0"
@@ -116,7 +116,8 @@ class synth1_BCDA(Sofa.PythonScriptController):
         self.optimParams = node.createObject('OptimParams', name="springStiffness", template="Vector", numParams="@fixedBox1.nbIndices",initValue=self.paramInitExp, stdev=self.paramInitSD, transformParams="1", optimize="1", printLog="1")
         node.createObject('ExtendedRestShapeSpringForceField', name="fixedSpring", points="@fixedBox1.indices", stiffness="@springStiffness.value",showIndicesScale='0', springThickness="3", listening="1", updateStiffness="1", printLog="0")
         node.createObject('ColorMap',colorScheme="Blue to Red")                                                                  
-        node.createObject('MJEDTetrahedralForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=self.materialParams)
+        #node.createObject('MJEDTetrahedralForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=self.materialParams)
+        node.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=self.materialParams)
         # node.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus="1e5", poissonRatio="0.45", method="large")
 
         #node.createObject('BoxROI', name='fixedBoxA', box='-0.001 -0.001 -0.011 0.003 0.001 0.001', drawBoxes='0')
