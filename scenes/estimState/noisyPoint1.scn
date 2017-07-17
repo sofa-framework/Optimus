@@ -12,7 +12,7 @@
 		<!-- <SparseLDLSolver name="warpingsolver"/> -->
 		<CGLinearSolver/>
 		
-		<MechanicalObject template="Vec3d" name="MO" position="0 0 0" velocity="0.1 0 0" showObject="0"/>
+		<MechanicalObject template="Vec3d" name="MO" position="0 0 0" velocity="0.001 0 0" showObject="0"/>
 		<!-- <UniformMass totalMass="0.01" /> -->
 		<Sphere radius="0.1" color="1 0 0 1"/>
 		<AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@MO.position" noiseOrthogonalVariance="0.01" noisePrincipalVariance="0.01" noisePrincipalDirection="1 0 0"/>
@@ -29,6 +29,7 @@
 		<!-- <SparseLDLSolver name="warpingsolver"/> -->
 		
 		<MechanicalObject template="Vec3d" name="MO" position="@../source/NoiseEngine.outputPositions" showObject="0"/>		
+		<Monitor name="/home/rtrivi/work/Optimus/scenes/estimState/observation" ExportPositions="1"  indices="0" printLog="true" />
 		<Sphere radius="0.11" color="0 0 1 1"/>		
 	</Node>
 </Node>

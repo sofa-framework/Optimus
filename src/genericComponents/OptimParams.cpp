@@ -659,8 +659,8 @@ SOFA_DECL_CLASS(OptimParams)
 int OptimParamsClass = core::RegisterObject("Optimization Parameters")
         #ifndef SOFA_FLOAT
         .add< OptimParams<double> >(true)
-        /*.add< OptimParams<Vec3d> >()
-                                        .add< OptimParams<Vec2d> >()
+        .add< OptimParams<Vec3d> >()
+                                        /*.add< OptimParams<Vec2d> >()
                                         .add< OptimParams<Vec1d> >()
                                         .add< OptimParams<RigidCoord<3,double> > >()
                                         .add< OptimParams<RigidCoord<2,double> > >()*/
@@ -681,8 +681,8 @@ int OptimParamsClass = core::RegisterObject("Optimization Parameters")
 
 #ifndef SOFA_FLOAT
 template class SOFA_OptimusPlugin_API OptimParams<double>;
-/*template class SOFA_OptimusPlugin_API OptimParams<Vec3d>;
-template class SOFA_OptimusPlugin_API OptimParams<Vec2d>;
+template class SOFA_OptimusPlugin_API OptimParams<Vec3d>;
+/*template class SOFA_OptimusPlugin_API OptimParams<Vec2d>;
 template class SOFA_OptimusPlugin_API OptimParams<Vec1d>;
 template class SOFA_OptimusPlugin_API OptimParams<RigidCoord<3,double> >;
 template class SOFA_OptimusPlugin_API OptimParams<RigidCoord<2,double> >;*/
