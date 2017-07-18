@@ -180,9 +180,9 @@ protected:
 public:
     Data<std::string> observationErrorVarianceType;
     Data<bool> useBlasToMultiply;
-    Data<helper::vector<FilterType> > reducedState;
-    Data<helper::vector<FilterType> > reducedVariance;
-    Data<helper::vector<FilterType> > reducedCovariance;
+//    Data<helper::vector<FilterType> > reducedState;
+//    Data<helper::vector<FilterType> > reducedVariance;
+//    Data<helper::vector<FilterType> > reducedCovariance;
 
 
     void init();

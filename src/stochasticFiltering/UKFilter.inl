@@ -377,7 +377,7 @@ void UKFilter<FilterType>::initializeStep(const core::ExecParams* _params, const
 }
 
 template <class FilterType>
-void UKFilter<FilterType>::computeSimplexSigmaPoints(EMatrixX& sigmaMat) {  //// not sure if to be modified for UKFilter implementation
+void UKFilter<FilterType>::computeSimplexSigmaPoints(EMatrixX& sigmaMat) {  //// not sure if this needs to be modified for UKFilter implementation
 //    size_t p = reducedStateSize;
 //    size_t r = reducedStateSize + 1;
 
