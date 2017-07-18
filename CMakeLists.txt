@@ -47,6 +47,8 @@ if ( ${STOCHASTIC_FILTERING} )
 		src/stochasticFiltering/StochasticFilterBase.h
 		src/stochasticFiltering/ROUKFilter.h
 		src/stochasticFiltering/ROUKFilter.inl
+		src/stochasticFiltering/UKFilter.h
+		src/stochasticFiltering/UKFilter.inl
 		src/stochasticFiltering/StochasticStateWrapperBase.h
 		src/stochasticFiltering/EKFilter.h
 		src/stochasticFiltering/EKFilter.inl
@@ -66,6 +68,7 @@ if ( ${STOCHASTIC_FILTERING} )
 	list(APPEND SOURCE_FILES
 		src/stochasticFiltering/FilteringAnimationLoop.cpp
 		src/stochasticFiltering/ROUKFilter.cpp
+		src/stochasticFiltering/UKFilter.cpp
 		src/stochasticFiltering/EKFilter.cpp
 		src/stochasticFiltering/KFilter.cpp
 		src/stochasticFiltering/StochasticStateWrapper.cpp
