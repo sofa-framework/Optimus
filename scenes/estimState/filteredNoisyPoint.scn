@@ -3,40 +3,35 @@
 	<RequiredPlugin pluginName="Optimus"/>
 	<RequiredPlugin pluginName="SofaPardisoSolver"/>
 	<RequiredPlugin pluginName="ImageMeshAux"/>
-    <!-- <RequiredPlugin pluginName="image"/> -->
 	<VisualStyle displayFlags="showVisualModels hideBehaviorModels showCollisionModels hideMappings hideForceFields hideWireframe" />	
 		
 	<FilteringAnimationLoop name="StochAnimLoop" verbose="1"/>
-	<ROUKFilter name="ROUKF" verbose="1"/>
+	<UKFilter name="UKF" verbose="1"/>
 
 	<Node name="model"> 
 		<StochasticStateWrapper name="StateWrapper" verbose="1" estimatePosition="1" estimateVelocity="1"/>
-		<OptimParams name="optimParams" template="Vec3d" initValue="0 0 0"  stdev="0.001 0.001 0.001 " />
+		<OptimParams name="optimParams" stdev="0.002"/>
 		<EulerImplicitSolver rayleighMass="0.1" rayleighStiffness="0.1" />
 		<CGLinearSolver/>		
 		<MechanicalObject template="Vec3d" name="MO" position="0 0 0" showObject="0"/>		
-<!-- 		<Sphere radius="0.001" color="1 0 0 1"/>					 -->
+		<Sphere radius="0.001" color="1 0 0 1"/>					
 
 		<Node name="obsNode" activated="1">        
-	        <MechanicalObject position="0 0 0"/>
-<!-- 	        <Sphere radius="0.001" color="1 1 0"/> -->
-	        <SimpleObservationManager name="MOBS" observationStdev="1e-2" noiseStdev="0.0" listening="1" stateWrapper="@../StateWrapper" verbose="1"/>
-	        <SimulatedStateObservationSource printLog="1" name="observations" monitorPrefix="simpleSphereMoving"/>
+		<MechanicalObject position="0 0 0"/>
+	        <SimpleObservationManager name="MOBS" observationStdev="1e-2" listening="1" stateWrapper="@../StateWrapper" verbose="1"/>
+	        <SimulatedStateObservationSource verbose="1" printLog="1" name="observations" monitorPrefix="observations"/>
 	    </Node> 
 	</Node>
 
-	<!-- <Node name="target">  -->
-		<!-- <EulerImplicitSolver rayleighMass="0.1" rayleighStiffness="0.1" /> -->
-		<!-- <SparseLDLSolver name="warpingsolver"/> -->
-		
-		<!-- <MechanicalObject template="Vec3d" name="MO" position="@../source/NoiseEngine.outputPositions" showObject="0"/>		 -->
-		<!-- <Sphere radius="0.11" color="0 0 1 1"/>		 -->
-	<!-- </Node> -->
-
-	<!-- <AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@MO.position" noiseOrthogonalVariance="0.01" noisePrincipalVariance="0.1" noisePrincipalDirection="1 0 0"/>		 -->
-
-<!--	<Node>
-		<OglModel/>
+<!--	<Node name="GroundTruth"> 
+		<MechanicalObject template="Vec3d" name="MO" position="@../source/NoiseEngine.outputPositions" showObject="0"/>		
+		<Sphere radius="0.11" color="0 0 1 1"/>		
+	</Node>-->
+	
+<!--	<Node name="NoisyData"> 
+		<MechanicalObject template="Vec3d" name="MO" position="0 0 0" showObject="0"/>		
+		<ReadState filename="WriteStateObservations" />
+		<Sphere radius="0.11" color="1 0 0 1"/>		
 	</Node>-->
 
 </Node>			

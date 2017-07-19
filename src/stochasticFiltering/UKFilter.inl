@@ -34,118 +34,38 @@ namespace component
 namespace stochastic
 {
 
-/// C = alpha*A*B + beta*C;
-template <class FilterType>
-void UKFilter<FilterType>::blasMultAdd(EMatrixX& _a, EMatrixX& _b, EMatrixX& _c, Type _alpha, Type _beta) {
-    char trans = 'N';
-    int m = _a.rows();
-    int n = _b.cols();
-    int k = _b.rows();
-    Type* _adata = _a.data();
-    Type* _bdata = _b.data();
-    Type* _cdata = _c.data();
-    dgemm_(&trans,&trans, &m, &n, &k, &_alpha, _adata, &m, _bdata, &k, &_beta, _cdata, &m);
-}
-
 template <class FilterType>
 UKFilter<FilterType>::UKFilter()
     : Inherit()
     , observationErrorVarianceType( initData(&observationErrorVarianceType, std::string("inverse"), "observationErrorVarianceType", "if set to inverse, work directly with the inverse of the matrix" ) )
-    , useBlasToMultiply( initData(&useBlasToMultiply, true, "useBlasToMultiply", "use BLAS to multiply the dense matrices instead of Eigen" ) )
-//    , reducedState( initData(&reducedState, "reducedState", "actual expected value of reduced state (parameters) estimated by the filter" ) )
-//    , reducedVariance( initData(&reducedVariance, "reducedVariance", "actual variance  of reduced state (parameters) estimated by the filter" ) )
-//    , reducedCovariance( initData(&reducedCovariance, "reducedCovariance", "actual co-variance  of reduced state (parameters) estimated by the filter" ) )
 {
-//    this->reducedOrder.setValue(true);
+
 }
 
 template <class FilterType>
 UKFilter<FilterType>::~UKFilter() {}
-
-//// Don't understand what this function does
-
-template <class FilterType>
-void UKFilter<FilterType>::computePerturbedStates(EVectorX& _meanState) {
-    if (numThreads == 1) {
-        EVectorX xCol(stateSize);
-        for (size_t i = 0; i < sigmaPointsNum; i++) {
-            xCol = matXi.col(i);
-            stateWrappers[sigmaPoints2WrapperIDs[i]]->applyOperator(xCol, mechParams);
-            matXi.col(i) = xCol;
-        }
-        _meanState = alpha * matXi.rowwise().sum();
-    } else {
-        pthread_t* tid = new pthread_t[numThreads];
-        WorkerThreadData<FilterType>* threadData = new WorkerThreadData<FilterType>[numThreads];
-        for (size_t i = 0; i < numThreads; i++) {
-            threadData[i].set(i, stateWrappers[i], &wrapper2SigmaPointsIDs[i], &matXi, this->execParams, 0);
-            PRNS("Creating thread " << i);
-            pthread_create(&tid[i], NULL, threadFunction<FilterType>, (void*)&threadData[i]);
-        }
-
-        for (size_t i = 0; i < numThreads; i++) {
-            int s = pthread_join(tid[i], NULL);
-            if (s != 0)
-                PRNE("Thread " << i << " problem: " << s);
-        }
-        _meanState = alpha * matXi.rowwise().sum();
-    }
-}
 
 template <class FilterType>
 void UKFilter<FilterType>::computePrediction()
 {
     PRNS("Computing prediction, T= " << this->actualTime);
 
-//    EMatrixX tmpStateVarProj(stateSize, reducedStateSize);
-//    EMatrixX tmpStateVarProj2(stateSize, reducedStateSize);
-    EMatrixX tmpStateVarProj(stateSize, stateSize); //// replaced reducedStateSize with stateSize
-    EMatrixX tmpStateVarProj2(stateSize, stateSize);
 
-    TIC
     EVectorX vecX = masterStateWrapper->getState();
-//    Eigen::LLT<EMatrixX> lltU(matUinv);
-    Eigen::LLT<EMatrixX> lltU(matVinv);
-    matVinv = lltU.matrixL();
-    TOC("== prediction: Cholesky ");
 
-    tmpStateVarProj = masterStateWrapper->getStateErrorVarianceProjector();
-
-    //TIC
-    if (useBlasToMultiply.getValue())
-//        blasMultAdd(tmpStateVarProj, matUinv, tmpStateVarProj2, 1.0, 0.0);
-        blasMultAdd(tmpStateVarProj, matVinv, tmpStateVarProj2, 1.0, 0.0);
-    else
-//        tmpStateVarProj2.noalias() = tmpStateVarProj * matUinv;
-        tmpStateVarProj2.noalias() = tmpStateVarProj * matVinv;
-    //TOC("== prediction multiplication1 == ");
-
-    masterStateWrapper->setStateErrorVarianceProjector(tmpStateVarProj2);
     for (size_t i = 0; i < sigmaPointsNum; i++)
         matXi.col(i) = vecX;
+        matXi = matXi + matVinv * matI;     //Compute perturbed states
 
-    //TIC
-    if (useBlasToMultiply.getValue())
-        blasMultAdd(tmpStateVarProj2, matI, matXi, 1.0, 1.0);
-    else
-        matXi = matXi + tmpStateVarProj2 * matI;
-    //TOC("== prediction multiplication2 == ");
+    EVectorX xCol(stateSize);
+    for (size_t i = 0; i < sigmaPointsNum; i++) {
+        xCol = matXi.col(i);
+        stateWrappers[sigmaPoints2WrapperIDs[i]]->applyOperator(xCol, mechParams);
+        matXi.col(i) = xCol;
+    }
+    vecX = alpha * matXi.rowwise().sum();
 
-    //TIC;
-    computePerturbedStates(vecX);   
-    //asumEVec("summPred",vecX);
-    //TOCTIC("== prediction compute perturbations ==");
-
-    /// TODO: add resampling!!!
-
-    if (useBlasToMultiply.getValue())
-        blasMultAdd(matXi, matItrans, tmpStateVarProj2, alpha, 0.0);
-    else
-        tmpStateVarProj2 = alpha*matXi * matItrans;
-    //TOC("== prediction multiplication3 ==");
-
-    masterStateWrapper->setStateErrorVarianceProjector(tmpStateVarProj2);
-    masterStateWrapper->setState(vecX, this->mechParams);      //// guess for state estimation we don't have to get the mechParams, but rather
+    masterStateWrapper->setState(vecX, this->mechParams);
     masterStateWrapper->writeState(this->getTime());
 }
 
@@ -153,12 +73,8 @@ void UKFilter<FilterType>::computePrediction()
 template <class FilterType>
 void UKFilter<FilterType>::computeCorrection()
 {
-    PRNS("Computing correction, T= " << this->actualTime);
 
-    if (!alphaConstant) {
-        PRNE("Version for non-constant alpha not implemented!");
-        return;
-    }
+    PRNS("Computing correction, T= " << this->actualTime);   
 
     if (observationManager->hasObservation(this->actualTime)) {
         TIC
@@ -174,16 +90,11 @@ void UKFilter<FilterType>::computeCorrection()
             vecZ = vecZ + alpha * vecZCol;
             matZItrans.row(i) = vecZCol;
         }
-        //TOCTIC("== an1sx == ");
-        //asumEVec("correction accumInnov",vecZ);
 
-//        EMatrixX matHLtrans(reducedStateSize, observationSize);
-        EMatrixX matHLtrans(stateSize, observationSize);     //// replaced reducedStateSize with stateSize
+        EMatrixX matHLtrans(stateSize, observationSize);
         matHLtrans = alpha*matItrans.transpose()*matZItrans;
-        //asumEMat("HL_trans", matHLtrans);
 
-//        EMatrixX matWorkingPO(reducedStateSize, observationSize), matTemp;
-        EMatrixX matWorkingPO(stateSize, observationSize), matTemp;  //// replaced reducedStateSize with stateSize
+        EMatrixX matWorkingPO(stateSize, observationSize), matTemp;
         if (observationErrorVarianceType.getValue() == "inverse") {
             matWorkingPO = matHLtrans * observationManager->getErrorVarianceInverse();
         } else {
@@ -191,81 +102,16 @@ void UKFilter<FilterType>::computeCorrection()
             matR = observationManager->getErrorVariance();
             matWorkingPO = matHLtrans * matR.inverse();
         }        
-//        matTemp = EMatrixX::Identity(matUinv.rows(), matUinv.cols()) + matWorkingPO * matHLtrans.transpose();
         matTemp = EMatrixX::Identity(matVinv.rows(), matVinv.cols()) + matWorkingPO * matHLtrans.transpose();
-        //TOCTIC("== an3sx == ");
-//        matUinv = matTemp.inverse();
-        matVinv = matTemp.inverse();
-        //TOCTIC("== an4sx == (inv) ");
 
-//        EVectorX reducedInnovation(reducedStateSize);
-//        reducedInnovation = Type(-1.0) * matUinv*matWorkingPO*vecZ;
-        EVectorX Innovation(stateSize); //// replaced reducedStateSize with stateSize
+        matVinv = matTemp.inverse();
+
+        EVectorX Innovation(stateSize);
         Innovation = Type(-1.0) * matVinv*matWorkingPO*vecZ;
-        //asumEMat("matUinv", matUinv);
-        //asumEMat("matWorkingPO", matWorkingPO);
-        //asumEVec("reduced innovation", reducedInnovation);
 
         EVectorX state = masterStateWrapper->getState();
-        EMatrixX errorVarProj = masterStateWrapper->getStateErrorVarianceProjector();
-        state = state + errorVarProj*Innovation;
-        masterStateWrapper->setState(state,mechParams);   //// guess for state estimation we don't have to get the mechParams, but rather the position and the velocity
-
-
-//        size_t reducedStateIndex = stateSize - reducedStateSize;
-//        EMatrixX parErrorVarProj(reducedStateSize,reducedStateSize);
-
-//        for (size_t i = 0; i < reducedStateSize; i++)
-//            for (size_t j = 0; j < reducedStateSize; j++)
-//                parErrorVarProj(i,j) = errorVarProj(reducedStateIndex+i,j);
-
-//        EMatrixX covarianceMatrix(reducedStateSize, reducedStateSize);
-//        covarianceMatrix = parErrorVarProj * matUinv * parErrorVarProj.transpose();
-
-//        helper::WriteAccessor<Data <helper::vector<FilterType> > > redState = reducedState;
-//        helper::WriteAccessor<Data <helper::vector<FilterType> > > redVar = reducedVariance;
-//        helper::WriteAccessor<Data <helper::vector<FilterType> > > redCovar = reducedCovariance;
-
-//        redState.resize(reducedStateSize);
-//        redVar.resize(reducedStateSize);
-//        size_t numCovariances = (reducedStateSize*(reducedStateSize-1))/2;
-//        redCovar.resize(numCovariances);
-
-//        size_t gli = 0;
-//        for (size_t i = 0; i < reducedStateSize; i++) {
-//            redState[i] = state[reducedStateIndex+i];
-//            redVar[i] = covarianceMatrix(i,i);
-//            for (size_t j = i+1; j < reducedStateSize; j++) {
-//                redCovar[gli++] = covarianceMatrix(i,j);
-//            }
-//        }
-
-        /*char fileName[100];
-        sprintf(fileName, "outVar/parL_%03d.txt", this->stepNumber);
-        std::ofstream cvmFile;
-        cvmFile.open(fileName);
-        cvmFile << parErrorVarProj << std::endl;
-        cvmFile.close();
-
-        sprintf(fileName, "outVar/invU_%03d.txt", this->stepNumber);
-        cvmFile.open(fileName);
-        cvmFile << matUinv << std::endl;
-        cvmFile.close();
-
-        sprintf(fileName, "outVar/covar_%03d.txt", this->stepNumber);
-        cvmFile.open(fileName);
-        cvmFile << covarianceMatrix << std::endl;
-        cvmFile.close();*/
-
-        //TOC("== an5sx == ");
-        /*Type maxState = 0.0, minState = 1e10;
-        for (size_t i = stateSize - reducedStateSize; i < stateSize; i++) {
-            maxState = (state(i) > maxState) ? state(i) : maxState;
-            minState = (state(i) < minState) ? state(i) : minState;
-        }
-
-        asumEVec("############# final state", state);
-        std::cout << "Max = " << maxState << " min = " << minState << std::endl;*/
+        EMatrixX errorVar = masterStateWrapper->getStateErrorVariance();
+        state = state + errorVar*Innovation;
 
     }
 }
@@ -277,30 +123,6 @@ void UKFilter<FilterType>::init() {
     this->gnode->template get<StochasticStateWrapperBaseT<FilterType> >(&stateWrappers, this->getTags(), sofa::core::objectmodel::BaseContext::SearchDown);
     PRNS("found " << stateWrappers.size() << " state wrappers");
     masterStateWrapper=NULL;
-    size_t numSlaveWrappers = 0;
-    size_t numMasterWrappers = 0;
-    numThreads = 0;
-    for (size_t i = 0; i < stateWrappers.size(); i++) {
-        if (stateWrappers[i]->isSlave()) {
-            numSlaveWrappers++;
-            PRNS("found stochastic state slave wrapper: " << stateWrappers[i]->getName());
-        } else {
-            masterStateWrapper = stateWrappers[i];
-            numMasterWrappers++;
-            PRNS("found stochastic state master wrapper: " << masterStateWrapper->getName());
-        }
-    }
-
-    if (numMasterWrappers != 1) {
-        PRNE("Wrong number of master wrappers: " << numMasterWrappers);
-        return;
-    }
-
-    if (numThreads > 0) {
-        PRNS("number of slave wrappers: " << numThreads-1);
-           /// slaves + master
-    }
-    numThreads=numSlaveWrappers+numMasterWrappers;
 
     this->gnode->get(observationManager, core::objectmodel::BaseContext::SearchDown);
     if (observationManager) {
@@ -316,12 +138,8 @@ void UKFilter<FilterType>::bwdInit() {
 
     observationSize = this->observationManager->getObservationSize();
     stateSize = masterStateWrapper->getStateSize();
-    matV = masterStateWrapper->getStateErrorVariance();     //// Instead of using getStateErrorVarianceReduced, just used getStateErrorVariance
+    matV = masterStateWrapper->getStateErrorVariance();
     matVinv = matV.inverse();
-
-//    matU = masterStateWrapper->getStateErrorVarianceReduced();
-//    reducedStateSize = matU.cols();
-//    matUinv = matU.inverse();
 
     /// compute sigma points
     EMatrixX matVtrans;
@@ -351,19 +169,8 @@ void UKFilter<FilterType>::bwdInit() {
 
     matXi.resize(stateSize, sigmaPointsNum);
 
-    /// prepare structures for parallel computing
-    sigmaPoints2WrapperIDs.resize(sigmaPointsNum, 0);
-    wrapper2SigmaPointsIDs.resize(numThreads);    
-    for (size_t i = 0; i < sigmaPointsNum; i++) {
-        size_t threadID = i%(numThreads);
-        sigmaPoints2WrapperIDs[i] = threadID;
-        wrapper2SigmaPointsIDs[threadID].push_back(i);
-    }
-
     masterStateWrapper->writeState(double(0.0));
 
-    //std::cout << "SigmaWrapper: " << sigmaPoints2WrapperIDs << std::endl;
-    //std::cout << "WrapperSigma: " << wrapper2SigmaPointsIDs << std::endl;
 }
 
 template <class FilterType>
@@ -377,9 +184,7 @@ void UKFilter<FilterType>::initializeStep(const core::ExecParams* _params, const
 }
 
 template <class FilterType>
-void UKFilter<FilterType>::computeSimplexSigmaPoints(EMatrixX& sigmaMat) {  //// not sure if this needs to be modified for UKFilter implementation
-//    size_t p = reducedStateSize;
-//    size_t r = reducedStateSize + 1;
+void UKFilter<FilterType>::computeSimplexSigmaPoints(EMatrixX& sigmaMat) {
 
     size_t p = stateSize;
     size_t r = stateSize + 1;
@@ -411,17 +216,6 @@ void UKFilter<FilterType>::computeSimplexSigmaPoints(EMatrixX& sigmaMat) {  ////
     alphaConstant = true;
 }
 
-
-//template <class FilterType>
-//void UKFilter<FilterType>::init()
-//{
-//
-//}
-//
-//template <class FilterType>
-//void UKFilter<FilterType>::reinit()
-//{
-//}
 
 } // stochastic
 } // component

@@ -80,44 +80,6 @@ struct WorkerThreadData
     }
 };
 
-template <class FilterType>
-void* threadFunction(void* inArgs) {
-    char name[100];
-    std::ofstream fd;
-    WorkerThreadData<FilterType>* threadData = reinterpret_cast<WorkerThreadData<FilterType>* >(inArgs);
-    helper::vector<size_t>& sigIDs = *(threadData->sigmaIDs);
-    size_t id = threadData->threadID;
-    StochasticStateWrapperBaseT<FilterType>* wrapper = threadData->wrapper;
-
-    //const core::ExecParams* execParams = threadData->execParams;
-    //core::MechanicalParams* mechParams;
-    //if (wrapper->isSlave())
-        //mechParams = new core::MechanicalParams;
-        //mechParams->setThreadID(id);
-    //else
-    core::MechanicalParams* mechParams = new core::MechanicalParams;
-    //mechParams->setThreadID(0);
-
-    bool saveLog = threadData->saveLog;
-
-    if (saveLog) {
-        sprintf(name, "thread%02d.out", id);
-        fd.open(name);
-        fd << "Thread " << id << std::endl;
-        //fd << "Sigma points to process: " << sigIDs << std::endl;
-    }
-
-    Eigen::Matrix<FilterType, Eigen::Dynamic, Eigen::Dynamic>& xMat = *(threadData->stateMatrix);
-    Eigen::Matrix<FilterType, Eigen::Dynamic, 1> xCol(xMat.rows());
-    for (size_t i = 0; i < sigIDs.size(); i++) {
-        xCol = xMat.col(sigIDs[i]);
-        wrapper->applyOperator(xCol, mechParams);
-        xMat.col(sigIDs[i]) = xCol;
-    }
-    fd.close();
-    delete mechParams;
-}
-
 extern "C"{
     // product C= alphaA.B + betaC
    void dgemm_(char* TRANSA, char* TRANSB, const int* M,
@@ -129,6 +91,7 @@ extern "C"{
                double* alpha, double* A, const int* LDA, double* X,
                const int* INCX, double* beta, double* C, const int* INCY);
    }
+
 
 using namespace defaulttype;
 
@@ -160,7 +123,6 @@ protected:
     bool alphaConstant;
 
     EVectorX vecAlpha;
-    EMatrixX matU, matUinv;
     EMatrixX matItrans, matI;
     EMatrixX matDv;
     EMatrixX matXi;
@@ -171,25 +133,18 @@ protected:
     /// structures for parallel computing:
     helper::vector<size_t> sigmaPoints2WrapperIDs;
     helper::vector<helper::vector<size_t> > wrapper2SigmaPointsIDs;
-    size_t numThreads;
 
     /// functions
     void computeSimplexSigmaPoints(EMatrixX& sigmaMat);
-    void blasMultAdd(EMatrixX& _a, EMatrixX& _b, EMatrixX& _c, Type _alpha, Type _beta);
 
 public:
     Data<std::string> observationErrorVarianceType;
-    Data<bool> useBlasToMultiply;
-//    Data<helper::vector<FilterType> > reducedState;
-//    Data<helper::vector<FilterType> > reducedVariance;
-//    Data<helper::vector<FilterType> > reducedCovariance;
 
 
     void init();
     void bwdInit();
 
-    virtual void computePrediction();
-    virtual void computePerturbedStates(EVectorX &_meanState);
+    virtual void computePrediction(); // Compute perturbed state included in computeprediction
 
     virtual void computeCorrection();
 
