@@ -117,6 +117,7 @@ protected:
 
     /// vector sizes
     size_t observationSize, stateSize, reducedStateSize;
+    size_t numThreads;
 
     /// number of sigma points (according to the filter type)
     size_t sigmaPointsNum;

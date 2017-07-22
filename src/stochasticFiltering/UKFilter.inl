@@ -50,21 +50,23 @@ void UKFilter<FilterType>::computePrediction()
 {
     PRNS("Computing prediction, T= " << this->actualTime);
 
-
     EVectorX vecX = masterStateWrapper->getState();
-
     for (size_t i = 0; i < sigmaPointsNum; i++)
         matXi.col(i) = vecX;
-        matXi = matXi + matVinv * matI;     //Compute perturbed states
+        matXi = matXi + matVinv * matI;
+//        PRNS("DEBUG matXi: " << matXi);
+//        PRNS("DEBUG matI: " << matI);
+//        PRNS("DEBUG matVinv: " << matVinv);
+
 
     EVectorX xCol(stateSize);
     for (size_t i = 0; i < sigmaPointsNum; i++) {
         xCol = matXi.col(i);
-        stateWrappers[sigmaPoints2WrapperIDs[i]]->applyOperator(xCol, mechParams);
         matXi.col(i) = xCol;
     }
-    vecX = alpha * matXi.rowwise().sum();
 
+    vecX = alpha * matXi.rowwise().sum();
+//    PRNS("DEBUG vecX: " << vecX); /// Here's happening something wrong; my prediction doesn't follow my model
     masterStateWrapper->setState(vecX, this->mechParams);
     masterStateWrapper->writeState(this->getTime());
 }
@@ -86,7 +88,7 @@ void UKFilter<FilterType>::computeCorrection()
         for (size_t i = 0; i < sigmaPointsNum; i++) {
             vecXCol = matXi.col(i);
             vecZCol.setZero();
-            observationManager->getInnovation(this->actualTime, vecXCol, vecZCol);
+            observationManager->getInnovation(this->actualTime, vecXCol, vecZCol);  ///LOOK AT HERE
             vecZ = vecZ + alpha * vecZCol;
             matZItrans.row(i) = vecZCol;
         }
@@ -97,6 +99,7 @@ void UKFilter<FilterType>::computeCorrection()
         EMatrixX matWorkingPO(stateSize, observationSize), matTemp;
         if (observationErrorVarianceType.getValue() == "inverse") {
             matWorkingPO = matHLtrans * observationManager->getErrorVarianceInverse();
+//        PRNS("DEBUG matWorkingPO: " << matWorkingPO);
         } else {
             EMatrixX matR;
             matR = observationManager->getErrorVariance();
@@ -108,10 +111,14 @@ void UKFilter<FilterType>::computeCorrection()
 
         EVectorX Innovation(stateSize);
         Innovation = Type(-1.0) * matVinv*matWorkingPO*vecZ;
+       ;
 
         EVectorX state = masterStateWrapper->getState();
         EMatrixX errorVar = masterStateWrapper->getStateErrorVariance();
         state = state + errorVar*Innovation;
+//        PRNS("DEBUG state: " << state);
+//        PRNS("DEBUG errorVar: " << errorVar);
+//        PRNS("DEBUG Innovation: " << Innovation);
 
     }
 }
@@ -123,6 +130,30 @@ void UKFilter<FilterType>::init() {
     this->gnode->template get<StochasticStateWrapperBaseT<FilterType> >(&stateWrappers, this->getTags(), sofa::core::objectmodel::BaseContext::SearchDown);
     PRNS("found " << stateWrappers.size() << " state wrappers");
     masterStateWrapper=NULL;
+    size_t numSlaveWrappers = 0;
+    size_t numMasterWrappers = 0;
+    numThreads = 0;
+    for (size_t i = 0; i < stateWrappers.size(); i++) {
+        if (stateWrappers[i]->isSlave()) {
+            numSlaveWrappers++;
+            PRNS("found stochastic state slave wrapper: " << stateWrappers[i]->getName());
+        } else {
+            masterStateWrapper = stateWrappers[i];
+            numMasterWrappers++;
+            PRNS("found stochastic state master wrapper: " << masterStateWrapper->getName());
+        }
+    }
+
+    if (numMasterWrappers != 1) {
+        PRNE("Wrong number of master wrappers: " << numMasterWrappers);
+        return;
+    }
+
+    if (numThreads > 0) {
+        PRNS("number of slave wrappers: " << numThreads-1);
+           /// slaves + master
+    }
+    numThreads=numSlaveWrappers+numMasterWrappers;
 
     this->gnode->get(observationManager, core::objectmodel::BaseContext::SearchDown);
     if (observationManager) {
@@ -137,8 +168,9 @@ void UKFilter<FilterType>::bwdInit() {
     assert(masterStateWrapper);
 
     observationSize = this->observationManager->getObservationSize();
+    PRNS("DEBUG Observation size" << this->observationManager->getObservationSize());     /// DEBUG observations not found
     stateSize = masterStateWrapper->getStateSize();
-    matV = masterStateWrapper->getStateErrorVariance();
+    matV = masterStateWrapper->getStateErrorVarianceUKF();
     matVinv = matV.inverse();
 
     /// compute sigma points

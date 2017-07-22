@@ -156,6 +156,10 @@ public:
         return stateErrorVariance;
     }
 
+    virtual EMatrixX& getStateErrorVarianceUKF() {
+        return stateErrorVariance;
+    }
+
     /// for reduced-order filtering
     virtual void setStateErrorVarianceProjector(EMatrixX& _mat) {
         stateErrorVarianceProjector = _mat;
