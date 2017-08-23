@@ -46,7 +46,7 @@ template <class FilterType>
 UKFilter<FilterType>::~UKFilter() {}
 
 template <class FilterType>
-void UKFilter<FilterType>::computePerturbedStates(EVectorX& _meanState) {
+void UKFilter<FilterType>::propagatePerturbedStates(EVectorX & _meanState) {
 //    if (numThreads == 1) {
         EVectorX xCol(stateSize);
         for (size_t i = 0; i < sigmaPointsNum; i++) {
@@ -77,23 +77,24 @@ void UKFilter<FilterType>::computePrediction()
 {
     PRNS("Computing prediction, T= " << this->actualTime);
 
+    /// Computes background error variance Cholesky factorization.
     Eigen::LLT<EMatrixX> lltU(matP);
     matPsqrt = lltU.matrixL();
 
+    /// Computes X_{n + 1}^{(i)-} sigma points
     EVectorX vecX = masterStateWrapper->getState();
     for (size_t i = 0; i < sigmaPointsNum; i++) {
         matXi.col(i) = vecX + matPsqrt * matI.col(i);  ///maybe it is matI.row
     }
 
-    ///propagate perturbated stated;
-    /// matXi is replaced with these propagated values;
-    computePerturbedStates(vecX);
+    /// Propagate sigma points and compute X_{n+1}- predicted mean
+    propagatePerturbedStates(vecX);
 
+    /// Computes stateCovariance P_ = cov(X_{n + 1}^*, X_{n + 1}^*).
     EMatrixX C = matXi;
     for (size_t i = 0; i < sigmaPointsNum; i++){
         C.col(i) = C.col(i) - vecX;
     }
-
     for (size_t i = 0; i < sigmaPointsNum; i++){
         for (size_t j = 0; j < sigmaPointsNum; j++){
             EVectorX Ci = C.col(i);
@@ -114,9 +115,11 @@ void UKFilter<FilterType>::computeCorrection()
 
     PRNS("Computing correction, T= " << this->actualTime);   
 
+    /// Computes background error variance Cholesky factorization.
     Eigen::LLT<EMatrixX> lltU(matP);
     matPsqrt = lltU.matrixL();
 
+    /// Computes X_{n + 1}^{(i)-}
     EVectorX vecX = masterStateWrapper->getState();
     for (size_t i = 0; i < sigmaPointsNum; i++) {
         matXi.col(i) = vecX + matPsqrt * matI.col(i);  ///maybe it is matI.row
@@ -124,6 +127,7 @@ void UKFilter<FilterType>::computeCorrection()
 
     if (observationManager->hasObservation(this->actualTime)) {
 
+        /// Computes Z_{n + 1}^(i).
         EVectorX vecXCol;
         EVectorX vecZCol(observationSize), vecZ(observationSize);
         EMatrixX matZItrans(sigmaPointsNum, observationSize);
@@ -137,35 +141,61 @@ void UKFilter<FilterType>::computeCorrection()
             matZItrans.row(i) = vecZCol;
         }
 
-        EMatrixX matHLtrans(stateSize, observationSize);
-        matHLtrans = alpha*matItrans.transpose()*matZItrans;
+        /// Computes the predicted measurement Z_{n + 1}.
+        EVectorX Z_mean;
+        matZi = matZItrans.transpose();
+        Z_mean = alpha * matZi.rowwise().sum();
 
-        EMatrixX matWorkingPO(stateSize, observationSize), matTemp;
-        if (observationErrorVarianceType.getValue() == "inverse") {
-            matWorkingPO = matHLtrans * observationManager->getErrorVarianceInverse();
-//        PRNS("DEBUG matWorkingPO: " << matWorkingPO);
-        } else {
-            EMatrixX matR;
-            matR = observationManager->getErrorVariance();
-            matWorkingPO = matHLtrans * matR.inverse();
-        }        
-        matTemp = EMatrixX::Identity(matVinv.rows(), matVinv.cols()) + matWorkingPO * matHLtrans.transpose();
+        /// Computes X_{n+1}-.
+        EVectorX X_mean;
+        X_mean = alpha * matXi.rowwise().sum();
 
-        matVinv = matTemp.inverse();
+        /// Computes crosscovariance P_XZ = cov(X_{n + 1}^*, Z_{n + 1}^*).
+        EMatrixX Cz = matZi;
+        for (size_t i = 0; i < sigmaPointsNum; i++){
+            Cz.col(i) = Cz.col(i) - Z_mean;
+        }
+        EMatrixX Cx = matXi;
+        for (size_t i = 0; i < sigmaPointsNum; i++){
+            Cx.col(i) = Cx.col(i) -X_mean;
+        }
+        for (size_t i = 0; i < sigmaPointsNum; i++){
+            for (size_t j = 0; j < sigmaPointsNum; j++){
+                EVectorX Ci = Cx.col(i);
+                EVectorX Cj = Cz.col(j);
+                matPxz(i,j) = Ci.dot(Cj);
+            }
+        }
 
+        /// Computes P_Z = cov(Z_{n + 1}^*, Z_{n + 1}^*).
+        EMatrixX C = matZi;
+        for (size_t i = 0; i < sigmaPointsNum; i++){
+            C.col(i) = C.col(i) - Z_mean;
+        }
+        for (size_t i = 0; i < sigmaPointsNum; i++){
+            for (size_t j = 0; j < sigmaPointsNum; j++){
+                EVectorX Ci = C.col(i);
+                EVectorX Cj = C.col(j);
+                matPzz(i,j) = Ci.dot(Cj);
+            }
+            matPzz.col(i) = matW.col(i) + matPzz.col(i);
+        }
 
+        ///  Computes the Kalman gain K_{n + 1}.
+        EMatrixX matK(stateSize, observationSize);
+        matK= matPxz * matPzz.inverse();
 
-
-
-        EVectorX Innovation(stateSize);
-        Innovation = Type(-1.0) * matVinv*matWorkingPO*vecZ;
-       ;
-
+        /// Computes X_{n + 1}^+.
         EVectorX state = masterStateWrapper->getState();
-        EMatrixX errorVar = masterStateWrapper->getStateErrorVariance();
-        state = state + errorVar*Innovation;
+        EVectorX Innovation(stateSize);
+        Innovation = Type(-1.0) *vecZ;
 
+        state = state + matK*Innovation;
 
+        ///  Computes P_{n + 1}^+.
+        matP = matP - matK*matPxz.transpose();
+
+        masterStateWrapper->setState(state, this->mechParams);
     }
 }
 
@@ -217,34 +247,12 @@ void UKFilter<FilterType>::bwdInit() {
     PRNS("DEBUG Observation size" << this->observationManager->getObservationSize());     /// DEBUG observations not found
     stateSize = masterStateWrapper->getStateSize();
     matP = masterStateWrapper->getStateErrorVarianceUKF();
-
+    matW = observationManager->getErrorVariance();
 
     /// compute sigma points
-//    EMatrixX matVtrans;
+
     computeSimplexSigmaPoints(matI);
     sigmaPointsNum = matI.rows();
-
-//    PRNS("State size: " << stateSize);
-//    PRNS("Number of sigma points: " << sigmaPointsNum);
-//    PRNS("Observation size: " << observationSize);
-
-//    EMatrixX matPalphaV(stateSize, stateSize);
-//    matItrans.resize(sigmaPointsNum, stateSize);
-
-//    if (alphaConstant) {
-//        alpha=vecAlpha(0);
-//        matPalphaV = alpha*matVtrans.transpose()*matVtrans;
-//        matPalphaV = matPalphaV.inverse();
-//        matItrans = matVtrans*matPalphaV.transpose();
-//    } else {
-//        PRNE(" simplex method implemented only for constant alpha");
-//        return;
-//    }
-//    matI = matItrans.transpose();
-
-//    matDv.resize(sigmaPointsNum, sigmaPointsNum);
-//    matDv = alpha*alpha*matItrans*matI;
-
     matXi.resize(stateSize, sigmaPointsNum);
 
     masterStateWrapper->writeState(double(0.0));
@@ -289,9 +297,9 @@ void UKFilter<FilterType>::computeSimplexSigmaPoints(EMatrixX& sigmaMat) {
     for (size_t i = 0; i < r; i++)
         sigmaMat.row(i) = workingMatrix.col(i) * sqrt_p;
 
-//    vecAlpha.resize(r);
-//    vecAlpha.fill(Type(1.0)/Type(r));
-//    alphaConstant = true;
+    vecAlpha.resize(r);
+    vecAlpha.fill(Type(1.0)/Type(r));
+    alphaConstant = true;
 }
 
 

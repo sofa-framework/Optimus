@@ -126,8 +126,8 @@ protected:
     EVectorX vecAlpha;
     EMatrixX matItrans, matI;
     EMatrixX matDv;
-    EMatrixX matXi;
-    EMatrixX matP, matPsqrt, matVinv;
+    EMatrixX matXi, matZi;
+    EMatrixX matP, matPsqrt, matPxz, matPzz, matVinv, matW;
 
     Type alpha;
 
@@ -146,7 +146,7 @@ public:
     void bwdInit();
 
     virtual void computePrediction(); // Compute perturbed state included in computeprediction
-    virtual void computePerturbedStates(EVectorX &_meanState);
+    virtual void propagatePerturbedStates(EVectorX &_meanState);
 
     virtual void computeCorrection();
 
