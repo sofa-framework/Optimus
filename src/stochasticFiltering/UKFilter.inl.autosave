@@ -89,11 +89,11 @@ void UKFilter<FilterType>::computePrediction()
     /// matXi is replaced with these propagated values;
     computePerturbedStates(vecX);
 
+    /// COMPUTE COVARIANCE MATRIX 
     EMatrixX C = matXi;
     for (size_t i = 0; i < sigmaPointsNum; i++){
         C.col(i) = C.col(i) - vecX;
     }
-
     for (size_t i = 0; i < sigmaPointsNum; i++){
         for (size_t j = 0; j < sigmaPointsNum; j++){
             EVectorX Ci = C.col(i);

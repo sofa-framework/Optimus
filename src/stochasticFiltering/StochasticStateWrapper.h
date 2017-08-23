@@ -131,7 +131,7 @@ public:
             this->stateErrorVariance.setZero();
 
             for (size_t pi = 0; pi < this->stateSize; pi++)
-                this->stateErrorVariance(pi,pi) = Type(Type(1.0) / (m_stdev.getValue()* m_stdev.getValue()));
+                this->stateErrorVariance(pi,pi) = Type((m_stdev.getValue()* m_stdev.getValue()));
         }
         return this->stateErrorVariance;
     }
