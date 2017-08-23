@@ -47,7 +47,7 @@ UKFilter<FilterType>::~UKFilter() {}
 
 template <class FilterType>
 void UKFilter<FilterType>::propagatePerturbedStates(EVectorX & _meanState) {
-//    if (numThreads == 1) {
+
         EVectorX xCol(stateSize);
         for (size_t i = 0; i < sigmaPointsNum; i++) {
             xCol = matXi.col(i);
@@ -55,22 +55,7 @@ void UKFilter<FilterType>::propagatePerturbedStates(EVectorX & _meanState) {
             matXi.col(i) = xCol;
         }
         _meanState = alpha * matXi.rowwise().sum();
-  /*  } else {
-        pthread_t* tid = new pthread_t[numThreads];
-        WorkerThreadData<FilterType>* threadData = new WorkerThreadData<FilterType>[numThreads];
-        for (size_t i = 0; i < numThreads; i++) {
-            threadData[i].set(i, stateWrappers[i], &wrapper2SigmaPointsIDs[i], &matXi, this->execParams, 0);
-            PRNS("Creating thread " << i);
-            pthread_create(&tid[i], NULL, threadFunction<FilterType>, (void*)&threadData[i]);
-        }
 
-        for (size_t i = 0; i < numThreads; i++) {
-            int s = pthread_join(tid[i], NULL);
-            if (s != 0)
-                PRNE("Thread " << i << " problem: " << s);
-        }
-        _meanState = alpha * matXi.rowwise().sum();
-    }*/
 }
 template <class FilterType>
 void UKFilter<FilterType>::computePrediction()
@@ -80,16 +65,19 @@ void UKFilter<FilterType>::computePrediction()
     /// Computes background error variance Cholesky factorization.
     Eigen::LLT<EMatrixX> lltU(matP);
     matPsqrt = lltU.matrixL();
+//    PRNS("Cholesky State Variance = \n " << matPsqrt);
 
     /// Computes X_{n + 1}^{(i)-} sigma points
     EVectorX vecX = masterStateWrapper->getState();
+//    PRNS("Initial sigma points = \n " << matXi);
     for (size_t i = 0; i < sigmaPointsNum; i++) {
-        matXi.col(i) = vecX + matPsqrt * matI.col(i);  ///maybe it is matI.row
+        matXi.col(i) = vecX + matPsqrt * matI.row(i);
     }
 
     /// Propagate sigma points and compute X_{n+1}- predicted mean
     propagatePerturbedStates(vecX);
-
+//    PRNS("Propagated sigma points = \n" << matXi);
+//    PRNS("Predicted Mean = \n " << vecX);
     /// Computes stateCovariance P_ = cov(X_{n + 1}^*, X_{n + 1}^*).
     EMatrixX C = matXi;
     for (size_t i = 0; i < sigmaPointsNum; i++){
@@ -102,18 +90,18 @@ void UKFilter<FilterType>::computePrediction()
             matP(i,j)=Ci.dot(Cj);
         }
     }
+//    PRNS("Updated State Variance = \n " << matP);
 
 
     masterStateWrapper->setState(vecX, this->mechParams);
     masterStateWrapper->writeState(this->getTime());
 }
 
-
 template <class FilterType>
 void UKFilter<FilterType>::computeCorrection()
 {
 
-    PRNS("Computing correction, T= " << this->actualTime);   
+    PRNS("Computing correction, T= " << this->actualTime);
 
     /// Computes background error variance Cholesky factorization.
     Eigen::LLT<EMatrixX> lltU(matP);
@@ -122,7 +110,7 @@ void UKFilter<FilterType>::computeCorrection()
     /// Computes X_{n + 1}^{(i)-}
     EVectorX vecX = masterStateWrapper->getState();
     for (size_t i = 0; i < sigmaPointsNum; i++) {
-        matXi.col(i) = vecX + matPsqrt * matI.col(i);  ///maybe it is matI.row
+        matXi.col(i) = vecX + matPsqrt * matI.row(i);
     }
 
     if (observationManager->hasObservation(this->actualTime)) {
@@ -244,13 +232,15 @@ void UKFilter<FilterType>::bwdInit() {
     assert(masterStateWrapper);
 
     observationSize = this->observationManager->getObservationSize();
-    PRNS("DEBUG Observation size" << this->observationManager->getObservationSize());     /// DEBUG observations not found
+    if (observationSize == 0) {
+        PRNE("No observations available, cannot allocate the structures!");
+    }
     stateSize = masterStateWrapper->getStateSize();
+
     matP = masterStateWrapper->getStateErrorVarianceUKF();
     matW = observationManager->getErrorVariance();
 
     /// compute sigma points
-
     computeSimplexSigmaPoints(matI);
     sigmaPointsNum = matI.rows();
     matXi.resize(stateSize, sigmaPointsNum);
