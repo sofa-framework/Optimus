@@ -25,6 +25,8 @@
 #ifndef OPTIMPARAMS_H_
 #define OPTIMPARAMS_H_
 
+#include <fstream>
+
 #include "initOptimusPlugin.h"
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/RigidTypes.h>

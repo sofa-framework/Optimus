@@ -27,6 +27,7 @@
 
 #include <sofa/core/objectmodel/BaseObject.h>
 #include <sofa/simulation/Node.h>
+#include <fstream>
 
 #include "initOptimusPlugin.h"
 
