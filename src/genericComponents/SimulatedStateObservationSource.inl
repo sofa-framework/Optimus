@@ -185,7 +185,7 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _
         return;
     }
 
-    //std::cout << "NObs = " << nObservations << " |tbl| = " << observationTable.size() << std::endl;
+    std::cout << "Nunmber of observations: " << nObservations << " |tbl| = " << observationTable.size() << std::endl;
 
     if (nObservations > 0) {
         sout << "Valid observations available: #observations: " << nObservations << " #particles: " << nParticles << std::endl;
