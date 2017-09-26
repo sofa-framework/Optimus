@@ -93,7 +93,8 @@ protected:
 
 public:    
     Data<bool> estimatePosition;
-    Data<bool> estimateVelocity;    
+    Data<bool> estimateVelocity;
+    Data< double> m_stdev;          /// standard deviation
     void init();
     void bwdInit();
 
@@ -120,6 +121,17 @@ public:
                 for (size_t pi = 0; pi < this->vecOptimParams[opi]->size(); pi++, vpi++)
                     this->stateErrorVariance(vpi,vpi) = Type(Type(1.0) / (stdev[pi] * stdev[pi]));
             }
+        }
+        return this->stateErrorVariance;
+    }
+
+    virtual EMatrixX& getStateErrorVarianceUKF() {
+        if (this->stateErrorVariance.rows() == 0) {
+            this->stateErrorVariance.resize(this->stateSize, this->stateSize);
+            this->stateErrorVariance.setZero();
+
+            for (size_t pi = 0; pi < this->stateSize; pi++)
+                this->stateErrorVariance(pi,pi) = Type((m_stdev.getValue()* m_stdev.getValue()));
         }
         return this->stateErrorVariance;
     }

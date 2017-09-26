@@ -46,38 +46,76 @@ template <class FilterType>
 UKFilter<FilterType>::~UKFilter() {}
 
 template <class FilterType>
+void UKFilter<FilterType>::propagatePerturbedStates(EVectorX & _meanState) {
+
+        EVectorX xCol(stateSize);
+        for (size_t i = 0; i < sigmaPointsNum; i++) {
+            xCol = matXi.col(i);
+            stateWrappers[sigmaPoints2WrapperIDs[i]]->applyOperator(xCol, mechParams);
+            matXi.col(i) = xCol;
+        }
+        _meanState = alpha * matXi.rowwise().sum();
+
+}
+template <class FilterType>
 void UKFilter<FilterType>::computePrediction()
 {
     PRNS("Computing prediction, T= " << this->actualTime);
 
+    /// Computes background error variance Cholesky factorization.
+    Eigen::LLT<EMatrixX> lltU(matP);
+    matPsqrt = lltU.matrixL();
+//    PRNS("Cholesky State Variance = \n " << matPsqrt);
 
+    /// Computes X_{n + 1}^{(i)-} sigma points
     EVectorX vecX = masterStateWrapper->getState();
-
-    for (size_t i = 0; i < sigmaPointsNum; i++)
-        matXi.col(i) = vecX;
-        matXi = matXi + matVinv * matI;     //Compute perturbed states
-
-    EVectorX xCol(stateSize);
+//    PRNS("Initial sigma points = \n " << matXi);
     for (size_t i = 0; i < sigmaPointsNum; i++) {
-        xCol = matXi.col(i);
-        stateWrappers[sigmaPoints2WrapperIDs[i]]->applyOperator(xCol, mechParams);
-        matXi.col(i) = xCol;
+        matXi.col(i) = vecX + matPsqrt * matI.row(i);
     }
-    vecX = alpha * matXi.rowwise().sum();
+
+    /// Propagate sigma points and compute X_{n+1}- predicted mean
+    propagatePerturbedStates(vecX);
+//    PRNS("Propagated sigma points = \n" << matXi);
+//    PRNS("Predicted Mean = \n " << vecX);
+    /// Computes stateCovariance P_ = cov(X_{n + 1}^*, X_{n + 1}^*).
+    EMatrixX C = matXi;
+    for (size_t i = 0; i < sigmaPointsNum; i++){
+        C.col(i) = C.col(i) - vecX;
+    }
+    for (size_t i = 0; i < sigmaPointsNum; i++){
+        for (size_t j = 0; j < sigmaPointsNum; j++){
+            EVectorX Ci = C.col(i);
+            EVectorX Cj = C.col(j);
+            matP(i,j)=Ci.dot(Cj);
+        }
+    }
+//    PRNS("Updated State Variance = \n " << matP);
+
 
     masterStateWrapper->setState(vecX, this->mechParams);
     masterStateWrapper->writeState(this->getTime());
 }
 
-
 template <class FilterType>
 void UKFilter<FilterType>::computeCorrection()
 {
 
-    PRNS("Computing correction, T= " << this->actualTime);   
+    PRNS("Computing correction, T= " << this->actualTime);
+
+    /// Computes background error variance Cholesky factorization.
+    Eigen::LLT<EMatrixX> lltU(matP);
+    matPsqrt = lltU.matrixL();
+
+    /// Computes X_{n + 1}^{(i)-}
+    EVectorX vecX = masterStateWrapper->getState();
+    for (size_t i = 0; i < sigmaPointsNum; i++) {
+        matXi.col(i) = vecX + matPsqrt * matI.row(i);
+    }
 
     if (observationManager->hasObservation(this->actualTime)) {
-        TIC
+
+        /// Computes Z_{n + 1}^(i).
         EVectorX vecXCol;
         EVectorX vecZCol(observationSize), vecZ(observationSize);
         EMatrixX matZItrans(sigmaPointsNum, observationSize);
@@ -91,28 +129,61 @@ void UKFilter<FilterType>::computeCorrection()
             matZItrans.row(i) = vecZCol;
         }
 
-        EMatrixX matHLtrans(stateSize, observationSize);
-        matHLtrans = alpha*matItrans.transpose()*matZItrans;
+        /// Computes the predicted measurement Z_{n + 1}.
+        EVectorX Z_mean;
+        matZi = matZItrans.transpose();
+        Z_mean = alpha * matZi.rowwise().sum();
 
-        EMatrixX matWorkingPO(stateSize, observationSize), matTemp;
-        if (observationErrorVarianceType.getValue() == "inverse") {
-            matWorkingPO = matHLtrans * observationManager->getErrorVarianceInverse();
-        } else {
-            EMatrixX matR;
-            matR = observationManager->getErrorVariance();
-            matWorkingPO = matHLtrans * matR.inverse();
-        }        
-        matTemp = EMatrixX::Identity(matVinv.rows(), matVinv.cols()) + matWorkingPO * matHLtrans.transpose();
+        /// Computes X_{n+1}-.
+        EVectorX X_mean;
+        X_mean = alpha * matXi.rowwise().sum();
 
-        matVinv = matTemp.inverse();
+        /// Computes crosscovariance P_XZ = cov(X_{n + 1}^*, Z_{n + 1}^*).
+        EMatrixX Cz = matZi;
+        for (size_t i = 0; i < sigmaPointsNum; i++){
+            Cz.col(i) = Cz.col(i) - Z_mean;
+        }
+        EMatrixX Cx = matXi;
+        for (size_t i = 0; i < sigmaPointsNum; i++){
+            Cx.col(i) = Cx.col(i) -X_mean;
+        }
+        for (size_t i = 0; i < sigmaPointsNum; i++){
+            for (size_t j = 0; j < sigmaPointsNum; j++){
+                EVectorX Ci = Cx.col(i);
+                EVectorX Cj = Cz.col(j);
+                matPxz(i,j) = Ci.dot(Cj);
+            }
+        }
 
-        EVectorX Innovation(stateSize);
-        Innovation = Type(-1.0) * matVinv*matWorkingPO*vecZ;
+        /// Computes P_Z = cov(Z_{n + 1}^*, Z_{n + 1}^*).
+        EMatrixX C = matZi;
+        for (size_t i = 0; i < sigmaPointsNum; i++){
+            C.col(i) = C.col(i) - Z_mean;
+        }
+        for (size_t i = 0; i < sigmaPointsNum; i++){
+            for (size_t j = 0; j < sigmaPointsNum; j++){
+                EVectorX Ci = C.col(i);
+                EVectorX Cj = C.col(j);
+                matPzz(i,j) = Ci.dot(Cj);
+            }
+            matPzz.col(i) = matW.col(i) + matPzz.col(i);
+        }
 
+        ///  Computes the Kalman gain K_{n + 1}.
+        EMatrixX matK(stateSize, observationSize);
+        matK= matPxz * matPzz.inverse();
+
+        /// Computes X_{n + 1}^+.
         EVectorX state = masterStateWrapper->getState();
-        EMatrixX errorVar = masterStateWrapper->getStateErrorVariance();
-        state = state + errorVar*Innovation;
+        EVectorX Innovation(stateSize);
+        Innovation = Type(-1.0) *vecZ;
 
+        state = state + matK*Innovation;
+
+        ///  Computes P_{n + 1}^+.
+        matP = matP - matK*matPxz.transpose();
+
+        masterStateWrapper->setState(state, this->mechParams);
     }
 }
 
@@ -123,6 +194,30 @@ void UKFilter<FilterType>::init() {
     this->gnode->template get<StochasticStateWrapperBaseT<FilterType> >(&stateWrappers, this->getTags(), sofa::core::objectmodel::BaseContext::SearchDown);
     PRNS("found " << stateWrappers.size() << " state wrappers");
     masterStateWrapper=NULL;
+    size_t numSlaveWrappers = 0;
+    size_t numMasterWrappers = 0;
+    numThreads = 0;
+    for (size_t i = 0; i < stateWrappers.size(); i++) {
+        if (stateWrappers[i]->isSlave()) {
+            numSlaveWrappers++;
+            PRNS("found stochastic state slave wrapper: " << stateWrappers[i]->getName());
+        } else {
+            masterStateWrapper = stateWrappers[i];
+            numMasterWrappers++;
+            PRNS("found stochastic state master wrapper: " << masterStateWrapper->getName());
+        }
+    }
+
+    if (numMasterWrappers != 1) {
+        PRNE("Wrong number of master wrappers: " << numMasterWrappers);
+        return;
+    }
+
+    if (numThreads > 0) {
+        PRNS("number of slave wrappers: " << numThreads-1);
+           /// slaves + master
+    }
+    numThreads=numSlaveWrappers+numMasterWrappers;
 
     this->gnode->get(observationManager, core::objectmodel::BaseContext::SearchDown);
     if (observationManager) {
@@ -137,36 +232,17 @@ void UKFilter<FilterType>::bwdInit() {
     assert(masterStateWrapper);
 
     observationSize = this->observationManager->getObservationSize();
+    if (observationSize == 0) {
+        PRNE("No observations available, cannot allocate the structures!");
+    }
     stateSize = masterStateWrapper->getStateSize();
-    matV = masterStateWrapper->getStateErrorVariance();
-    matVinv = matV.inverse();
+
+    matP = masterStateWrapper->getStateErrorVarianceUKF();
+    matW = observationManager->getErrorVariance();
 
     /// compute sigma points
-    EMatrixX matVtrans;
-    computeSimplexSigmaPoints(matVtrans);
-    sigmaPointsNum = matVtrans.rows();
-
-    PRNS("State size: " << stateSize);
-    PRNS("Number of sigma points: " << sigmaPointsNum);
-    PRNS("Observation size: " << observationSize);
-
-    EMatrixX matPalphaV(stateSize, stateSize);
-    matItrans.resize(sigmaPointsNum, stateSize);
-
-    if (alphaConstant) {
-        alpha=vecAlpha(0);
-        matPalphaV = alpha*matVtrans.transpose()*matVtrans;
-        matPalphaV = matPalphaV.inverse();
-        matItrans = matVtrans*matPalphaV.transpose();
-    } else {
-        PRNE(" simplex method implemented only for constant alpha");
-        return;
-    }
-    matI = matItrans.transpose();
-
-    matDv.resize(sigmaPointsNum, sigmaPointsNum);
-    matDv = alpha*alpha*matItrans*matI;
-
+    computeSimplexSigmaPoints(matI);
+    sigmaPointsNum = matI.rows();
     matXi.resize(stateSize, sigmaPointsNum);
 
     masterStateWrapper->writeState(double(0.0));

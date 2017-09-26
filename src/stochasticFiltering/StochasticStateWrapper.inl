@@ -69,7 +69,9 @@ template <class DataTypes, class FilterType>
 StochasticStateWrapper<DataTypes, FilterType>::StochasticStateWrapper()
     :Inherit()
     , estimatePosition( initData(&estimatePosition, true, "estimatePosition", "estimate the position (e.g., if initial conditions with uncertainty") )
-    , estimateVelocity( initData(&estimateVelocity, false, "estimateVelocity", "estimate the velocity (e.g., if initial conditions with uncertainty") )    
+    , estimateVelocity( initData(&estimateVelocity, false, "estimateVelocity", "estimate the velocity (e.g., if initial conditions with uncertainty") )
+    , m_stdev( initData(&m_stdev, "stdev", "standard variation") )
+
 {    
 }
 

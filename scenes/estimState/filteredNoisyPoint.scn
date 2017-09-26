@@ -9,12 +9,12 @@
 	<UKFilter name="UKF" verbose="1"/>
 
 	<Node name="model"> 
-		<StochasticStateWrapper name="StateWrapper" verbose="1" estimatePosition="1" estimateVelocity="1"/>
-		<OptimParams name="optimParams" stdev="0.002"/>
+		<StochasticStateWrapper name="StateWrapper" verbose="1" estimatePosition="1" estimateVelocity="1" stdev="0.002"/>
+		<OptimParams name="optimParams" />
 		<EulerImplicitSolver rayleighMass="0.1" rayleighStiffness="0.1" />
 		<CGLinearSolver/>		
-		<MechanicalObject template="Vec3d" name="MO" position="0 0 0" showObject="0"/>		
-		<Sphere radius="0.001" color="1 0 0 1"/>					
+		<MechanicalObject template="Vec3d" name="MO" position="0 0.001 0" velocity ="0.002 0 0" showObject="0"/>		
+		<Sphere radius="0.001" color="0 1 0 1"/>					
 
 		<Node name="obsNode" activated="1">        
 		<MechanicalObject position="0 0 0"/>
@@ -31,7 +31,7 @@
 <!--	<Node name="NoisyData"> 
 		<MechanicalObject template="Vec3d" name="MO" position="0 0 0" showObject="0"/>		
 		<ReadState filename="WriteStateObservations" />
-		<Sphere radius="0.11" color="1 0 0 1"/>		
+		<Sphere radius="0.0015" color="1 0 0 1"/>		
 	</Node>-->
 
 </Node>			

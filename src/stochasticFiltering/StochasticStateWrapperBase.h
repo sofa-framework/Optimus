@@ -27,6 +27,7 @@
 
 #include <sofa/core/objectmodel/BaseObject.h>
 #include <sofa/simulation/Node.h>
+#include <fstream>
 
 #include "initOptimusPlugin.h"
 
@@ -153,6 +154,10 @@ public:
     }
 
     virtual EMatrixX& getStateErrorVariance() {
+        return stateErrorVariance;
+    }
+
+    virtual EMatrixX& getStateErrorVarianceUKF() {
         return stateErrorVariance;
     }
 

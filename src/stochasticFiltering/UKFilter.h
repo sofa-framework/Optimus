@@ -117,6 +117,7 @@ protected:
 
     /// vector sizes
     size_t observationSize, stateSize, reducedStateSize;
+    size_t numThreads;
 
     /// number of sigma points (according to the filter type)
     size_t sigmaPointsNum;
@@ -125,8 +126,8 @@ protected:
     EVectorX vecAlpha;
     EMatrixX matItrans, matI;
     EMatrixX matDv;
-    EMatrixX matXi;
-    EMatrixX matV, matVinv;
+    EMatrixX matXi, matZi;
+    EMatrixX matP, matPsqrt, matPxz, matPzz, matVinv, matW;
 
     Type alpha;
 
@@ -145,6 +146,7 @@ public:
     void bwdInit();
 
     virtual void computePrediction(); // Compute perturbed state included in computeprediction
+    virtual void propagatePerturbedStates(EVectorX &_meanState);
 
     virtual void computeCorrection();
 

@@ -29,7 +29,8 @@
 		<!-- <SparseLDLSolver name="warpingsolver"/> -->
 		
 		<MechanicalObject template="Vec3d" name="MO" position="@../source/NoiseEngine.outputPositions" showObject="0"/>		
-		<Monitor name="observations" ExportPositions="1"  indices="0" printLog="true" />
+<!-- 		<Monitor name="observations" ExportPositions="1"  indices="0" printLog="true" /> -->
+<!-- 		<WriteState filename ="WriteStateObservations"/> -->
 		<Sphere radius="0.11" color="0 0 1 1"/>		
 	</Node>
 </Node>
