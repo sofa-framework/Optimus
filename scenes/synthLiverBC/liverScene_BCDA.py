@@ -111,16 +111,16 @@ class liverScene_BCDA(Sofa.PythonScriptController):
         node.createObject('TetrahedronSetTopologyContainer', name="Container", src="@/vloader", tags=" ")
         node.createObject('TetrahedronSetTopologyModifier', name="Modifier")        
         node.createObject('MechanicalObject', name="dofs")
-        node.createObject('UniformMass', totalMass="1.0")
+        node.createObject('UniformMass', totalMass="1.8")
         node.createObject('TetrahedronFEMForceField', name='FEM', listening="true", ParameterSet=self.materialParams)
         node.createObject('ExtendedRestShapeSpringForceField', name='Springs', stiffness='@springStiffness.value', showIndicesScale='0', springThickness="3", listening="1", updateStiffness="1", printLog="0", external_rest_shape="../Bound/mstate", points='418 496 107 190 357 470 467 441 447 429 378 351 331 403 494 497 495 488 489 283 286 352 414 397 339 481 462 428 433 471 482 483 469 445 452 474', external_points='0 1 2 3 4 5 6')
-        node.createObject('RestShapeSpringsForceField', name='Springs1', stiffness='5.0', angularStiffness='1', external_rest_shape="@Bound1", points='246 297 370 413',  external_points='0 1 2 3')
+        node.createObject('RestShapeSpringsForceField', name='Springs1', stiffness='5000', angularStiffness='1', external_rest_shape="@Bound1", points='246 297 370 413',  external_points='0 1 2 3')
         node.createObject('ColorMap',colorScheme="Blue to Red")
 
         visualNode = node.createChild('ModifiedVisual')
         visualNode.createObject('TriangleSetTopologyContainer', src="@/devloader", tags=" ")
-        visualNode.createObject('MechanicalObject', name='dofs', template='Vec3d', showObject='true', translation='150.0 280.0 350.0')
-        self.toolSprings=visualNode.createObject('ExtendedRestShapeSpringForceField', name="toolSpring", stiffness="15.0", external_rest_shape="../externalImpactSimu/MO", springThickness="1", listening="1", updateStiffness="1", springColor="0 1 0 1", startTimeSpringOn="0", numStepsSpringOn="10000")
+        visualNode.createObject('MechanicalObject', name='dofs', template='Vec3d', showObject='true', translation='0.15 0.28 0.35')
+        self.toolSprings=visualNode.createObject('ExtendedRestShapeSpringForceField', name="toolSpring", stiffness="15000", external_rest_shape="../externalImpactSimu/MO", springThickness="1", listening="1", updateStiffness="1", springColor="0 1 0 1", startTimeSpringOn="0", numStepsSpringOn="10000")
         visualNode.createObject('BarycentricMapping')
 
         boxNode = node.createChild('Bound')
@@ -167,7 +167,7 @@ class liverScene_BCDA(Sofa.PythonScriptController):
 
         obsNode = node.createChild('obsNode')
         obsNode.createObject('MechanicalObject', name='MO', src="@/obsloader")                
-        obsNode.createObject('Sphere', color='0.0 0.5 0.0 1', radius="0.0014", template='Vec3d')
+        obsNode.createObject('Sphere', color='0.0 0.5 0.0 1', radius="0.005", template='Vec3d')
 
         obsNode.createObject('BarycentricMapping')                   
         obsNode.createObject('MappedStateObservationManager', name="MOBS", observationStdev=self.obsInitSD, listening="1", stateWrapper="@../StateWrapper",doNotMapObservations="1",verbose="1")

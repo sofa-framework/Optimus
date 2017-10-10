@@ -34,7 +34,7 @@
         <!--        <SparsePARDISOSolver name="precond" symmetric="1" exportDataToDir="" iterativeSolverNumbering="1" /> -->
         <MeshObjLoader name="devloader" filename="data/sphere.obj" />
         <TriangleSetTopologyContainer name="Container" src="@devloader" />  
-        <MechanicalObject template="Vec3d" name="state" showObject="true" translation="180.0 180.0 280.0" />
+        <MechanicalObject template="Vec3d" name="state" showObject="true" translation="0.18 0.18 0.28" />
         <UniformMass name="mass" mass="0.005" />
         <FixedConstraint name="FixedConstraint" fixAll="true" />
     </Node>
@@ -54,10 +54,10 @@
         <MechanicalObject name="dofs" />
         <ShapeMarkersGenerator name="markersGen" minimumDistance="30" />
         
-        <UniformMass totalmass="1.0" />
-        <TetrahedronFEMForceField name="FEM" listening="true" youngModulus="1.0" poissonRatio="0.4"/>
-        <RestShapeSpringsForceField name="Springs" stiffness="2.0" angularStiffness="1" external_rest_shape="@Bound" points="418 496 107 190 357 470 467" external_points="0 1 2 3 4 5 6" />
-        <RestShapeSpringsForceField name="Springs1" stiffness="5.0" angularStiffness="1" external_rest_shape="@Bound1" points="246 297 370 413" external_points="0 1 2 3" />
+        <UniformMass totalmass="1.8" />
+        <TetrahedronFEMForceField name="FEM" listening="true" youngModulus="2700" poissonRatio="0.4"/>
+        <RestShapeSpringsForceField name="Springs" stiffness="2000" angularStiffness="1" external_rest_shape="@Bound" points="418 496 107 190 357 470 467" external_points="0 1 2 3 4 5 6" />
+        <RestShapeSpringsForceField name="Springs1" stiffness="5000" angularStiffness="1" external_rest_shape="@Bound1" points="246 297 370 413" external_points="0 1 2 3" />
 
         <VTKExporter position="@dofs.position" edges="0" tetras="1" listening="1" XMLformat="0" exportAtBegin="1" exportAtEnd="0" exportEveryNumberOfSteps="0" filename="observations/object.vtk" />
 
@@ -68,9 +68,9 @@
         <Node name="observations">
             <MechanicalObject name="mechanicalObject" position="@markersGen.markersPositions" template="Vec3d" />
             <BarycentricMapping />
-            <Sphere color="0.0 0.5 0.0 1" radius="1.4" template='Vec3d' />
+            <Sphere color="0.0 0.5 0.0 1" radius="0.005" template='Vec3d' />
 	    <VTKExporter position="@mechanicalObject.position" edges="0" listening="0" XMLformat="0" exportAtBegin="1" exportEveryNumberOfSteps="0" filename="observations/observations.vtk" />
-            <BoxROI name="observeBounds" box="50.0 80.0 200.0 300.0 390.0 540.0" />
+            <BoxROI name="observeBounds" box="0.05 0.08 0.2 0.3 0.39 0.54" />
             <Monitor name="observationMonitor" showPositions="1" indices="@observeBounds.indices" ExportPositions="1" ExportVelocities="0" ExportForces="0" fileName="observations/observations" />
         </Node>
 
@@ -103,11 +103,11 @@
         <Node name="ModifiedVisual">
             <MeshObjLoader name="visloader" filename="data/sphere.obj" />
             <TriangleSetTopologyContainer name="Container" src="@visloader" />  
-            <MechanicalObject template="Vec3d" showObject="true" name="dofs" translation="150.0 280.0 350.0" />
+            <MechanicalObject template="Vec3d" showObject="true" name="dofs" translation="0.15 0.28 0.35" />
             <RestShapeSpringsForceField name="Springs" stiffness="0.2" angularStiffness="1" external_rest_shape="@../../externalImpact" />
             <BarycentricMapping />
             <VTKExporter position="@state.position" edges="0" listening="0" XMLformat="0" exportAtBegin="1" exportEveryNumberOfSteps="0" filename="observations/impact.vtk" />
-	    <BoxROI name="impactBounds" box="80 230 290 220 340 440" />
+	    <BoxROI name="impactBounds" box="0.08 0.23 0.29 0.22 0.34 0.44" />
 	    <Monitor name="toolMonitor" showPositions="1" indices="@impactBounds.indices" ExportPositions="1" ExportVelocities="1" ExportForces="1" fileName="observations/impact" />
         </Node>
 
