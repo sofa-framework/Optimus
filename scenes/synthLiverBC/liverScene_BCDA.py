@@ -88,7 +88,7 @@ class liverScene_BCDA(Sofa.PythonScriptController):
         node.createObject('MeshObjLoader', name='devloader', filename='data/sphere.obj')
         node.createObject('MeshVTKLoader', name='vloader', filename='data/liverVolume.vtu')
         node.createObject('MeshVTKLoader', name='loader', filename='data/liver.vtk')
-        node.createObject('MeshObjLoader', name='meshloader', filename='data/ligamentsPoints.obj')
+        node.createObject('MeshObjLoader', name='meshloader', filename='data/checkLigamentsPoints.obj')
         node.createObject('MeshObjLoader', name='mesh1loader', filename='data/falciformLigPoints.obj')
         node.createObject('MeshVTKLoader', name='obsloader', filename=self.obsVTK)
         node.createObject('MeshVTKLoader', name='impactloader', filename=self.impactVTK)          
@@ -106,21 +106,20 @@ class liverScene_BCDA(Sofa.PythonScriptController):
         #node.createObject('CGLinearSolver', name='linear solver', iterations='25', tolerance='1e-10', threshold='10e-10')
         node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToDir="", iterativeSolverNumbering="0")
 
-        self.optimParams = node.createObject('OptimParams', name="springStiffness", template="Vector", numParams="7",initValue=self.paramInitExp, stdev=self.paramInitSD,  transformParams="1", optimize="1", printLog="1")
+        self.optimParams = node.createObject('OptimParams', name="springStiffness", template="Vector", numParams="36",initValue=self.paramInitExp, stdev=self.paramInitSD,  transformParams="1", optimize="1", printLog="1")
 
         node.createObject('TetrahedronSetTopologyContainer', name="Container", src="@/vloader", tags=" ")
         node.createObject('TetrahedronSetTopologyModifier', name="Modifier")        
         node.createObject('MechanicalObject', name="dofs")
         node.createObject('UniformMass', totalMass="1.0")
         node.createObject('TetrahedronFEMForceField', name='FEM', listening="true", ParameterSet=self.materialParams)
-        node.createObject('ExtendedRestShapeSpringForceField', name='Springs', stiffness='@springStiffness.value', showIndicesScale='0', springThickness="3", listening="1", updateStiffness="1", printLog="0", external_rest_shape="../Bound/mstate", points='418 496 107 190 357 470 467', external_points='0 1 2 3 4 5 6')
+        node.createObject('ExtendedRestShapeSpringForceField', name='Springs', stiffness='@springStiffness.value', showIndicesScale='0', springThickness="3", listening="1", updateStiffness="1", printLog="0", external_rest_shape="../Bound/mstate", points='418 496 107 190 357 470 467 441 447 429 378 351 331 403 494 497 495 488 489 283 286 352 414 397 339 481 462 428 433 471 482 483 469 445 452 474', external_points='0 1 2 3 4 5 6')
         node.createObject('RestShapeSpringsForceField', name='Springs1', stiffness='5.0', angularStiffness='1', external_rest_shape="@Bound1", points='246 297 370 413',  external_points='0 1 2 3')
         node.createObject('ColorMap',colorScheme="Blue to Red")
 
         visualNode = node.createChild('ModifiedVisual')
         visualNode.createObject('TriangleSetTopologyContainer', src="@/devloader", tags=" ")
         visualNode.createObject('MechanicalObject', name='dofs', template='Vec3d', showObject='true', translation='150.0 280.0 350.0')
-        #visualNode.createObject('RestShapeSpringsForceField', name='Springs', stiffness='20.0', angularStiffness='1', external_rest_shape="@../externalImpact", points='0 1', external_points='0 1')
         self.toolSprings=visualNode.createObject('ExtendedRestShapeSpringForceField', name="toolSpring", stiffness="15.0", external_rest_shape="../externalImpactSimu/MO", springThickness="1", listening="1", updateStiffness="1", springColor="0 1 0 1", startTimeSpringOn="0", numStepsSpringOn="10000")
         visualNode.createObject('BarycentricMapping')
 
@@ -135,12 +134,6 @@ class liverScene_BCDA(Sofa.PythonScriptController):
         boxNode1.createObject('MechanicalObject', name='mstate')
         boxNode1.createObject('UniformMass', totalMass='0.05')
         boxNode1.createObject('FixedConstraint', name="FixConstraint", fixAll='true')
-
-        #boxNode = node.createChild('Box')
-        #boxNode.createObject('TetrahedronSetTopologyContainer', name='Container', src="@/meshloader", tags=" ")
-        #boxNode.createObject('MechanicalObject', name='mstate', dx='-50.0', dy='185.8', dz='255.0')
-        #boxNode.createObject('UniformMass', totalMass='0.05')
-        #boxNode.createObject('FixedConstraint', name="FixConstraint", fixAll='true')
 
         impactSimu = node.createChild('externalImpactSimu')
         impactSimu.createObject('MechanicalObject', name="MO",src="@/impactloader")

@@ -13,9 +13,10 @@
     <RequiredPlugin pluginName="BoundaryConditionsPlugin" />
 	
     <DefaultVisualManagerLoop />
+    <!--    <FreeMotionAnimationLoop /> -->
     <VisualStyle displayFlags="showVisualModels hideBehaviorModels hideCollisionModels hideMappings hideForceFields" />
 
-    <!-- <FreeMotionAnimationLoop /> -->
+    
     <!-- <GenericConstraintSolver tolerance="0.01" maxIt="100" printLog="false" /> -->
     <!-- <GenericConstraintCorrection solverName="Instruments/CarvingObject/solver Organs/liver/warpingsolver Organs/diaphragm/warpingsolver Organs/intestine/warpingsolver Organs/intestine/warpingsolver Organs/large_intestine/warpingsolver  Organs/stomach_oesophage/warpingsolver"  /> -->
 	
@@ -23,24 +24,25 @@
 
     <InteractiveCamera />
 	
-    <!--    <EulerImplicitSolver firstOrder="false" vdamping="5.0" rayleighMass="0.1" rayleighStiffness="0.1" />-->
-    <!--    <CGLinearSolver name="linear solver" iterations="25" tolerance="1e-10" threshold="10e-10" />-->
-    <NewtonStaticSolver maxIt="3" name="NewtonStatic" correctionTolerance="1e-8" convergeOnResidual="1" residualTolerance="1e-8" printLog="1" />
-    <SparsePARDISOSolver name="precond" symmetric="1" exportDataToDir="" iterativeSolverNumbering="1" /> 
+    <EulerImplicitSolver firstOrder="false" vdamping="5.0" rayleighMass="0.1" rayleighStiffness="0.1" />
+    <CGLinearSolver name="linear solver" iterations="25" tolerance="1e-10" threshold="10e-10" />
+    <!--    <NewtonStaticSolver maxIt="3" name="NewtonStatic" correctionTolerance="1e-8" convergeOnResidual="1" residualTolerance="1e-8" printLog="1" />-->
+    <!--    <SparsePARDISOSolver name="precond" symmetric="1" exportDataToDir="" iterativeSolverNumbering="1" /> -->
 
     <Node name="externalImpact">
-        <!--        <EulerImplicit />-->
-        <!--        <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/>-->
-        <NewtonStaticSolver maxIt="3" name="NewtonStatic" correctionTolerance="1e-8" convergeOnResidual="1" residualTolerance="1e-8" printLog="1" />
-        <SparsePARDISOSolver name="precond" symmetric="1" exportDataToDir="" iterativeSolverNumbering="1" /> 
+        <EulerImplicit />
+        <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/>
+        <!--        <NewtonStaticSolver maxIt="3" name="NewtonStatic" correctionTolerance="1e-8" convergeOnResidual="1" residualTolerance="1e-8" printLog="1" />-->
+        <!--        <SparsePARDISOSolver name="precond" symmetric="1" exportDataToDir="" iterativeSolverNumbering="1" /> -->
 
-	<GeomagicDriver name="GeomagicDevice" deviceName="Default Device" scale="0.01" drawDeviceFrame="1" orientationBase="0 1 -1 -1" positionBase="0.1024 0.065 -0.04" orientationTool="0 0 0 1" />
+	<GeomagicDriver name="GeomagicDevice" deviceName="Default Device" scale="20.0" drawDeviceFrame="1" orientationBase="0 1 -1 -1" positionBase="160.0 180.0 280.0" orientationTool="0 0 0 1" />
 	<MechanicalObject template="Rigid" name="GeomagicMO" position="@GeomagicDevice.positionDevice" />
+        <!--        <Sphere color="0.5 0.5 0.5 1" radius="14.0" template='Vec3d' />-->
 	
 	<Node name="Visual" >
             <MeshObjLoader name="devloader" filename="data/sphere.obj" />
             <TriangleSetTopologyContainer name="Container" src="@devloader" />  
-            <MechanicalObject template="Vec3d" name="state" showObject="true" translation="180.0 180.0 280.0" />
+            <MechanicalObject template="Vec3d" name="state" showObject="true" />
             <UniformMass name="mass" mass="0.005" />
 	    <RigidMapping name="meshGeomagicMapping" input="@../GeomagicMO" output="@state" /> 
             <!--       <FixedConstraint name="FixedConstraint" fixAll="true" />-->
@@ -52,15 +54,16 @@
         <MeshVTKLoader name="vloader" filename="data/liverVolume.vtu" />
         <MeshVTKLoader name="loader" filename="data/liver.vtk" flipNormals="true" />
         
-        <!--        <EulerImplicit name="odesolver" />-->
-        <!--        <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/> -->
-        <NewtonStaticSolver maxIt="3" name="NewtonStatic" correctionTolerance="1e-8" convergeOnResidual="1" residualTolerance="1e-8" printLog="1" />
+        <EulerImplicit name="odesolver" />
+        <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/> 
+        <!--        <NewtonStaticSolver maxIt="3" name="NewtonStatic" correctionTolerance="1e-8" convergeOnResidual="1" residualTolerance="1e-8" printLog="1" />-->
         <!-- <ShewchukPCGLinearSolver iterations="10" tolerance="1e-5" preconditioners="warpingsolver" use_precond="true" /> -->
-        <SparsePARDISOSolver name="precond" symmetric="1" exportDataToDir="" iterativeSolverNumbering="1" /> 
+        <!--        <SparsePARDISOSolver name="precond" symmetric="1" exportDataToDir="" iterativeSolverNumbering="1" /> -->
 
         <TetrahedronSetTopologyContainer src="@vloader" name="Container" />
         <TetrahedronSetTopologyModifier name="Modifier" />
         <MechanicalObject name="dofs" />
+        <ShapeMarkersGenerator name="markersGen" minimumDistance="30" />
         
         <UniformMass totalmass="1.0" />
         <TetrahedronFEMForceField name="FEM" listening="true" youngModulus="1.0" poissonRatio="0.4"/>
@@ -74,12 +77,11 @@
         <!-- <BoxConstraint name="box" box="130 240 325 180 280 375" drawBoxes="true" /> -->
         
         <Node name="observations">
-            <RegularGrid name="bound" min="150.0 180.0 380.0" max="200.0 270.0 430.0" n="6 9 6" drawEdges="true" />
-<!--            <RegularGrid name="bound" min="150.0 180.0 380.0" max="200.0 270.0 430.0" n="2 3 2" drawEdges="true" />-->
-            <MechanicalObject name="mechanicalObject" src="@bound" template="Vec3d" />
+            <MechanicalObject name="mechanicalObject" position="@markersGen.markersPositions" template="Vec3d" />
             <BarycentricMapping />
+            <Sphere color="0.0 0.5 0.0 1" radius="1.4" template='Vec3d' />
 	    <VTKExporter position="@mechanicalObject.position" edges="0" listening="0" XMLformat="0" exportAtBegin="1" exportEveryNumberOfSteps="0" filename="observations/observations.vtk" />
-            <BoxROI name="observeBounds" box="150.0 180.0 340.0 200.0 290.0 440.0" />
+            <BoxROI name="observeBounds" box="50.0 80.0 200.0 300.0 390.0 540.0" />
             <Monitor name="observationMonitor" showPositions="1" indices="@observeBounds.indices" ExportPositions="1" ExportVelocities="0" ExportForces="0" fileName="observations/observations" />
         </Node>
 
@@ -113,7 +115,7 @@
             <MeshObjLoader name="visloader" filename="data/sphere.obj" />
             <TriangleSetTopologyContainer name="Container" src="@visloader" />  
             <MechanicalObject template="Vec3d" showObject="true" name="dofs" translation="150.0 280.0 350.0" />
-            <RestShapeSpringsForceField name="Springs" stiffness="2.2" angularStiffness="1" external_rest_shape="@../../externalImpact/Visual" points="0 1" external_points="0 1" />
+            <RestShapeSpringsForceField name="Springs" stiffness="0.2" angularStiffness="1" external_rest_shape="@../../externalImpact/Visual" />
             <GeomagicDeviceListener geomagicButtonPressed="@../../externalImpact/GeomagicDevice.button1" geomagicSecondButtonPressed="@../../externalImpact/GeomagicDevice.button2" geomagicPosition="@../../externalImpact/GeomagicDevice.positionDevice" />
             <BarycentricMapping />
             <VTKExporter position="@state.position" edges="0" listening="0" XMLformat="0" exportAtBegin="1" exportEveryNumberOfSteps="0" filename="observations/impact.vtk" />
@@ -134,10 +136,10 @@
     </Node>
     <Node name="Bound1">
         <MeshObjLoader name="mesh1Loader" filename="data/falciformLigPoints.obj" />
-	<TetrahedronSetTopologyContainer name="Container" src="@mesh1Loader" />                                         
-	<MechanicalObject name="mstate" />                 
-	<UniformMass totalmass="0.05" />
-	<FixedConstraint name="FixedConstraint" fixAll="true" />
+    	<TetrahedronSetTopologyContainer name="Container" src="@mesh1Loader" />                                         
+    	<MechanicalObject name="mstate" />                 
+    	<UniformMass totalmass="0.05" />
+    	<FixedConstraint name="FixedConstraint" fixAll="true" />
     </Node>
       
     <!--    <BoxStiffSpringForceField template="Vec3d" name="Spring" stiffness="20000" forceOldBehavior="false" object1="@liver/collision" object2="@Bound" box_object1="90.0 150.0 260.0 120.0 290.0 400.0" box_object2="60.0 150.0 260.0 80.0 290.0 400.0" />-->
