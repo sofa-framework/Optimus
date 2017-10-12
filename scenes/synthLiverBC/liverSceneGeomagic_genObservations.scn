@@ -3,7 +3,7 @@
 	 and extract the archive in <Sofa_Directory>/examples/Demos/Passport/data/models
 -->
 
-<Node name="root" dt="0.01">
+<Node name="root" dt="0.01" gravity="0 0 0">
     <RequiredPlugin pluginName="SofaPython" />
     <RequiredPlugin pluginName="SofaCUDA" />
     <RequiredPlugin pluginName="Optimus" />
@@ -66,9 +66,12 @@
         <ShapeMarkersGenerator name="markersGen" minimumDistance="0.03" />
         
         <UniformMass totalmass="1.8" />
-        <TetrahedronFEMForceField name="FEM" listening="true" youngModulus="2700" poissonRatio="0.4" />
-        <RestShapeSpringsForceField name="Springs" stiffness="2000" angularStiffness="1" external_rest_shape="@Bound" points="418 496 107 190 357 470 467" external_points="0 1 2 3 4 5 6" />
-        <RestShapeSpringsForceField name="Springs1" stiffness="5000" angularStiffness="1" external_rest_shape="@Bound1" points="246 297 370 413" external_points="0 1 2 3" />
+        <TetrahedronFEMForceField name="FEM" listening="true" youngModulus="5000" poissonRatio="0.4" />
+        <RestShapeSpringsForceField name="Springs" stiffness="600" angularStiffness="1" external_rest_shape="@Bound" points="418 496 107 190 357 470 467" external_points="0 1 2 3 4 5 6" />
+<!--        <RestShapeSpringsForceField name="Springs" stiffness="600" angularStiffness="1" external_rest_shape="@Bound" points="418 496 107" external_points="0 1 2" />-->
+<!--        <RestShapeSpringsForceField name="Springs" stiffness="2000" angularStiffness="1" external_rest_shape="@Bound" points="190 357 470 467" external_points="3 4 5 6" />-->
+        <RestShapeSpringsForceField name="Springs1" stiffness="600" angularStiffness="1" external_rest_shape="@Bound1" points="246 297 370 413" external_points="0 1 2 3" />
+<!--        <RestShapeSpringsForceField name="Springs1" stiffness="600" angularStiffness="1" external_rest_shape="@Bound1" points="246" external_points="0" />-->
 
         <VTKExporter position="@dofs.position" edges="0" tetras="1" listening="1" XMLformat="0" exportAtBegin="1" exportAtEnd="0" exportEveryNumberOfSteps="0" filename="observations/object.vtk" />
 
@@ -111,7 +114,7 @@
             <MeshObjLoader name="visloader" filename="data/sphere.obj" />
             <TriangleSetTopologyContainer name="Container" src="@visloader" />  
             <MechanicalObject template="Vec3d" showObject="true" name="dofs" translation="0.15 0.28 0.35" />
-            <RestShapeSpringsForceField name="Springs" stiffness="0.2" angularStiffness="1" external_rest_shape="@../../externalImpact/Visual" />
+            <RestShapeSpringsForceField name="Springs" stiffness="0.5" angularStiffness="1" external_rest_shape="@../../externalImpact/Visual" />
             <GeomagicDeviceListener geomagicButtonPressed="@../../externalImpact/GeomagicDevice.button1" geomagicSecondButtonPressed="@../../externalImpact/GeomagicDevice.button2" geomagicPosition="@../../externalImpact/GeomagicDevice.positionDevice" />
             <BarycentricMapping />
             <VTKExporter position="@state.position" edges="0" listening="0" XMLformat="0" exportAtBegin="1" exportEveryNumberOfSteps="0" filename="observations/impact.vtk" />

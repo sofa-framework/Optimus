@@ -55,9 +55,9 @@
         <ShapeMarkersGenerator name="markersGen" minimumDistance="30" />
         
         <UniformMass totalmass="1.8" />
-        <TetrahedronFEMForceField name="FEM" listening="true" youngModulus="2700" poissonRatio="0.4"/>
-        <RestShapeSpringsForceField name="Springs" stiffness="2000" angularStiffness="1" external_rest_shape="@Bound" points="418 496 107 190 357 470 467" external_points="0 1 2 3 4 5 6" />
-        <RestShapeSpringsForceField name="Springs1" stiffness="5000" angularStiffness="1" external_rest_shape="@Bound1" points="246 297 370 413" external_points="0 1 2 3" />
+        <TetrahedronFEMForceField name="FEM" listening="true" youngModulus="5000" poissonRatio="0.4"/>
+        <RestShapeSpringsForceField name="Springs" stiffness="6000" angularStiffness="1" external_rest_shape="@Bound" points="418 496 107 190 357 470 467" external_points="0 1 2 3 4 5 6" />
+        <RestShapeSpringsForceField name="Springs1" stiffness="10000" angularStiffness="1" external_rest_shape="@Bound1" points="246 297 370 413" external_points="0 1 2 3" />
 
         <VTKExporter position="@dofs.position" edges="0" tetras="1" listening="1" XMLformat="0" exportAtBegin="1" exportAtEnd="0" exportEveryNumberOfSteps="0" filename="observations/object.vtk" />
 
@@ -104,7 +104,7 @@
             <MeshObjLoader name="visloader" filename="data/sphere.obj" />
             <TriangleSetTopologyContainer name="Container" src="@visloader" />  
             <MechanicalObject template="Vec3d" showObject="true" name="dofs" translation="0.15 0.28 0.35" />
-            <RestShapeSpringsForceField name="Springs" stiffness="0.2" angularStiffness="1" external_rest_shape="@../../externalImpact" />
+            <RestShapeSpringsForceField name="Springs" stiffness="0.5" angularStiffness="1" external_rest_shape="@../../externalImpact" />
             <BarycentricMapping />
             <VTKExporter position="@state.position" edges="0" listening="0" XMLformat="0" exportAtBegin="1" exportEveryNumberOfSteps="0" filename="observations/impact.vtk" />
 	    <BoxROI name="impactBounds" box="0.08 0.23 0.29 0.22 0.34 0.44" />
