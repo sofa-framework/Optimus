@@ -15,7 +15,7 @@ class liverScene_BCDA(Sofa.PythonScriptController):
          
         print  "Create graph called (Python side)\n"
 
-        E=1.0
+        E=5000.0
         nu=0.4
         lamb=(E*nu)/((1+nu)*(1-2*nu))
         mu=E/(2+2*nu)
@@ -23,7 +23,7 @@ class liverScene_BCDA(Sofa.PythonScriptController):
         
         self.ogridID=4
         inputDir='observations'
-        outDir='outSynth1'
+        outDir='measurements'
         self.volumeVTK=inputDir+'/object_0.vtk'
         self.surfaceSTL='../../data/brickD/brickD_536.stl'
         self.obsVTK=inputDir+'/observations_0.vtk'
@@ -36,12 +36,12 @@ class liverScene_BCDA(Sofa.PythonScriptController):
         self.m_saveToFile = 0
         self.m_slaveScenesCreated = 0 # auxiliary, circumvents attribute of instance method
 
-        self.saveState = 0
-        self.saveToolForces=0
-        self.saveAssess=0
+        self.saveState = 1
+        self.saveToolForces = 1
+        self.saveAssess = 0
 
-        self.paramInitExp = 0.0
-        self.paramInitSD = 5
+        self.paramInitExp = 1.0
+        self.paramInitSD = 25 #5
         self.obsInitSD= 1e-4
 
         self.suffix='psd'+str(self.paramInitSD)+'#osd'+str(self.obsInitSD)+'#ogrid'+str(self.ogridID)
@@ -50,18 +50,29 @@ class liverScene_BCDA(Sofa.PythonScriptController):
             self.stateExpFile=outDir+'/state_'+self.suffix+'.txt'
             self.stateVarFile=outDir+'/variance_'+self.suffix+'.txt'
             self.stateCovarFile=outDir+'/covariance_'+self.suffix+'.txt'
-            os.system('rm '+self.stateExpFile)
-            os.system('rm '+self.stateVarFile)
-            os.system('rm '+self.stateCovarFile)
+            os.system('rm ' + self.stateExpFile)
+            #fil = open(self.stateExpFile, "w")
+            #fil.close()
+            os.system('rm ' + self.stateVarFile)
+            #fil = open(self.stateVarFile, "w")
+            #fil.close()
+            os.system('rm ' + self.stateCovarFile)
+            #fil = open(self.stateCovarFile, "w")
+            #fil.close()
+
       
         if self.saveToolForces:
             self.toolForceFile=outDir+'/toolForce_'+self.suffix+'.txt'
-            os.system('rm '+self.toolForceFile);
+            os.system('rm ' + self.toolForceFile);
+            #fil = open(self.toolForceFile, "w")
+            #fil.close()
 
 
         if self.saveAssess:
             self.assessFile=outDir+'/assess_'+self.suffix+'.txt'
-            os.system('rm '+self.assessFile);            
+            os.system('rm ' + self.assessFile);
+            #fil = open(self.assessFile, "w")
+            #fil.close()          
 
         self.createScene(node)
         
@@ -77,7 +88,7 @@ class liverScene_BCDA(Sofa.PythonScriptController):
         # node.createObject('RequiredPlugin', pluginName='image', name='image')
         
         node.findData('gravity').value="0 0 0"
-        node.findData('dt').value="0.02"
+        node.findData('dt').value="0.01"
         
         node.createObject('ViewerSetting', cameraMode='Perspective', resolution='1000 700', objectPickingMethod='Ray casting')
         node.createObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels')
@@ -88,7 +99,7 @@ class liverScene_BCDA(Sofa.PythonScriptController):
         node.createObject('MeshObjLoader', name='devloader', filename='data/sphere.obj')
         node.createObject('MeshVTKLoader', name='vloader', filename='data/liverVolume.vtu')
         node.createObject('MeshVTKLoader', name='loader', filename='data/liver.vtk')
-        node.createObject('MeshObjLoader', name='meshloader', filename='data/ligamentsPoints.obj')
+        node.createObject('MeshObjLoader', name='meshloader', filename='data/checkLigamentsPoints.obj')
         node.createObject('MeshObjLoader', name='mesh1loader', filename='data/falciformLigPoints.obj')
         node.createObject('MeshVTKLoader', name='obsloader', filename=self.obsVTK)
         node.createObject('MeshVTKLoader', name='impactloader', filename=self.impactVTK)          
@@ -106,22 +117,25 @@ class liverScene_BCDA(Sofa.PythonScriptController):
         #node.createObject('CGLinearSolver', name='linear solver', iterations='25', tolerance='1e-10', threshold='10e-10')
         node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToDir="", iterativeSolverNumbering="0")
 
-        self.optimParams = node.createObject('OptimParams', name="springStiffness", template="Vector", numParams="7",initValue=self.paramInitExp, stdev=self.paramInitSD,  transformParams="1", optimize="1", printLog="1")
+        self.optimParams = node.createObject('OptimParams', name="springStiffness", template="Vector", numParams="40",initValue=self.paramInitExp, stdev=self.paramInitSD,  transformParams="1", optimize="1", printLog="1")
 
         node.createObject('TetrahedronSetTopologyContainer', name="Container", src="@/vloader", tags=" ")
         node.createObject('TetrahedronSetTopologyModifier', name="Modifier")        
         node.createObject('MechanicalObject', name="dofs")
-        node.createObject('UniformMass', totalMass="1.0")
+        node.createObject('UniformMass', totalMass="1.8")
         node.createObject('TetrahedronFEMForceField', name='FEM', listening="true", ParameterSet=self.materialParams)
-        node.createObject('ExtendedRestShapeSpringForceField', name='Springs', stiffness='@springStiffness.value', showIndicesScale='0', springThickness="3", listening="1", updateStiffness="1", printLog="0", external_rest_shape="../Bound/mstate", points='418 496 107 190 357 470 467', external_points='0 1 2 3 4 5 6')
-        node.createObject('RestShapeSpringsForceField', name='Springs1', stiffness='5.0', angularStiffness='1', external_rest_shape="@Bound1", points='246 297 370 413',  external_points='0 1 2 3')
+        #node.createObject('ExtendedRestShapeSpringForceField', name='Springs', stiffness='@springStiffness.value', showIndicesScale='0', springThickness="3", listening="1", updateStiffness="1", printLog="0", external_rest_shape="Bound/mstate", points='418 496 107 190 357 470 467 441 447 429 378 351 331 403 494 497 495 488 489 283 286 352 414 397 339 481 462 428 433 471 482 483 469 445 452 474', external_points='0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36')
+        node.createObject('ExtendedRestShapeSpringForceField', name='Springs', stiffness='@springStiffness.value', showIndicesScale='0', springThickness="3", listening="1", updateStiffness="1", printLog="0", points='418 496 107 190 357 470 467 246 297 370 413 441 447 429 378 351 331 403 494 497 495 488 489 283 286 352 414 397 339 481 462 428 433 471 482 483 469 445 452 474')
+        #node.createObject('ExtendedRestShapeSpringForceField', name='Springs', stiffness='@springStiffness.value', showIndicesScale='0', springThickness="3", listening="1", updateStiffness="1", printLog="0", points='418 496 107 190 357 470 467 246 297 370 413')
+        #node.createObject('ExtendedRestShapeSpringForceField', name='Springs', stiffness='@springStiffness.value', showIndicesScale='0', springThickness="3", listening="1", updateStiffness="1", printLog="0", points='418 496 107 190 357 470 467')
         node.createObject('ColorMap',colorScheme="Blue to Red")
+        #node.createObject('RestShapeSpringsForceField', name='Springs1', stiffness='10000', angularStiffness='1', external_rest_shape="@Bound1", points='246 297 370 413',  external_points='0 1 2 3')
 
         visualNode = node.createChild('ModifiedVisual')
         visualNode.createObject('TriangleSetTopologyContainer', src="@/devloader", tags=" ")
-        visualNode.createObject('MechanicalObject', name='dofs', template='Vec3d', showObject='true', translation='150.0 280.0 350.0')
-        #visualNode.createObject('RestShapeSpringsForceField', name='Springs', stiffness='20.0', angularStiffness='1', external_rest_shape="@../externalImpact", points='0 1', external_points='0 1')
-        self.toolSprings=visualNode.createObject('ExtendedRestShapeSpringForceField', name="toolSpring", stiffness="15.0", external_rest_shape="../externalImpactSimu/MO", springThickness="1", listening="1", updateStiffness="1", springColor="0 1 0 1", startTimeSpringOn="0", numStepsSpringOn="10000")
+        visualNode.createObject('MechanicalObject', name='dofs', template='Vec3d', showObject='true', translation='0.15 0.28 0.35')
+        self.toolSprings=visualNode.createObject('ExtendedRestShapeSpringForceField', name="toolSpring", stiffness="10000", external_rest_shape="../externalImpactSimu/MO", springThickness="1", listening="1", updateStiffness="1", springColor="0 1 0 1", startTimeSpringOn="0", numStepsSpringOn="10000")
+        visualNode.createObject('ColorMap',colorScheme="Blue to Red")
         visualNode.createObject('BarycentricMapping')
 
         boxNode = node.createChild('Bound')
@@ -135,12 +149,6 @@ class liverScene_BCDA(Sofa.PythonScriptController):
         boxNode1.createObject('MechanicalObject', name='mstate')
         boxNode1.createObject('UniformMass', totalMass='0.05')
         boxNode1.createObject('FixedConstraint', name="FixConstraint", fixAll='true')
-
-        #boxNode = node.createChild('Box')
-        #boxNode.createObject('TetrahedronSetTopologyContainer', name='Container', src="@/meshloader", tags=" ")
-        #boxNode.createObject('MechanicalObject', name='mstate', dx='-50.0', dy='185.8', dz='255.0')
-        #boxNode.createObject('UniformMass', totalMass='0.05')
-        #boxNode.createObject('FixedConstraint', name="FixConstraint", fixAll='true')
 
         impactSimu = node.createChild('externalImpactSimu')
         impactSimu.createObject('MechanicalObject', name="MO",src="@/impactloader")
@@ -174,7 +182,7 @@ class liverScene_BCDA(Sofa.PythonScriptController):
 
         obsNode = node.createChild('obsNode')
         obsNode.createObject('MechanicalObject', name='MO', src="@/obsloader")                
-        obsNode.createObject('Sphere', color='0.0 0.5 0.0 1', radius="0.0014", template='Vec3d')
+        obsNode.createObject('Sphere', color='0.0 0.5 0.0 1', radius="0.005", template='Vec3d')
 
         obsNode.createObject('BarycentricMapping')                   
         obsNode.createObject('MappedStateObservationManager', name="MOBS", observationStdev=self.obsInitSD, listening="1", stateWrapper="@../StateWrapper",doNotMapObservations="1",verbose="1")
