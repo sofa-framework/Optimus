@@ -1,0 +1,56 @@
+<?xml version="1.0" ?>
+<Node name="root" dt="0.05" showBoundingTree="0" gravity="0 0 0">
+	<RequiredPlugin pluginName="Optimus"/>
+	<RequiredPlugin pluginName="SofaPardisoSolver"/>
+	<RequiredPlugin pluginName="SofaMJEDFEM"/>
+	<RequiredPlugin pluginName="ImageMeshAux"/>
+
+	<VisualStyle displayFlags="showBehaviorModels showForceFields showCollisionModels hideVisual" />
+						
+	<!-- <OptimParams name="paramE" template="Vector" optimize="0" numParams="10" prescribedParamKeys="0.0 10000 2000 8000 5000 9000 4000 6000 7000 3000 1000    5.0 10000 2000 8000 5000 9000 4000 6000 7000 3000 1000" exportParamFile="daCyl10/params_forward.out"/>  -->
+	
+	<Node>
+		<!-- <StaticSolver applyIncrementFactor="0"/> -->
+		<NewtonStaticSolver name="NewtonRaphson" correctionTolerance="1e-10"  maxIt="20" printLog="1"/>
+		<StepPCGLinearSolver iterations="500" tolerance="1e-8" preconditioners="LDLsolver" update_step="20"/>
+		<SparsePARDISOSolver name="LDLsolver" verbose="1"/>
+	<!-- 	<SparseLDLSolver/> -->
+
+		<MeshVTKLoader filename="../../data/cylinder10_4245.vtk" name="loader" />
+		<MechanicalObject src="@loader" name="Volume" />
+		
+		<include href="Objects/TetrahedronSetTopology.xml" src="@loader" />
+		
+		<BoxROI name="fixedBox1" box="-0.05 -0.05 -0.002   0.05 0.05 0.002"/>
+		<BoxROI name="fixedBox2" box="-0.05 -0.05  0.298   0.05 0.05 0.302"/>	
+		<MergeSets name="mergeIndices" in1="@fixedBox1.indices" in2="@fixedBox2.indices"/>	
+		<FixedConstraint indices="@mergeIndices.out" />
+
+		<OptimParams name="incGravity" template="Vector" optimize="0" numParams="3" prescribedParamKeys="0.0  0.0 -0.4905 0.0   1.0   0.0 -9.81 0.0" exportParamFile="" interpolateSmooth="0"/>
+	    <Gravity gravity="@incGravity.value"/>
+	    <!-- <Gravity gravity="0 -9.81 0"/> -->
+	    <UniformMass totalMass="0.2513"/>
+		
+		<!-- <BoxROI name="allDOFs" box="-1 -1 -1 1 1 1"/> -->
+		<!-- <Monitor name="observations/cylinder4245_YMStat" indices="@allDOFs.indices" ExportPositions="1" ExportVelocities="1" ExportForces="1"/> -->
+
+		<!-- <Indices2ValuesMapper name="youngMapper" inputValues="@loader.dataset" indices="1 2 3 4 5 6 7 8 9 10" values="@paramE.value"/> -->
+		<!-- <TetrahedronFEMForceField name="FEM" listening="true" updateStiffness="1"  youngModulus="@youngMapper.outputValues" poissonRatio="0.45" method="large" drawHeterogeneousTetra="1"/> -->
+		<TetrahedronFEMForceField name="FEM" listening="true" updateStiffness="1"  youngModulus="5e3" poissonRatio="0.49" method="large" drawHeterogeneousTetra="1"/>
+		<!-- <MJEDTetrahedralForceField ParameterSet="1677.8523489 230.2013" materialName="StVenantKirchhoff"/> -->
+
+		<!--<VTKExporter filename="cylinder.vtk" XMLformat="true" listening="true" edges="0" triangles="0" quads="0" tetras="1" exportAtEnd="true"/>-->
+		<!-- <Node>
+			<MeshSTLLoader filename="../../data/cylinder10_4245.stl" name="loader" />
+			<MechanicalObject src="@loader" name="Surface"/>
+			<include href="Objects/TriangleSetTopology.xml" src="@loader" />
+	                    
+		    <Line color="0 0 0 1"/>
+		    <Triangle color="1 0 0 1"/>
+		    <BarycentricMapping/>		
+		</Node> -->
+		<Node>
+			<OglModel/>
+		</Node>
+	</Node>
+</Node>
