@@ -4,6 +4,17 @@ import os
 import sys
 import csv
 
+__file = __file__.replace('\\', '/') # windows
+
+def createScene(rootNode):
+    rootNode.createObject('RequiredPlugin', pluginName='Optimus')
+    rootNode.createObject('RequiredPlugin', pluginName='SofaPardisoSolver')
+    rootNode.createObject('RequiredPlugin', pluginName='ImageMeshAux')
+    #rootNode.createObject('RequiredPlugin', pluginName='SofaMJEDFEM')
+    
+    rootNode.createObject('PythonScriptController', name='SynthBCDA', filename=__file, classname='synth1_BCDA')
+
+
 
 # Class definition 
 class synth1_BCDA(Sofa.PythonScriptController):
@@ -69,13 +80,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
     
     def createGlobalComponents(self, node):
-        # scene global stuff
-        node.createObject('RequiredPlugin', pluginName='Optimus', name='Optimus')
-        node.createObject('RequiredPlugin', pluginName='SofaPardisoSolver', name='SofaPardisoSolver')
-        node.createObject('RequiredPlugin', pluginName='ImageMeshAux', name='ImageMeshAux')
-        #node.createObject('RequiredPlugin', pluginName='SofaMJEDFEM')
-        # node.createObject('RequiredPlugin', pluginName='image', name='image')
-        
+        # scene global stuff                
         node.findData('gravity').value="0 0 0"
         node.findData('dt').value="1"
         

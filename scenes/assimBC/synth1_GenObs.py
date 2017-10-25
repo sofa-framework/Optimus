@@ -1,6 +1,17 @@
 import Sofa
 import os
 
+__file = __file__.replace('\\', '/') # windows
+
+def createScene(rootNode):
+    rootNode.createObject('RequiredPlugin', pluginName='Optimus')
+    rootNode.createObject('RequiredPlugin', pluginName='SofaPardisoSolver')
+    rootNode.createObject('RequiredPlugin', pluginName='ImageMeshAux')
+    #rootNode.createObject('RequiredPlugin', pluginName='SofaMJEDFEM')
+    
+    rootNode.createObject('PythonScriptController', name='GenerateObservations', filename=__file, classname='synth1_GenObs')
+
+
 class synth1_GenObs (Sofa.PythonScriptController):    
 
     def createGraph(self,rootNode):
@@ -9,7 +20,7 @@ class synth1_GenObs (Sofa.PythonScriptController):
         volumeFileName='../../data/brickD/brickD_536.vtk'
         surfaceSTL='../../data/brickD/brickD_536.stl'
         outputDir='observations/brickD_ogrid4'        
-        saveObservations=1
+        saveObservations=0
 
         if saveObservations:
         	os.system('mv '+outputDir+ ' observations/arch')
@@ -18,11 +29,7 @@ class synth1_GenObs (Sofa.PythonScriptController):
         self.toolForceFile = open("toolForce.txt", "w")        
 
         # rootNode
-        rootNode.createObject('VisualStyle', displayFlags='showVisual showBehavior showCollision hideMapping showWireframe hideNormals')
-        rootNode.createObject('RequiredPlugin', pluginName='Optimus')
-        rootNode.createObject('RequiredPlugin', pluginName='SofaPardisoSolver')
-        rootNode.createObject('RequiredPlugin', pluginName='ImageMeshAux')
-        #rootNode.createObject('RequiredPlugin', pluginName='SofaMJEDFEM')
+        rootNode.createObject('VisualStyle', displayFlags='showVisual showBehavior showCollision hideMapping showWireframe hideNormals')        
 
         rootNode.findData('gravity').value="0 0 0"
         rootNode.findData('dt').value="1"
@@ -49,7 +56,7 @@ class synth1_GenObs (Sofa.PythonScriptController):
         simuNode.createObject('NewtonStaticSolver', maxIt='3', name='NewtonStatic', correctionTolerance='1e-8', convergeOnResidual='1', residualTolerance='1e-8', printLog='1')
         # simuNode.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
         # simuNode.createObject('StaticSolver')
-        simuNode.createObject('SparsePARDISOSolver', symmetric='1', exportDataToDir='', name='precond', iterativeSolverNumbering='1')
+        simuNode.createObject('SparsePARDISOSolver', symmetric='1', exportDataToFolder='', name='precond', iterativeSolverNumbering='1')
 
 
         simuNode.createObject('MeshVTKLoader', name='loader', filename=volumeFileName)
@@ -146,8 +153,8 @@ class synth1_GenObs (Sofa.PythonScriptController):
         # visNode3.createObject('Triangle',color="0 0 0.1 0.2")
         # visNode3.createObject('BarycentricMapping')
 
-        simuNode.createObject('BoxROI', box='-0.001 -0.001 -0.011 0.105 0.001 0.001', drawBoxes='0', name='baseROI')
-        self.basePoints=simuNode.createObject('PointsFromIndices', template='Vec3d', name='fixedA', indices='@baseROI.indices', position="@Volume.position")
+        # simuNode.createObject('BoxROI', box='-0.001 -0.001 -0.011 0.105 0.001 0.001', drawBoxes='0', name='baseROI')
+        # self.basePoints=simuNode.createObject('PointsFromIndices', template='Vec3d', name='fixedA', indices='@baseROI.indices', position="@Volume.position")
         
 
         asNode = simuNode.createChild('assessNode')

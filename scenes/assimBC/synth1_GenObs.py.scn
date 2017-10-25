@@ -1,2 +1,0 @@
-<Node dt="0.1" gravity="0 0 0" name="root">
-    <RequiredPlugin name="SofaPython" pluginName="SofaPython" /><PythonScriptController classname="synth1_GenObs" filename="synth1_GenObs.py" listening="1" name="synth1_GenObs" /></Node>
