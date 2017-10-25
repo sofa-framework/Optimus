@@ -11,12 +11,13 @@
 	
 	<Node>
 		<!-- <StaticSolver applyIncrementFactor="0"/> -->
-		<NewtonStaticSolver name="NewtonRaphson" correctionTolerance="1e-10"  maxIt="20" printLog="1"/>
-		<StepPCGLinearSolver iterations="500" tolerance="1e-8" preconditioners="LDLsolver" update_step="20"/>
-		<SparsePARDISOSolver name="LDLsolver" verbose="1"/>
+		<NewtonStaticSolver name="NewtonRaphson" correctionTolerance="1e-10"  maxIt="3" printLog="1"/>
+		<!-- <EulerImplicitSolver/> -->
+		<!-- <StepPCGLinearSolver iterations="500" tolerance="1e-8" preconditioners="LDLsolver" update_step="20"/> -->
+		<SparsePARDISOSolver name="LDLsolver" verbose="0"/>
 	<!-- 	<SparseLDLSolver/> -->
 
-		<MeshVTKLoader filename="../../data/cylinder10_4245.vtk" name="loader" />
+		<MeshVTKLoader filename="../../data/cylinder/cylinder10_4245.vtk" name="loader" />
 		<MechanicalObject src="@loader" name="Volume" />
 		
 		<include href="Objects/TetrahedronSetTopology.xml" src="@loader" />
@@ -26,17 +27,21 @@
 		<MergeSets name="mergeIndices" in1="@fixedBox1.indices" in2="@fixedBox2.indices"/>	
 		<FixedConstraint indices="@mergeIndices.out" />
 
-		<OptimParams name="incGravity" template="Vector" optimize="0" numParams="3" prescribedParamKeys="0.0  0.0 -0.4905 0.0   1.0   0.0 -9.81 0.0" exportParamFile="" interpolateSmooth="0"/>
-	    <Gravity gravity="@incGravity.value"/>
+		<!-- <OptimParams name="incGravity" template="Vector" optimize="0" numParams="10" prescribedParamKeys="3000 4000 5000 2000 1000 10000 80000 1000 3000 3000" exportParamFile="" interpolateSmooth="0"/> -->
+	    <!-- <Gravity gravity="@incGravity.value"/> -->
+	    <IncrementalGravity gravity="0 -5 0" incrementalFactor="0.1"/>
 	    <!-- <Gravity gravity="0 -9.81 0"/> -->
+	    <!-- <Gravity gravity="0 -6 0"/> -->
 	    <UniformMass totalMass="0.2513"/>
 		
 		<!-- <BoxROI name="allDOFs" box="-1 -1 -1 1 1 1"/> -->
 		<!-- <Monitor name="observations/cylinder4245_YMStat" indices="@allDOFs.indices" ExportPositions="1" ExportVelocities="1" ExportForces="1"/> -->
 
-		<!-- <Indices2ValuesMapper name="youngMapper" inputValues="@loader.dataset" indices="1 2 3 4 5 6 7 8 9 10" values="@paramE.value"/> -->
+		<Indices2ValuesMapper name="youngMapper" inputValues="@loader.dataset" indices="1 2 3 4 5 6 7 8 9 10" values="3000 4000 5000 2000 1000 10000 8000 1000 3000 3000"/>
 		<!-- <TetrahedronFEMForceField name="FEM" listening="true" updateStiffness="1"  youngModulus="@youngMapper.outputValues" poissonRatio="0.45" method="large" drawHeterogeneousTetra="1"/> -->
-		<TetrahedronFEMForceField name="FEM" listening="true" updateStiffness="1"  youngModulus="5e3" poissonRatio="0.49" method="large" drawHeterogeneousTetra="1"/>
+		<!-- <TetrahedronFEMForceField name="FEM" listening="true" updateStiffness="1"  youngModulus="1e4" poissonRatio="0.1" method="large" drawHeterogeneousTetra="1"/> -->
+		<TetrahedralTotalLagrangianForceField name="FEM" materialName="StVenantKirchhoff" ParameterSet="3448.2758620689656 31034.4827586207"/>
+		<!-- <TetrahedronFEMForceField name="FEM" listening="true" updateStiffness="1"  youngModulus="5e3" poissonRatio="0.49" method="large" drawHeterogeneousTetra="1"/> -->
 		<!-- <MJEDTetrahedralForceField ParameterSet="1677.8523489 230.2013" materialName="StVenantKirchhoff"/> -->
 
 		<!--<VTKExporter filename="cylinder.vtk" XMLformat="true" listening="true" edges="0" triangles="0" quads="0" tetras="1" exportAtEnd="true"/>-->
@@ -53,4 +58,40 @@
 			<OglModel/>
 		</Node>
 	</Node>
+
+
+	<Node>
+		<!-- <StaticSolver applyIncrementFactor="0"/> -->
+		<NewtonStaticSolver name="NewtonRaphson" correctionTolerance="1e-10"  maxIt="3" printLog="1"/>
+		<!-- <EulerImplicitSolver/> -->
+		<!-- <StepPCGLinearSolver iterations="500" tolerance="1e-8" preconditioners="LDLsolver" update_step="20"/> -->
+		<SparsePARDISOSolver name="LDLsolver" verbose="0"/>
+	<!-- 	<SparseLDLSolver/> -->
+
+		<MeshVTKLoader filename="../../data/cylinder/cylinder10_4245.vtk" name="loader" />
+		<MechanicalObject src="@loader" name="Volume" />
+		
+		<include href="Objects/TetrahedronSetTopology.xml" src="@loader" />
+		
+		<BoxROI name="fixedBox1" box="-0.05 -0.05 -0.002   0.05 0.05 0.002"/>
+		<BoxROI name="fixedBox2" box="-0.05 -0.05  0.298   0.05 0.05 0.302"/>	
+		<MergeSets name="mergeIndices" in1="@fixedBox1.indices" in2="@fixedBox2.indices"/>	
+		<FixedConstraint indices="@mergeIndices.out" />
+
+		<!-- <OptimParams name="incGravity" template="Vector" optimize="0" numParams="10" prescribedParamKeys="3000 4000 5000 2000 1000 10000 80000 1000 3000 3000" exportParamFile="" interpolateSmooth="0"/> -->
+	    <!-- <Gravity gravity="@incGravity.value"/> -->
+	    <IncrementalGravity gravity="0 -5 0" incrementalFactor="0.1"/>
+	    <!-- <Gravity gravity="0 -9.81 0"/> -->
+	    <!-- <Gravity gravity="0 -6 0"/> -->
+	    <UniformMass totalMass="0.2513"/>
+		
+		<!-- <BoxROI name="allDOFs" box="-1 -1 -1 1 1 1"/> -->
+		<!-- <Monitor name="observations/cylinder4245_YMStat" indices="@allDOFs.indices" ExportPositions="1" ExportVelocities="1" ExportForces="1"/> -->
+
+		<!-- <Indices2ValuesMapper name="youngMapper" inputValues="@loader.dataset" indices="1 2 3 4 5 6 7 8 9 10" values="3000 4000 5000 2000 1000 10000 8000 1000 3000 3000"/> -->
+		<!-- <TetrahedronFEMForceField name="FEM" listening="true" updateStiffness="1"  youngModulus="@youngMapper.outputValues" poissonRatio="0.45" method="large" drawHeterogeneousTetra="1"/> -->
+		<TetrahedronFEMForceField name="FEM" listening="true" updateStiffness="1"  youngModulus="1e4" poissonRatio="0.45" method="large" drawHeterogeneousTetra="1"/>
+
+	</Node>
+
 </Node>
