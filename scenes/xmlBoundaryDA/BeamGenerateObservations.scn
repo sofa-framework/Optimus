@@ -6,7 +6,7 @@
     <RequiredPlugin pluginName="SofaMJEDFEM"/>
 	<VisualStyle displayFlags="showBehaviorModels showForceFields showCollisionModels" />
 
-    <MeshVTKLoader filename="../../data/beamA1_1635.vtk" name="loader" />
+    <MeshVTKLoader filename="../../data/beam/beamA1_1635.vtk" name="loader" />
 
         <Node name="toolEmu">
             <MechanicalObject name="MO" position="0.16 0.06 0.01  0.16 0.06 0.025  0.16 0.06 0.040  0.16 0.06 0.055   0.16 0.06 0.070   0.175 0.06 0.01  0.175 0.06 0.025  0.175 0.06 0.040  0.175 0.06 0.055   0.175 0.06 0.070"/>
@@ -72,7 +72,7 @@
     <!-- 		<SimulatedStateObservationSource name="ObsSource" monitorPrefix="cylinder4245_YMStat"/> -->
     <!-- 	</Node> -->
             <Node name="visualization" activated="1">
-                    <MeshSTLLoader filename="../../data/beamA1_1635.stl" name="loader" />
+                    <MeshSTLLoader filename="../../data/beam/beamA1_1635.stl" name="loader" />
                     <include href="Objects/TriangleSetTopology.xml" src="@loader" />
                     <MechanicalObject src="@loader" name="Surface"/>
                     <Line color="0 0 0 1"/>
