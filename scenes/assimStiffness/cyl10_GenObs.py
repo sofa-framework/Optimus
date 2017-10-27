@@ -33,6 +33,7 @@ class cyl10_GenObs (Sofa.PythonScriptController):
         #self.totalMass='0.3769'                
         self.rayleighMass=0.1
         self.rayleighStiffness=3
+        self.youngModuli='3500 4000 1000 6000 2000 7000 2500 8000 3000 1500'
 
         self.saveObservations=1
 
@@ -71,7 +72,7 @@ class cyl10_GenObs (Sofa.PythonScriptController):
         simuNode.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
         simuNode.createObject('UniformMass', totalMass=self.totalMass)
 
-        simuNode.createObject('Indices2ValuesMapper', indices='1 2 3 4 5 6 7 8 9 10', values='3000 4000 1000 6000 2000 7000 2000 8000 3000 1000', name='youngMapper', inputValues='@loader.dataset')
+        simuNode.createObject('Indices2ValuesMapper', indices='1 2 3 4 5 6 7 8 9 10', values=self.youngModuli, name='youngMapper', inputValues='@loader.dataset')
         simuNode.createObject('TetrahedronFEMForceField', updateStiffness='1', name='FEM', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
 
         if self.saveObservations:
