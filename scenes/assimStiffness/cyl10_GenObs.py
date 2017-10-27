@@ -20,17 +20,21 @@ def createScene(rootNode):
         commandLineArguments = sys.argv
     mycyl10_GenObs = cyl10_GenObs(rootNode,commandLineArguments)
     return 0;
-    
+
 
 class cyl10_GenObs (Sofa.PythonScriptController):
 
-    def __init__(self, rootNode, commandLineArguments) : 
+    def __init__(self, rootNode, commandLineArguments) :         
+        self.volumeFileName='../../data/cylinder/cylinder10_4245.vtk'                
+        self.observationFileName='observations/cylinder10_4245'
         self.dt='0.01'
         self.gravity='0 -9.81 0'
-        self.volumeFileName='../../data/cylinder/cylinder10_4245.vtk'                
-        self.totalMass='0.3769'
+        self.totalMass='0.2'
+        #self.totalMass='0.3769'                
+        self.rayleighMass=0.1
+        self.rayleighStiffness=3
+
         self.saveObservations=1
-        self.observationFileName='observations/cylinder10_4245'        
 
         rootNode.findData('dt').value = self.dt
         rootNode.findData('gravity').value = self.gravity
@@ -53,7 +57,7 @@ class cyl10_GenObs (Sofa.PythonScriptController):
         # rootNode/simuNode
         simuNode = rootNode.createChild('simuNode')
         self.simuNode = simuNode
-        simuNode.createObject('EulerImplicitSolver', rayleighStiffness='0.1', rayleighMass='0.1')
+        simuNode.createObject('EulerImplicitSolver', rayleighStiffness=self.rayleighStiffness, rayleighMass=self.rayleighMass)
         simuNode.createObject('SparsePARDISOSolver', name='LDLsolver', verbose='0')
         simuNode.createObject('MeshVTKLoader', name='loader', filename=self.volumeFileName)
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')
@@ -67,7 +71,7 @@ class cyl10_GenObs (Sofa.PythonScriptController):
         simuNode.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
         simuNode.createObject('UniformMass', totalMass=self.totalMass)
 
-        simuNode.createObject('Indices2ValuesMapper', indices='1 2 3 4 5 6 7 8 9 10', values='3000 4000 5000 2000 1000 10000 8000 1000 3000 3000', name='youngMapper', inputValues='@loader.dataset')
+        simuNode.createObject('Indices2ValuesMapper', indices='1 2 3 4 5 6 7 8 9 10', values='3000 4000 1000 6000 2000 7000 2000 8000 3000 1000', name='youngMapper', inputValues='@loader.dataset')
         simuNode.createObject('TetrahedronFEMForceField', updateStiffness='1', name='FEM', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
 
         if self.saveObservations:

@@ -31,12 +31,17 @@ class synth1_BCDA(Sofa.PythonScriptController):
         lamb=(E*nu)/((1+nu)*(1-2*nu))
         mu=E/(2+2*nu)
         self.materialParams='{} {}'.format(mu,lamb)
-        
-        self.volumeFileName='../../data/cylinder/cylinder10_4245.vtk'        
-        self.observationFileName='observations/cylinder10_4245'
-        self.outDir='outSynth1'
 
-        self.totalMass='0.3769'
+        self.volumeFileName='../../data/cylinder/cylinder10_4245.vtk'
+        self.observationFileName='observations/cylinder10_4245'
+        self.dt='0.01'
+        self.gravity='0 -9.81 0'
+        self.totalMass='0.2'
+        #self.totalMass='0.3769'
+        self.rayleighMass=0.1
+        self.rayleighStiffness=3
+                        
+        self.outDir='outSynth1'
         
     
         # self.m_slaveSceneCount = 0
@@ -77,8 +82,8 @@ class synth1_BCDA(Sofa.PythonScriptController):
     
     def createGlobalComponents(self, node):
         # scene global stuff                
-        node.findData('gravity').value='0 -9.81 0'
-        node.findData('dt').value="0.01"
+        node.findData('gravity').value=self.gravity
+        node.findData('dt').value=self.dt
         
         node.createObject('ViewerSetting', cameraMode='Perspective', resolution='1000 700', objectPickingMethod='Ray casting')
         node.createObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels')
@@ -96,11 +101,11 @@ class synth1_BCDA(Sofa.PythonScriptController):
     def createCommonComponents(self, node):                                  
         #node.createObject('StaticSolver', applyIncrementFactor="0")
         #node.createObject('SparsePARDISOSolver')        
-
-        node.createObject('EulerImplicitSolver', rayleighStiffness='0.1', rayleighMass='0.1')
+        
+        node.createObject('EulerImplicitSolver', rayleighStiffness=self.rayleighStiffness, rayleighMass=self.rayleighMass)
         # node.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")   
         # node.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
-        node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToDir="", iterativeSolverNumbering="0")
+        node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
 
         node.createObject('MechanicalObject', src="@/loader", name="Volume")
         node.createObject('TetrahedronSetTopologyContainer', name="Container", src="@/loader", tags=" ")
@@ -114,9 +119,14 @@ class synth1_BCDA(Sofa.PythonScriptController):
         node.createObject('MergeSets', name='mergeIndices', in2='@fixedBox2.indices', in1='@fixedBox1.indices')
         node.createObject('FixedConstraint', indices='@mergeIndices.out')
                     
-        node.createObject('OptimParams', name="paramE", optimize="1", numParams='10', template="Vector", initValue="6000", stdev="2000", transformParams="1")
+        node.createObject('OptimParams', name="paramE", optimize="1", numParams='10', template="Vector", initValue="6000", stdev="1000", transformParams="1")
         node.createObject('Indices2ValuesMapper', name='youngMapper', indices='1 2 3 4 5 6 7 8 9 10', values='@paramE.value', inputValues='@/loader.dataset')
         node.createObject('TetrahedronFEMForceField', name='FEM', updateStiffness='1', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
+
+                # rootNode/simuNode/oglNode
+        oglNode = node.createChild('oglNode')
+        self.oglNode = oglNode
+        oglNode.createObject('OglModel', color='0 0 0 0')
         # node.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus="1e5", poissonRatio="0.45", method="large")
                 
         return 0
@@ -128,19 +138,20 @@ class synth1_BCDA(Sofa.PythonScriptController):
         self.createCommonComponents(node)
 
         obsNode = node.createChild('obsNode')        
-        obsNode.createObject('MechanicalObject', name='SourceMO', position="0.02 0 0.08    0.02 0 0.16    0.0141 0.0141 0.08    0.0141 -0.0141 0.08    0.0141 0.0141 0.16    0.0141 -0.0141 0.16    0.02 0 0.0533    0.02 0 0.107   \
+        obsNode.createObject('MechanicalObject', name='SourceMO', position='0.02 0 0.08 0.02 0 0.16    0.0141 0.0141 0.08    0.0141 -0.0141 0.08    0.0141 0.0141 0.16    0.0141 -0.0141 0.16    0.02 0 0.0533    0.02 0 0.107   \
             0.02 0 0.133    0.02 0 0.187    0.02 0 0.213    0.0175 0.00961 0.0649    0.00925 0.0177 0.0647    0.0139 0.0144 0.0398    0.00961 -0.0175 0.0649    0.0177 -0.00925 0.0647  \
             0.0144 -0.0139 0.0402    0.0177 0.00936 0.145    0.0095 0.0176 0.145    0.0175 0.00961 0.0951    0.00925 0.0177 0.0953    0.0139 0.0144 0.12    0.00937 -0.0177 0.145   \
             0.0176 -0.00949 0.145    0.00935 -0.0177 0.0953    0.0176 -0.00949 0.095    0.0142 -0.0141 0.12    0.0177 0.00937 0.175    0.00949 0.0176 0.175    0.014 0.0143 0.2   \
-            0.00959 -0.0175 0.175    0.0177 -0.00924 0.175    0.0143 -0.014 0.2")
-        obsNode.createObject('Sphere', radius="0.002", color="1 0 0 1")
+            0.00959 -0.0175 0.175    0.0177 -0.00924 0.175    0.0143 -0.014 0.2')        
         obsNode.createObject('BarycentricMapping')
         obsNode.createObject('MappedStateObservationManager', name="MOBS", observationStdev="2e-3", noiseStdev="0.0", listening="1", stateWrapper="@../StateWrapper", verbose="1")
         obsNode.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix=self.observationFileName)
+        obsNode.createObject('ShowSpheres', radius="0.002", color="1 0 0 1", position='@SourceMO.position')
+        obsNode.createObject('ShowSpheres', radius="0.0015", color="1 1 0 1", position='@MOBS.mappedObservations')
 
-        obsVisuNode = node.createChild('SourceNode')
-        obsVisuNode.createObject('MechanicalObject', name="aux_Source", position="@../obsNode/MOBS.mappedObservations")
-        obsVisuNode.createObject('Sphere', radius="0.002", color="0 0 0.3 1")
+        # obsVisuNode = node.createChild('SourceNode')
+        # obsVisuNode.createObject('MechanicalObject', name="aux_Source", position="@../obsNode/MOBS.mappedObservations")
+        # obsVisuNode.createObject('Sphere', radius="0.002", color="0 0 0.3 1")
 
 
 
