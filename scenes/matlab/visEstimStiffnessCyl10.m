@@ -1,8 +1,8 @@
 addpath '~/AncillaIP/Matlab';
 groundTruth=[3500 4000 1000 6000 2000 7000 2500 8000 3000 1500];
 
-estStateFile='../assimStiffness/outCyl10/state_test.txt';
-estVarFile='../assimStiffness/outCyl10/variance_test.txt';
+estStateFile='../assimStiffness/outCyl10plane/state_test.txt';
+estVarFile='../assimStiffness/outCyl10plane/variance_test.txt';
 
 estState=load(estStateFile);
 estVar=load(estVarFile);
