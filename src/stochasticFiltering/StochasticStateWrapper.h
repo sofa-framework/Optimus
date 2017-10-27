@@ -32,8 +32,21 @@
 
 #include <sofa/simulation/AnimateEndEvent.h>
 #include <sofa/simulation/AnimateBeginEvent.h>
-
 #include <SofaBoundaryCondition/FixedConstraint.h>
+#include <sofa/simulation/BehaviorUpdatePositionVisitor.h>
+#include <sofa/simulation/MechanicalOperations.h>
+#include <sofa/simulation/SolveVisitor.h>
+#include <sofa/simulation/VectorOperations.h>
+#include <sofa/simulation/PropagateEventVisitor.h>
+#include <sofa/simulation/UpdateContextVisitor.h>
+#include <sofa/simulation/UpdateMappingVisitor.h>
+#include <sofa/simulation/UpdateMappingEndEvent.h>
+#include <sofa/simulation/UpdateBoundingBoxVisitor.h>
+
+#include <sofa/core/ObjectFactory.h>
+#include <sofa/core/VecId.h>
+
+
 
 #include <Eigen/Dense>
 
@@ -90,8 +103,10 @@ protected:
     void copyStateFilter2Sofa(const core::MechanicalParams *_mechParams);  // copy actual DA state to SOFA state and propagate to mappings
     void copyStateSofa2Filter();  // copy the actual SOFA state to DA state
     void computeSofaStep(const core::ExecParams* execParams, bool _updateTime);
+    void computeSofaStepWithLM(const core::ExecParams* params, bool _updateTime);
 
 public:    
+    Data<bool> d_langrangeMultipliers;
     Data<bool> estimatePosition;
     Data<bool> estimateVelocity;
     Data< double> m_stdev;          /// standard deviation
@@ -164,6 +179,13 @@ public:
         }
         return this->stateErrorVarianceProjector;
     }
+
+    Data<bool> m_solveVelocityConstraintFirst;
+
+protected :
+
+    sofa::core::behavior::ConstraintSolver *constraintSolver;
+    component::constraintset::LCPConstraintSolver::SPtr defaultSolver;
 
 
 }; /// class

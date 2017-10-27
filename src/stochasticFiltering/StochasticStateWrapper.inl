@@ -65,9 +65,12 @@ namespace component
 namespace stochastic
 {
 
+using namespace sofa::simulation;
+
 template <class DataTypes, class FilterType>
 StochasticStateWrapper<DataTypes, FilterType>::StochasticStateWrapper()
     :Inherit()
+    , d_langrangeMultipliers( initData(&d_langrangeMultipliers, false, "langrangeMultipliers", "perform collision detection and response with Lagrange multipliers (requires constraint solver)") )
     , estimatePosition( initData(&estimatePosition, true, "estimatePosition", "estimate the position (e.g., if initial conditions with uncertainty") )
     , estimateVelocity( initData(&estimateVelocity, false, "estimateVelocity", "estimate the velocity (e.g., if initial conditions with uncertainty") )
     , m_stdev( initData(&m_stdev, "stdev", "standard variation") )
@@ -114,6 +117,31 @@ void StochasticStateWrapper<DataTypes, FilterType>::init()
     if (fixedConstraint) {
         PRNS("Fixed constraint found: " << fixedConstraint->getName());
     }    
+
+    /// search for constraint solver
+    if (this->d_langrangeMultipliers.getValue()) {
+        PRNS("Looking for constraint solver");
+
+        {
+            simulation::common::VectorOperations vop(core::ExecParams::defaultInstance(), this->getContext());
+            core::behavior::MultiVecDeriv dx(&vop, core::VecDerivId::dx() ); dx.realloc( &vop, true, true );
+            core::behavior::MultiVecDeriv df(&vop, core::VecDerivId::dforce() ); df.realloc( &vop, true, true );
+        }
+
+
+        this->getContext()->get(constraintSolver, core::objectmodel::BaseContext::SearchDown);
+        if (constraintSolver == NULL && defaultSolver != NULL)
+        {
+            serr << "No ConstraintSolver found, using default LCPConstraintSolver" << sendl;
+            this->getContext()->addObject(defaultSolver);
+            constraintSolver = defaultSolver.get();
+            defaultSolver = NULL;
+        }
+        else
+        {
+            defaultSolver.reset();
+        }
+    }
 }
 
 template <class DataTypes, class FilterType>
@@ -275,7 +303,12 @@ void StochasticStateWrapper<DataTypes, FilterType>::applyOperator(EVectorX &_vec
 
     this->state = _vecX;    
     copyStateFilter2Sofa(_mparams);
-    computeSofaStep(_mparams, false);
+
+    if (this->d_langrangeMultipliers.getValue())
+        computeSofaStepWithLM(_mparams, false);
+    else
+        computeSofaStep(_mparams, false);
+
     copyStateSofa2Filter();
     _vecX = this->state;
 
@@ -364,6 +397,139 @@ void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStep(const core::
     sofa::helper::AdvancedTimer::end("Animate");
     sofa::helper::AdvancedTimer::stepEnd("AnimationStep");
 
+}
+
+
+template <class DataTypes, class FilterType>
+void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStepWithLM(const core::ExecParams* params, bool _updateTime) {
+    //if (dt == 0)
+    SReal dt = this->gnode->getDt();
+
+    {
+        sofa::simulation::AnimateBeginEvent ev ( dt );
+        sofa::simulation::PropagateEventVisitor act ( params, &ev );
+        this->gnode->execute ( act );
+    }
+
+    double startTime = this->gnode->getTime();
+
+    simulation::common::VectorOperations vop(params, this->getContext());
+    simulation::common::MechanicalOperations mop(params, this->getContext());
+
+    core::behavior::MultiVecCoord pos(&vop, core::VecCoordId::position() );
+    core::behavior::MultiVecDeriv vel(&vop, core::VecDerivId::velocity() );
+    core::behavior::MultiVecCoord freePos(&vop, core::VecCoordId::freePosition() );
+    core::behavior::MultiVecDeriv freeVel(&vop, core::VecDerivId::freeVelocity() );
+
+    {
+        core::behavior::MultiVecDeriv dx(&vop, core::VecDerivId::dx() ); dx.realloc( &vop, true, true );
+        core::behavior::MultiVecDeriv df(&vop, core::VecDerivId::dforce() ); df.realloc( &vop, true, true );
+    }
+
+
+    // This solver will work in freePosition and freeVelocity vectors.
+    // We need to initialize them if it's not already done.
+    sofa::helper::AdvancedTimer::stepBegin("MechanicalVInitVisitor");
+    simulation::MechanicalVInitVisitor< core::V_COORD >(params, core::VecCoordId::freePosition(), core::ConstVecCoordId::position(), true).execute(this->gnode);
+    simulation::MechanicalVInitVisitor< core::V_DERIV >(params, core::VecDerivId::freeVelocity(), core::ConstVecDerivId::velocity(), true).execute(this->gnode);
+
+    sofa::simulation::BehaviorUpdatePositionVisitor beh(params , dt);
+
+    // Update the BehaviorModels
+    // Required to allow the RayPickInteractor interaction
+
+    this->gnode->execute(&beh);
+
+    simulation::MechanicalBeginIntegrationVisitor beginVisitor(params, dt);
+    this->gnode->execute(&beginVisitor);
+
+    // Free Motion
+    simulation::SolveVisitor freeMotion(params, dt, true);
+    this->gnode->execute(&freeMotion);
+
+    mop.projectPositionAndVelocity(freePos, freeVel); // apply projective constraints
+    mop.propagateXAndV(freePos, freeVel);
+
+    // Collision detection and response creation
+    //TODO: add this function here! sofa::simulation::computeCollision(params);
+    mop.propagateX(pos); // Why is this done at that point ???
+
+    // Solve constraints
+    if (constraintSolver)
+    {
+        if (m_solveVelocityConstraintFirst.getValue())
+        {
+            core::ConstraintParams cparams(*params);
+            cparams.setX(freePos);
+            cparams.setV(freeVel);
+
+            cparams.setOrder(core::ConstraintParams::VEL);
+            constraintSolver->solveConstraint(&cparams, vel);
+
+            core::behavior::MultiVecDeriv dv(&vop, constraintSolver->getDx());
+            mop.projectResponse(dv);
+            mop.propagateDx(dv);
+
+            // xfree += dv * dt
+            freePos.eq(freePos, dv, dt);
+            mop.propagateX(freePos);
+
+            cparams.setOrder(core::ConstraintParams::POS);
+            constraintSolver->solveConstraint(&cparams, pos);
+
+            core::behavior::MultiVecDeriv dx(&vop, constraintSolver->getDx());
+
+            mop.projectVelocity(vel); // apply projective constraints
+            mop.propagateV(vel);
+            mop.projectResponse(dx);
+            mop.propagateDx(dx, true);
+
+            // "mapped" x = xfree + dx
+            simulation::MechanicalVOpVisitor(params, pos, freePos, dx, 1.0 ).setOnlyMapped(true).execute(this->gnode);
+        }
+        else
+        {
+            core::ConstraintParams cparams(*params);
+            cparams.setX(freePos);
+            cparams.setV(freeVel);
+
+            constraintSolver->solveConstraint(&cparams, pos, vel);
+            mop.projectVelocity(vel); // apply projective constraints
+            mop.propagateV(vel);
+
+            core::behavior::MultiVecDeriv dx(&vop, constraintSolver->getDx());
+            mop.projectResponse(dx);
+            mop.propagateDx(dx, true);
+
+            // "mapped" x = xfree + dx
+            simulation::MechanicalVOpVisitor(params, pos, freePos, dx, 1.0 ).setOnlyMapped(true).execute(this->gnode);
+        }
+    }
+
+    simulation::MechanicalEndIntegrationVisitor endVisitor(params, dt);
+    this->gnode->execute(&endVisitor);
+
+    this->gnode->setTime ( startTime + dt );
+    this->gnode->template execute<UpdateSimulationContextVisitor>(params);  // propagate time
+
+    {
+        sofa::simulation::AnimateEndEvent ev ( dt );
+        sofa::simulation::PropagateEventVisitor act ( params, &ev );
+        this->gnode->execute ( act );
+    }
+
+
+    //Visual Information update: Ray Pick add a MechanicalMapping used as VisualMapping
+    this->gnode->template execute<UpdateMappingVisitor>(params);
+    {
+        sofa::simulation::UpdateMappingEndEvent ev ( dt );
+        sofa::simulation::PropagateEventVisitor act ( params , &ev );
+        this->gnode->execute ( act );
+    }
+
+#ifndef SOFA_NO_UPDATE_BBOX
+    this->gnode->template execute<UpdateBoundingBoxVisitor>(params);
+#endif
 }
 
 
