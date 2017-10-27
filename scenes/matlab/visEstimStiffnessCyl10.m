@@ -1,4 +1,4 @@
-addpath '/home/ip/AncillaIP/Matlab';
+addpath '~/AncillaIP/Matlab';
 groundTruth=[3500 4000 1000 6000 2000 7000 2500 8000 3000 1500];
 
 estStateFile='../assimStiffness/outCyl10/state_test.txt';
