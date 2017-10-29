@@ -86,12 +86,12 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
 
     #components common for both master and slave: the simulation itself (without observations and visualizations)
-    def createCommonComponents(self, node):                                  
+    def createDeformableBody(self, node):                                  
         #node.createObject('StaticSolver', applyIncrementFactor="0")        
         node.createObject('EulerImplicitSolver', rayleighStiffness=self.rayleighStiffness, rayleighMass=self.rayleighMass)
         # node.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")   
         # node.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
-        node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
+        node.createObject('SparsePARDISOSolver', name="lsolver", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
 
         node.createObject('MechanicalObject', src="@/loader", name="Volume")
         node.createObject('TetrahedronSetTopologyContainer', name="Container", src="@/loader", tags=" ")
@@ -108,6 +108,20 @@ class synth1_BCDA(Sofa.PythonScriptController):
         node.createObject('OptimParams', name="paramE", optimize="1", numParams='10', template="Vector", initValue="6000", stdev="1000", transformParams="1")
         node.createObject('Indices2ValuesMapper', name='youngMapper', indices='1 2 3 4 5 6 7 8 9 10', values='@paramE.value', inputValues='@/loader.dataset')
         node.createObject('TetrahedronFEMForceField', name='FEM', updateStiffness='1', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
+        node.createObject('LinearSolverConstraintCorrection')
+        # node.createObject('PardisoConstraintCorrection', solverName='lsolver', schurSolverName='lsolver')
+
+        # create collision model
+        surface=node.createChild('collision')
+        surface.createObject('MeshSTLLoader', name='sloader', filename=self.surfaceFileName)
+        surface.createObject('TriangleSetTopologyContainer', position='@sloader.position', name='TriangleContainer', triangles='@sloader.triangles')
+        surface.createObject('TriangleSetTopologyModifier', name='Modifier')
+        surface.createObject('MechanicalObject', showIndices='false', name='mstate')
+        surface.createObject('Triangle', color='1 0 0 1', group=0)
+        surface.createObject('Line', color='1 0 0 1', group=0)
+        surface.createObject('Point', color='1 0 0 1', group=0)
+        surface.createObject('BarycentricMapping', name='bpmapping')
+
 
                 # rootNode/simuNode/oglNode
         oglNode = node.createChild('oglNode')
@@ -119,11 +133,18 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
 
     def createMasterScene(self, node):
-        node.createObject('StochasticStateWrapper',name="StateWrapper",verbose="1")
+        node.createObject('StochasticStateWrapper',name="StateWrapper",verbose='1', langrangeMultipliers='1')
+        node.createObject('GenericConstraintSolver', maxIterations='1000', tolerance='1e-6', printLog='0', allVerified='0')
+
+        node.createObject('CollisionPipeline', depth="6", verbose="0", draw="0")
+        node.createObject('BruteForceDetection', name="N2")
+        node.createObject('LocalMinDistance', name="Proximity",  alarmDistance='0.002', contactDistance='0.001',  angleCone='90.0', filterIntersection='0')
+        node.createObject('DefaultContactManager', name="Response", response="FrictionContact", responseParams='mu=0')
+
         
         bodyNode=node.createChild('bodyNode')
 
-        self.createCommonComponents(bodyNode)
+        self.createDeformableBody(bodyNode)
 
         obsNode = bodyNode.createChild('obsNode')
         obsNode.createObject('MechanicalObject', name='SourceMO', position='0.02 0 0.08 0.02 0 0.16    0.0141 0.0141 0.08    0.0141 -0.0141 0.08    0.0141 0.0141 0.16    0.0141 -0.0141 0.16    0.02 0 0.0533    0.02 0 0.107   \
@@ -137,6 +158,12 @@ class synth1_BCDA(Sofa.PythonScriptController):
         obsNode.createObject('ShowSpheres', radius="0.002", color="1 0 0 1", position='@SourceMO.position')
         obsNode.createObject('ShowSpheres', radius="0.0015", color="1 1 0 1", position='@MOBS.mappedObservations')
 
+        floor = node.createChild('floor')
+        floor.createObject('RegularGrid', nx="2", ny="2", nz="2", xmin="-0.1", xmax="0.1",  ymin="-0.059", ymax="-0.061", zmin="0.0", zmax="0.3")
+        floor.createObject('MechanicalObject', template="Vec3d")
+        floor.createObject('Triangle',simulated="false", bothSide="true", contactFriction="0.00", color="1 0 0 1")
+        floor.createObject('Line', simulated="false", bothSide="true", contactFriction="0.0")
+        floor.createObject('Point', simulated="false", bothSide="true", contactFriction="0.0")
 
 
         return 0

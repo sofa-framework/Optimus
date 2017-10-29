@@ -36,7 +36,7 @@ class cyl10_GenObs (Sofa.PythonScriptController):
         self.rayleighStiffness=3
         self.youngModuli='3500 4000 1000 6000 2000 7000 2500 8000 3000 1500'
 
-        self.saveObservations=1
+        self.saveObservations=0
 
         rootNode.findData('dt').value = self.dt
         rootNode.findData('gravity').value = self.gravity
@@ -90,7 +90,8 @@ class cyl10_GenObs (Sofa.PythonScriptController):
             simuNode.createObject('Monitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.observationFileName, ExportPositions='1', ExportVelocities='0', ExportForces='0')
 
 
-        simuNode.createObject('PardisoConstraintCorrection', solverName='lsolver', schurSolverName='lsolver')
+        #simuNode.createObject('PardisoConstraintCorrection', solverName='lsolver', schurSolverName='lsolver')
+        simuNode.createObject('LinearSolverConstraintCorrection')
 
 
         surface=simuNode.createChild('collision')

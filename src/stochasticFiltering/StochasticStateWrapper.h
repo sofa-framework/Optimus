@@ -43,6 +43,8 @@
 #include <sofa/simulation/UpdateMappingEndEvent.h>
 #include <sofa/simulation/UpdateBoundingBoxVisitor.h>
 
+#include <SofaConstraint/LCPConstraintSolver.h>
+
 #include <sofa/core/ObjectFactory.h>
 #include <sofa/core/VecId.h>
 
@@ -187,6 +189,23 @@ protected :
     sofa::core::behavior::ConstraintSolver *constraintSolver;
     component::constraintset::LCPConstraintSolver::SPtr defaultSolver;
 
+
+/****** ADDED FOR COLLISIONS  *****/
+    /// Activate collision pipeline
+    virtual void computeCollision(const core::ExecParams* params = core::ExecParams::defaultInstance());
+
+    /// Activate OdeSolvers
+    virtual void integrate(const core::ExecParams* params, SReal dt);
+
+
+    //typedef simulation::Node::Sequence<core::behavior::OdeSolver> Solvers;
+    //typedef core::collision::Pipeline Pipeline;
+    //const Solvers& getSolverSequence();
+
+    // the parent Node of CollisionAnimationLoop its self (usually, this parent node is the root node of the simulation graph)
+    // This pointer is initialized one time at the construction, avoiding dynamic_cast<Node*>(context) every time step
+    //simulation::Node* gnode;
+/****** ADDED FOR COLLISIONS  *****/
 
 }; /// class
 

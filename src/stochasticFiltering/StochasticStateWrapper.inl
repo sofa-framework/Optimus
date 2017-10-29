@@ -52,6 +52,8 @@
 #include <sofa/helper/system/SetDirectory.h>
 #include <sofa/helper/system/PipeProcess.h>
 #include <sofa/helper/AdvancedTimer.h>
+#include <sofa/simulation/IntegrateBeginEvent.h>
+#include <sofa/simulation/IntegrateEndEvent.h>
 
 
 
@@ -451,7 +453,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStepWithLM(const 
     mop.propagateXAndV(freePos, freeVel);
 
     // Collision detection and response creation
-    //TODO: add this function here! sofa::simulation::computeCollision(params);
+    this->computeCollision(params);
     mop.propagateX(pos); // Why is this done at that point ???
 
     // Solve constraints
@@ -531,6 +533,55 @@ void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStepWithLM(const 
     this->gnode->template execute<UpdateBoundingBoxVisitor>(params);
 #endif
 }
+
+template <class DataTypes, class FilterType>
+void StochasticStateWrapper<DataTypes, FilterType>::computeCollision(const core::ExecParams* params)
+{
+    {
+        CollisionBeginEvent evBegin;
+        PropagateEventVisitor eventPropagation( params, &evBegin);
+        eventPropagation.execute(this->getContext());
+    }
+
+    CollisionVisitor act(params);
+    act.setTags(this->getTags());
+    act.execute( this->getContext() );
+
+    {
+        CollisionEndEvent evEnd;
+        PropagateEventVisitor eventPropagation( params, &evEnd);
+        eventPropagation.execute(this->getContext());
+    }
+}
+
+template <class DataTypes, class FilterType>
+void StochasticStateWrapper<DataTypes, FilterType>::integrate(const core::ExecParams* params, SReal dt)
+{
+
+    {
+        IntegrateBeginEvent evBegin;
+        PropagateEventVisitor eventPropagation( params, &evBegin);
+        eventPropagation.execute(this->getContext());
+    }
+
+    MechanicalIntegrationVisitor act( params, dt );
+    act.setTags(this->getTags());
+    act.execute( this->getContext() );
+
+    {
+        IntegrateEndEvent evBegin;
+        PropagateEventVisitor eventPropagation( params, &evBegin);
+        eventPropagation.execute(this->getContext());
+    }
+}
+
+/*template <class DataTypes, class FilterType>
+const StochasticStateWrapper::Solvers& StochasticStateWrapper<DataTypes, FilterType>::getSolverSequence()
+{
+    simulation::Node* gnode = dynamic_cast<simulation::Node*>( getContext() );
+    assert( gnode );
+    return gnode->solver;
+}*/
 
 
 
