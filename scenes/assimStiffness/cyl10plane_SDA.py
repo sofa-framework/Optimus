@@ -7,9 +7,9 @@ import csv
 __file = __file__.replace('\\', '/') # windows
 
 def createScene(rootNode):
-    rootNode.createObject('RequiredPlugin', pluginName='Optimus')
-    rootNode.createObject('RequiredPlugin', pluginName='SofaPardisoSolver')
-    rootNode.createObject('RequiredPlugin', pluginName='ImageMeshAux')
+    rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
+    rootNode.createObject('RequiredPlugin', name='Pardiso', pluginName='SofaPardisoSolver')
+    rootNode.createObject('RequiredPlugin', name='IMAUX', pluginName='ImageMeshAux')
     #rootNode.createObject('RequiredPlugin', pluginName='SofaMJEDFEM')
     
     rootNode.createObject('PythonScriptController', name='SynthBCDA', filename=__file, classname='synth1_BCDA')
@@ -75,7 +75,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         node.findData('dt').value=self.dt
         
         node.createObject('ViewerSetting', cameraMode='Perspective', resolution='1000 700', objectPickingMethod='Ray casting')
-        node.createObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels')
+        node.createObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels hideVisualModels')
 
         node.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")        
         self.filter = node.createObject('ROUKFilter', name="ROUKF", verbose="1")        
@@ -89,7 +89,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
     #components common for both master and slave: the simulation itself (without observations and visualizations)
     def createDeformableBody(self, parentNode):                                  
         #node.createObject('StaticSolver', applyIncrementFactor="0")  
-        node=parentNode.createChild('bodyNode')      
+        node=parentNode.createChild('cylinder')      
         node.createObject('EulerImplicitSolver', rayleighStiffness=self.rayleighStiffness, rayleighMass=self.rayleighMass)
         # node.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")   
         # node.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
@@ -124,7 +124,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         surface.createObject('BarycentricMapping', name='bpmapping')
 
         # create observation node
-        obsNode = node.createChild('obsNode')
+        obsNode = node.createChild('observations')
         obsNode.createObject('MechanicalObject', name='SourceMO', position='0.02 0 0.08 0.02 0 0.16    0.0141 0.0141 0.08    0.0141 -0.0141 0.08    0.0141 0.0141 0.16    0.0141 -0.0141 0.16    0.02 0 0.0533    0.02 0 0.107   \
             0.02 0 0.133    0.02 0 0.187    0.02 0 0.213    0.0175 0.00961 0.0649    0.00925 0.0177 0.0647    0.0139 0.0144 0.0398    0.00961 -0.0175 0.0649    0.0177 -0.00925 0.0647  \
             0.0144 -0.0139 0.0402    0.0177 0.00936 0.145    0.0095 0.0176 0.145    0.0175 0.00961 0.0951    0.00925 0.0177 0.0953    0.0139 0.0144 0.12    0.00937 -0.0177 0.145   \
@@ -138,9 +138,10 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
 
                 # rootNode/simuNode/oglNode
-        oglNode = node.createChild('oglNode')
+        oglNode = node.createChild('visualization')
         self.oglNode = oglNode
-        oglNode.createObject('OglModel', color='0 0 0 0')
+        oglNode.createObject('OglModel', color='1 0 0 1')
+        oglNode.createObject('BarycentricMapping')
         # node.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus="1e5", poissonRatio="0.45", method="large")
                 
         return 0
@@ -149,9 +150,9 @@ class synth1_BCDA(Sofa.PythonScriptController):
         floor = node.createChild('floor')
         floor.createObject('RegularGrid', nx="2", ny="2", nz="2", xmin="-0.1", xmax="0.1",  ymin="-0.059", ymax="-0.061", zmin="0.0", zmax="0.3")
         floor.createObject('MechanicalObject', template="Vec3d")
-        floor.createObject('Triangle',simulated="false", bothSide="true", contactFriction="0.00", color="1 0 0 1")
-        floor.createObject('Line', simulated="false", bothSide="true", contactFriction="0.0")
-        floor.createObject('Point', simulated="false", bothSide="true", contactFriction="0.0")                                 
+        floor.createObject('Triangle',simulated="false", bothSide="true", contactFriction="0.00", color="1 1 0 1")
+        floor.createObject('Line', simulated="false", bothSide="true", contactFriction="0.0", color="1 1 0 1")
+        floor.createObject('Point', simulated="false", bothSide="true", contactFriction="0.0", color="1 1 0 1")                                 
 
 
     def createMasterScene(self, node):
