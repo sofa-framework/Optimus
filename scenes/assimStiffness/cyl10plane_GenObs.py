@@ -44,6 +44,7 @@ class cyl10_GenObs (Sofa.PythonScriptController):
         self.commandLineArguments = commandLineArguments
         print "Command line arguments for python : "+str(commandLineArguments)
         self.createGraph(rootNode)
+        os.system('mkdir -p observations')
 
         return None;
 
