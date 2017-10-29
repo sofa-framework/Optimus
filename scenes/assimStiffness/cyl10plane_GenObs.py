@@ -36,15 +36,17 @@ class cyl10_GenObs (Sofa.PythonScriptController):
         self.rayleighStiffness=3
         self.youngModuli='3500 4000 1000 6000 2000 7000 2500 8000 3000 1500'
 
-        self.saveObservations=0
+        self.saveObservations=1
 
         rootNode.findData('dt').value = self.dt
         rootNode.findData('gravity').value = self.gravity
 
         self.commandLineArguments = commandLineArguments
         print "Command line arguments for python : "+str(commandLineArguments)
+
+        os.system('mkdir -p observations')        
         self.createGraph(rootNode)
-        os.system('mkdir -p observations')
+
 
         return None;
 
