@@ -294,7 +294,7 @@ void OptimParams<sofa::helper::vector<double> >::init() {
         if (stdev.size() == 0) {
             stdev.resize(nInitVal, 0.0);
         } else if (stdev.size() != nInitVal) {
-            std::cerr << this->getName() << ": ERROR: |stdev| != |init value|, taking the first member of stdev. " << std::endl;
+            std::cerr << "[" << this->getName() << "]: WARNING: |stdev| != |init value|, resizing and taking the first member of stdev. " << std::endl;
             //double x=stdev[0];
             stdev.resize(nInitVal);
             for (size_t i = 1; i < nInitVal; i++)
