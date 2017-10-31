@@ -49,7 +49,7 @@ AddNoiseEngine<DataTypes>::AddNoiseEngine()
 
 template <class DataTypes>
 void AddNoiseEngine<DataTypes>::init() {
-    std::cout << "init start" << std::endl;
+//    std::cout << "init start" << std::endl;
     dir = _noisePrincipalDirection.getValue();
     dir.normalize();
     
@@ -73,9 +73,9 @@ void AddNoiseEngine<DataTypes>::init() {
         orth2.normalize();
     }
 
-    std::cout << "dir = " << dir << std::endl;
-    std::cout << "O1 = " << orth1 << std::endl;
-    std::cout << "O2 = " << orth2 << std::endl;
+//    std::cout << "dir = " << dir << std::endl;
+//    std::cout << "O1 = " << orth1 << std::endl;
+//    std::cout << "O2 = " << orth2 << std::endl;
 
     helper::ReadAccessor< Data< VecCoord > > inputPos = _inputPositions;
     helper::WriteAccessor< Data< VecCoord > > outputPos = _outputPositionsWithNoise;
@@ -91,7 +91,7 @@ void AddNoiseEngine<DataTypes>::update() {
 
     outputPos.resize(inputPos.size());
 
-    std::cout <<"Resize " << inputPos.size() << " -> " << outputPos.size() <<  std::endl;
+//    std::cout <<"Resize " << inputPos.size() << " -> " << outputPos.size() <<  std::endl;
 
 
     double mean = _noiseMean.getValue();
@@ -103,9 +103,9 @@ void AddNoiseEngine<DataTypes>::update() {
 
     for (size_t i = 0; i < inputPos.size(); i++) {
         Coord pert = dir * getRandomGauss(mean,varPrinc) +  orth1 * getRandomGauss(mean,varOrtho) + orth2 * getRandomGauss(mean,varOrtho);
-        std::cout << "Pert = " << pert << std::endl;
+//        std::cout << "Pert = " << pert << std::endl;
         outputPos[i] = inputPos[i] + pert;
-        std::cout << "Pos[" << i << "]= " << outputPos[i] << std::endl;
+//        std::cout << "Pos[" << i << "]= " << outputPos[i] << std::endl;
 
     }
 }
@@ -113,19 +113,13 @@ void AddNoiseEngine<DataTypes>::update() {
 
 template<class DataTypes>
 double  AddNoiseEngine<DataTypes>::getRandomGauss(const double mean, const double sigma) {
-    static gsl_rng *randState=NULL;
 
-    //do we need to init random generator?
-    if (randState == NULL) {
-        //yes, we do:
-        //create instance of the generator and seed it
-        randState = gsl_rng_alloc(gsl_rng_default);
-        unsigned long int s=-1 * (int) time(NULL);
-        //REPORT("randomness started with seed " << s);
-        gsl_rng_set(randState,s);
-    }
+      typedef std::chrono::high_resolution_clock myclock;
+      static unsigned int seed = myclock::now().time_since_epoch().count();
+      static std::default_random_engine generator(seed);
+      static std::normal_distribution<double> distribution(0.0,1.0);
+      return distribution(generator)*sigma + mean;
 
-    return ( gsl_ran_gaussian(randState, sigma) + mean );
 }
 
 template <class DataTypes>

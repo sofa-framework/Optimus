@@ -101,6 +101,8 @@ protected:
     helper::vector<size_t> fixedNodes, freeNodes;
     helper::vector<std::pair<size_t, size_t> > positionPairs;
     helper::vector<std::pair<size_t, size_t> > velocityPairs;
+    helper::vector<std::pair<size_t, size_t> > externalForcesPairs;
+
 
     void copyStateFilter2Sofa(const core::MechanicalParams *_mechParams);  // copy actual DA state to SOFA state and propagate to mappings
     void copyStateSofa2Filter();  // copy the actual SOFA state to DA state
@@ -111,7 +113,21 @@ public:
     Data<bool> d_langrangeMultipliers;
     Data<bool> estimatePosition;
     Data<bool> estimateVelocity;
+    Data<bool> estimateExternalForces;
     Data< double> m_stdev;          /// standard deviation
+    bool estimatingPosition() {
+        return this->estimatePosition.getValue();
+    }
+
+    bool estimatingVelocity() {
+        return this->estimateVelocity.getValue();
+    }
+
+    bool estimatingExternalForces() {
+        return this->estimateExternalForces.getValue();
+    }
+
+
     void init();
     void bwdInit();
 

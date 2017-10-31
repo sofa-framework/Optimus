@@ -73,8 +73,9 @@ template <class DataTypes, class FilterType>
 StochasticStateWrapper<DataTypes, FilterType>::StochasticStateWrapper()
     :Inherit()
     , d_langrangeMultipliers( initData(&d_langrangeMultipliers, false, "langrangeMultipliers", "perform collision detection and response with Lagrange multipliers (requires constraint solver)") )
-    , estimatePosition( initData(&estimatePosition, true, "estimatePosition", "estimate the position (e.g., if initial conditions with uncertainty") )
+    , estimatePosition( initData(&estimatePosition, false, "estimatePosition", "estimate the position (e.g., if initial conditions with uncertainty") )
     , estimateVelocity( initData(&estimateVelocity, false, "estimateVelocity", "estimate the velocity (e.g., if initial conditions with uncertainty") )
+    , estimateExternalForces( initData(&estimateExternalForces, true, "estimateExternalForces", "estimate the external forces(e.g., if initial conditions with uncertainty") )
     , m_stdev( initData(&m_stdev, "stdev", "standard variation") )
 
 {    
@@ -182,6 +183,8 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
 
     positionPairs.clear();
     velocityPairs.clear();
+    externalForcesPairs.clear();
+
 
     size_t vsi = 0;
     size_t vpi = 0;
@@ -199,6 +202,14 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
             velocityPairs.push_back(pr);
         }
     }
+
+    if (estimateExternalForces.getValue()) {
+        for (size_t i = 0; i < freeNodes.size(); i++) {
+            std::pair<size_t, size_t> pr(freeNodes[i], vsi++);
+            externalForcesPairs.push_back(pr);
+        }
+    }
+
 
     this->reducedStateIndex = Dim * vsi;
     for (size_t pi = 0; pi < vecOptimParams.size(); pi++) {
@@ -255,6 +266,7 @@ template <class DataTypes, class FilterType>
 void StochasticStateWrapper<DataTypes, FilterType>::copyStateFilter2Sofa(const core::MechanicalParams* _mechParams) {
     typename MechanicalState::WriteVecCoord pos = mechanicalState->writePositions();
     typename MechanicalState::WriteVecDeriv vel = mechanicalState->writeVelocities();
+    typename MechanicalState::WriteVecDeriv extForces = typename MechanicalState::WriteVecDeriv(mechanicalState->write(core::VecDerivId::externalForce()));
 
     for (helper::vector<std::pair<size_t, size_t> >::iterator it = positionPairs.begin(); it != positionPairs.end(); it++) {
         for (size_t d = 0; d < Dim; d++) {
@@ -265,6 +277,14 @@ void StochasticStateWrapper<DataTypes, FilterType>::copyStateFilter2Sofa(const c
     for (helper::vector<std::pair<size_t, size_t> >::iterator it = velocityPairs.begin(); it != velocityPairs.end(); it++) {
         for (size_t d = 0; d < Dim; d++) {
             vel[it->first][d] = this->state(Dim*it->second + d);
+        }
+    }
+
+    extForces.clear();
+    extForces.resize(this->mechanicalState->getSize() );
+    for (helper::vector<std::pair<size_t, size_t> >::iterator it = externalForcesPairs.begin(); it != externalForcesPairs.end(); it++) {
+        for (size_t d = 0; d < Dim; d++) {
+            extForces[it->first][d] = this->state(Dim*it->second + d);
         }
     }
 
@@ -281,6 +301,8 @@ template <class DataTypes, class FilterType>
 void StochasticStateWrapper<DataTypes, FilterType>::copyStateSofa2Filter() {
     typename MechanicalState::ReadVecCoord pos = mechanicalState->readPositions();
     typename MechanicalState::ReadVecDeriv vel = mechanicalState->readVelocities();
+    typename MechanicalState::ReadVecDeriv extForces = typename MechanicalState::ReadVecDeriv(mechanicalState->read(core::VecDerivId::externalForce()));
+
 
     for (helper::vector<std::pair<size_t, size_t> >::iterator it = positionPairs.begin(); it != positionPairs.end(); it++)
         for (size_t d = 0; d < Dim; d++) {
@@ -290,6 +312,10 @@ void StochasticStateWrapper<DataTypes, FilterType>::copyStateSofa2Filter() {
     for (helper::vector<std::pair<size_t, size_t> >::iterator it = velocityPairs.begin(); it != velocityPairs.end(); it++)
         for (size_t d = 0; d < Dim; d++)
             this->state(Dim*it->second + d) = vel[it->first][d];
+
+    for (helper::vector<std::pair<size_t, size_t> >::iterator it = externalForcesPairs.begin(); it != externalForcesPairs.end(); it++)
+        for (size_t d = 0; d < Dim; d++)
+            this->state(Dim*it->second + d) = extForces[it->first][d];
 
     for (size_t opi = 0; opi < vecOptimParams.size(); opi++)
         vecOptimParams[opi]->paramsToVector(this->state);

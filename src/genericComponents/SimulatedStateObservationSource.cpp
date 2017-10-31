@@ -43,20 +43,26 @@ namespace container
 SOFA_DECL_CLASS(SimulatedStateObservationSource)
 
 int SimulatedStateObservationSourceClass = core::RegisterObject("Parameters that will be adapted by ROUKF object")
-#ifndef SOFA_FLOAT
-        .add< SimulatedStateObservationSource<Vec3dTypes> >(true)
-#endif
-#ifndef SOFA_DOUBLE
-        .add< SimulatedStateObservationSource<Vec3fTypes> >()
-#endif
+//#ifndef SOFA_FLOAT
+        .add< SimulatedStateObservationSource<Vec2dTypes> >()
+        .add< SimulatedStateObservationSource<Vec3dTypes> >()
+        .add< SimulatedStateObservationSource<Rigid3dTypes> >()
+
+//#endif
+//#ifndef SOFA_DOUBLE
+//        .add< SimulatedStateObservationSource<Vec3fTypes> >()
+//#endif
         ;
 
-#ifndef SOFA_FLOAT
+//#ifndef SOFA_FLOAT
+template class SimulatedStateObservationSource<Vec2dTypes>;
 template class SimulatedStateObservationSource<Vec3dTypes>;
-#endif
-#ifndef SOFA_DOUBLE
-template class SimulatedStateObservationSource<Vec3fTypes>;
-#endif
+template class SimulatedStateObservationSource<Rigid3dTypes>;
+
+//#endif
+//#ifndef SOFA_DOUBLE
+//template class SimulatedStateObservationSource<Vec3fTypes>;
+//#endif
 
 
 

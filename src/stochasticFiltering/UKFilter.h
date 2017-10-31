@@ -1,27 +1,3 @@
-/******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, version 1.0 RC 1        *
-*                (c) 2006-2011 MGH, INRIA, USTL, UJF, CNRS                    *
-*                                                                             *
-* This library is free software; you can redistribute it and/or modify it     *
-* under the terms of the GNU Lesser General Public License as published by    *
-* the Free Software Foundation; either version 2.1 of the License, or (at     *
-* your option) any later version.                                             *
-*                                                                             *
-* This library is distributed in the hope that it will be useful, but WITHOUT *
-* ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or       *
-* FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License *
-* for more details.                                                           *
-*                                                                             *
-* You should have received a copy of the GNU Lesser General Public License    *
-* along with this library; if not, write to the Free Software Foundation,     *
-* Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA.          *
-*******************************************************************************
-*                               SOFA :: Modules                               *
-*                                                                             *
-* Authors: The SOFA Team and external contributors (see Authors.txt)          *
-*                                                                             *
-* Contact information: contact@sofa-framework.org                             *
-******************************************************************************/
 #ifndef UKFilter_H_
 #define UKFilter_H_
 
@@ -106,7 +82,13 @@ public:
 
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, Eigen::Dynamic> EMatrixX;
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, 1> EVectorX;
+    typedef defaulttype::Rigid3dTypes MechanicalType;
+    typedef typename MechanicalType::VecCoord VecCoord;
+    typedef typename MechanicalType::Coord Coord;
+    typedef typename core::behavior::MechanicalState<Rigid3dTypes> MechanicalState;
 
+    typedef typename MechanicalState::ReadVecCoord ReadVecCoord;
+    typedef typename MechanicalType::VecDeriv VecDeriv;
 UKFilter();
 ~UKFilter();
 
@@ -122,12 +104,17 @@ protected:
     /// number of sigma points (according to the filter type)
     size_t sigmaPointsNum;
     bool alphaConstant;
+    enum { Dim = Coord::spatial_dimensions };
 
     EVectorX vecAlpha;
+    EVectorX obsPrec;
     EMatrixX matItrans, matI;
     EMatrixX matDv;
-    EMatrixX matXi, matZi;
-    EMatrixX matP, matPsqrt, matPxz, matPzz, matVinv, matW;
+    EMatrixX matXi, matZi, matXAi, matZmodel;
+    EMatrixX matP, matPsqrt, matPxz, matPzz, matVinv, matR, matQ;
+    FilterType errorVarianceValue;
+    FilterType stateVarianceValue;
+    Data<Mat3x4d> d_projectionMatrix;
 
     Type alpha;
 
@@ -140,14 +127,27 @@ protected:
 
 public:
     Data<std::string> observationErrorVarianceType;
+    Data<double> d_obsStdev;
+    Data<double> d_stateStdev;
+    Data<double> d_initModelVar;
+    Data<double> d_ZinitModelVar;
+
+
+    EVectorX modelObservations;
+    helper::vector<size_t> fixedNodes, freeNodes;
+    helper::vector<std::pair<size_t, size_t> > positionPairs;
+
+//    helper::vector<helper::vector<Vector3  > > modelObservations;
+    core::behavior::MechanicalState<MechanicalType>* mstate;
+
 
 
     void init();
     void bwdInit();
 
+
     virtual void computePrediction(); // Compute perturbed state included in computeprediction
     virtual void propagatePerturbedStates(EVectorX &_meanState);
-
     virtual void computeCorrection();
 
     virtual void initializeStep(const core::ExecParams* _params, const size_t _step);

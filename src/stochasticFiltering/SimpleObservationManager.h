@@ -67,7 +67,12 @@ public:
     typedef core::behavior::MechanicalState<DataTypes2> MappedState;
     typedef sofa::core::Mapping<DataTypes1, DataTypes2> Mapping;
     typedef sofa::component::container::SimulatedStateObservationSource<DataTypes1> ObservationSource;
-    typedef StochasticStateWrapper<DataTypes1,FilterType> StateWrapper;
+    typedef StochasticStateWrapper<DataTypes2,FilterType> StateWrapper; ///Before it was DataTypes1
+
+    typedef defaulttype::Rigid3dTypes MechanicalType;
+    typedef typename MechanicalType::VecCoord VecCoord;
+    typedef typename MechanicalType::VecDeriv VecDeriv;
+
 
     SimpleObservationManager();
     ~SimpleObservationManager() {}
@@ -82,13 +87,20 @@ protected:
 
     double actualObservationTime;
     EVectorX actualObservation;
+    EMatrixX matH;
+
 
 public:
     void init();
     void bwdInit();
 
     virtual bool hasObservation(double _time); /// TODO
-    virtual bool getInnovation(double _time, EVectorX& _state, EVectorX& _innovation);
+//    virtual bool getInnovation(double _time, EVectorX& _state, EVectorX& _innovation);
+    virtual bool getInnovation(double _time, EVectorX& _predictedObservationMean, EVectorX& _innovation);
+    virtual bool predictedObservation(double _time, EVectorX& _state, EVectorX& _observationPrec, EVectorX& _observation);
+
+    typename DataTypes1::VecCoord realObservations;
+    typename helper::vector< VecCoord > modelObservations;
 
     Data<typename DataTypes1::VecCoord> inputObservationData;
     Data<typename DataTypes2::VecCoord> mappedObservationData;
@@ -101,6 +113,25 @@ public:
     boost::normal_distribution<>* pNormDist;
     boost::variate_generator<boost::mt19937&, boost::normal_distribution<> >* pVarNorm;
     helper::vector<double> noise;
+
+    /// Pre-construction check method called by ObjectFactory.
+    /// Check that DataTypes matches the MechanicalState.
+    template<class T>
+    static bool canCreate(T*& obj, core::objectmodel::BaseContext* context, core::objectmodel::BaseObjectDescription* arg)
+    {
+        //        if (dynamic_cast<MState *>(context->getMechanicalState()) == NULL) return false;
+        return sofa::core::objectmodel::BaseObject::canCreate(obj, context, arg);
+    }
+
+    virtual std::string getTemplateName() const
+    {
+        return templateName(this);
+    }
+
+    static std::string templateName(const SimpleObservationManager< FilterType, DataTypes1,  DataTypes2>* = NULL)
+    {
+        return DataTypes1::Name();
+    }
 
 
 
