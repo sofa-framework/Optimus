@@ -295,27 +295,27 @@ protected:
     //virtual void setValueTempl(const DVec& /*_value*/) {}
 
     virtual void rawVectorToParams(const double* /*_vector*/) {
-        std::cerr << "[" << this->getName() << "] ERROR: rawVectorToParams not implemented!" << std::endl;
+//        std::cerr << "[" << this->getName() << "] ERROR: rawVectorToParams not implemented!" << std::endl;
     }
 
     virtual void paramsToRawVector(double* /*_vector*/) {
-        std::cerr << "[" << this->getName() << "] ERROR: paramsToRawVector not implemented!" << std::endl;
+//        std::cerr << "[" << this->getName() << "] ERROR: paramsToRawVector not implemented!" << std::endl;
     }
 
     virtual void vectorToParams(VectorXf& /*_vector*/) {
-        std::cerr << "[" << this->getName() << "] ERROR: vectorToParams not implemented!" << std::endl;
+//        std::cerr << "[" << this->getName() << "] ERROR: vectorToParams not implemented!" << std::endl;
     }
 
     virtual void vectorToParams(VectorXd& /*_vector*/) {
-        std::cerr << "[" << this->getName() << "] ERROR: vectorToParams not implemented!" << std::endl;
+//        std::cerr << "[" << this->getName() << "] ERROR: vectorToParams not implemented!" << std::endl;
     }
 
     virtual void paramsToVector(VectorXf& /*_vector*/) {
-        std::cerr << "[" << this->getName() << "] ERROR: paramsToVector not implemented!" << std::endl;
+//        std::cerr << "[" << this->getName() << "] ERROR: paramsToVector not implemented!" << std::endl;
     }
 
     virtual void paramsToVector(VectorXd& /*_vector*/) {
-        std::cerr << "[" << this->getName() << "] ERROR: paramsToVector not implemented!" << std::endl;
+//        std::cerr << "[" << this->getName() << "] ERROR: paramsToVector not implemented!" << std::endl;
     }
 
     virtual void rawVectorToParamsParallel(const double* /*_vector*/){}

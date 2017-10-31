@@ -72,7 +72,8 @@ void UKFilter<FilterType>::propagatePerturbedStates(EVectorX & _meanState) {
             V2D[i][0]=rx* (1.0/rz);
             V2D[i][1]=ry* (1.0/rz);
         }
-
+        PRNS("DEBUG SigmaPoint="<< i);
+        PRNS("DEBUG catPos applyOperator =\n"<< p <<"\n");
         modelObservations.resize(observationSize);
         for (int i = 0; i < pos.size(); i ++){
             for (int j= 0; j < 2; j++)
@@ -86,11 +87,10 @@ void UKFilter<FilterType>::propagatePerturbedStates(EVectorX & _meanState) {
             resetStockedpos[ii] = stockedPosition[ii];
             resetStockedvel[ii] = stockedVelocity[ii];
         }
-        PRNS("p = \n" << matXi);
-        PRNS("V2D = \n" << V2D);
 
     }
-//    PRNS("sigma obs = \n" << matZmodel);
+//    PRNS("Sigma Forces = \n" << matXi);
+//    PRNS("Predicted Observations = \n" << matZmodel);
     _meanState = (1.0 / (double)sigmaPointsNum) * matXi.rowwise().sum();
 
 }
@@ -109,19 +109,8 @@ void UKFilter<FilterType>::computePrediction()
     for (size_t i = 0; i < sigmaPointsNum; i++) {
         matXi.col(i) = vecX + matPsqrt * matI.row(i).transpose();
     }
-//    PRNS("External Forces Sigma Points= \n " << matXi);
 
     propagatePerturbedStates(vecX);
-
-
-//    PRNS("Propagate Sigma Points= " << matXi);
-//    PRNS("Mean state= " << vecX);
-//    ReadVecCoord pos = mstate->readPositions();
-//    for (int i = 0; i < mstate->getSize(); i++) {
-//        PRNS("Resulting Pos= " << pos[i].getCenter());
-//    }
-
-
 
     /// Computes stateCovariance P_ = cov(X_{n + 1}^*, X_{n + 1}^*).
     EMatrixX matXiTrans= matXi.transpose();
@@ -131,6 +120,10 @@ void UKFilter<FilterType>::computePrediction()
     matP=matP+matQ;
 
     masterStateWrapper->setState(vecX, this->mechParams);
+    ReadVecCoord pos = mstate->readPositions();
+    PRNS("DEBUG final catpos = \n" << pos);
+
+
     masterStateWrapper->writeState(this->getTime());
 }
 
@@ -138,7 +131,7 @@ template <class FilterType>
 void UKFilter<FilterType>::computeCorrection()
 {
 
-    PRNS("Computing correction, T= " << this->actualTime);
+//    PRNS("Computing correction, T= " << this->actualTime);
 
     if (observationManager->hasObservation(this->actualTime)) {
 
@@ -162,7 +155,7 @@ void UKFilter<FilterType>::computeCorrection()
 
 
         EVectorX Z_mean = (1.0/(double) sigmaPointsNum) * matZItrans.colwise().sum();
-        PRNS("ModelObservations mean = \n " << Z_mean);
+//        PRNS("ModelObservations mean = \n " << Z_mean);
         obsPrec = Z_mean;
 
         /// Computes X_{n+1}-
@@ -174,19 +167,19 @@ void UKFilter<FilterType>::computeCorrection()
         EMatrixX centeredCz = matZItrans.rowwise() - matZItrans.colwise().mean();
         EMatrixX covPxz = (centeredCx.adjoint() * centeredCz) / double(centeredCx.rows() - 1);
         matPxz=covPxz;
-        PRNS("CrossCovariance size = \n " << matPxz);
+//        PRNS("CrossCovariance size = \n " << matPxz);
 
         /// Computes P_Z = cov(Z_{n + 1}^*, Z_{n + 1}^*).
         matPzz.resize(observationSize,observationSize);
         EMatrixX covPzz = (centeredCz.adjoint() * centeredCz) / double(centeredCz.rows() - 1);
         matPzz=covPzz;
         matPzz= matR+ matPzz;
-        PRNS("Observation Covariance = \n" << matPzz);
+//        PRNS("Observation Covariance = \n" << matPzz);
 
         ///  Computes the Kalman gain K_{n + 1}.
         EMatrixX matK(stateSize, observationSize);
         matK =matPxz* matPzz.inverse();
-        PRNS("Kalman Gain = \n " << matK);
+//        PRNS("Kalman Gain = \n " << matK);
 
 
         /// Computes X_{n + 1}^+.
@@ -194,7 +187,7 @@ void UKFilter<FilterType>::computeCorrection()
         EVectorX Innovation(observationSize);
         observationManager->getInnovation(this->actualTime, Z_mean, Innovation);
         state = state + matK*Innovation;
-        PRNS("Final Forces = \n" << state)
+//        PRNS("Final Forces = \n" << state)
 
         ///  Computes P_{n + 1}^+.
         matP = matP - matK*matPxz.transpose();
