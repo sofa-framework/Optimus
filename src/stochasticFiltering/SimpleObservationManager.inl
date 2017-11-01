@@ -40,13 +40,11 @@ namespace stochastic
 template <class FilterType, class DataTypes1, class DataTypes2>
 SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::SimpleObservationManager()
     : Inherit()
-    , inputObservationData( initData (&inputObservationData, "observations", "observations read from a file") )
-    , mappedObservationData( initData (&mappedObservationData, "mappedObservations", "mapped observations") )
     , noiseStdev( initData(&noiseStdev, double(0.0), "noiseStdev", "standard deviation of generated noise") )
     , abberantIndex( initData(&abberantIndex, int(-1), "abberantIndex", "index of an aberrant point") )
     , doNotMapObservations( initData(&doNotMapObservations, false, "doNotMapObservations", "if real observations are read from a file (not the mechanical object)") )
     , stateWrapperLink(initLink("stateWrapper", "link to the state wrapper needed to perform apply (perhaps to be changed)"))
-{    
+{
 }
 
 template <class FilterType, class DataTypes1, class DataTypes2>
@@ -87,8 +85,8 @@ void SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::init()
 template <class FilterType, class DataTypes1, class DataTypes2>
 void SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::bwdInit()
 {
-     this->observationSize = observationSource->getStateSize() * DataTypes1::spatial_dimensions;
-
+//    std::cout << "!!!!! size: " << observationSource->getStateSize() << std::endl;
+    this->observationSize = observationSource->getStateSize() * DataTypes1::spatial_dimensions;
 //    inputStateSize = observationSource->getStateSize();
 //    masterStateSize = masterState->getSize();
 //    mappedStateSize = mappedState->getSize();
@@ -131,23 +129,15 @@ void SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::bwdInit()
 }
 
 template <class FilterType, class DataTypes1, class DataTypes2>
-bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::hasObservation(double _time) {  
-
-    bool hasObservation = observationSource->getObservation(this->actualTime, realObservations);
+bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::hasObservation(double _time) {
+//    //PRNS("Getting observation at time " << this->actualTime);
+      bool hasObservation = observationSource->getObservation(this->actualTime, realObservations);
 
     if (!hasObservation) {
         PRNE("No observation for time " << _time);
         return(false);
     }
 
-//    typename DataTypes1::VecCoord& inputObsState = *inputObservationData.beginEdit();
-//    //PRNS("Getting observation at time " << this->actualTime);
-//    bool hasObservation = observationSource->getObservation(this->actualTime, inputObsState);
-
-//    if (!hasObservation) {
-//        PRNE("No observation for time " << _time);
-//        return(false);
-//    }
 
 //    actualObservation.setZero();
 //    if (!this->doNotMapObservations.getValue()) {
@@ -179,34 +169,35 @@ bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::hasObservation(
 //            }
 //        }
 //    }
-//    return(true);
+    return(true);
 }
 
 template <class FilterType, class DataTypes1, class DataTypes2>
 bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovation(double _time, EVectorX& _predictedObservationMean, EVectorX& _innovation)
 {
     if (_time != this->actualTime) {
-           PRNE("Observation for time " << this->actualTime << " not prepare, call hasObservation first!");
-           return(false);
-       }
+        PRNE("Observation for time " << this->actualTime << " not prepare, call hasObservation first!");
+        return(false);
+    }
 
-           /// ONLY TRUE IF OBSERVATION = POSITION
-           for (size_t ii = 0; ii < 1; ii++) {
-               for (size_t jj = 0; jj < 3; jj++)
-                   _innovation(jj) = realObservations[ii][jj] - _predictedObservationMean(jj);
-           }
+    if(this->stateWrapper->estimatingExternalForces())
+        for (size_t ii = 0; ii < 1; ii++) {
+            for (size_t jj = 0; jj < 12; jj++)
+                _innovation(jj) = realObservations[ii][jj] - _predictedObservationMean(jj);
+        }
+    PRNS("Innovation =" << _innovation);
+    PRNS("Real Obs =" << realObservations);
+    PRNS("Predicted Obs =" << _predictedObservationMean);
+
+//        /// ONLY TRUE IF OBSERVATION = POSITION
+//        for (size_t ii = 0; ii < 1; ii++) {
+//            for (size_t jj = 0; jj < 3; jj++)
+//                _innovation(jj) = realObservations[ii][jj] - _predictedObservationMean(jj);
+//        }
+//        PRNS("real obs =" << realObservations);
 
 
-       return true;
-//    if (_time != this->actualTime) {
-//        PRNE("Observation for time " << this->actualTime << " not prepare, call hasObservation first!");
-//        return(false);
-//    }
-
-//    if (_innovation.rows() != long(this->observationSize)) {
-//        PRNE("Wrong innovation size: " << _innovation.rows() << " should be " << this->observationSize);
-//        return(false);
-//    }
+    return true;
 
 //    Data<typename DataTypes1::VecCoord> predictedMasterState;
 //    Data<typename DataTypes2::VecCoord> predictedMappedState;
@@ -267,44 +258,43 @@ bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovation(d
 template <class FilterType, class DataTypes1, class DataTypes2>
 bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::predictedObservation(double _time, EVectorX& _state, EVectorX& _observationPrec, EVectorX& _observation)
 {
-   if (_time != this->actualTime) {
-       PRNE("Observation for time " << this->actualTime << " not prepare, call hasObservation first!");
-       return(false);
-   }
-   size_t ssize = _state.rows();
-   //    size_t osize = realObservations.size()*Coord::size();
-   size_t osize = 3;
+    if (_time != this->actualTime) {
+        PRNE("Observation for time " << this->actualTime << " not prepare, call hasObservation first!");
+        return(false);
+    }
+    size_t ssize = _state.rows();
+    size_t osize = 3;
 
-   double dt = this-> gnode->getDt();
-   matH.resize(osize,ssize);
-   matH.setZero();
-   /// matH needs to be redifined according to State Vector and Observation
-
-
-   if (this->stateWrapper->estimatingPosition() && this->stateWrapper->estimatingVelocity()) {
-       for (size_t i = 3; i < ssize; i++)
-           matH(i,i)=0;
-       _observation=matH*_state;
-   }
-
-   if (this->stateWrapper->estimatingPosition() && !this->stateWrapper->estimatingVelocity()) {
-       for (size_t i = (ssize-osize); i < ssize ; i++){
-           for (size_t j = 0 ; j < osize ; j++){
-               matH(i,j)=1;
-               _observation=matH*_state;
-           }
-       }
-   }
-
-   if (!this->stateWrapper->estimatingPosition() && this->stateWrapper->estimatingVelocity()) {
-       for (size_t i = 0; i < ssize; i++)
-           matH(i,i)=dt;
-       _observation=_observationPrec +matH*_state;
-   }
+    double dt = this-> gnode->getDt();
+    matH.resize(osize,ssize);
+    matH.setZero();
+    /// matH needs to be redifined according to State Vector and Observation
 
 
-   return true;
+    if (this->stateWrapper->estimatingPosition() && this->stateWrapper->estimatingVelocity()) {
+        for (size_t i = 3; i < ssize; i++)
+            matH(i,i)=0;
+        _observation=matH*_state;
+    }
+
+    if (this->stateWrapper->estimatingPosition() && !this->stateWrapper->estimatingVelocity()) {
+        for (size_t i = (ssize-osize); i < ssize ; i++){
+            for (size_t j = 0 ; j < osize ; j++){
+                matH(i,j)=1;
+                _observation=matH*_state;
+            }
+        }
+    }
+
+    if (!this->stateWrapper->estimatingPosition() && this->stateWrapper->estimatingVelocity()) {
+        for (size_t i = 0; i < ssize; i++)
+            matH(i,i)=dt;
+        _observation=_observationPrec +matH*_state;
+    }
+
+    return true;
 }
+
 
 
 //template <class DataTypes>
