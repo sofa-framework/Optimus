@@ -156,7 +156,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
     fixedNodes.clear();
     freeNodes.clear();
     if (fixedConstraint) {
-        const typename FixedConstraint::SetIndexArray& fix = fixedConstraint->f_indices.getValue();
+        const typename FixedConstraint::SetIndexArray& fix = fixedConstraint-> d_indices.getValue();
         for (size_t i = 0; i < fix.size(); i++)
             fixedNodes.push_back(size_t(fix[i]));
 
