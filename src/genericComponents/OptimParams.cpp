@@ -25,7 +25,7 @@
 
 //#define SOFA_COMPONENT_CONTAINER_OPTIMPARAMS_CPP
 
-#
+#include <fstream>
 #include <sofa/core/ObjectFactory.h>
 #include "OptimParams.inl"
 //#include <sofa/helper/accessor.h>
