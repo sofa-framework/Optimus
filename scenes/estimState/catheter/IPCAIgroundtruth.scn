@@ -18,78 +18,65 @@
     <OpenCVOpenGlStreamer name="video" src="@opengl" />
     <OpenCVScheduler name="scheduler" frequency="0" />  
       
-	<Node name="Catheter">
-		<EulerImplicitSolver />
-		<SparseLUSolver />
-		<EdgeSetTopologyContainer  name="Container"
-        position="0 0  0    -0.01  0  0    -0.02  0  0    -0.03  0  0    -0.04  0  0  
-                -0.05  0  0    -0.06  0  0    -0.07  0  0    -0.08  0  0    -0.09  0  0  
-                -0.1   0  0    -0.11  0  0    -0.12  0  0    -0.13  0  0    -0.14  0  0  
-                -0.15  0  0    -0.16  0  0    -0.17  0  0    -0.18  0  0    -0.19  0  0  
-                -0.2   0  0    -0.21  0  0    -0.22  0  0    -0.23  0  0    -0.24  0  0  
-                -0.25  0  0    -0.26  0  0    -0.27  0  0    -0.28  0  0    -0.29  0  0  
-                -0.3   0  0    -0.31  0  0   -0.32  0  0   -0.33  0  0   -0.34  0  0  
-                -0.35  0  0   -0.36  0  0   -0.37  0  0   -0.38  0  0   -0.39  0  0  
-                -0.4   0  0"      
-        edges=  "0 1   1 2   2 3   3 4   4 5   5 6   6 7   7 8   8 9   9  10
-            10 11   11 12   12 13   13 14   14 15   15 16   16 17   17 18   18 19   19 20
-            20 21   21 22   22 23   23 24   24 25   25 26   26 27   27 28   28 29   29 30
-            30 31   31 32   32 33   33 34   34 35   35 36   36 37   37 38   38 39   39 40"/>
-		<Transform3dToRigid name="transform"/>
-		<MechanicalObject name="catDoFs" position="@transform.out_position" template="Rigid"  showObject="false" />
-        <WriteState filename="GroundTruthCatheter" />
-		<UniformMass totalmass="0.5" />
-		<BeamFEMForceField name="FEM" radius="0.0005" youngModulus="10e6" poissonRatio="0.3"/>
-		    
-		<Node name="CollisionCatheter">
-			<EdgeSetTopologyContainer src="@../Container" />
-			<MechanicalObject name="ms"   />
-			<Line color="0 0 0 0 1" />
-			<NeedleGeometry name="catheter" />
-			<BeamLinearMapping localCoord="false" />
-            <ValuesFromIndices name="tip" template="Vec3d" in="@ms.position" indices="0 1 2 3 4 5" />
-            <AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@tip.out" noiseOrthogonalVariance="0.001" noisePrincipalVariance="0.001" noisePrincipalDirection="1 0 0"/>
-		</Node>
+    <Node name="Catheter">
+            <EulerImplicitSolver />
+            <SparseLUSolver />
+            <EdgeSetTopologyContainer  name="Container"
+            position="   0     0  0     -0.01  0  0    -0.02  0  0    -0.03  0  0    -0.04  0  0  
+                        -0.05  0  0     -0.06  0  0    -0.07  0  0    -0.08  0  0    -0.09  0  0  
+                        -0.1   0  0    "      
+            edges=  "0 1   1 2   2 3   3 4   4 5   5 6   6 7   7 8   8 9   9  10"/>
+            <Transform3dToRigid name="transform"/>
+            <MechanicalObject name="catDoFs" position="@transform.out_position" template="Rigid"  showObject="false" />
+            <UniformMass totalmass="0.5" />
+            <BeamFEMForceField name="FEM" radius="0.0005" youngModulus="10e6" poissonRatio="0.3"/>
+                
+            <Node name="CollisionCatheter">
+                    <EdgeSetTopologyContainer src="@../Container" />
+                    <MechanicalObject name="ms"   />
+                    <Line color="0 0 0 0 1" />
+                    <NeedleGeometry name="catheter" />
+                    <BeamLinearMapping localCoord="false" />
+                    <ValuesFromIndices name="tip" template="Vec3d" in="@ms.position" indices="0 1 2 3 4 5" />
+                    <AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@tip.out" noiseOrthogonalVariance="0.000" noisePrincipalVariance="0.000" noisePrincipalDirection="1 0 0"/>
+            </Node>
 
-		<LinearSolverConstraintCorrection />  
-	</Node>  
+            <LinearSolverConstraintCorrection />  
+    </Node>  
 
-	
+    <Node name="Vessel">
+            <VisualStyle displayFlags="showWireframe" /> 
+            <MeshObjLoader name="surface" filename="mesh/IPCAIvessel5.obj"  />
+            <MeshTopology src="@surface" />
+            <MechanicalObject name="DOFs" />
+            <OglModel name="VisualModel" src="@surface" texturename="mesh/texture.png"/>
 
-	<Node name="Vessel">
-		<VisualStyle displayFlags="showWireframe" /> 
-		<MeshObjLoader name="surface" filename="mesh/IPCAIvessel5.obj"  />
-		<MeshTopology src="@surface" />
-		<MechanicalObject name="DOFs" />
-		<OglModel name="VisualModel" src="@surface" texturename="mesh/texture.png"/>
-	
-		<Node name="CollisionVessel">
-			<TriangleSetTopologyContainer name="Container" src="@../surface" />
-			<MechanicalObject name="MS" src="@../surface" />                  
-			<TriangleGeometry name="surface" />
-			<Triangle />
-			<BarycentricMapping input="@../DOFs" output="@MS"/>
-		</Node> 
-		
-	</Node>
+            <Node name="CollisionVessel">
+                    <TriangleSetTopologyContainer name="Container" src="@../surface" />
+                    <MechanicalObject name="MS" src="@../surface" />                  
+                    <TriangleGeometry name="surface" />
+                    <Triangle />
+                    <BarycentricMapping input="@../DOFs" output="@MS"/>
+            </Node> 
+            
+    </Node>
 
 
-	<InsertionConstraint name="insertion" needle="Catheter/CollisionCatheter/catheter" position="0.00 0.00 0.00" delta="0.00005 0 0" draw_normal_scale="0.001"/>
-    <Sliding2DConstraint name="csc" from="Catheter/CollisionCatheter/catheter" dst="Vessel/CollisionVessel/surface" markerRay="0.01" draw_normal_scale="0.001"/> 
+    <InsertionConstraint name="insertion" needle="Catheter/CollisionCatheter/catheter" position="0.00 0.00 0.00" delta="0.00005 0 0" draw_normal_scale="0.001"/>
+    <Sliding2DConstraint name="csc" from="Catheter/CollisionCatheter/catheter" dst="Vessel/CollisionVessel/surface" markerRay="0.005" draw_normal_scale="0.001"/> 
 
-     <Node name="ImageProcessor" >
-<!-- 		<VisualStyle displayFlags="showCollisionModels" /> -->
-        <OpenCVImageProcessor name="processor" streamer="../video" />
-        <OpenCV3Dto2DTracker name="detector2D" in="@../Catheter/CollisionCatheter/NoiseEngine.outputPositions" projectionMatrix="@../opengl.projectionMatrix"/>
-		<MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
-		<WriteState filename="TEST_planeforcefieldUUUUUUUU" observations="true" />
-	</Node>
+    <Node name="ImageProcessor" >
+    <OpenCVImageProcessor name="processor" streamer="../video" />
+    <OpenCV3Dto2DTracker name="detector2D" in="@../Catheter/CollisionCatheter/NoiseEngine.outputPositions" projectionMatrix="@../opengl.projectionMatrix"/>
+            <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
+<!--             <WriteState filename="IPCAIobservation" observations="true" /> -->
+    </Node>
 
-    
+
     <Node name="GroundTruthCatheter"> 
-		<MechanicalObject template="Rigid" name="MO" position="@../Catheter/catDoFs.position" showObject="0"/>		
-		<WriteState filename="GroundTruthCatheterTESTUUUU" groundTruth="true" />
-		<Sphere radius="0.2" color="0 0 1 1"/>		
-	</Node>
+            <MechanicalObject template="Rigid" name="MO" position="@../Catheter/catDoFs.position" showObject="0"/>		
+<!--             <WriteState filename="IPCAIgroundTruth" groundTruth="true" /> -->
+            <Sphere radius="0.2" color="0 0 1 1"/>		
+    </Node>
 	
 </Node>
