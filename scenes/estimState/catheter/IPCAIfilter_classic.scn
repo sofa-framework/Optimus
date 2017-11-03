@@ -1,0 +1,102 @@
+<?xml version="1.0"?>
+<Node name="root" dt="0.1" gravity="0 0 0 ">
+     
+<!--   <RequiredPlugin pluginName="ConstraintGeometryPlugin" /> -->
+<!--       <RequiredPlugin pluginName="NeedleConstraintPlugin" />   -->
+      <RequiredPlugin pluginName="Optimus"/>
+      <RequiredPlugin pluginName="Navcat"/>
+      <RequiredPlugin pluginName="SofaPardisoSolver"/>
+      <RequiredPlugin pluginName="ImageMeshAux"/>
+<!--       <RequiredPlugin pluginName="RegistrationConstraintPlugin" /> -->
+<!--     <RequiredPlugin pluginName="OpenCVPlugin" /> -->
+
+    
+	<VisualStyle displayFlags="hideBehaviorModels hideForceFields showCollisionModels" />
+	<FilteringAnimationLoop name="StochAnimLoop" verbose="1"/>
+<!--	<OpenCVOpenGlStreamer name="video" />
+    <OpenCVProjectiveCalibrator name="opengl" streamer="video" mode="0" listening="false" drawzNear="0.001" drawzFar="3" />-->
+
+    <UKFilter name="UKF" verbose="1" obsStdev="0.001" stateStdev="0.001" initModelVar="0.0001" ZinitModelVar="0.005" projectionMatrix="[-509.27 -181.532 1354 286.717,-213.428 -1333.71 28.6229 197.697,0.546018 -0.459989 0.700196 0.297854]"/>
+
+	<Node name="SimulationScene"> 
+                <StochasticStateWrapper name="StateWrapper" template="StdRigidTypes<3, double>, double>" verbose="1" estimatePosition="0" estimateVelocity="0" estimateExternalForces="1" langrangeMultipliers="1"/>
+                <GenericConstraintSolver name="GenericConstraintSolver"  printLog="0"  maxIterations="1000"  tolerance="1e-06"  allVerified="0" />
+                <CollisionPipeline depth="6" verbose="0" draw="0"/>
+                <BruteForceDetection name="N2" />
+                <LocalMinDistance name="Proximity" alarmDistance="0.002" contactDistance="0.001"  angleCone="90.0" filterIntersection="0"/>
+                <DefaultContactManager name="Response" response="FrictionContact" responseParams="mu=0"/>
+                    <OptimParams name="optimParams" />
+                    <EulerImplicitSolver rayleighMass="00" rayleighStiffness="00" vdamping="10"/>
+                    <CGLinearSolver />		
+                    <EdgeSetTopologyContainer  name="Container"
+                    position="   0     0  0     -0.01  0  0    -0.02  0  0    -0.03  0  0    -0.04  0  0  
+                                -0.05  0  0     -0.06  0  0    -0.07  0  0    -0.08  0  0    -0.09  0  0  
+                                -0.1   0  0    "      
+                    edges=  "0 1   1 2   2 3   3 4   4 5   5 6   6 7   7 8   8 9   9  10"/>
+                    <Transform3dToRigid name="transform"/>
+                    <MechanicalObject name="catDoFs" position="@transform.out_position" template="Rigid"  showObject="false" />
+                    <UniformMass totalmass="0.5" />
+<!--                     <Sphere radius="0.002" color="0 0 1 1" /> -->
+
+                    <BeamFEMForceField name="FEM" radius="0.0005" youngModulus="10e6" poissonRatio="0.3"/>
+                        
+                    <Node name="CollisionCatheter">
+                            <EdgeSetTopologyContainer src="@../Container" />
+                            <MechanicalObject name="ms"   />
+                            <Line color="0 0 0 0 1" />
+                            <Point/>
+                            <BeamLinearMapping localCoord="false" />
+                    </Node>
+            
+                    <Node name="Vessel">
+                            <VisualStyle displayFlags="showWireframe" /> 
+                            <MeshObjLoader name="surface" filename="mesh/IPCAIvessel5.obj"  />
+                            <MeshTopology src="@surface" />
+                            <MechanicalObject name="DOFs" />
+                            <OglModel name="VisualModel" src="@surface" texturename="mesh/texture.png"/>
+                    
+                            <Node name="CollisionVessel">
+                                    <TriangleSetTopologyContainer name="Container" src="@../surface" />
+                                    <MechanicalObject name="MS" src="@../surface" />                  
+<!--                                     <TriangleGeometry name="surface" /> -->
+                                    <Triangle />
+                                    <Line color="0 0 0 0 1" />
+                                    <Point/>
+                                    <BarycentricMapping input="@../DOFs" output="@MS"/>
+                            </Node> 
+                    </Node>
+    
+                    <LinearSolverConstraintCorrection name="LinearSolverConstraintCorrection" />
+
+                    <Node name="obsNode" activated="1">        
+                            <EdgeSetTopologyContainer  name="Container"
+                            position="   0     0  0     -0.01  0  0    -0.02  0  0    -0.03  0  0    -0.04  0  0  
+                                        -0.05  0  0     -0.06  0  0    -0.07  0  0    -0.08  0  0    -0.09  0  0  
+                                        -0.1   0  0    "      
+                            edges=  "0 1   1 2   2 3   3 4   4 5   5 6   6 7   7 8   8 9   9  10"/>
+                            <MechanicalObject name="OBScatDoFs"  template="Vec2d"  showObject="false" />
+                            <SimulatedStateObservationSource verbose="1" template="Vec2d" printLog="1" name="observations" monitorPrefix="IPCAIobservation"/>
+                            <SimpleObservationManager name="MOBS" template="Vec2d" listening="1"  stateWrapper="@../StateWrapper" verbose="1"/>
+                    </Node> 
+
+<!--                    <Node name="GroundTruth"> 
+                            <EdgeSetTopologyContainer  name="GTContainer"
+                            position="   0     0  0     -0.01  0  0    -0.02  0  0    -0.03  0  0    -0.04  0  0  
+                                    -0.05  0  0     -0.06  0  0    -0.07  0  0    -0.08  0  0    -0.09  0  0  
+                                    -0.1   0  0    "      
+                            edges=  "0 1   1 2   2 3   3 4   4 5   5 6   6 7   7 8   8 9   9  10"/>
+                            <ReadState filename="IPCAIgroundTruth" />
+                            <Node name="GTCollisionCatheter">
+                                <EdgeSetTopologyContainer src="@../GTContainer" />
+                                <MechanicalObject name="ms"   />
+                                <Line color="0 0 1 1" />
+                                <NeedleGeometry name="catheter" />
+                                <Sphere radius="0.002" color="0 1 0 1" />
+                                <BeamLinearMapping localCoord="false" />
+                            </Node>
+                    </Node>-->
+    
+<!--                     <InsertionConstraint name="insertion" needle="CollisionCatheter/catheter" position="0.00 0.00 0.00" delta="0.00005 0 0" draw_normal_scale="0.001"/> -->
+<!--                    <Sliding2DConstraint name="csc" from="CollisionCatheter/catheter" dst="Vessel/CollisionVessel/surface" markerRay="0.005" draw_normal_scale="0.001"/> --> 
+	</Node>
+</Node>
