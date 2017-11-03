@@ -8,13 +8,13 @@
       <RequiredPlugin pluginName="SofaPardisoSolver"/>
       <RequiredPlugin pluginName="ImageMeshAux"/>
       <RequiredPlugin pluginName="RegistrationConstraintPlugin" />
-    <RequiredPlugin pluginName="OpenCVPlugin" />
+<!--     <RequiredPlugin pluginName="OpenCVPlugin" /> -->
 
     
 	<VisualStyle displayFlags="hideBehaviorModels hideForceFields showCollisionModels" />
 	<FilteringAnimationLoop name="StochAnimLoop" verbose="1"/>
-	<OpenCVOpenGlStreamer name="video" />
-    <OpenCVProjectiveCalibrator name="opengl" streamer="video" mode="0" listening="false" drawzNear="0.001" drawzFar="3" />
+<!-- 	<OpenCVOpenGlStreamer name="video" /> -->
+<!--     <OpenCVProjectiveCalibrator name="opengl" streamer="video" mode="0" listening="false" drawzNear="0.001" drawzFar="3" /> -->
 
     <UKFilter name="UKF" verbose="1" obsStdev="0.001" stateStdev="0.001" initModelVar="0.0001" ZinitModelVar="0.005" projectionMatrix="[394.055 -5.38021 721.776 6165.97,285.938 -729.93 0.343075 5410.04,0.999793 -0.019349 -0.00634126 19.0238]" />
 
@@ -56,7 +56,7 @@
 			position="0 0 0 	0 0 1		0 0 2		0 0 3		0 0 4		0 0 5"
 			edges="0 1	 1 2	  2 3	 3 4	 4 5 "/>
 			<MechanicalObject name="OBScatDoFs"  template="Vec2d"  showObject="false" />
-			<SimulatedStateObservationSource verbose="1" template="Vec2d" printLog="1" name="observations" monitorPrefix="TEST_planeforcefield"/>
+			<SimulatedStateObservationSource verbose="1" template="Vec2d" printLog="1" name="observations" monitorPrefix="TEST_planeforcefield2"/>
 			<SimpleObservationManager name="MOBS" template="Vec2d" listening="1"  stateWrapper="@../StateWrapper" verbose="1"/>
 		</Node> 
 		
@@ -72,7 +72,7 @@
 			edges="0 1	 1 2	  2 3	 3 4	 4 5 "/>
             <Transform3dToRigid name="transform"/>
             <MechanicalObject name="catDoFs" position="@transform.out_position" template="Rigid"  showObject="false" />	
-			<ReadState filename="GroundTruthCatheterTEST" />
+			<ReadState filename="GroundTruthCatheterTEST2" />
 			        <Node name="GTCollisionCatheter">
                         <EdgeSetTopologyContainer src="@../GTContainer" />
                         <MechanicalObject name="ms"   />

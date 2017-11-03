@@ -19,11 +19,11 @@
     <UKFilter name="UKF" verbose="1" obsStdev="0.001" stateStdev="0.001" initModelVar="0.0001" ZinitModelVar="0.005" projectionMatrix="[-509.27 -181.532 1354 286.717,-213.428 -1333.71 28.6229 197.697,0.546018 -0.459989 0.700196 0.297854]"/>
 
 	<Node name="SimulationScene"> 
-                <StochasticStateWrapper name="StateWrapper" template="StdRigidTypes<3, double>, double>" verbose="1" estimatePosition="0" estimateVelocity="0" estimateExternalForces="1"/>
+                <StochasticStateWrapper name="StateWrapper" template="StdRigidTypes<3, double>, double>" verbose="1" estimatePosition="0" estimateVelocity="0" estimateExternalForces="1" langrangeMultipliers="1"/>
                 <GenericConstraintSolver name="GenericConstraintSolver"  printLog="0"  maxIterations="1000"  tolerance="1e-06"  allVerified="0" />
                     <OptimParams name="optimParams" />
                     <EulerImplicitSolver rayleighMass="00" rayleighStiffness="00" vdamping="10"/>
-                    <CGLinearSolver/>		
+                    <CGLinearSolver />		
                     <EdgeSetTopologyContainer  name="Container"
                     position="   0     0  0     -0.01  0  0    -0.02  0  0    -0.03  0  0    -0.04  0  0  
                                 -0.05  0  0     -0.06  0  0    -0.07  0  0    -0.08  0  0    -0.09  0  0  
