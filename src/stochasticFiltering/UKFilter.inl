@@ -35,27 +35,27 @@ void UKFilter<FilterType>::propagatePerturbedStates(EVectorX & _meanState) {
 
     EVectorX xCol(stateSize);
     matZmodel.resize(observationSize,sigmaPointsNum);
-
+PRNS("B ");
     helper::ReadAccessor<Data<VecCoord > > resetStockedposRA = mstate->readPositions();
     helper::ReadAccessor<Data<VecDeriv > > resetStockedvelRA = mstate->readVelocities();
-
+PRNS("C ");
     size_t stateSize = resetStockedposRA.size();
     VecCoord stockedPosition;
     VecDeriv stockedVelocity;
     stockedPosition.resize(stateSize);
     stockedVelocity.resize(stateSize);
-
+PRNS("D ");
     for (int i = 0; i < resetStockedposRA.size(); i++) {
         stockedPosition[i]=resetStockedposRA[i];
         stockedVelocity[i]=resetStockedvelRA[i];
     }
-
+PRNS("E ");
     const Mat3x4d & P = d_projectionMatrix.getValue();
     for (size_t i = 0; i < sigmaPointsNum; i++) {
         xCol = matXi.col(i);
         stateWrappers[0]->applyOperator(xCol, mechParams);
         matXi.col(i) = xCol;
-
+PRNS("F ");
         ///COMPUTE PREDICTED OBSERVATION !
         ReadVecCoord pos = mstate->readPositions();
         helper::vector <Vector3> p;
@@ -109,7 +109,7 @@ void UKFilter<FilterType>::computePrediction()
     for (size_t i = 0; i < sigmaPointsNum; i++) {
         matXi.col(i) = vecX + matPsqrt * matI.row(i).transpose();
     }
-
+    PRNS("A ");
     propagatePerturbedStates(vecX);
 
     /// Computes stateCovariance P_ = cov(X_{n + 1}^*, X_{n + 1}^*).
