@@ -4,7 +4,7 @@
 <!--   <RequiredPlugin pluginName="ConstraintGeometryPlugin" /> -->
 <!--       <RequiredPlugin pluginName="NeedleConstraintPlugin" />   -->
       <RequiredPlugin pluginName="Optimus"/>
-      <RequiredPlugin pluginName="Navcat"/>
+<!--       <RequiredPlugin pluginName="Navcat"/> -->
       <RequiredPlugin pluginName="SofaPardisoSolver"/>
       <RequiredPlugin pluginName="ImageMeshAux"/>
 <!--       <RequiredPlugin pluginName="RegistrationConstraintPlugin" /> -->
