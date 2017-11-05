@@ -38,7 +38,7 @@
 		<Sphere radius="0.05" color="0 0 1 1"/>	
         
         
-        <Node name="CollisionCatheter">
+                <Node name="CollisionCatheter">
 			<EdgeSetTopologyContainer src="@../Container" />
 			<MechanicalObject name="ms"   />
 			<Line color="0 0 1 1" />
@@ -67,14 +67,14 @@
 			<Sphere radius="0.05" color="1 0 0 1"/>		
 		</Node>-->
         
-        <Node name="GroundTruth"> 
+                <Node name="GroundTruth"> 
 			<EdgeSetTopologyContainer  name="GTContainer"
 			position="0 0 0 	0 0 1		0 0 2		0 0 3		0 0 4		0 0 5"
 			edges="0 1	 1 2	  2 3	 3 4	 4 5 "/>
-            <Transform3dToRigid name="transform"/>
-            <MechanicalObject name="catDoFs" position="@transform.out_position" template="Rigid"  showObject="false" />	
+                        <Transform3dToRigid name="transform"/>
+                        <MechanicalObject name="catDoFs" position="@transform.out_position" template="Rigid"  showObject="false" />	
 			<ReadState filename="GroundTruthCatheterTEST2" />
-			        <Node name="GTCollisionCatheter">
+                    <Node name="GTCollisionCatheter">
                         <EdgeSetTopologyContainer src="@../GTContainer" />
                         <MechanicalObject name="ms"   />
                         <Line color="0 1 0 1" />

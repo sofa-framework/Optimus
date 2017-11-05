@@ -185,9 +185,9 @@ bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovation(d
             for (size_t jj = 0; jj < 12; jj++)
                 _innovation(jj) = realObservations[ii][jj] - _predictedObservationMean(jj);
         }
-    PRNS("Innovation =" << _innovation);
-    PRNS("Real Obs =" << realObservations);
-    PRNS("Predicted Obs =" << _predictedObservationMean);
+//    PRNS("Innovation =" << _innovation);
+//    PRNS("Real Obs =" << realObservations);
+//    PRNS("Predicted Obs =" << _predictedObservationMean);
 
 //        /// ONLY TRUE IF OBSERVATION = POSITION
 //        for (size_t ii = 0; ii < 1; ii++) {

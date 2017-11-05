@@ -2,6 +2,8 @@
 #define UKFilter_INL
 
 #include "UKFilter.h"
+#include <iostream>
+#include <fstream>
 
 namespace sofa
 {
@@ -21,7 +23,8 @@ UKFilter<FilterType>::UKFilter()
     , d_projectionMatrix( initData(&d_projectionMatrix, Mat3x4d(defaulttype::Vec<4,float>(1.0,0.0,0.0,0.0),
                                                                 defaulttype::Vec<4,float>(0.0,1.0,0.0,0.0),
                                                                 defaulttype::Vec<4,float>(0.0,0.0,1.0,0.0)), "projectionMatrix","Projection matrix"))
-
+    , d_filename( initData(&d_filename, "filename", "output file name"))
+    , outfile(NULL)
 {
 
 }
@@ -35,27 +38,27 @@ void UKFilter<FilterType>::propagatePerturbedStates(EVectorX & _meanState) {
 
     EVectorX xCol(stateSize);
     matZmodel.resize(observationSize,sigmaPointsNum);
-PRNS("B ");
+
     helper::ReadAccessor<Data<VecCoord > > resetStockedposRA = mstate->readPositions();
     helper::ReadAccessor<Data<VecDeriv > > resetStockedvelRA = mstate->readVelocities();
-PRNS("C ");
+
     size_t stateSize = resetStockedposRA.size();
     VecCoord stockedPosition;
     VecDeriv stockedVelocity;
     stockedPosition.resize(stateSize);
     stockedVelocity.resize(stateSize);
-PRNS("D ");
+
     for (int i = 0; i < resetStockedposRA.size(); i++) {
         stockedPosition[i]=resetStockedposRA[i];
         stockedVelocity[i]=resetStockedvelRA[i];
     }
-PRNS("E ");
+
     const Mat3x4d & P = d_projectionMatrix.getValue();
     for (size_t i = 0; i < sigmaPointsNum; i++) {
         xCol = matXi.col(i);
         stateWrappers[0]->applyOperator(xCol, mechParams);
         matXi.col(i) = xCol;
-PRNS("F ");
+
         ///COMPUTE PREDICTED OBSERVATION !
         ReadVecCoord pos = mstate->readPositions();
         helper::vector <Vector3> p;
@@ -72,12 +75,12 @@ PRNS("F ");
             V2D[i][0]=rx* (1.0/rz);
             V2D[i][1]=ry* (1.0/rz);
         }
-        PRNS("DEBUG SigmaPoint="<< i);
-        PRNS("DEBUG catPos applyOperator =\n"<< p <<"\n");
+//        PRNS("DEBUG SigmaPoint="<< i);
+//        PRNS("DEBUG catPos applyOperator =\n"<< p <<"\n");
         modelObservations.resize(observationSize);
-        for (int i = 0; i < pos.size(); i ++){
-            for (int j= 0; j < 2; j++)
-                modelObservations(2*i+j)=V2D[i][j];
+        for (int i = 0; i < observationSize*0.5; i ++){
+            for (int j= 0; j < 2; j++){
+                modelObservations(2*i+j)=V2D[i][j];}
         }
         matZmodel.col(i) = modelObservations;
 
@@ -105,11 +108,10 @@ void UKFilter<FilterType>::computePrediction()
 
     /// Computes X_{n}^{(i)-} sigma points
     EVectorX vecX = masterStateWrapper->getState();
-    PRNS("External Forces= \n " << vecX);
     for (size_t i = 0; i < sigmaPointsNum; i++) {
         matXi.col(i) = vecX + matPsqrt * matI.row(i).transpose();
     }
-    PRNS("A ");
+
     propagatePerturbedStates(vecX);
 
     /// Computes stateCovariance P_ = cov(X_{n + 1}^*, X_{n + 1}^*).
@@ -120,10 +122,6 @@ void UKFilter<FilterType>::computePrediction()
     matP=matP+matQ;
 
     masterStateWrapper->setState(vecX, this->mechParams);
-    ReadVecCoord pos = mstate->readPositions();
-    PRNS("DEBUG final catpos = \n" << pos);
-
-
     masterStateWrapper->writeState(this->getTime());
 }
 
@@ -131,7 +129,7 @@ template <class FilterType>
 void UKFilter<FilterType>::computeCorrection()
 {
 
-//    PRNS("Computing correction, T= " << this->actualTime);
+    PRNS("Computing correction, T= " << this->actualTime);
 
     if (observationManager->hasObservation(this->actualTime)) {
 
@@ -193,8 +191,19 @@ void UKFilter<FilterType>::computeCorrection()
         matP = matP - matK*matPxz.transpose();
 
         masterStateWrapper->setState(state, this->mechParams);
-        masterStateWrapper->applyOperator(state,mechParams);
+//        PRNS("Final Forces= \n " << state);
 
+        masterStateWrapper->applyOperator(state,mechParams);
+        if (outfile)
+        {
+                (*outfile) << "T= "<< this->actualTime<< "\n";
+                {
+                    (*outfile) << "  X= ";
+                    this->mstate->writeVec(core::VecId::position(), *outfile);
+                    (*outfile) << "\n";
+                }
+            outfile->flush();
+        }
     }
 }
 
@@ -235,20 +244,21 @@ void UKFilter<FilterType>::init() {
         PRNS("found observation manager: " << observationManager->getName());
     } else
         PRNE("no observation manager found!");
+
+    const std::string& filename = d_filename.getFullPath();
+    outfile = new std::ofstream(filename.c_str());
 }
 
 template <class FilterType>
 void UKFilter<FilterType>::bwdInit() {
     PRNS("bwdInit");
     assert(masterStateWrapper);
-
     observationSize = this->observationManager->getObservationSize();
     PRNS("observationSize " << observationSize);
     if (observationSize == 0) {
         PRNE("No observations available, cannot allocate the structures!");
     }
     stateSize = masterStateWrapper->getStateSize();
-
     /// Initialize Observation's Error Covariance
     errorVarianceValue = d_obsStdev.getValue() * d_obsStdev.getValue();
     matR = EMatrixX::Identity(observationSize, observationSize)*errorVarianceValue;
@@ -284,8 +294,6 @@ void UKFilter<FilterType>::bwdInit() {
 
     /// Stock mstate Position if estimatingVelocity
     this->masterStateWrapper->getContext()->get(mstate);
-
-
     masterStateWrapper->writeState(double(0.0));
 
 }

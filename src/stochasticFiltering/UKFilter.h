@@ -18,7 +18,8 @@
 #undef Success // dirty workaround to cope with the (dirtier) X11 define. See http://eigen.tuxfamily.org/bz/show_bug.cgi?id=253
 #endif
 #include <Eigen/Dense>
-
+#include <iostream>
+#include <fstream>
 //#include <Accelerate/Accelerate.h>
 #include <fstream>
 #include <iostream>
@@ -115,6 +116,9 @@ protected:
     FilterType errorVarianceValue;
     FilterType stateVarianceValue;
     Data<Mat3x4d> d_projectionMatrix;
+
+    sofa::core::objectmodel::DataFileName d_filename;
+    std::ofstream* outfile;
 
     Type alpha;
 
