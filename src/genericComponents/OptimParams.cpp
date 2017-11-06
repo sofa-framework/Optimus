@@ -75,6 +75,12 @@ void OptimParams<sofa::helper::vector<double> >::vectorToParams(VectorXd& _vecto
             val[i]=fabs(_vector[this->paramIndices[i]]);
         }
         break;
+    case 2:
+        std::cout << "backward step " << std::endl;
+        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+            val[i]=sigmoid(_vector[this->paramIndices[i]], m_max.getValue()[i], m_min.getValue()[i]);
+        }
+        break;
     default:
         for (size_t i = 0; i < this->paramIndices.size(); i++)
             val[i] = _vector[this->paramIndices[i]];
@@ -91,6 +97,11 @@ void OptimParams<sofa::helper::vector<double> >::vectorToParams(VectorXf& _vecto
             val[i]=double(fabs(_vector[this->paramIndices[i]]));
         }
         break;
+    case 2:
+        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+            val[i]=sigmoid(_vector[this->paramIndices[i]], m_max.getValue()[i], m_min.getValue()[i]);
+        }
+        break;
     default:
         for (size_t i = 0; i < this->paramIndices.size(); i++)
             val[i] = double(_vector[this->paramIndices[i]]);
@@ -105,6 +116,11 @@ void OptimParams<sofa::helper::vector<double> >::rawVectorToParams(const double*
     case 1:
         for (size_t i = 0; i < this->paramIndices.size(); i++) {
             val[i]=fabs(_vector[this->paramIndices[i]]);
+        }
+        break;
+    case 2:
+        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+            val[i]=sigmoid(_vector[this->paramIndices[i]], m_max.getValue()[i], m_min.getValue()[i]);
         }
         break;
     default:
@@ -127,6 +143,11 @@ void OptimParams<sofa::helper::vector<double> >::rawVectorToParamsParallel(const
             val[i]=fabs(_vector[this->paramIndices[i]]);
         }
         break;
+    case 2:
+        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+            val[i]=sigmoid(_vector[this->paramIndices[i]], m_max.getValue()[i], m_min.getValue()[i]);
+        }
+        break;
     default:
         for (size_t i = 0; i < this->paramIndices.size(); i++)
             val[i] = _vector[this->paramIndices[i]];
@@ -143,6 +164,12 @@ void OptimParams<sofa::helper::vector<double> >::paramsToVector(VectorXd& _vecto
         for (size_t i = 0; i < paramIndices.size(); i++)
             _vector[paramIndices[i]] = double(fabs(val[i]));
         break;
+    case 2:
+        std::cout << "forward step " << std::endl;
+        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+            _vector[paramIndices[i]] = double(logit(val[i], m_max.getValue()[i], m_min.getValue()[i]));
+        }
+        break;
     default:
         for (size_t i = 0; i < paramIndices.size(); i++)
             _vector[paramIndices[i]] = val[i];
@@ -157,6 +184,11 @@ void OptimParams<sofa::helper::vector<double> >::paramsToVector(VectorXf& _vecto
     case 1:
         for (size_t i = 0; i < paramIndices.size(); i++)
             _vector[paramIndices[i]] = float(fabs(val[i]));
+        break;
+    case 2:
+        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+            _vector[paramIndices[i]] = float(logit(val[i], m_max.getValue()[i], m_min.getValue()[i]));
+        }
         break;
     default:
         for (size_t i = 0; i < paramIndices.size(); i++)
@@ -176,6 +208,11 @@ void OptimParams<sofa::helper::vector<double> >::paramsToRawVector(double* _vect
         for (size_t i = 0; i < paramIndices.size(); i++)
             _vector[paramIndices[i]] = fabs(val[i]);
         break;
+    case 2:
+        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+            _vector[paramIndices[i]] = logit(val[i], m_max.getValue()[i], m_min.getValue()[i]);
+        }
+        break;
     default:
         for (size_t i = 0; i < paramIndices.size(); i++)
             _vector[paramIndices[i]] = val[i];
@@ -192,6 +229,11 @@ void OptimParams<sofa::helper::vector<double> >::paramsToRawVectorParallel(doubl
     case 1:
         for (size_t i = 0; i < paramIndices.size(); i++)
             _vector[paramIndices[i]] = fabs(val[i]);
+        break;
+    case 2:
+        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+            _vector[paramIndices[i]] = logit(val[i], m_max.getValue()[i], m_min.getValue()[i]);
+        }
         break;
     default:
         for (size_t i = 0; i < paramIndices.size(); i++)

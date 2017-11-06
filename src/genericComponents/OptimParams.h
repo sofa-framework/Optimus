@@ -25,6 +25,7 @@
 #ifndef OPTIMPARAMS_H_
 #define OPTIMPARAMS_H_
 
+#include <cmath>
 #include <fstream>
 
 #include "initOptimusPlugin.h"
@@ -322,6 +323,15 @@ protected:
     virtual void paramsToRawVectorParallel(double* /*_vector*/){}
 
     virtual void handleEvent(core::objectmodel::Event */*event*/) {}
+
+
+    template<class X, class Y> inline X sigmoid(X arg, Y maxBound, Y minBound) {
+        return 1.0 / (1.0 + std::exp(-arg / ((X)maxBound - (X)minBound))) * ((X)maxBound - (X)minBound) - (X)minBound;
+    }
+
+    template<class X, class Y> inline X logit(X arg, Y maxBound, Y minBound) {
+        return -std::log(1.0 * ((X)maxBound - (X)minBound) / (arg + (X)minBound) - 1.0) * ((X)maxBound - (X)minBound);
+    }
 
 };
 
