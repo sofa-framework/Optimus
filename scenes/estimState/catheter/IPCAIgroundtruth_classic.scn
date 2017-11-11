@@ -28,7 +28,8 @@
                 
     <Node name="Catheter">
             <EulerImplicitSolver />
-            <SparsePARDISOSolver name="lsolver" symmetric="1" iterativeSolverNumbering="0" />
+<!--             <BTDLinearSolver/> -->
+            <SparsePARDISOSolver name="lsolver" symmetric="2" iterativeSolverNumbering="0" />
             <EdgeSetTopologyContainer  name="Container"
             position="   0     0  0     -0.01  0  0    -0.02  0  0    -0.03  0  0    -0.04  0  0  
                         -0.05  0  0     -0.06  0  0    -0.07  0  0    -0.08  0  0    -0.09  0  0  
@@ -39,7 +40,7 @@
             <Transform3dToRigid name="transform"/>
             <MechanicalObject name="catDoFs" position="@transform.out_position" template="Rigid"  showObject="false" showObjectScale="0.0001" />
             <UniformMass totalmass="0.5" />
-            <BeamFEMForceField name="FEM" radius="0.0005" youngModulus="10e6" poissonRatio="0.3"/>
+            <BeamFEMForceField name="FEM" radius="0.0005" youngModulus="10e6" poissonRatio="0.3" useSymmetricAssembly="1"/>
             <BoxROI name="box_roi" box="-0.004 -0.012 -0.012 0.006 0.012 0.012" drawBoxes="1" position="@catDoFs.position"/>
             <ConstantForceField indices="@box_roi.indices" forces="0.01 0 0 0 0 0" />
                 
@@ -79,13 +80,13 @@
             <OpenCVImageProcessor name="processor" streamer="../video" />
             <OpenCV3Dto2DTracker name="detector2D" in="@../Catheter/CollisionCatheter/NoiseEngine.outputPositions" projectionMatrix="@../opengl.projectionMatrix"/>
             <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
-<!--             <WriteState filename="IPCAI_obs_x" observations="true" /> -->
+            <WriteState filename="IPCAI_obs_xA" observations="true" />
     </Node>
 
 
     <Node name="GroundTruthCatheter"> 
             <MechanicalObject template="Rigid" name="MO" position="@../Catheter/catDoFs.position" showObject="0"/>		
-<!--             <WriteState filename="IPCAI_GT" groundTruth="true" /> -->
+            <WriteState filename="IPCAI_GTA" groundTruth="true" />
 <!--             <Sphere radius="0.2" color="0 0 1 1"/>		 -->
     </Node>
 

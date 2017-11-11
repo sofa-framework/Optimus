@@ -143,7 +143,7 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _
         std::vector<std::string> tk2(it2, end2);
 
         tokens=tk2;
-        int dim = (tokens.size() -1)/nParticles;
+        dim = (tokens.size() -1)/nParticles;
         if (dim == 2) {
             PRNS(" Working with 2D observations" << " dim: " << dim);
         }

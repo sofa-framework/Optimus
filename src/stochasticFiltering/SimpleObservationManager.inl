@@ -85,47 +85,8 @@ void SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::init()
 template <class FilterType, class DataTypes1, class DataTypes2>
 void SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::bwdInit()
 {
-//    std::cout << "!!!!! size: " << observationSource->getStateSize() << std::endl;
     this->observationSize = observationSource->getStateSize() * DataTypes1::spatial_dimensions;
-//    inputStateSize = observationSource->getStateSize();
-//    masterStateSize = masterState->getSize();
-//    mappedStateSize = mappedState->getSize();
-
-//    inputVectorSize = inputStateSize*DataTypes1::spatial_dimensions;
-//    masterVectorSize = masterStateSize*DataTypes1::spatial_dimensions;
-//    mappedVectorSize = mappedStateSize*DataTypes1::spatial_dimensions;
-
-//    typename DataTypes1::VecCoord& inputObsState = *inputObservationData.beginEdit();
-//    inputObsState.resize(inputStateSize);
-//    observationSource->getStateAtTime(0.0, inputObsState);
-
-//    if (doNotMapObservations.getValue()) {
-//        if (inputStateSize != mappedStateSize) {
-//            PRNE("In non-mapping version, |input observation state| !=  |mapped state| " << inputStateSize << " vs. " << mappedStateSize);
-//            return;
-//        }
-//        PRNS("Non-mapping version, |observations| = |input observation state| = |mapped state| = " << inputStateSize);
-//        sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > mappedObsState = mappedObservationData;
-//        mappedObsState.resize(mappedStateSize);
-//        this->observationSize = mappedVectorSize;
-//        for (size_t i = 0; i < mappedStateSize; i++)
-//            mappedObsState[i] = inputObsState[i];
-
-//    } else {
-//        if (inputStateSize != masterStateSize) {
-//            PRNE("In mapping version, |input observation state| !=  |master state| " << inputStateSize << " vs. " << masterStateSize);
-//            return;
-//        }
-//        PRNS("Mapping version, |observations| = " << mappedVectorSize << " |input observation state| = |master state| = " << inputStateSize);
-//        sofa::core::MechanicalParams mp;
-//        mapping->apply(&mp, mappedObservationData, inputObservationData);
-//        this->observationSize = mappedVectorSize;
-//    }
-
-//    actualObservation.resize(this->observationSize);
-//    noise.clear();
-//    noise.resize(this->observationSize);
-//    Inherit::bwdInit();
+    obsSize= observationSource->getStateSize() * DataTypes1::spatial_dimensions;
 }
 
 template <class FilterType, class DataTypes1, class DataTypes2>
@@ -138,37 +99,6 @@ bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::hasObservation(
         return(false);
     }
 
-
-//    actualObservation.setZero();
-//    if (!this->doNotMapObservations.getValue()) {
-//       sofa::core::MechanicalParams mp;
-//       //std::cout << "Input observation: " << inputObsState << std::endl;
-//       mapping->apply(&mp, mappedObservationData, inputObservationData);
-//       sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > mappedObsState = mappedObservationData;
-//       //std::cout << "Mapped observation: " << mappedObsState << std::endl;
-
-//        for (size_t i = 0; i < mappedStateSize; i++) {
-//            for (size_t d = 0; d < 3; d++) {
-//                //mappedObsState[i][d] += noise[3*i+d];
-//                actualObservation(3*i+d) = mappedObsState[i][d];
-//            }
-//        }
-//    } else {
-//        sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > mappedObsState = mappedObservationData;
-//        if (mappedObsState.size() != inputObsState.size()) {
-//            PRNE("Different mapped and input observation size: " << mappedObsState.size() << " vs " << inputObsState.size());
-//            return(false);
-//        }
-
-//        for (size_t i = 0; i < mappedObsState.size(); i++)
-//            mappedObsState[i] = inputObsState[i];
-
-//        for (size_t i = 0; i < mappedObsState.size(); i++) {
-//            for (size_t d = 0; d < 3; d++) {
-//                actualObservation(3*i+d) = mappedObsState[i][d];
-//            }
-//        }
-//    }
     return(true);
 }
 
@@ -182,131 +112,58 @@ bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovation(d
 
     if(this->stateWrapper->estimatingExternalForces())
         for (size_t ii = 0; ii < 1; ii++) {
-            for (size_t jj = 0; jj < 12; jj++)
+            for (size_t jj = 0; jj < obsSize; jj++)
                 _innovation(jj) = realObservations[ii][jj] - _predictedObservationMean(jj);
         }
-//    PRNS("Innovation =" << _innovation);
-//    PRNS("Real Obs =" << realObservations);
-//    PRNS("Predicted Obs =" << _predictedObservationMean);
-
-//        /// ONLY TRUE IF OBSERVATION = POSITION
-//        for (size_t ii = 0; ii < 1; ii++) {
-//            for (size_t jj = 0; jj < 3; jj++)
-//                _innovation(jj) = realObservations[ii][jj] - _predictedObservationMean(jj);
-//        }
-//        PRNS("real obs =" << realObservations);
 
 
     return true;
 
-//    Data<typename DataTypes1::VecCoord> predictedMasterState;
-//    Data<typename DataTypes2::VecCoord> predictedMappedState;
-
-//    typename DataTypes1::VecCoord& predictedMasterStateEdit = *predictedMasterState.beginEdit();
-//    typename DataTypes2::VecCoord& predictedMappedStateEdit = *predictedMappedState.beginEdit();
-
-//    predictedMasterStateEdit.resize(masterState->getSize());
-//    predictedMappedStateEdit.resize(mappedState->getSize());
-
-//    stateWrapper->setSofaVectorFromFilterVector(_state, predictedMasterStateEdit);
-//    sofa::core::MechanicalParams mp;
-//    mapping->apply(&mp, predictedMappedState, predictedMasterState);
-
-//    _innovation.resize(this->observationSize);
-//    for (size_t i = 0; i < predictedMappedStateEdit.size(); i++)
-//        for (size_t d = 0; d < 3; d++)
-//            _innovation(3*i+d) = actualObservation(3*i+d) - predictedMappedStateEdit[i][d];
-
-//    return(true);
-
-
-    /*
-    //std::cout << this->getName() << ": size of mapped state: " << mappedState.size() << std::endl;
-    this->innovation_.Reallocate(mappedState.size()*3);
-    for (size_t i = 0; i < mappedState.size(); i++)
-        for (size_t d = 0; d < 3; d++)
-            this->innovation_(3*i+d) = mappedState[i][d];
-
-    //std::cout << "AKDEBUG " << this->innovation_ << std::endl;
-
-
-    //this->innovation_.Reallocate(this->Nobservation_);
-    //this->ApplyOperator(x, this->innovation_);
-    //Inherit::observation predObs  = this->innovation_;
-    Mlt(double(-1.0), this->innovation_);
-    //Add(double(1.0), this->GetObservation(), this->innovation_);
-    Add(double(1.0), actualObs, this->innovation_);
-    //std::cout << this->getName() << ": innovation updated" << std::endl;
-
-    //for (size_t i = 0; i < this->innovation_.GetM(); i++)
-    //    std::cout << actualObs(i) << " " << predObs(i) << " " << this->innovation_(i) << std::endl;
-
-    //std::cout << "ERROR VARIANCE: " << this->error_variance_ << std::endl;
-
-    inputObservationData.endEdit();
-    //mappedObservationData.endEdit();
-    actualStateData.endEdit();
-    mappedStateData.endEdit();
-
-    //std::cout << "MPP: " << mappedObservationData.getValue() << std::endl;
-
-    return this->innovation_;
-    */
 
 }
 
 template <class FilterType, class DataTypes1, class DataTypes2>
 bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::predictedObservation(double _time, EVectorX& _state, EVectorX& _observationPrec, EVectorX& _observation)
 {
+
+    ///****TO REVIEW ONLY USED FOR STATE ESTIMATION (POSITION VELOCITY)*****///
+
     if (_time != this->actualTime) {
         PRNE("Observation for time " << this->actualTime << " not prepare, call hasObservation first!");
         return(false);
     }
-    size_t ssize = _state.rows();
-    size_t osize = 3;
+//    size_t ssize = _state.rows();
+//    size_t osize = 3;
 
-    double dt = this-> gnode->getDt();
-    matH.resize(osize,ssize);
-    matH.setZero();
-    /// matH needs to be redifined according to State Vector and Observation
+//    double dt = this-> gnode->getDt();
+//    matH.resize(osize,ssize);
+//    matH.setZero();
 
+//    if (this->stateWrapper->estimatingPosition() && this->stateWrapper->estimatingVelocity()) {
+//        for (size_t i = 3; i < ssize; i++)
+//            matH(i,i)=0;
+//        _observation=matH*_state;
+//    }
 
-    if (this->stateWrapper->estimatingPosition() && this->stateWrapper->estimatingVelocity()) {
-        for (size_t i = 3; i < ssize; i++)
-            matH(i,i)=0;
-        _observation=matH*_state;
-    }
+//    if (this->stateWrapper->estimatingPosition() && !this->stateWrapper->estimatingVelocity()) {
+//        for (size_t i = (ssize-osize); i < ssize ; i++){
+//            for (size_t j = 0 ; j < osize ; j++){
+//                matH(i,j)=1;
+//                _observation=matH*_state;
+//            }
+//        }
+//    }
 
-    if (this->stateWrapper->estimatingPosition() && !this->stateWrapper->estimatingVelocity()) {
-        for (size_t i = (ssize-osize); i < ssize ; i++){
-            for (size_t j = 0 ; j < osize ; j++){
-                matH(i,j)=1;
-                _observation=matH*_state;
-            }
-        }
-    }
-
-    if (!this->stateWrapper->estimatingPosition() && this->stateWrapper->estimatingVelocity()) {
-        for (size_t i = 0; i < ssize; i++)
-            matH(i,i)=dt;
-        _observation=_observationPrec +matH*_state;
-    }
+//    if (!this->stateWrapper->estimatingPosition() && this->stateWrapper->estimatingVelocity()) {
+//        for (size_t i = 0; i < ssize; i++)
+//            matH(i,i)=dt;
+//        _observation=_observationPrec +matH*_state;
+//    }
 
     return true;
 }
 
 
-
-//template <class DataTypes>
-//void SimpleObservationManager<DataTypes>::init()
-//{
-//
-//}
-//
-//template <class DataTypes>
-//void SimpleObservationManager<DataTypes>::reinit()
-//{
-//}
 
 } // stochastic
 } // component

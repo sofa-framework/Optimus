@@ -5,6 +5,7 @@
 #include "StochasticFilterBase.h"
 #include "StochasticStateWrapper.h"
 #include "ObservationManagerBase.h"
+#include "genericComponents/SimulatedStateObservationSource.h"
 
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/RigidTypes.h>
@@ -87,6 +88,7 @@ public:
     typedef typename MechanicalType::VecCoord VecCoord;
     typedef typename MechanicalType::Coord Coord;
     typedef typename core::behavior::MechanicalState<Rigid3dTypes> MechanicalState;
+    typedef  sofa::component::container::SimulatedStateObservationSourceBase ObservationSource;
 
     typedef typename MechanicalState::ReadVecCoord ReadVecCoord;
     typedef typename MechanicalType::VecDeriv VecDeriv;
@@ -97,6 +99,8 @@ protected:
     StochasticStateWrapperBaseT<FilterType>* masterStateWrapper;
     helper::vector<StochasticStateWrapperBaseT<FilterType>*> stateWrappers;
     ObservationManager<FilterType>* observationManager;
+    ObservationSource *observationSource;
+
 
     /// vector sizes
     size_t observationSize, stateSize, reducedStateSize;
@@ -106,7 +110,7 @@ protected:
     size_t sigmaPointsNum;
     bool alphaConstant;
     enum { Dim = Coord::spatial_dimensions };
-
+    int dim;
     EVectorX vecAlpha;
     EVectorX obsPrec;
     EMatrixX matItrans, matI;
@@ -134,7 +138,6 @@ public:
     Data<double> d_obsStdev;
     Data<double> d_stateStdev;
     Data<double> d_initModelVar;
-    Data<double> d_ZinitModelVar;
 
 
     EVectorX modelObservations;

@@ -79,7 +79,7 @@ public:
     typedef typename DataTypes::Coord Deriv;
     typedef FilterType Type;
 
-    enum { Dim = Coord::spatial_dimensions };
+    enum { Dim = Coord::spatial_dimensions, DimForces = Deriv::spatial_dimensions };
 
 
     typedef typename core::behavior::MechanicalState<DataTypes> MechanicalState;
@@ -92,7 +92,7 @@ public:
     StochasticStateWrapper();
     ~StochasticStateWrapper();
 
-protected:            
+protected:
     MechanicalState *mechanicalState;
     FixedConstraint* fixedConstraint;
     helper::vector<OptimParamsBase*> vecOptimParams;
@@ -109,11 +109,13 @@ protected:
     void computeSofaStep(const core::ExecParams* execParams, bool _updateTime);
     void computeSofaStepWithLM(const core::ExecParams* params, bool _updateTime);
 
-public:    
+public:
     Data<bool> d_langrangeMultipliers;
     Data<bool> estimatePosition;
     Data<bool> estimateVelocity;
     Data<bool> estimateExternalForces;
+    Data<bool> optimForces;
+
     Data< double> m_stdev;          /// standard deviation
     bool estimatingPosition() {
         return this->estimatePosition.getValue();

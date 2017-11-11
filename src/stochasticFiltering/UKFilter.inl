@@ -19,7 +19,6 @@ UKFilter<FilterType>::UKFilter()
     , d_obsStdev( initData(&d_obsStdev, double(0.0), "obsStdev", "standard deviation of generated noise") )
     , d_stateStdev( initData(&d_stateStdev, double(0.0), "stateStdev", "standard deviation of generated noise") )
     , d_initModelVar( initData(&d_initModelVar, double(0.0), "initModelVar", "standard deviation of generated noise") )
-    , d_ZinitModelVar( initData(&d_ZinitModelVar, double(0.0), "ZinitModelVar", "standard deviation of generated noise") )
     , d_projectionMatrix( initData(&d_projectionMatrix, Mat3x4d(defaulttype::Vec<4,float>(1.0,0.0,0.0,0.0),
                                                                 defaulttype::Vec<4,float>(0.0,1.0,0.0,0.0),
                                                                 defaulttype::Vec<4,float>(0.0,0.0,1.0,0.0)), "projectionMatrix","Projection matrix"))
@@ -75,12 +74,11 @@ void UKFilter<FilterType>::propagatePerturbedStates(EVectorX & _meanState) {
             V2D[i][0]=rx* (1.0/rz);
             V2D[i][1]=ry* (1.0/rz);
         }
-//        PRNS("DEBUG SigmaPoint="<< i);
-//        PRNS("DEBUG catPos applyOperator =\n"<< p <<"\n");
+
         modelObservations.resize(observationSize);
-        for (int i = 0; i < observationSize*0.5; i ++){
-            for (int j= 0; j < 2; j++){
-                modelObservations(2*i+j)=V2D[i][j];}
+        for (int i = 0; i < observationSize*(1./dim); i ++){
+            for (int j= 0; j < dim; j++){
+                modelObservations(dim*i+j)=V2D[i][j];}
         }
         matZmodel.col(i) = modelObservations;
 
@@ -92,8 +90,6 @@ void UKFilter<FilterType>::propagatePerturbedStates(EVectorX & _meanState) {
         }
 
     }
-//    PRNS("Sigma Forces = \n" << matXi);
-//    PRNS("Predicted Observations = \n" << matZmodel);
     _meanState = (1.0 / (double)sigmaPointsNum) * matXi.rowwise().sum();
 
 }
@@ -133,8 +129,8 @@ void UKFilter<FilterType>::computeCorrection()
 
     if (observationManager->hasObservation(this->actualTime)) {
 
-        /// Computes Z_{n + 1}^(i).
-        EVectorX vecXCol;
+//        /// Computes the observation sigmaPoint Z_{n + 1}^(i). ****CODE FOR POSITION OR VELOCITy ESTIMATION***
+//        EVectorX vecXCol;
 //        EMatrixX matZItrans(sigmaPointsNum, observationSize);
 
         //        for (size_t i = 0; i < sigmaPointsNum; i++) {
@@ -147,13 +143,7 @@ void UKFilter<FilterType>::computeCorrection()
 
         /// Computes the predicted measurement Z_{n + 1}.
         EMatrixX matZItrans = matZmodel.transpose();
-//        PRNS("Observations = " << matZItrans);
-
-//        matZi = matZItrans.transpose();
-
-
         EVectorX Z_mean = (1.0/(double) sigmaPointsNum) * matZItrans.colwise().sum();
-//        PRNS("ModelObservations mean = \n " << Z_mean);
         obsPrec = Z_mean;
 
         /// Computes X_{n+1}-
@@ -165,19 +155,16 @@ void UKFilter<FilterType>::computeCorrection()
         EMatrixX centeredCz = matZItrans.rowwise() - matZItrans.colwise().mean();
         EMatrixX covPxz = (centeredCx.adjoint() * centeredCz) / double(centeredCx.rows() - 1);
         matPxz=covPxz;
-//        PRNS("CrossCovariance size = \n " << matPxz);
 
         /// Computes P_Z = cov(Z_{n + 1}^*, Z_{n + 1}^*).
         matPzz.resize(observationSize,observationSize);
         EMatrixX covPzz = (centeredCz.adjoint() * centeredCz) / double(centeredCz.rows() - 1);
         matPzz=covPzz;
         matPzz= matR+ matPzz;
-//        PRNS("Observation Covariance = \n" << matPzz);
 
         ///  Computes the Kalman gain K_{n + 1}.
         EMatrixX matK(stateSize, observationSize);
         matK =matPxz* matPzz.inverse();
-//        PRNS("Kalman Gain = \n " << matK);
 
 
         /// Computes X_{n + 1}^+.
@@ -185,14 +172,11 @@ void UKFilter<FilterType>::computeCorrection()
         EVectorX Innovation(observationSize);
         observationManager->getInnovation(this->actualTime, Z_mean, Innovation);
         state = state + matK*Innovation;
-//        PRNS("Final Forces = \n" << state)
 
         ///  Computes P_{n + 1}^+.
         matP = matP - matK*matPxz.transpose();
 
         masterStateWrapper->setState(state, this->mechParams);
-//        PRNS("Final Forces= \n " << state);
-
         masterStateWrapper->applyOperator(state,mechParams);
         if (outfile)
         {
@@ -211,6 +195,9 @@ template <class FilterType>
 void UKFilter<FilterType>::init() {
     Inherit::init();
     assert(this->gnode);
+    this->getContext()->get(observationSource,sofa::core::objectmodel::BaseContext::SearchDown);
+    if(observationSource == NULL )
+        PRNE("observationSource not found");
     this->gnode->template get<StochasticStateWrapperBaseT<FilterType> >(&stateWrappers, this->getTags(), sofa::core::objectmodel::BaseContext::SearchDown);
     PRNS("found " << stateWrappers.size() << " state wrappers");
     masterStateWrapper=NULL;
@@ -254,6 +241,7 @@ void UKFilter<FilterType>::bwdInit() {
     PRNS("bwdInit");
     assert(masterStateWrapper);
     observationSize = this->observationManager->getObservationSize();
+    dim = this->observationSource->getObsDimention();
     PRNS("observationSize " << observationSize);
     if (observationSize == 0) {
         PRNE("No observations available, cannot allocate the structures!");
@@ -262,20 +250,10 @@ void UKFilter<FilterType>::bwdInit() {
     /// Initialize Observation's Error Covariance
     errorVarianceValue = d_obsStdev.getValue() * d_obsStdev.getValue();
     matR = EMatrixX::Identity(observationSize, observationSize)*errorVarianceValue;
-    //    EMatrixX centeredR = matR.rowwise() - matR.colwise().mean();
-    //    EMatrixX covR = (centeredR.adjoint() * centeredR) / double(matR.rows() - 1);
-    //    matR=covR;
 
     /// Initialize Model's Error Covariance
-    stateVarianceValue = d_stateStdev.getValue() * d_stateStdev.getValue();
+    stateVarianceValue = d_stateStdev.getValue() * d_stateStdev.getValue();    
     matQ = EMatrixX::Identity(stateSize, stateSize) * stateVarianceValue;
-    for (int i; i < matQ.rows(); i++){
-        matQ(3*i,3*i)=d_ZinitModelVar.getValue();
-    }
-    //    EMatrixX centeredQ = matQ.rowwise() - matQ.colwise().mean();
-    //    EMatrixX covQ = (centeredQ.adjoint() * centeredQ) / double(matQ.rows() - 1);
-    //    matQ=covQ;
-
 
     /// Initialize Model's Covariance
     matP=EMatrixX::Identity(stateSize, stateSize)*d_initModelVar.getValue();
@@ -311,6 +289,7 @@ void UKFilter<FilterType>::initializeStep(const core::ExecParams* _params, const
 template <class FilterType>
 void UKFilter<FilterType>::computeSimplexSigmaPoints(EMatrixX& sigmaMat) {
 
+
     size_t p = stateSize;
     size_t r = stateSize + 1;
 
@@ -331,6 +310,7 @@ void UKFilter<FilterType>::computeSimplexSigmaPoints(EMatrixX& sigmaMat) {
             workingMatrix(i,j) = scal;
         workingMatrix(i,i+1) = -Type(i+1) * scal;
     }
+
 
     sigmaMat.resize(r,p);
     for (size_t i = 0; i < r; i++)

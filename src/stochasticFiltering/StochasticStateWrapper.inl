@@ -156,7 +156,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
     fixedNodes.clear();
     freeNodes.clear();
     if (fixedConstraint) {
-        const typename FixedConstraint::SetIndexArray& fix = fixedConstraint-> f_indices.getValue();
+        const typename FixedConstraint::SetIndexArray& fix = fixedConstraint-> d_indices.getValue();
         for (size_t i = 0; i < fix.size(); i++)
             fixedNodes.push_back(size_t(fix[i]));
 
@@ -220,7 +220,12 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
         vecOptimParams[pi]->setVStateParamIndices(opv);
     }
 
-    this->stateSize = Dim * vsi + vpi;
+    if (estimateExternalForces.getValue())  {
+        this->stateSize = DimForces * vsi + vpi;
+    }else{
+        this->stateSize = Dim * vsi + vpi;
+    }
+
     this->reducedStateSize = vpi;
 
     PRNS("Initializing stochastic state with size " << this->stateSize);
@@ -283,8 +288,8 @@ void StochasticStateWrapper<DataTypes, FilterType>::copyStateFilter2Sofa(const c
     extForces.clear();
     extForces.resize(this->mechanicalState->getSize() );
     for (helper::vector<std::pair<size_t, size_t> >::iterator it = externalForcesPairs.begin(); it != externalForcesPairs.end(); it++) {
-        for (size_t d = 0; d < Dim; d++) {
-            extForces[it->first][d] = this->state(Dim*it->second + d);
+        for (size_t d = 0; d < DimForces; d++) {
+            extForces[it->first][d] = this->state(DimForces*it->second + d);
         }
     }
 
@@ -314,8 +319,8 @@ void StochasticStateWrapper<DataTypes, FilterType>::copyStateSofa2Filter() {
             this->state(Dim*it->second + d) = vel[it->first][d];
 
     for (helper::vector<std::pair<size_t, size_t> >::iterator it = externalForcesPairs.begin(); it != externalForcesPairs.end(); it++)
-        for (size_t d = 0; d < Dim; d++)
-            this->state(Dim*it->second + d) = extForces[it->first][d];
+        for (size_t d = 0; d < DimForces; d++)
+            this->state(DimForces*it->second + d) = extForces[it->first][d];
 
     for (size_t opi = 0; opi < vecOptimParams.size(); opi++)
         vecOptimParams[opi]->paramsToVector(this->state);

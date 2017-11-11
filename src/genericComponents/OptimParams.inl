@@ -43,12 +43,14 @@ template <class DataTypes>
 OptimParams<DataTypes>::OptimParams(loader_t* mm)
     : OptimParamsBase()
     , m_paramMOLink(initLink("parametricMechanicalObject", "link to a mechanical object which is considered as parameter (only for VecCoord3D)"))
+    , m_paramMOLinkrigid(initLink("parametricMechanicalObjectRigid", "link to a mechanical object which is considered as parameter (only for Rigid)"))
     , m_val( initData(&m_val, "value", "parameter value") )
     , m_initVal( initData(&m_initVal, "initValue", "initial parameter value") )
     , m_min( initData(&m_min, "min", "lower bound for parameter") )
     , m_max( initData(&m_max, "max", "higher bound for parameter") )
     , m_stdev( initData(&m_stdev, "stdev", "standard variation") )
     , m_loader(initLink("loader", "loader for mechanical state for which we approximate stiffness of ALL elements"), mm)
+
 {    
 }
 

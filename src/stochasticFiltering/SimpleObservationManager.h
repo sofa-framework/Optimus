@@ -79,7 +79,8 @@ public:
 
 protected:
     size_t inputVectorSize, masterVectorSize, mappedVectorSize;     /// real sizes of vectors
-    size_t inputStateSize, masterStateSize, mappedStateSize;        /// number of points in each vector
+    size_t inputStateSize, masterStateSize, mappedStateSize; /// number of points in each vector
+    size_t obsSize;
 
     MasterState* masterState;
     ObservationSource *observationSource;
