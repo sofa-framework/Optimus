@@ -25,7 +25,7 @@
 
 //#define SOFA_COMPONENT_CONTAINER_OPTIMPARAMS_CPP
 
-#
+#include <fstream>
 #include <sofa/core/ObjectFactory.h>
 #include "OptimParams.inl"
 //#include <sofa/helper/accessor.h>
@@ -40,6 +40,7 @@ namespace container
 {
 
 using namespace defaulttype;
+
 
 /// SPECIALIZATIONS FOR vector<double>
 
@@ -590,6 +591,152 @@ void OptimParams<Vec3dTypes::VecCoord>::handleEvent(core::objectmodel::Event *ev
 }
 
 
+/// Specialization for RigidDeriv3d
+
+template<>
+void OptimParams<Rigid3dTypes::VecDeriv>::init() {
+    Inherit1::init();
+    paramMOrigid = m_paramMOLinkrigid.get();
+
+    this->m_dim = 6;
+
+    if (paramMOrigid == NULL)
+        std::cerr << "WARNING: cannot find the parametric mechanical state, assuming no mechanical state is associated with the parameters" << std::endl;
+    else {
+        std::cout << "Mechanical state associated with the parameters: " << paramMOrigid->getName() << std::endl;
+
+        int moSize = 20 ; /// TODO retrieve catheter nodes
+        helper::WriteAccessor<Data<Rigid3dTypes::VecDeriv> > waInitVal = m_initVal;
+        Rigid3dTypes::Deriv initForces = Rigid3dTypes::Deriv() ;
+        waInitVal.resize(moSize);
+
+        for (int i = 0; i < moSize; i++)
+            waInitVal[i] = initForces;
+    }
+    helper::ReadAccessor<Data<Rigid3dTypes::VecDeriv> > raInitVal = m_initVal;
+    helper::WriteAccessor<Data<Rigid3dTypes::VecDeriv> > waVal = m_val;
+    int numParams = raInitVal.size();
+    m_numParams.setValue(numParams);
+    waVal.resize(numParams);
+    for (int i = 0; i < numParams; i++)
+        waVal[i] = raInitVal[i];
+
+}
+
+
+template<>
+void OptimParams<Rigid3dTypes::VecDeriv>::vectorToParams(VectorXd& _vector) {
+    helper::WriteAccessor<Data<Rigid3dTypes::VecDeriv> > waVal = m_val;
+
+    size_t numParams = m_numParams.getValue();
+    size_t k = 0;
+    for (size_t i = 0; i < numParams; i++)
+        for (size_t j = 0; j < 6; j++, k++)
+            waVal[i][j] = _vector[paramIndices[k]];
+
+//    if (paramMOrigid != NULL) {
+//        typename MechStateRigid3d::ReadVecDeriv moWForces = paramMOrigid->writeForces();
+//        helper::ReadAccessor<Data<Rigid3dTypes::VecDeriv> > raVal = m_val;
+
+//        for (size_t i = 0; i < numParams; i++)
+//            moWForces[i] = raVal[i];
+//    }
+
+}
+
+template<>
+void OptimParams<Rigid3dTypes::VecDeriv>::paramsToVector(VectorXd& _vector) {
+    size_t numParams = m_numParams.getValue();
+//    if (paramMOrigid != NULL) {
+//        typename MechStateRigid3d::ReadVecDeriv moRForces = paramMOrigid->readForces();
+//        helper::WriteAccessor<Data<Rigid3dTypes::VecDeriv> > waVal = m_val;
+
+
+//        for (size_t i = 0; i < numParams; i++)
+//            waVal[i] = moRForces[i];
+//    }
+
+    helper::ReadAccessor<Data<Rigid3dTypes::VecDeriv> > raVal = m_val;
+    size_t k = 0;
+    for (size_t i = 0; i < numParams; i++)
+        for (size_t j = 0; j < 6; j++, k++)
+            _vector[paramIndices[k]] = raVal[i][j];
+
+}
+
+
+template<>
+void OptimParams<Rigid3dTypes::VecDeriv>::handleEvent(core::objectmodel::Event *event) {
+    if (dynamic_cast<sofa::simulation::AnimateBeginEvent *>(event))
+    {
+        //if (!this->m_optimize.getValue()) {
+            double actTime = this->getTime() + this->getContext()->getDt(); /// the time has not been increased yet
+            std::cout << "[" << this->getName() << "] begin event at time: " << actTime << std::endl;
+
+            int timeSlot = -1;
+
+            for (size_t i = 1; i < m_paramKeys.size() && timeSlot < 0; i++) {
+                if (m_paramKeys[i-1].first <= actTime && actTime < m_paramKeys[i].first) {
+                    timeSlot = i-1;
+                }
+            }
+            std::cout << "HERE" << std::endl;
+            if (timeSlot == -1) {
+                if (actTime >= m_paramKeys.back().first) {
+                    helper::WriteAccessor<Data<Rigid3dTypes::VecDeriv> > val = m_val;
+                    std::cout << "["  << this->getName() << "] const val: ";
+                    for (size_t i = 0; i < val.size(); i++) {
+                        val[i] = m_paramKeys.back().second[i];
+                        std::cout << " " << val[i];
+                    }
+                    std::cout << std::endl;
+                } else {
+                    std::cerr << this->getName() << " ERROR: no slot found for time " << actTime << std::endl;
+                }
+            } else {
+                double t1 = m_paramKeys[timeSlot].first;
+                double t2 = m_paramKeys[timeSlot+1].first;
+                double r1 = (actTime-t1)/(t2-t1);
+                double r2 = (t2-actTime)/(t2-t1);
+
+                //std::cout << "Time slot: " << timeSlot << " actual time: " << actTime << " ratii: " << r1 << " " << r2 << std::endl;
+
+                helper::WriteAccessor<Data<Rigid3dTypes::VecDeriv> > val = m_val;
+                std::cout << "[" << this->getName() << "] Value: ";
+                for (size_t i = 0; i < val.size(); i++) {
+                    Rigid3dTypes::Deriv v1=m_paramKeys[timeSlot].second[i];
+                    Rigid3dTypes::Deriv v2=m_paramKeys[timeSlot+1].second[i];
+
+                    /// (y2-y1)*(tanh(3.5*(a-(t0+t1)/2))+1)/2+y1
+                    if (this->m_interpolateSmooth.getValue())
+                        val[i] =  (v2-v1)*(tanh(2*(actTime-(t1+t2)/2))+1)/2+v1;
+//                    else
+//                        val[i] = r2*v1 + r1*v2;
+//                    std::cout << " " << val[i];
+                }
+                std::cout << std::endl;
+
+            }
+
+        //}
+
+        if (this->saveParam) {
+            std::ofstream paramFile(m_exportParamFile.getValue().c_str(), std::ios::app);
+            if (paramFile.is_open()) {
+                helper::ReadAccessor<Data<Rigid3dTypes::VecDeriv> > val = m_val;
+                for (size_t i = 0; i < val.size(); i++)
+                    paramFile << val[i] << " ";
+                paramFile << '\n';
+                paramFile.close();
+            }
+        }
+
+    }
+}
+
+
+/// Specialization for double
+
 template<>
 void OptimParams<double>::init() {
     Inherit::init();
@@ -700,7 +847,7 @@ SOFA_DECL_CLASS(OptimParams)
 // Register in the Factory
 int OptimParamsClass = core::RegisterObject("Optimization Parameters")
         #ifndef SOFA_FLOAT
-        .add< OptimParams<double> >(true)
+        .add< OptimParams<double> >()
         .add< OptimParams<Vec3d> >()
                                         /*.add< OptimParams<Vec2d> >()
                                         .add< OptimParams<Vec1d> >()
@@ -708,6 +855,8 @@ int OptimParamsClass = core::RegisterObject("Optimization Parameters")
                                         .add< OptimParams<RigidCoord<2,double> > >()*/
         .add< OptimParams<sofa::helper::vector<double> > >()
         .add< OptimParams<Vec3dTypes::VecCoord> >()
+        .add< OptimParams<Rigid3dTypes::VecDeriv> >()
+
         #endif
         #ifndef SOFA_DOUBLE
         /*.add< OptimParams<float> >(true)
@@ -730,6 +879,7 @@ template class SOFA_OptimusPlugin_API OptimParams<RigidCoord<3,double> >;
 template class SOFA_OptimusPlugin_API OptimParams<RigidCoord<2,double> >;*/
 template class SOFA_OptimusPlugin_API OptimParams<sofa::helper::vector<double> >;
 //template class SOFA_OptimusPlugin_API OptimParams<Vec3dTypes::VecCoord>;
+template class SOFA_OptimusPlugin_API OptimParams<Rigid3dTypes::VecDeriv>;
 #endif
 #ifndef SOFA_DOUBLE
 /*template class SOFA_OptimusPlugin_API OptimParams<float>;

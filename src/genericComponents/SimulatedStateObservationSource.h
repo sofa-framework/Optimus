@@ -56,14 +56,19 @@ namespace container
 /**
   Event fired when needed to stop the animation.
 */
+class SOFA_SIMULATION_COMMON_API SimulatedStateObservationSourceBase : public BaseObject //  ObservationSource
+{
+  public:
+    virtual int getObsDimention() = 0;
+};
 
 template<class DataTypes>
-class SOFA_SIMULATION_COMMON_API SimulatedStateObservationSource : public BaseObject //  ObservationSource
+class SOFA_SIMULATION_COMMON_API SimulatedStateObservationSource : public SimulatedStateObservationSourceBase //  ObservationSource
 {
 public:
     SOFA_CLASS(SOFA_TEMPLATE(SimulatedStateObservationSource, DataTypes) ,BaseObject);
 
-    typedef sofa::core::objectmodel::BaseObject Inherit;
+    typedef SimulatedStateObservationSourceBase Inherit;
     typedef typename DataTypes::VecCoord VecCoord;
     typedef typename DataTypes::Coord Coord;
     typedef typename DataTypes::Real Real;
@@ -73,7 +78,7 @@ public:
 protected:
     ObservationTable observationTable;
 
-    int nParticles, nObservations;
+    int nParticles, nObservations, dim;
     double initTime, finalTime;
     double dt;
 
@@ -161,11 +166,34 @@ public:
         return nParticles;
     }
 
+    int getObsDimention() {
+        return dim;
+    }
+
     int getNStates() {
         return nObservations;
     }
 
     void handleEvent(core::objectmodel::Event *event);
+
+    /// Pre-construction check method called by ObjectFactory.
+    /// Check that DataTypes matches the MechanicalState.
+    template<class T>
+    static bool canCreate(T*& obj, core::objectmodel::BaseContext* context, core::objectmodel::BaseObjectDescription* arg)
+    {
+        //        if (dynamic_cast<MState *>(context->getMechanicalState()) == NULL) return false;
+        return sofa::core::objectmodel::BaseObject::canCreate(obj, context, arg);
+    }
+
+    virtual std::string getTemplateName() const
+    {
+        return templateName(this);
+    }
+
+    static std::string templateName(const SimulatedStateObservationSource<DataTypes>* = NULL)
+    {
+        return DataTypes::Name();
+    }
 
 
 };

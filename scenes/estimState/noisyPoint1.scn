@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Node gravity="0 0 0" dt="0.1" >
+<Node gravity="0 -9.81 0" dt="0.1" >
 	<RequiredPlugin pluginName="Optimus"/>
 	<RequiredPlugin pluginName="SofaPardisoSolver"/>
 	<RequiredPlugin pluginName="ImageMeshAux"/>
@@ -7,30 +7,26 @@
 	<VisualStyle displayFlags="showVisualModels hideBehaviorModels showCollisionModels hideMappings hideForceFields hideWireframe" />	
 			
 	<Node name="source"> 
-		<EulerImplicitSolver rayleighMass="0.1" rayleighStiffness="0.1" />
-		<!-- <SparsePARDISOSolver name="warpingsolver"  /> -->
-		<!-- <SparseLDLSolver name="warpingsolver"/> -->
-		<CGLinearSolver/>
+	<EulerImplicitSolver name="EulerImplicit" />
+	<CGLinearSolver name="CG Solver" iterations="50" tolerance="1e-8" threshold="1e-8" printLog="1"/>
 		
-		<MechanicalObject template="Vec3d" name="MO" position="0 0 0" velocity="0.001 0 0" showObject="0"/>
-		<!-- <UniformMass totalMass="0.01" /> -->
-		<Sphere radius="0.1" color="1 0 0 1"/>
-		<AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@MO.position" noiseOrthogonalVariance="0.01" noisePrincipalVariance="0.01" noisePrincipalDirection="1 0 0"/>
+		<MechanicalObject template="Vec3d" name="MO" position="0 0 0" velocity="20 20 0.0" showObject="0"/>
+		<UniformMass totalMass="0.003" />
+		<Sphere radius="10" color="1 0 0 1"/>
+		<AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@MO.position" noiseOrthogonalVariance="0.1" noisePrincipalVariance="0.1" noisePrincipalDirection="1 0 0"/>
+		<PlaneForceField name="Floor" normal="0 0.9 0.1" d="-100" stiffness="10000" damping="0" draw="1" /> 
 		<!-- <ShowSpheres radius="0.1" position="@NoiseEngine.outputPositions"/> -->
 		<!-- <ExtraMonitor name='simpleSphereMoving' ExportPositions="1" ExportVelocities="1" indices="0"/> -->
+		<WriteState filename ="GroundTruthPosition"/>
 
-		<Node>
-			<OglModel/>
-		</Node>
 	</Node>
 
 	<Node name="target"> 
-		<!-- <EulerImplicitSolver rayleighMass="0.1" rayleighStiffness="0.1" /> -->
-		<!-- <SparseLDLSolver name="warpingsolver"/> -->
-		
-		<MechanicalObject template="Vec3d" name="MO" position="@../source/NoiseEngine.outputPositions" showObject="0"/>		
-<!-- 		<Monitor name="observations" ExportPositions="1"  indices="0" printLog="true" /> -->
-<!-- 		<WriteState filename ="WriteStateObservations"/> -->
-		<Sphere radius="0.11" color="0 0 1 1"/>		
+		<MechanicalObject template="Vec3d" name="MO" position="@../source/NoiseEngine.outputPositions" showObject="0"/>	
+        <UniformMass totalMass="0.1" />
+		<Sphere radius="10" color="0 0 1"/>
+
+<!--       		<Monitor name="observationsVelocity" ExportPositions="1"  indices="0" printLog="true" /> -->
+		<WriteState filename ="NoisyPosition"/>	
 	</Node>
 </Node>

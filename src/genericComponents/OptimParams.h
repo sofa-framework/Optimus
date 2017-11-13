@@ -66,6 +66,12 @@ struct templateName<Vec3dTypes::VecCoord>
 };
 
 template<>
+struct templateName<Rigid3dTypes::VecDeriv>
+{
+    std::string operator ()(void) { return("RigidDeriv3d"); }
+};
+
+template<>
 struct templateName<Vec3fTypes::VecCoord>
 {
     std::string operator ()(void) { return("VecCoord3f"); }
@@ -272,9 +278,12 @@ public:
     void bwdInit(){}
 
     typedef core::behavior::MechanicalState<defaulttype::Vec3dTypes> MechStateVec3d;
-    SingleLink<OptimParams<DataTypes>, MechStateVec3d, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> m_paramMOLink;
-    MechStateVec3d* paramMO;
+    typedef core::behavior::MechanicalState<defaulttype::Rigid3dTypes> MechStateRigid3d;
 
+    SingleLink<OptimParams<DataTypes>, MechStateVec3d, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> m_paramMOLink;
+    SingleLink<OptimParams<DataTypes>, MechStateRigid3d, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> m_paramMOLinkrigid;
+    MechStateVec3d* paramMO;
+    MechStateRigid3d* paramMOrigid;
     static std::string templateName(const OptimParams<DataTypes>* = NULL) { std::string name = sofa::component::container::templateName<DataTypes>()(); return(name); }       
 
 protected:
@@ -304,7 +313,7 @@ protected:
     }
 
     virtual void vectorToParams(VectorXf& /*_vector*/) {
-        std::cerr << "[" << this->getName() << "] ERROR: vectorToParams not implemented!" << std::endl;
+//        std::cerr << "[" << this->getName() << "] ERROR: vectorToParams not implemented!" << std::endl;
     }
 
     virtual void vectorToParams(VectorXd& /*_vector*/) {
@@ -312,7 +321,7 @@ protected:
     }
 
     virtual void paramsToVector(VectorXf& /*_vector*/) {
-        std::cerr << "[" << this->getName() << "] ERROR: paramsToVector not implemented!" << std::endl;
+//        std::cerr << "[" << this->getName() << "] ERROR: paramsToVector not implemented!" << std::endl;
     }
 
     virtual void paramsToVector(VectorXd& /*_vector*/) {

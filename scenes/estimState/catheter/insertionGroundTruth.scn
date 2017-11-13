@@ -1,0 +1,83 @@
+<?xml version="1.0"?>
+
+<Node name="root" dt="0.1" gravity="0 0 0" >
+      <RequiredPlugin pluginName="ConstraintGeometryPlugin" />
+      <RequiredPlugin pluginName="NeedleConstraintPlugin" />  
+      <RequiredPlugin pluginName="Optimus"/>
+      <RequiredPlugin pluginName="Navcat"/>
+      <RequiredPlugin pluginName="SofaPardisoSolver"/>
+      <RequiredPlugin pluginName="ImageMeshAux"/>
+      <RequiredPlugin pluginName="RegistrationConstraintPlugin" />
+
+      <VisualStyle displayFlags=" showCollisionModels hideForceFields" />
+      <FreeMotionAnimationLoop />
+      <GenericConstraintSolver maxIt="1000" tolerance="1e-10" printLog="false" />
+      
+	<Node name="Catheter">
+		<EulerImplicitSolver />
+		<SparseLUSolver />
+		<EdgeSetTopologyContainer  name="Container"
+			position="
+                  0 0 0 	0 0 0.01		0 0 0.02		0 0 0.03		0 0 0.04		0 0 0.05
+				  0 0 0.06	0 0 0.07		0 0 0.08		0 0 0.09		0 0 0.1 		0 0 0.11
+				  0 0 0.12	0 0 0.13		0 0 0.14		0 0 0.15		0 0 0.16		0 0 0.17
+				  0 0 0.18 "
+			edges="0 1 1  2  2  3 3 4 4 5 5 6 6 7 7 8 8 9 9 10 10 11 11 12 12 13 13 14 14 15 15 16 16 17 17 18 "/>
+		<Transform3dToRigid name="transform"/>
+		<MechanicalObject name="catDoFs" position="@transform.out_position" template="Rigid"  showObject="false" />
+        <WriteState filename="GroundTruthCatheter" />
+		<UniformMass totalmass="0.5" />
+		<Sphere radius="0.0005" color="1 0 1 1" />
+		<BeamFEMForceField name="FEM" radius="0.0005" youngModulus="5000000" poissonRatio="0.4"/>
+		    
+		<Node name="CollisionCatheter">
+			<EdgeSetTopologyContainer src="@../Container" />
+			<MechanicalObject name="ms"   />
+			<Line color="1 1 0 1" />
+			<NeedleGeometry name="catheter" />
+			<Sphere radius="0.0001" color="1 1 1 1" />
+			<BeamLinearMapping localCoord="false" />
+		</Node>
+		
+		<ValuesFromIndices name="observations" template="Rigid3dTypes::Coord" in="@catDoFs.position" indices="0 6 12 18" />
+		<LinearSolverConstraintCorrection />  
+	</Node>  
+
+	
+
+	<Node name="Vessel">
+		<VisualStyle displayFlags="showWireframe" /> 
+		<MeshObjLoader name="surface" filename="mesh/vesselTriScaled.obj" scale3d="2 2 2"  />
+		<MeshTopology src="@surface" />
+		<MechanicalObject name="DOFs" />
+		<OglModel name="VisualModel" src="@surface" color="1.0 1.0 1.0 0.8"/>
+	
+		<Node name="CollisionVessel">
+			<TriangleSetTopologyContainer name="Container" src="@../surface" />
+			<MechanicalObject name="MS" src="@../surface" />                  
+			<TriangleGeometry name="surface" />
+			<Triangle />
+			<BarycentricMapping input="@../DOFs" output="@MS"/>
+		</Node> 
+		
+	</Node>
+<!--	<NeedleContactConstraint name="csc" needle="Catheter/CollisionCatheter/catheter" surface="Vessel/CollisionVessel/surface" friction="0.0" tipIndex="0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 "  />-->
+
+	<InsertionConstraint name="insertion" needle="Catheter/CollisionCatheter/catheter" position="0.003 0.003 0.003" delta="0 0 -0.00005" draw_normal_scale="0.001"/>
+
+
+    <Sliding2DConstraint name="csc" from="Catheter/CollisionCatheter/catheter" dst="Vessel/CollisionVessel/surface" markerRay="0.002" draw_normal_scale="0.001"/> 
+
+	<Node name="Obs">
+		<MechanicalObject name="mstate" template="Rigid" position="@../Catheter/observations.out" />     
+		<Sphere color="0 1 0 0" radius="0.0018" />
+		<AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@mstate.position" noiseOrthogonalVariance="0.0001" noisePrincipalVariance="0.0001" noisePrincipalDirection="1 0 0"/>
+	</Node>  
+	
+	<Node name="NoisyObs"> 
+		<MechanicalObject template="Rigid" name="MO" position="@../Obs/NoiseEngine.outputPositions" showObject="0"/>		
+		<WriteState filename="NoisyObs" />
+		<Sphere radius="0.002" color="0 0 1 1"/>		
+	</Node>
+	
+</Node>

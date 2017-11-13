@@ -43,8 +43,9 @@
 #include <sofa/helper/AdvancedTimer.h>
 #include <sofa/helper/gl/template.h>
 
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_randist.h>
+#include <random>
+#include <chrono>
+
 
 namespace sofa
 {

@@ -93,6 +93,8 @@ void SimulatedStateObservationSource<DataTypes>::init()
 template<class DataTypes>
 void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _name) {
     observationTable.clear();
+    std::setlocale(LC_ALL, "C");
+
 
     std::ifstream file(_name.c_str());
 
@@ -141,11 +143,14 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _
         std::vector<std::string> tk2(it2, end2);
 
         tokens=tk2;
+        dim = (tokens.size() -1)/nParticles;
+        if (dim == 2) {
+            PRNS(" Working with 2D observations" << " dim: " << dim);
+        }
         while (tokens.size() > 1) {
-            int dim = (tokens.size() -1)/nParticles;
             if (dim != 3) {
-                PRNE(" On line " << nLine << " dim: " << dim);
-                return;
+//                PRNE(" On line " << nLine << " dim: " << dim);
+//                return;
             }
 
             double lineTime = atof(tokens[0].c_str()) ;
@@ -160,9 +165,16 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _
                 dt = atof(tokens[0].c_str()) - dt;
 
             VecCoord position(nParticles);
-            for (int i = 0; i < nParticles; i++)
-                for (int d = 0; d < 3; d++)
-                    position[i][d] = atof(tokens[3*i+d+1].c_str());
+            if (dim == 2) {
+                for (int i = 0; i < nParticles; i++)
+                    for (int d = 0; d < 2; d++)
+                        position[i][d] = atof(tokens[2*i+d+1].c_str()); ;
+            } else {
+                for (int i = 0; i < nParticles; i++)
+                    for (int d = 0; d < 3; d++)
+                        position[i][d] = atof(tokens[3*i+d+1].c_str());
+            }
+
 
             positions.push_back(position);
             //std::cout << "###### adding position to obsTable at " << lineTime << std::endl;
@@ -189,7 +201,7 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _
 
     if (nObservations > 0) {
         sout << "Valid observations available: #observations: " << nObservations << " #particles: " << nParticles << std::endl;
-    } else {
+    } /*else {
         // workaround in the case when no observations are available
         if (nParticles > 0) {
             VecCoord position(size_t(nParticles), Coord(0.0,0.0,0.0));
@@ -200,33 +212,35 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _
             positions.push_back(position);
             std::cout << "OBSERVATION FATAL ERROR: no positions and no particles, adding dummy zero observation vector of length 1000!" << std::endl;
         }
-    }
+    }*/
+    std::setlocale(LC_ALL, NULL);
+
 }
 
 
 template<class DataTypes>
 void SimulatedStateObservationSource<DataTypes>::draw(const core::visual::VisualParams* vparams) {
-    if (!vparams->displayFlags().getShowBehaviorModels())
-        return;
+//    if (!vparams->displayFlags().getShowBehaviorModels())
+//        return;
 
-    helper::ReadAccessor<Data<VecCoord> > tracObs = m_trackedObservations;
+//    helper::ReadAccessor<Data<VecCoord> > tracObs = m_trackedObservations;
 
-    std::vector<sofa::defaulttype::Vec3d> points;
-    if (tracObs.size() > 0 ) {
+//    std::vector<sofa::defaulttype::Vec3d> points;
+//    if (tracObs.size() > 0 ) {
 
-    } else {
-        double time = this->getTime();
-        size_t ix = (fabs(dt) < 1e-10) ? 0 : size_t(round(time/dt));
-        if (ix >= int(positions.size()))
-            ix = positions.size() - 1;
+//    } else {
+//        double time = this->getTime();
+//        size_t ix = (fabs(dt) < 1e-10) ? 0 : size_t(round(time/dt));
+//        if (ix >= int(positions.size()))
+//            ix = positions.size() - 1;
 
-        points.resize(positions[ix].size());
+//        points.resize(positions[ix].size());
 
-        for (size_t i = 0;  i < points.size(); i++)
-            points[i] = positions[ix][i];
-    }
+//        for (size_t i = 0;  i < points.size(); i++)
+//            points[i] = positions[ix][i];
+//    }
 
-    vparams->drawTool()->drawSpheres(points, float(m_drawSize.getValue()), sofa::defaulttype::Vec<4, float> (0.0f, 0.0f, 1.0f, 1.0f));
+//    vparams->drawTool()->drawSpheres(points, float(m_drawSize.getValue()), sofa::defaulttype::Vec<4, float> (0.0f, 0.0f, 1.0f, 1.0f));
 }
 
 template<class DataTypes>
