@@ -148,10 +148,10 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _
             PRNS(" Working with 2D observations" << " dim: " << dim);
         }
         while (tokens.size() > 1) {
-            if (dim != 3) {
+//            if (dim != 3) {
 //                PRNE(" On line " << nLine << " dim: " << dim);
 //                return;
-            }
+//            }
 
             double lineTime = atof(tokens[0].c_str()) ;
             if (initTime < 0.0)

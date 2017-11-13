@@ -79,7 +79,7 @@ public:
     typedef typename DataTypes::Coord Deriv;
     typedef FilterType Type;
 
-    enum { Dim = Coord::spatial_dimensions, DimForces = Deriv::spatial_dimensions };
+    enum { Dim = Coord::spatial_dimensions, DimForces = 6};
 
 
     typedef typename core::behavior::MechanicalState<DataTypes> MechanicalState;

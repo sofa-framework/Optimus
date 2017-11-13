@@ -22,7 +22,7 @@
         
         <StochasticStateWrapper name="StateWrapper" template="StdRigidTypes<3, double>, double>" verbose="1" estimatePosition="0" estimateVelocity="0" estimateExternalForces="1" optimForces="true"/>
 		<OptimParams name="optimParams" />
-		<EulerImplicitSolver rayleighMass="00" rayleighStiffness="00" vdamping="10"/>
+		<EulerImplicitSolver/>
 		<CGLinearSolver/>		
 		<EdgeSetTopologyContainer  name="Container"
 			position="0 0 0 	0 0 1		0 0 2		0 0 3		0 0 4		0 0 5"
