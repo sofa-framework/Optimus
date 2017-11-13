@@ -186,8 +186,9 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::hasObserva
     return(true);
 }
 
+
 template <class FilterType, class DataTypes1, class DataTypes2>
-bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovation(double _time, EVectorX& _state, EVectorX& _innovation)
+bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovation(double _time, EVectorX& _state, EVectorX &_predictedObservation, EVectorX& _innovation)
 {
     if (_time != this->actualTime) {
         PRNE("Observation for time " << this->actualTime << " not prepare, call hasObservation first!");
@@ -213,9 +214,14 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovat
     mapping->apply(&mp, predictedMappedState, predictedMasterState);
 
     _innovation.resize(this->observationSize);
+    _predictedObservation.resize(this->observationSize);
+
     for (size_t i = 0; i < predictedMappedStateEdit.size(); i++)
-        for (size_t d = 0; d < 3; d++)
-            _innovation(3*i+d) = actualObservation(3*i+d) - predictedMappedStateEdit[i][d];
+        for (size_t d = 0; d < 3; d++) {
+            _predictedObservation(3*i+d) = predictedMappedStateEdit[i][d];
+            _innovation(3*i+d) = actualObservation(3*i+d) - _predictedObservation(3*i+d);
+
+        }
 
     return(true);
 

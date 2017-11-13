@@ -156,16 +156,16 @@ void ROUKFilter<FilterType>::computeCorrection()
     if (observationManager->hasObservation(this->actualTime)) {
         TIC
         EVectorX vecXCol;
-        EVectorX vecZCol(observationSize), vecZ(observationSize);
+        EVectorX vecZCol(observationSize), vecInnovation(observationSize);
         EMatrixX matZItrans(sigmaPointsNum, observationSize);
-        vecZ.setZero();
+        EVectorX vecMeanPredictedInnovation;
+        vecMeanPredictedInnovation.setZero();
         //asumEMat("correction input mat",matXi);
         for (size_t i = 0; i < sigmaPointsNum; i++) {
-            vecXCol = matXi.col(i);
-            vecZCol.setZero();
-            observationManager->getInnovation(this->actualTime, vecXCol, vecZCol);
-            vecZ = vecZ + alpha * vecZCol;
-            matZItrans.row(i) = vecZCol;
+            vecXCol = matXi.col(i);            
+            observationManager->getInnovation(this->actualTime, vecXCol, vecZCol, vecInnovation);
+            vecMeanPredictedInnovation = vecMeanPredictedInnovation + alpha * vecInnovation;
+            matZItrans.row(i) = vecInnovation ;// vecZCol;
         }
         //TOCTIC("== an1sx == ");
         //asumEVec("correction accumInnov",vecZ);
@@ -188,7 +188,7 @@ void ROUKFilter<FilterType>::computeCorrection()
         //TOCTIC("== an4sx == (inv) ");
 
         EVectorX reducedInnovation(reducedStateSize);
-        reducedInnovation = Type(-1.0) * matUinv*matWorkingPO*vecZ;
+        reducedInnovation = Type(-1.0) * matUinv*matWorkingPO*vecMeanPredictedInnovation;
         //asumEMat("matUinv", matUinv);
         //asumEMat("matWorkingPO", matWorkingPO);
         //asumEVec("reduced innovation", reducedInnovation);

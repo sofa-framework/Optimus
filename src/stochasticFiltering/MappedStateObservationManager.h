@@ -90,7 +90,7 @@ public:
     void bwdInit();
 
     virtual bool hasObservation(double _time); /// TODO
-    virtual bool getInnovation(double _time, EVectorX& _state, EVectorX& _innovation);
+    virtual bool getInnovation(double _time, EVectorX& _state, EVectorX& _predictedObservation, EVectorX& _innovation);
 
     Data<typename DataTypes1::VecCoord> inputObservationData;
     Data<typename DataTypes2::VecCoord> mappedObservationData;

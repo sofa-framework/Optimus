@@ -173,7 +173,7 @@ bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::hasObservation(
 }
 
 template <class FilterType, class DataTypes1, class DataTypes2>
-bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovation(double _time, EVectorX& _state, EVectorX& _innovation)
+bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovation(double _time, EVectorX& _state, EVectorX& _predictedObservation, EVectorX& _innovation)
 {
 //    if (_time != this->actualTime) {
 //        PRNE("Observation for time " << this->actualTime << " not prepare, call hasObservation first!");

@@ -103,7 +103,7 @@ void UKFilter<FilterType>::computeCorrection()
 
     PRNS("Computing correction, T= " << this->actualTime);
 
-    /// Computes background error variance Cholesky factorization.
+    /*/// Computes background error variance Cholesky factorization.
     Eigen::LLT<EMatrixX> lltU(matP);
     matPsqrt = lltU.matrixL();
 
@@ -124,7 +124,7 @@ void UKFilter<FilterType>::computeCorrection()
         for (size_t i = 0; i < sigmaPointsNum; i++) {
             vecXCol = matXi.col(i);
             vecZCol.setZero();
-            observationManager->getInnovation(this->actualTime, vecXCol, vecZCol);
+            //observationManager->getInnovation(this->actualTime, vecXCol, vecZCol);
             vecZ = vecZ + alpha * vecZCol;
             matZItrans.row(i) = vecZCol;
         }
@@ -184,7 +184,7 @@ void UKFilter<FilterType>::computeCorrection()
         matP = matP - matK*matPxz.transpose();
 
         masterStateWrapper->setState(state, this->mechParams);
-    }
+    }*/
 }
 
 template <class FilterType>

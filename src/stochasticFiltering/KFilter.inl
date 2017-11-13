@@ -132,7 +132,7 @@ void KFilter<FilterType>::computeCorrection()
         PRNS("Has observation");
         EVectorX vecXCol;
         EVectorX vecZCol(observationSize), vecZ(observationSize);
-        observationManager->getInnovation(this->actualTime, vecXCol, vecZCol);
+        //observationManager->getInnovation(this->actualTime, vecXCol, vecZCol);
     }
 
     /*if (!alphaConstant) {
