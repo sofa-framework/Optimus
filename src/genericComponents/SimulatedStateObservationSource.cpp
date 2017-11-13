@@ -45,7 +45,7 @@ SOFA_DECL_CLASS(SimulatedStateObservationSource)
 int SimulatedStateObservationSourceClass = core::RegisterObject("Parameters that will be adapted by ROUKF object")
 //#ifndef SOFA_FLOAT
         .add< SimulatedStateObservationSource<Vec2dTypes> >()
-        .add< SimulatedStateObservationSource<Vec3dTypes> >()
+        .add< SimulatedStateObservationSource<Vec3dTypes> >(true)
         .add< SimulatedStateObservationSource<Rigid3dTypes> >()
 
 //#endif

@@ -45,7 +45,7 @@ SOFA_DECL_CLASS(StochasticStateWrapper)
 // Register in the Factory
 int StochasticStateWrapperClass = core::RegisterObject("StochasticStateWrapper")
         #ifndef SOFA_FLOAT
-        .add< StochasticStateWrapper<Vec3dTypes, double> >()
+        .add< StochasticStateWrapper<Vec3dTypes, double> >(true)
         .add< StochasticStateWrapper<Rigid3dTypes, double> >()
 
         #endif
