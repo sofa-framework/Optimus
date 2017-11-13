@@ -73,11 +73,12 @@ template <class DataTypes, class FilterType>
 StochasticStateWrapper<DataTypes, FilterType>::StochasticStateWrapper()
     :Inherit()
     , d_langrangeMultipliers( initData(&d_langrangeMultipliers, false, "langrangeMultipliers", "perform collision detection and response with Lagrange multipliers (requires constraint solver)") )
-    , estimatePosition( initData(&estimatePosition, true, "estimatePosition", "estimate the position (e.g., if initial conditions with uncertainty") )
+    , estimatePosition( initData(&estimatePosition, false, "estimatePosition", "estimate the position (e.g., if initial conditions with uncertainty") )
     , estimateVelocity( initData(&estimateVelocity, false, "estimateVelocity", "estimate the velocity (e.g., if initial conditions with uncertainty") )
+    , estimateExternalForces( initData(&estimateExternalForces, true, "estimateExternalForces", "estimate the external forces(e.g., if initial conditions with uncertainty") )
     , m_stdev( initData(&m_stdev, "stdev", "standard variation") )
 
-{    
+{
 }
 
 template <class DataTypes, class FilterType>
@@ -118,7 +119,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::init()
     this->gnode->get(fixedConstraint,  core::objectmodel::BaseContext::SearchDown);
     if (fixedConstraint) {
         PRNS("Fixed constraint found: " << fixedConstraint->getName());
-    }    
+    }
 
     /// search for constraint solver
     if (this->d_langrangeMultipliers.getValue()) {
@@ -155,7 +156,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
     fixedNodes.clear();
     freeNodes.clear();
     if (fixedConstraint) {
-        const typename FixedConstraint::SetIndexArray& fix = fixedConstraint->d_indices.getValue();
+        const typename FixedConstraint::SetIndexArray& fix = fixedConstraint-> d_indices.getValue();
         for (size_t i = 0; i < fix.size(); i++)
             fixedNodes.push_back(size_t(fix[i]));
 
@@ -182,6 +183,8 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
 
     positionPairs.clear();
     velocityPairs.clear();
+    externalForcesPairs.clear();
+
 
     size_t vsi = 0;
     size_t vpi = 0;
@@ -200,6 +203,14 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
         }
     }
 
+    if (estimateExternalForces.getValue()) {
+        for (size_t i = 0; i < freeNodes.size(); i++) {
+            std::pair<size_t, size_t> pr(freeNodes[i], vsi++);
+            externalForcesPairs.push_back(pr);
+        }
+    }
+
+
     this->reducedStateIndex = Dim * vsi;
     for (size_t pi = 0; pi < vecOptimParams.size(); pi++) {
         helper::vector<size_t> opv;
@@ -209,7 +220,12 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
         vecOptimParams[pi]->setVStateParamIndices(opv);
     }
 
-    this->stateSize = Dim * vsi + vpi;
+    if (estimateExternalForces.getValue())  {
+        this->stateSize = DimForces * vsi + vpi;
+    }else{
+        this->stateSize = Dim * vsi + vpi;
+    }
+
     this->reducedStateSize = vpi;
 
     PRNS("Initializing stochastic state with size " << this->stateSize);
@@ -255,6 +271,7 @@ template <class DataTypes, class FilterType>
 void StochasticStateWrapper<DataTypes, FilterType>::copyStateFilter2Sofa(const core::MechanicalParams* _mechParams) {
     typename MechanicalState::WriteVecCoord pos = mechanicalState->writePositions();
     typename MechanicalState::WriteVecDeriv vel = mechanicalState->writeVelocities();
+    typename MechanicalState::WriteVecDeriv extForces = typename MechanicalState::WriteVecDeriv(mechanicalState->write(core::VecDerivId::externalForce()));
 
     for (helper::vector<std::pair<size_t, size_t> >::iterator it = positionPairs.begin(); it != positionPairs.end(); it++) {
         for (size_t d = 0; d < Dim; d++) {
@@ -265,6 +282,14 @@ void StochasticStateWrapper<DataTypes, FilterType>::copyStateFilter2Sofa(const c
     for (helper::vector<std::pair<size_t, size_t> >::iterator it = velocityPairs.begin(); it != velocityPairs.end(); it++) {
         for (size_t d = 0; d < Dim; d++) {
             vel[it->first][d] = this->state(Dim*it->second + d);
+        }
+    }
+
+    extForces.clear();
+    extForces.resize(this->mechanicalState->getSize() );
+    for (helper::vector<std::pair<size_t, size_t> >::iterator it = externalForcesPairs.begin(); it != externalForcesPairs.end(); it++) {
+        for (size_t d = 0; d < DimForces; d++) {
+            extForces[it->first][d] = this->state(DimForces*it->second + d);
         }
     }
 
@@ -281,6 +306,8 @@ template <class DataTypes, class FilterType>
 void StochasticStateWrapper<DataTypes, FilterType>::copyStateSofa2Filter() {
     typename MechanicalState::ReadVecCoord pos = mechanicalState->readPositions();
     typename MechanicalState::ReadVecDeriv vel = mechanicalState->readVelocities();
+    typename MechanicalState::ReadVecDeriv extForces = typename MechanicalState::ReadVecDeriv(mechanicalState->read(core::VecDerivId::externalForce()));
+
 
     for (helper::vector<std::pair<size_t, size_t> >::iterator it = positionPairs.begin(); it != positionPairs.end(); it++)
         for (size_t d = 0; d < Dim; d++) {
@@ -290,6 +317,10 @@ void StochasticStateWrapper<DataTypes, FilterType>::copyStateSofa2Filter() {
     for (helper::vector<std::pair<size_t, size_t> >::iterator it = velocityPairs.begin(); it != velocityPairs.end(); it++)
         for (size_t d = 0; d < Dim; d++)
             this->state(Dim*it->second + d) = vel[it->first][d];
+
+    for (helper::vector<std::pair<size_t, size_t> >::iterator it = externalForcesPairs.begin(); it != externalForcesPairs.end(); it++)
+        for (size_t d = 0; d < DimForces; d++)
+            this->state(DimForces*it->second + d) = extForces[it->first][d];
 
     for (size_t opi = 0; opi < vecOptimParams.size(); opi++)
         vecOptimParams[opi]->paramsToVector(this->state);
@@ -303,7 +334,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::applyOperator(EVectorX &_vec
     if (_preserveState)
         savedState = this->state;
 
-    this->state = _vecX;    
+    this->state = _vecX;
     copyStateFilter2Sofa(_mparams);
 
     if (this->d_langrangeMultipliers.getValue())
