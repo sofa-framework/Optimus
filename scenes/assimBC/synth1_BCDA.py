@@ -168,7 +168,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
 
     def createMasterScene(self, node):
-        node.createObject('StochasticStateWrapper',name="StateWrapper",verbose="1")
+        node.createObject('StochasticStateWrapper',name="StateWrapper",verbose='1', estimatePositions='1')
         
         self.createCommonComponents(node)
 

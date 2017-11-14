@@ -75,7 +75,7 @@ StochasticStateWrapper<DataTypes, FilterType>::StochasticStateWrapper()
     , d_langrangeMultipliers( initData(&d_langrangeMultipliers, false, "langrangeMultipliers", "perform collision detection and response with Lagrange multipliers (requires constraint solver)") )
     , estimatePosition( initData(&estimatePosition, false, "estimatePosition", "estimate the position (e.g., if initial conditions with uncertainty") )
     , estimateVelocity( initData(&estimateVelocity, false, "estimateVelocity", "estimate the velocity (e.g., if initial conditions with uncertainty") )
-    , estimateExternalForces( initData(&estimateExternalForces, true, "estimateExternalForces", "estimate the external forces(e.g., if initial conditions with uncertainty") )
+    , estimateExternalForces( initData(&estimateExternalForces, false, "estimateExternalForces", "estimate the external forces(e.g., if initial conditions with uncertainty") )
     , m_stdev( initData(&m_stdev, "stdev", "standard variation") )
 
 {
