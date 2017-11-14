@@ -109,7 +109,6 @@ void UKFilter<FilterType>::computePrediction()
     }
 
     propagatePerturbedStates(vecX);
-
     /// Computes stateCovariance P_ = cov(X_{n + 1}^*, X_{n + 1}^*).
     EMatrixX matXiTrans= matXi.transpose();
     EMatrixX centeredPxx = matXiTrans.rowwise() - matXiTrans.colwise().mean();
@@ -178,6 +177,7 @@ void UKFilter<FilterType>::computeCorrection()
 
         masterStateWrapper->setState(state, this->mechParams);
         masterStateWrapper->applyOperator(state,mechParams);
+
         if (outfile)
         {
                 (*outfile) << "T= "<< this->actualTime<< "\n";

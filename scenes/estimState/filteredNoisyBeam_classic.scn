@@ -16,7 +16,7 @@
 <!-- 	<OpenCVOpenGlStreamer name="video" /> -->
 <!--     <OpenCVProjectiveCalibrator name="opengl" streamer="video" mode="0" listening="false" drawzNear="0.001" drawzFar="3" /> -->
 
-    <UKFilter name="UKF" verbose="1" obsStdev="0.001" stateStdev="0.001" initModelVar="0.0001" ZinitModelVar="0.005" projectionMatrix="[394.055 -5.38021 721.776 6165.97,285.938 -729.93 0.343075 5410.04,0.999793 -0.019349 -0.00634126 19.0238]" />
+    <UKFilter name="UKF" verbose="1" obsStdev="0.001" stateStdev="0.001" initModelVar="0.0001" projectionMatrix="[394.055 -5.38021 721.776 6165.97,285.938 -729.93 0.343075 5410.04,0.999793 -0.019349 -0.00634126 19.0238]" />
 
 	<Node name="Filtered GREEN"> 
         

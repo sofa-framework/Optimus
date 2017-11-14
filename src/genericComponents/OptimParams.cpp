@@ -605,7 +605,7 @@ void OptimParams<Rigid3dTypes::VecDeriv>::init() {
     else {
         std::cout << "Mechanical state associated with the parameters: " << paramMOrigid->getName() << std::endl;
 
-        int moSize = 20 ; /// TODO retrieve catheter nodes
+        int moSize = 6 ; /// TODO retrieve catheter nodes
         helper::WriteAccessor<Data<Rigid3dTypes::VecDeriv> > waInitVal = m_initVal;
         Rigid3dTypes::Deriv initForces = Rigid3dTypes::Deriv() ;
         waInitVal.resize(moSize);

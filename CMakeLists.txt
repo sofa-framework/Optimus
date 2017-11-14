@@ -28,8 +28,8 @@ set(HEADER_FILES
     src/genericComponents/AddNoiseEngine.inl
     src/genericComponents/Transform3dToRigid.inl
     src/genericComponents/Transform3dToRigid.h
-#    src/genericComponents/CorrectionForceField.h
-#    src/genericComponents/CorrectionForceField.inl
+   src/genericComponents/CorrectionForceField.h
+   src/genericComponents/CorrectionForceField.inl
     )
 
 set(SOURCE_FILES
@@ -39,7 +39,7 @@ set(SOURCE_FILES
     src/genericComponents/SimulatedStateObservationSource.cpp
     src/genericComponents/AddNoiseEngine.cpp
     src/genericComponents/Transform3dToRigid.cpp
-#    src/genericComponents/CorrectionForceField.cpp
+   src/genericComponents/CorrectionForceField.cpp
     )
 
 set(README_FILES 

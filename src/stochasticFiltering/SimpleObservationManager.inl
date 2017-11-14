@@ -110,7 +110,6 @@ bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovation(d
         return(false);
     }
 
-    if(this->stateWrapper->estimatingExternalForces())
         for (size_t ii = 0; ii < 1; ii++) {
             for (size_t jj = 0; jj < obsSize; jj++)
                 _innovation(jj) = realObservations[ii][jj] - _predictedObservationMean(jj);
