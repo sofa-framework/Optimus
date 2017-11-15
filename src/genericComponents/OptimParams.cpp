@@ -77,7 +77,7 @@ void OptimParams<sofa::helper::vector<double> >::vectorToParams(VectorXd& _vecto
         }
         break;
     case 2:
-        std::cout << "backward step " << std::endl;
+        // std::cout << "backward step " << std::endl;
         for (size_t i = 0; i < this->paramIndices.size(); i++) {
             val[i]=sigmoid(_vector[this->paramIndices[i]], m_max.getValue()[i], m_min.getValue()[i]);
         }
@@ -166,7 +166,7 @@ void OptimParams<sofa::helper::vector<double> >::paramsToVector(VectorXd& _vecto
             _vector[paramIndices[i]] = double(fabs(val[i]));
         break;
     case 2:
-        std::cout << "forward step " << std::endl;
+        // std::cout << "forward step " << std::endl;
         for (size_t i = 0; i < this->paramIndices.size(); i++) {
             _vector[paramIndices[i]] = double(logit(val[i], m_max.getValue()[i], m_min.getValue()[i]));
         }
