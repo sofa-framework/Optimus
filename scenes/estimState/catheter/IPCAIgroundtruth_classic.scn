@@ -22,13 +22,12 @@
                 <LocalMinDistance name="Proximity" alarmDistance="0.002" contactDistance="0.001"  angleCone="90.0" filterIntersection="0"/>
                 <DefaultContactManager name="Response" response="FrictionContact" responseParams="mu=0"/>
 	
-    <OpenCVProjectiveCalibrator name="opengl" streamer="video" mode="0" listening="false" drawzNear="0.001" drawzFar="3"  projectionMatrix="[-812.354 -1131.91 429.536 498.918,-682.914 -283.145 -1130.76 324.695,0.182356 -0.924054 -0.335961 0.542907]" />
+    <OpenCVProjectiveCalibrator name="opengl" streamer="video" mode="5" listening="false" drawzNear="0.001" drawzFar="3" />
     <OpenCVOpenGlStreamer name="video" src="@opengl" />
     <OpenCVScheduler name="scheduler" frequency="0" />  
                 
     <Node name="Catheter">
             <EulerImplicitSolver />
-<!--             <BTDLinearSolver/> -->
             <SparsePARDISOSolver name="lsolver" symmetric="2" iterativeSolverNumbering="0" />
             <EdgeSetTopologyContainer  name="Container"
             position="   0     0  0     -0.01  0  0    -0.02  0  0    -0.03  0  0    -0.04  0  0  
@@ -80,13 +79,13 @@
             <OpenCVImageProcessor name="processor" streamer="../video" />
             <OpenCV3Dto2DTracker name="detector2D" in="@../Catheter/CollisionCatheter/NoiseEngine.outputPositions" projectionMatrix="@../opengl.projectionMatrix"/>
             <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
-            <WriteState filename="IPCAI_obs_xA" observations="true" />
+<!--             <WriteState filename="obs_test1_x" observations="true" /> -->
     </Node>
 
 
     <Node name="GroundTruthCatheter"> 
             <MechanicalObject template="Rigid" name="MO" position="@../Catheter/catDoFs.position" showObject="0"/>		
-            <WriteState filename="IPCAI_GTA" groundTruth="true" />
+<!--             <WriteState filename="GT_test1" groundTruth="true" /> -->
 <!--             <Sphere radius="0.2" color="0 0 1 1"/>		 -->
     </Node>
 
