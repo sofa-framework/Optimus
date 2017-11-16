@@ -12,8 +12,8 @@ namespace component
 namespace stochastic
 {
 
-template <class FilterType>
-UKFilter<FilterType>::UKFilter()
+template <class FilterType, class mType>
+UKFilter<FilterType, mType>::UKFilter()
     : Inherit()
     , observationErrorVarianceType( initData(&observationErrorVarianceType, std::string("inverse"), "observationErrorVarianceType", "if set to inverse, work directly with the inverse of the matrix" ) )
     , d_obsStdev( initData(&d_obsStdev, double(0.0), "obsStdev", "standard deviation of generated noise") )
@@ -28,16 +28,14 @@ UKFilter<FilterType>::UKFilter()
 
 }
 
-template <class FilterType>
-UKFilter<FilterType>::~UKFilter() {}
+template <class FilterType, class mType>
+UKFilter<FilterType,mType>::~UKFilter() {}
 
-
-template <class FilterType>
-void UKFilter<FilterType>::propagatePerturbedStates(EVectorX & _meanState) {
+template < >
+void UKFilter<double, Rigid3dTypes>::propagatePerturbedStates(EVectorX & _meanState) {
 
     EVectorX xCol(stateSize);
     matZmodel.resize(observationSize,sigmaPointsNum);
-
     helper::ReadAccessor<Data<VecCoord > > resetStockedposRA = mstate->readPositions();
     helper::ReadAccessor<Data<VecDeriv > > resetStockedvelRA = mstate->readVelocities();
 
@@ -46,20 +44,17 @@ void UKFilter<FilterType>::propagatePerturbedStates(EVectorX & _meanState) {
     VecDeriv stockedVelocity;
     stockedPosition.resize(stateSize);
     stockedVelocity.resize(stateSize);
-
     for (int i = 0; i < resetStockedposRA.size(); i++) {
         stockedPosition[i]=resetStockedposRA[i];
         stockedVelocity[i]=resetStockedvelRA[i];
     }
-
     const Mat3x4d & P = d_projectionMatrix.getValue();
     for (size_t i = 0; i < sigmaPointsNum; i++) {
         xCol = matXi.col(i);
         stateWrappers[0]->applyOperator(xCol, mechParams);
         matXi.col(i) = xCol;
-
         ///COMPUTE PREDICTED OBSERVATION !
-        ReadVecCoord pos = mstate->readPositions();
+        ReadVecCoord  pos = mstate->readPositions();
         helper::vector <Vector3> p;
         helper::vector <Vector2> V2D;
         p.resize(pos.size());
@@ -74,14 +69,14 @@ void UKFilter<FilterType>::propagatePerturbedStates(EVectorX & _meanState) {
             V2D[i][0]=rx* (1.0/rz);
             V2D[i][1]=ry* (1.0/rz);
         }
-
         modelObservations.resize(observationSize);
         for (int i = 0; i < observationSize*(1./dim); i ++){
             for (int j= 0; j < dim; j++){
                 modelObservations(dim*i+j)=V2D[i][j];}
         }
+//        PRNS("sigma force = \n" << matXi);
+//        PRNS("sigma obs = \n" << matZmodel.transpose());
         matZmodel.col(i) = modelObservations;
-
         helper::WriteAccessor<Data<VecCoord > > resetStockedpos = mstate->writePositions();
         helper::WriteAccessor<Data<VecDeriv > > resetStockedvel = mstate->writeVelocities();
         for (size_t ii = 0; ii < stateSize; ii++) {
@@ -91,10 +86,66 @@ void UKFilter<FilterType>::propagatePerturbedStates(EVectorX & _meanState) {
 
     }
     _meanState = (1.0 / (double)sigmaPointsNum) * matXi.rowwise().sum();
-
 }
-template <class FilterType>
-void UKFilter<FilterType>::computePrediction()
+
+template <>
+void UKFilter<double, Vec3dTypes>::propagatePerturbedStates(EVectorX & _meanState) {
+
+    EVectorX xCol(stateSize);
+    matZmodel.resize(observationSize,sigmaPointsNum);
+    helper::ReadAccessor<Data<VecCoord > > resetStockedposRA = mstate->readPositions();
+    helper::ReadAccessor<Data<VecDeriv > > resetStockedvelRA = mstate->readVelocities();
+
+    size_t stateSize = resetStockedposRA.size();
+    VecCoord stockedPosition;
+    VecDeriv stockedVelocity;
+    stockedPosition.resize(stateSize);
+    stockedVelocity.resize(stateSize);
+    for (int i = 0; i < resetStockedposRA.size(); i++) {
+        stockedPosition[i]=resetStockedposRA[i];
+        stockedVelocity[i]=resetStockedvelRA[i];
+    }
+    const Mat3x4d & P = d_projectionMatrix.getValue();
+    for (size_t i = 0; i < sigmaPointsNum; i++) {
+        xCol = matXi.col(i);
+        stateWrappers[0]->applyOperator(xCol, mechParams);
+        matXi.col(i) = xCol;
+        ///COMPUTE PREDICTED OBSERVATION !
+        helper::ReadAccessor<Data<VecCoord > >   pos = mstate->readPositions();
+        helper::vector <Vector3> p;
+        helper::vector <Vector2> V2D;
+        p.resize(pos.size());
+        V2D.resize(pos.size());
+        for (int i = 0; i < pos.size(); i++){
+            p[i] = pos[i];
+
+            double rx = P[0][0] * p[i][0] + P[0][1] * p[i][1] + P[0][2] * p[i][2] + P[0][3];
+            double ry = P[1][0] * p[i][0] + P[1][1] * p[i][1] + P[1][2] * p[i][2] + P[1][3];
+            double rz = P[2][0] * p[i][0] + P[2][1] * p[i][1] + P[2][2] * p[i][2] + P[2][3];
+
+            V2D[i][0]=rx* (1.0/rz);
+            V2D[i][1]=ry* (1.0/rz);
+        }
+        modelObservations.resize(observationSize);
+        for (int i = 0; i < observationSize*(1./dim); i ++){
+            for (int j= 0; j < dim; j++){
+                modelObservations(dim*i+j)=V2D[i][j];}
+        }
+
+        matZmodel.col(i) = modelObservations;
+        helper::WriteAccessor<Data<VecCoord > > resetStockedpos = mstate->writePositions();
+        helper::WriteAccessor<Data<VecDeriv > > resetStockedvel = mstate->writeVelocities();
+        for (size_t ii = 0; ii < stateSize; ii++) {
+            resetStockedpos[ii] = stockedPosition[ii];
+            resetStockedvel[ii] = stockedVelocity[ii];
+        }
+
+    }
+    _meanState = (1.0 / (double)sigmaPointsNum) * matXi.rowwise().sum();
+}
+
+template <class FilterType, class mType>
+void UKFilter<FilterType, mType>::computePrediction()
 {
     PRNS("Computing prediction, T= " << this->actualTime);
 
@@ -120,79 +171,79 @@ void UKFilter<FilterType>::computePrediction()
     masterStateWrapper->writeState(this->getTime());
 }
 
-template <class FilterType>
-void UKFilter<FilterType>::computeCorrection()
+template <class FilterType, class mType>
+void UKFilter<FilterType, mType>::computeCorrection()
 {
 
-    PRNS("Computing correction, T= " << this->actualTime);
+        PRNS("Computing correction, T= " << this->actualTime);
 
-    if (observationManager->hasObservation(this->actualTime)) {
+        if (observationManager->hasObservation(this->actualTime)) {
 
-//        /// Computes the observation sigmaPoint Z_{n + 1}^(i). ****CODE FOR POSITION OR VELOCITy ESTIMATION***
-//        EVectorX vecXCol;
-//        EMatrixX matZItrans(sigmaPointsNum, observationSize);
+    //        /// Computes the observation sigmaPoint Z_{n + 1}^(i). ****CODE FOR POSITION OR VELOCITy ESTIMATION***
+    //        EVectorX vecXCol;
+    //        EMatrixX matZItrans(sigmaPointsNum, observationSize);
 
-        //        for (size_t i = 0; i < sigmaPointsNum; i++) {
-        //            EVectorX vecZCol;
-        //            vecXCol = matXi.col(i);
-        //            observationManager->predictedObservation(this->actualTime, vecXCol,obsPrec, vecZCol);
-        //            matZItrans.row(i) = vecZCol;
-        //        }
-
-
-        /// Computes the predicted measurement Z_{n + 1}.
-        EMatrixX matZItrans = matZmodel.transpose();
-        EVectorX Z_mean = (1.0/(double) sigmaPointsNum) * matZItrans.colwise().sum();
-        obsPrec = Z_mean;
-
-        /// Computes X_{n+1}-
-        EMatrixX matXiTrans= matXi.transpose();
-
-        /// Computes crosscovariance P_XZ = cov(X_{n + 1}^*, Z_{n + 1}^*)
-        matPxz.resize(stateSize,observationSize);
-        EMatrixX centeredCx = matXiTrans.rowwise() - matXiTrans.colwise().mean();
-        EMatrixX centeredCz = matZItrans.rowwise() - matZItrans.colwise().mean();
-        EMatrixX covPxz = (centeredCx.adjoint() * centeredCz) / double(centeredCx.rows() - 1);
-        matPxz=covPxz;
-
-        /// Computes P_Z = cov(Z_{n + 1}^*, Z_{n + 1}^*).
-        matPzz.resize(observationSize,observationSize);
-        EMatrixX covPzz = (centeredCz.adjoint() * centeredCz) / double(centeredCz.rows() - 1);
-        matPzz=covPzz;
-        matPzz= matR+ matPzz;
-
-        ///  Computes the Kalman gain K_{n + 1}.
-        EMatrixX matK(stateSize, observationSize);
-        matK =matPxz* matPzz.inverse();
+            //        for (size_t i = 0; i < sigmaPointsNum; i++) {
+            //            EVectorX vecZCol;
+            //            vecXCol = matXi.col(i);
+            //            observationManager->predictedObservation(this->actualTime, vecXCol,obsPrec, vecZCol);
+            //            matZItrans.row(i) = vecZCol;
+            //        }
 
 
-        /// Computes X_{n + 1}^+.
-        EVectorX state = masterStateWrapper->getState();
-        EVectorX Innovation(observationSize);
-        observationManager->getInnovation(this->actualTime, Z_mean, Innovation);
-        state = state + matK*Innovation;
+            /// Computes the predicted measurement Z_{n + 1}.
+            EMatrixX matZItrans = matZmodel.transpose();
+            EVectorX Z_mean = (1.0/(double) sigmaPointsNum) * matZItrans.colwise().sum();
+            obsPrec = Z_mean;
 
-        ///  Computes P_{n + 1}^+.
-        matP = matP - matK*matPxz.transpose();
+            /// Computes X_{n+1}-
+            EMatrixX matXiTrans= matXi.transpose();
 
-        masterStateWrapper->setState(state, this->mechParams);
-        masterStateWrapper->applyOperator(state,mechParams);
+            /// Computes crosscovariance P_XZ = cov(X_{n + 1}^*, Z_{n + 1}^*)
+            matPxz.resize(stateSize,observationSize);
+            EMatrixX centeredCx = matXiTrans.rowwise() - matXiTrans.colwise().mean();
+            EMatrixX centeredCz = matZItrans.rowwise() - matZItrans.colwise().mean();
+            EMatrixX covPxz = (centeredCx.adjoint() * centeredCz) / double(centeredCx.rows() - 1);
+            matPxz=covPxz;
 
-        if (outfile)
-        {
-                (*outfile) << "T= "<< this->actualTime<< "\n";
-                {
-                    (*outfile) << "  X= ";
-                    this->mstate->writeVec(core::VecId::position(), *outfile);
-                    (*outfile) << "\n";
-                }
-            outfile->flush();
+            /// Computes P_Z = cov(Z_{n + 1}^*, Z_{n + 1}^*).
+            matPzz.resize(observationSize,observationSize);
+            EMatrixX covPzz = (centeredCz.adjoint() * centeredCz) / double(centeredCz.rows() - 1);
+            matPzz=covPzz;
+            matPzz= matR+ matPzz;
+
+            ///  Computes the Kalman gain K_{n + 1}.
+            EMatrixX matK(stateSize, observationSize);
+            matK =matPxz* matPzz.inverse();
+
+
+            /// Computes X_{n + 1}^+.
+            EVectorX state = masterStateWrapper->getState();
+            EVectorX Innovation(observationSize);
+            observationManager->getInnovation(this->actualTime, Z_mean, Innovation);
+            state = state + matK*Innovation;
+
+            ///  Computes P_{n + 1}^+.
+            matP = matP - matK*matPxz.transpose();
+
+            masterStateWrapper->setState(state, this->mechParams);
+            masterStateWrapper->applyOperator(state,mechParams);
+
+            if (outfile)
+            {
+                    (*outfile) << "T= "<< this->actualTime<< "\n";
+                    {
+                        (*outfile) << "  X= ";
+                        this->mstate->writeVec(core::VecId::position(), *outfile);
+                        (*outfile) << "\n";
+                    }
+                outfile->flush();
+            }
         }
-    }
 }
 
-template <class FilterType>
-void UKFilter<FilterType>::init() {
+template <class FilterType, class mType>
+void UKFilter<FilterType, mType>::init() {
     Inherit::init();
     assert(this->gnode);
     this->getContext()->get(observationSource,sofa::core::objectmodel::BaseContext::SearchDown);
@@ -236,8 +287,8 @@ void UKFilter<FilterType>::init() {
     outfile = new std::ofstream(filename.c_str());
 }
 
-template <class FilterType>
-void UKFilter<FilterType>::bwdInit() {
+template <class FilterType, class mType>
+void UKFilter<FilterType, mType>::bwdInit() {
     PRNS("bwdInit");
     assert(masterStateWrapper);
     observationSize = this->observationManager->getObservationSize();
@@ -276,8 +327,8 @@ void UKFilter<FilterType>::bwdInit() {
 
 }
 
-template <class FilterType>
-void UKFilter<FilterType>::initializeStep(const core::ExecParams* _params, const size_t _step) {
+template <class FilterType, class mType>
+void UKFilter<FilterType, mType>::initializeStep(const core::ExecParams* _params, const size_t _step) {
     Inherit::initializeStep(_params, _step);
 
     for (size_t i = 0; i < stateWrappers.size(); i++)
@@ -286,8 +337,8 @@ void UKFilter<FilterType>::initializeStep(const core::ExecParams* _params, const
     observationManager->initializeStep(stepNumber);
 }
 
-template <class FilterType>
-void UKFilter<FilterType>::computeSimplexSigmaPoints(EMatrixX& sigmaMat) {
+template <class FilterType, class mType>
+void UKFilter<FilterType, mType>::computeSimplexSigmaPoints(EMatrixX& sigmaMat) {
 
 
     size_t p = stateSize;

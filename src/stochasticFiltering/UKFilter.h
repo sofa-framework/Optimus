@@ -73,21 +73,21 @@ extern "C"{
 
 using namespace defaulttype;
 
-template <class FilterType>
+template <class FilterType, class mType>
 class UKFilter: public sofa::component::stochastic::StochasticFilterBase
 {
 public:
-    SOFA_CLASS(SOFA_TEMPLATE(UKFilter, FilterType), StochasticFilterBase);
+    SOFA_CLASS(SOFA_TEMPLATE2(UKFilter, FilterType, mType), StochasticFilterBase);
 
     typedef sofa::component::stochastic::StochasticFilterBase Inherit;
     typedef FilterType Type;
 
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, Eigen::Dynamic> EMatrixX;
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, 1> EVectorX;
-    typedef defaulttype::Rigid3dTypes MechanicalType;
+    typedef mType MechanicalType;
     typedef typename MechanicalType::VecCoord VecCoord;
     typedef typename MechanicalType::Coord Coord;
-    typedef typename core::behavior::MechanicalState<Rigid3dTypes> MechanicalState;
+    typedef typename core::behavior::MechanicalState<mType> MechanicalState;
     typedef  sofa::component::container::SimulatedStateObservationSourceBase ObservationSource;
 
     typedef typename MechanicalState::ReadVecCoord ReadVecCoord;
@@ -152,6 +152,15 @@ public:
     void init();
     void bwdInit();
 
+    virtual std::string getTemplateName() const override
+    {
+        return templateName(this);
+    }
+
+    static std::string templateName(const UKFilter<FilterType, mType>* = NULL)
+    {
+        return mType::Name();
+    }
 
     virtual void computePrediction(); // Compute perturbed state included in computeprediction
     virtual void propagatePerturbedStates(EVectorX &_meanState);

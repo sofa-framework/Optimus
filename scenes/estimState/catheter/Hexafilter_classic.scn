@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<Node name="root" dt="0.01" gravity="0 0 0 ">
+     
+        <RequiredPlugin pluginName="Optimus"/>
+        <RequiredPlugin pluginName="SofaPardisoSolver"/>
+
+    
+	<VisualStyle displayFlags="showBehaviorModels showForceFields showCollisionModels" />
+	<FilteringAnimationLoop name="StochAnimLoop" verbose="1"/>
+
+        <UKFilter name="UKF" template="Vec3d" verbose="1" obsStdev="0.001" stateStdev="0.001" initModelVar="0.000001" projectionMatrix="[-70.7992 -803.723 139.637 102.38,-157.048 4.68358 768.032 -156.171,-0.910078 -0.359207 0.206706 0.232775]"/>
+
+	<Node name="SimulationScene"> 
+                <StochasticStateWrapper name="StateWrapper"  verbose="1" estimatePosition="0" estimateVelocity="0" estimateExternalForces="0" />
+                <OptimParams name="optimParams" template="VecDeriv3d" optimize="1" printLog="1" parametricMechanicalObject="@mstate"/>
+        	<EulerImplicitSolver  />
+		<CGLinearSolver iterations="10" tolerance="1e-5"  />
+		<RegularGrid name="HexaTop" n="2 4 6" min="0 0.020 0.250" max="0.012 0.082 0.372" />						
+		<HexahedronSetTopologyContainer name="Container" src="@HexaTop" />
+		<HexahedronSetTopologyModifier name="Modifier"/>
+		<HexahedronSetGeometryAlgorithms name="Algo"/>		
+		<MechanicalObject template="Vec3d" name="mstate" /> 
+		<HexahedronFEMForceField youngModulus="3e5" poissonRatio="0.4" />
+                <PartialFixedConstraint template="Vec3d" name="Fixed Dofs" indices="0 1 2 3 4 5 6 7  " drawSize="0" />
+
+		<UniformMass totalmass="0.1" /> 
+                
+                <Node name="Visual">					
+                    <TriangleSetTopologyContainer name="Container" position="@../Container.position" />
+                    <TriangleSetTopologyModifier name="Modifier"/>
+                    <Tetra2TriangleTopologicalMapping input="@../Container" output="@Container" flipNormals="false"/>						
+                    <OglModel color="1.000 0.000 0.000 0.3" name="visualModel" />
+                    <IdentityMapping />
+                </Node>
+
+                <CorrectionForceField forces="@optimParams.value" />
+
+                <Node name="obsNode" activated="1">        
+                        <RegularGrid name="HexaTop" n="2 5 10" min="0 0.020 0.250" max="0.012 0.082 0.372" />						
+                        <HexahedronSetTopologyContainer name="Container" src="@HexaTop" />
+                        <HexahedronSetTopologyModifier name="Modifier"/>
+                        <HexahedronSetGeometryAlgorithms name="Algo"/>	
+                        <MechanicalObject name="OBScatDoFs"  template="Vec2d"  showObject="false" />
+                        <SimulatedStateObservationSource verbose="1" template="Vec2d" printLog="1" name="observations" monitorPrefix="obs_hexa0"/>
+                        <SimpleObservationManager name="MOBS" template="Vec2d" listening="1"  stateWrapper="@../StateWrapper" verbose="1"/>
+                </Node> 
+    
+	</Node>
+</Node>

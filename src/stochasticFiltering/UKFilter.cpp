@@ -20,7 +20,9 @@
         // Register in the Factory
         int UKFilterClass = core::RegisterObject("UKFilter")
                 #ifndef SOFA_FLOAT
-                .add< UKFilter<double> >(true)
+                .add< UKFilter<double, Vec3dTypes> >()
+                .add< UKFilter<double, Rigid3dTypes> >(true)
+
                 #endif
                 #ifndef SOFA_DOUBLE
                 //.add< UKFilter<float> >()
@@ -28,7 +30,8 @@
                 ;
 
         #ifndef SOFA_FLOAT
-        template class SOFA_STOCHASTIC_API UKFilter<double>;
+        template class SOFA_STOCHASTIC_API UKFilter<double,Vec3dTypes>;
+        template class SOFA_STOCHASTIC_API UKFilter<double,Rigid3dTypes>;
         #endif
         #ifndef SOFA_DOUBLE
         //template class SOFA_STOCHASTIC_API UKFilter<float>;

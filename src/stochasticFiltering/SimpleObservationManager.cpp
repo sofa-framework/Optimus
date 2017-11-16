@@ -46,7 +46,8 @@ SOFA_DECL_CLASS(SimpleObservationManager)
 // Register in the Factory
 int SimpleObservationManagerClass = core::RegisterObject("SimpleObservationManager")
         #ifndef SOFA_FLOAT
-        .add< SimpleObservationManager<double, Vec2dTypes, Rigid3dTypes> >()
+        .add< SimpleObservationManager<double, Vec2dTypes, Vec3dTypes> >()
+//        .add< SimpleObservationManager<double, Vec2dTypes, Rigid3dTypes> >()
         .add< SimpleObservationManager<double, Vec3dTypes, Vec3dTypes> >()
         .add< SimpleObservationManager<double, Rigid3dTypes, Rigid3dTypes> >()
 
@@ -59,7 +60,8 @@ int SimpleObservationManagerClass = core::RegisterObject("SimpleObservationManag
         ;
 
 #ifndef SOFA_FLOAT
-template class SOFA_STOCHASTIC_API SimpleObservationManager<double, Vec2dTypes, Rigid3dTypes>;
+template class SOFA_STOCHASTIC_API SimpleObservationManager<double, Vec2dTypes, Vec3dTypes>;
+//template class SOFA_STOCHASTIC_API SimpleObservationManager<double, Vec2dTypes, Rigid3dTypes>;
 template class SOFA_STOCHASTIC_API SimpleObservationManager<double, Vec3dTypes, Vec3dTypes>;
 template class SOFA_STOCHASTIC_API SimpleObservationManager<double, Rigid3dTypes, Rigid3dTypes>;
 

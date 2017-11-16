@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+
+<Node    name="root" dt="0.01" gravity="0 0 0 " >
+      <RequiredPlugin pluginName="Optimus"/>
+      <RequiredPlugin pluginName="OpenCVPlugin" />
+
+
+      
+      <VisualStyle displayFlags=" showCollisionModels showForceFields" />
+
+    <OpenCVProjectiveCalibrator name="opengl" streamer="video" mode="5" listening="false" drawzNear="0.001" drawzFar="3" printLog="true"/>
+    <OpenCVOpenGlStreamer name="video" src="@opengl" />
+    <OpenCVScheduler name="scheduler" frequency="0" /> 
+                
+    <Node name="Mesh">
+        	<EulerImplicitSolver  firstOrder="false" rayleighMass="0.1" rayleighStiffness="0.1" />
+		<CGLinearSolver iterations="10" tolerance="1e-5"  />
+		<RegularGrid name="HexaTop" n="2 4 6" min="0 0.020 0.250" max="0.012 0.082 0.372" />						
+		<HexahedronSetTopologyContainer name="Container" src="@HexaTop" />
+		<HexahedronSetTopologyModifier name="Modifier"/>
+		<HexahedronSetGeometryAlgorithms name="Algo"/>		
+		<MechanicalObject template="Vec3d" name="mstate" /> 
+		<HexahedronFEMForceField youngModulus="3e5" poissonRatio="0.4" />
+                <PartialFixedConstraint template="Vec3d" name="Fixed Dofs" indices="0 1 2 3 4 5 6 7  " drawSize="0" />
+<!--                 <ValuesFromIndices name="obs" template="Vec3d" in="@mstate.position" indices="1 3 5 7 9 11 13 15 17 19 21 23 25 27 29 31 33 35 37 39 41 43 45 47" /> -->
+
+		<UniformMass totalmass="1" /> 
+                
+                <Node name="Visual">					
+                    <TriangleSetTopologyContainer name="Container" position="@../Container.position" />
+                    <TriangleSetTopologyModifier name="Modifier"/>
+                    <Tetra2TriangleTopologicalMapping input="@../Container" output="@Container" flipNormals="false"/>						
+                    <OglModel color="1.000 0.000 0.000 0.3" name="visualModel" />
+                    <IdentityMapping />
+                </Node>
+                
+<!--                <Node name="Collision">
+                                <TriangleSetTopologyContainer name="Container"  />
+                                <TriangleSetTopologyModifier name="Modifier"/>
+                                <Tetra2TriangleTopologicalMapping input="@../Container" output="@Container" flipNormals="true"/>
+                                <MechanicalObject name="dofs" rest_position="@../mstate.rest_position" />
+                                <AABBDecorator drawBbox="false" nbox="8 8 8" />
+                                <TriangleGeometry name="triangles" />     					
+                                <IdentityMapping />
+                </Node> 				
+                <IdentityMapping />-->
+    </Node>  
+ 
+    <Node name="ImageProcessor" >
+        <OpenCVImageProcessor name="processor" streamer="../video" />
+        <OpenCV3Dto2DTracker name="detector2D" in="@../Mesh/mstate.position" projectionMatrix="@../opengl.projectionMatrix"/>
+        <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
+<!--         <WriteState filename="obs_hexa0_x" observations="true" />  -->
+    </Node>
+    
+    <Node name="GroundTruthCatheter"> 
+            <MechanicalObject template="Vec3" name="MO" position="@../Mesh/mstate.position" showObject="0"/>		
+<!--             <WriteState filename="GT_hexa0" groundTruth="true" /> -->
+    </Node>
+
+
+
+</Node>
