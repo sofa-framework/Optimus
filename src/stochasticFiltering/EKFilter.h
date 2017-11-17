@@ -83,8 +83,8 @@ EKFilter();
 ~EKFilter();
 
 protected:    
-    StochasticStateWrapperBaseT<FilterType>* sofaStateWrapper;
     ObservationManager<FilterType>* observationManager;
+    StochasticStateWrapperBaseT<FilterType>* sofaStateWrapper;
 
     /// vector sizes
     size_t observationSize, stateSize, reducedStateSize;

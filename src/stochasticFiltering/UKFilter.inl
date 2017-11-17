@@ -19,9 +19,13 @@ UKFilter<FilterType, mType>::UKFilter()
     , d_obsStdev( initData(&d_obsStdev, double(0.0), "obsStdev", "standard deviation of generated noise") )
     , d_stateStdev( initData(&d_stateStdev, double(0.0), "stateStdev", "standard deviation of generated noise") )
     , d_initModelVar( initData(&d_initModelVar, double(0.0), "initModelVar", "standard deviation of generated noise") )
+    , d_estimParams( initData(&d_estimParams, 0, "estimParams", "parameters estimation type: 0 - force estimation, 1 - stiffness estimation") )
+    , d_state( initData(&d_state, "state", "actual expected value of reduced state (parameters) estimated by the filter" ) )
+    , d_variance( initData(&d_variance, "variance", "actual variance  of reduced state (parameters) estimated by the filter" ) )
+    , d_covariance( initData(&d_covariance, "covariance", "actual co-variance  of reduced state (parameters) estimated by the filter" ) )
     , d_projectionMatrix( initData(&d_projectionMatrix, Mat3x4d(defaulttype::Vec<4,float>(1.0,0.0,0.0,0.0),
-                                                                defaulttype::Vec<4,float>(0.0,1.0,0.0,0.0),
-                                                                defaulttype::Vec<4,float>(0.0,0.0,1.0,0.0)), "projectionMatrix","Projection matrix"))
+                                                                    defaulttype::Vec<4,float>(0.0,1.0,0.0,0.0),
+                                                                    defaulttype::Vec<4,float>(0.0,0.0,1.0,0.0)), "projectionMatrix","Projection matrix"))
     , d_filename( initData(&d_filename, "filename", "output file name"))
     , outfile(NULL)
 {
@@ -44,7 +48,7 @@ void UKFilter<double, Rigid3dTypes>::propagatePerturbedStates(EVectorX & _meanSt
     VecDeriv stockedVelocity;
     stockedPosition.resize(stateSize);
     stockedVelocity.resize(stateSize);
-    for (int i = 0; i < resetStockedposRA.size(); i++) {
+    for (unsigned int i = 0; i < resetStockedposRA.size(); i++) {
         stockedPosition[i]=resetStockedposRA[i];
         stockedVelocity[i]=resetStockedvelRA[i];
     }
@@ -59,7 +63,7 @@ void UKFilter<double, Rigid3dTypes>::propagatePerturbedStates(EVectorX & _meanSt
         helper::vector <Vector2> V2D;
         p.resize(pos.size());
         V2D.resize(pos.size());
-        for (int i = 0; i < pos.size(); i++){
+        for (unsigned int i = 0; i < pos.size(); i++){
             p[i] = pos[i].getCenter();
 
             double rx = P[0][0] * p[i][0] + P[0][1] * p[i][1] + P[0][2] * p[i][2] + P[0][3];
@@ -93,53 +97,72 @@ void UKFilter<double, Vec3dTypes>::propagatePerturbedStates(EVectorX & _meanStat
 
     EVectorX xCol(stateSize);
     matZmodel.resize(observationSize,sigmaPointsNum);
-    helper::ReadAccessor<Data<VecCoord > > resetStockedposRA = mstate->readPositions();
-    helper::ReadAccessor<Data<VecDeriv > > resetStockedvelRA = mstate->readVelocities();
 
-    size_t stateSize = resetStockedposRA.size();
-    VecCoord stockedPosition;
-    VecDeriv stockedVelocity;
-    stockedPosition.resize(stateSize);
-    stockedVelocity.resize(stateSize);
-    for (int i = 0; i < resetStockedposRA.size(); i++) {
-        stockedPosition[i]=resetStockedposRA[i];
-        stockedVelocity[i]=resetStockedvelRA[i];
-    }
-    const Mat3x4d & P = d_projectionMatrix.getValue();
-    for (size_t i = 0; i < sigmaPointsNum; i++) {
-        xCol = matXi.col(i);
-        stateWrappers[0]->applyOperator(xCol, mechParams);
-        matXi.col(i) = xCol;
-        ///COMPUTE PREDICTED OBSERVATION !
-        helper::ReadAccessor<Data<VecCoord > >   pos = mstate->readPositions();
-        helper::vector <Vector3> p;
-        helper::vector <Vector2> V2D;
-        p.resize(pos.size());
-        V2D.resize(pos.size());
-        for (int i = 0; i < pos.size(); i++){
-            p[i] = pos[i];
-
-            double rx = P[0][0] * p[i][0] + P[0][1] * p[i][1] + P[0][2] * p[i][2] + P[0][3];
-            double ry = P[1][0] * p[i][0] + P[1][1] * p[i][1] + P[1][2] * p[i][2] + P[1][3];
-            double rz = P[2][0] * p[i][0] + P[2][1] * p[i][1] + P[2][2] * p[i][2] + P[2][3];
-
-            V2D[i][0]=rx* (1.0/rz);
-            V2D[i][1]=ry* (1.0/rz);
-        }
+    if (d_estimParams.getValue() == 1) {
+        // a case for estimating stiffnesses
         modelObservations.resize(observationSize);
-        for (int i = 0; i < observationSize*(1./dim); i ++){
-            for (int j= 0; j < dim; j++){
-                modelObservations(dim*i+j)=V2D[i][j];}
-        }
+        EVectorX innovation; // vector just to support software strcuture
+        innovation.resize(observationSize);
+        for (size_t i = 0; i < sigmaPointsNum; i++) {
+            xCol = matXi.col(i);
+            stateWrappers[0]->applyOperator(xCol, mechParams);
+            matXi.col(i) = xCol;
 
-        matZmodel.col(i) = modelObservations;
-        helper::WriteAccessor<Data<VecCoord > > resetStockedpos = mstate->writePositions();
-        helper::WriteAccessor<Data<VecDeriv > > resetStockedvel = mstate->writeVelocities();
-        for (size_t ii = 0; ii < stateSize; ii++) {
-            resetStockedpos[ii] = stockedPosition[ii];
-            resetStockedvel[ii] = stockedVelocity[ii];
+            if (observationManager->hasObservation(this->actualTime)) {
+                observationManager->predictedObservation(this->actualTime, xCol, modelObservations, innovation);
+                matZmodel.col(i) = modelObservations;
+            }
         }
+    } else {
 
+        helper::ReadAccessor<Data<VecCoord > > resetStockedposRA = mstate->readPositions();
+        helper::ReadAccessor<Data<VecDeriv > > resetStockedvelRA = mstate->readVelocities();
+
+        size_t stateSize = resetStockedposRA.size();
+        VecCoord stockedPosition;
+        VecDeriv stockedVelocity;
+        stockedPosition.resize(stateSize);
+        stockedVelocity.resize(stateSize);
+        for (unsigned int i = 0; i < resetStockedposRA.size(); i++) {
+            stockedPosition[i]=resetStockedposRA[i];
+            stockedVelocity[i]=resetStockedvelRA[i];
+        }
+        const Mat3x4d & P = d_projectionMatrix.getValue();
+        for (size_t i = 0; i < sigmaPointsNum; i++) {
+            xCol = matXi.col(i);
+            stateWrappers[0]->applyOperator(xCol, mechParams);
+            matXi.col(i) = xCol;
+            ///COMPUTE PREDICTED OBSERVATION !
+            helper::ReadAccessor<Data<VecCoord > >   pos = mstate->readPositions();
+            helper::vector <Vector3> p;
+            helper::vector <Vector2> V2D;
+            p.resize(pos.size());
+            V2D.resize(pos.size());
+            for (unsigned int i = 0; i < pos.size(); i++){
+                p[i] = pos[i];
+
+                double rx = P[0][0] * p[i][0] + P[0][1] * p[i][1] + P[0][2] * p[i][2] + P[0][3];
+                double ry = P[1][0] * p[i][0] + P[1][1] * p[i][1] + P[1][2] * p[i][2] + P[1][3];
+                double rz = P[2][0] * p[i][0] + P[2][1] * p[i][1] + P[2][2] * p[i][2] + P[2][3];
+
+                V2D[i][0]=rx* (1.0/rz);
+                V2D[i][1]=ry* (1.0/rz);
+            }
+            modelObservations.resize(observationSize);
+            for (int i = 0; i < observationSize*(1./dim); i ++){
+                for (int j= 0; j < dim; j++){
+                    modelObservations(dim*i+j)=V2D[i][j];}
+            }
+
+            matZmodel.col(i) = modelObservations;
+            helper::WriteAccessor<Data<VecCoord > > resetStockedpos = mstate->writePositions();
+            helper::WriteAccessor<Data<VecDeriv > > resetStockedvel = mstate->writeVelocities();
+            for (size_t ii = 0; ii < stateSize; ii++) {
+                resetStockedpos[ii] = stockedPosition[ii];
+                resetStockedvel[ii] = stockedVelocity[ii];
+            }
+
+        }
     }
     _meanState = (1.0 / (double)sigmaPointsNum) * matXi.rowwise().sum();
 }
@@ -190,7 +213,6 @@ void UKFilter<FilterType, mType>::computeCorrection()
             //            matZItrans.row(i) = vecZCol;
             //        }
 
-
             /// Computes the predicted measurement Z_{n + 1}.
             EMatrixX matZItrans = matZmodel.transpose();
             EVectorX Z_mean = (1.0/(double) sigmaPointsNum) * matZItrans.colwise().sum();
@@ -216,18 +238,39 @@ void UKFilter<FilterType, mType>::computeCorrection()
             EMatrixX matK(stateSize, observationSize);
             matK =matPxz* matPzz.inverse();
 
-
             /// Computes X_{n + 1}^+.
             EVectorX state = masterStateWrapper->getState();
             EVectorX Innovation(observationSize);
+
             observationManager->getInnovation(this->actualTime, Z_mean, Innovation);
             state = state + matK*Innovation;
 
             ///  Computes P_{n + 1}^+.
             matP = matP - matK*matPxz.transpose();
 
-            masterStateWrapper->setState(state, this->mechParams);
-            masterStateWrapper->applyOperator(state,mechParams);
+            if (d_estimParams.getValue() == 1) {
+//                helper::WriteAccessor<Data <helper::vector<FilterType> > > stat = d_state;
+//                helper::WriteAccessor<Data <helper::vector<FilterType> > > var = d_variance;
+//                helper::WriteAccessor<Data <helper::vector<FilterType> > > covar = d_covariance;
+
+//                stat.resize(stateSize);
+//                var.resize(stateSize);
+//                size_t numCovariances = (stateSize*(stateSize-1))/2;
+//                covar.resize(numCovariances);
+
+//                size_t gli = 0;
+//                for (size_t i = 0; i < stateSize; i++) {
+//                    stat[i] = state[i];
+//                    var[i] = matP(i,i);
+//                    for (size_t j = i+1; j < stateSize; j++) {
+//                        covar[gli++] = matP(i,j);
+//                    }
+//                }
+
+            } else {
+                masterStateWrapper->setState(state, this->mechParams);
+                masterStateWrapper->applyOperator(state,mechParams);
+            }
 
             if (outfile)
             {

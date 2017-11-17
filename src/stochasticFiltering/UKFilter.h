@@ -139,6 +139,12 @@ public:
     Data<double> d_stateStdev;
     Data<double> d_initModelVar;
 
+    Data<int> d_estimParams;
+
+    Data<helper::vector<FilterType> > d_state;
+    Data<helper::vector<FilterType> > d_variance;
+    Data<helper::vector<FilterType> > d_covariance;
+
 
     EVectorX modelObservations;
     helper::vector<size_t> fixedNodes, freeNodes;
