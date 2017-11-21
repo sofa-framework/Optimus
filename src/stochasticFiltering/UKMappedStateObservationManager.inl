@@ -207,6 +207,19 @@ bool UKMappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::predicte
     //PRNS("initial state: " << _state.transpose());
     stateWrapper->setSofaVectorFromObservationsStateVector(stateWrapper->getStateForObservations(), predictedMasterStateEdit);
     sofa::core::MechanicalParams mp;
+    //    static int i = 0;
+    //    i++;
+    //    EVectorX matrix;
+    //    matrix.resize(predictedMasterStateEdit.size() * 3);
+    //    for (size_t i = 0; i < predictedMasterStateEdit.size(); i++)
+    //        for (size_t d = 0; d < 3; d++)
+    //            matrix(3*i+d) = predictedMasterStateEdit[i][d];
+    //    std::ofstream file("test" + std::to_string(i) + ".txt");
+    //    if (file.is_open())
+    //    {
+    //      file << "matrix" << '\n' <<  matrix << '\n';
+    //    }
+
     //PRNS("predictedMasterState: " << predictedMasterState);
     mapping->apply(&mp, predictedMappedState, predictedMasterState);
     //PRNS("predictedMappedState: " << predictedMappedState);
