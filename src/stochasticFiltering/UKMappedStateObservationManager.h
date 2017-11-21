@@ -39,7 +39,7 @@
 #include "initOptimusPlugin.h"
 #include "ObservationManagerBase.h"
 #include "../genericComponents/SimulatedStateObservationSource.h"
-#include "StochasticStateWrapper.h"
+#include "StochasticStateObservationWrapper.h"
 
 namespace sofa
 {
@@ -67,7 +67,7 @@ public:
     typedef core::behavior::MechanicalState<DataTypes2> MappedState;
     typedef sofa::core::Mapping<DataTypes1, DataTypes2> Mapping;
     typedef sofa::component::container::SimulatedStateObservationSource<DataTypes1> ObservationSource;
-    typedef StochasticStateWrapper<DataTypes1,FilterType> StateWrapper;
+    typedef StochasticStateObservationWrapper<DataTypes1,FilterType> StateWrapper;
 
     UKMappedStateObservationManager();
     ~UKMappedStateObservationManager() {}

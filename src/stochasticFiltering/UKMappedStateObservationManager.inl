@@ -158,6 +158,7 @@ bool UKMappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::hasObser
        sofa::core::MechanicalParams mp;
        //std::cout << "Input observation: " << inputObsState << std::endl;
        mapping->apply(&mp, mappedObservationData, inputObservationData);
+       //PRNS("mappedObservationData: " << mappedObservationData);
        sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > mappedObsState = mappedObservationData;
        //std::cout << "Mapped observation: " << mappedObsState << std::endl;
 
@@ -194,11 +195,6 @@ bool UKMappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::predicte
         return(false);
     }
 
-    if (_innovation.rows() != long(this->observationSize)) {
-        PRNE("Wrong innovation size: " << _innovation.rows() << " should be " << this->observationSize);
-        return(false);
-    }
-
     Data<typename DataTypes1::VecCoord> predictedMasterState;
     Data<typename DataTypes2::VecCoord> predictedMappedState;
 
@@ -208,9 +204,12 @@ bool UKMappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::predicte
     predictedMasterStateEdit.resize(masterState->getSize());
     predictedMappedStateEdit.resize(mappedState->getSize());
 
-    stateWrapper->setSofaVectorFromFilterVector(_state, predictedMasterStateEdit);
+    //PRNS("initial state: " << _state.transpose());
+    stateWrapper->setSofaVectorFromObservationsStateVector(stateWrapper->getStateForObservations(), predictedMasterStateEdit);
     sofa::core::MechanicalParams mp;
+    //PRNS("predictedMasterState: " << predictedMasterState);
     mapping->apply(&mp, predictedMappedState, predictedMasterState);
+    //PRNS("predictedMappedState: " << predictedMappedState);
 
     _predictedObservation.resize(this->observationSize);
     for (size_t i = 0; i < predictedMappedStateEdit.size(); i++)
@@ -229,9 +228,11 @@ bool UKMappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getInnov
     }
 
     _innovation.resize(this->observationSize);
-
+    //PRNS("actual observation: " << actualObservation);
+    //PRNS("state: " << _state);
     for (size_t i = 0; i < (size_t)_state.size() / 3; i++)
         _innovation(i) = actualObservation(i) - _state(i);
+    //PRNS("innovation: " << actualObservation);
 
     return(true);
 }

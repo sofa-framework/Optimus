@@ -157,6 +157,10 @@ public:
         return stateErrorVariance;
     }
 
+    virtual EMatrixX& getStateErrorVarianceDevUKF() {
+        return stateErrorVariance;
+    }
+
     virtual EMatrixX& getStateErrorVarianceUKF() {
         return stateErrorVariance;
     }

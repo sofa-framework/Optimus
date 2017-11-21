@@ -62,6 +62,8 @@ if ( ${STOCHASTIC_FILTERING} )
 		src/stochasticFiltering/KFilter.inl
 		src/stochasticFiltering/StochasticStateWrapper.h
 		src/stochasticFiltering/StochasticStateWrapper.inl
+                src/stochasticFiltering/StochasticStateObservationWrapper.h
+		src/stochasticFiltering/StochasticStateObservationWrapper.inl
 		src/stochasticFiltering/ObservationManagerBase.h
 		src/stochasticFiltering/MappedStateObservationManager.h
 		src/stochasticFiltering/MappedStateObservationManager.inl
@@ -80,6 +82,7 @@ if ( ${STOCHASTIC_FILTERING} )
 		src/stochasticFiltering/EKFilter.cpp
 		src/stochasticFiltering/KFilter.cpp
 		src/stochasticFiltering/StochasticStateWrapper.cpp
+                src/stochasticFiltering/StochasticStateObservationWrapper.cpp
 		src/stochasticFiltering/MappedStateObservationManager.cpp
                 src/stochasticFiltering/UKMappedStateObservationManager.cpp
 		src/stochasticFiltering/SimpleObservationManager.cpp

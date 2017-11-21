@@ -335,6 +335,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::applyOperator(EVectorX &_vec
         savedState = this->state;
 
     this->state = _vecX;
+    //PRNS("_vecX " << _vecX);
     copyStateFilter2Sofa(_mparams);
 
     if (this->d_langrangeMultipliers.getValue())
