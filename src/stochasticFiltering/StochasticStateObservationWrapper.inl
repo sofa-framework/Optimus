@@ -229,7 +229,6 @@ void StochasticStateObservationWrapper<DataTypes, FilterType>::bwdInit() {
     PRNS("Reduced state index: " << this->reducedStateIndex << " size: " << this->reducedStateSize);
 
     this->state.resize(this->stateSize);
-    copyStateSofa2Filter();
 
     observationPosPairs.clear();
 
@@ -370,6 +369,30 @@ void StochasticStateObservationWrapper<DataTypes, FilterType>::copyStateSofa2Fil
         for (size_t d = 0; d < Dim; d++) {
             this->obsState(Dim*it->second + d) = pos[it->first][d];
         }
+}
+
+template <class DataTypes, class FilterType>
+void StochasticStateObservationWrapper<DataTypes, FilterType>::holdCurrentState() {
+    helper::ReadAccessor<Data<VecCoord > > currentPositions = mechanicalState->readPositions();
+    helper::ReadAccessor<Data<VecDeriv > > currentVelocities = mechanicalState->readVelocities();
+
+    m_storedPosition.resize(currentPositions.size());
+    m_storedVelocity.resize(currentVelocities.size());
+
+    for (size_t index = 0; index < currentPositions.size(); index++) {
+        m_storedPosition[index] = currentPositions[index];
+        m_storedVelocity[index] = currentVelocities[index];
+    }
+}
+
+template <class DataTypes, class FilterType>
+void StochasticStateObservationWrapper<DataTypes, FilterType>::restoreState() {
+    helper::WriteAccessor<Data<VecCoord > > resetPositions = mechanicalState->writePositions();
+    helper::WriteAccessor<Data<VecDeriv > > resetVelocities = mechanicalState->writeVelocities();
+    for (size_t index = 0; index < m_storedPosition.size(); index++) {
+        resetPositions[index] = m_storedPosition[index];
+        resetVelocities[index] = m_storedVelocity[index];
+    }
 }
 
 template <class DataTypes, class FilterType>

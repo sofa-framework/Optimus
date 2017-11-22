@@ -105,6 +105,8 @@ protected:
     helper::vector<std::pair<size_t, size_t> > externalForcesPairs;
 
     EVectorX obsState;
+    VecCoord m_storedPosition;
+    VecDeriv m_storedVelocity;
 
     helper::vector<std::pair<size_t, size_t> > observationPosPairs;
 
@@ -228,6 +230,9 @@ public:
         }
         return this->stateErrorVarianceProjector;
     }
+
+    virtual void holdCurrentState();
+    virtual void restoreState();
 
     Data<bool> m_solveVelocityConstraintFirst;
 

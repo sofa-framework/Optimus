@@ -106,6 +106,7 @@ void UKFilter<double, Vec3dTypes>::propagatePerturbedStates(EVectorX & _meanStat
         innovation.resize(observationSize);
         EVectorX predictedState; // vector just to support software strcuture
         innovation.resize(stateSize);
+        stateWrappers[0]->holdCurrentState();
         for (size_t i = 0; i < sigmaPointsNum; i++) {
             xCol = matXi.col(i);
             //PRNS("xCol: " << xCol);
@@ -115,6 +116,7 @@ void UKFilter<double, Vec3dTypes>::propagatePerturbedStates(EVectorX & _meanStat
             observationManager->predictedObservation(this->actualTime, predictedState, modelObservations, innovation);
             //PRNS("model observations values: " << modelObservations);
             matZmodel.col(i) = modelObservations;
+            stateWrappers[0]->restoreState();
         }
     } else {
 
@@ -259,6 +261,7 @@ void UKFilter<FilterType, mType>::computeCorrection()
             //PRNS("Z_mean values: " << Z_mean);
             //PRNS("state values: " << state);
             state = state + matK*Innovation;
+            //PRNS("Innovation size: " << Innovation.size());
             //PRNS("Innovation values: " << Innovation);
             //PRNS("state values: " << state);
 

@@ -243,7 +243,7 @@ bool UKMappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getInnov
     _innovation.resize(this->observationSize);
     //PRNS("actual observation: " << actualObservation);
     //PRNS("state: " << _state);
-    for (size_t i = 0; i < (size_t)_state.size() / 3; i++)
+    for (size_t i = 0; i < actualObservation.size(); i++)
         _innovation(i) = actualObservation(i) - _state(i);
     //PRNS("innovation: " << actualObservation);
 

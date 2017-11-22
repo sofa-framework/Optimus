@@ -188,6 +188,10 @@ public:
 
     }
 
+    virtual void holdCurrentState() { }
+
+    virtual void restoreState() { }
+
     //virtual EVectorX& getStateErrorVarianceRow(int rowIndex) {
     //    stateErrorVarianceRow = stateErrorVariance.row(rowIndex);
     //    return stateErrorVarianceRow;
