@@ -93,7 +93,11 @@ void SimulatedStateObservationSource<DataTypes>::init()
 template<class DataTypes>
 void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _name) {
     observationTable.clear();
+#ifdef __APPLE__
+    setlocale(LC_ALL, "C");
+#else
     std::setlocale(LC_ALL, "C");
+#endif
 
 
     std::ifstream file(_name.c_str());
@@ -213,7 +217,12 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _
             std::cout << "OBSERVATION FATAL ERROR: no positions and no particles, adding dummy zero observation vector of length 1000!" << std::endl;
         }
     }*/
-    std::setlocale(LC_ALL, NULL);
+#ifdef __APPLE__
+    setlocale(LC_ALL, "C");
+#else
+    std::setlocale(LC_ALL, "C");
+#endif
+
 
 }
 
