@@ -95,7 +95,7 @@ public:
 protected:
     MechanicalState *mechanicalState;
     FixedConstraint* fixedConstraint;
-    helper::vector<OptimParamsBase*> vecOptimParams;
+    helper::vector<OptimParamsBase*> vecOptimParams;    
 
     bool valid;
     helper::vector<size_t> fixedNodes, freeNodes;
@@ -110,7 +110,7 @@ protected:
     void computeSofaStepWithLM(const core::ExecParams* params, bool _updateTime);
 
 public:
-    Data<bool> d_langrangeMultipliers;
+    Data<bool> d_langrangeMultipliers;    
     Data<bool> estimatePosition;
     Data<bool> estimateVelocity;
     Data<bool> estimateExternalForces;
@@ -127,7 +127,7 @@ public:
 
     bool estimatingExternalForces() {
         return this->estimateExternalForces.getValue();
-    }
+    }    
 
 
     void init();

@@ -72,7 +72,7 @@ using namespace sofa::simulation;
 template <class DataTypes, class FilterType>
 StochasticStateWrapper<DataTypes, FilterType>::StochasticStateWrapper()
     :Inherit()
-    , d_langrangeMultipliers( initData(&d_langrangeMultipliers, false, "langrangeMultipliers", "perform collision detection and response with Lagrange multipliers (requires constraint solver)") )
+    , d_langrangeMultipliers( initData(&d_langrangeMultipliers, false, "langrangeMultipliers", "perform collision detection and response with Lagrange multipliers (requires constraint solver)") )    
     , estimatePosition( initData(&estimatePosition, false, "estimatePosition", "estimate the position (e.g., if initial conditions with uncertainty") )
     , estimateVelocity( initData(&estimateVelocity, false, "estimateVelocity", "estimate the velocity (e.g., if initial conditions with uncertainty") )
     , estimateExternalForces( initData(&estimateExternalForces, false, "estimateExternalForces", "estimate the external forces(e.g., if initial conditions with uncertainty") )
@@ -285,6 +285,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::copyStateFilter2Sofa(const c
         }
     }
 
+    /// TO BE DEPRECATED!
     extForces.clear();
     extForces.resize(this->mechanicalState->getSize() );
     for (helper::vector<std::pair<size_t, size_t> >::iterator it = externalForcesPairs.begin(); it != externalForcesPairs.end(); it++) {
@@ -292,10 +293,9 @@ void StochasticStateWrapper<DataTypes, FilterType>::copyStateFilter2Sofa(const c
             extForces[it->first][d] = this->state(DimForces*it->second + d);
         }
     }
-
+    /// \TO BE DEPRECATED!
 
     sofa::simulation::MechanicalPropagateOnlyPositionAndVelocityVisitor(_mechParams).execute( this->gnode );
-
 
     /// let the OptimParams to extract the actual values of parameters from the verdandi state
     for (size_t opi = 0; opi < vecOptimParams.size(); opi++)

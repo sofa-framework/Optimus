@@ -271,9 +271,11 @@ void ROUKFilter<FilterType>::init() {
     for (size_t i = 0; i < stateWrappers.size(); i++) {
         if (stateWrappers[i]->isSlave()) {
             numSlaveWrappers++;
+            stateWrappers[i]->setFilterType(REDORD);
             PRNS("found stochastic state slave wrapper: " << stateWrappers[i]->getName());
         } else {
             masterStateWrapper = stateWrappers[i];
+            masterStateWrapper->setFilterType(REDORD);
             numMasterWrappers++;
             PRNS("found stochastic state master wrapper: " << masterStateWrapper->getName());
         }

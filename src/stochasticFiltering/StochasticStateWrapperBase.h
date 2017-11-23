@@ -115,7 +115,8 @@ public:
 
 
     StochasticStateWrapperBaseT()
-        : Inherit()        {
+        : Inherit()
+        , filterType(UNDEF) {
     }
 
 protected:
@@ -132,6 +133,8 @@ protected:
     size_t reducedStateIndex;
     size_t reducedStateSize;
 
+    FilterType filterType;
+
 
 public:
     void init() {
@@ -140,6 +143,10 @@ public:
 
     virtual void applyOperator(EVectorX& _vecX, const core::MechanicalParams* mparams,  int _stateID = 0) = 0;
     //virtual void setSofaTime(const core::ExecParams* _execParams) = 0;    
+
+    virtual void setFilterType(FilterType _type) {
+        filterType = _type;
+    }
 
     virtual EVectorX& getState() {
         return state;
