@@ -115,31 +115,48 @@ public:
 
 
     StochasticStateWrapperBaseT()
-        : Inherit()        {
+        : Inherit()
+        , filterType(UNDEF) {
     }
 
 protected:
+    /// stochastic state
     size_t stateSize;
     EVectorX state;
+    EMatrixX stateErrorVariance;    
 
-    EMatrixX stateErrorVariance;
-    //EVectorX stateErrorVarianceRow;
-
-    /// for reduced-order filtering
+    /// decomposed variance in reduced-order filtering
     EMatrixX stateErrorVarianceReduced;
     EMatrixX stateErrorVarianceProjector;
 
     size_t reducedStateIndex;
     size_t reducedStateSize;
 
+    /// to be set automatically via setFilterType
+    FilterType filterType;
 
+    /// size of the associated mechanical state
+    size_t mStateSize;  /// size of the mechanical state
 public:
     void init() {
         Inherit::init();
     }
 
+    /// function required by classical and reduced-order filters (preform simulation -> compute new sigma state)
     virtual void applyOperator(EVectorX& _vecX, const core::MechanicalParams* mparams,  int _stateID = 0) = 0;
-    //virtual void setSofaTime(const core::ExecParams* _execParams) = 0;    
+
+    /// function required by sim-corr filters (perform simulation -> store results internally to compute the observation)
+    virtual void computeSimulationStep(EVectorX& _state, const core::MechanicalParams* mparams,  int& _stateID) = 0;
+
+    /// function to be executed at the beginning of the time step    
+
+    virtual void setFilterType(FilterType _type) {
+        filterType = _type;
+    }
+
+    virtual FilterType getFilterType() {
+        return filterType;
+    }
 
     virtual EVectorX& getState() {
         return state;
@@ -185,7 +202,6 @@ public:
                 this->stateFile << state[i] << " ";
             this->stateFile << std::endl;
         }
-
     }
 
     virtual void holdCurrentState() { }

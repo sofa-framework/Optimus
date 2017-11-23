@@ -107,7 +107,7 @@ public:
 
     virtual bool hasObservation(double _time) = 0;
     virtual bool getInnovation(double _time, EVectorX& _state, EVectorX& _innovation) = 0;
-    virtual bool predictedObservation(double _time, EVectorX& _state, EVectorX& _observationPrec, EVectorX& _observation){};
+    virtual bool getPredictedObservation(double _time, int _id, EVectorX& _predictedObservation) = 0;
 
     size_t getObservationSize() {
         return observationSize;

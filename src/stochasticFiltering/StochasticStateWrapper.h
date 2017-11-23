@@ -97,6 +97,12 @@ protected:
     FixedConstraint* fixedConstraint;
     helper::vector<OptimParamsBase*> vecOptimParams;
 
+    VecCoord beginTimeStepPos;
+    VecDeriv beginTimeStepVel;
+
+    helper::vector<VecCoord> sigmaStatePos;
+    helper::vector<VecDeriv> sigmaStateVel;
+
     bool valid;
     helper::vector<size_t> fixedNodes, freeNodes;
     helper::vector<std::pair<size_t, size_t> > positionPairs;
@@ -110,7 +116,7 @@ protected:
     void computeSofaStepWithLM(const core::ExecParams* params, bool _updateTime);
 
 public:
-    Data<bool> d_langrangeMultipliers;
+    Data<bool> d_langrangeMultipliers;    
     Data<bool> estimatePosition;
     Data<bool> estimateVelocity;
     Data<bool> estimateExternalForces;
@@ -127,14 +133,18 @@ public:
 
     bool estimatingExternalForces() {
         return this->estimateExternalForces.getValue();
-    }
-
+    }    
 
     void init();
     void bwdInit();
 
     void applyOperator(EVectorX& _vecX, const core::MechanicalParams* _mparams, int _stateID);
     //void setSofaTime(const core::ExecParams* _execParams);
+    void computeSimulationStep(EVectorX& _state, const core::MechanicalParams* mparams,  int& _stateID);
+    void initializeStep(size_t _stepNumber);
+    void storeMState();
+    void reinitMState(const core::MechanicalParams* _mechParams);
+    void getActualPosition(int _id, VecCoord& _pos);
 
     void setState(EVectorX& _state, const core::MechanicalParams* _mparams) {
         this->state = _state;
@@ -156,7 +166,8 @@ public:
 
                 PRNS("stdev: " << stdev);
                 for (size_t pi = 0; pi < this->vecOptimParams[opi]->size(); pi++, vpi++)
-                    this->stateErrorVariance(vpi,vpi) = Type(Type(1.0) / (stdev[pi] * stdev[pi]));
+                    this->stateErrorVariance(vpi,vpi) = stdev[pi] * stdev[pi];
+                    //this->stateErrorVariance(vpi,vpi) = Type(Type(1.0) / (stdev[pi] * stdev[pi]));
             }
         }
         return this->stateErrorVariance;

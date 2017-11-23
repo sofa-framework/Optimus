@@ -127,6 +127,8 @@ protected:
 
     Type alpha;
 
+    helper::vector<int> sigmaPointsIDs;
+
     /// structures for parallel computing:
     helper::vector<size_t> sigmaPoints2WrapperIDs;
     helper::vector<helper::vector<size_t> > wrapper2SigmaPointsIDs;

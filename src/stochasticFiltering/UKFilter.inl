@@ -100,23 +100,24 @@ void UKFilter<double, Vec3dTypes>::propagatePerturbedStates(EVectorX & _meanStat
     matZmodel.resize(observationSize,sigmaPointsNum);
 
     if (d_estimParams.getValue() == 1) {
+        PRNS("estimating parameters");
         // a case for estimating stiffnesses
         modelObservations.resize(observationSize);
-        EVectorX innovation; // vector just to support software strcuture
-        innovation.resize(observationSize);
-        EVectorX predictedState; // vector just to support software strcuture
-        innovation.resize(stateSize);
+        //EVectorX innovation; // vector just to support software strcuture
+        //innovation.resize(observationSize);
+        //innovation.resize(stateSize);
         stateWrappers[0]->holdCurrentState();
+        sigmaPointsIDs.resize(sigmaPointsNum);
+        int id;
         for (size_t i = 0; i < sigmaPointsNum; i++) {
-            xCol = matXi.col(i);
-            //PRNS("xCol: " << xCol);
-            stateWrappers[0]->applyOperator(xCol, mechParams);
-            matXi.col(i) = xCol;
-
-            observationManager->predictedObservation(this->actualTime, predictedState, modelObservations, innovation);
+            xCol = matXi.col(i);            
+            stateWrappers[0]->computeSimulationStep(xCol, mechParams, id);
+            sigmaPointsIDs[i] = id;
+            PRNS("Sigma point: " << i << " id: " << id);
+            observationManager->getPredictedObservation(this->actualTime, id,  modelObservations);
             //PRNS("model observations values: " << modelObservations);
             matZmodel.col(i) = modelObservations;
-            stateWrappers[0]->restoreState();
+            //stateWrappers[0]->restoreState();
         }
     } else {
 
@@ -174,20 +175,23 @@ void UKFilter<double, Vec3dTypes>::propagatePerturbedStates(EVectorX & _meanStat
 
 template <class FilterType, class mType>
 void UKFilter<FilterType, mType>::computePrediction()
-{
-    PRNS("Computing prediction, T= " << this->actualTime);
-
+{    
+    PRNS("Computing prediction, T= " << this->actualTime);    
     /// Computes background error variance Cholesky factorization.
     Eigen::LLT<EMatrixX> lltU(matP);
     matPsqrt = lltU.matrixL();
-    //PRNS("matP: " << matP);
 
-    /// Computes X_{n}^{(i)-} sigma points
+    //PRNS("matPsqrt: " << matPsqrt);
+
     EVectorX vecX = masterStateWrapper->getState();
+    PRNS("X0: " << vecX.transpose());
+    PRNS("P0: " << matP);
+
+    /// Computes X_{n}^{(i)-} sigma points        
     for (size_t i = 0; i < sigmaPointsNum; i++) {
         matXi.col(i) = vecX + matPsqrt * matI.row(i).transpose();
     }
-    //PRNS("matXi: " << matXi);
+    //PRNS("MatXi: " << matXi);
 
     propagatePerturbedStates(vecX);
     /// Computes stateCovariance P_ = cov(X_{n + 1}^*, X_{n + 1}^*).
@@ -196,15 +200,15 @@ void UKFilter<FilterType, mType>::computePrediction()
     EMatrixX covPxx = (centeredPxx.adjoint() * centeredPxx) / double(centeredPxx.rows() - 1);
     matP=covPxx;
     matP=matP+matQ;
+    PRNS("P-: " << matP);
 
-    masterStateWrapper->setState(vecX, this->mechParams);
-    masterStateWrapper->writeState(this->getTime());
+    //masterStateWrapper->setState(vecX, this->mechParams);
+    //masterStateWrapper->writeState(this->getTime());
 }
 
 template <class FilterType, class mType>
 void UKFilter<FilterType, mType>::computeCorrection()
-{
-
+{    
         PRNS("Computing correction, T= " << this->actualTime);
 
         if (observationManager->hasObservation(this->actualTime)) {
@@ -224,7 +228,7 @@ void UKFilter<FilterType, mType>::computeCorrection()
             EMatrixX matZItrans = matZmodel.transpose();
             //PRNS("matZItrans: " << matZItrans);
             EVectorX Z_mean = (1.0/(double) sigmaPointsNum) * matZItrans.colwise().sum();
-            obsPrec = Z_mean;
+            //obsPrec = Z_mean;
 
             /// Computes X_{n+1}-
             EMatrixX matXiTrans= matXi.transpose();
@@ -247,20 +251,19 @@ void UKFilter<FilterType, mType>::computeCorrection()
             //PRNS("matR: " << matR);
             //PRNS("matPxz: " << matPxz);
             //PRNS("covPzz: " << covPzz);
-
             ///  Computes the Kalman gain K_{n + 1}.
             EMatrixX matK(stateSize, observationSize);
-            matK =matPxz* matPzz.inverse();
+            matK =matPxz* matPzz.inverse();            
             //PRNS("matK: " << matK);
 
             /// Computes X_{n + 1}^+.
             EVectorX state = masterStateWrapper->getState();
-            EVectorX Innovation(observationSize);
+            EVectorX innovation(observationSize);
 
-            observationManager->getInnovation(this->actualTime, Z_mean, Innovation);
+            observationManager->getInnovation(this->actualTime, Z_mean, innovation);
             //PRNS("Z_mean values: " << Z_mean);
             //PRNS("state values: " << state);
-            state = state + matK*Innovation;
+            state = state + matK*innovation;
             //PRNS("Innovation size: " << Innovation.size());
             //PRNS("Innovation values: " << Innovation);
             //PRNS("state values: " << state);
@@ -268,8 +271,13 @@ void UKFilter<FilterType, mType>::computeCorrection()
             ///  Computes P_{n + 1}^+.
             matP = matP - matK*matPxz.transpose();
 
-            masterStateWrapper->setState(state, this->mechParams);
-            masterStateWrapper->applyOperator(state, mechParams);
+            PRNS("X+: " << state.transpose())
+            PRNS("P+: " << matP);
+            int id;
+            stateWrappers[0]->computeSimulationStep(state, mechParams, id);
+
+            //masterStateWrapper->setState(state, this->mechParams);
+            //masterStateWrapper->applyOperator(state, mechParams);
 
             if (d_estimParams.getValue() == 1) {
                 helper::WriteAccessor<Data <helper::vector<FilterType> > > stat = d_state;
@@ -292,7 +300,7 @@ void UKFilter<FilterType, mType>::computeCorrection()
 
             }
 
-            if (outfile)
+            /*if (outfile)
             {
                     (*outfile) << "T= "<< this->actualTime<< "\n";
                     {
@@ -301,7 +309,7 @@ void UKFilter<FilterType, mType>::computeCorrection()
                         (*outfile) << "\n";
                     }
                 outfile->flush();
-            }
+            }*/
         }
 }
 
@@ -319,11 +327,12 @@ void UKFilter<FilterType, mType>::init() {
     size_t numMasterWrappers = 0;
     numThreads = 0;
     for (size_t i = 0; i < stateWrappers.size(); i++) {
-        if (stateWrappers[i]->isSlave()) {
+        stateWrappers[i]->setFilterType(SIMCORR);
+        if (stateWrappers[i]->isSlave()) {            
             numSlaveWrappers++;
             PRNS("found stochastic state slave wrapper: " << stateWrappers[i]->getName());
         } else {
-            masterStateWrapper = stateWrappers[i];
+            masterStateWrapper = stateWrappers[i];            
             numMasterWrappers++;
             PRNS("found stochastic state master wrapper: " << masterStateWrapper->getName());
         }
@@ -355,13 +364,14 @@ void UKFilter<FilterType, mType>::bwdInit() {
     PRNS("bwdInit");
     assert(masterStateWrapper);
     observationSize = this->observationManager->getObservationSize();
+    PRNS("observation size: " << observationSize);
     dim = this->observationSource->getObsDimention();
     //PRNS("observationSize " << observationSize);
     if (observationSize == 0) {
         PRNE("No observations available, cannot allocate the structures!");
     }
     stateSize = masterStateWrapper->getStateSize();
-    //PRNS("stateSize " << stateSize);
+    PRNS("stateSize " << stateSize);
     /// Initialize Observation's Error Covariance
     if (d_estimParams.getValue() == 1) {
         matR = observationManager->getErrorVariance();
@@ -377,11 +387,11 @@ void UKFilter<FilterType, mType>::bwdInit() {
 
     /// Initialize Model's Covariance
     if (d_estimParams.getValue() == 1) {
-        matP = masterStateWrapper->getStateErrorVarianceDevUKF();
+        matP = masterStateWrapper->getStateErrorVariance();
     } else {
         matP=EMatrixX::Identity(stateSize, stateSize)*d_initModelVar.getValue();
     }
-    //PRNS("matP: " << matP);
+    PRNS("matP: " << matP);
 
     /// compute sigma points
     computeSimplexSigmaPoints(matI);

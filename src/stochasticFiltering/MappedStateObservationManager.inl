@@ -153,6 +153,7 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::hasObserva
         return(false);
     }
 
+    /// put the observation imported from a file via mapping  (yields actualObservation)
     actualObservation.setZero();
     if (!this->doNotMapObservations.getValue()) {
        sofa::core::MechanicalParams mp;
@@ -187,18 +188,7 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::hasObserva
 }
 
 template <class FilterType, class DataTypes1, class DataTypes2>
-bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovation(double _time, EVectorX& _state, EVectorX& _innovation)
-{
-    if (_time != this->actualTime) {
-        PRNE("Observation for time " << this->actualTime << " not prepare, call hasObservation first!");
-        return(false);
-    }
-
-    if (_innovation.rows() != long(this->observationSize)) {
-        PRNE("Wrong innovation size: " << _innovation.rows() << " should be " << this->observationSize);
-        return(false);
-    }
-
+bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getPredictedObservation(double _time, int _id, EVectorX& _predictedObservation) {
     Data<typename DataTypes1::VecCoord> predictedMasterState;
     Data<typename DataTypes2::VecCoord> predictedMappedState;
 
@@ -208,14 +198,57 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovat
     predictedMasterStateEdit.resize(masterState->getSize());
     predictedMappedStateEdit.resize(mappedState->getSize());
 
-    stateWrapper->setSofaVectorFromFilterVector(_state, predictedMasterStateEdit);
+    stateWrapper->getActualPosition(_id, predictedMasterStateEdit);
+    //stateWrapper->setSofaVectorFromFilterVector(_state, predictedMasterStateEdit);
     sofa::core::MechanicalParams mp;
     mapping->apply(&mp, predictedMappedState, predictedMasterState);
 
-    _innovation.resize(this->observationSize);
+    _predictedObservation.resize(this->observationSize);
     for (size_t i = 0; i < predictedMappedStateEdit.size(); i++)
         for (size_t d = 0; d < 3; d++)
-            _innovation(3*i+d) = actualObservation(3*i+d) - predictedMappedStateEdit[i][d];
+            _predictedObservation(3*i+d) = predictedMappedStateEdit[i][d];
+
+}
+
+
+template <class FilterType, class DataTypes1, class DataTypes2>
+bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovation(double _time, EVectorX& _state, EVectorX& _innovation)
+{
+    if (_time != this->actualTime) {
+        PRNE("Observation for time " << this->actualTime << " not prepared, call hasObservation first!");
+        return(false);
+    }
+
+    if (_innovation.rows() != long(this->observationSize)) {
+        PRNE("Wrong innovation size: " << _innovation.rows() << " should be " << this->observationSize);
+        return(false);
+    }
+
+    _innovation.resize(this->observationSize);
+    if (stateWrapper->getFilterType() == REDORD) {
+        Data<typename DataTypes1::VecCoord> predictedMasterState;
+        Data<typename DataTypes2::VecCoord> predictedMappedState;
+
+        typename DataTypes1::VecCoord& predictedMasterStateEdit = *predictedMasterState.beginEdit();
+        typename DataTypes2::VecCoord& predictedMappedStateEdit = *predictedMappedState.beginEdit();
+
+        predictedMasterStateEdit.resize(masterState->getSize());
+        predictedMappedStateEdit.resize(mappedState->getSize());
+
+        stateWrapper->setSofaVectorFromFilterVector(_state, predictedMasterStateEdit);
+        sofa::core::MechanicalParams mp;
+        mapping->apply(&mp, predictedMappedState, predictedMasterState);
+
+        for (size_t i = 0; i < predictedMappedStateEdit.size(); i++)
+            for (size_t d = 0; d < 3; d++)
+                _innovation(3*i+d) = actualObservation(3*i+d) - predictedMappedStateEdit[i][d];
+    }
+
+    /// TEMPORARY: _state here is the predicted observation computed before
+    if (stateWrapper->getFilterType() == SIMCORR) {
+        for (size_t i = 0; i < this->observationSize; i++)
+            _innovation(i) = actualObservation(i) - _state(i);
+    }
 
     return(true);
 

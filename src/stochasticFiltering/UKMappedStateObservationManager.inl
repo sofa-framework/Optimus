@@ -195,16 +195,21 @@ bool UKMappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::predicte
         return(false);
     }
 
+    PRNS("Predicted observation!")
     Data<typename DataTypes1::VecCoord> predictedMasterState;
     Data<typename DataTypes2::VecCoord> predictedMappedState;
 
     typename DataTypes1::VecCoord& predictedMasterStateEdit = *predictedMasterState.beginEdit();
     typename DataTypes2::VecCoord& predictedMappedStateEdit = *predictedMappedState.beginEdit();
 
+    PRNS("Master state size: " << masterState->getSize());
+    PRNS("Mapped state size: " << mappedState->getSize());
+
     predictedMasterStateEdit.resize(masterState->getSize());
     predictedMappedStateEdit.resize(mappedState->getSize());
 
-    //PRNS("initial state: " << _state.transpose());
+    PRNS("initial state: " << _state);
+    PRNS("done")
     stateWrapper->setSofaVectorFromObservationsStateVector(stateWrapper->getStateForObservations(), predictedMasterStateEdit);
     sofa::core::MechanicalParams mp;
     //    static int i = 0;
@@ -220,9 +225,9 @@ bool UKMappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::predicte
     //      file << "matrix" << '\n' <<  matrix << '\n';
     //    }
 
-    //PRNS("predictedMasterState: " << predictedMasterState);
+    PRNS("predictedMasterState: " << predictedMasterState);
     mapping->apply(&mp, predictedMappedState, predictedMasterState);
-    //PRNS("predictedMappedState: " << predictedMappedState);
+    PRNS("predictedMappedState: " << predictedMappedState);
 
     _predictedObservation.resize(this->observationSize);
     for (size_t i = 0; i < predictedMappedStateEdit.size(); i++)

@@ -90,7 +90,10 @@ public:
     void bwdInit();
 
     virtual bool hasObservation(double _time); /// TODO
-    virtual bool getInnovation(double _time, EVectorX& _state, EVectorX& _innovation);
+    virtual bool getInnovation(double _time, EVectorX& _state, EVectorX& _innovation);    
+    virtual bool getPredictedObservation(double _time, int _id, EVectorX& _predictedObservation) {}
+
+    /// obsolete
     virtual bool predictedObservation(double _time, EVectorX& _state, EVectorX& _predictedObservation, EVectorX& _observation);
 
     Data<typename DataTypes1::VecCoord> inputObservationData;
