@@ -138,7 +138,7 @@ public:
         Inherit::init();
     }
 
-    virtual void applyOperator(EVectorX& _vecX, const core::MechanicalParams* mparams,  bool _preserveState = true, bool _updateForce = true) = 0;
+    virtual void applyOperator(EVectorX& _vecX, const core::MechanicalParams* mparams,  int _stateID = 0) = 0;
     //virtual void setSofaTime(const core::ExecParams* _execParams) = 0;    
 
     virtual EVectorX& getState() {

@@ -396,10 +396,10 @@ void StochasticStateObservationWrapper<DataTypes, FilterType>::restoreState() {
 }
 
 template <class DataTypes, class FilterType>
-void StochasticStateObservationWrapper<DataTypes, FilterType>::applyOperator(EVectorX &_vecX, const core::MechanicalParams *_mparams, bool _preserveState, bool _updateForce) {
+void StochasticStateObservationWrapper<DataTypes, FilterType>::applyOperator(EVectorX &_vecX, const core::MechanicalParams *_mparams, int _stateID) {
     EVectorX savedState;
 
-    if (_preserveState)
+    if (_stateID >= 0)
         savedState = this->state;
 
     this->state = _vecX;
@@ -414,7 +414,7 @@ void StochasticStateObservationWrapper<DataTypes, FilterType>::applyOperator(EVe
     copyStateSofa2Filter();
     _vecX = this->state;
 
-    if (_preserveState) {
+    if (_stateID >= 0) {
         this->state = savedState;
         copyStateFilter2Sofa(_mparams);
     }

@@ -133,7 +133,7 @@ public:
     void init();
     void bwdInit();
 
-    void applyOperator(EVectorX& _vecX, const core::MechanicalParams* _mparams, bool _preserveState, bool _updateForce);
+    void applyOperator(EVectorX& _vecX, const core::MechanicalParams* _mparams, int _stateID);
     //void setSofaTime(const core::ExecParams* _execParams);
 
     void setState(EVectorX& _state, const core::MechanicalParams* _mparams) {
