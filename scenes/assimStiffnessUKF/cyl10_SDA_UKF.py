@@ -33,8 +33,8 @@ class synth1_BCDA(Sofa.PythonScriptController):
         self.materialParams='{} {}'.format(mu,lamb)
 
         self.volumeFileName='../../data/cylinder/cylinder10_4245.vtk'
-        self.observationFileName='../assimStiffness/observations/cylinder10_4245'
-        self.observationPointsVTK='../../data/cylinder/cyl10_4245_obs120.vtk'
+        self.observationFileName='../assimStiffness/observations2Par/cylinder10_4245'
+        self.observationPointsVTK='../../data/cylinder/cyl10_4245_obs41.vtk'
         self.dt='0.01'
         self.gravity='0 -9.81 0'
         self.totalMass='0.2'
@@ -42,7 +42,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         self.rayleighMass=0.1
         self.rayleighStiffness=3
                         
-        self.outDir='outCyl10'
+        self.outDir='outCyl10_2Par'
         
         self.saveState = 1
         self.suffix='test'   #psd'+str(self.paramInitSD)+'#osd'+str(self.obsInitSD)+'#ogrid'+str(self.ogridID)
@@ -60,8 +60,8 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
                 
         self.paramInitExp = 6000
-        self.paramInitSD = 10
-        self.obsInitSD= 1e-3
+        self.paramInitSD = 500
+        self.obsNoiseSD= 2e-3
 
         self.createScene(node)
         
@@ -77,7 +77,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         node.createObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels')
 
         node.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")        
-        self.filter = node.createObject('UKFilter', name="UKF", estimParams="1", template="Vec3", verbose="1")
+        self.filter = node.createObject('UKFilterSimCorr', name="UKF", estimParams="1", template="Vec3", verbose="1")
         #self.filter = node.createObject('ROUKFilter', name="UKF", verbose="1")      /// for ROUKFILter          
             
         node.createObject('MeshVTKLoader', name='loader', filename=self.volumeFileName)
@@ -136,7 +136,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         obsNode.createObject('MeshVTKLoader', name='obsLoader', filename=self.observationPointsVTK)        
         obsNode.createObject('MechanicalObject', name='SourceMO', src="@obsLoader")
         obsNode.createObject('BarycentricMapping')
-        obsNode.createObject('MappedStateObservationManager', name="MOBS", observationStdev="1e-4", noiseStdev="0.0", listening="1", stateWrapper="@../StateWrapper", verbose="1")
+        obsNode.createObject('MappedStateObservationManager', name="MOBS", observationStdev=self.obsNoiseSD, noiseStdev="0.001", listening="1", stateWrapper="@../StateWrapper", verbose="1")
         #obsNode.createObject('MappedStateObservationManager', name="MOBS", observationStdev="2e-3", noiseStdev="0.0", listening="1", stateWrapper="@../StateWrapper", verbose="1") /// for ROUKFILter
         obsNode.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix=self.observationFileName)
         obsNode.createObject('ShowSpheres', radius="0.002", color="1 0 0 1", position='@SourceMO.position')
