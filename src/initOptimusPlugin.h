@@ -99,11 +99,11 @@ for (size_t i = 0; i < MAT.rows(); i++) \
   This plugin contains a set of Optimization Methods (initially mainly Bayesian Filtering techniques)
   */
 
-typedef enum FilterType {
+typedef enum FilterKind {
     UNDEF = -1,
     CLASSIC = 0,
     REDORD = 1,
     SIMCORR = 2
-} FilterType;
+} FilterKind;
 
 #endif // INITOptimusPlugin_H
