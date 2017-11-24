@@ -173,20 +173,10 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
             freeNodes.push_back(i);
     }
 
-    /*std::cout << "Fixed nodes: " << std::endl;
-    for (size_t i = 0; i < fixedNodes.size(); i++)
-        std::cout << fixedNodes[i] << " ";
-    std::cout << std::endl;
-
-    std::cout << "Free nodes: " << std::endl;
-    for (size_t i = 0; i < freeNodes.size(); i++)
-        std::cout << freeNodes[i] << " ";
-    std::cout << std::endl;*/
 
     positionPairs.clear();
     velocityPairs.clear();
     externalForcesPairs.clear();
-
 
     size_t vsi = 0;
     size_t vpi = 0;
@@ -370,7 +360,7 @@ template <class DataTypes, class FilterType>
 void StochasticStateWrapper<DataTypes, FilterType>::initializeStep(size_t _stepNumber) {
     PRNS("Initialize time step" << _stepNumber);
     Inherit::initializeStep(_stepNumber);
-    if (this->filterType == SIMCORR) {
+    if (this->filterKind == SIMCORR) {
         PRNS("Store mstate");
         storeMState();
 
@@ -382,7 +372,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::initializeStep(size_t _stepN
 
 template <class DataTypes, class FilterType>
 void StochasticStateWrapper<DataTypes, FilterType>::computeSimulationStep(EVectorX &_state, const core::MechanicalParams *_mparams, int& _stateID) {
-    if (this->filterType == SIMCORR) {
+    if (this->filterKind == SIMCORR) {
         typename MechanicalState::ReadVecCoord posT = mechanicalState->readPositions();
 
         reinitMState(_mparams);
@@ -417,7 +407,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::computeSimulationStep(EVecto
 
 template <class DataTypes, class FilterType>
 void StochasticStateWrapper<DataTypes, FilterType>::applyOperator(EVectorX &_vecX, const core::MechanicalParams *_mparams, int _stateID) {
-    if (! (this->filterType == CLASSIC || this->filterType == REDORD) )
+    if (! (this->filterKind == CLASSIC || this->filterKind == REDORD) )
         return;
 
     EVectorX savedState;

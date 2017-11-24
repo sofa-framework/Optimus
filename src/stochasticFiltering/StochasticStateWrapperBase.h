@@ -116,7 +116,7 @@ public:
 
     StochasticStateWrapperBaseT()
         : Inherit()
-        , filterType(UNDEF) {
+        , filterKind(UNDEF) {
     }
 
 protected:
@@ -133,7 +133,7 @@ protected:
     size_t reducedStateSize;
 
     /// to be set automatically via setFilterType
-    FilterType filterType;
+    FilterKind filterKind;
 
     /// size of the associated mechanical state
     size_t mStateSize;  /// size of the mechanical state
@@ -150,12 +150,12 @@ public:
 
     /// function to be executed at the beginning of the time step    
 
-    virtual void setFilterType(FilterType _type) {
-        filterType = _type;
+    virtual void setFilterKind(FilterKind _kind) {
+        filterKind = _kind;
     }
 
-    virtual FilterType getFilterType() {
-        return filterType;
+    virtual FilterType getFilterKind() {
+        return filterKind;
     }
 
     virtual EVectorX& getState() {

@@ -225,7 +225,7 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovat
     }
 
     _innovation.resize(this->observationSize);
-    if (stateWrapper->getFilterType() == REDORD) {
+    if (stateWrapper->getFilterKind() == REDORD) {
         Data<typename DataTypes1::VecCoord> predictedMasterState;
         Data<typename DataTypes2::VecCoord> predictedMappedState;
 
@@ -245,7 +245,7 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovat
     }
 
     /// TEMPORARY: _state here is the predicted observation computed before
-    if (stateWrapper->getFilterType() == SIMCORR) {
+    if (stateWrapper->getFilterKind() == SIMCORR) {
         for (size_t i = 0; i < this->observationSize; i++)
             _innovation(i) = actualObservation(i) - _state(i);
     }

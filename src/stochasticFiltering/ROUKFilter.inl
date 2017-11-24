@@ -269,7 +269,7 @@ void ROUKFilter<FilterType>::init() {
     size_t numMasterWrappers = 0;
     numThreads = 0;
     for (size_t i = 0; i < stateWrappers.size(); i++) {
-        stateWrappers[i]->setFilterType(REDORD);
+        stateWrappers[i]->setFilterKind(REDORD);
         if (stateWrappers[i]->isSlave()) {
             numSlaveWrappers++;
             PRNS("found stochastic state slave wrapper: " << stateWrappers[i]->getName());

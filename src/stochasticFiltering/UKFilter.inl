@@ -327,7 +327,7 @@ void UKFilter<FilterType, mType>::init() {
     size_t numMasterWrappers = 0;
     numThreads = 0;
     for (size_t i = 0; i < stateWrappers.size(); i++) {
-        stateWrappers[i]->setFilterType(SIMCORR);
+        stateWrappers[i]->setFilterKind(SIMCORR);
         if (stateWrappers[i]->isSlave()) {            
             numSlaveWrappers++;
             PRNS("found stochastic state slave wrapper: " << stateWrappers[i]->getName());
