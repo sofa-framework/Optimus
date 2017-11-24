@@ -104,7 +104,6 @@ typedef enum FilterType {
     CLASSIC = 0,
     REDORD = 1,
     SIMCORR = 2
-
 } FilterType;
 
 #endif // INITOptimusPlugin_H

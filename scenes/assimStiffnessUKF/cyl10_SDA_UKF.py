@@ -33,7 +33,8 @@ class synth1_BCDA(Sofa.PythonScriptController):
         self.materialParams='{} {}'.format(mu,lamb)
 
         self.volumeFileName='../../data/cylinder/cylinder10_4245.vtk'
-        self.observationFileName='observations/cylinder10_4245'
+        self.observationFileName='../assimStiffness/observations/cylinder10_4245'
+        self.observationPointsVTK='../../data/cylinder/cyl10_4245_obs120.vtk'
         self.dt='0.01'
         self.gravity='0 -9.81 0'
         self.totalMass='0.2'
@@ -58,9 +59,9 @@ class synth1_BCDA(Sofa.PythonScriptController):
         # self.m_slaveScenesCreated = 0 # auxiliary, circumvents attribute of instance method
 
                 
-        self.paramInitExp = 0.0
-        self.paramInitSD = 100
-        self.obsInitSD= 1e-4
+        self.paramInitExp = 6000
+        self.paramInitSD = 10
+        self.obsInitSD= 1e-3
 
         self.createScene(node)
         
@@ -106,10 +107,10 @@ class synth1_BCDA(Sofa.PythonScriptController):
         node.createObject('FixedConstraint', indices='@mergeIndices.out')
                     
         #node.createObject('OptimParams', name="paramE", optimize="1", numParams='5', template="Vector", initValue="3500 4000 1000 6000 2000", stdev=self.paramInitSD, transformParams="1")
-        node.createObject('OptimParams', name="paramE", optimize="1", numParams='2', template="Vector", initValue="6000 6000", stdev=self.paramInitSD, transformParams="1")
+        node.createObject('OptimParams', name="paramE", optimize="1", numParams='10', template="Vector", initValue=self.paramInitExp, stdev=self.paramInitSD, transformParams="1")
         node.createObject('Indices2ValuesMapper', name='youngMapper', indices='1 2 3 4 5 6 7 8 9 10', values='@paramE.value', inputValues='@/loader.dataset')
         node.createObject('TetrahedronFEMForceField', name='FEM', updateStiffness='1', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
-        node.createObject('GeneralStiffnessFileWriter', name='StiffnessWriter', stiffness='@paramE.value', initialDataFile='observations/initial.txt', errorRateFile='measurements/stiffnessError.txt')
+        # node.createObject('GeneralStiffnessFileWriter', name='StiffnessWriter', stiffness='@paramE.value', initialDataFile='observations/initial.txt', errorRateFile='measurements/stiffnessError.txt')
 
                 # rootNode/simuNode/oglNode
         oglNode = node.createChild('oglNode')
@@ -121,19 +122,21 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
 
     def createMasterScene(self, node):
-        node.createObject('StochasticStateObservationWrapper',name="StateWrapper",verbose="1")
-        # node.createObject('StochasticStateWrapper',name="StateWrapper",verbose="1", estimatePosition='1')   /// for ROUKFILter
+        # node.createObject('StochasticStateObservationWrapper',name="StateWrapper",verbose="1")
+        node.createObject('StochasticStateWrapper',name="StateWrapper",verbose="1", estimatePosition='0')   # for ROUKFILter
         
         self.createCommonComponents(node)
 
         obsNode = node.createChild('obsNode')        
-        obsNode.createObject('MechanicalObject', name='SourceMO', position='0.02 0 0.08 0.02 0 0.16    0.0141 0.0141 0.08    0.0141 -0.0141 0.08    0.0141 0.0141 0.16    0.0141 -0.0141 0.16    0.02 0 0.0533    0.02 0 0.107   \
-            0.02 0 0.133    0.02 0 0.187    0.02 0 0.213    0.0175 0.00961 0.0649    0.00925 0.0177 0.0647    0.0139 0.0144 0.0398    0.00961 -0.0175 0.0649    0.0177 -0.00925 0.0647  \
-            0.0144 -0.0139 0.0402    0.0177 0.00936 0.145    0.0095 0.0176 0.145    0.0175 0.00961 0.0951    0.00925 0.0177 0.0953    0.0139 0.0144 0.12    0.00937 -0.0177 0.145   \
-            0.0176 -0.00949 0.145    0.00935 -0.0177 0.0953    0.0176 -0.00949 0.095    0.0142 -0.0141 0.12    0.0177 0.00937 0.175    0.00949 0.0176 0.175    0.014 0.0143 0.2   \
-            0.00959 -0.0175 0.175    0.0177 -0.00924 0.175    0.0143 -0.014 0.2')        
+        # obsNode.createObject('MechanicalObject', name='SourceMO', position='0.02 0 0.08 0.02 0 0.16    0.0141 0.0141 0.08    0.0141 -0.0141 0.08    0.0141 0.0141 0.16    0.0141 -0.0141 0.16    0.02 0 0.0533    0.02 0 0.107   \
+        #     0.02 0 0.133    0.02 0 0.187    0.02 0 0.213    0.0175 0.00961 0.0649    0.00925 0.0177 0.0647    0.0139 0.0144 0.0398    0.00961 -0.0175 0.0649    0.0177 -0.00925 0.0647  \
+        #     0.0144 -0.0139 0.0402    0.0177 0.00936 0.145    0.0095 0.0176 0.145    0.0175 0.00961 0.0951    0.00925 0.0177 0.0953    0.0139 0.0144 0.12    0.00937 -0.0177 0.145   \
+        #     0.0176 -0.00949 0.145    0.00935 -0.0177 0.0953    0.0176 -0.00949 0.095    0.0142 -0.0141 0.12    0.0177 0.00937 0.175    0.00949 0.0176 0.175    0.014 0.0143 0.2   \
+        #     0.00959 -0.0175 0.175    0.0177 -0.00924 0.175    0.0143 -0.014 0.2')                
+        obsNode.createObject('MeshVTKLoader', name='obsLoader', filename=self.observationPointsVTK)        
+        obsNode.createObject('MechanicalObject', name='SourceMO', src="@obsLoader")
         obsNode.createObject('BarycentricMapping')
-        obsNode.createObject('UKMappedStateObservationManager', name="MOBS", observationStdev="2e-3", noiseStdev="0.0", listening="1", stateWrapper="@../StateWrapper", verbose="1")
+        obsNode.createObject('MappedStateObservationManager', name="MOBS", observationStdev="1e-4", noiseStdev="0.0", listening="1", stateWrapper="@../StateWrapper", verbose="1")
         #obsNode.createObject('MappedStateObservationManager', name="MOBS", observationStdev="2e-3", noiseStdev="0.0", listening="1", stateWrapper="@../StateWrapper", verbose="1") /// for ROUKFILter
         obsNode.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix=self.observationFileName)
         obsNode.createObject('ShowSpheres', radius="0.002", color="1 0 0 1", position='@SourceMO.position')
