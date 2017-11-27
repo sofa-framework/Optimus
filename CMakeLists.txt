@@ -57,6 +57,8 @@ if ( ${STOCHASTIC_FILTERING} )
 		src/stochasticFiltering/UKFilter.inl
 		src/stochasticFiltering/UKFilterSimCorr.h
 		src/stochasticFiltering/UKFilterSimCorr.inl
+                src/stochasticFiltering/UKFilterClassic.h
+		src/stochasticFiltering/UKFilterClassic.inl
 		src/stochasticFiltering/StochasticStateWrapperBase.h
 		src/stochasticFiltering/EKFilter.h
 		src/stochasticFiltering/EKFilter.inl
@@ -82,6 +84,7 @@ if ( ${STOCHASTIC_FILTERING} )
 		src/stochasticFiltering/ROUKFilter.cpp
 		src/stochasticFiltering/UKFilter.cpp
 		src/stochasticFiltering/UKFilterSimCorr.cpp
+                src/stochasticFiltering/UKFilterClassic.cpp
 		src/stochasticFiltering/EKFilter.cpp
 		src/stochasticFiltering/KFilter.cpp
 		src/stochasticFiltering/StochasticStateWrapper.cpp
