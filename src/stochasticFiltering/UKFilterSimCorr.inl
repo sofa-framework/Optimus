@@ -124,7 +124,7 @@ void UKFilterSimCorr<FilterType>::computeCorrection()
 
            for (size_t x = 0; x < observationSize; x++)
                for (size_t y = 0; y < observationSize; y++)
-                   matPz(x,y) += z(x)*z(y);
+                   matPz(x,y) += vz(x)*vz(y);
         }
         matPxz = alpha * matPxz;
         matPz = alpha * matPz + obsCovar;
