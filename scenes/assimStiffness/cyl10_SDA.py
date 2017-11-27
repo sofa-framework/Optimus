@@ -32,9 +32,9 @@ class synth1_BCDA(Sofa.PythonScriptController):
         mu=E/(2+2*nu)
         self.materialParams='{} {}'.format(mu,lamb)
 
-        self.volumeFileName='../../data/cylinder/cylinder10_4245.vtk'
+        self.volumeFileName='../../data/cylinder/cylinder2_2264.vtk'
         # self.observationFileName='observations/cylinder10_4245'
-        self.observationFileName='../assimStiffness/observations2Par/cylinder10_4245'
+        self.observationFileName='../assimStiffness/observations/cylinder2_2264'
         self.observationPointsVTK='../../data/cylinder/cyl10_4245_obs41.vtk'
         self.dt='0.01'
         self.gravity='0 -9.81 0'
@@ -43,7 +43,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         self.rayleighMass=0.1
         self.rayleighStiffness=3
 
-        self.paramInitExp = 6000
+        self.paramInitExp = 3000
         self.paramInitSD = 500
         self.obsNoiseSD= 2e-3
                         
@@ -83,6 +83,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
         node.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")        
         self.filter = node.createObject('ROUKFilter', name="ROUKF", verbose="1")        
+        #self.filter = node.createObject('UKFilterSimCorr', name="UKF", verbose="1") 
             
         node.createObject('MeshVTKLoader', name='loader', filename=self.volumeFileName)
         #node.createObject('MeshSTLLoader', name='objectSLoader', filename=self.surfaceSTL)
@@ -110,7 +111,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         node.createObject('MergeSets', name='mergeIndices', in2='@fixedBox2.indices', in1='@fixedBox1.indices')
         node.createObject('FixedConstraint', indices='@mergeIndices.out')
                     
-        node.createObject('OptimParams', name="paramE", optimize="1", numParams='10', template="Vector", initValue=self.paramInitExp, stdev=self.paramInitSD, transformParams="1")
+        node.createObject('OptimParams', name="paramE", optimize="1", numParams='2', template="Vector", initValue=self.paramInitExp, stdev=self.paramInitSD, transformParams="1")
         node.createObject('Indices2ValuesMapper', name='youngMapper', indices='1 2 3 4 5 6 7 8 9 10', values='@paramE.value', inputValues='@/loader.dataset')
         node.createObject('TetrahedronFEMForceField', name='FEM', updateStiffness='1', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
 

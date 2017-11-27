@@ -25,15 +25,15 @@ def createScene(rootNode):
 class cyl10_GenObs (Sofa.PythonScriptController):
 
     def __init__(self, rootNode, commandLineArguments) :         
-        self.volumeFileName='../../data/cylinder/cylinder10_4245.vtk'                
-        self.observationFileName='observations/cylinder10_4245'
+        self.volumeFileName='../../data/cylinder/cylinder2_2264.vtk'                
+        self.observationFileName='observations/cylinder2_2264'
         self.dt='0.01'
         self.gravity='0 -9.81 0'
         self.totalMass='0.2'
         #self.totalMass='0.3769'                
         self.rayleighMass=0.1
         self.rayleighStiffness=3
-        self.youngModuli='3500 4000 1000 6000 2000 7000 2500 8000 3000 1500'
+        self.youngModuli='1500 4000'
 
         self.saveObservations=1
 
