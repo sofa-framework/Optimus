@@ -43,11 +43,15 @@ class synth1_BCDA(Sofa.PythonScriptController):
         self.rayleighMass=0.1
         self.rayleighStiffness=3
 
-        self.paramInitExp = 3000
+        # self.filterKind='ROUKF'
+        self.filterKind='UKFSimCorr'
+        self.paramInitExp = 6000
         self.paramInitSD = 500
-        self.obsNoiseSD= 2e-3
+        self.obsNoiseSD= 1e-4
+        self.estimPosition='1'
+        self.estimVelocity='0'
                         
-        self.outDir='outCyl10_2Par'
+        self.outDir='outCyl2_'+self.filterKind+'_E'
         
         self.saveState = 1
         self.suffix='test'   #psd'+str(self.paramInitSD)+'#osd'+str(self.obsInitSD)+'#ogrid'+str(self.ogridID)
@@ -59,16 +63,16 @@ class synth1_BCDA(Sofa.PythonScriptController):
             os.system('rm '+self.stateVarFile)
             os.system('rm '+self.stateCovarFile)
           
-        # self.m_slaveSceneCount = 0
-        # self.m_saveToFile = 0
-        # self.m_slaveScenesCreated = 0 # auxiliary, circumvents attribute of instance method
+        if self.filterKind=='UKFSimCorr':
+            self.estimPosition='0'
+            self.estimVelocity='0'
+        
+        try:
+            os.stat(self.outDir)
+        except:
+            os.mkdir(self.outDir)
 
-                
-        # self.paramInitExp = 0.0
-        # self.paramInitSD = 5
-        # self.obsInitSD= 1e-4
-
-        self.createScene(node)
+        self.createScene(node)        
         
         return 0
 
@@ -82,8 +86,13 @@ class synth1_BCDA(Sofa.PythonScriptController):
         node.createObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels')
 
         node.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")        
-        self.filter = node.createObject('ROUKFilter', name="ROUKF", verbose="1")        
-        #self.filter = node.createObject('UKFilterSimCorr', name="UKF", verbose="1") 
+
+        if (self.filterKind == 'ROUKF'):
+            self.filter = node.createObject('ROUKFilter', name="ROUKF", verbose="1")        
+        elif (self.filterKind == 'UKFSimCorr'):
+            self.filter = node.createObject('UKFilterSimCorr', name="UKF", verbose="1") 
+        else:
+            print 'Unknown filter type!'
             
         node.createObject('MeshVTKLoader', name='loader', filename=self.volumeFileName)
         #node.createObject('MeshSTLLoader', name='objectSLoader', filename=self.surfaceSTL)
@@ -125,7 +134,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
 
     def createMasterScene(self, node):
-        node.createObject('StochasticStateWrapper',name="StateWrapper",verbose="1", estimatePosition='1')
+        node.createObject('StochasticStateWrapper',name="StateWrapper",verbose="1", estimatePosition=self.estimPosition, estimateVelocity=self.estimVelocity)
         
         self.createCommonComponents(node)
 
@@ -189,34 +198,46 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
     def onEndAnimationStep(self, deltaTime):  
 
-        if self.saveState:              
-            rs=self.filter.findData('reducedState').value
-            reducedState = [val for sublist in rs for val in sublist]
+        if self.saveState:
+            if (self.filterKind == 'ROUKF'):
+                st=self.filter.findData('reducedState').value
+            elif (self.filterKind == 'UKFSimCorr'):
+                st=self.filter.findData('state').value
+
+            state = [val for sublist in st for val in sublist]
             #print 'Reduced state:'
             #print reducedState
 
             f1 = open(self.stateExpFile, "a")        
-            f1.write(" ".join(map(lambda x: str(x), reducedState)))
+            f1.write(" ".join(map(lambda x: str(x), state)))
             f1.write('\n')
             f1.close()    
-                    
-            rv=self.filter.findData('reducedVariance').value
-            reducedVariance = [val for sublist in rv for val in sublist]
+
+            if (self.filterKind == 'ROUKF'):
+                var=self.filter.findData('reducedVariance').value
+            elif (self.filterKind == 'UKFSimCorr'):
+                var=self.filter.findData('variance').value
+                                
+            variance = [val for sublist in var for val in sublist]
             #print 'Reduced variance:'
             #print reducedVariance
 
             f2 = open(self.stateVarFile, "a")        
-            f2.write(" ".join(map(lambda x: str(x), reducedVariance)))
+            f2.write(" ".join(map(lambda x: str(x), variance)))
             f2.write('\n')
             f2.close()
 
-            rcv=self.filter.findData('reducedCovariance').value
-            reducedCovariance = [val for sublist in rcv for val in sublist]
+            if (self.filterKind == 'ROUKF'):
+                covar=self.filter.findData('reducedCovariance').value
+            elif (self.filterKind == 'UKFSimCorr'):
+                covar=self.filter.findData('covariance').value
+            
+            covariance = [val for sublist in covar for val in sublist]
             #print 'Reduced Covariance:'
             #print reducedCovariance
 
             f3 = open(self.stateCovarFile, "a")
-            f3.write(" ".join(map(lambda x: str(x), reducedCovariance)))
+            f3.write(" ".join(map(lambda x: str(x), covariance)))
             f3.write('\n')
             f3.close()    
 

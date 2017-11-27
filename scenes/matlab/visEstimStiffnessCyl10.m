@@ -1,10 +1,12 @@
 addpath '~/AncillaIP/Matlab';
-groundTruth=[3500 4000]  % 1000 6000 2000 7000 2500 8000 3000 1500];
+groundTruth=[1500 4000]  % 1000 6000 2000 7000 2500 8000 3000 1500];
 numParams=size(groundTruth,2);
 
-estStateFile='../assimStiffness/outCyl10_2Par/state_test.txt';
-estVarFile='../assimStiffness/outCyl10_2Par/variance_test.txt';
-filterType='UKF';
+%filterType='ROUKF';
+filterType='UKFSimCorr';
+estStateFile=['../assimStiffness/outCyl2_' filterType '_E' '/state_test.txt'];
+estVarFile=['../assimStiffness/outCyl2_' filterType '_E' '/variance_test.txt'];
+
 
 %estStateFile='../assimStiffness/outCyl10/state_test.txt';
 %estVarFile='../assimStiffness/outCyl10/variance_test.txt';
