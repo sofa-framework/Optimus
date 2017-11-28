@@ -28,14 +28,11 @@ template <class FilterType>
 void UKFilterClassic<FilterType>::computePerturbedStates()
 {
     EVectorX xCol(stateSize);
-    int id;
-
-    // TODO: implement this function
 
     for (size_t i = 0; i < sigmaPointsNum; i++) {
         xCol = matXi.col(i);
         //PRNS("X: " << xCol.transpose());
-        stateWrappers[0]->computeSimulationStep(xCol, mechParams, id);
+        stateWrappers[0]->computeSimulationStep(xCol, mechParams, m_sigmaPointObservationIndexes[i]);
         matXi.col(i) = xCol;
     }
 }
