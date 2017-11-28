@@ -45,10 +45,14 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
         # self.filterKind='ROUKF'
         self.filterKind='UKFSimCorr'
+        # self.filterKind='UKFClassic'
         self.paramInitExp = 6000
+        self.paramMinExp = [0, 0]
+        self.paramMaxExp = [100000, 100000]
         self.paramInitSD = 500
-        self.obsNoiseSD= 1e-4
+        self.obsNoiseSD= 1e-3
         self.estimPosition='1'
+        self.positionSD= 1e-3
         self.estimVelocity='0'
                         
         self.outDir='outCyl2_'+self.filterKind+'_E'
@@ -65,6 +69,9 @@ class synth1_BCDA(Sofa.PythonScriptController):
           
         if self.filterKind=='UKFSimCorr':
             self.estimPosition='0'
+            self.estimVelocity='0'
+
+        if self.filterKind=='UKFClassic':
             self.estimVelocity='0'
         
         try:
@@ -91,6 +98,8 @@ class synth1_BCDA(Sofa.PythonScriptController):
             self.filter = node.createObject('ROUKFilter', name="ROUKF", verbose="1")        
         elif (self.filterKind == 'UKFSimCorr'):
             self.filter = node.createObject('UKFilterSimCorr', name="UKF", verbose="1") 
+        elif (self.filterKind == 'UKFClassic'):
+            self.filter = node.createObject('UKFilterClassic', name="UKFClas", verbose="1") 
         else:
             print 'Unknown filter type!'
             
@@ -120,7 +129,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         node.createObject('MergeSets', name='mergeIndices', in2='@fixedBox2.indices', in1='@fixedBox1.indices')
         node.createObject('FixedConstraint', indices='@mergeIndices.out')
                     
-        node.createObject('OptimParams', name="paramE", optimize="1", numParams='2', template="Vector", initValue=self.paramInitExp, stdev=self.paramInitSD, transformParams="1")
+        node.createObject('OptimParams', name="paramE", optimize="1", numParams='2', template="Vector", initValue=self.paramInitExp, min=self.paramMinExp, max=self.paramMaxExp, stdev=self.paramInitSD, transformParams="1")
         node.createObject('Indices2ValuesMapper', name='youngMapper', indices='1 2 3 4 5 6 7 8 9 10', values='@paramE.value', inputValues='@/loader.dataset')
         node.createObject('TetrahedronFEMForceField', name='FEM', updateStiffness='1', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
 
@@ -134,7 +143,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
 
     def createMasterScene(self, node):
-        node.createObject('StochasticStateWrapper',name="StateWrapper",verbose="1", estimatePosition=self.estimPosition, estimateVelocity=self.estimVelocity)
+        node.createObject('StochasticStateWrapper',name="StateWrapper",verbose="1", estimatePosition=self.estimPosition, positionStdev=self.positionSD, estimateVelocity=self.estimVelocity)
         
         self.createCommonComponents(node)
 
@@ -201,7 +210,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         if self.saveState:
             if (self.filterKind == 'ROUKF'):
                 st=self.filter.findData('reducedState').value
-            elif (self.filterKind == 'UKFSimCorr'):
+            elif (self.filterKind == 'UKFSimCorr' or self.filterKind == 'UKFClassic'):
                 st=self.filter.findData('state').value
 
             state = [val for sublist in st for val in sublist]
@@ -215,7 +224,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
             if (self.filterKind == 'ROUKF'):
                 var=self.filter.findData('reducedVariance').value
-            elif (self.filterKind == 'UKFSimCorr'):
+            elif (self.filterKind == 'UKFSimCorr' or self.filterKind == 'UKFClassic'):
                 var=self.filter.findData('variance').value
                                 
             variance = [val for sublist in var for val in sublist]
@@ -229,7 +238,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
             if (self.filterKind == 'ROUKF'):
                 covar=self.filter.findData('reducedCovariance').value
-            elif (self.filterKind == 'UKFSimCorr'):
+            elif (self.filterKind == 'UKFSimCorr' or self.filterKind == 'UKFClassic'):
                 covar=self.filter.findData('covariance').value
             
             covariance = [val for sublist in covar for val in sublist]
