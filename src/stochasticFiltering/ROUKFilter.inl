@@ -68,7 +68,7 @@ void ROUKFilter<FilterType>::computePerturbedStates(EVectorX& _meanState) {
         EVectorX xCol(stateSize);
         for (size_t i = 0; i < sigmaPointsNum; i++) {
             xCol = matXi.col(i);
-            stateWrappers[sigmaPoints2WrapperIDs[i]]->applyOperator(xCol, mechParams);
+            stateWrappers[sigmaPoints2WrapperIDs[i]]->transformState(xCol, mechParams);
             matXi.col(i) = xCol;
         }
         _meanState = alpha * matXi.rowwise().sum();

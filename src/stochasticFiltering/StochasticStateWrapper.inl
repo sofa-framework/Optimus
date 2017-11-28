@@ -76,6 +76,7 @@ StochasticStateWrapper<DataTypes, FilterType>::StochasticStateWrapper()
     , estimatePosition( initData(&estimatePosition, false, "estimatePosition", "estimate the position (e.g., if initial conditions with uncertainty") )
     , estimateVelocity( initData(&estimateVelocity, false, "estimateVelocity", "estimate the velocity (e.g., if initial conditions with uncertainty") )
     , estimateExternalForces( initData(&estimateExternalForces, false, "estimateExternalForces", "estimate the external forces(e.g., if initial conditions with uncertainty") )
+    , d_positionStdev( initData(&d_positionStdev, "positionStdev", "estimate standart deviation for positions"))
     , m_stdev( initData(&m_stdev, "stdev", "standard variation") )
 
 {
@@ -185,6 +186,12 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
         for (size_t i = 0; i < freeNodes.size(); i++) {
             std::pair<size_t, size_t> pr(freeNodes[i], vsi++);
             positionPairs.push_back(pr);
+        }
+
+        /// add standart deviation for positions
+        this->positionVariance.resize(Dim * positionPairs.size());
+        for (size_t index = 0; index < Dim * positionPairs.size(); index++) {
+            this->positionVariance[index] = d_positionStdev.getValue();
         }
     }
 
@@ -406,12 +413,12 @@ void StochasticStateWrapper<DataTypes, FilterType>::computeSimulationStep(EVecto
 
 
 template <class DataTypes, class FilterType>
-void StochasticStateWrapper<DataTypes, FilterType>::applyOperator(EVectorX &_vecX, const core::MechanicalParams *_mparams, int _stateID) {
+void StochasticStateWrapper<DataTypes, FilterType>::transformState(EVectorX &_vecX, const core::MechanicalParams *_mparams, int* _stateID) {
     if (! (this->filterKind == CLASSIC || this->filterKind == REDORD) )
         return;
 
     EVectorX savedState;
-    if (_stateID >= 0)
+    if ((_stateID == nullptr) || (*_stateID >= 0))
         savedState = this->state;
 
     this->state = _vecX;
@@ -426,7 +433,28 @@ void StochasticStateWrapper<DataTypes, FilterType>::applyOperator(EVectorX &_vec
     copyStateSofa2Filter();
     _vecX = this->state;
 
-    if (_stateID >= 0) {
+
+    if (this->filterKind == CLASSIC) {
+        /// store the result of the simulation as a vector
+        VecCoord actualPos(this->mStateSize);
+        VecDeriv actualVel(this->mStateSize);
+
+        typename MechanicalState::ReadVecCoord pos = mechanicalState->readPositions();
+        typename MechanicalState::ReadVecDeriv vel = mechanicalState->readVelocities();
+
+        for (size_t i = 0; i < this->mStateSize; i++) {
+            actualPos[i] = pos[i];
+            actualVel[i] = vel[i];
+        }
+        sigmaStatePos.push_back(actualPos);
+        sigmaStateVel.push_back(actualVel);
+
+        if (_stateID != nullptr) {
+            *_stateID = sigmaStatePos.size() - 1;
+        }
+    }
+
+    if ((_stateID == nullptr) || (*_stateID >= 0)) {
         this->state = savedState;
         copyStateFilter2Sofa(_mparams);
     }

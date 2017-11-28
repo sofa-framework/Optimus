@@ -122,6 +122,7 @@ public:
     Data<bool> estimateExternalForces;
     Data<bool> optimForces;
 
+    Data< double> d_positionStdev;  /// standart deviation for positions
     Data< double> m_stdev;          /// standard deviation
     bool estimatingPosition() {
         return this->estimatePosition.getValue();
@@ -138,7 +139,7 @@ public:
     void init();
     void bwdInit();
 
-    void applyOperator(EVectorX& _vecX, const core::MechanicalParams* _mparams, int _stateID);
+    void transformState(EVectorX& _vecX, const core::MechanicalParams* _mparams, int* _stateID);
     //void setSofaTime(const core::ExecParams* _execParams);
     void computeSimulationStep(EVectorX& _state, const core::MechanicalParams* mparams,  int& _stateID);
     void initializeStep(size_t _stepNumber);
@@ -161,6 +162,12 @@ public:
             this->stateErrorVariance.setZero();
 
             size_t vpi = 0;
+            if (estimatePosition.getValue()) {
+                for (size_t index = 0; index < this->positionVariance.size(); index++, vpi++) {
+                    this->stateErrorVariance(vpi,vpi) = this->positionVariance[index] * this->positionVariance[index];
+                }
+            }
+
             for (size_t opi = 0; opi < this->vecOptimParams.size(); opi++) {
                 helper::vector<double> stdev;
                 this->vecOptimParams[opi]->getStDev(stdev);

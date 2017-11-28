@@ -55,7 +55,7 @@ void UKFilter<double, Rigid3dTypes>::propagatePerturbedStates(EVectorX & _meanSt
     const Mat3x4d & P = d_projectionMatrix.getValue();
     for (size_t i = 0; i < sigmaPointsNum; i++) {
         xCol = matXi.col(i);
-        stateWrappers[0]->applyOperator(xCol, mechParams);
+        stateWrappers[0]->transformState(xCol, mechParams);
         matXi.col(i) = xCol;
         ///COMPUTE PREDICTED OBSERVATION !
         ReadVecCoord  pos = mstate->readPositions();
@@ -136,7 +136,7 @@ void UKFilter<double, Vec3dTypes>::propagatePerturbedStates(EVectorX & _meanStat
         const Mat3x4d & P = d_projectionMatrix.getValue();
         for (size_t i = 0; i < sigmaPointsNum; i++) {
             xCol = matXi.col(i);
-            stateWrappers[0]->applyOperator(xCol, mechParams);
+            stateWrappers[0]->transformState(xCol, mechParams);
             matXi.col(i) = xCol;
             ///COMPUTE PREDICTED OBSERVATION !
             helper::ReadAccessor<Data<VecCoord > >   pos = mstate->readPositions();
@@ -277,7 +277,7 @@ void UKFilter<FilterType, mType>::computeCorrection()
             stateWrappers[0]->computeSimulationStep(state, mechParams, id);
 
             //masterStateWrapper->setState(state, this->mechParams);
-            //masterStateWrapper->applyOperator(state, mechParams);
+            //masterStateWrapper->transformState(state, mechParams);
 
             if (d_estimParams.getValue() == 1) {
                 helper::WriteAccessor<Data <helper::vector<FilterType> > > stat = d_state;

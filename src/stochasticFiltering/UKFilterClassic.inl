@@ -28,11 +28,14 @@ template <class FilterType>
 void UKFilterClassic<FilterType>::computePerturbedStates()
 {
     EVectorX xCol(stateSize);
+    int currentPointID;
 
     for (size_t i = 0; i < sigmaPointsNum; i++) {
         xCol = matXi.col(i);
-        //PRNS("X: " << xCol.transpose());
-        stateWrappers[0]->computeSimulationStep(xCol, mechParams, m_sigmaPointObservationIndexes[i]);
+        stateWrappers[0]->transformState(xCol, mechParams, &currentPointID);
+        m_sigmaPointObservationIndexes[i] = currentPointID;
+        //if (i < 10)
+        //    PRNS("X: " << xCol.transpose());
         matXi.col(i) = xCol;
     }
 }
@@ -47,6 +50,7 @@ void UKFilterClassic<FilterType>::computePrediction()
 
     //PRNS("matPsqrt: " << matPsqrt);
 
+    stateExp.fill(FilterType(0.0));
     stateExp = masterStateWrapper->getState();
     //PRNS("X(n): \n" << stateExp.transpose());
     //PRNS("P(n): \n" << stateCovar);
@@ -55,6 +59,7 @@ void UKFilterClassic<FilterType>::computePrediction()
     for (size_t i = 0; i < sigmaPointsNum; i++) {
         matXi.col(i) = stateExp + matPsqrt * matI.row(i).transpose();
     }
+    //PRNS("matI: \n" << matI);
     //PRNS("MatXi: \n" << matXi);
 
     /// Compute the state
@@ -78,8 +83,8 @@ void UKFilterClassic<FilterType>::computePrediction()
     }
     stateCovar = alpha*stateCovar;
 
-    PRNS("X(n+1)-: " << stateExp.transpose());
-    PRNS("P(n+1)-: \n" << stateCovar);
+    //PRNS("X(n+1)-: " << stateExp.transpose());
+    //PRNS("P(n+1)-: \n" << stateCovar);
 }
 
 template <class FilterType>
@@ -92,11 +97,12 @@ void UKFilterClassic<FilterType>::computeCorrection()
         matZmodel.resize(observationSize, sigmaPointsNum);
         predObsExp.resize(observationSize);
         predObsExp.fill(FilterType(0.0));
-        stateExp.fill(FilterType(0.0));
 
         /// compute predicted observations
         for (size_t i = 0; i < sigmaPointsNum; i++) {
             observationManager->getPredictedObservation(this->actualTime, m_sigmaPointObservationIndexes[i],  zCol);
+            //PRNS("Zcol: \n" << m_sigmaPointObservationIndexes[i]);
+            //PRNS("Zcol: \n" << zCol.transpose());
             matZmodel.col(i) = zCol;
             predObsExp = predObsExp + zCol;
 
@@ -127,21 +133,28 @@ void UKFilterClassic<FilterType>::computeCorrection()
         }
         matPxz = alpha * matPxz;
         matPz = alpha * matPz + obsCovar;
+        //PRNS("matPxz: " << matPxz);
+        //PRNS("matPz: " << matPz);
         //PRNS("ObsCovar: " << obsCovar);
 
         EMatrixX matK(stateSize, observationSize);
         matK = matPxz*matPz.inverse();
+        //PRNS("matK: " << matK);
 
         EVectorX innovation(observationSize);
         observationManager->getInnovation(this->actualTime, predObsExp, innovation);
 
+        //PRNS("innovation: " << innovation);
         stateExp = stateExp + matK * innovation;
         stateCovar = stateCovar - matK*matPxz.transpose();
 
         //stateWrappers[0]->computeSimulationStep(stateExp, mechParams, id);
 
-        PRNS("X(n+1)+: \n" << stateExp.transpose());
-        PRNS("P(n+1)+n: \n" << stateCovar);
+        //PRNS("X(n+1)+: \n" << stateExp.transpose());
+        //PRNS("P(n+1)+n: \n" << stateCovar);
+
+        masterStateWrapper->setState(stateExp, mechParams);
+        masterStateWrapper->transformState(stateExp, mechParams);
 
         helper::WriteAccessor<Data <helper::vector<FilterType> > > stat = d_state;
         helper::WriteAccessor<Data <helper::vector<FilterType> > > var = d_variance;

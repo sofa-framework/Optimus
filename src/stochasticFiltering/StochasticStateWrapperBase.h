@@ -123,7 +123,8 @@ protected:
     /// stochastic state
     size_t stateSize;
     EVectorX state;
-    EMatrixX stateErrorVariance;    
+    EMatrixX stateErrorVariance;
+    EVectorX positionVariance;
 
     /// decomposed variance in reduced-order filtering
     EMatrixX stateErrorVarianceReduced;
@@ -143,7 +144,7 @@ public:
     }
 
     /// function required by classical and reduced-order filters (preform simulation -> compute new sigma state)
-    virtual void applyOperator(EVectorX& _vecX, const core::MechanicalParams* mparams,  int _stateID = 0) = 0;
+    virtual void transformState(EVectorX& _vecX, const core::MechanicalParams* mparams,  int* _stateID = nullptr) = 0;
 
     /// function required by sim-corr filters (perform simulation -> store results internally to compute the observation)
     virtual void computeSimulationStep(EVectorX& _state, const core::MechanicalParams* mparams,  int& _stateID) = 0;

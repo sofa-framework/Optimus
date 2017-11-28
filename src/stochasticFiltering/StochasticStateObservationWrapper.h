@@ -140,7 +140,7 @@ public:
     void init();
     void bwdInit();
 
-    void applyOperator(EVectorX& _vecX, const core::MechanicalParams* _mparams, int _stateID);
+    void transformState(EVectorX& _vecX, const core::MechanicalParams* _mparams, int* _stateID);
     void computeSimulationStep(EVectorX& _vecX, const core::MechanicalParams* mparams,  int& _stateID) {}
     virtual void initTimeStep(double _time) {}
     //void setSofaTime(const core::ExecParams* _execParams);

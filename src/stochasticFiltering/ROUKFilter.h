@@ -111,7 +111,7 @@ void* threadFunction(void* inArgs) {
     Eigen::Matrix<FilterType, Eigen::Dynamic, 1> xCol(xMat.rows());
     for (size_t i = 0; i < sigIDs.size(); i++) {
         xCol = xMat.col(sigIDs[i]);
-        wrapper->applyOperator(xCol, mechParams);
+        wrapper->transformState(xCol, mechParams);
         xMat.col(sigIDs[i]) = xCol;
     }
     fd.close();

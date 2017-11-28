@@ -67,7 +67,7 @@ void EKFilter<FilterType>::computePrediction()
 
     /// apply the operator (perform 1 step with the actual state theta)
     vecState = sofaStateWrapper->getState();
-    sofaStateWrapper->applyOperator(vecState, mechParams);
+    sofaStateWrapper->transformState(vecState, mechParams);
 
     /// update the covariance matrix  P = P + Q;
     matStateErrorCovar += sofaStateWrapper->getStateErrorVariance();

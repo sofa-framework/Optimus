@@ -201,6 +201,12 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getPredict
     stateWrapper->getActualPosition(_id, predictedMasterStateEdit);
     //stateWrapper->setSofaVectorFromFilterVector(_state, predictedMasterStateEdit);
     sofa::core::MechanicalParams mp;
+
+    sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > masterState = predictedMasterState;
+    //std::cout << "id: " << _id << std::endl;
+    //std::cout << "Actual poistions: " << masterState << std::endl;
+
+
     mapping->apply(&mp, predictedMappedState, predictedMasterState);
 
     _predictedObservation.resize(this->observationSize);
@@ -245,7 +251,7 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovat
     }
 
     /// TEMPORARY: _state here is the predicted observation computed before
-    if (stateWrapper->getFilterKind() == SIMCORR) {
+    if ((stateWrapper->getFilterKind() == SIMCORR) || (stateWrapper->getFilterKind() == CLASSIC)) {
         for (size_t i = 0; i < this->observationSize; i++)
             _innovation(i) = actualObservation(i) - _state(i);
     }
