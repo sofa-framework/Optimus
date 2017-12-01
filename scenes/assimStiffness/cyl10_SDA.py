@@ -32,10 +32,14 @@ class synth1_BCDA(Sofa.PythonScriptController):
         mu=E/(2+2*nu)
         self.materialParams='{} {}'.format(mu,lamb)
 
-        self.volumeFileName='../../data/cylinder/cylinder2_2264.vtk'
+        self.volumeFileName='../../data/cylinder/cylinder2_138.vtk'
+        # self.volumeFileName='../../data/cylinder/cylinder2_385.vtk'
         # self.observationFileName='observations/cylinder10_4245'
-        self.observationFileName='../assimStiffness/observations/cylinder2_2264'
-        self.observationPointsVTK='../../data/cylinder/cyl10_4245_obs41.vtk'
+        self.observationFileName='../assimStiffness/observations/cylinder2_138'
+        # self.observationFileName='../assimStiffness/observations/cylinder2_385'
+        # self.observationPointsVTK='../../data/cylinder/cyl10_4245_obs41.vtk'
+        self.observationPointsVTK='../../data/cylinder/cyl2_138_obs7.vtk'
+        # self.observationPointsVTK='../../data/cylinder/cyl2_385_obs11.vtk'
         self.dt='0.01'
         self.gravity='0 -9.81 0'
         self.totalMass='0.2'
@@ -44,8 +48,10 @@ class synth1_BCDA(Sofa.PythonScriptController):
         self.rayleighStiffness=3
 
         # self.filterKind='ROUKF'
-        self.filterKind='UKFSimCorr'
-        # self.filterKind='UKFClassic'
+        # self.filterKind='UKFSimCorr'
+        self.filterKind='UKFClassic'
+
+
         self.paramInitExp = 6000
         self.paramMinExp = [0, 0]
         self.paramMaxExp = [100000, 100000]
@@ -55,7 +61,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         self.positionSD= 1e-3
         self.estimVelocity='0'
                         
-        self.outDir='outCyl2_'+self.filterKind+'_E'
+        self.outDir='outCyl2_138_'+self.filterKind+'_2'       	
         
         self.saveState = 1
         self.suffix='test'   #psd'+str(self.paramInitSD)+'#osd'+str(self.obsInitSD)+'#ogrid'+str(self.ogridID)
@@ -99,7 +105,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         elif (self.filterKind == 'UKFSimCorr'):
             self.filter = node.createObject('UKFilterSimCorr', name="UKF", verbose="1") 
         elif (self.filterKind == 'UKFClassic'):
-            self.filter = node.createObject('UKFilterClassic', name="UKFClas", verbose="1") 
+            self.filter = node.createObject('UKFilterClassic', name="UKFClas", verbose="1", exportPrefix=self.outDir)
         else:
             print 'Unknown filter type!'
             

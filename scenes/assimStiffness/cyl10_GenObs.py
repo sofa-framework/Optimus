@@ -6,6 +6,7 @@ import csv
 
 __file = __file__.replace('\\', '/') # windows
 
+
 def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
     rootNode.createObject('RequiredPlugin', name='Pardiso', pluginName='SofaPardisoSolver')
@@ -25,8 +26,8 @@ def createScene(rootNode):
 class cyl10_GenObs (Sofa.PythonScriptController):
 
     def __init__(self, rootNode, commandLineArguments) :         
-        self.volumeFileName='../../data/cylinder/cylinder2_2264.vtk'                
-        self.observationFileName='observations/cylinder2_2264'
+        self.volumeFileName='../../data/cylinder/cylinder2_138.vtk'                
+        self.observationFileName='observations/cylinder2_138'
         self.dt='0.01'
         self.gravity='0 -9.81 0'
         self.totalMass='0.2'
@@ -35,7 +36,7 @@ class cyl10_GenObs (Sofa.PythonScriptController):
         self.rayleighStiffness=3
         self.youngModuli='1500 4000'
 
-        self.saveObservations=1
+        self.saveObservations=0
 
         rootNode.findData('dt').value = self.dt
         rootNode.findData('gravity').value = self.gravity
@@ -59,7 +60,7 @@ class cyl10_GenObs (Sofa.PythonScriptController):
         simuNode = rootNode.createChild('simuNode')
         self.simuNode = simuNode
         simuNode.createObject('EulerImplicitSolver', rayleighStiffness=self.rayleighStiffness, rayleighMass=self.rayleighMass)
-        simuNode.createObject('SparsePARDISOSolver', name='LDLsolver', verbose='0')
+        simuNode.createObject('SparsePARDISOSolver', name='LDLsolver', verbose='0', symmetric='2', exportDataToFolder='cyl2_138_mat')
         simuNode.createObject('MeshVTKLoader', name='loader', filename=self.volumeFileName)
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')
         simuNode.createObject('BoxROI', box='-0.05 -0.05 -0.002   0.05 0.05 0.002', name='fixedBox1')
