@@ -15,11 +15,10 @@ namespace stochastic
 template <class FilterType>
 UKFilterClassic<FilterType>::UKFilterClassic()
     : Inherit()
-    , d_filename( initData(&d_filename, "filename", "output file name"))
-    , outfile(NULL)
+    , d_exportPrefix( initData(&d_exportPrefix, "exportPrefix", "prefix for storing various quantities into files"))
     , d_state( initData(&d_state, "state", "actual expected value of reduced state (parameters) estimated by the filter" ) )
     , d_variance( initData(&d_variance, "variance", "actual variance  of reduced state (parameters) estimated by the filter" ) )
-    , d_covariance( initData(&d_covariance, "covariance", "actual co-variance  of reduced state (parameters) estimated by the filter" ) )    
+    , d_covariance( initData(&d_covariance, "covariance", "actual co-variance  of reduced state (parameters) estimated by the filter" ) )        
 {
 
 }
@@ -174,6 +173,15 @@ void UKFilterClassic<FilterType>::computeCorrection()
             //}
         }
 
+        char nstepc[100];
+        sprintf(nstepc, "%04d", stepNumber);
+        if (! exportPrefix.empty()) {
+            std::string fileName = exportPrefix + "/covar_" + nstepc + ".txt";
+            std::ofstream ofs;
+            ofs.open(fileName.c_str(), std::ofstream::out);
+            ofs << stateCovar << std::endl;
+        }
+
     }
 }
 
@@ -217,8 +225,9 @@ void UKFilterClassic<FilterType>::init() {
     } else
         PRNE("no observation manager found!");
 
-    const std::string& filename = d_filename.getFullPath();
-    outfile = new std::ofstream(filename.c_str());
+    exportPrefix  = d_exportPrefix.getFullPath();
+    PRNS("export prefix: " << exportPrefix)
+
 }
 
 template <class FilterType>

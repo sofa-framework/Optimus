@@ -90,8 +90,8 @@ protected:
     EMatrixX matItrans, matI;
     EMatrixX matXi, matZmodel;
 
-    sofa::core::objectmodel::DataFileName d_filename;
-    std::ofstream* outfile;
+    sofa::core::objectmodel::DataFileName d_exportPrefix;
+    std::string exportPrefix;
 
     Type alpha;
 
@@ -106,7 +106,7 @@ protected:
 public:    
     Data<helper::vector<FilterType> > d_state;
     Data<helper::vector<FilterType> > d_variance;
-    Data<helper::vector<FilterType> > d_covariance;  
+    Data<helper::vector<FilterType> > d_covariance;      
 
     void init();
     void bwdInit();
