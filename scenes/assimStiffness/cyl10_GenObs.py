@@ -36,7 +36,7 @@ class cyl10_GenObs (Sofa.PythonScriptController):
         self.rayleighStiffness=3
         self.youngModuli='1500 4000'
 
-        self.saveObservations=0
+        self.saveObservations=1
 
         rootNode.findData('dt').value = self.dt
         rootNode.findData('gravity').value = self.gravity

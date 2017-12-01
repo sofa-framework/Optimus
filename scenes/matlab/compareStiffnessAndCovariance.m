@@ -4,7 +4,7 @@ stepS=400;
 stepM=400;
 
 matrixFile=['../assimStiffness/cyl2_138_mat/spmatM_PARD_step' sprintf('%04d', stepS) '_iter0000.txt'];
-covarFile=['../assimStiffness/outCyl2_138_UKFClassic_1/covar_' sprintf('%04d', stepS) '.txt'];
+covarFile=['../assimStiffness/outCyl2_138_UKFClassic_2/covar_' sprintf('%04d', stepS) '.txt'];
 nparam=2;
 m2s=1+[4 5 6 7 16 17 18 19 20 21 22 23 24 25 26 27 32 33 34 35 36 37 38 39 45 46 47 48 49 55 56 57 58 59];
 
@@ -14,7 +14,7 @@ stmat=spconvert(load(matrixFile));
 stmat =stmat + stmat';
 stmat=stmat-0.5*diag(diag(stmat));
 
-%stmat=inv(stmat);
+stmat=inv(stmat);
 stmat = stmat - diag(diag(stmat));
 
 nsdofs=length(m2s);
@@ -48,7 +48,10 @@ covarX = covar(1:3:ncovar, 1:3:ncovar);
 covarX = covarX - diag(diag(covarX));
 
 covarY = covar(2:3:ncovar, 2:3:ncovar);
+covarY = covarY - diag(diag(covarY));
+
 covarZ = covar(3:3:ncovar, 3:3:ncovar);
+covarZ = covarZ - diag(diag(covarZ));
 
 figure; 
 surf(fliplr(abs(stsmatX)));
