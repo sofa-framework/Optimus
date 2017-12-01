@@ -154,24 +154,24 @@ void UKFilterClassic<FilterType>::computeCorrection()
         //PRNS("P(n+1)+n: \n" << stateCovar);
 
         masterStateWrapper->setState(stateExp, mechParams);
-        masterStateWrapper->transformState(stateExp, mechParams);
+        //masterStateWrapper->transformState(stateExp, mechParams);
 
         helper::WriteAccessor<Data <helper::vector<FilterType> > > stat = d_state;
         helper::WriteAccessor<Data <helper::vector<FilterType> > > var = d_variance;
-        helper::WriteAccessor<Data <helper::vector<FilterType> > > covar = d_covariance;
+        //helper::WriteAccessor<Data <helper::vector<FilterType> > > covar = d_covariance;
 
         stat.resize(stateSize);
         var.resize(stateSize);
-        size_t numCovariances = (stateSize*(stateSize-1))/2;
-        covar.resize(numCovariances);
+        //size_t numCovariances = (stateSize*(stateSize-1))/2;
+        //covar.resize(numCovariances);
 
-        size_t gli = 0;
+        //size_t gli = 0;
         for (size_t i = 0; i < stateSize; i++) {
             stat[i] = stateExp[i];
             var[i] = stateCovar(i,i);
-            for (size_t j = i+1; j < stateSize; j++) {
-                covar[gli++] = stateCovar(i,j);
-            }
+            //for (size_t j = i+1; j < stateSize; j++) {
+            //    covar[gli++] = stateCovar(i,j);
+            //}
         }
 
     }
