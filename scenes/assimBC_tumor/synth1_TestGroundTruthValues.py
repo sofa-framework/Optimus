@@ -89,7 +89,7 @@ class synth1_GenObs (Sofa.PythonScriptController):
         # simuNode.createObject('BoxROI', box='0.075 -0.001 -0.011 0.101 0.001 0.001', drawBoxes='1', name='FROI2')
         # simuNode.createObject('BoxROI', box='-0.001 -0.001 -0.011 0.101 0.001 0.001', drawBoxes='1', name='FROI')
         simuNode.createObject('ExtendedRestShapeSpringForceField', stiffness='2000', name='fixingSpring', points='@FROI1.indices', showIndicesScale='0', springColor='0 1 0 1', startTimeSpringOn='0', numStepsSpringOn='10000')
-        simuNode.createObject('ExtendedRestShapeSpringForceField', stiffness='100', name='fixingSpring', points='@FROI2.indices', showIndicesScale='0', springColor='0 1 0 1', startTimeSpringOn='0', numStepsSpringOn='10000')
+        simuNode.createObject('ExtendedRestShapeSpringForceField', stiffness='100', name='fixingSpring', points='@FROI2.indices', showIndicesScale='0', springColor='0 1 0 1', startTimeSpringOn='0',  numStepsSpringOn='10000')
         # simuNode.createObject('FixedConstraint', indices='@FROI.indices', template='Vec3d')
         simuNode.createObject('Mapped3DoFForceField', mappedFEM='mappedTool/toolSpring', mappedMechObject='mappedTool/MO', printLog='0', mapping='mappedTool/baryMapping')
         simuNode.createObject('PointsFromIndices', template='Vec3d', name='FixedPoints', indices='@FROI1.indices')
@@ -116,7 +116,7 @@ class synth1_GenObs (Sofa.PythonScriptController):
         fixedVisu.createObject('Sphere', color='0.5 0.6 1.0 1', radius='0.0014', template='Vec3d')
 
         tumorNode=simuNode.createChild('tumorObj')
-        tumorOutputFile=outputDir+'/initTumor'
+        tumorOutputFile=outputDir+'/tumorGroundTruthPos'
         tumorNode.createObject('MeshObjLoader', name='tumorLoader', filename=tumorFile)
         tumorNode.createObject('MechanicalObject', src='@tumorLoader', name='tumorMO', template='Vec3d', showIndices='0', translation='0.04 0.05 -0.005')
         tumorNode.createObject('BarycentricMapping', name='baryMapping')
