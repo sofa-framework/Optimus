@@ -1,11 +1,12 @@
 addpath '~/AncillaIP/Matlab';
 groundTruth=[1500 4000]  % 1000 6000 2000 7000 2500 8000 3000 1500];
-numParams=size(groundTruth,2);
+numParams=size(groundTruth,431);
 
 %filterType='ROUKF';
-filterType='UKFSimCorr';
-estStateFile=['../assimStiffness/outCyl2_' filterType '_E' '/state_test.txt'];
-estVarFile=['../assimStiffness/outCyl2_' filterType '_E' '/variance_test.txt'];
+%filterType='UKFSimCorr';
+filterType='UKFClassic';
+estStateFile=['../assimStiffness/outCyl2_138_' filterType '_1' '/state_test.txt'];
+estVarFile=['../assimStiffness/outCyl2_138_' filterType '_1' '/variance_test.txt'];
 
 
 %estStateFile='../assimStiffness/outCyl10/state_test.txt';
@@ -19,6 +20,7 @@ estStd=sqrt(estVar);
 
 nsteps=size(estState,1);
 nstate=size(estState,2);
+
 
 figure; 
 axes('XLim', [1,nsteps], 'YLim', [min(min(estState)), max(max(estState))]);
