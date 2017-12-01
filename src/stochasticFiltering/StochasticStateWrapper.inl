@@ -195,6 +195,11 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
         }
     }
 
+    /*PRNS("Mapping stochastic -> mechanical");
+    for (size_t i = 0; i < positionPairs.size(); i++) {
+        PRNS(positionPairs[i].first << " --> " << positionPairs[i].second);
+    }*/
+
     if (estimateVelocity.getValue()) {
         for (size_t i = 0; i < freeNodes.size(); i++) {
             std::pair<size_t, size_t> pr(freeNodes[i], vsi++);
