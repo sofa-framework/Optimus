@@ -85,9 +85,9 @@ for index = 1:loopIndex
     initialAverage = 0;
     correctedAverage = 0;
     for internalIndex = 1:size(groundTruthValues, 2)
-        diff = initialValues(loopIndex, internalIndex) - groundTruthValues(loopIndex, internalIndex);
+        diff = initialValues(index, internalIndex) - groundTruthValues(index, internalIndex);
         initialAverage = initialAverage + diff*diff;
-        diff = correctedValues(loopIndex, internalIndex) - groundTruthValues(loopIndex, internalIndex);
+        diff = correctedValues(index, internalIndex) - groundTruthValues(index, internalIndex);
         correctedAverage = correctedAverage + diff*diff;
     endfor
 
@@ -100,9 +100,9 @@ endfor
 
 ### plot data
 figure(1),
-init = plot(timeLine, initialAverageLine, '-', "linewidth", 4);
+init = plot(timeLine, initialAverageLine, '-', "color", "red", "linewidth", 4);
 hold on;
-corr = plot(timeLine, correctedAverageLine, 'ro', "linewidth", 4);
+corr = plot(timeLine, correctedAverageLine, '-', "color", "green", "linewidth", 4);
 legend ([init corr], "initial values", "corrected values");
 title("average difference error for tumor rate", "fontsize", 36);
 hold off;
