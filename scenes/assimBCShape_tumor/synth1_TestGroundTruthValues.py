@@ -118,7 +118,7 @@ class synth1_GenObs (Sofa.PythonScriptController):
         tumorNode=simuNode.createChild('tumorObj')
         tumorOutputFile=outputDir+'/tumorGroundTruthPos'
         tumorNode.createObject('MeshObjLoader', name='tumorLoader', filename=tumorFile)
-        tumorNode.createObject('MechanicalObject', src='@tumorLoader', name='tumorMO', template='Vec3d', showIndices='0', translation='0.04 0.05 -0.005')
+        tumorNode.createObject('MechanicalObject', src='@tumorLoader', name='tumorMO', template='Vec3d', showIndices='0', translation='0.05 0.04 -0.005')
         tumorNode.createObject('BarycentricMapping', name='baryMapping')
 
         if saveTumor:
