@@ -1,0 +1,31 @@
+---
+scene_parameters:
+    system_parameters:
+        volume_file_name: "../../data/cylinder/cylinder2_385.vtk"
+        observation_file_name: "observations/cylinder2_385"
+        observation_points_file_name: "../../data/cylinder/cyl2_138_obs7.vtk"
+
+    general_parameters:
+        gravity: "0 -9.81 0"
+        total_mass: 0.2
+        second_fixed_box_coordinates: "-0.05 -0.05 0.298 0.05 0.05 0.302"
+
+    obs_generating_parameters:
+        object_young_moduli: "1500 4000"
+        save_observations: 1
+
+    filtering_parameters:
+        output_directory_prefix: "outCyl2_138_"
+        output_directory_suffix: "_2"
+        output_files_suffix: "test" 
+        optim_params_size: 2
+        filter_kind: "UKFSimCorr"   # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
+        initial_stiffness: [6000, 6000]
+        minimal_stiffness: [0, 0]
+        maximal_stiffness: [100000, 100000]
+        initial_standart_deviation: 500
+        observation_noise_standart_deviation: 1e-3
+        positions_standart_deviation: 1e-3
+        transform_parameters: 1
+        save_state: 1
+...

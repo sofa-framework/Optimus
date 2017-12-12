@@ -3,6 +3,7 @@ import math
 import os
 import sys
 import csv
+import yaml
 
 __file = __file__.replace('\\', '/') # windows
 
@@ -26,17 +27,29 @@ def createScene(rootNode):
 class cyl10_GenObs (Sofa.PythonScriptController):
 
     def __init__(self, rootNode, commandLineArguments) :         
-        self.volumeFileName='../../data/cylinder/cylinder2_138.vtk'                
-        self.observationFileName='observations/cylinder2_138'
-        self.dt='0.01'
-        self.gravity='0 -9.81 0'
-        self.totalMass='0.2'
-        #self.totalMass='0.3769'                
-        self.rayleighMass=0.1
-        self.rayleighStiffness=3
-        self.youngModuli='1500 4000'
 
-        self.saveObservations=1
+        # load configuration from yaml file
+        self.configFileName = "cyl_scene_config.yml"
+        with open(self.configFileName, 'r') as stream:
+            try:
+                configData = yaml.load(stream)
+                print()
+            except yaml.YAMLError as exc:
+                print(exc)
+
+        self.volumeFileName = configData['scene_parameters']['system_parameters']['volume_file_name']
+        self.observationFileName = configData['scene_parameters']['system_parameters']['observation_file_name']
+        self.dt='0.01'
+        self.gravity = configData['scene_parameters']['general_parameters']['gravity']
+        self.totalMass = configData['scene_parameters']['general_parameters']['total_mass']
+        ######## self.totalMass='0.3769'                
+        self.rayleighMass = 0.1
+        self.rayleighStiffness = 3
+        self.youngModuli = configData['scene_parameters']['obs_generating_parameters']['object_young_moduli']
+
+        self.saveObservations = configData['scene_parameters']['obs_generating_parameters']['save_observations']
+
+        self.secondFixedBoxData = configData['scene_parameters']['general_parameters']['second_fixed_box_coordinates']
 
         rootNode.findData('dt').value = self.dt
         rootNode.findData('gravity').value = self.gravity
@@ -64,7 +77,7 @@ class cyl10_GenObs (Sofa.PythonScriptController):
         simuNode.createObject('MeshVTKLoader', name='loader', filename=self.volumeFileName)
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')
         simuNode.createObject('BoxROI', box='-0.05 -0.05 -0.002   0.05 0.05 0.002', name='fixedBox1')
-        simuNode.createObject('BoxROI', box='-0.05 -0.05  0.298   0.05 0.05 0.302', name='fixedBox2')
+        simuNode.createObject('BoxROI', box=self.secondFixedBoxData, name='fixedBox2')
         simuNode.createObject('MergeSets', name='mergeIndices', in2='@fixedBox2.indices', in1='@fixedBox1.indices')
         simuNode.createObject('FixedConstraint', indices='@mergeIndices.out')        
         simuNode.createObject('TetrahedronSetTopologyContainer', name="Container", src="@loader", tags=" ")
