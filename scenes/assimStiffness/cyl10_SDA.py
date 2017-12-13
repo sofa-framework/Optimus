@@ -3,6 +3,7 @@ import math
 import os
 import sys
 import csv
+import yaml
 
 __file = __file__.replace('\\', '/') # windows
 
@@ -22,9 +23,19 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
     def createGraph(self,node):          
         self.cameraReactivated=False
-        self.rootNode=node              
-         
+        self.rootNode=node     
+
         print  "Create graph called (Python side)\n"
+
+
+        # load configuration from yaml file
+        self.configFileName = "cyl_scene_config.yml"
+        with open(self.configFileName, 'r') as stream:
+            try:
+                configData = yaml.load(stream)
+                print()
+            except yaml.YAMLError as exc:
+                print(exc)
 
         E=5000
         nu=0.45
@@ -32,52 +43,63 @@ class synth1_BCDA(Sofa.PythonScriptController):
         mu=E/(2+2*nu)
         self.materialParams='{} {}'.format(mu,lamb)
 
-        self.volumeFileName='../../data/cylinder/cylinder2_138.vtk'
-        # self.volumeFileName='../../data/cylinder/cylinder2_385.vtk'
-        # self.observationFileName='observations/cylinder10_4245'
-        self.observationFileName='../assimStiffness/observations/cylinder2_138'
-        # self.observationFileName='../assimStiffness/observations/cylinder2_385'
-        # self.observationPointsVTK='../../data/cylinder/cyl10_4245_obs41.vtk'
-        self.observationPointsVTK='../../data/cylinder/cyl2_138_obs7.vtk'
-        # self.observationPointsVTK='../../data/cylinder/cyl2_385_obs11.vtk'
-        self.dt='0.01'
-        self.gravity='0 -9.81 0'
-        self.totalMass='0.2'
-        #self.totalMass='0.3769'
-        self.rayleighMass=0.1
-        self.rayleighStiffness=3
+        self.volumeFileName = configData['scene_parameters']['system_parameters']['volume_file_name']
+        ####### self.volumeFileName='../../data/cylinder/cylinder2_385.vtk'
+        ####### self.observationFileName='observations/cylinder10_4245'
+        self.observationFileName = configData['scene_parameters']['system_parameters']['observation_file_name']
+        ####### self.observationFileName='../assimStiffness/observations/cylinder2_385'
+        ####### self.observationPointsVTK='../../data/cylinder/cyl10_4245_obs41.vtk'
+        self.observationPointsVTK = configData['scene_parameters']['system_parameters']['observation_points_file_name']
+        ####### self.observationPointsVTK='../../data/cylinder/cyl2_385_obs11.vtk'
+        self.dt = '0.01'
+        self.gravity = configData['scene_parameters']['general_parameters']['gravity']
+        self.totalMass = configData['scene_parameters']['general_parameters']['total_mass']
+        ####### self.totalMass='0.3769'
+        self.rayleighMass = 0.1
+        self.rayleighStiffness = 3
 
-        # self.filterKind='ROUKF'
-        # self.filterKind='UKFSimCorr'
-        self.filterKind='UKFClassic'
+        ####### self.filterKind='ROUKF'
+        ####### self.filterKind='UKFSimCorr'
+        self.filterKind = configData['scene_parameters']['filtering_parameters']['filter_kind']
+        self.transformParams = configData['scene_parameters']['filtering_parameters']['transform_parameters']
 
 
-        self.paramInitExp = 6000
-        self.paramMinExp = [0, 0]
-        self.paramMaxExp = [100000, 100000]
-        self.paramInitSD = 500
-        self.obsNoiseSD= 1e-3
+        self.optimParamsAmount = configData['scene_parameters']['filtering_parameters']['optim_params_size']
+        self.paramInitExp = configData['scene_parameters']['filtering_parameters']['initial_stiffness']
+        self.paramMinExp = configData['scene_parameters']['filtering_parameters']['minimal_stiffness']
+        self.paramMaxExp = configData['scene_parameters']['filtering_parameters']['maximal_stiffness']
+        self.paramInitSD = configData['scene_parameters']['filtering_parameters']['initial_standart_deviation']
+        self.obsNoiseSD = configData['scene_parameters']['filtering_parameters']['observation_noise_standart_deviation']
+        self.positionSD = configData['scene_parameters']['filtering_parameters']['positions_standart_deviation']
+
         self.estimPosition='1'
-        self.positionSD= 1e-3
         self.estimVelocity='0'
+
+        self.secondFixedBoxData = configData['scene_parameters']['general_parameters']['second_fixed_box_coordinates']
                         
-        self.outDir='outCyl2_138_'+self.filterKind+'_2'       	
+        self.outDir = configData['scene_parameters']['filtering_parameters']['output_directory_prefix'] + self.filterKind + \
+      	              configData['scene_parameters']['filtering_parameters']['output_directory_suffix']
+        self.suffix = configData['scene_parameters']['filtering_parameters']['output_files_suffix']  #psd'+str(self.paramInitSD)+'#osd'+str(self.obsInitSD)+'#ogrid'+str(self.ogridID)
         
-        self.saveState = 1
-        self.suffix='test'   #psd'+str(self.paramInitSD)+'#osd'+str(self.obsInitSD)+'#ogrid'+str(self.ogridID)
+        self.saveState = configData['scene_parameters']['filtering_parameters']['save_state']
         if self.saveState:
-            self.stateExpFile=self.outDir+'/state_'+self.suffix+'.txt'
-            self.stateVarFile=self.outDir+'/variance_'+self.suffix+'.txt'
-            self.stateCovarFile=self.outDir+'/covariance_'+self.suffix+'.txt'
+            self.stateExpFile = self.outDir + '/state_' + self.suffix + '.txt'
+            self.stateVarFile = self.outDir + '/variance_' + self.suffix + '.txt'
+            self.stateCovarFile = self.outDir + '/covariance_' + self.suffix + '.txt'
             os.system('rm '+self.stateExpFile)
             os.system('rm '+self.stateVarFile)
             os.system('rm '+self.stateCovarFile)
-          
+
+        if self.filterKind=='ROUKF':
+            self.estimPosition='1'
+            self.estimVelocity='0'          
+
         if self.filterKind=='UKFSimCorr':
             self.estimPosition='0'
             self.estimVelocity='0'
 
         if self.filterKind=='UKFClassic':
+            self.estimPosition='1'
             self.estimVelocity='0'
         
         try:
@@ -131,15 +153,15 @@ class synth1_BCDA(Sofa.PythonScriptController):
         node.createObject('UniformMass', totalMass=self.totalMass)
 
         node.createObject('BoxROI', box='-0.05 -0.05 -0.002   0.05 0.05 0.002', name='fixedBox1')
-        node.createObject('BoxROI', box='-0.05 -0.05  0.298   0.05 0.05 0.302', name='fixedBox2')
+        node.createObject('BoxROI', box=self.secondFixedBoxData, name='fixedBox2')
         node.createObject('MergeSets', name='mergeIndices', in2='@fixedBox2.indices', in1='@fixedBox1.indices')
         node.createObject('FixedConstraint', indices='@mergeIndices.out')
                     
-        node.createObject('OptimParams', name="paramE", optimize="1", numParams='2', template="Vector", initValue=self.paramInitExp, min=self.paramMinExp, max=self.paramMaxExp, stdev=self.paramInitSD, transformParams="1")
+        node.createObject('OptimParams', name="paramE", optimize="1", numParams=self.optimParamsAmount, template="Vector", initValue=self.paramInitExp, min=self.paramMinExp, max=self.paramMaxExp, stdev=self.paramInitSD, transformParams=self.transformParams)
         node.createObject('Indices2ValuesMapper', name='youngMapper', indices='1 2 3 4 5 6 7 8 9 10', values='@paramE.value', inputValues='@/loader.dataset')
         node.createObject('TetrahedronFEMForceField', name='FEM', updateStiffness='1', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
 
-                # rootNode/simuNode/oglNode
+        # rootNode/simuNode/oglNode
         oglNode = node.createChild('oglNode')
         self.oglNode = oglNode
         oglNode.createObject('OglModel', color='0 0 0 0')

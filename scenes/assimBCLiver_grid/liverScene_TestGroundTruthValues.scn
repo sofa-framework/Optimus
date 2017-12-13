@@ -1,0 +1,148 @@
+<!-- Complete for expired chest, including rib cage, organs, precise liver...
+	 You will need to download dataset from IRCAD at :
+	 and extract the archive in <Sofa_Directory>/examples/Demos/Passport/data/models
+-->
+
+<Node name="root" dt="0.02">
+    <RequiredPlugin pluginName="SofaPython" />
+    <RequiredPlugin pluginName="SofaCUDA" />
+    <RequiredPlugin pluginName="Optimus" />
+    <RequiredPlugin pluginName="SofaPardisoSolver" />
+    <RequiredPlugin pluginName="ImageMeshAux" />
+    <RequiredPlugin pluginName="BoundaryConditionsPlugin" />
+	
+    <DefaultVisualManagerLoop />
+    <VisualStyle displayFlags="showVisualModels hideBehaviorModels hideCollisionModels hideMappings hideForceFields" />
+
+    <!-- <FreeMotionAnimationLoop /> -->
+    <!-- <GenericConstraintSolver tolerance="0.01" maxIt="100" printLog="false" /> -->
+    <!-- <GenericConstraintCorrection solverName="Instruments/CarvingObject/solver Organs/liver/warpingsolver Organs/diaphragm/warpingsolver Organs/intestine/warpingsolver Organs/intestine/warpingsolver Organs/large_intestine/warpingsolver  Organs/stomach_oesophage/warpingsolver"  /> -->
+	
+    <!-- <CudaRasterizer template="CudaVec3f" tags="LDI" subVolumeResolution="32" pixelSize="2" keepDist="0.25" responseType="2" /> -->
+
+    <InteractiveCamera />
+	
+    <EulerImplicitSolver firstOrder="false" vdamping="5.0" rayleighMass="0.1" rayleighStiffness="0.1" />
+    <CGLinearSolver name="linear solver" iterations="25" tolerance="1e-10" threshold="10e-10" />
+    <!--    <NewtonStaticSolver maxIt="3" name="NewtonStatic" correctionTolerance="1e-8" convergeOnResidual="1" residualTolerance="1e-8" printLog="1" />-->
+    <!--    <SparsePARDISOSolver name="precond" symmetric="1" exportDataToDir="" iterativeSolverNumbering="1" /> -->
+    
+    <Node name="externalImpact">
+        <EulerImplicit />
+        <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/>
+        <!--        <NewtonStaticSolver maxIt="3" name="NewtonStatic" correctionTolerance="1e-8" convergeOnResidual="1" residualTolerance="1e-8" printLog="1" />-->
+        <!--        <SparsePARDISOSolver name="precond" symmetric="1" exportDataToDir="" iterativeSolverNumbering="1" /> -->
+        <MeshObjLoader name="devloader" filename="data/sphere.obj" />
+        <TriangleSetTopologyContainer name="Container" src="@devloader" />  
+        <MechanicalObject template="Vec3d" name="state" showObject="true" translation="0.26 0.28 0.38" />
+        <UniformMass name="mass" mass="0.005" />
+        <FixedConstraint name="FixedConstraint" fixAll="true" />
+    </Node>
+	
+    <Node name="liver">
+        <MeshGmshLoader name="vloader" filename="data/liver.msh" />
+        
+        <EulerImplicit name="odesolver" />
+        <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/> 
+        <!--        <NewtonStaticSolver maxIt="3" name="NewtonStatic" correctionTolerance="1e-8" convergeOnResidual="1" residualTolerance="1e-8" printLog="1" />-->
+        <!-- <ShewchukPCGLinearSolver iterations="10" tolerance="1e-5" preconditioners="warpingsolver" use_precond="true" /> -->
+        <!--        <SparsePARDISOSolver name="precond" symmetric="1" exportDataToDir="" iterativeSolverNumbering="1" /> -->
+
+        <TetrahedronSetTopologyContainer src="@vloader" name="Container" />
+        <TetrahedronSetTopologyModifier name="Modifier" />
+        <MechanicalObject name="dofs" src="@vloader" />
+        <ShapeMarkersGenerator name="markersGen" minimumDistance="0.037" />
+        
+        <UniformMass totalmass="1.8" />
+        <TetrahedronFEMForceField name="FEM" listening="true" youngModulus="5000" poissonRatio="0.4"/>
+        <!--        <RestShapeSpringsForceField name="Falciform" stiffness="1000" angularStiffness="1" points="320 370 413" /> -->
+	<!--        <RestShapeSpringsForceField name="RightCoronary" stiffness="10000" angularStiffness="1" points="483 450 494 480" />-->
+	<!--        <RestShapeSpringsForceField name="LeftCoronary" stiffness="10000" angularStiffness="1" points="381 352 473 239 277" />-->
+	<!--        <RestShapeSpringsForceField name="Hepatogastric" stiffness="10000" angularStiffness="1" points="53 83 200 190" />-->
+	<!--        <RestShapeSpringsForceField name="Unpredictable" stiffness="10000" angularStiffness="1" points="79 60" />-->
+        <RestShapeSpringsForceField name="RightCoronary" stiffness="2000" angularStiffness="1" points="82" />
+        <RestShapeSpringsForceField name="LeftCoronary" stiffness="100" angularStiffness="1" points="120" />
+
+        <VTKExporter position="@dofs.position" edges="0" tetras="1" listening="1" XMLformat="0" exportAtBegin="1" exportAtEnd="0" exportEveryNumberOfSteps="0" filename="observations/object.vtk" />
+
+        <!-- <CudaTetrahedronFEMForceFieldOptim name="FEM" youngModulus="1" poissonRatio="0.4"/> -->
+        
+        <!-- <BoxConstraint name="box" box="130 240 325 180 280 375" drawBoxes="true" /> -->
+
+        <Node name="tumorObj">
+            <MeshObjLoader name="tumorLoader" filename="data/sphereTumor.obj" />
+            <MechanicalObject name="tumorMO" src="@tumorLoader" template="Vec3d" showIndices="0" translation="0.2 0.21 0.37" />
+            <BarycentricMapping name="baryMapping" />
+            <BoxROI name="tumorBox" box= "-1 -1 -1 1 1 1" />
+            <Monitor name="observationMonitor" showPositions="1" indices="@tumorBox.indices" ExportPositions="1" ExportVelocities="0" ExportForces="0" fileName="measurements/controlGridGroundTruthPos" />
+        </Node>
+
+        <!--        <Node name="observations">-->
+        <!--            <MechanicalObject name="mechanicalObject" position="@markersGen.markersPositions" template="Vec3d" />-->
+        <!--            <BarycentricMapping />-->
+        <!--            <Sphere color="0.0 0.5 0.0 1" radius="0.005" template='Vec3d' />-->
+        <!--	    <VTKExporter position="@mechanicalObject.position" edges="0" listening="0" XMLformat="0" exportAtBegin="1" exportEveryNumberOfSteps="0" filename="observations/observations.vtk" />-->
+        <!--            <BoxROI name="observeBounds" box="0.05 0.08 0.2 0.3 0.39 0.54" />-->
+        <!--            <Monitor name="observationMonitor" showPositions="1" indices="@observeBounds.indices" ExportPositions="1" ExportVelocities="0" ExportForces="0" fileName="observations/observations" />-->
+        <!--        </Node>-->
+
+        <!--        <Node name="collision">-->
+        <!--             <Mesh name="surface" filename="data/mesh/liverColli.obj" tags="LDI" />-->
+        <!--             <MechanicalObject name="collisionVertices"/>-->
+        <!--             <TriangleModel name="CM" />-->
+        <!--             <BarycentricMapping isMechanical="false" input="@../dofs" output="@collisionVertices" />-->
+        <!--        </Node>-->
+        
+        <Node name="ModifiedVisual">
+            <MeshObjLoader name="visloader" filename="data/sphere.obj" />
+            <TriangleSetTopologyContainer name="Container" src="@visloader" />  
+            <MechanicalObject template="Vec3d" showObject="true" name="dofs" translation="0.15 0.21 0.37" />
+            <RestShapeSpringsForceField name="Springs" stiffness="0.5" angularStiffness="1" external_rest_shape="@../../externalImpact" />
+            <BarycentricMapping />
+            <VTKExporter position="@state.position" edges="0" listening="0" XMLformat="0" exportAtBegin="1" exportEveryNumberOfSteps="0" filename="observations/impact.vtk" />
+	    <BoxROI name="impactBounds" box="0.08 0.23 0.29 0.22 0.34 0.44" />
+            <!--	    <Monitor name="toolMonitor" showPositions="1" indices="@impactBounds.indices" ExportPositions="1" ExportVelocities="1" ExportForces="1" fileName="observations/impact" />-->
+        </Node>
+
+        <!-- <CudaSparseLDLSolver name="precond" template="AsyncCompressedRowSparseMatrix3f" /> -->
+        <!-- <WarpPreconditioner template="CudaRotationMatrixf" name="warpingsolver" solverName="precond" /> -->
+    </Node>
+
+    <!--    <Node name="CoronaryRight">-->
+    <!--        <MeshObjLoader name="meshLoader" filename="data/rightCoronary.obj" />-->
+    <!--	<TetrahedronSetTopologyContainer name="Container" src="@meshLoader" />                                         -->
+    <!--	<MechanicalObject name="mstate" />                 -->
+    <!--	<UniformMass totalmass="0.05" />-->
+    <!--	<FixedConstraint name="FixedConstraint" fixAll="true" />-->
+    <!--    </Node>-->
+    <!--    <Node name="CoronaryLeft">-->
+    <!--        <MeshObjLoader name="mesh1Loader" filename="data/leftCoronary.obj" />-->
+    <!--    	<TetrahedronSetTopologyContainer name="Container" src="@mesh1Loader" />                                         -->
+    <!--    	<MechanicalObject name="mstate" />                 -->
+    <!--    	<UniformMass totalmass="0.05" />-->
+    <!--    	<FixedConstraint name="FixedConstraint" fixAll="true" />-->
+    <!--    </Node>-->
+    <!--    <Node name="HepatogastricLig">-->
+    <!--        <MeshObjLoader name="mesh2Loader" filename="data/hepatogastric.obj" />-->
+    <!--    	<TetrahedronSetTopologyContainer name="Container" src="@mesh2Loader" />                                         -->
+    <!--    	<MechanicalObject name="mstate" />                 -->
+    <!--    	<UniformMass totalmass="0.05" />-->
+    <!--    	<FixedConstraint name="FixedConstraint" fixAll="true" />-->
+    <!--    </Node>-->
+    <!--    <Node name="FalciformLig">-->
+    <!--        <MeshObjLoader name="mesh3Loader" filename="data/falciform.obj" />-->
+    <!--    	<TetrahedronSetTopologyContainer name="Container" src="@mesh3Loader" />                                         -->
+    <!--    	<MechanicalObject name="mstate" />                 -->
+    <!--    	<UniformMass totalmass="0.05" />-->
+    <!--    	<FixedConstraint name="FixedConstraint" fixAll="true" />-->
+    <!--    </Node>-->
+    <!--    <Node name="UnpredictableLig">-->
+    <!--        <MeshObjLoader name="mesh4Loader" filename="data/unpredictable.obj" />-->
+    <!--    	<TetrahedronSetTopologyContainer name="Container" src="@mesh4Loader" />                                         -->
+    <!--    	<MechanicalObject name="mstate" />                 -->
+    <!--    	<UniformMass totalmass="0.05" />-->
+    <!--    	<FixedConstraint name="FixedConstraint" fixAll="true" />-->
+    <!--    </Node>-->
+    
+    <!--    <BoxStiffSpringForceField template="Vec3d" name="Spring" stiffness="20000" forceOldBehavior="false" object1="@liver/collision" object2="@Bound" box_object1="90.0 150.0 260.0 120.0 290.0 400.0" box_object2="60.0 150.0 260.0 80.0 290.0 400.0" />-->
+</Node>
