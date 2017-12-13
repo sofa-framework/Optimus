@@ -29,7 +29,11 @@ class cyl10_GenObs (Sofa.PythonScriptController):
     def __init__(self, rootNode, commandLineArguments) :         
 
         # load configuration from yaml file
-        self.configFileName = "cyl_scene_config.yml"
+        if len(commandLineArguments) > 1:
+            self.configFileName = commandLineArguments[1]
+        else:
+            self.configFileName = "cyl_scene_config.yml"
+
         with open(self.configFileName, 'r') as stream:
             try:
                 configData = yaml.load(stream)

@@ -13,7 +13,13 @@ def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', pluginName='ImageMeshAux')
     #rootNode.createObject('RequiredPlugin', pluginName='SofaMJEDFEM')
     
-    rootNode.createObject('PythonScriptController', name='SynthBCDA', filename=__file, classname='synth1_BCDA')
+    try : 
+        sys.argv[0]
+    except :
+        commandLineArguments = []
+    else :
+        commandLineArguments = sys.argv
+    rootNode.createObject('PythonScriptController', name='SynthBCDA', filename=__file, classname='synth1_BCDA', variables=' '.join(commandLineArguments[1:]))
 
 
 
@@ -26,10 +32,14 @@ class synth1_BCDA(Sofa.PythonScriptController):
         self.rootNode=node     
 
         print  "Create graph called (Python side)\n"
-
-
+	
         # load configuration from yaml file
-        self.configFileName = "cyl_scene_config.yml"
+        if len(self.findData("variables").value) > 0:
+            self.configFileName = self.findData("variables").value[0][0]
+        else:
+            self.configFileName = "cyl_scene_config.yml"
+
+        
         with open(self.configFileName, 'r') as stream:
             try:
                 configData = yaml.load(stream)
