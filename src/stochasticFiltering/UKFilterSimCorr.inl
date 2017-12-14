@@ -17,7 +17,8 @@ UKFilterSimCorr<FilterType>::UKFilterSimCorr()
     : Inherit()    
     , d_state( initData(&d_state, "state", "actual expected value of reduced state (parameters) estimated by the filter" ) )
     , d_variance( initData(&d_variance, "variance", "actual variance  of reduced state (parameters) estimated by the filter" ) )
-    , d_covariance( initData(&d_covariance, "covariance", "actual co-variance  of reduced state (parameters) estimated by the filter" ) )    
+    , d_covariance( initData(&d_covariance, "covariance", "actual co-variance  of reduced state (parameters) estimated by the filter" ) )
+    , d_innovation( initData(&d_innovation, "innovation", "innovation value computed by the filter" ) )
     , d_filename( initData(&d_filename, "filename", "output file name"))
     , outfile(NULL)
 {
@@ -147,11 +148,13 @@ void UKFilterSimCorr<FilterType>::computeCorrection()
         helper::WriteAccessor<Data <helper::vector<FilterType> > > stat = d_state;
         helper::WriteAccessor<Data <helper::vector<FilterType> > > var = d_variance;
         helper::WriteAccessor<Data <helper::vector<FilterType> > > covar = d_covariance;
+        helper::WriteAccessor<Data <helper::vector<FilterType> > > innov = d_innovation;
 
         stat.resize(stateSize);
         var.resize(stateSize);
         size_t numCovariances = (stateSize*(stateSize-1))/2;
         covar.resize(numCovariances);
+        innov.resize(observationSize);
 
         size_t gli = 0;
         for (size_t i = 0; i < stateSize; i++) {
@@ -160,6 +163,9 @@ void UKFilterSimCorr<FilterType>::computeCorrection()
             for (size_t j = i+1; j < stateSize; j++) {
                 covar[gli++] = stateCovar(i,j);
             }
+        }
+        for (size_t index = 0; index < observationSize; index++) {
+            innov[index] = innovation[index];
         }
 
     }

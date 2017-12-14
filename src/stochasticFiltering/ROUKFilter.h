@@ -182,6 +182,7 @@ public:
     Data<helper::vector<FilterType> > reducedState;
     Data<helper::vector<FilterType> > reducedVariance;
     Data<helper::vector<FilterType> > reducedCovariance;
+    Data<helper::vector<FilterType> > d_reducedInnovation;
 
 
     void init();

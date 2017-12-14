@@ -55,6 +55,7 @@ ROUKFilter<FilterType>::ROUKFilter()
     , reducedState( initData(&reducedState, "reducedState", "actual expected value of reduced state (parameters) estimated by the filter" ) )
     , reducedVariance( initData(&reducedVariance, "reducedVariance", "actual variance  of reduced state (parameters) estimated by the filter" ) )
     , reducedCovariance( initData(&reducedCovariance, "reducedCovariance", "actual co-variance  of reduced state (parameters) estimated by the filter" ) )
+    , d_reducedInnovation( initData(&d_reducedInnovation, "reducedInnovation", "innovation value computed by the filter" ) )
 {    
     this->reducedOrder.setValue(true);
 }
@@ -213,11 +214,13 @@ void ROUKFilter<FilterType>::computeCorrection()
         helper::WriteAccessor<Data <helper::vector<FilterType> > > redState = reducedState;
         helper::WriteAccessor<Data <helper::vector<FilterType> > > redVar = reducedVariance;
         helper::WriteAccessor<Data <helper::vector<FilterType> > > redCovar = reducedCovariance;
+        helper::WriteAccessor<Data <helper::vector<FilterType> > > innov = d_reducedInnovation;
 
         redState.resize(reducedStateSize);
         redVar.resize(reducedStateSize);
         size_t numCovariances = (reducedStateSize*(reducedStateSize-1))/2;
         redCovar.resize(numCovariances);
+        innov.resize(reducedStateSize);
 
         size_t gli = 0;
         for (size_t i = 0; i < reducedStateSize; i++) {
@@ -226,6 +229,9 @@ void ROUKFilter<FilterType>::computeCorrection()
             for (size_t j = i+1; j < reducedStateSize; j++) {
                 redCovar[gli++] = covarianceMatrix(i,j);
             }
+        }
+        for (size_t index = 0; index < reducedStateSize; index++) {
+            innov[index] = reducedInnovation[index];
         }
 
         /*char fileName[100];

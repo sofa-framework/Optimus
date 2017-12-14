@@ -106,7 +106,8 @@ protected:
 public:    
     Data<helper::vector<FilterType> > d_state;
     Data<helper::vector<FilterType> > d_variance;
-    Data<helper::vector<FilterType> > d_covariance;      
+    Data<helper::vector<FilterType> > d_covariance;
+    Data<helper::vector<FilterType> > d_innovation;
 
     void init();
     void bwdInit();

@@ -92,13 +92,18 @@ class synth1_BCDA(Sofa.PythonScriptController):
         self.suffix = configData['scene_parameters']['filtering_parameters']['output_files_suffix']  #psd'+str(self.paramInitSD)+'#osd'+str(self.obsInitSD)+'#ogrid'+str(self.ogridID)
         
         self.saveState = configData['scene_parameters']['filtering_parameters']['save_state']
+        self.saveInternalData = configData['scene_parameters']['filtering_parameters']['save_internal_data']
         if self.saveState:
             self.stateExpFile = self.outDir + '/state_' + self.suffix + '.txt'
             self.stateVarFile = self.outDir + '/variance_' + self.suffix + '.txt'
             self.stateCovarFile = self.outDir + '/covariance_' + self.suffix + '.txt'
-            os.system('rm '+self.stateExpFile)
-            os.system('rm '+self.stateVarFile)
-            os.system('rm '+self.stateCovarFile)
+            os.system('rm ' + self.stateExpFile)
+            os.system('rm ' + self.stateVarFile)
+            os.system('rm ' + self.stateCovarFile)
+
+        if self.saveInternalData:
+            self.innovationExpFile = self.outDir + '/innovation_' + self.suffix + '.txt'
+            os.system('rm ' + self.innovationExpFile)
 
         if self.filterKind=='ROUKF':
             self.estimPosition='1'
@@ -286,7 +291,22 @@ class synth1_BCDA(Sofa.PythonScriptController):
             f3 = open(self.stateCovarFile, "a")
             f3.write(" ".join(map(lambda x: str(x), covariance)))
             f3.write('\n')
-            f3.close()    
+            f3.close()
+
+        if self.saveInternalData:
+            if (self.filterKind == 'ROUKF'):
+                innov=self.filter.findData('reducedInnovation').value
+            elif (self.filterKind == 'UKFSimCorr' or self.filterKind == 'UKFClassic'):
+                innov=self.filter.findData('innovation').value
+
+            innovation = [val for sublist in innov for val in sublist]
+            #print 'Reduced state:'
+            #print reducedState
+
+            f4 = open(self.innovationExpFile, "a")        
+            f4.write(" ".join(map(lambda x: str(x), innovation)))
+            f4.write('\n')
+            f4.close()      
 
         # print self.basePoints.findData('indices_position').value
 

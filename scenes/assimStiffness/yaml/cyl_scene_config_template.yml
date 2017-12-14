@@ -28,4 +28,5 @@ scene_parameters:
         positions_standart_deviation: 1e-3
         transform_parameters: 1
         save_state: 1
+        save_internal_data: 1
 ...
