@@ -57,17 +57,19 @@ class Observations:
     def __init__(self):
         return
 
-    fileName = ''
+    valueFileName = ''
     positionFileName = ''
     groundTruth = ''
     save = 1
     stdev = 1e-3
+    youngModuli = 6000
 
     def parseYaml(self, configData):    
         self.valueFileName = configData['scene_parameters']['system_parameters']['observation_file_name']        
         self.positionFileName = configData['scene_parameters']['system_parameters']['observation_points_file_name']   
         self.stdev = configData['scene_parameters']['filtering_parameters']['observation_noise_standart_deviation']
         self.youngModuli = configData['scene_parameters']['obs_generating_parameters']['object_young_moduli']
+        self.groundTruth = self.youngModuli
         
 
 

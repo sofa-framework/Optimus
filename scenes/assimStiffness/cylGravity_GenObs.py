@@ -3,7 +3,7 @@ import math
 import os
 import sys
 import csv
-import yaml
+import DAOptions
 
 __file = __file__.replace('\\', '/') # windows
 
@@ -20,11 +20,13 @@ def createScene(rootNode):
         commandLineArguments = []
     else :
         commandLineArguments = sys.argv
-    mycyl10_GenObs = cyl10_GenObs(rootNode,commandLineArguments)
+    mycylGravity_GenObs = cylGravity_GenObs(rootNode, commandLineArguments)
     return 0;
 
 
-class cyl10_GenObs (Sofa.PythonScriptController):
+class cylGravity_GenObs (Sofa.PythonScriptController):
+
+    options = DAOptions.DAOptions()
 
     def __init__(self, rootNode, commandLineArguments) :         
 
@@ -34,31 +36,13 @@ class cyl10_GenObs (Sofa.PythonScriptController):
         else:
             self.configFileName = "cyl_scene_config.yml"
 
-        with open(self.configFileName, 'r') as stream:
-            try:
-                configData = yaml.load(stream)
-                print()
-            except yaml.YAMLError as exc:
-                print(exc)
-
-        self.volumeFileName = configData['scene_parameters']['system_parameters']['volume_file_name']
-        self.observationFileName = configData['scene_parameters']['system_parameters']['observation_file_name']
-        self.dt='0.01'
-        self.gravity = configData['scene_parameters']['general_parameters']['gravity']
-        self.totalMass = configData['scene_parameters']['general_parameters']['total_mass']
-        ######## self.totalMass='0.3769'                
+        self.options.parseYaml(self.configFileName)
         self.rayleighMass = 0.1
         self.rayleighStiffness = 3
-        self.youngModuli = configData['scene_parameters']['obs_generating_parameters']['object_young_moduli']
 
-        self.saveObservations = configData['scene_parameters']['obs_generating_parameters']['save_observations']
+        rootNode.findData('dt').value = self.options.model.dt
+        rootNode.findData('gravity').value = self.options.model.gravity
 
-        self.secondFixedBoxData = configData['scene_parameters']['general_parameters']['second_fixed_box_coordinates']
-
-        rootNode.findData('dt').value = self.dt
-        rootNode.findData('gravity').value = self.gravity
-
-        self.commandLineArguments = commandLineArguments
         print "Command line arguments for python : "+str(commandLineArguments)
         self.createGraph(rootNode)
 
@@ -78,24 +62,24 @@ class cyl10_GenObs (Sofa.PythonScriptController):
         self.simuNode = simuNode
         simuNode.createObject('EulerImplicitSolver', rayleighStiffness=self.rayleighStiffness, rayleighMass=self.rayleighMass)
         simuNode.createObject('SparsePARDISOSolver', name='LDLsolver', verbose='0', symmetric='2', exportDataToFolder='cyl2_138_mat')
-        simuNode.createObject('MeshVTKLoader', name='loader', filename=self.volumeFileName)
+        simuNode.createObject('MeshVTKLoader', name='loader', filename=self.options.model.volumeFileName)
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')
-        simuNode.createObject('BoxROI', box='-0.05 -0.05 -0.002   0.05 0.05 0.002', name='fixedBox1')
-        simuNode.createObject('BoxROI', box=self.secondFixedBoxData, name='fixedBox2')
+        simuNode.createObject('BoxROI', box=self.options.model.fixedBox1, name='fixedBox1')
+        simuNode.createObject('BoxROI', box=self.options.model.fixedBox2, name='fixedBox2')
         simuNode.createObject('MergeSets', name='mergeIndices', in2='@fixedBox2.indices', in1='@fixedBox1.indices')
         simuNode.createObject('FixedConstraint', indices='@mergeIndices.out')        
         simuNode.createObject('TetrahedronSetTopologyContainer', name="Container", src="@loader", tags=" ")
         simuNode.createObject('TetrahedronSetTopologyModifier', name="Modifier")        
         simuNode.createObject('TetrahedronSetTopologyAlgorithms', name="TopoAlgo")
         simuNode.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
-        simuNode.createObject('UniformMass', totalMass=self.totalMass)
+        simuNode.createObject('UniformMass', totalMass=self.options.model.totalMass)
 
-        simuNode.createObject('Indices2ValuesMapper', indices='1 2 3 4 5 6 7 8 9 10', values=self.youngModuli, name='youngMapper', inputValues='@loader.dataset')
+        simuNode.createObject('Indices2ValuesMapper', indices='1 2 3 4 5 6 7 8 9 10', values=self.options.observations.youngModuli, name='youngMapper', inputValues='@loader.dataset')
         simuNode.createObject('TetrahedronFEMForceField', updateStiffness='1', name='FEM', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
 
-        if self.saveObservations:
+        if self.options.observations.save:
             simuNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1')
-            simuNode.createObject('Monitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.observationFileName, ExportPositions='1', ExportVelocities='0', ExportForces='0')
+            simuNode.createObject('Monitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.options.observations.valueFileName, ExportPositions='1', ExportVelocities='0', ExportForces='0')
 
 
         # rootNode/simuNode/oglNode
