@@ -112,7 +112,7 @@ class Export:
                     os.mkdir('archive')
                 archFolder = 'archive/'+self.folder+datetime.datetime.now().strftime("%Y_%b_%d-%I:%M")
                 print "Archiving existing results to archive: ", archFolder
-                os.rename(self.folder, archFolder)
+                shutil.move(self.folder, archFolder)
 
             else:
                 shutil.rmtree(self.folder)                        
