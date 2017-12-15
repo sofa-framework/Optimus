@@ -67,10 +67,10 @@ void OptimParams<sofa::helper::vector<double> >::setValueTempl(const DVec& _valu
 }*/
 
 template<>
-void OptimParams<sofa::helper::vector<double> >::vectorToParams(VectorXd& _vector) {
+void OptimParams<sofa::helper::vector<double> >::vectorToParams(VectorXd& _vector) {    
     helper::WriteAccessor<Data<helper::vector<double> > > val = m_val;
 
-    switch (this->m_transformParams.getValue()) {
+    switch (transParamType) {
     case 1:
         for (size_t i = 0; i < this->paramIndices.size(); i++) {
             val[i]=fabs(_vector[this->paramIndices[i]]);
@@ -83,6 +83,12 @@ void OptimParams<sofa::helper::vector<double> >::vectorToParams(VectorXd& _vecto
             //std::cout << val[i] << std::endl;
         }
         break;
+    case 3:
+        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+            val[i]=exp(_vector[this->paramIndices[i]]);
+            //std::cout << val[i] << std::endl;
+        }
+        break;
     default:
         for (size_t i = 0; i < this->paramIndices.size(); i++)
             val[i] = _vector[this->paramIndices[i]];
@@ -90,10 +96,10 @@ void OptimParams<sofa::helper::vector<double> >::vectorToParams(VectorXd& _vecto
 }
 
 template<>
-void OptimParams<sofa::helper::vector<double> >::vectorToParams(VectorXf& _vector) {
+void OptimParams<sofa::helper::vector<double> >::vectorToParams(VectorXf& _vector) {    
     helper::WriteAccessor<Data<helper::vector<double> > > val = m_val;
 
-    switch (this->m_transformParams.getValue()) {
+    switch (transParamType) {
     case 1:
         for (size_t i = 0; i < this->paramIndices.size(); i++) {
             val[i]=double(fabs(_vector[this->paramIndices[i]]));
@@ -102,6 +108,12 @@ void OptimParams<sofa::helper::vector<double> >::vectorToParams(VectorXf& _vecto
     case 2:
         for (size_t i = 0; i < this->paramIndices.size(); i++) {
             val[i]=sigmoid(_vector[this->paramIndices[i]], m_max.getValue()[i], m_min.getValue()[i]);
+        }
+        break;
+    case 3:
+        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+            val[i]=exp(_vector[this->paramIndices[i]]);
+            //std::cout << val[i] << std::endl;
         }
         break;
     default:
@@ -114,7 +126,7 @@ template<>
 void OptimParams<sofa::helper::vector<double> >::rawVectorToParams(const double* _vector) {
     helper::WriteAccessor<Data<helper::vector<double> > > val = m_val;
 
-    switch (this->m_transformParams.getValue()) {
+    switch (transParamType) {
     case 1:
         for (size_t i = 0; i < this->paramIndices.size(); i++) {
             val[i]=fabs(_vector[this->paramIndices[i]]);
@@ -123,6 +135,12 @@ void OptimParams<sofa::helper::vector<double> >::rawVectorToParams(const double*
     case 2:
         for (size_t i = 0; i < this->paramIndices.size(); i++) {
             val[i]=sigmoid(_vector[this->paramIndices[i]], m_max.getValue()[i], m_min.getValue()[i]);
+        }
+        break;
+    case 3:
+        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+            val[i]=exp(_vector[this->paramIndices[i]]);
+            //std::cout << val[i] << std::endl;
         }
         break;
     default:
@@ -139,7 +157,7 @@ void OptimParams<sofa::helper::vector<double> >::rawVectorToParamsParallel(const
     //std::cout<<"INFO: rawVectorToParamsParallel\n";
     //std::cout << this->getContext()->getName() << "::" << this->getName() << " paramIdx size: " << this->paramIndices << std::endl;
     helper::WriteAccessor<Data<helper::vector<double> > > val = m_val;
-    switch (this->m_transformParams.getValue()) {
+    switch (transParamType) {
     case 1:
         for (size_t i = 0; i < this->paramIndices.size(); i++) {
             val[i]=fabs(_vector[this->paramIndices[i]]);
@@ -148,6 +166,12 @@ void OptimParams<sofa::helper::vector<double> >::rawVectorToParamsParallel(const
     case 2:
         for (size_t i = 0; i < this->paramIndices.size(); i++) {
             val[i]=sigmoid(_vector[this->paramIndices[i]], m_max.getValue()[i], m_min.getValue()[i]);
+        }
+        break;
+    case 3:
+        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+            val[i]=exp(_vector[this->paramIndices[i]]);
+            //std::cout << val[i] << std::endl;
         }
         break;
     default:
@@ -161,7 +185,7 @@ template<>
 void OptimParams<sofa::helper::vector<double> >::paramsToVector(VectorXd& _vector) {
     helper::ReadAccessor<Data<helper::vector<double> > > val = m_val; // real values of parameters
 
-    switch (this->m_transformParams.getValue()) {
+    switch (transParamType) {
     case 1:
         for (size_t i = 0; i < paramIndices.size(); i++)
             _vector[paramIndices[i]] = double(fabs(val[i]));
@@ -171,6 +195,12 @@ void OptimParams<sofa::helper::vector<double> >::paramsToVector(VectorXd& _vecto
         for (size_t i = 0; i < this->paramIndices.size(); i++) {
             _vector[paramIndices[i]] = double(logit(val[i], m_max.getValue()[i], m_min.getValue()[i]));
             //std::cout << val[i] << " " << logit(val[i], m_max.getValue()[i], m_min.getValue()[i]) << std::endl;
+        }
+        break;
+    case 3:
+        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+            _vector[paramIndices[i]] = double(log(val[i]));
+            //std::cout << val[i] << std::endl;
         }
         break;
     default:
@@ -183,7 +213,7 @@ template<>
 void OptimParams<sofa::helper::vector<double> >::paramsToVector(VectorXf& _vector) {
     helper::ReadAccessor<Data<helper::vector<double> > > val = m_val; // real values of parameters
 
-    switch (this->m_transformParams.getValue()) {
+    switch (transParamType) {
     case 1:
         for (size_t i = 0; i < paramIndices.size(); i++)
             _vector[paramIndices[i]] = float(fabs(val[i]));
@@ -191,6 +221,12 @@ void OptimParams<sofa::helper::vector<double> >::paramsToVector(VectorXf& _vecto
     case 2:
         for (size_t i = 0; i < this->paramIndices.size(); i++) {
             _vector[paramIndices[i]] = float(logit(val[i], m_max.getValue()[i], m_min.getValue()[i]));
+        }
+        break;
+    case 3:
+        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+            _vector[paramIndices[i]] = float(log(val[i]));
+            //std::cout << val[i] << std::endl;
         }
         break;
     default:
@@ -206,7 +242,7 @@ void OptimParams<sofa::helper::vector<double> >::paramsToRawVector(double* _vect
     helper::ReadAccessor<Data<helper::vector<double> > > val = m_val; // real values of parameters
 
     //std::cout<<"INFO: paramsToRawVectorDouble\n";
-    switch (this->m_transformParams.getValue()) {
+    switch (transParamType) {
     case 1:
         for (size_t i = 0; i < paramIndices.size(); i++)
             _vector[paramIndices[i]] = fabs(val[i]);
@@ -214,6 +250,12 @@ void OptimParams<sofa::helper::vector<double> >::paramsToRawVector(double* _vect
     case 2:
         for (size_t i = 0; i < this->paramIndices.size(); i++) {
             _vector[paramIndices[i]] = logit(val[i], m_max.getValue()[i], m_min.getValue()[i]);
+        }
+        break;
+    case 3:
+        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+            _vector[paramIndices[i]] = log(val[i]);
+            //std::cout << val[i] << std::endl;
         }
         break;
     default:
@@ -228,7 +270,7 @@ void OptimParams<sofa::helper::vector<double> >::paramsToRawVectorParallel(doubl
 {    
     //std::cout<<"INFO:: paramsToRawVectorParallel\n";
     helper::ReadAccessor<Data<helper::vector<double> > > val = m_val;
-    switch (this->m_transformParams.getValue()) {
+    switch (transParamType) {
     case 1:
         for (size_t i = 0; i < paramIndices.size(); i++)
             _vector[paramIndices[i]] = fabs(val[i]);
@@ -236,6 +278,12 @@ void OptimParams<sofa::helper::vector<double> >::paramsToRawVectorParallel(doubl
     case 2:
         for (size_t i = 0; i < this->paramIndices.size(); i++) {
             _vector[paramIndices[i]] = logit(val[i], m_max.getValue()[i], m_min.getValue()[i]);
+        }
+        break;
+    case 3:
+        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+            _vector[paramIndices[i]] = log(val[i]);
+            //std::cout << val[i] << std::endl;
         }
         break;
     default:

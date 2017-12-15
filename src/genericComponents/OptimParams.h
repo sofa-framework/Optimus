@@ -145,11 +145,12 @@ protected:
     size_t m_dim;
     Data< bool > m_optimize;            ///if OptimParams component are used in Verdandi optimization
     Data< size_t > m_numParams;
-    Data< int > m_transformParams;
+    Data< std::string > m_transformParams;
     Data< helper::vector<double> > m_prescribedParamKeys;
     Data< std::string > m_exportParamFile;
     Data< bool> m_interpolateSmooth;
     bool saveParam;
+    int transParamType;
 
     //SingleLink<OptimParamsBase,mechState,BaseLink::FLAG_NONE> mstate;
     //SingleLink<OptimParamsBase,mechState,BaseLink::FLAG_STRONGLINK> mstate;
@@ -177,7 +178,7 @@ public:
         : m_dim(1)
         , m_optimize( initData(&m_optimize, false, "optimize", "the parameters handled in the component will be optimized by Verdandi") )
         , m_numParams( initData(&m_numParams, size_t(0), "numParams", "number of params for vectorial data (input values replicated)") )
-        , m_transformParams( initData(&m_transformParams, 0, "transformParams", "transform estimated params: 0: do nothing, 1: absolute value, 2: sigmoid-logit transformation, 3: quadratic (not implemented)") )
+        , m_transformParams( initData(&m_transformParams, "transformParams", "transform estimated params. Choice: none, absolute, sigmoid, exponential") )
         , m_prescribedParamKeys( initData (&m_prescribedParamKeys, "prescribedParamKeys", "prescribed params in list format: ti p1i ... pni") )
         , m_exportParamFile( initData(&m_exportParamFile, std::string(""), "exportParamFile", "store the parameter at the begining of each time step") )
         , m_interpolateSmooth( initData(&m_interpolateSmooth, true, "interpolateSmooth", "use hyperbolic tangent to interpolate the parameters (linear interpolation if false") )
@@ -205,6 +206,22 @@ public:
 
             this->f_listening.setValue(true);
         }
+
+        transParamType = -1;
+        std::string transf = m_transformParams.getValue();
+
+        if (std::strcmp(transf.c_str(), "none") == 0)
+            transParamType = 0;
+
+        if (std::strcmp(transf.c_str(), "absolute") == 0)
+            transParamType = 1;
+
+        if (std::strcmp(transf.c_str(), "sigmoid") == 0)
+            transParamType = 2;
+
+        if (std::strcmp(transf.c_str(), "exponential") == 0)
+            transParamType = 3;
+
     }
 
     size_t size() {
