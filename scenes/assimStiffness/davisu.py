@@ -64,9 +64,22 @@ data = numpy.ones(nsteps);
 for i in range(0, nparams):
     si = i +nstate - nparams;
     # print i,' ',si
-    ev = abs(stateExpVal[:,si])
-    var = stateVar[:,si]
-    stdev = [math.sqrt(x) for x in var]
+    if options.filter.transformParams == 'absolute':        
+        ev = abs(stateExpVal[:,si])
+        var = stateVar[:,si]
+        stdev = [math.sqrt(x) for x in var]
+    elif options.filter.transformParams == 'exponential':
+        ev = numpy.exp(stateExpVal[:,si])
+        var = stateVar[:,si]
+        stdev = [math.sqrt(x) for x in var]
+        stdev = numpy.exp(stdev)
+    else:
+        ev = stateExpVal[:,si]
+        var = stateVar[:,si]
+        stdev = [math.sqrt(x) for x in var]
+
+
+    
     vll = numpy.squeeze([x - y for x,y in zip(ev, stdev)])
     vlu = numpy.squeeze([x + y for x,y in zip(ev, stdev)])
 
