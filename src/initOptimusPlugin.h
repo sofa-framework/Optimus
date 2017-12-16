@@ -42,6 +42,8 @@ typedef struct
 
 #endif
 
+#define SQR(ARG) ((ARG)*(ARG))
+
 #ifdef SOFA_BUILD_OPTIMUSPLUGIN
 #define SOFA_OptimusPlugin_API SOFA_EXPORT_DYNAMIC_LIBRARY
 #else
