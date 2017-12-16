@@ -43,11 +43,13 @@ stateVar = load_matrix_from_file(options.export.stateVarFile)
 # plot stiffnesses with variances
 plt.figure(1)
 
-nparams=numpy.size(stateVar[1,:])
+nstate=numpy.size(stateVar[1,:])
+nparams=options.filter.nparams
 nsteps=numpy.size(stateVar[:,1])
 
 print "Number of steps: ", nsteps
 print "Number of parameters: ", nparams
+print "Size of the state: ", nstate
 
 
 rng=xrange(0,nsteps)
@@ -59,43 +61,50 @@ groundTruthStr = options.observations.groundTruth
 groundTruthValues = groundTruthStr.split(' ')
 data = numpy.ones(nsteps);
 
-for i in range(0,nparams):
-	ev = stateExpVal[:,i]
-	var = stateVar[:,i]
-	stdev = [math.sqrt(x) for x in var]
-	vll = numpy.squeeze([x - y for x,y in zip(ev, stdev)])
-	vlu = numpy.squeeze([x + y for x,y in zip(ev, stdev)])
+for i in range(0, nparams):
+    si = i +nstate - nparams;
+    # print i,' ',si
+    ev = abs(stateExpVal[:,si])
+    var = stateVar[:,si]
+    stdev = [math.sqrt(x) for x in var]
+    vll = numpy.squeeze([x - y for x,y in zip(ev, stdev)])
+    vlu = numpy.squeeze([x + y for x,y in zip(ev, stdev)])
 
-	plt.plot(rng, ev, color=cmap(i),  linestyle='solid')
-	plt.plot(rng, vll, color=cmap(i),  linestyle='dashed')
-	plt.plot(rng, vlu, color=cmap(i),  linestyle='dashed')
+    plt.plot(rng, ev, color=cmap(i),  linestyle='solid')
+    plt.plot(rng, vll, color=cmap(i),  linestyle='dashed')
+    plt.plot(rng, vlu, color=cmap(i),  linestyle='dashed')
 
-	# print options.observations.groundTruth
-	#, rng, vll, rng, vlu)
-        
-        groundTruthData = [numpy.int(elem) * groundTruthValues[i] for elem in data]
-        plt.plot(rng, groundTruthData, color=cmap(i), linestyle='None', marker=r'$\clubsuit$', markersize=5)
-	# plt.setp(lines, color=cmap(i), linewidth=2.0)
+    # print options.observations.groundTruth
+    #, rng, vll, rng, vlu)
+    
+    
+    # print groundTruthValues    
+    groundTruthData = [numpy.int(elem) * groundTruthValues[i] for elem in data]
+    # plt.plot(rng, groundTruthData, color=cmap(i), linestyle='None', marker=r'$\clubsuit$', markersize=5)
+    plt.plot(rng, groundTruthData, color=cmap(i), linestyle='dotted')
+    # plt.setp(lines, color=cmap(i), linewidth=2.0)
 
 # plot innovation values
-if options.export.internalData == 1:
+if options.export.internalData == 1:    
     innovationVal = load_matrix_from_file(options.export.innovationFile)
 
     plt.figure(2)
     
-    nparams=numpy.size(innovationVal[1,:])
+    ninnov=numpy.size(innovationVal[1,:])
     nsteps=numpy.size(innovationVal[:,1])
+
+    print "Innovation size: ",ninnov
 
     rng=xrange(0,nsteps)
     rng=[i*options.model.dt for i in rng]
 
-    cmap = plt.cm.get_cmap('hsv', nparams+1)
+    cmap = plt.cm.get_cmap('hsv', ninnov+1)
 
-    for i in range(0,nparams):
-	innov = innovationVal[:,i]
-	plt.plot(rng, innov, color=cmap(i),  linestyle='solid')
+    for i in range(0,ninnov):
+        innov = innovationVal[:,i]
+        plt.plot(rng, innov, color=cmap(i),  linestyle='solid')
 
-	
+    
 plt.show()
 
 
