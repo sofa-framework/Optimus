@@ -191,7 +191,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
         /// add standart deviation for positions
         this->positionVariance.resize(Dim * positionPairs.size());
         for (size_t index = 0; index < Dim * positionPairs.size(); index++) {
-            this->positionVariance[index] = d_positionStdev.getValue();
+            this->positionVariance[index] = d_positionStdev.getValue() * d_positionStdev.getValue();
         }
     }
 

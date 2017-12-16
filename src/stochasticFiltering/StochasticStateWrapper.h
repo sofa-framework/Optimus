@@ -164,7 +164,7 @@ public:
             size_t vpi = 0;
             if (estimatePosition.getValue()) {
                 for (size_t index = 0; index < this->positionVariance.size(); index++, vpi++) {
-                    this->stateErrorVariance(vpi,vpi) = this->positionVariance[index] * this->positionVariance[index];
+                    this->stateErrorVariance(vpi,vpi) = this->positionVariance[index];
                 }
             }
 
