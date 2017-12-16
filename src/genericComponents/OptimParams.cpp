@@ -45,20 +45,19 @@ using namespace defaulttype;
 /// SPECIALIZATIONS FOR vector<double>
 
 template<>
-void OptimParams<sofa::helper::vector<double> >::getStDevTempl(DVec& _stdev) {
-    _stdev.resize(m_stdev.getValue().size());
+void OptimParams<sofa::helper::vector<double> >::getInitVariance(DVec& _variance) {
+    _variance.resize(m_stdev.getValue().size());
 
     switch (transParamType) {
     case 3:
-        for (size_t i = 0; i < _stdev.size(); i++)
-            _stdev[i] = log(m_stdev.getValue()[i]);
+        for (size_t i = 0; i < _variance.size(); i++)
+            _variance[i] = log(SQR(m_stdev.getValue()[i]));
         break;
     default:
-        for (size_t i = 0; i < _stdev.size(); i++)
-            _stdev[i] = m_stdev.getValue()[i];
+        for (size_t i = 0; i < _variance.size(); i++)
+            _variance[i] = SQR(m_stdev.getValue()[i]);
 
     }
-
 
 }
 
@@ -572,13 +571,13 @@ void OptimParams<Vec3dTypes::VecCoord>::paramsToRawVector(double* _vector) {
 }
 
 template<>
-void OptimParams<Vec3dTypes::VecCoord>::getStDevTempl(DVec& _stdev) {
+void OptimParams<Vec3dTypes::VecCoord>::getInitVariance(DVec& _variance) {
     size_t numParams = this->m_numParams.getValue();
-    _stdev.resize(numParams*m_dim);
+    _variance.resize(numParams*m_dim);
     size_t ij = 0;
     for (size_t i = 0; i < numParams; i++)
         for (size_t j = 0; j < m_dim; j++, ij++)
-            _stdev[ij] = m_stdev.getValue()[i][j];
+            _variance[ij] = SQR(m_stdev.getValue()[i][j]);
 }
 
 template<>

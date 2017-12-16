@@ -158,11 +158,6 @@ protected:
     // I dont like this
     IVec paramIndices;  /// mapping of parameters stored in m_val to Verdandi state vector
 
-    virtual void getStDevTempl(DVec& _stdev) = 0;   /// copy standard deviation from a structure of given type to plain helper::vector
-    //virtual void getValueTempl(DVec& _value) = 0;   /// copy the actual value from a structure of given type to plain helper::vector
-    //virtual void setValueTempl(const DVec& _value) = 0;   /// copy a value in plain vector to a structure of given type
-    
-
 public:
     
     virtual void rawVectorToParams(const double* _vector) = 0;  /// copy values from a input vector into parameters at correct positions
@@ -172,6 +167,8 @@ public:
     virtual void vectorToParams(VectorXd& _vector) = 0;
     virtual void paramsToVector(VectorXf& _vector) = 0;
     virtual void paramsToVector(VectorXd& _vector) = 0;
+
+    virtual void getInitVariance(DVec& _variance) = 0;  /// provide variance as a vector of length given by the number of parameters
     
 
     OptimParamsBase()
@@ -184,14 +181,6 @@ public:
         , m_interpolateSmooth( initData(&m_interpolateSmooth, true, "interpolateSmooth", "use hyperbolic tangent to interpolate the parameters (linear interpolation if false") )
         //, mstate(initLink("mstate", "MechanicalStatefor which all stiffness coeficients are to be approximated"), mm)
     {}
-    /**
-    template<class DataTypes>
-    ProjectiveConstraintSet<DataTypes>::ProjectiveConstraintSet(MechanicalState<DataTypes> *mm)
-        : endTime( initData(&endTime,(Real)-1,"endTime","The constraint stops acting after the given value.\nUse a negative value for infinite constraints") )
-        , mstate(initLink("mstate", "MechanicalState used by this projective constraint"), mm)
-    {
-    }*/
-
 
     void init() {
 
@@ -249,18 +238,6 @@ public:
     //void rawVectorToParamsParallel(const double* _rawVector);
     //void paramsToRawVectorParallel(double* __rawVector);
 
-    void getStDev(DVec& _stdev) {
-        this->getStDevTempl(_stdev);
-    }
-
-    /*void getValue(DVec& _value) {
-        this->getValueTempl(_value);
-    }
-
-    void setValue(const DVec& _value) {
-        this->setValueTempl(_value);
-    }*/
-
     IVec& getVStateParamIndices() {
         return paramIndices;
     }
@@ -303,6 +280,9 @@ public:
     MechStateRigid3d* paramMOrigid;
     static std::string templateName(const OptimParams<DataTypes>* = NULL) { std::string name = sofa::component::container::templateName<DataTypes>()(); return(name); }       
 
+    void getInitVariance(DVec& /*_variance*/)  {}
+
+
 protected:
     Data< DataTypes > m_val;            /// real actual value of parameters
     Data< DataTypes > m_initVal;        /// initial value
@@ -313,14 +293,7 @@ protected:
     SingleLink<OptimParams<DataTypes>, loader_t, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> m_loader;
     std::vector<std::pair<double, DataTypes> > m_paramKeys;
 
-    //mechState* getMState(){return mstate.get();} nebo tak nejak
-
-
-    /// must be implemented in specializations
-    virtual void getStDevTempl(DVec& /*_stdev*/) {}
-    //virtual void getValueTempl(DVec& /*_value*/) {}
-    //virtual void setValueTempl(const DVec& /*_value*/) {}
-
+    /// must be implemented in specializations    
     virtual void rawVectorToParams(const double* /*_vector*/) {
         std::cerr << "[" << this->getName() << "] ERROR: rawVectorToParams not implemented!" << std::endl;
     }
