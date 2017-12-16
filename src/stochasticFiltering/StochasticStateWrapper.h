@@ -169,11 +169,11 @@ public:
             }
 
             for (size_t opi = 0; opi < this->vecOptimParams.size(); opi++) {
-                helper::vector<double> stdev;
-                this->vecOptimParams[opi]->getStDev(stdev);
+                helper::vector<double> variance;
+                this->vecOptimParams[opi]->getInitVariance(variance);
 
                 for (size_t pi = 0; pi < this->vecOptimParams[opi]->size(); pi++, vpi++)
-                    this->stateErrorVariance(vpi,vpi) = stdev[pi] * stdev[pi];
+                    this->stateErrorVariance(vpi,vpi) = variance[pi];
                     //this->stateErrorVariance(vpi,vpi) = Type(Type(1.0) / (stdev[pi] * stdev[pi]));
             }
         }
@@ -199,11 +199,11 @@ public:
 
             size_t vpi = 0;
             for (size_t opi = 0; opi < this->vecOptimParams.size(); opi++) {
-                helper::vector<double> stdev;
-                this->vecOptimParams[opi]->getStDev(stdev);
+                helper::vector<double> variance;
+                this->vecOptimParams[opi]->getInitVariance(variance);
 
                 for (size_t pi = 0; pi < this->vecOptimParams[opi]->size(); pi++, vpi++)
-                    this->stateErrorVarianceReduced(vpi,vpi) = Type(Type(1.0) / (stdev[pi] * stdev[pi]));
+                    this->stateErrorVarianceReduced(vpi,vpi) = Type(Type(1.0) / variance[pi]);
             }
         }
         return this->stateErrorVarianceReduced;
