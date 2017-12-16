@@ -61,7 +61,7 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
         simuNode = rootNode.createChild('simuNode')
         self.simuNode = simuNode
         simuNode.createObject('EulerImplicitSolver', rayleighStiffness=self.rayleighStiffness, rayleighMass=self.rayleighMass)
-        simuNode.createObject('SparsePARDISOSolver', name='LDLsolver', verbose='0', symmetric='2', exportDataToFolder='cyl2_138_mat')
+        simuNode.createObject('SparsePARDISOSolver', name='LDLsolver', verbose='0', symmetric='2', exportDataToFolder='')
         simuNode.createObject('MeshVTKLoader', name='loader', filename=self.options.model.volumeFileName)
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')
         simuNode.createObject('BoxROI', box=self.options.model.fixedBox1, name='fixedBox1')
