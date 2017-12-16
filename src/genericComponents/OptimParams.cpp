@@ -47,8 +47,19 @@ using namespace defaulttype;
 template<>
 void OptimParams<sofa::helper::vector<double> >::getStDevTempl(DVec& _stdev) {
     _stdev.resize(m_stdev.getValue().size());
-    for (size_t i = 0; i < _stdev.size(); i++)
-        _stdev[i] = m_stdev.getValue()[i];
+
+    switch (transParamType) {
+    case 3:
+        for (size_t i = 0; i < _stdev.size(); i++)
+            _stdev[i] = log(m_stdev.getValue()[i]);
+        break;
+    default:
+        for (size_t i = 0; i < _stdev.size(); i++)
+            _stdev[i] = m_stdev.getValue()[i];
+
+    }
+
+
 }
 
 /*template<>
@@ -382,13 +393,12 @@ void OptimParams<sofa::helper::vector<double> >::init() {
                 maxVal[i] = initVal[i];
         }
 
-        helper::WriteAccessor<Data<sofa::helper::vector<double> > > stdev = m_stdev;
-        //std::cout << "STDEV: " << stdev << std::endl;
+        helper::WriteAccessor<Data<sofa::helper::vector<double> > > stdev = m_stdev;        
         if (stdev.size() == 0) {
             stdev.resize(nInitVal, 0.0);
+            PRNW("Standard deviation not used, setting to 0!")
         } else if (stdev.size() != nInitVal) {
-            std::cerr << "[" << this->getName() << "]: WARNING: |stdev| != |init value|, resizing and taking the first member of stdev. " << std::endl;
-            //double x=stdev[0];
+            PRNW("|stdev| != |init value|, resizing and taking the first member of stdev. ")
             stdev.resize(nInitVal);
             for (size_t i = 1; i < nInitVal; i++)
                 stdev[i] = stdev[0];
