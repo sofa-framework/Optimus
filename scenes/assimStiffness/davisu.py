@@ -66,17 +66,15 @@ for i in range(0, nparams):
     # print i,' ',si
     if options.filter.transformParams == 'absolute':        
         ev = abs(stateExpVal[:,si])
-        var = stateVar[:,si]
-        stdev = [math.sqrt(x) for x in var]
+        var = abs(stateVar[:,si])
     elif options.filter.transformParams == 'exponential':
         ev = numpy.exp(stateExpVal[:,si])
-        var = stateVar[:,si]
-        stdev = [math.sqrt(x) for x in var]
-        stdev = numpy.exp(stdev)
+        var = numpy.exp(stateVar[:,si])        
     else:
         ev = stateExpVal[:,si]
-        var = stateVar[:,si]
-        stdev = [math.sqrt(x) for x in var]
+        var = stateVar[:,si]        
+
+    stdev = [math.sqrt(x) for x in var]
 
 
     
