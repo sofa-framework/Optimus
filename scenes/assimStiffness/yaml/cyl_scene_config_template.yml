@@ -10,9 +10,7 @@ scene_parameters:
         total_mass: 0.2
         boundary_conditions_list:
             - condition_type: "fixed"   # options are "fixed" and "elastic"
-              boxes_coordinates: "-0.05 -0.05 -0.002 0.05 0.05 0.002"
-            - condition_type: "fixed"   # options are "fixed" and "elastic"
-              boxes_coordinates: "-0.05 -0.05 0.298 0.05 0.05 0.302"
+              boxes_coordinates: "-0.05 -0.05 -0.002 0.05 0.05 0.002   -0.05 -0.05 0.298 0.05 0.05 0.302"
 
     obs_generating_parameters:
         object_young_moduli: "1500 4000"
