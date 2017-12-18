@@ -3,6 +3,23 @@ import datetime
 import os
 import shutil
 
+
+class BoundaryConditions:
+    def __init__(self):
+        return
+
+    bcType = ''
+    boundBoxes = '-0.05 -0.05 -0.002 0.05 0.05 0.002   -0.05 -0.05 0.238 0.05 0.05 0.242'
+    boundaryStiffness = 2000
+
+    def parseYaml(self, configData, index):
+        self.bcType = configData['scene_parameters']['general_parameters']['boundary_conditions_list'][index]['condition_type']
+        self.boundBoxes = configData['scene_parameters']['general_parameters']['boundary_conditions_list'][index]['boxes_coordinates']
+        if 'spring_stiffness_values' in configData['scene_parameters']['general_parameters']['boundary_conditions_list'][index]:
+            self.boundaryStiffness = configData['scene_parameters']['general_parameters']['boundary_conditions_list'][index]['spring_stiffness_values']
+        return
+
+
 class Model:
     def __init__(self):
         return
@@ -13,15 +30,16 @@ class Model:
     totalMass = 0
     rayleighMass = 0.1
     rayleighStiffness = 3
-    fixedBox1 = '-0.05 -0.05 -0.002   0.05 0.05 0.002'
-    fixedBox2 = ''
+    bcList = []
 
     def parseYaml(self, configData):
         self.volumeFileName = configData['scene_parameters']['system_parameters']['volume_file_name']
         self.gravity = configData['scene_parameters']['general_parameters']['gravity']
         self.totalMass = configData['scene_parameters']['general_parameters']['total_mass']
-        #self.fixedBox1 = configData['scene_parameters']['general_parameters']['first_fixed_box_coordinates']
-        self.fixedBox2 = configData['scene_parameters']['general_parameters']['second_fixed_box_coordinates']
+        for index in range(0, len(configData['scene_parameters']['general_parameters']['boundary_conditions_list'])):
+            self.bcList.append(BoundaryConditions())
+            self.bcList[len(self.bcList) - 1].parseYaml(configData, index)
+
         return
 
 class Filter:

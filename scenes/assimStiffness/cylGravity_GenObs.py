@@ -64,10 +64,15 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
         simuNode.createObject('SparsePARDISOSolver', name='LDLsolver', verbose='0', symmetric='2', exportDataToFolder='')
         simuNode.createObject('MeshVTKLoader', name='loader', filename=self.options.model.volumeFileName)
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')
-        simuNode.createObject('BoxROI', box=self.options.model.fixedBox1, name='fixedBox1')
-        simuNode.createObject('BoxROI', box=self.options.model.fixedBox2, name='fixedBox2')
-        simuNode.createObject('MergeSets', name='mergeIndices', in2='@fixedBox2.indices', in1='@fixedBox1.indices')
-        simuNode.createObject('FixedConstraint', indices='@mergeIndices.out')        
+        for index in range(0, len(self.options.model.bcList)):
+            bcElement = self.options.model.bcList[index]
+            simuNode.createObject('BoxROI', box=bcElement.boundBoxes, name='boundBoxes'+str(index))
+            if (bcElement.bcType == 'fixed'):
+                simuNode.createObject('FixedConstraint', indices='@boundBoxes'+str(index)+'.indices')
+            elif (bcElement.bcType == 'elastic'):
+                simuNode.createObject('RestShapeSpringsForceField', stiffness=bcElement.boundaryStiffness, angularStiffness="1", points='@boundBoxes'+str(index)+'.indices')
+            else:
+                print 'Unknown type of boundary conditions'
         simuNode.createObject('TetrahedronSetTopologyContainer', name="Container", src="@loader", tags=" ")
         simuNode.createObject('TetrahedronSetTopologyModifier', name="Modifier")        
         simuNode.createObject('TetrahedronSetTopologyAlgorithms', name="TopoAlgo")

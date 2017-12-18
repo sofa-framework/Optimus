@@ -102,10 +102,15 @@ class synth1_BCDA(Sofa.PythonScriptController):
         node.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
         node.createObject('UniformMass', totalMass=self.options.model.totalMass)
 
-        node.createObject('BoxROI', box=self.options.model.fixedBox1, name='fixedBox1')
-        node.createObject('BoxROI', box=self.options.model.fixedBox2, name='fixedBox2')
-        node.createObject('MergeSets', name='mergeIndices', in2='@fixedBox2.indices', in1='@fixedBox1.indices')
-        node.createObject('FixedConstraint', indices='@mergeIndices.out')
+        for index in range(0, len(self.options.model.bcList)):
+            bcElement = self.options.model.bcList[index]
+            node.createObject('BoxROI', box=bcElement.boundBoxes, name='boundBoxes'+str(index))
+            if (bcElement.bcType == 'fixed'):
+                node.createObject('FixedConstraint', indices='@boundBoxes'+str(index)+'.indices')
+            elif (bcElement.bcType == 'elastic'):
+                node.createObject('RestShapeSpringsForceField', stiffness=bcElement.boundaryStiffness, angularStiffness="1", points='@boundBoxes'+str(index)+'.indices')
+            else:
+                print 'Unknown type of boundary conditions'
                     
         node.createObject('OptimParams', name="paramE", optimize="1", numParams=self.options.filter.nparams, template="Vector", initValue=self.options.filter.paramInitExpVal, min=self.options.filter.paramMinExpVal, max=self.options.filter.paramMaxExpVal, stdev=self.options.filter.paramInitStdev, transformParams=self.options.filter.transformParams)
         node.createObject('Indices2ValuesMapper', name='youngMapper', indices='1 2 3 4 5 6 7 8 9 10', values='@paramE.value', inputValues='@/loader.dataset')
