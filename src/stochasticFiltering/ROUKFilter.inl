@@ -220,7 +220,7 @@ void ROUKFilter<FilterType>::computeCorrection()
         redVar.resize(reducedStateSize);
         size_t numCovariances = (reducedStateSize*(reducedStateSize-1))/2;
         redCovar.resize(numCovariances);
-        innov.resize(reducedStateSize);
+        innov.resize(observationSize);
 
         size_t gli = 0;
         for (size_t i = 0; i < reducedStateSize; i++) {
@@ -230,8 +230,8 @@ void ROUKFilter<FilterType>::computeCorrection()
                 redCovar[gli++] = covarianceMatrix(i,j);
             }
         }
-        for (size_t index = 0; index < reducedStateSize; index++) {
-            innov[index] = reducedInnovation[index];
+        for (size_t index = 0; index < observationSize; index++) {
+            innov[index] = vecZ[index];
         }
 
         /*char fileName[100];
