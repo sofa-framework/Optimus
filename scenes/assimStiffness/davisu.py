@@ -41,7 +41,8 @@ stateVar = load_matrix_from_file(options.export.stateVarFile)
 
 
 # plot stiffnesses with variances
-plt.figure(1)
+fig1 = plt.figure(1)
+spl1 = fig1.add_subplot(111)
 
 nstate=numpy.size(stateVar[1,:])
 nparams=options.filter.nparams
@@ -81,9 +82,10 @@ for i in range(0, nparams):
     vll = numpy.squeeze([x - y for x,y in zip(ev, stdev)])
     vlu = numpy.squeeze([x + y for x,y in zip(ev, stdev)])
 
-    plt.plot(rng, ev, color=cmap(i),  linestyle='solid')
-    plt.plot(rng, vll, color=cmap(i),  linestyle='dashed')
-    plt.plot(rng, vlu, color=cmap(i),  linestyle='dashed')
+    spl1.plot(rng, ev, color=cmap(i),  linestyle='solid')
+    spl1.plot(rng, vll, color=cmap(i),  linestyle='dashed')
+    spl1.plot(rng, vlu, color=cmap(i),  linestyle='dashed')
+
 
     # print options.observations.groundTruth
     #, rng, vll, rng, vlu)
@@ -92,14 +94,17 @@ for i in range(0, nparams):
     # print groundTruthValues    
     groundTruthData = [numpy.int(elem) * groundTruthValues[i] for elem in data]
     # plt.plot(rng, groundTruthData, color=cmap(i), linestyle='None', marker=r'$\clubsuit$', markersize=5)
-    plt.plot(rng, groundTruthData, color=cmap(i), linestyle='dotted')
+    spl1.plot(rng, groundTruthData, color=cmap(i), linestyle='dotted')
     # plt.setp(lines, color=cmap(i), linewidth=2.0)
+
+    spl1.set_title('Params '+folder)
 
 # plot innovation values
 if options.export.internalData == 1:    
     innovationVal = load_matrix_from_file(options.export.innovationFile)
 
-    plt.figure(2)
+    fig2 = plt.figure(2)
+    spl2 = fig2.add_subplot(111)
     
     ninnov=numpy.size(innovationVal[1,:])
     nsteps=numpy.size(innovationVal[:,1])
@@ -113,7 +118,9 @@ if options.export.internalData == 1:
 
     for i in range(0,ninnov):
         innov = innovationVal[:,i]
-        plt.plot(rng, innov, color=cmap(i),  linestyle='solid')
+        spl2.plot(rng, innov, color=cmap(i),  linestyle='solid')
+
+    spl2.set_title('Innovation '+folder)
 
     
 plt.show()
