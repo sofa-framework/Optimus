@@ -66,7 +66,7 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')
         for index in range(0, len(self.options.model.bcList)):
             bcElement = self.options.model.bcList[index]
-            simuNode.createObject('BoxROI', box=bcElement.boundBoxes, name='boundBoxes'+str(index))
+            simuNode.createObject('BoxROI', box=bcElement.boundBoxes, name='boundBoxes'+str(index), drawBoxes='0')
             if (bcElement.bcType == 'fixed'):
                 simuNode.createObject('FixedConstraint', indices='@boundBoxes'+str(index)+'.indices')
             elif (bcElement.bcType == 'elastic'):
