@@ -93,7 +93,7 @@ protected:
     sofa::core::objectmodel::DataFileName d_exportPrefix;
     std::string exportPrefix;
 
-    Type alpha;
+    Type alpha, alphaVar;
 
 
     /// structures for parallel computing:

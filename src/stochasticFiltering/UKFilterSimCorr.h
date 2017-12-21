@@ -115,7 +115,7 @@ protected:
     sofa::core::objectmodel::DataFileName d_filename;
     std::ofstream* outfile;
 
-    Type alpha;
+    Type alpha, alphaVar;
 
 
     /// structures for parallel computing:
