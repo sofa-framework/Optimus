@@ -57,6 +57,7 @@ class Filter:
     paramMaxExpVal = 0
     estimPosition = 0
     estimVelocity = 0
+    useUnbiasedVariance = 0
 
     def parseYaml(self, configData):    
         self.kind = configData['scene_parameters']['filtering_parameters']['filter_kind']
@@ -67,6 +68,7 @@ class Filter:
         self.paramMinExpVal = configData['scene_parameters']['filtering_parameters']['minimal_stiffness']
         self.paramMaxExpVal = configData['scene_parameters']['filtering_parameters']['maximal_stiffness']
         self.positionStdev = configData['scene_parameters']['filtering_parameters']['positions_standart_deviation']
+        self.useUnbiasedVariance = configData['scene_parameters']['filtering_parameters']['use_unbiased_variance']
 
         return
 

@@ -172,7 +172,7 @@ void ROUKFilter<FilterType>::computeCorrection()
         //asumEVec("correction accumInnov",vecZ);
 
         EMatrixX matHLtrans(reducedStateSize, observationSize);
-        matHLtrans = alpha*matItrans.transpose()*matZItrans;
+        matHLtrans = alphaVar*matItrans.transpose()*matZItrans;
         //asumEMat("HL_trans", matHLtrans);
 
         EMatrixX matWorkingPO(reducedStateSize, observationSize), matTemp;
@@ -331,9 +331,8 @@ void ROUKFilter<FilterType>::bwdInit() {
     EMatrixX matPalphaV(reducedStateSize, reducedStateSize);
     matItrans.resize(sigmaPointsNum, reducedStateSize);
 
-    if (alphaConstant) {
-        alpha=vecAlpha(0);
-        matPalphaV = alpha*matVtrans.transpose()*matVtrans;
+    if (alphaConstant) {        
+        matPalphaV = alphaVar*matVtrans.transpose()*matVtrans;
         matPalphaV = matPalphaV.inverse();
         matItrans = matVtrans*matPalphaV.transpose();
     } else {
@@ -343,7 +342,7 @@ void ROUKFilter<FilterType>::bwdInit() {
     matI = matItrans.transpose();
 
     matDv.resize(sigmaPointsNum, sigmaPointsNum);
-    matDv = alpha*alpha*matItrans*matI;
+    matDv = alphaVar*alphaVar*matItrans*matI;
 
     matXi.resize(stateSize, sigmaPointsNum);
 
@@ -401,6 +400,9 @@ void ROUKFilter<FilterType>::computeSimplexSigmaPoints(EMatrixX& sigmaMat) {
     vecAlpha.resize(r);
     vecAlpha.fill(Type(1.0)/Type(r));
     alphaConstant = true;
+
+    alpha = Type(1.0)/Type(r);
+    alphaVar = (this->useUnbiasedVariance.getValue()) ? Type(1.0)/Type(r-1) : Type(1.0)/Type(r);
 }
 
 

@@ -60,7 +60,10 @@ public:
         : Inherit()        
         , mechParams(0)
         , verbose( initData(&verbose, false, "verbose", "print tracing informations") )
-        , reducedOrder( initData(&reducedOrder, false, "reducedOrder", "reduced order type of the filter") ) {
+        , reducedOrder( initData(&reducedOrder, false, "reducedOrder", "reduced order type of the filter") )
+        , useUnbiasedVariance( initData(&useUnbiasedVariance, true, "useUnbiasedVariance", "if true, the unbiased variance is computed (normalization by 1/(n-1)") )
+    {
+
     }
 
     ~StochasticFilterBase() {}
@@ -78,6 +81,7 @@ protected:
 public:
     Data<bool> verbose;
     Data<bool> reducedOrder;
+    Data<bool> useUnbiasedVariance;
 
     void init() {
         Inherit::init();

@@ -22,6 +22,7 @@ scene_parameters:
         output_files_suffix: "test" 
         optim_params_size: 2
         filter_kind: "UKFSimCorr"   # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
+        use_unbiased_variance: "1"
         initial_stiffness: [6000, 6000]
         minimal_stiffness: [0, 0]
         maximal_stiffness: [100000, 100000]

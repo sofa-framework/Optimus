@@ -165,7 +165,7 @@ protected:
     EMatrixX matDv;
     EMatrixX matXi;
 
-    Type alpha;
+    Type alpha, alphaVar;
 
     /// structures for parallel computing:
     helper::vector<size_t> sigmaPoints2WrapperIDs;
