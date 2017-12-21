@@ -58,7 +58,7 @@ void UKFilterClassic<FilterType>::computePrediction()
     /// Computes X_{n}^{(i)-} sigma points        
     for (size_t i = 0; i < sigmaPointsNum; i++) {
         matXi.col(i) = stateExp + matPsqrt * matI.row(i).transpose();
-        PRNS("Sigma point " << i << ": " << matXi.col(i).transpose());
+        //PRNS("Sigma point " << i << ": " << matXi.col(i).transpose());
     }
     //PRNS("matI: \n" << matI);
     //PRNS("MatXi: \n" << matXi);
@@ -70,7 +70,7 @@ void UKFilterClassic<FilterType>::computePrediction()
     stateExp.fill(FilterType(0.0));
     for (size_t i = 0; i < sigmaPointsNum; i++) {
         stateExp += matXi.col(i);
-        PRNS("Result of sigma point " << i << ": " << matXi.col(i).transpose());
+        //PRNS("Result of sigma point " << i << ": " << matXi.col(i).transpose());
     }
     stateExp = stateExp * alpha;
 
