@@ -51,13 +51,14 @@ void UKFilterClassic<FilterType>::computePrediction()
     //PRNS("matPsqrt: " << matPsqrt);
 
     stateExp.fill(FilterType(0.0));
-    stateExp = masterStateWrapper->getState();
-    //PRNS("X(n): \n" << stateExp.transpose());
+    stateExp = masterStateWrapper->getState();    
+    PRNS("X(n): \n" << stateExp.transpose());
     //PRNS("P(n): \n" << stateCovar);
 
     /// Computes X_{n}^{(i)-} sigma points        
     for (size_t i = 0; i < sigmaPointsNum; i++) {
         matXi.col(i) = stateExp + matPsqrt * matI.row(i).transpose();
+        PRNS("Sigma point " << i << ": " << matXi.col(i).transpose());
     }
     //PRNS("matI: \n" << matI);
     //PRNS("MatXi: \n" << matXi);
@@ -67,9 +68,12 @@ void UKFilterClassic<FilterType>::computePrediction()
 
     /// compute the expected value
     stateExp.fill(FilterType(0.0));
-    for (size_t i = 0; i < sigmaPointsNum; i++)
+    for (size_t i = 0; i < sigmaPointsNum; i++) {
         stateExp += matXi.col(i);
+        PRNS("Result of sigma point " << i << ": " << matXi.col(i).transpose());
+    }
     stateExp = stateExp * alpha;
+
 
     stateCovar.fill(FilterType(0.0));
     EVectorX tmpX(stateSize);
@@ -83,13 +87,16 @@ void UKFilterClassic<FilterType>::computePrediction()
     }
     stateCovar = alpha*stateCovar;
 
-    //PRNS("X(n+1)-: " << stateExp.transpose());
+    masterStateWrapper->setState(stateExp, mechParams);
+
+    PRNS("X(n+1)-: " << stateExp.transpose());
     //PRNS("P(n+1)-: \n" << stateCovar);
 }
 
 template <class FilterType>
 void UKFilterClassic<FilterType>::computeCorrection()
 {            
+    //return;
     if (observationManager->hasObservation(this->actualTime)) {
         PRNS("======= Computing correction, T= " << this->actualTime << " ======");
 

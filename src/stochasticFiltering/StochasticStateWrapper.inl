@@ -76,8 +76,7 @@ StochasticStateWrapper<DataTypes, FilterType>::StochasticStateWrapper()
     , estimatePosition( initData(&estimatePosition, false, "estimatePosition", "estimate the position (e.g., if initial conditions with uncertainty") )
     , estimateVelocity( initData(&estimateVelocity, false, "estimateVelocity", "estimate the velocity (e.g., if initial conditions with uncertainty") )
     , estimateExternalForces( initData(&estimateExternalForces, false, "estimateExternalForces", "estimate the external forces(e.g., if initial conditions with uncertainty") )
-    , d_positionStdev( initData(&d_positionStdev, "positionStdev", "estimate standart deviation for positions"))
-    , m_stdev( initData(&m_stdev, "stdev", "standard variation") )
+    , d_positionStdev( initData(&d_positionStdev, "positionStdev", "estimate standart deviation for positions"))    
 
 {
 }
@@ -105,8 +104,8 @@ void StochasticStateWrapper<DataTypes, FilterType>::init()
     vecOptimParams.clear();
     this->gnode->template get<OptimParamsBase>(&vecOptimParams, core::objectmodel::BaseContext::SearchDown );
     if (vecOptimParams.empty()) {
-        PRNE("No OptimParams found");
-        valid=false;
+        PRNW("No OptimParams found");
+        //valid=false;
     } else {
         PRNSC("OptimParams found " << vecOptimParams.size() << "x: ");
         if (this->verbose.getValue()) {
@@ -272,7 +271,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::setSofaVectorFromFilterVecto
 }
 
 template <class DataTypes, class FilterType>
-void StochasticStateWrapper<DataTypes, FilterType>::copyStateFilter2Sofa(const core::MechanicalParams* _mechParams) {
+void StochasticStateWrapper<DataTypes, FilterType>::copyStateFilter2Sofa(const core::MechanicalParams* _mechParams, bool _setVelocityFromPosition) {
     typename MechanicalState::WriteVecCoord pos = mechanicalState->writePositions();
     typename MechanicalState::WriteVecDeriv vel = mechanicalState->writeVelocities();
     typename MechanicalState::WriteVecDeriv extForces = typename MechanicalState::WriteVecDeriv(mechanicalState->write(core::VecDerivId::externalForce()));
@@ -286,6 +285,17 @@ void StochasticStateWrapper<DataTypes, FilterType>::copyStateFilter2Sofa(const c
     for (helper::vector<std::pair<size_t, size_t> >::iterator it = velocityPairs.begin(); it != velocityPairs.end(); it++) {
         for (size_t d = 0; d < Dim; d++) {
             vel[it->first][d] = this->state(Dim*it->second + d);
+        }
+    }
+
+    /// if velocity is not estimated, it must be computed from the positions at the beginning and at the end of the time step
+    if (_setVelocityFromPosition) {
+        if (velocityPairs.empty() && beginTimeStepPos.size() == pos.size()) {
+            for (helper::vector<std::pair<size_t, size_t> >::iterator it = positionPairs.begin(); it != positionPairs.end(); it++) {
+                for (size_t d = 0; d < Dim; d++) {
+                    vel[it->first][d] = (pos[it->first][d] - beginTimeStepPos[it->first][d])/this->getContext()->getDt();
+                }
+            }
         }
     }
 
@@ -372,14 +382,15 @@ template <class DataTypes, class FilterType>
 void StochasticStateWrapper<DataTypes, FilterType>::initializeStep(size_t _stepNumber) {
     PRNS("Initialize time step" << _stepNumber);
     Inherit::initializeStep(_stepNumber);
-    if (this->filterKind == SIMCORR) {
+    //if (this->filterKind == SIMCORR) {
+    /// storing the initial state does not hurt for any type of the filter
         PRNS("Store mstate");
         storeMState();
 
         /// reinitialize the computed states
         sigmaStatePos.clear();
         sigmaStateVel.clear();
-    }
+    //}
 }
 
 template <class DataTypes, class FilterType>
@@ -426,6 +437,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::transformState(EVectorX &_ve
     if ((_stateID == nullptr) || (*_stateID >= 0))
         savedState = this->state;
 
+    reinitMState(_mparams);
     this->state = _vecX;
     //PRNS("_vecX " << _vecX);
     copyStateFilter2Sofa(_mparams);

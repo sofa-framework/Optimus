@@ -109,8 +109,7 @@ protected:
     helper::vector<std::pair<size_t, size_t> > velocityPairs;
     helper::vector<std::pair<size_t, size_t> > externalForcesPairs;
 
-
-    void copyStateFilter2Sofa(const core::MechanicalParams *_mechParams);  // copy actual DA state to SOFA state and propagate to mappings
+    void copyStateFilter2Sofa(const core::MechanicalParams *_mechParams, bool _setVelocityFromPosition = false);  // copy actual DA state to SOFA state and propagate to mappings
     void copyStateSofa2Filter();  // copy the actual SOFA state to DA state
     void computeSofaStep(const core::ExecParams* execParams, bool _updateTime);
     void computeSofaStepWithLM(const core::ExecParams* params, bool _updateTime);
@@ -122,8 +121,7 @@ public:
     Data<bool> estimateExternalForces;
     Data<bool> optimForces;
 
-    Data< double> d_positionStdev;  /// standart deviation for positions
-    Data< double> m_stdev;          /// standard deviation
+    Data< double> d_positionStdev;  /// standart deviation for positions    
     bool estimatingPosition() {
         return this->estimatePosition.getValue();
     }
@@ -149,7 +147,7 @@ public:
 
     void setState(EVectorX& _state, const core::MechanicalParams* _mparams) {
         this->state = _state;
-        copyStateFilter2Sofa(_mparams);
+        copyStateFilter2Sofa(_mparams, true);
     }
 
     void setSofaVectorFromFilterVector(EVectorX& _state, typename DataTypes::VecCoord& _vec);
@@ -178,18 +176,7 @@ public:
             }
         }
         return this->stateErrorVariance;
-    }
-
-    virtual EMatrixX& getStateErrorVarianceUKF() {
-        if (this->stateErrorVariance.rows() == 0) {
-            this->stateErrorVariance.resize(this->stateSize, this->stateSize);
-            this->stateErrorVariance.setZero();
-
-            for (size_t pi = 0; pi < this->stateSize; pi++)
-                this->stateErrorVariance(pi,pi) = Type((m_stdev.getValue()* m_stdev.getValue()));
-        }
-        return this->stateErrorVariance;
-    }
+    } 
 
     /// get the state error variant for the reduced order filters (stdev^2 of the parameters being estimated)
     virtual EMatrixX& getStateErrorVarianceReduced() {
