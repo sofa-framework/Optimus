@@ -102,6 +102,7 @@ protected:
 
     /// functions
     void computeSimplexSigmaPoints(EMatrixX& sigmaMat);
+    void computeStarSigmaPoints(EMatrixX& sigmaMat);
 
 public:    
     Data<helper::vector<FilterType> > d_state;

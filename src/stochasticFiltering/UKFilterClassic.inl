@@ -261,7 +261,15 @@ void UKFilterClassic<FilterType>::bwdInit() {
     stateExp = masterStateWrapper->getState();
 
     /// compute sigma points
-    computeSimplexSigmaPoints(matI);
+    switch (this->m_sigmaTopology) {
+    case STAR:
+        computeStarSigmaPoints(matI);
+        break;
+    case SIMPLEX:
+    default:
+        computeSimplexSigmaPoints(matI);
+    }
+
     sigmaPointsNum = matI.rows();
     matXi.resize(stateSize, sigmaPointsNum);
     matXi.setZero();
@@ -311,6 +319,43 @@ void UKFilterClassic<FilterType>::computeSimplexSigmaPoints(EMatrixX& sigmaMat) 
     vecAlpha.fill(Type(1.0)/Type(r));
     alphaConstant = true;
     alpha = vecAlpha(0);
+
+    alphaVar = (this->useUnbiasedVariance.getValue()) ? Type(1.0)/Type(r-1) : Type(1.0)/Type(r);
+}
+
+template <class FilterType>
+void UKFilterClassic<FilterType>::computeStarSigmaPoints(EMatrixX& sigmaMat) {
+    size_t p = stateSize;
+    size_t r = 2 * stateSize + 1;
+
+    EMatrixX workingMatrix = EMatrixX::Zero(p, r);
+
+    Type lambda, k, sqrt_vec;
+    k = 3 - p;
+     lambda = this->lambdaScale.getValue() * this->lambdaScale.getValue() * (p + k) - p;
+    sqrt_vec = sqrt(p + lambda);
+
+    for (size_t j = 0; j < p; j++) {
+        for (size_t i = 0; i < p; i++)
+            workingMatrix(i,j) = sqrt_vec;
+    }
+    for (size_t j = p + 1; j < 2 * p; j++) {
+        for (size_t i = 0; i < p; i++)
+            workingMatrix(i,j) = -sqrt_vec;
+    }
+
+
+    sigmaMat.resize(r,p);
+    for (size_t i = 0; i < r; i++)
+        sigmaMat.row(i) = workingMatrix.col(i);
+
+    vecAlpha.resize(r);
+    for (size_t i = 0; i < 2 * p; i++) {
+        vecAlpha(i) = Type(1.0)/Type(2 * (p + lambda));
+    }
+    // double beta = 2.0;
+    vecAlpha(2 * p) = Type(lambda)/Type(2 * (p + lambda)); // + (1 - this->lambdaScale * this->lambdaScale + beta)
+    alphaConstant = false;
 
     alphaVar = (this->useUnbiasedVariance.getValue()) ? Type(1.0)/Type(r-1) : Type(1.0)/Type(r);
 }
