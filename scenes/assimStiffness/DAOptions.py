@@ -58,6 +58,8 @@ class Filter:
     estimPosition = 0
     estimVelocity = 0
     useUnbiasedVariance = 0
+    sigmaPointsTopology = ''
+    lambdaScale = 1
 
     def parseYaml(self, configData):    
         self.kind = configData['scene_parameters']['filtering_parameters']['filter_kind']
@@ -69,6 +71,8 @@ class Filter:
         self.paramMaxExpVal = configData['scene_parameters']['filtering_parameters']['maximal_stiffness']
         self.positionStdev = configData['scene_parameters']['filtering_parameters']['positions_standart_deviation']
         self.useUnbiasedVariance = configData['scene_parameters']['filtering_parameters']['use_unbiased_variance']
+        self.sigmaPointsTopology = configData['scene_parameters']['filtering_parameters']['sigma_points_topology']
+        self.lambdaScale = configData['scene_parameters']['filtering_parameters']['sigma_points_scale']
 
         return
 
