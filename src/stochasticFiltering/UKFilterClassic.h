@@ -84,7 +84,7 @@ protected:
 
     EVectorX vecAlpha;
     EVectorX stateExp, predObsExp;
-    EMatrixX stateCovar, obsCovar;
+    EMatrixX stateCovar, obsCovar, modelCovar;
 
 
     EMatrixX matItrans, matI;
@@ -109,6 +109,7 @@ public:
     Data<helper::vector<FilterType> > d_variance;
     Data<helper::vector<FilterType> > d_covariance;
     Data<helper::vector<FilterType> > d_innovation;
+    double m_omega;
 
     void init();
     void bwdInit();
@@ -128,6 +129,7 @@ public:
     virtual void computeCorrection();
 
     virtual void initializeStep(const core::ExecParams* _params, const size_t _step);
+
 
 }; /// class
 

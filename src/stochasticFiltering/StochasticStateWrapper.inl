@@ -76,7 +76,9 @@ StochasticStateWrapper<DataTypes, FilterType>::StochasticStateWrapper()
     , estimatePosition( initData(&estimatePosition, false, "estimatePosition", "estimate the position (e.g., if initial conditions with uncertainty") )
     , estimateVelocity( initData(&estimateVelocity, false, "estimateVelocity", "estimate the velocity (e.g., if initial conditions with uncertainty") )
     , estimateExternalForces( initData(&estimateExternalForces, false, "estimateExternalForces", "estimate the external forces(e.g., if initial conditions with uncertainty") )
-    , d_positionStdev( initData(&d_positionStdev, "positionStdev", "estimate standart deviation for positions"))    
+    , d_positionStdev( initData(&d_positionStdev, "positionStdev", "estimate standart deviation for positions"))
+    , d_velocityStdev( initData(&d_velocityStdev, "velocityStdev", "estimate standart deviation for velocities"))
+    , modelStdev( initData(&modelStdev, FilterType(0.0), "modelStdev", "standard deviation in observations") )
 
 {
 }
@@ -204,6 +206,11 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
             std::pair<size_t, size_t> pr(freeNodes[i], vsi++);
             velocityPairs.push_back(pr);
         }
+        /// add standart deviation for velocities
+        this->velocityVariance.resize(Dim * velocityPairs.size());
+        for (size_t index = 0; index < Dim * velocityPairs.size(); index++) {
+            this->velocityVariance[index] = d_velocityStdev.getValue() * d_velocityStdev.getValue();
+        }
     }
 
     if (estimateExternalForces.getValue()) {
@@ -298,6 +305,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::copyStateFilter2Sofa(const c
             }
         }
     }
+
 
     /// TO BE DEPRECATED!
     extForces.clear();

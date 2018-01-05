@@ -52,14 +52,14 @@ void UKFilterClassic<FilterType>::computePrediction()
 
     stateExp.fill(FilterType(0.0));
     stateExp = masterStateWrapper->getState();    
-    PRNS("X(n): \n" << stateExp.transpose());
+//    PRNS("X(n): \n" << stateExp.transpose());
     //PRNS("P(n): \n" << stateCovar);
 
     /// Computes X_{n}^{(i)-} sigma points        
     for (size_t i = 0; i < sigmaPointsNum; i++) {
         matXi.col(i) = stateExp + matPsqrt * matI.row(i).transpose();
-        //PRNS("Sigma point " << i << ": " << matXi.col(i).transpose());
     }
+    PRNS("sigmaPoints: \n " << matXi.transpose());
     //PRNS("matI: \n" << matI);
     //PRNS("MatXi: \n" << matXi);
 
@@ -75,22 +75,27 @@ void UKFilterClassic<FilterType>::computePrediction()
     stateExp = stateExp * alpha;
 
 
-    stateCovar.fill(FilterType(0.0));
-    EVectorX tmpX(stateSize);
-    tmpX.fill(FilterType(0.0));
-
-    for (size_t i = 0; i < sigmaPointsNum; i++) {
-       tmpX = matXi.col(i) - stateExp;
-       for (size_t x = 0; x < stateSize; x++)
-           for (size_t y = 0; y < stateSize; y++)
-               stateCovar(x,y) += tmpX(x)*tmpX(y);
+    if(this->useModelIncertitude.getValue()){
+        EMatrixX matXiTrans= matXi.transpose();
+        EMatrixX centeredPxx = matXiTrans.rowwise() - matXiTrans.colwise().mean();
+        EMatrixX covPxx = (centeredPxx.adjoint() * centeredPxx) / double(centeredPxx.rows() - 1);
+        stateCovar = covPxx + modelCovar;
+    } else {
+        stateCovar.fill(FilterType(0.0));
+        EVectorX tmpX(stateSize);
+        tmpX.fill(FilterType(0.0));
+        for (size_t i = 0; i < sigmaPointsNum; i++) {
+           tmpX = matXi.col(i) - stateExp;
+           for (size_t x = 0; x < stateSize; x++)
+               for (size_t y = 0; y < stateSize; y++)
+                   stateCovar(x,y) += tmpX(x)*tmpX(y);
+        }
+        stateCovar=alphaVar*stateCovar;
     }
-    stateCovar = alphaVar*stateCovar;
 
     masterStateWrapper->setState(stateExp, mechParams);
 
     PRNS("X(n+1)-: " << stateExp.transpose());
-    //PRNS("P(n+1)-: \n" << stateCovar);
 }
 
 template <class FilterType>
@@ -114,11 +119,25 @@ void UKFilterClassic<FilterType>::computeCorrection()
             predObsExp = predObsExp + zCol;
 
         }
-        //PRNS("Z: \n" << matZmodel);
         predObsExp = alpha*predObsExp;
+        PRNS("predictedObservation: \n" << matZmodel.transpose());
 
         EMatrixX matPxz(stateSize, observationSize);
         EMatrixX matPz(observationSize, observationSize);
+
+        if(this->useModelIncertitude.getValue()){
+            EMatrixX matXiTrans= matXi.transpose();
+            EMatrixX matZItrans = matZmodel.transpose();
+
+            EMatrixX centeredCx = matXiTrans.rowwise() - matXiTrans.colwise().mean();
+            EMatrixX centeredCz = matZItrans.rowwise() - matZItrans.colwise().mean();
+            EMatrixX covPxz = (centeredCx.adjoint() * centeredCz) / double(centeredCx.rows() - 1);
+            matPxz=covPxz;
+
+            EMatrixX covPzz = (centeredCz.adjoint() * centeredCz) / double(centeredCz.rows() - 1);
+            matPz=covPzz;
+            matPz= obsCovar+ matPz;
+        }else{
         matPxz.fill(FilterType(0.0));
         matPz.fill(FilterType(0.0));
 
@@ -140,13 +159,28 @@ void UKFilterClassic<FilterType>::computeCorrection()
         }
         matPxz = alphaVar * matPxz;
         matPz = alphaVar * matPz + obsCovar;
-        //PRNS("matPxz: " << matPxz);
-        //PRNS("matPz: " << matPz);
-        //PRNS("ObsCovar: " << obsCovar);
+        }
 
         EMatrixX matK(stateSize, observationSize);
-        matK = matPxz*matPz.inverse();
-        //PRNS("matK: " << matK);
+        double epsilon= 1e-15;
+        Eigen::JacobiSVD<Eigen::MatrixXd> svd(matPz, Eigen::ComputeThinU | Eigen::ComputeThinV);
+        const Eigen::JacobiSVD<Eigen::MatrixXd>::SingularValuesType singVals = svd.singularValues();
+        Eigen::JacobiSVD<Eigen::MatrixXd>::SingularValuesType invSingVals = singVals;
+        for(int i=0; i<singVals.rows(); i++) {
+            if(singVals(i)*singVals(i) <= epsilon*epsilon) invSingVals(i) = 0.0;
+            else invSingVals(i) = 1.0 / invSingVals(i);
+        }
+        Eigen::MatrixXd S_inv = invSingVals.asDiagonal();
+        Eigen::MatrixXd m_inverse = svd.matrixV()*S_inv* svd.matrixU().transpose();
+        matK =matPxz* m_inverse;
+
+        EMatrixX normMatK = matK.cwiseAbs();
+        for (size_t i = 0; i < matK.rows(); i++) {
+            for(size_t j = 0; j < matK.cols(); j++) {
+                if (normMatK(i,j) <=m_omega)
+                    matK(i,j)=0;
+            }
+        }
 
         EVectorX innovation(observationSize);
         observationManager->getInnovation(this->actualTime, predObsExp, innovation);
@@ -155,10 +189,16 @@ void UKFilterClassic<FilterType>::computeCorrection()
         stateExp = stateExp + matK * innovation;
         stateCovar = stateCovar - matK*matPxz.transpose();
 
+        EVectorX diag;
+        diag.resize(stateCovar.rows());
+        for (size_t i = 0; i < stateCovar.rows(); i++) {
+            diag(i)=stateCovar(i,i);
+        }
+        PRNS("P(n+1)+n: \n" << diag);
+
         //stateWrappers[0]->computeSimulationStep(stateExp, mechParams, id);
 
         //PRNS("X(n+1)+: \n" << stateExp.transpose());
-        //PRNS("P(n+1)+n: \n" << stateCovar);
 
         masterStateWrapper->setState(stateExp, mechParams);
         //masterStateWrapper->transformState(stateExp, mechParams);
@@ -241,6 +281,9 @@ void UKFilterClassic<FilterType>::init() {
     exportPrefix  = d_exportPrefix.getFullPath();
     PRNS("export prefix: " << exportPrefix)
 
+    m_omega= 1e-5;
+
+
 }
 
 template <class FilterType>
@@ -258,6 +301,7 @@ void UKFilterClassic<FilterType>::bwdInit() {
 
     /// Initialize Model's Error Covariance
     stateCovar = masterStateWrapper->getStateErrorVariance();
+    modelCovar = masterStateWrapper->getModelErrorVariance();
     stateExp = masterStateWrapper->getState();
 
     /// compute sigma points

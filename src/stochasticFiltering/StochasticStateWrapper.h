@@ -120,12 +120,16 @@ public:
     Data<bool> estimateVelocity;
     Data<bool> estimateExternalForces;
     Data<bool> optimForces;
+    Data<FilterType> modelStdev;
+    EMatrixX modelErrorVariance;
+    EMatrixX modelErrorVarianceInverse;
+    FilterType modelErrorVarianceValue;
 
     Data< double> d_positionStdev;  /// standart deviation for positions    
     bool estimatingPosition() {
         return this->estimatePosition.getValue();
     }
-
+    Data< double> d_velocityStdev; /// standart deviation for velocities
     bool estimatingVelocity() {
         return this->estimateVelocity.getValue();
     }
@@ -160,9 +164,25 @@ public:
             this->stateErrorVariance.setZero();
 
             size_t vpi = 0;
-            if (estimatePosition.getValue()) {
+            if (estimatePosition.getValue() && !estimateVelocity.getValue()) {
                 for (size_t index = 0; index < this->positionVariance.size(); index++, vpi++) {
                     this->stateErrorVariance(vpi,vpi) = this->positionVariance[index];
+                }
+            }
+
+            if (estimateVelocity.getValue() && !estimatePosition.getValue()) {
+                for (size_t index = 0; index < this->velocityVariance.size(); index++, vpi++) {
+                    this->stateErrorVariance(vpi,vpi) = this->velocityVariance[index];
+                }
+            }
+
+            if (estimatePosition.getValue() && estimateVelocity.getValue()) {
+                for (size_t index = 0; index < this->positionVariance.size(); index++, vpi++) {
+                    this->stateErrorVariance(vpi,vpi) = this->positionVariance[index];
+                }
+                for (size_t index = this->positionVariance.size(); index < this->stateSize; index++, vpi++) {
+                    for (size_t indexV = 0; indexV < this->velocityVariance.size(); indexV++)
+                    this->stateErrorVariance(vpi,vpi) = this->velocityVariance[indexV];
                 }
             }
 
@@ -177,6 +197,19 @@ public:
         }
         return this->stateErrorVariance;
     } 
+
+
+    virtual EMatrixX& getModelErrorVariance() {
+        if (this->modelErrorVariance.rows() == 0) {
+
+            FilterType modelStDev = modelStdev.getValue();
+            modelErrorVarianceValue = modelStDev * modelStDev;
+            modelErrorVariance = EMatrixX::Identity(this->stateSize, this->stateSize) * modelErrorVarianceValue;
+            modelErrorVarianceInverse = EMatrixX::Identity(this->stateSize, this->stateSize) / modelErrorVarianceValue;
+
+        }
+        return this->modelErrorVariance;
+    }
 
     /// get the state error variant for the reduced order filters (stdev^2 of the parameters being estimated)
     virtual EMatrixX& getStateErrorVarianceReduced() {
