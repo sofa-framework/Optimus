@@ -78,7 +78,7 @@ void UKFilterClassic<FilterType>::computePrediction()
     if(this->useModelIncertitude.getValue()){
         EMatrixX matXiTrans= matXi.transpose();
         EMatrixX centeredPxx = matXiTrans.rowwise() - matXiTrans.colwise().mean();
-        EMatrixX covPxx = (centeredPxx.adjoint() * centeredPxx) / double(centeredPxx.rows() - 1);
+        EMatrixX covPxx = (centeredPxx.adjoint() * centeredPxx) / double(centeredPxx.rows() -1);
         stateCovar = covPxx + modelCovar;
     } else {
         stateCovar.fill(FilterType(0.0));
