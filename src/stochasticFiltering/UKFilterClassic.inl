@@ -20,6 +20,11 @@ UKFilterClassic<FilterType>::UKFilterClassic()
     , d_variance( initData(&d_variance, "variance", "actual variance  of reduced state (parameters) estimated by the filter" ) )
     , d_covariance( initData(&d_covariance, "covariance", "actual co-variance  of reduced state (parameters) estimated by the filter" ) )
     , d_innovation( initData(&d_innovation, "innovation", "innovation value computed by the filter" ) )
+    , d_filenameCov( initData(&d_filenameCov, "filenameCov", "output file name"))
+    , d_filenameInn( initData(&d_filenameInn, "filenameInn", "output file name"))
+    , d_filenameFinalState( initData(&d_filenameFinalState, "filenameFinalState", "output file name"))
+
+
 {
 
 }
@@ -59,7 +64,7 @@ void UKFilterClassic<FilterType>::computePrediction()
     for (size_t i = 0; i < sigmaPointsNum; i++) {
         matXi.col(i) = stateExp + matPsqrt * matI.row(i).transpose();
     }
-    PRNS("sigmaPoints: \n " << matXi.transpose());
+//    PRNS("sigmaPoints: \n " << matXi.transpose());
     //PRNS("matI: \n" << matI);
     //PRNS("MatXi: \n" << matXi);
 
@@ -120,7 +125,7 @@ void UKFilterClassic<FilterType>::computeCorrection()
 
         }
         predObsExp = alpha*predObsExp;
-        PRNS("predictedObservation: \n" << matZmodel.transpose());
+//        PRNS("predictedObservation: \n" << matZmodel.transpose());
 
         EMatrixX matPxz(stateSize, observationSize);
         EMatrixX matPz(observationSize, observationSize);
@@ -174,13 +179,6 @@ void UKFilterClassic<FilterType>::computeCorrection()
         Eigen::MatrixXd m_inverse = svd.matrixV()*S_inv* svd.matrixU().transpose();
         matK =matPxz* m_inverse;
 
-        EMatrixX normMatK = matK.cwiseAbs();
-        for (size_t i = 0; i < matK.rows(); i++) {
-            for(size_t j = 0; j < matK.cols(); j++) {
-                if (normMatK(i,j) <=m_omega)
-                    matK(i,j)=0;
-            }
-        }
 
         EVectorX innovation(observationSize);
         observationManager->getInnovation(this->actualTime, predObsExp, innovation);
@@ -235,6 +233,27 @@ void UKFilterClassic<FilterType>::computeCorrection()
             ofs << stateCovar << std::endl;
         }
 
+        if (this->saveParam) {
+                    std::ofstream paramFile(d_filenameCov.getValue().c_str(), std::ios::app);
+                    if (paramFile.is_open()) {
+                        paramFile << diag.transpose() << "";
+                        paramFile << '\n';
+                        paramFile.close();
+                    }
+                    std::ofstream paramFileInn(d_filenameInn.getValue().c_str(), std::ios::app);
+                    if (paramFileInn.is_open()) {
+                        paramFileInn << innovation.transpose() << "";
+                        paramFileInn << '\n';
+                        paramFileInn.close();
+                    }
+                    std::ofstream paramFileFinalState(d_filenameFinalState.getValue().c_str(), std::ios::app);
+                    if (paramFileFinalState.is_open()) {
+                        paramFileFinalState << stateExp.transpose() << " ";
+                        paramFileFinalState << '\n';
+                        paramFileFinalState.close();
+                    }
+                }
+
     }
 }
 
@@ -280,6 +299,29 @@ void UKFilterClassic<FilterType>::init() {
 
     exportPrefix  = d_exportPrefix.getFullPath();
     PRNS("export prefix: " << exportPrefix)
+
+    this->saveParam = false;
+    if (!d_filenameCov.getValue().empty()) {
+        std::ofstream paramFile(d_filenameCov.getValue().c_str());
+        if (paramFile.is_open()) {
+            this->saveParam = true;
+            paramFile.close();
+        }
+    }
+    if (!d_filenameInn.getValue().empty()) {
+        std::ofstream paramFileInn(d_filenameInn.getValue().c_str());
+        if (paramFileInn .is_open()) {
+            this->saveParam = true;
+            paramFileInn.close();
+        }
+    }
+    if (!d_filenameFinalState.getValue().empty()) {
+        std::ofstream paramFileFinalState(d_filenameFinalState.getValue().c_str());
+        if (paramFileFinalState .is_open()) {
+            this->saveParam = true;
+            paramFileFinalState.close();
+        }
+    }
 
     m_omega= 1e-5;
 

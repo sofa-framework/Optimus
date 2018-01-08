@@ -92,7 +92,9 @@ protected:
 
     sofa::core::objectmodel::DataFileName d_exportPrefix;
     std::string exportPrefix;
-
+    std::string filenameCov, filenameInn, filenameFinalState;
+    Data< std::string > d_filenameCov, d_filenameInn, d_filenameFinalState;
+    bool saveParam;
     Type alpha, alphaVar;
 
 
