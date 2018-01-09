@@ -81,9 +81,10 @@ void UKFilterClassic<FilterType>::computePrediction()
 
 
     if(this->useModelIncertitude.getValue()){
+        stateCovar.setZero();
         EMatrixX matXiTrans= matXi.transpose();
         EMatrixX centeredPxx = matXiTrans.rowwise() - matXiTrans.colwise().mean();
-        EMatrixX covPxx = (centeredPxx.adjoint() * centeredPxx) / double(centeredPxx.rows() -1);
+        EMatrixX covPxx = (centeredPxx.adjoint() * centeredPxx) / double(centeredPxx.rows() );
         stateCovar = covPxx + modelCovar;
     } else {
         stateCovar.fill(FilterType(0.0));
@@ -136,10 +137,10 @@ void UKFilterClassic<FilterType>::computeCorrection()
 
             EMatrixX centeredCx = matXiTrans.rowwise() - matXiTrans.colwise().mean();
             EMatrixX centeredCz = matZItrans.rowwise() - matZItrans.colwise().mean();
-            EMatrixX covPxz = (centeredCx.adjoint() * centeredCz) / double(centeredCx.rows() - 1);
+            EMatrixX covPxz = (centeredCx.adjoint() * centeredCz) / double(centeredCx.rows() );
             matPxz=covPxz;
 
-            EMatrixX covPzz = (centeredCz.adjoint() * centeredCz) / double(centeredCz.rows() - 1);
+            EMatrixX covPzz = (centeredCz.adjoint() * centeredCz) / double(centeredCz.rows() );
             matPz=covPzz;
             matPz= obsCovar+ matPz;
         }else{
@@ -343,7 +344,11 @@ void UKFilterClassic<FilterType>::bwdInit() {
 
     /// Initialize Model's Error Covariance
     stateCovar = masterStateWrapper->getStateErrorVariance();
-    modelCovar = masterStateWrapper->getModelErrorVariance();
+    if(this->useModelIncertitude.getValue()){
+        modelCovar = masterStateWrapper->getModelErrorVariance();
+        PRNS("modelCovar: \n" << modelCovar);
+    }
+
     stateExp = masterStateWrapper->getState();
 
     /// compute sigma points

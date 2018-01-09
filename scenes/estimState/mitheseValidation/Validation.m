@@ -1,294 +1,182 @@
 clear 
 close all
 clc
-% 
-% load('plots/g.mat','g');
-% g1= g(:,2:4);
-% g2= g(:,9:11);
-% g3= g(:,16:18);
-% G=cat(2,g1,g2,g3);
-% 
-% 
 
 
+state_mass = dlmread('print_state_mass');
+inn_mass = dlmread('print_inn_mass');
+cov_mass = dlmread('print_cov_mass');
+g = dlmread('g');
+G=g(:,2:16);
 
-s_0 = dlmread('print_state_0');
-inn_0 = dlmread('print_inn_0');
-% f_0 = dlmread('print_filter_0');
-cov_0 = dlmread('print_cov_0');
-%
-s_1 = dlmread('print_state_1');
-inn_1 = dlmread('print_inn_1');
-% f_1 = dlmread('print_filter_1');
-cov_1 = dlmread('print_cov_1');
-%
-s_2 = dlmread('print_state_2');
-inn_2 = dlmread('print_inn_2');
-% f_2 = dlmread('print_filter_2');
-cov_2 = dlmread('print_cov_2');
-%
-s_3 = dlmread('print_state_3');
-inn_3 = dlmread('print_inn_3');
-% f_3 = dlmread('print_filter_3');
-cov_3 = dlmread('print_cov_3');
-%
-s_4 = dlmread('print_state_4');
-inn_4 = dlmread('print_inn_4');
-% f_4 = dlmread('print_filter_4');
-cov_4 = dlmread('print_cov_4');
-%
-s_5 = dlmread('print_state_5');
-inn_5 = dlmread('print_inn_5');
-% f_5 = dlmread('print_filter_5');
-cov_5 = dlmread('print_cov_5');
-%
-s_6 = dlmread('print_state_6');
-inn_6 = dlmread('print_inn_6');
-% f_6 = dlmread('print_filter_6');
-cov_6 = dlmread('print_cov_6');
-%
-s_7 = dlmread('print_state_7');
-inn_7 = dlmread('print_inn_7');
-% f_7 = dlmread('print_filter_7');
-cov_7 = dlmread('print_cov_7');
-%
-s_8 = dlmread('print_state_8');
-inn_8 = dlmread('print_inn_8');
-% f_8 = dlmread('print_filter_8');
-cov_8 = dlmread('print_cov_8');
-%
-s_9 = dlmread('print_state_9');
-inn_9 = dlmread('print_inn_9');
-% f_9 = dlmread('print_filter_9');
-cov_9 = dlmread('print_cov_9');
-%
-s_10 = dlmread('print_state_10');
-inn_10 = dlmread('print_inn_10');
-% f_10 = dlmread('print_filter_10');
-cov_10 = dlmread('print_cov_10');
-%
-s_11 = dlmread('print_state_11');
-inn_11 = dlmread('print_inn_11');
-% f_11 = dlmread('print_filter_11');
-cov_11 = dlmread('print_cov_11');
-%
-% 
-% f1_0= f_0(:,2:4);
-% f2_0= f_0(:,9:11);
-% f3_0= f_0(:,16:18);
-% F_0=cat(2,f1_0,f2_0,f3_0);
-% 
-% H_0=zeros(size(F_0,1),1);
-% for i = 1:(size(G,1))
-%    H_0(i) = HausdorffDist(F_0(i,:),G(i,:));
-% end
-
-
-
-figure;
-plot(cov_0(1:600,:))
-legend('firstNode x','firstNode y','firstNode z','secondNode x','secondNode y','secondNode z','thirdNode x','thirdNode y','thirdNode z', 'fourthNode x','fourthNode y','fourthNode z','fifthNode x','fifthNode y','fifthNode z','Location','NorthEastOutside');
+figure(1);
+subplot(5,1,1);
+plot(cov_mass(1:0.1:6000,1:3))
+hold on
+plot(cov_mass(1,1),'o')
+hold off
+grid on
+legend('X','Y','Z', 'Location','NorthEastOutside');
+ylabel('Covariance') % y-axis label
+axis([-20 6000 0.0000003 0.00000055])
+title({' {\itPOSITION ESTIMATION w Speed Correction Q=R}',' ','Covariance of First Node Position'}) ;
+subplot(5,1,2);
+plot(cov_mass(1:0.1:6000,4:6))
+hold on
+plot(cov_mass(1,4),'o')
+hold off
+grid on
+ylabel('Covariance') % y-axis label
+legend('X','Y','Z', 'Location','NorthEastOutside');
+axis([-20 6000 0.0000003 0.00000055])
+title('Covariance of Second Node Position') ;
+subplot(5,1,3);
+plot(cov_mass(1:0.1:6000,7:9))
+hold on
+plot(cov_mass(1,7),'o')
+hold off
+grid on
+legend('X','Y','Z', 'Location','NorthEastOutside');
+ylabel('Covariance') % y-axis label
+axis([-20 6000 0.0000003 0.00000055])
+title('Covariance of Third Node Position') ;
+subplot(5,1,4);
+plot(cov_mass(1:0.1:6000,10:12))
+hold on
+plot(cov_mass(1,10),'o')
+hold off
+grid on
+legend('X','Y','Z', 'Location','NorthEastOutside');
+ylabel('Covariance') % y-axis label
+axis([-20 6000 0.0000003 0.00000055])
+title('Covariance of Fourth Node Position') ;
+subplot(5,1,5);
+plot(cov_mass(1:0.1:6000,13:15))
+hold on
+plot(cov_mass(1,13),'o')
+hold off
+grid on
+legend('X','Y','Z', 'Location','NorthEastOutside');
 xlabel('t - [simulation step]') % x-axis label
 ylabel('Covariance') % y-axis label
-title( 'Position Covariance NO SPEED Correction' ) ;
-saveas(gcf, 'PosCov_0', 'pdf')
+axis([-20 6000 0.0000003 0.00000055])
+title('Covariance of Fifth Node Position') ;
+saveas(gcf, 'PosCov_mass', 'pdf')
+grid on
 
-figure;
-plot(inn_0(1:600,:)); 
-xlabel('t - [simulation step]') % x-axis label
-ylabel('Innovation - [mm]') % y-axis label
- title( 'Innovation') ;
-saveas(gcf, 'PosInn_0', 'pdf')
-
-
-figure;
-plot(cov_1(1:600,:))
-legend('firstNode x','firstNode y','firstNode z','secondNode x','secondNode y','secondNode z','thirdNode x','thirdNode y','thirdNode z', 'fourthNode x','fourthNode y','fourthNode z','fifthNode x','fifthNode y','fifthNode z','Location','NorthEastOutside');
-xlabel('t - [simulation step]') % x-axis label
+figure(2);
+plot(cov_mass(1:0.1:6000,16))
+hold on
+plot(cov_mass(1,16),'o')
+hold off
+grid on
+legend('Mass Value','Location','NorthEastOutside');
 ylabel('Covariance') % y-axis label
-title( 'Position Covariance NO SPEED Correction' ) ;
-saveas(gcf, 'PosCov_1', 'pdf')
-
-figure;
-plot(inn_1(1:600,:)); 
 xlabel('t - [simulation step]') % x-axis label
+title({' {\itPOSITION ESTIMATION w Speed Correction Q=R}',' ','Covariance of Mass Parameter'}) ;
+
+
+
+figure(3);
+subplot(5,3,1);
+plot(inn_mass(1:6000,1)); grid on
 ylabel('Innovation - [mm]') % y-axis label
- title( 'Innovation ') ;
-saveas(gcf, 'PosInn_1', 'pdf')
-
-
-figure;
-plot(cov_2(1:600,:))
-legend('firstNode x','firstNode y','firstNode z','secondNode x','secondNode y','secondNode z','thirdNode x','thirdNode y','thirdNode z', 'fourthNode x','fourthNode y','fourthNode z','fifthNode x','fifthNode y','fifthNode z','Location','NorthEastOutside');
-xlabel('t - [simulation step]') % x-axis label
-ylabel('Covariance') % y-axis label
-title( 'Position Covariance' ) ;
-saveas(gcf, 'PosCov_2', 'pdf')
-
-figure;
-plot(inn_2(1:600,:)); 
-xlabel('t - [simulation step]') % x-axis label
+title({' {\itPOSITION ESTIMATION w Speed Correction Q=R}',' ','First Observation Innovation'}) ;
+% axis([-20 6000 -0.005 0.005])
+subplot(5,3,2);
+plot(inn_mass(1:6000,2));grid on
+% axis([-20 6000 -0.005 0.005])
 ylabel('Innovation - [mm]') % y-axis label
- title( 'Innovation') ;
-saveas(gcf, 'PosInn_2', 'pdf')
-
-figure;
-plot(cov_3(1:600,:))
-legend('firstNode x','firstNode y','firstNode z','secondNode x','secondNode y','secondNode z','thirdNode x','thirdNode y','thirdNode z', 'fourthNode x','fourthNode y','fourthNode z','fifthNode x','fifthNode y','fifthNode z','Location','NorthEastOutside');
-xlabel('t - [simulation step]') % x-axis label
-ylabel('Covariance') % y-axis label
-title( 'Position Covariance' ) ;
-saveas(gcf, 'PosCov_3', 'pdf')
-
-figure;
-plot(inn_3(1:600,:)); 
-xlabel('t - [simulation step]') % x-axis label
+title('Second Observation Innovation') ;
+subplot(5,3,3);
+plot(inn_mass(1:6000,3));grid on
 ylabel('Innovation - [mm]') % y-axis label
- title( 'Innovation') ;
-saveas(gcf, 'PosInn_3', 'pdf')
-
-figure;
-plot(cov_4(1:600,:))
-legend('firstNode x','firstNode y','firstNode z','secondNode x','secondNode y','secondNode z','thirdNode x','thirdNode y','thirdNode z', 'fourthNode x','fourthNode y','fourthNode z','fifthNode x','fifthNode y','fifthNode z','Location','NorthEastOutside');
-xlabel('t - [simulation step]') % x-axis label
-ylabel('Covariance') % y-axis label
-title( 'Position Covariance' ) ;
-saveas(gcf, 'PosCov_4', 'pdf')
-
-figure;
-plot(inn_4(1:600,:)); 
-xlabel('t - [simulation step]') % x-axis label
+% axis([-20 6000 -0.005 0.005])
+title('Third Observation Innovation') ;
+subplot(5,3,4);
+plot(inn_mass(1:6000,4));grid on
 ylabel('Innovation - [mm]') % y-axis label
- title( 'Innovation') ;
-saveas(gcf, 'PosInn_4', 'pdf')
-
-figure;
-plot(cov_5(1:600,:))
-legend('firstNode x','firstNode y','firstNode z','secondNode x','secondNode y','secondNode z','thirdNode x','thirdNode y','thirdNode z', 'fourthNode x','fourthNode y','fourthNode z','fifthNode x','fifthNode y','fifthNode z','Location','NorthEastOutside');
-xlabel('t - [simulation step]') % x-axis label
-ylabel('Covariance') % y-axis label
-title( 'Position Covariance' ) ;
-saveas(gcf, 'PosCov_5', 'pdf')
-
-figure;
-plot(inn_5(1:600,:)); 
-xlabel('t - [simulation step]') % x-axis label
+% axis([-20 6000 -0.005 0.005])
+title('Fourth Observation Innovation') ;
+subplot(5,3,5);
+plot(inn_mass(1:6000,5));
 ylabel('Innovation - [mm]') % y-axis label
- title( 'Innovation') ;
-saveas(gcf, 'PosInn_5', 'pdf')
-
-figure;
-plot(cov_6(1:600,1:15))
-legend('firstNode x','firstNode y','firstNode z','secondNode x','secondNode y','secondNode z','thirdNode x','thirdNode y','thirdNode z', 'fourthNode x','fourthNode y','fourthNode z','fifthNode x','fifthNode y','fifthNode z','Location','NorthEastOutside');
-xlabel('t - [simulation step]') % x-axis label
-ylabel('Covariance') % y-axis label
-title( 'Position Covariance' ) ;
-saveas(gcf, 'PosCov_6', 'pdf')
-
-figure;
-plot(inn_6(1:600,1:15)); 
-xlabel('t - [simulation step]') % x-axis label
+% axis([-20 6000 -0.005 0.005]);
+title('Fifth Observation Innovation') ;
+subplot(5,3,6);
+plot(inn_mass(1:6000,6));
 ylabel('Innovation - [mm]') % y-axis label
- title( 'Innovation') ;
-saveas(gcf, 'PosInn_6', 'pdf')
-
-
-
-figure;
-plot(cov_7(1:600,:))
-legend('firstNode x','firstNode y','firstNode z','secondNode x','secondNode y','secondNode z','thirdNode x','thirdNode y','thirdNode z', 'fourthNode x','fourthNode y','fourthNode z','fifthNode x','fifthNode y','fifthNode z','Location','NorthEastOutside');
-xlabel('t - [simulation step]') % x-axis label
-ylabel('Covariance') % y-axis label
-title( 'Position Covariance' ) ;
-saveas(gcf, 'PosCov_7', 'pdf')
-
-figure;
-plot(inn_7(1:600,:)); 
-xlabel('t - [simulation step]') % x-axis label
+% axis([-20 6000 -0.005 0.005]);
+title('Sixth Observation Innovation') ;
+subplot(5,3,7);
+plot(inn_mass(1:6000,7));grid on
 ylabel('Innovation - [mm]') % y-axis label
- title( 'Innovation') ;
-saveas(gcf, 'PosInn_7', 'pdf')
-
-figure;
-plot(cov_8(1:600,:))
-legend('firstNode x','firstNode y','firstNode z','secondNode x','secondNode y','secondNode z','thirdNode x','thirdNode y','thirdNode z', 'fourthNode x','fourthNode y','fourthNode z','fifthNode x','fifthNode y','fifthNode z','Location','NorthEastOutside');
-xlabel('t - [simulation step]') % x-axis label
-ylabel('Covariance') % y-axis label
-title( 'Position Covariance' ) ;
-saveas(gcf, 'PosCov_8', 'pdf')
-
-figure;
-plot(inn_8(1:600,:)); 
-xlabel('t - [simulation step]') % x-axis label
+% axis([-20 6000 -0.005 0.005])
+title('7th Observation Innovation') ;
+subplot(5,3,8);
+plot(inn_mass(1:6000,8));
 ylabel('Innovation - [mm]') % y-axis label
- title( 'Innovation') ;
-saveas(gcf, 'PosInn_8', 'pdf')
-
-figure;
-plot(cov_9(1:600,:))
-legend('firstNode x','firstNode y','firstNode z','secondNode x','secondNode y','secondNode z','thirdNode x','thirdNode y','thirdNode z', 'fourthNode x','fourthNode y','fourthNode z','fifthNode x','fifthNode y','fifthNode z','Location','NorthEastOutside');
-xlabel('t - [simulation step]') % x-axis label
-ylabel('Covariance') % y-axis label
-title( 'Position Covariance' ) ;
-saveas(gcf, 'PosCov_9', 'pdf')
-
-figure;
-plot(inn_9(1:600,:)); 
-xlabel('t - [simulation step]') % x-axis label
+% axis([-20 6000 -0.005 0.005]);
+title('8th Observation Innovation') ;
+subplot(5,3,9);
+plot(inn_mass(1:6000,9));
 ylabel('Innovation - [mm]') % y-axis label
- title( 'Innovation') ;
-saveas(gcf, 'PosInn_9', 'pdf')
-
-figure;
-plot(cov_11(1:600,:))
-legend('firstNode x','firstNode y','firstNode z','secondNode x','secondNode y','secondNode z','thirdNode x','thirdNode y','thirdNode z', 'fourthNode x','fourthNode y','fourthNode z','fifthNode x','fifthNode y','fifthNode z','Location','NorthEastOutside');
-xlabel('t - [simulation step]') % x-axis label
-ylabel('Covariance') % y-axis label
-title( 'Position Covariance' ) ;
-saveas(gcf, 'PosCov_11', 'pdf')
-
-figure;
-plot(inn_11(1:600,:)); 
-xlabel('t - [simulation step]') % x-axis label
+% axis([-20 6000 -0.005 0.005]);
+title('9th Observation Innovation') ;
+subplot(5,3,10);
+plot(inn_mass(1:6000,10));grid on
 ylabel('Innovation - [mm]') % y-axis label
- title( 'Innovation') ;
-saveas(gcf, 'PosInn_11', 'pdf')
-
-figure;
-plot(cov_10(1:600,:))
-legend('firstNode x','firstNode y','firstNode z','secondNode x','secondNode y','secondNode z','thirdNode x','thirdNode y','thirdNode z', 'fourthNode x','fourthNode y','fourthNode z','fifthNode x','fifthNode y','fifthNode z','Location','NorthEastOutside');
-xlabel('t - [simulation step]') % x-axis label
-ylabel('Covariance') % y-axis label
-title( 'Position Covariance' ) ;
-saveas(gcf, 'PosCov_10', 'pdf')
-
-figure;
-plot(inn_10(1:600,:)); 
-xlabel('t - [simulation step]') % x-axis label
+% axis([-20 6000 -0.005 0.005])
+title('10th Observation Innovation') ;
+subplot(5,3,11);
+plot(inn_mass(1:6000,11));
 ylabel('Innovation - [mm]') % y-axis label
- title( 'Innovation') ;
-saveas(gcf, 'PosInn_10', 'pdf')
+% axis([-20 6000 -0.005 0.005]);
+title('11th Observation Innovation') ;
+subplot(5,3,12);
+plot(inn_mass(1:6000,12));
+ylabel('Innovation - [mm]') % y-axis label
+% axis([-20 6000 -0.005 0.005]);
+title('12th Observation Innovation') ;
+subplot(5,3,13);
+plot(inn_mass(1:6000,13));grid on
+ylabel('Innovation - [mm]') % y-axis label
+% axis([-20 6000 -0.005 0.005])
+title('13th Observation Innovation') ;
+subplot(5,3,14);
+plot(inn_mass(1:6000,14));
+ylabel('Innovation - [mm]') % y-axis label
+% axis([-20 6000 -0.005 0.005]);
+title('14th Observation Innovation') ;
+subplot(5,3,15);
+plot(inn_mass(1:6000,15));
+ylabel('Innovation - [mm]') % y-axis label
+% axis([-20 6000 -0.005 0.005]);
+title('15th Observation Innovation') ;
+saveas(gcf, 'PosInn_mass', 'pdf')
+grid on
+hold off
 
- 
-% figure;
-% plot(s_0(1:600,:)); 
-% legend('firstNode x','firstNode y','firstNode z','secondNode x','secondNode y','secondNode z','thirdNode x','thirdNode y','thirdNode z','Location','NorthEastOutside');
-% xlabel('t - [simulation step]') % x-axis label
-% ylabel('state - [m/s]') % y-axis label
-% title( 'Position Final State') ;
-% saveas(gcf, 'plots/PosState_0', 'pdf')
-% 
-% E_0=find(H_0<0.001);
-% figure;
-% plot(H_0(1:size(G,1)))
-% hold on
-% plot(E_0(1),H_0(E_0(1)),'r*')
-% title('Hausdorff Distance between Fiter Beam and Ground Truth Beam ')
-% xlabel('t - [simulation step]') % x-axis label
-% ylabel('Hausdorff Distance - [mm]') % y-axis label
-% saveas(gcf, 'plots/HausdorffPos_0', 'pdf')
-% hold off
+H_mass=zeros(6000,1);
+for i = 1:6000
+   H_mass(i) = HausdorffDist(state_mass(i,1:15),G(i,:));
+end
 
-%
+figure(4);
+pp5 = splinefit(1:6000,H_mass,8,1);  
+xx = linspace(1,6000);
+y5 = ppval(pp5,xx);
+ast=ones(size(H_mass))*y5(end);
+plot(H_mass(1:6000),'g')
+hold on
+plot(ast,'r'), 
+legend('Hausdorff Distance',['Min Dist =' num2str(ast(1))]);
+grid on
+title({' {\itPOSITION ESTIMATION w Speed Correction Q=R}',' ','Hausdorff Distance between Fiter Beam and Ground Truth Beam '})
+xlabel('t - [simulation step]') % x-axis label
+ylabel('Hausdorff Distance - [mm]') % y-axis label
+saveas(gcf, 'HausdorffPos_mass', 'pdf')
+hold off
 
-
+figure(5)
+plot(state_mass(:,16)), grid on;

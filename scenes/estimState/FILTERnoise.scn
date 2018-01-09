@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<Node name="root" dt="0.01" gravity="0 -5 0 ">
+<Node name="root" dt="0.01" gravity="0 -9.8 0 ">
      
 
 	<RequiredPlugin pluginName="Optimus"/>
@@ -7,14 +7,12 @@
 	<BackgroundSetting color="1 1 1 1" />
 	<ViewerSetting resolution="837 600" />
 	<FilteringAnimationLoop name="StochAnimLoop" verbose="1"/>
-<!--     <UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0" useModelIncertitude="1" filenameCov="print_cov_9" filenameInn="print_inn_9" filenameFinalState="print_state_9"/> -->
-<!--         <UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0" useModelIncertitude="1" filenameCov="print_cov_10" filenameInn="print_inn_10" filenameFinalState="print_state_10"/> -->
-            <UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0" useModelIncertitude="1" filenameCov="print_cov_11" filenameInn="print_inn_11" filenameFinalState="print_state_11"/>
+    <UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0" useModelIncertitude="0" />
+
 
     <Node name="filteredModel"> 
-<!--         <StochasticStateWrapper name="StateWrapper" verbose="1" estimatePosition="1" estimateVelocity="1" positionStdev="0.000" velocityStdev="0.0001" modelStdev="0.0001"/> -->
-<!--         <StochasticStateWrapper name="StateWrapper" verbose="1" estimatePosition="1" estimateVelocity="1" positionStdev="0.00" velocityStdev="0.001" modelStdev="0.001"/> -->
-        <StochasticStateWrapper name="StateWrapper" verbose="1" estimatePosition="1" estimateVelocity="1" positionStdev="0.000" velocityStdev="0.0001" modelStdev="0.0001"/>
+        <StochasticStateWrapper name="StateWrapper" verbose="1" estimatePosition="1" estimateVelocity="1" positionStdev="0.001" velocityStdev="0.0000" modelStdev="0.000"/>
+<!--         <OptimParams name="paramMass" optimize="1" numParams='1' template="Vector" initValue="0.8" stdev="0.001" transformParams="1"/> -->
         <EulerImplicitSolver rayleighMass="0.01" rayleighStiffness="0.1" />		
         <CGLinearSolver iterations="50" tolerance="1e-6" threshold="1e-6" />      
         <MechanicalObject template="Vec3d" name="MO" position="0 0 0  1 0 0  2 0 0  3 0 0  4 0 0" showObject="0"/>
@@ -25,9 +23,7 @@
         <Node name="obsNode" >        
             <MechanicalObject position="0 0 0"/>
             <SimulatedStateObservationSource template="Vec3d" name="observations" monitorPrefix="ObsNoise"/>	
-<!--             <MappedStateObservationManager name="MOBS" listening="1" stateWrapper="@../StateWrapper" verbose="1" doNotMapObservations="1" observationStdev="0.0001"/> -->
-<!--             <MappedStateObservationManager name="MOBS" listening="1" stateWrapper="@../StateWrapper" verbose="1" doNotMapObservations="1" observationStdev="0.0001"/> -->
-            <MappedStateObservationManager name="MOBS" listening="1" stateWrapper="@../StateWrapper" verbose="1" doNotMapObservations="1" observationStdev="0.001"/>
+            <MappedStateObservationManager name="MOBS" listening="1" stateWrapper="@../StateWrapper" verbose="1" doNotMapObservations="1" observationStdev="0.0005"/>
             <IdentityMapping />
         </Node>         
         

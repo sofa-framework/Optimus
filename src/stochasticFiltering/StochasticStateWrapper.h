@@ -208,6 +208,10 @@ public:
             modelErrorVarianceInverse = EMatrixX::Identity(this->stateSize, this->stateSize) / modelErrorVarianceValue;
 
             size_t vpi = 0;
+            for (size_t pi = this->positionVariance.size(); pi < this->stateSize; pi++){
+                    this->modelErrorVariance(pi,pi) = 0; /// Q is zero for parameters
+            }
+
             if (estimatePosition.getValue() && estimateVelocity.getValue()){
                 modelErrorVariance = EMatrixX::Identity(this->stateSize, this->stateSize) ;
                 for (size_t index = 0; index < this->positionVariance.size(); index++, vpi++) {
@@ -218,6 +222,7 @@ public:
                     modelErrorVariance(vpi,vpi) = this->velocityVariance[indexV];
                 }
             }
+
 
         }
         return this->modelErrorVariance;
