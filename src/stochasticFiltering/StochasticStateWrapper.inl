@@ -77,6 +77,7 @@ StochasticStateWrapper<DataTypes, FilterType>::StochasticStateWrapper()
     , estimateVelocity( initData(&estimateVelocity, false, "estimateVelocity", "estimate the velocity (e.g., if initial conditions with uncertainty") )
     , estimateExternalForces( initData(&estimateExternalForces, false, "estimateExternalForces", "estimate the external forces(e.g., if initial conditions with uncertainty") )
     , d_positionStdev( initData(&d_positionStdev, "positionStdev", "estimate standart deviation for positions"))    
+    , d_velocityStdev( initData(&d_velocityStdev, "velocityStdev", "estimate standart deviation for velocities"))
 
 {
 }
@@ -204,14 +205,21 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
             std::pair<size_t, size_t> pr(freeNodes[i], vsi++);
             velocityPairs.push_back(pr);
         }
+
+        this->velocityVariance.resize(Dim * velocityPairs.size());
+        for (size_t index = 0; index < Dim * velocityPairs.size(); index++) {
+            this->velocityVariance[index] = d_velocityStdev.getValue() * d_velocityStdev.getValue();
+        }
     }
 
+    /// obsolete!!!!
     if (estimateExternalForces.getValue()) {
         for (size_t i = 0; i < freeNodes.size(); i++) {
             std::pair<size_t, size_t> pr(freeNodes[i], vsi++);
             externalForcesPairs.push_back(pr);
         }
     }
+    /// \obsolete!!!!
 
 
     this->reducedStateIndex = Dim * vsi;

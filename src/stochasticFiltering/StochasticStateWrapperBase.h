@@ -125,6 +125,7 @@ protected:
     EVectorX state;
     EMatrixX stateErrorVariance;
     EVectorX positionVariance;
+    EVectorX velocityVariance;
 
     /// decomposed variance in reduced-order filtering
     EMatrixX stateErrorVarianceReduced;

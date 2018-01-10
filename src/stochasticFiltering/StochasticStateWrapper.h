@@ -121,7 +121,8 @@ public:
     Data<bool> estimateExternalForces;
     Data<bool> optimForces;
 
-    Data< double> d_positionStdev;  /// standart deviation for positions    
+    Data<double> d_positionStdev;  /// standart deviation for positions
+    Data<double> d_velocityStdev;  /// standart deviation for velocities
     bool estimatingPosition() {
         return this->estimatePosition.getValue();
     }
@@ -163,6 +164,13 @@ public:
             if (estimatePosition.getValue()) {
                 for (size_t index = 0; index < this->positionVariance.size(); index++, vpi++) {
                     this->stateErrorVariance(vpi,vpi) = this->positionVariance[index];
+                }
+            }
+
+            /// vpi continues to increase since velocity is always after position
+            if (estimateVelocity.getValue()) {
+                for (size_t index = 0; index < this->velocityVariance.size(); index++, vpi++) {
+                    this->stateErrorVariance(vpi,vpi) = this->velocityVariance[index];
                 }
             }
 
