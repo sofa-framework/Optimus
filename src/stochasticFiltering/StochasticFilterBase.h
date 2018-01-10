@@ -62,16 +62,25 @@ public:
         , verbose( initData(&verbose, false, "verbose", "print tracing informations") )
         , reducedOrder( initData(&reducedOrder, false, "reducedOrder", "reduced order type of the filter") )
         , useUnbiasedVariance( initData(&useUnbiasedVariance, true, "useUnbiasedVariance", "if true, the unbiased variance is computed (normalization by 1/(n-1)") )
+        , useModelIncertitude( initData(&useModelIncertitude, false, "useModelIncertitude", "if true, the state covariance is computed by adding Q") )
+        , lambdaScale( initData(&lambdaScale, 1.0, "lambdaScale", "scaling for sigma points") )
+        , m_sigmaTopologyType( initData(&m_sigmaTopologyType, "sigmaTopology", "sigma topology type") )
     {
 
     }
 
     ~StochasticFilterBase() {}
 
-protected:    
+protected:
+    typedef enum SigmaTopology {
+        SIMPLEX = 0,
+        STAR = 1,
+    } SigmaTopologyType;
+
     sofa::helper::system::thread::CTime *timer;
     double startTime, stopTime;
 
+    SigmaTopologyType m_sigmaTopology;
     sofa::simulation::Node* gnode;    
     size_t stepNumber;
     double actualTime;
@@ -82,6 +91,9 @@ public:
     Data<bool> verbose;
     Data<bool> reducedOrder;
     Data<bool> useUnbiasedVariance;
+    Data<bool> useModelIncertitude;
+    Data<double> lambdaScale;
+    Data< std::string > m_sigmaTopologyType;
 
     void init() {
         Inherit::init();
@@ -93,6 +105,11 @@ public:
 
         stepNumber = 0;
         actualTime = 0.0;
+
+        m_sigmaTopology = SIMPLEX;
+        std::string topology = m_sigmaTopologyType.getValue();
+        if (std::strcmp(topology.c_str(), "Star") == 0)
+            m_sigmaTopology = STAR;
     }
 
     virtual void initializeStep(const core::ExecParams* _params, const size_t _step) {

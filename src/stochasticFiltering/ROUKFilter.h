@@ -174,6 +174,7 @@ protected:
 
     /// functions
     void computeSimplexSigmaPoints(EMatrixX& sigmaMat);
+    void computeStarSigmaPoints(EMatrixX& sigmaMat);
     void blasMultAdd(EMatrixX& _a, EMatrixX& _b, EMatrixX& _c, Type _alpha, Type _beta);
 
 public:

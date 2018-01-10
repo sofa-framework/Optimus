@@ -126,6 +126,8 @@ protected:
     EMatrixX stateErrorVariance;
     EVectorX positionVariance;
     EVectorX velocityVariance;
+    EMatrixX modelErrorVariance;
+    //double m_omega;
 
     /// decomposed variance in reduced-order filtering
     EMatrixX stateErrorVarianceReduced;
@@ -172,6 +174,9 @@ public:
         return state.rows();
     }
 
+    virtual EMatrixX& getModelErrorVariance() {
+        return modelErrorVariance;
+    }
     virtual EMatrixX& getStateErrorVariance() {
         return stateErrorVariance;
     }

@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<Node name="root" dt="0.01" gravity="0 -9.8 0 ">
+     
+
+	<RequiredPlugin pluginName="Optimus"/>
+	<VisualStyle displayFlags="showVisualModels hideBehaviorModels showCollisionModels hideMappings showForceFields hideWireframe" />	
+	<BackgroundSetting color="1 1 1 1" />
+	<ViewerSetting resolution="837 600" />
+	<FilteringAnimationLoop name="StochAnimLoop" verbose="1"/>
+    <UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0" useModelIncertitude="0" />
+
+
+    <Node name="filteredModel"> 
+        <StochasticStateWrapper name="StateWrapper" verbose="1" estimatePosition="1" estimateVelocity="1" positionStdev="0.001" velocityStdev="0.0000" modelStdev="0.000"/>
+<!--         <OptimParams name="paramMass" optimize="1" numParams='1' template="Vector" initValue="0.8" stdev="0.001" transformParams="1"/> -->
+        <EulerImplicitSolver rayleighMass="0.01" rayleighStiffness="0.1" />		
+        <CGLinearSolver iterations="50" tolerance="1e-6" threshold="1e-6" />      
+        <MechanicalObject template="Vec3d" name="MO" position="0 0 0  1 0 0  2 0 0  3 0 0  4 0 0" showObject="0"/>
+        <StiffSpringForceField name="SPFF" spring="0 1 10000 5 1.0   1 2 10000 5 1.0   2 3 10000 5 1.0    3 4 10000 5 1.0" />
+        <PartialFixedConstraint indices="0" />
+        <UniformMass totalMass="0.5" />
+        <Sphere radius="0.05" color="0 1 0 1"/>                                       
+        <Node name="obsNode" >        
+            <MechanicalObject position="0 0 0"/>
+            <SimulatedStateObservationSource template="Vec3d" name="observations" monitorPrefix="ObsNoise"/>	
+            <MappedStateObservationManager name="MOBS" listening="1" stateWrapper="@../StateWrapper" verbose="1" doNotMapObservations="1" observationStdev="0.0005"/>
+            <IdentityMapping />
+        </Node>         
+        
+        <Node name="VISUALNoisyObs"> 
+            <MechanicalObject template="Vec3d" name="MO" position="0 0 0  1 0 0  2 0 0  3 0 0  4 0 0" showObject="0"/>
+            <ReadState filename="NoisyPosition" />
+            <Sphere radius="0.05" color="0 0 1 0.1"/>                                       
+        </Node>
+        <Node name="VISUALReferenceModel"> 
+            <MechanicalObject template="Vec3d" name="MO" position="0 0 0  1 0 0  2 0 0  3 0 0  4 0 0" showObject="0"/>
+            <ReadState filename="GroundTruthPosition" />
+            <Sphere radius="0.05" color="1 0 0 1"/>                                       
+        </Node>
+	</Node>
+        <Node name="VISUALIncorrectModel"> 
+            <PreStochasticWrapper />
+            <EulerImplicitSolver rayleighMass="0.01" rayleighStiffness="0.1" />			
+            <CGLinearSolver name="solver" iterations="50" tolerance="1e-6" threshold="1e-6" />
+            <MechanicalObject template="Vec3d" name="MO" position="0 0 0  1 0 0  2 0 0  3 0 0  4 0 0" showObject="0"/>
+            <StiffSpringForceField name="SPFF" spring="0 1 10000 5 1.0   1 2 10000 5 1.0   2 3 10000 5 1.0    3 4 10000 5 1.0" />
+            <PartialFixedConstraint indices="0" />
+            <UniformMass totalMass="0.5" />
+            <Sphere radius="0.05" color="0.5 0 1 1"/>                                       
+        </Node>
+    
+
+</Node>

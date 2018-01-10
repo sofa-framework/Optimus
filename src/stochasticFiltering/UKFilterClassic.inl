@@ -20,6 +20,11 @@ UKFilterClassic<FilterType>::UKFilterClassic()
     , d_variance( initData(&d_variance, "variance", "actual variance  of reduced state (parameters) estimated by the filter" ) )
     , d_covariance( initData(&d_covariance, "covariance", "actual co-variance  of reduced state (parameters) estimated by the filter" ) )
     , d_innovation( initData(&d_innovation, "innovation", "innovation value computed by the filter" ) )
+    , d_filenameCov( initData(&d_filenameCov, "filenameCov", "output file name"))
+    , d_filenameInn( initData(&d_filenameInn, "filenameInn", "output file name"))
+    , d_filenameFinalState( initData(&d_filenameFinalState, "filenameFinalState", "output file name"))
+
+
 {
 
 }
@@ -52,14 +57,14 @@ void UKFilterClassic<FilterType>::computePrediction()
 
     stateExp.fill(FilterType(0.0));
     stateExp = masterStateWrapper->getState();    
-    PRNS("X(n): \n" << stateExp.transpose());
-    //PRNS("P(n): \n" << stateCovar);
+//    PRNS("X(n): \n" << stateExp.transpose());
+//    PRNS("P(n): \n" << stateCovar);
 
     /// Computes X_{n}^{(i)-} sigma points        
     for (size_t i = 0; i < sigmaPointsNum; i++) {
         matXi.col(i) = stateExp + matPsqrt * matI.row(i).transpose();
-        //PRNS("Sigma point " << i << ": " << matXi.col(i).transpose());
     }
+//    PRNS("sigmaPoints: \n " << matXi.transpose());
     //PRNS("matI: \n" << matI);
     //PRNS("MatXi: \n" << matXi);
 
@@ -75,22 +80,28 @@ void UKFilterClassic<FilterType>::computePrediction()
     stateExp = stateExp * alpha;
 
 
-    stateCovar.fill(FilterType(0.0));
-    EVectorX tmpX(stateSize);
-    tmpX.fill(FilterType(0.0));
-
-    for (size_t i = 0; i < sigmaPointsNum; i++) {
-       tmpX = matXi.col(i) - stateExp;
-       for (size_t x = 0; x < stateSize; x++)
-           for (size_t y = 0; y < stateSize; y++)
-               stateCovar(x,y) += tmpX(x)*tmpX(y);
+    if(this->useModelIncertitude.getValue()){
+        stateCovar.setZero();
+        EMatrixX matXiTrans= matXi.transpose();
+        EMatrixX centeredPxx = matXiTrans.rowwise() - matXiTrans.colwise().mean();
+        EMatrixX covPxx = (centeredPxx.adjoint() * centeredPxx) / double(centeredPxx.rows() );
+        stateCovar = covPxx + modelCovar;
+    } else {
+        stateCovar.fill(FilterType(0.0));
+        EVectorX tmpX(stateSize);
+        tmpX.fill(FilterType(0.0));
+        for (size_t i = 0; i < sigmaPointsNum; i++) {
+           tmpX = matXi.col(i) - stateExp;
+           for (size_t x = 0; x < stateSize; x++)
+               for (size_t y = 0; y < stateSize; y++)
+                   stateCovar(x,y) += tmpX(x)*tmpX(y);
+        }
+        stateCovar=alphaVar*stateCovar;
     }
-    stateCovar = alphaVar*stateCovar;
 
     masterStateWrapper->setState(stateExp, mechParams);
 
     PRNS("X(n+1)-: " << stateExp.transpose());
-    //PRNS("P(n+1)-: \n" << stateCovar);
 }
 
 template <class FilterType>
@@ -114,39 +125,61 @@ void UKFilterClassic<FilterType>::computeCorrection()
             predObsExp = predObsExp + zCol;
 
         }
-        //PRNS("Z: \n" << matZmodel);
         predObsExp = alpha*predObsExp;
+//        PRNS("predictedObservation: \n" << matZmodel.transpose());
 
         EMatrixX matPxz(stateSize, observationSize);
         EMatrixX matPz(observationSize, observationSize);
-        matPxz.fill(FilterType(0.0));
-        matPz.fill(FilterType(0.0));
 
-        EVectorX vx(stateSize), z(observationSize), vz(observationSize);
-        vx.fill(FilterType(0.0));
-        vz.fill(FilterType(0.0));
-        z.fill(FilterType(0.0));
-        for (size_t i = 0; i < sigmaPointsNum; i++) {
-           vx = matXi.col(i) - stateExp;
-           z = matZmodel.col(i);
-           vz = z - predObsExp;
-           for (size_t x = 0; x < stateSize; x++)
-               for (size_t y = 0; y < observationSize; y++)
-                   matPxz(x,y) += vx(x)*vz(y);
+        if(this->useModelIncertitude.getValue()){
+            EMatrixX matXiTrans= matXi.transpose();
+            EMatrixX matZItrans = matZmodel.transpose();
 
-           for (size_t x = 0; x < observationSize; x++)
-               for (size_t y = 0; y < observationSize; y++)
-                   matPz(x,y) += vz(x)*vz(y);
+            EMatrixX centeredCx = matXiTrans.rowwise() - matXiTrans.colwise().mean();
+            EMatrixX centeredCz = matZItrans.rowwise() - matZItrans.colwise().mean();
+            EMatrixX covPxz = (centeredCx.adjoint() * centeredCz) / double(centeredCx.rows() );
+            matPxz=covPxz;
+
+            EMatrixX covPzz = (centeredCz.adjoint() * centeredCz) / double(centeredCz.rows() );
+            matPz=covPzz;
+            matPz= obsCovar+ matPz;
+        } else {
+            matPxz.fill(FilterType(0.0));
+            matPz.fill(FilterType(0.0));
+
+            EVectorX vx(stateSize), z(observationSize), vz(observationSize);
+            vx.fill(FilterType(0.0));
+            vz.fill(FilterType(0.0));
+            z.fill(FilterType(0.0));
+            for (size_t i = 0; i < sigmaPointsNum; i++) {
+               vx = matXi.col(i) - stateExp;
+               z = matZmodel.col(i);
+               vz = z - predObsExp;
+               for (size_t x = 0; x < stateSize; x++)
+                   for (size_t y = 0; y < observationSize; y++)
+                       matPxz(x,y) += vx(x)*vz(y);
+
+               for (size_t x = 0; x < observationSize; x++)
+                   for (size_t y = 0; y < observationSize; y++)
+                       matPz(x,y) += vz(x)*vz(y);
+            }
+            matPxz = alphaVar * matPxz;
+            matPz = alphaVar * matPz + obsCovar;
         }
-        matPxz = alphaVar * matPxz;
-        matPz = alphaVar * matPz + obsCovar;
-        //PRNS("matPxz: " << matPxz);
-        //PRNS("matPz: " << matPz);
-        //PRNS("ObsCovar: " << obsCovar);
 
         EMatrixX matK(stateSize, observationSize);
-        matK = matPxz*matPz.inverse();
-        //PRNS("matK: " << matK);
+        double epsilon= 1e-15;
+        Eigen::JacobiSVD<Eigen::MatrixXd> svd(matPz, Eigen::ComputeThinU | Eigen::ComputeThinV);
+        const Eigen::JacobiSVD<Eigen::MatrixXd>::SingularValuesType singVals = svd.singularValues();
+        Eigen::JacobiSVD<Eigen::MatrixXd>::SingularValuesType invSingVals = singVals;
+        for(int i=0; i<singVals.rows(); i++) {
+            if(singVals(i)*singVals(i) <= epsilon*epsilon) invSingVals(i) = 0.0;
+            else invSingVals(i) = 1.0 / invSingVals(i);
+        }
+        Eigen::MatrixXd S_inv = invSingVals.asDiagonal();
+        Eigen::MatrixXd m_inverse = svd.matrixV()*S_inv* svd.matrixU().transpose();
+        matK =matPxz* m_inverse;
+
 
         EVectorX innovation(observationSize);
         observationManager->getInnovation(this->actualTime, predObsExp, innovation);
@@ -155,10 +188,16 @@ void UKFilterClassic<FilterType>::computeCorrection()
         stateExp = stateExp + matK * innovation;
         stateCovar = stateCovar - matK*matPxz.transpose();
 
+        EVectorX diag;
+        diag.resize(stateCovar.rows());
+        for (size_t i = 0; i < stateCovar.rows(); i++) {
+            diag(i)=stateCovar(i,i);
+        }
+        PRNS("P(n+1)+n: \n" << diag);
+
         //stateWrappers[0]->computeSimulationStep(stateExp, mechParams, id);
 
         //PRNS("X(n+1)+: \n" << stateExp.transpose());
-        //PRNS("P(n+1)+n: \n" << stateCovar);
 
         masterStateWrapper->setState(stateExp, mechParams);
         //masterStateWrapper->transformState(stateExp, mechParams);
@@ -194,6 +233,27 @@ void UKFilterClassic<FilterType>::computeCorrection()
             ofs.open(fileName.c_str(), std::ofstream::out);
             ofs << stateCovar << std::endl;
         }
+
+        if (this->saveParam) {
+                    std::ofstream paramFile(d_filenameCov.getValue().c_str(), std::ios::app);
+                    if (paramFile.is_open()) {
+                        paramFile << diag.transpose() << "";
+                        paramFile << '\n';
+                        paramFile.close();
+                    }
+                    std::ofstream paramFileInn(d_filenameInn.getValue().c_str(), std::ios::app);
+                    if (paramFileInn.is_open()) {
+                        paramFileInn << innovation.transpose() << "";
+                        paramFileInn << '\n';
+                        paramFileInn.close();
+                    }
+                    std::ofstream paramFileFinalState(d_filenameFinalState.getValue().c_str(), std::ios::app);
+                    if (paramFileFinalState.is_open()) {
+                        paramFileFinalState << stateExp.transpose() << " ";
+                        paramFileFinalState << '\n';
+                        paramFileFinalState.close();
+                    }
+                }
 
     }
 }
@@ -241,6 +301,32 @@ void UKFilterClassic<FilterType>::init() {
     exportPrefix  = d_exportPrefix.getFullPath();
     PRNS("export prefix: " << exportPrefix)
 
+    this->saveParam = false;
+    if (!d_filenameCov.getValue().empty()) {
+        std::ofstream paramFile(d_filenameCov.getValue().c_str());
+        if (paramFile.is_open()) {
+            this->saveParam = true;
+            paramFile.close();
+        }
+    }
+    if (!d_filenameInn.getValue().empty()) {
+        std::ofstream paramFileInn(d_filenameInn.getValue().c_str());
+        if (paramFileInn .is_open()) {
+            this->saveParam = true;
+            paramFileInn.close();
+        }
+    }
+    if (!d_filenameFinalState.getValue().empty()) {
+        std::ofstream paramFileFinalState(d_filenameFinalState.getValue().c_str());
+        if (paramFileFinalState .is_open()) {
+            this->saveParam = true;
+            paramFileFinalState.close();
+        }
+    }
+
+    m_omega= 1e-5;
+
+
 }
 
 template <class FilterType>
@@ -258,10 +344,23 @@ void UKFilterClassic<FilterType>::bwdInit() {
 
     /// Initialize Model's Error Covariance
     stateCovar = masterStateWrapper->getStateErrorVariance();
+    if(this->useModelIncertitude.getValue()){
+        modelCovar = masterStateWrapper->getModelErrorVariance();
+        PRNS("modelCovar: \n" << modelCovar);
+    }
+
     stateExp = masterStateWrapper->getState();
 
     /// compute sigma points
-    computeSimplexSigmaPoints(matI);
+    switch (this->m_sigmaTopology) {
+    case STAR:
+        computeStarSigmaPoints(matI);
+        break;
+    case SIMPLEX:
+    default:
+        computeSimplexSigmaPoints(matI);
+    }
+
     sigmaPointsNum = matI.rows();
     matXi.resize(stateSize, sigmaPointsNum);
     matXi.setZero();
@@ -311,6 +410,43 @@ void UKFilterClassic<FilterType>::computeSimplexSigmaPoints(EMatrixX& sigmaMat) 
     vecAlpha.fill(Type(1.0)/Type(r));
     alphaConstant = true;
     alpha = vecAlpha(0);
+
+    alphaVar = (this->useUnbiasedVariance.getValue()) ? Type(1.0)/Type(r-1) : Type(1.0)/Type(r);
+}
+
+template <class FilterType>
+void UKFilterClassic<FilterType>::computeStarSigmaPoints(EMatrixX& sigmaMat) {
+    size_t p = stateSize;
+    size_t r = 2 * stateSize + 1;
+
+    EMatrixX workingMatrix = EMatrixX::Zero(p, r);
+
+    Type lambda, k, sqrt_vec;
+    k = 3 - p;
+     lambda = this->lambdaScale.getValue() * this->lambdaScale.getValue() * (p + k) - p;
+    sqrt_vec = sqrt(p + lambda);
+
+    for (size_t j = 0; j < p; j++) {
+        for (size_t i = 0; i < p; i++)
+            workingMatrix(i,j) = sqrt_vec;
+    }
+    for (size_t j = p + 1; j < 2 * p; j++) {
+        for (size_t i = 0; i < p; i++)
+            workingMatrix(i,j) = -sqrt_vec;
+    }
+
+
+    sigmaMat.resize(r,p);
+    for (size_t i = 0; i < r; i++)
+        sigmaMat.row(i) = workingMatrix.col(i);
+
+    vecAlpha.resize(r);
+    for (size_t i = 0; i < 2 * p; i++) {
+        vecAlpha(i) = Type(1.0)/Type(2 * (p + lambda));
+    }
+    // double beta = 2.0;
+    vecAlpha(2 * p) = Type(lambda)/Type(2 * (p + lambda)); // + (1 - this->lambdaScale * this->lambdaScale + beta)
+    alphaConstant = false;
 
     alphaVar = (this->useUnbiasedVariance.getValue()) ? Type(1.0)/Type(r-1) : Type(1.0)/Type(r);
 }

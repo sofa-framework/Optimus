@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<Node gravity="0 -9.8 0" dt="0.01" >
+	<RequiredPlugin pluginName="Optimus"/>
+	<VisualStyle displayFlags="showVisualModels hideBehaviorModels showCollisionModels hideMappings showForceFields hideWireframe" />	
+	<BackgroundSetting color="1 1 1 1" />
+	<ViewerSetting resolution="837 600" />
+
+
+    
+    
+	<Node name="simulation">
+		<Node name="referenceModel"> 
+			<EulerImplicitSolver rayleighMass="0.01" rayleighStiffness="0.1" />			
+			<CGLinearSolver name="solver" iterations="50" tolerance="1e-6" threshold="1e-6" />
+			<MechanicalObject template="Vec3d" name="MO" position="0 0 0  1 0 0  2 0 0  3 0 0  4 0 0" showObject="0"/>
+			<StiffSpringForceField name="SPFF" spring="0 1 10000 5 1.0   1 2 10000 5 1.0   2 3 10000 5 1.0    3 4 10000 5 1.0" />
+			<PlaneForceField name="PFF" normal="0 1 0" d="-3" />
+			<PartialFixedConstraint indices="0" />
+			<UniformMass totalMass="1" />
+			<Sphere radius="0.05" color="1 0 0 0.5"/>
+<!--             <WriteState filename ="GroundTruthPosition" />	 -->
+
+		</Node>
+
+		<Node name="noisyObs"> 		
+			<AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@../referenceModel/MO.position" noiseOrthogonalVariance="0.0005" noisePrincipalVariance="0.0005" noisePrincipalDirection="1 1 0"/> 
+			<MechanicalObject template="Vec3d" name="MO" position="@NoiseEngine.outputPositions" showObject="0"/>		
+			<Sphere radius="0.05" color="0 0 1 0.5"/>		
+		</Node>
+        
+        <Node name="target"> 
+            <MechanicalObject template="Vec3d" name="MO" position="@../noisyObs/NoiseEngine.outputPositions" showObject="0"/>	
+            <Sphere radius="0.05" color="0 0 1"/>
+<!--             <WriteState filename ="ObsNoise_x" observations="true"/>	 -->
+        </Node>
+        
+        <Node name="target"> 
+            <MechanicalObject template="Vec3d" name="MO" position="@../noisyObs/NoiseEngine.outputPositions" showObject="0"/>	
+            <Sphere radius="0.05" color="0 0 1"/>
+<!--             <WriteState filename ="NoisyPosition" />	 -->
+        </Node>
+	</Node>     
+    
+</Node>
