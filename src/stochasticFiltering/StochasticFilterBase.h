@@ -61,8 +61,8 @@ public:
         , mechParams(0)
         , verbose( initData(&verbose, false, "verbose", "print tracing informations") )
         , reducedOrder( initData(&reducedOrder, false, "reducedOrder", "reduced order type of the filter") )
-        , useUnbiasedVariance( initData(&useUnbiasedVariance, true, "useUnbiasedVariance", "if true, the unbiased variance is computed (normalization by 1/(n-1)") )
-        , useModelIncertitude( initData(&useModelIncertitude, false, "useModelIncertitude", "if true, the state covariance is computed by adding Q") )
+        , useUnbiasedVariance( initData(&useUnbiasedVariance, true, "useUnbiasedVariance", "if true, the unbiased variance is computed (normalization by 1/(n-1) [not activated for UKFClassic!") )
+        //, useModelIncertitude( initData(&useModelIncertitude, false, "useModelIncertitude", "if true, the state covariance is computed by adding Q") )
         , lambdaScale( initData(&lambdaScale, 1.0, "lambdaScale", "scaling for sigma points") )
         , m_sigmaTopologyType( initData(&m_sigmaTopologyType, "sigmaTopology", "sigma topology type") )
     {
@@ -91,7 +91,7 @@ public:
     Data<bool> verbose;
     Data<bool> reducedOrder;
     Data<bool> useUnbiasedVariance;
-    Data<bool> useModelIncertitude;
+    //Data<bool> useModelIncertitude;
     Data<double> lambdaScale;
     Data< std::string > m_sigmaTopologyType;
 

@@ -213,10 +213,6 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
         }
     }
 
-    PRNS("Pos Variance: " << this->positionVariance);
-    PRNS("Vel Variance: " << this->velocityVariance);
-
-
     /// obsolete!!!!
     if (estimateExternalForces.getValue()) {
         for (size_t i = 0; i < freeNodes.size(); i++) {

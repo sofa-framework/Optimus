@@ -80,24 +80,11 @@ void UKFilterClassic<FilterType>::computePrediction()
     stateExp = stateExp * alpha;
 
 
-    if(this->useModelIncertitude.getValue()){
-        stateCovar.setZero();
-        EMatrixX matXiTrans= matXi.transpose();
-        EMatrixX centeredPxx = matXiTrans.rowwise() - matXiTrans.colwise().mean();
-        EMatrixX covPxx = (centeredPxx.adjoint() * centeredPxx) / double(centeredPxx.rows() );
-        stateCovar = covPxx + modelCovar;
-    } else {
-        stateCovar.fill(FilterType(0.0));
-        EVectorX tmpX(stateSize);
-        tmpX.fill(FilterType(0.0));
-        for (size_t i = 0; i < sigmaPointsNum; i++) {
-           tmpX = matXi.col(i) - stateExp;
-           for (size_t x = 0; x < stateSize; x++)
-               for (size_t y = 0; y < stateSize; y++)
-                   stateCovar(x,y) += tmpX(x)*tmpX(y);
-        }
-        stateCovar=alphaVar*stateCovar;
-    }
+    stateCovar.setZero();
+    EMatrixX matXiTrans= matXi.transpose();
+    EMatrixX centeredPxx = matXiTrans.rowwise() - matXiTrans.colwise().mean();
+    EMatrixX covPxx = (centeredPxx.adjoint() * centeredPxx) / double(centeredPxx.rows() );
+    stateCovar = covPxx + modelCovar;
 
     masterStateWrapper->setState(stateExp, mechParams);
 
@@ -131,41 +118,17 @@ void UKFilterClassic<FilterType>::computeCorrection()
         EMatrixX matPxz(stateSize, observationSize);
         EMatrixX matPz(observationSize, observationSize);
 
-        if(this->useModelIncertitude.getValue()){
-            EMatrixX matXiTrans= matXi.transpose();
-            EMatrixX matZItrans = matZmodel.transpose();
+        EMatrixX matXiTrans= matXi.transpose();
+        EMatrixX matZItrans = matZmodel.transpose();
 
-            EMatrixX centeredCx = matXiTrans.rowwise() - matXiTrans.colwise().mean();
-            EMatrixX centeredCz = matZItrans.rowwise() - matZItrans.colwise().mean();
-            EMatrixX covPxz = (centeredCx.adjoint() * centeredCz) / double(centeredCx.rows() );
-            matPxz=covPxz;
+        EMatrixX centeredCx = matXiTrans.rowwise() - matXiTrans.colwise().mean();
+        EMatrixX centeredCz = matZItrans.rowwise() - matZItrans.colwise().mean();
+        EMatrixX covPxz = (centeredCx.adjoint() * centeredCz) / double(centeredCx.rows() );
+        matPxz=covPxz;
 
-            EMatrixX covPzz = (centeredCz.adjoint() * centeredCz) / double(centeredCz.rows() );
-            matPz=covPzz;
-            matPz= obsCovar+ matPz;
-        } else {
-            matPxz.fill(FilterType(0.0));
-            matPz.fill(FilterType(0.0));
-
-            EVectorX vx(stateSize), z(observationSize), vz(observationSize);
-            vx.fill(FilterType(0.0));
-            vz.fill(FilterType(0.0));
-            z.fill(FilterType(0.0));
-            for (size_t i = 0; i < sigmaPointsNum; i++) {
-               vx = matXi.col(i) - stateExp;
-               z = matZmodel.col(i);
-               vz = z - predObsExp;
-               for (size_t x = 0; x < stateSize; x++)
-                   for (size_t y = 0; y < observationSize; y++)
-                       matPxz(x,y) += vx(x)*vz(y);
-
-               for (size_t x = 0; x < observationSize; x++)
-                   for (size_t y = 0; y < observationSize; y++)
-                       matPz(x,y) += vz(x)*vz(y);
-            }
-            matPxz = alphaVar * matPxz;
-            matPz = alphaVar * matPz + obsCovar;
-        }
+        EMatrixX covPzz = (centeredCz.adjoint() * centeredCz) / double(centeredCz.rows() );
+        matPz=covPzz;
+        matPz= obsCovar+ matPz;
 
         EMatrixX matK(stateSize, observationSize);
         double epsilon= 1e-15;
@@ -193,11 +156,11 @@ void UKFilterClassic<FilterType>::computeCorrection()
         for (size_t i = 0; i < stateCovar.rows(); i++) {
             diag(i)=stateCovar(i,i);
         }
-        PRNS("P(n+1)+n: \n" << diag);
+        PRNS("P(n+1)+n: \n" << diag.transpose());
 
         //stateWrappers[0]->computeSimulationStep(stateExp, mechParams, id);
 
-        //PRNS("X(n+1)+: \n" << stateExp.transpose());
+        PRNS("X(n+1)+: \n" << stateExp.transpose());
 
         masterStateWrapper->setState(stateExp, mechParams);
         //masterStateWrapper->transformState(stateExp, mechParams);
@@ -343,11 +306,10 @@ void UKFilterClassic<FilterType>::bwdInit() {
     obsCovar = observationManager->getErrorVariance();
 
     /// Initialize Model's Error Covariance
-    stateCovar = masterStateWrapper->getStateErrorVariance();
-    if(this->useModelIncertitude.getValue()){
-        modelCovar = masterStateWrapper->getModelErrorVariance();
-        PRNS("modelCovar: \n" << modelCovar);
-    }
+    stateCovar = masterStateWrapper->getStateErrorVariance();    
+    modelCovar = masterStateWrapper->getModelErrorVariance();
+    //PRNS("modelCovar: \n" << modelCovar);
+
 
     stateExp = masterStateWrapper->getState();
 
@@ -411,7 +373,7 @@ void UKFilterClassic<FilterType>::computeSimplexSigmaPoints(EMatrixX& sigmaMat) 
     alphaConstant = true;
     alpha = vecAlpha(0);
 
-    alphaVar = (this->useUnbiasedVariance.getValue()) ? Type(1.0)/Type(r-1) : Type(1.0)/Type(r);
+    //alphaVar = (this->useUnbiasedVariance.getValue()) ? Type(1.0)/Type(r-1) : Type(1.0)/Type(r);
 }
 
 template <class FilterType>
@@ -448,7 +410,7 @@ void UKFilterClassic<FilterType>::computeStarSigmaPoints(EMatrixX& sigmaMat) {
     vecAlpha(2 * p) = Type(lambda)/Type(2 * (p + lambda)); // + (1 - this->lambdaScale * this->lambdaScale + beta)
     alphaConstant = false;
 
-    alphaVar = (this->useUnbiasedVariance.getValue()) ? Type(1.0)/Type(r-1) : Type(1.0)/Type(r);
+    //alphaVar = (this->useUnbiasedVariance.getValue()) ? Type(1.0)/Type(r-1) : Type(1.0)/Type(r);
 }
 
 
@@ -457,3 +419,40 @@ void UKFilterClassic<FilterType>::computeStarSigmaPoints(EMatrixX& sigmaMat) {
 } // sofa
 
 #endif // UKFilterClassic_INL
+
+
+/*matPxzB.fill(FilterType(0.0));
+matPzB.fill(FilterType(0.0));
+
+EVectorX vx(stateSize), z(observationSize), vz(observationSize);
+vx.fill(FilterType(0.0));
+vz.fill(FilterType(0.0));
+z.fill(FilterType(0.0));
+for (size_t i = 0; i < sigmaPointsNum; i++) {
+   vx = matXi.col(i) - stateExp;
+   z = matZmodel.col(i);
+   vz = z - predObsExp;
+   for (size_t x = 0; x < stateSize; x++)
+       for (size_t y = 0; y < observationSize; y++)
+           matPxzB(x,y) += vx(x)*vz(y);
+
+   for (size_t x = 0; x < observationSize; x++)
+       for (size_t y = 0; y < observationSize; y++)
+           matPzB(x,y) += vz(x)*vz(y);
+}
+matPxzB = alphaVar * matPxzB;
+matPzB = alphaVar * matPzB + obsCovar;*/
+
+/*
+    stateCovar.fill(FilterType(0.0));
+    EVectorX tmpX(stateSize);
+    tmpX.fill(FilterType(0.0));
+    for (size_t i = 0; i < sigmaPointsNum; i++) {
+       tmpX = matXi.col(i) - stateExp;
+       for (size_t x = 0; x < stateSize; x++)
+           for (size_t y = 0; y < stateSize; y++)
+               stateCovar(x,y) += tmpX(x)*tmpX(y);
+    }
+    stateCovar=alphaVar*stateCovar;
+}*/
+
