@@ -215,6 +215,9 @@ public:
                     for (size_t indexV = 0; indexV < this->velocityVariance.size(); indexV++)
                     modelErrorVariance(vpi,vpi) = this->velocityVariance[indexV];
                 }
+                for (size_t pi = (this->positionVariance.size()+this->velocityVariance.size()); pi < this->stateSize; pi++){
+                        this->modelErrorVariance(pi,pi) = 0; /// Q is zero for parameters
+                }
             }
 
 
