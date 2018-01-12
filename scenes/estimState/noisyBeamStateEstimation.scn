@@ -1,12 +1,13 @@
 <?xml version="1.0" ?>
 <Node gravity="0 -9.8 0" dt="0.01" >
 	<RequiredPlugin pluginName="Optimus"/>
-	<VisualStyle displayFlags="showVisualModels hideBehaviorModels showCollisionModels hideMappings showForceFields hideWireframe" />	
+	<VisualStyle displayFlags="showVisualModels showBehaviorModels showCollisionModels hideMappings hideForceFields hideWireframe" />	
 	<BackgroundSetting color="1 1 1 1" />
 	<ViewerSetting resolution="837 600" />
 	<FilteringAnimationLoop name="StochAnimLoop" verbose="1"/>
-    <UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0" useModelIncertitude="1"/>
-    	
+    <UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0"  />
+
+
 	<Node name="simulation">
 		<PreStochasticWrapper />
 		<Node name="referenceModel"> 
@@ -14,14 +15,16 @@
 			<CGLinearSolver name="solver" iterations="50" tolerance="1e-6" threshold="1e-6" />
 			<MechanicalObject template="Vec3d" name="MO" position="0 0 0  1 0 0  2 0 0  3 0 0  4 0 0" showObject="0"/>
 			<StiffSpringForceField name="SPFF" spring="0 1 10000 5 1.0   1 2 10000 5 1.0   2 3 10000 5 1.0    3 4 10000 5 1.0" />
-			<PlaneForceField name="PFF" normal="0 1 0" d="-3" />
+			<PlaneForceField name="PFF" normal="0 1 0" d="-3" draw="true"/>
 			<FixedConstraint indices="0" />
-			<UniformMass totalMass="1" />
-			<Sphere radius="0.1" color="1 0 0 0.5"/>
+		    <DiagonalMass mass="0.2 0.2 0.2 0.2 0.2" />
+            <Sphere radius="0.06" color="1 0 0 0.5"/>
+            <Line color="1 0 0 0.5"/>
+<!--             <WriteState filename ="g" observations="true" />	  -->
 		</Node>
 
 		<Node name="noisyObs"> 		
-			<AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@../referenceModel/MO.position" noiseOrthogonalVariance="0.002" noisePrincipalVariance="0.002" 
+			<AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@../referenceModel/MO.position" noiseOrthogonalVariance="0.001" noisePrincipalVariance="0.001" 
 				noisePrincipalDirection="1 1 0"/> 
 			<MechanicalObject template="Vec3d" name="MO" position="@NoiseEngine.outputPositions" showObject="0"/>		
 			<Sphere radius="0.05" color="0 0 1 0.5"/>		
@@ -32,27 +35,29 @@
 			<CGLinearSolver iterations="50" tolerance="1e-6" threshold="1e-6" />      
 			<MechanicalObject template="Vec3d" name="MO" position="0 0 0  1 0 0  2 0 0  3 0 0  4 0 0" showObject="0"/>
 			<StiffSpringForceField name="SPFF" spring="0 1 10000 5 1.0   1 2 10000 5 1.0   2 3 10000 5 1.0    3 4 10000 5 1.0" />
-			<PartialFixedConstraint indices="0" />
-			<UniformMass totalMass="0.6" />
+			<FixedConstraint indices="0" />
+            <DiagonalMass mass="0.2  0.6  0.7  0.3 0.55" />
 			<Sphere radius="0.05" color="0.5 0 1 1"/>
+            <Line color="0.5 0 1 1"/>
 		</Node>	 
 	</Node> 
 
  	<Node name="filteredModel" > 		
-		<StochasticStateWrapper name="StateWrapper" verbose="1" estimatePosition="1" estimateVelocity="0" positionStdev="0.01" velocityStdev="0.00" modelStdev="0.01"/>
-<!-- 		<OptimParams name="optimParams" /> 	 -->
+        <StochasticStateWrapper name="StateWrapper" verbose="1" estimatePosition="1" estimateVelocity="1" positionStdev="0.00000" velocityStdev="0.001" modelStdev="0.0005"/>
+        <OptimParams name="paramMass" optimize="1" numParams='5' template="Vector" initValue="0.2  0.6  0.7  0.3 0.55" stdev="0.08 0.08 0.08 0.08 0.08 " transformParams="0"/>
 		<EulerImplicitSolver rayleighMass="0.01" rayleighStiffness="0.1" />		
 		<CGLinearSolver iterations="50" tolerance="1e-6" threshold="1e-6" />      
 		<MechanicalObject template="Vec3d" name="MO" position="0 0 0  1 0 0  2 0 0  3 0 0  4 0 0" showObject="0"/>
-		<StiffSpringForceField name="SPFF" spring="0 1 10000 5 1.0   1 2 10000 5 1.0   2 3 10000 5 1.0    3 4 10000 5 1.0" />
-		<PartialFixedConstraint indices="0" />
-		<UniformMass totalMass="0.6" />
-		<Sphere radius="0.05" color="0 1 0 1"/>                                       
+<!-- 		<StiffSpringForceField name="SPFF" spring="0 1 10000 5 1.0   1 2 10000 5 1.0   2 3 10000 5 1.0    3 4 10000 5 1.0" /> -->
+		<FixedConstraint indices="0" />
+		<DiagonalMass mass="@paramMass.value" />
+<!--         <UniformMass totalMass="0.5"/> -->
+<!--         <Sphere radius="0.05" color="0 1 0 1"/>                                        -->
 		<Node name="obsNode" >        
 			<MechanicalObject position="0 0 0"/>
 			<SimulatedStateObservationSource template="Vec3d" name="observations" trackedObservations="@../../simulation/noisyObs/NoiseEngine.outputPositions"/>	
-			<MappedStateObservationManager name="MOBS" listening="1" stateWrapper="@../StateWrapper" verbose="1" doNotMapObservations="1" observationStdev="1"/>
-			<IdentityMapping />
+			<MappedStateObservationManager name="MOBS" listening="1" stateWrapper="@../StateWrapper" verbose="1" doNotMapObservations="1" observationStdev="0.0005"/>
+            <IdentityMapping />
 		</Node> 	
 	</Node>  
 	 

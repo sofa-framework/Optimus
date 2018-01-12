@@ -14,12 +14,11 @@
 			<CGLinearSolver name="solver" iterations="50" tolerance="1e-6" threshold="1e-6" />
 			<MechanicalObject template="Vec3d" name="MO" position="0 0 0  1 0 0  2 0 0  3 0 0  4 0 0" showObject="0"/>
 			<StiffSpringForceField name="SPFF" spring="0 1 10000 5 1.0   1 2 10000 5 1.0   2 3 10000 5 1.0    3 4 10000 5 1.0" />
-			<PlaneForceField name="PFF" normal="0 1 0" d="-3" />
+			<PlaneForceField name="PFF" normal="1 0 0" d="-0.8" draw="true"/>
 			<PartialFixedConstraint indices="0" />
-			<UniformMass totalMass="1" />
+            <DiagonalMass mass="0.2 0.2 0.2 0.2 0.2" />
 			<Sphere radius="0.05" color="1 0 0 0.5"/>
-<!--             <WriteState filename ="GroundTruthPosition" />	 -->
-
+            <WriteState filename ="gMITHESE" observations="true" />	 
 		</Node>
 
 		<Node name="noisyObs"> 		
@@ -31,13 +30,19 @@
         <Node name="target"> 
             <MechanicalObject template="Vec3d" name="MO" position="@../noisyObs/NoiseEngine.outputPositions" showObject="0"/>	
             <Sphere radius="0.05" color="0 0 1"/>
-<!--             <WriteState filename ="ObsNoise_x" observations="true"/>	 -->
+            <WriteState filename ="ObsNoiseMITHESE_x" observations="true"/>	
         </Node>
         
         <Node name="target"> 
             <MechanicalObject template="Vec3d" name="MO" position="@../noisyObs/NoiseEngine.outputPositions" showObject="0"/>	
             <Sphere radius="0.05" color="0 0 1"/>
-<!--             <WriteState filename ="NoisyPosition" />	 -->
+            <WriteState filename ="NoisyPositionMITHESE" />	
+        </Node>
+        
+        <Node name="target"> 
+            <MechanicalObject template="Vec3d" name="MO" position="@../referenceModel/MO.position" showObject="0"/>	
+            <Sphere radius="0.05" color="0.5 0.5 1"/>
+            <WriteState filename ="GroundTruthPositionMITHESE" />	
         </Node>
 	</Node>     
     
