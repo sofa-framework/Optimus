@@ -1,0 +1,39 @@
+---
+scene_parameters:
+    system_parameters:
+        volume_file_name: "../assimBCLiver_grid/data/liver.msh"
+        observation_file_name: "observations/livergeomagic"
+        observation_points_file_name: "../../data/cylinder/liver_obs1_1.vtk"
+    general_parameters:
+        gravity: "0 0 0"
+        total_mass: 0.2
+        boundary_conditions_list:
+            - condition_type: "elastic"   # options are "fixed" and "elastic"
+              boxes_coordinates: "0.11 0.245 0.355 0.12 0.255 0.365  0.295 0.26 0.34 0.305 0.27 0.35"
+              spring_stiffness_values: "1500 3000"
+    obs_generating_parameters:
+        object_young_moduli: "150 300"
+        save_observations: 1
+    filtering_parameters:
+        output_directory_prefix: "outCyl2_138_"
+        output_directory_suffix: "_livergeomagic1observation"
+        output_files_suffix: "test" 
+        optim_params_size: 2
+        filter_kind: "UKFSimCorr"   # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
+        use_unbiased_variance: "0"
+        initial_stiffness: [100, 100]
+        minimal_stiffness: [0, 0]
+        maximal_stiffness: [100000, 100000]
+        initial_standart_deviation: 100
+        observation_noise_standart_deviation: 1e-3
+        positions_standart_deviation: 1e-3
+        transform_parameters: absolute
+        sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
+        sigma_points_scale: 1
+        save_state: 1
+        save_internal_data: 1
+    impact_parameters:
+        observation_file_name: "observations/liverimpact"
+        position: "0.14 0.18 0.39 0.0 0.0 0.0 1.0"
+...
+
