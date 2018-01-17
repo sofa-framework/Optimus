@@ -135,7 +135,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
         externalNode = node.createChild('ExternalImpact')
         externalNode.createObject('MechanicalObject', name='dofs', template='Rigid', position=self.options.impact.position)
-        self.toolSprings = externalNode.createObject('RestShapeSpringsForceField', name="impactSpring", stiffness="1000", angularStiffness='1', external_rest_shape='@../externalImpSimu/state')
+        self.toolSprings = externalNode.createObject('RestShapeSpringsForceField', name="impactSpring", stiffness="100", angularStiffness='1', external_rest_shape='@../externalImpSimu/state')
         externalNode.createObject('BarycentricMapping')
                 
         return 0
