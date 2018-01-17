@@ -4,6 +4,7 @@ import os
 import shutil
 
 
+
 class BoundaryConditions:
     def __init__(self):
         return
@@ -18,6 +19,7 @@ class BoundaryConditions:
         if 'spring_stiffness_values' in configData['scene_parameters']['general_parameters']['boundary_conditions_list'][index]:
             self.boundaryStiffness = configData['scene_parameters']['general_parameters']['boundary_conditions_list'][index]['spring_stiffness_values']
         return
+
 
 
 class Model:
@@ -41,6 +43,8 @@ class Model:
             self.bcList[len(self.bcList) - 1].parseYaml(configData, index)
 
         return
+
+
 
 class Filter:
     def __init__(self):
@@ -77,6 +81,23 @@ class Filter:
         return
 
 
+
+class Impact:
+    def __init__(self):
+        return
+
+    positionFileName = ''  
+    position = ''
+
+    def parseYaml(self, configData):
+        if configData['scene_parameters']['impact_parameters']:
+            self.positionFileName = configData['scene_parameters']['impact_parameters']['observation_file_name']
+            self.position = configData['scene_parameters']['impact_parameters']['position']
+
+        return
+
+
+
 class Observations:    
     def __init__(self):
         return
@@ -95,7 +116,6 @@ class Observations:
         self.youngModuli = configData['scene_parameters']['obs_generating_parameters']['object_young_moduli']
         self.groundTruth = self.youngModuli
         
-
 
 
 class Export:
@@ -144,6 +164,7 @@ class Export:
         os.mkdir(self.folder)
 
 
+
 class DAOptions:
     def __init__(self):
         return
@@ -154,6 +175,7 @@ class DAOptions:
     filter = Filter()
     observations = Observations()
     export = Export()
+    impact = Impact()
 
 
     def parseYaml(self, configFileName):
@@ -165,6 +187,7 @@ class DAOptions:
                 self.filter.parseYaml(configData)
                 self.observations.parseYaml(configData)
                 self.export.parseYaml(configData, self.filter)
+                self.impact.parseYaml(configData)
 
             except yaml.YAMLError as exc:
                 print(exc)
