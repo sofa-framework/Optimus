@@ -90,7 +90,7 @@ class Impact:
     position = ''
 
     def parseYaml(self, configData):
-        if configData['scene_parameters']['impact_parameters']:
+        if 'impact_parameters' in configData['scene_parameters']:
             self.positionFileName = configData['scene_parameters']['impact_parameters']['observation_file_name']
             self.position = configData['scene_parameters']['impact_parameters']['position']
 
