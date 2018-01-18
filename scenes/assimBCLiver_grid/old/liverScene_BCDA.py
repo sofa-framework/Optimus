@@ -73,9 +73,9 @@ class liverScene_BCDA(Sofa.PythonScriptController):
         if self.filterKind=='UKFClassic':
             self.estimVelocity='0'
 
-        self.paramInitExp = [500, 500]
+        self.paramInitExp = [100, 100]
         #self.paramInitExp = 1
-        self.paramInitSD = 5
+        self.paramInitSD = 50
         self.obsInitSD= 1e-4
 
         if self.saveState:
@@ -122,11 +122,11 @@ class liverScene_BCDA(Sofa.PythonScriptController):
 
         node.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")
         if (self.filterKind == 'ROUKF'):
-            self.filter = node.createObject('ROUKFilter', name="ROUKF", verbose="1")        
+            self.filter = node.createObject('ROUKFilter', name="ROUKF", useUnbiasedVariance='false', verbose="1")        
         elif (self.filterKind == 'UKFSimCorr'):
-            self.filter = node.createObject('UKFilterSimCorr', name="UKF", verbose="1") 
+            self.filter = node.createObject('UKFilterSimCorr', name="UKF", useUnbiasedVariance='false', verbose="1") 
         elif (self.filterKind == 'UKFClassic'):
-            self.filter = node.createObject('UKFilterClassic', name="UKFClas", verbose="1") 
+            self.filter = node.createObject('UKFilterClassic', name="UKFClas", useUnbiasedVariance='false', verbose="1") 
         else:
             print 'Unknown filter type!'     
             
@@ -145,9 +145,9 @@ class liverScene_BCDA(Sofa.PythonScriptController):
     #components common for both master and slave: the simulation itself (without observations and visualizations)
     def createCommonComponents(self, node):                                  
         
-        node.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")   
-        node.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
-        #node.createObject('EulerImplicitSolver', firstOrder='false', vdamping='5.0', rayleighMass='0.1', rayleighStiffness='0.1')
+        #node.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")   
+        #node.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
+        node.createObject('EulerImplicitSolver', firstOrder='false', vdamping='5.0', rayleighMass='0.1', rayleighStiffness='0.1')
         #node.createObject('CGLinearSolver', name='linear solver', iterations='25', tolerance='1e-10', threshold='10e-10')
         node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToDir="", iterativeSolverNumbering="0")
 
@@ -156,11 +156,11 @@ class liverScene_BCDA(Sofa.PythonScriptController):
         node.createObject('TetrahedronSetTopologyContainer', name="Container", src="@/vloader", tags=" ")
         node.createObject('TetrahedronSetTopologyModifier', name="Modifier")        
         node.createObject('MechanicalObject', name="dofs")
-        node.createObject('UniformMass', totalMass="1.8")
+        node.createObject('UniformMass', totalMass="0.2")
         node.createObject('TetrahedronFEMForceField', name='FEM', listening="true", ParameterSet=self.materialParams)
         #node.createObject('ExtendedRestShapeSpringForceField', name='Springs', stiffness='@springStiffness.value', showIndicesScale='0', springThickness="3", listening="1", updateStiffness="1", printLog="0", external_rest_shape="Bound/mstate", points='418 496 107 190 357 470 467 441 447 429 378 351 331 403 494 497 495 488 489 283 286 352 414 397 339 481 462 428 433 471 482 483 469 445 452 474', external_points='0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36')
         #node.createObject('ExtendedRestShapeSpringForceField', name='Springs', stiffness='@springStiffness.value', showIndicesScale='0', springThickness="3", listening="1", updateStiffness="1", printLog="0", points='246 320 370 413 493 471 447 430 494 492 381 473 448 284 348 36 70 107 190 76 30 60 266 18 91 132 248 238')
-        node.createObject('ExtendedRestShapeSpringForceField', name='Springs', stiffness='@springStiffness.value', showIndicesScale='0', springThickness="3", listening="1", updateStiffness="1", printLog="0", points='82 120')
+        node.createObject('ExtendedRestShapeSpringForceField', name='Springs', stiffness='@springStiffness.value', showIndicesScale='0', springThickness="3", listening="1", updateStiffness="1", printLog="0", points='83 116')
         #node.createObject('SpringStiffnessFileWriter', name='StiffnessWriter', initialDataFile='observations/initial.txt', errorRateFile='measurements/stiffnessError.txt')
         node.createObject('ColorMap',colorScheme="Blue to Red")
         
@@ -168,7 +168,7 @@ class liverScene_BCDA(Sofa.PythonScriptController):
         visualNode = node.createChild('ModifiedVisual')
         visualNode.createObject('TriangleSetTopologyContainer', src="@/devloader", tags=" ")
         visualNode.createObject('MechanicalObject', name='dofs', template='Vec3d', showObject='true', translation='0.15 0.21 0.37')
-        self.toolSprings=visualNode.createObject('ExtendedRestShapeSpringForceField', name="toolSpring", stiffness="10000", external_rest_shape="../externalImpactSimu/MO", springThickness="1", listening="1", updateStiffness="1", springColor="0 1 0 1", startTimeSpringOn="0", numStepsSpringOn="10000")
+        self.toolSprings=visualNode.createObject('ExtendedRestShapeSpringForceField', name="toolSpring", stiffness="2", external_rest_shape="../externalImpactSimu/MO", springThickness="1", listening="1", updateStiffness="1", springColor="0 1 0 1", startTimeSpringOn="0", numStepsSpringOn="10000")
         visualNode.createObject('ColorMap',colorScheme="Blue to Red")
         visualNode.createObject('BarycentricMapping')
 
@@ -186,7 +186,6 @@ class liverScene_BCDA(Sofa.PythonScriptController):
 
         impactSimu = node.createChild('externalImpactSimu')
         impactSimu.createObject('MechanicalObject', name="MO",src="@/impactloader")
-        print self.impactMonitorPrefix
         impactSimu.createObject('SimulatedStateObservationSource', name="ImpactSim",printLog="1", monitorPrefix=self.impactMonitorPrefix, drawSize="0.0015", controllerMode="1")
 
         # do not use external impact node now
@@ -346,25 +345,7 @@ class liverScene_BCDA(Sofa.PythonScriptController):
             f3 = open(self.stateCovarFile, "a")
             f3.write(" ".join(map(lambda x: str(x), covariance)))
             f3.write('\n')
-            f3.close()    
-
-        # print self.basePoints.findData('indices_position').value
-
-        if self.saveToolForces:
-            tsp=self.toolSprings.findData('totalForce').value
-            f4 = open(self.toolForceFile, "a")
-            f4.write(" ".join(map(lambda x: str(x), tsp[0])))
-            f4.write('\n')
-            f4.close()            
-            print 'Tool forces:'
-            print tsp
-
-        if self.saveAssess:
-            tsp=self.asMO.findData('position').value
-            f5 = open(self.assessFile, "a")
-            f5.write(" ".join(map(lambda x: str(x), tsp)))
-            f5.write('\n')
-            f5.close()                        
+            f3.close()
 
         return 0
 

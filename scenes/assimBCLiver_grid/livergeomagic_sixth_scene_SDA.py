@@ -92,7 +92,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
     #components common for both master and slave: the simulation itself (without observations and visualizations)
     def createCommonComponents(self, node):                                  
         #node.createObject('StaticSolver', applyIncrementFactor="0")        
-        node.createObject('EulerImplicitSolver', rayleighStiffness=self.options.model.rayleighStiffness, rayleighMass=self.options.model.rayleighMass)
+        node.createObject('EulerImplicitSolver', rayleighStiffness='0.1', rayleighMass='0.1')
         # node.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")   
         #node.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
         node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
@@ -110,8 +110,8 @@ class synth1_BCDA(Sofa.PythonScriptController):
         lamb=(E*nu)/((1+nu)*(1-2*nu))
         mu=E/(2+2*nu)
         materialParams='{} {}'.format(mu,lamb)
-        node.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=materialParams)
-        # node.createObject('TetrahedronFEMForceField', name='FEM', updateStiffness='1', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='5000')
+        # node.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=materialParams)
+        node.createObject('TetrahedronFEMForceField', name='FEM', updateStiffness='1', listening='true', drawHeterogeneousTetra='1', method='large', youngModulus='5000', poissonRatio='0.45')
 
         for index in range(0, len(self.options.model.bcList)):
             bcElement = self.options.model.bcList[index]
@@ -130,11 +130,11 @@ class synth1_BCDA(Sofa.PythonScriptController):
         # node.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus="1e5", poissonRatio="0.45", method="large")
 
         impactSimu = node.createChild('externalImpSimu')
-        impactSimu.createObject('MechanicalObject', name="state", template='Rigid', useTopology='false', position=self.options.impact.position)
-        impactSimu.createObject('SimulatedStateObservationSource', name="ImpactSim", template='Rigid', printLog="1", monitorPrefix=self.options.impact.positionFileName, drawSize="0.0015", controllerMode="1")
+        impactSimu.createObject('MechanicalObject', name="state", template='Vec3d', useTopology='false', position=self.options.impact.position)
+        impactSimu.createObject('SimulatedStateObservationSource', name="ImpactSim", template='Vec3d', printLog="1", monitorPrefix=self.options.impact.positionFileName, drawSize="0.0015", controllerMode="1")
 
         externalNode = node.createChild('ExternalImpact')
-        externalNode.createObject('MechanicalObject', name='dofs', template='Rigid', position=self.options.impact.position)
+        externalNode.createObject('MechanicalObject', name='dofs', template='Vec3d', position=self.options.impact.position)
         self.toolSprings = externalNode.createObject('RestShapeSpringsForceField', name="impactSpring", stiffness="100", angularStiffness='1', external_rest_shape='@../externalImpSimu/state')
         externalNode.createObject('BarycentricMapping')
                 

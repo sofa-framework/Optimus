@@ -34,6 +34,6 @@ scene_parameters:
         save_internal_data: 1
     impact_parameters:
         observation_file_name: "observations/liverimpact"
-        position: "0.14 0.18 0.39 0.0 0.0 0.0 1.0"
+        position: "0.14 0.18 0.39"
 ...
 

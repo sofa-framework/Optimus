@@ -10,10 +10,12 @@ __file = __file__.replace('\\', '/') # windows
 
 
 def createScene(rootNode):
+    rootNode.createObject('RequiredPlugin', pluginName='SofaPython')   
     rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
     rootNode.createObject('RequiredPlugin', name='Pardiso', pluginName='SofaPardisoSolver')
     rootNode.createObject('RequiredPlugin', name='IMAUX', pluginName='ImageMeshAux')
     # rootNode.createObject('RequiredPlugin', name='MJED', pluginName='SofaMJEDFEM')
+    rootNode.createObject('RequiredPlugin', pluginName='Geomagic')
     rootNode.createObject('RequiredPlugin', name='BoundaryConditions', pluginName="BoundaryConditionsPlugin")
     
     try : 
@@ -40,7 +42,8 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
 
         self.options.parseYaml(self.configFileName)
         self.rayleighMass = 0.1
-        self.rayleighStiffness = 3
+        self.rayleighStiffness = 0.1
+        self.vdamping = 5.0
 
         rootNode.findData('dt').value = self.options.model.dt
         rootNode.findData('gravity').value = self.options.model.gravity
@@ -54,30 +57,28 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
         nu=0.45
         E=5000
         
-        # rootNode
-        rootNode.createObject('RequiredPlugin', pluginName='Optimus')
-        rootNode.createObject('RequiredPlugin', pluginName='SofaPardisoSolver')
-        # rootNode.createObject('RequiredPlugin', pluginName='SofaMJEDFEM')
-        rootNode.createObject('RequiredPlugin', pluginName='ImageMeshAux')
-        rootNode.createObject('RequiredPlugin', pluginName='Geomagic')
-        rootNode.createObject('VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels hideVisual')
+        rootNode.createObject('VisualStyle', displayFlags='showVisualModels hideBehaviorModels hideCollisionModels hideMappings hideForceFields')
 
         # rootNode/externalImpact
         impactNode = rootNode.createChild('impactNode')
         self.impactNode = impactNode
-        impactNode.createObject('EulerImplicitSolver', rayleighStiffness=self.rayleighStiffness, rayleighMass=self.rayleighMass)
+        impactNode.createObject('EulerImplicitSolver', firstOrder='false', vdamping=self.vdamping, rayleighStiffness=self.rayleighStiffness, rayleighMass=self.rayleighMass)
         impactNode.createObject('CGLinearSolver', iterations='25', tolerance='1e-5', threshold='1e-5')
         impactNode.createObject('GeomagicDriver', name='GeomagicDevice', deviceName='Default Device', scale='0.02', orientationBase='0 1 -1 -1', positionBase='0.16 0.18 0.28', orientationTool='0 0 0 1')
         impactNode.createObject('MechanicalObject', template='Rigid', name='GeomagicMO', position='@GeomagicDevice.positionDevice')
         impactNode.createObject('Sphere', color='0.5 0.5 0.5 1', radius='0.014', template='Rigid')
         impactNode.createObject('BoxROI', name='geomagicBounds', box='-0.05 -0.05 -0.05 0.52 0.3 0.4')
         impactNode.createObject('Monitor', name='toolMonitor', template='Rigid', showPositions='1', indices='@geomagicBounds.indices', ExportPositions='1', fileName='observations/geomagic')
+
+        dotNode = impactNode.createChild('dotNode')
+        dotNode.createObject('MechanicalObject', template='Vec3d', name='dot', showObject='true', position='0.0 0.0 0.0')
+        dotNode.createObject('RigidMapping', name='meshGeomagicMapping', input='@../GeomagicMO', output='@dot')
 	
         # rootNode/simuNode
         simuNode = rootNode.createChild('simuNode')
         self.simuNode = simuNode
-        simuNode.createObject('EulerImplicitSolver', rayleighStiffness=self.rayleighStiffness, rayleighMass=self.rayleighMass)
-        simuNode.createObject('SparsePARDISOSolver', name='LDLsolver', verbose='0', symmetric='2', exportDataToFolder='')
+        simuNode.createObject('EulerImplicitSolver', firstOrder='false', vdamping=self.vdamping, rayleighStiffness=self.rayleighStiffness, rayleighMass=self.rayleighMass)
+        simuNode.createObject('SparsePARDISOSolver', name='LDLsolver', verbose='0', symmetric='1', exportDataToFolder='')
         # simuNode.createObject('MeshVTKLoader', name='loader', filename=self.options.model.volumeFileName)
         simuNode.createObject('MeshGmshLoader', name='loader', filename=self.options.model.volumeFileName)
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')
@@ -99,8 +100,8 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
         lamb=(E*nu)/((1+nu)*(1-2*nu))
         mu=E/(2+2*nu)
         materialParams='{} {}'.format(mu,lamb)
-        simuNode.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=materialParams)
-        #simuNode.createObject('TetrahedronFEMForceField', updateStiffness='1', name='FEM', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='5000')
+        #simuNode.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=materialParams)
+        simuNode.createObject('TetrahedronFEMForceField', updateStiffness='1', name='FEM', listening='true', drawHeterogeneousTetra='1', method='large', youngModulus='5000', poissonRatio='0.45')
 
         if self.options.observations.save:
             simuNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1')
@@ -109,12 +110,12 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
         # rootNode/simuNode/attached
         attachedNode = simuNode.createChild('Attached')
         self.attachedNode = attachedNode
-        attachedNode.createObject('MechanicalObject', template='Rigid', name='dofs', position=self.options.impact.position)
-        attachedNode.createObject('RestShapeSpringsForceField', name='Springs', stiffness='150', angularStiffness='1', external_rest_shape='@../../impactNode/GeomagicMO')
-        attachedNode.createObject('GeomagicDeviceListener', template='Rigid', geomagicButtonPressed='@../../impactNode/GeomagicDevice.button1', geomagicSecondButtonPressed='@../../impactNode/GeomagicDevice.button2', geomagicPosition='@../../impactNode/GeomagicDevice.positionDevice')
+        attachedNode.createObject('MechanicalObject', template='Vec3d', name='dofs', showObject='true', position=self.options.impact.position)
+        attachedNode.createObject('RestShapeSpringsForceField', name='Springs', stiffness='25', angularStiffness='1', external_rest_shape='@../../impactNode/dotNode/dot')
+        attachedNode.createObject('GeomagicDeviceListener', template='Vec3d', geomagicButtonPressed='@../../impactNode/GeomagicDevice.button1', geomagicSecondButtonPressed='@../../impactNode/GeomagicDevice.button2', geomagicPosition='@../../impactNode/GeomagicDevice.positionDevice')
         attachedNode.createObject('BarycentricMapping')
         attachedNode.createObject('BoxROI', name='impactBounds', box='0.08 0.1 0.31 0.22 0.27 0.46')
-        attachedNode.createObject('Monitor', name='toolMonitor', template='Rigid', showPositions='1', indices='@impactBounds.indices', ExportPositions='1', fileName=self.options.impact.positionFileName)
+        attachedNode.createObject('Monitor', name='toolMonitor', template='Vec3d', showPositions='1', indices='@impactBounds.indices', ExportPositions='1', fileName=self.options.impact.positionFileName)
 
         return 0;
 

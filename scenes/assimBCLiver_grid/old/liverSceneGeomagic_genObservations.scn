@@ -24,13 +24,13 @@
 
     <InteractiveCamera />
 	
-    <EulerImplicitSolver firstOrder="false" vdamping="5.0" rayleighMass="0.1" rayleighStiffness="0.1" />
-    <CGLinearSolver name="linear solver" iterations="25" tolerance="1e-10" threshold="10e-10" />
+<!--    <EulerImplicitSolver firstOrder="false" vdamping="5.0" rayleighMass="0.1" rayleighStiffness="0.2" />-->
+<!--    <CGLinearSolver name="linear solver" iterations="25" tolerance="1e-10" threshold="10e-10" />-->
     <!--    <NewtonStaticSolver maxIt="3" name="NewtonStatic" correctionTolerance="1e-8" convergeOnResidual="1" residualTolerance="1e-8" printLog="1" />-->
-    <!--    <SparsePARDISOSolver name="precond" symmetric="1" exportDataToDir="" iterativeSolverNumbering="1" /> -->
+<!--        <SparsePARDISOSolver name="precond" symmetric="1" exportDataToDir="" iterativeSolverNumbering="1" /> -->
 
     <Node name="externalImpact">
-        <EulerImplicit />
+        <EulerImplicit firstOrder="false" vdamping="5.0" rayleighMass="0.1" rayleighStiffness="0.2" />
         <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/>
         <!--        <NewtonStaticSolver maxIt="3" name="NewtonStatic" correctionTolerance="1e-8" convergeOnResidual="1" residualTolerance="1e-8" printLog="1" />-->
         <!--        <SparsePARDISOSolver name="precond" symmetric="1" exportDataToDir="" iterativeSolverNumbering="1" /> -->
@@ -51,29 +51,32 @@
     </Node>
    
     <Node name="liver">
-        <!--        <MeshVTKLoader name="vloader" filename="data/liverVolume.vtu" />-->
-        <MeshGmshLoader name="vloader" filename="data/liver.msh" />
-                
-        <EulerImplicit name="odesolver" />
-        <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/> 
+        <EulerImplicit name="odesolver" firstOrder="false" vdamping="5.0" rayleighMass="0.1" rayleighStiffness="0.2" />
+        <!--        <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/> -->
         <!--        <NewtonStaticSolver maxIt="3" name="NewtonStatic" correctionTolerance="1e-8" convergeOnResidual="1" residualTolerance="1e-8" printLog="1" />-->
         <!-- <ShewchukPCGLinearSolver iterations="10" tolerance="1e-5" preconditioners="warpingsolver" use_precond="true" /> -->
-        <!--        <SparsePARDISOSolver name="precond" symmetric="1" exportDataToDir="" iterativeSolverNumbering="1" /> -->
+        <SparsePARDISOSolver name="precond" symmetric="1" exportDataToDir="" iterativeSolverNumbering="1" /> 
+
+        <!--        <MeshVTKLoader name="vloader" filename="data/liverVolume.vtu" />-->
+        <MeshGmshLoader name="vloader" filename="data/liver.msh" />
+        <MechanicalObject name="dofs" src="@vloader" />
 
         <TetrahedronSetTopologyContainer src="@vloader" name="Container" />
         <TetrahedronSetTopologyModifier name="Modifier" />
-        <MechanicalObject name="dofs" src="@vloader" />
-        <ShapeMarkersGenerator name="markersGen" minimumDistance="0.007" />
+        <TetrahedronSetTopologyAlgorithms name="TopoAlgo" />
+        <TetrahedronSetGeometryAlgorithms name="GeomAlgo" />
+                
+        <ShapeMarkersGenerator name="markersGen" minimumDistance="7.0" />
         
-        <UniformMass totalmass="1.8" />
-        <TetrahedronFEMForceField name="FEM" listening="true" youngModulus="5000" poissonRatio="0.4" />
+        <UniformMass totalmass="0.2" />
+        <TetrahedronFEMForceField name="FEM" listening="true" youngModulus="5000" poissonRatio="0.45" />
         <!--        <RestShapeSpringsForceField name="Falciform" stiffness="1000" angularStiffness="1" points="320 370 413" /> -->
 	<!--        <RestShapeSpringsForceField name="RightCoronary" stiffness="10000" angularStiffness="1" points="483 450 494 480" />-->
 	<!--        <RestShapeSpringsForceField name="LeftCoronary" stiffness="10000" angularStiffness="1" points="381 352 473 239 277" />-->
 	<!--        <RestShapeSpringsForceField name="Hepatogastric" stiffness="10000" angularStiffness="1" points="53 83 200 190" />-->
 	<!--        <RestShapeSpringsForceField name="Unpredictable" stiffness="10000" angularStiffness="1" points="79 60" />-->
-        <RestShapeSpringsForceField name="RightCoronary" stiffness="2000" angularStiffness="1" points="82" />
-        <RestShapeSpringsForceField name="LeftCoronary" stiffness="100" angularStiffness="1" points="120" />
+        <RestShapeSpringsForceField name="RightCoronary" stiffness="150" angularStiffness="1" points="83" />
+        <RestShapeSpringsForceField name="LeftCoronary" stiffness="300" angularStiffness="1" points="116" />
 
         <VTKExporter position="@dofs.position" edges="0" tetras="1" listening="1" XMLformat="0" exportAtBegin="1" exportAtEnd="0" exportEveryNumberOfSteps="0" filename="observations/object.vtk" />
 
@@ -102,7 +105,7 @@
             <BarycentricMapping />
             <VTKExporter position="@state.position" edges="0" listening="0" XMLformat="0" exportAtBegin="1" exportEveryNumberOfSteps="0" filename="observations/impact.vtk" />
 	    <BoxROI name="impactBounds" box="0.08 0.16 0.31 0.22 0.27 0.46" />
-	    <Monitor name="toolMonitor" showPositions="1" indices="@impactBounds.indices" ExportPositions="1" ExportVelocities="1" ExportForces="1" fileName="observations/impact" />
+	    <Monitor name="toolMonitor" showPositions="1" indices="@impactBounds.indices" ExportPositions="1" ExportVelocities="0" ExportForces="0" fileName="observations/impact" />
         </Node>
     </Node>
 
