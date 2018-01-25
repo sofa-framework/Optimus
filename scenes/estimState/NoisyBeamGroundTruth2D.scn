@@ -1,70 +1,60 @@
 <?xml version="1.0"?>
-<Node name="root" dt="1" gravity="0 -9.81 0 ">
-     
-  <RequiredPlugin pluginName="ConstraintGeometryPlugin" />
-      <RequiredPlugin pluginName="NeedleConstraintPlugin" />  
-      <RequiredPlugin pluginName="Optimus"/>
-      <RequiredPlugin pluginName="Navcat"/>
-      <RequiredPlugin pluginName="SofaPardisoSolver"/>
-      <RequiredPlugin pluginName="ImageMeshAux"/>
-      <RequiredPlugin pluginName="RegistrationConstraintPlugin" />
-	<RequiredPlugin pluginName="OpenCVPlugin" />
+<Node name="root" dt="0.01" gravity="0 -9.81 0 "> 
+    <RequiredPlugin pluginName="Optimus"/>
+    <RequiredPlugin pluginName="OpenCVPlugin" />
 
-    
-    <VisualStyle displayFlags="hideBehaviorModels showForceFields showCollisionModels" />
-
+    <VisualStyle displayFlags="showVisualModels hideBehaviorModels showCollisionModels hideMappings showForceFields hideWireframe" />	
+    <BackgroundSetting color="1 1 1 1" />
+    <ViewerSetting resolution="837 600" />
     
     <OpenCVProjectiveCalibrator name="opengl" streamer="video" mode="5" listening="false" drawzNear="0.001" drawzFar="3"  />
     <OpenCVOpenGlStreamer name="video" src="@opengl" />
     <OpenCVScheduler name="scheduler" frequency="0" />
 
-    
-  
-	<Node name="beam">
-		<EulerImplicit rayleighStiffness="0.0" printLog="false" />
-		<SparseLUSolver />
-		<EdgeSetTopologyContainer  name="Container"
-			position="0 0 0 	0 0 1		0 0 2		0 0 3		0 0 4		0 0 5"
-			edges="0 1	 1 2	  2 3	 3 4	 4 5 "/>
-		<Transform3dToRigid name="transform"/>
-		<MechanicalObject name="catDoFs" position="@transform.out_position" template="Rigid"  showObject="false" />
-		<UniformMass totalmass="1.2" />
-		<PartialFixedConstraint name="FixedConstraint" indices="0" />
-		<BeamFEMForceField name="FEM" radius="0.1" youngModulus="200000" poissonRatio="0.49"/>
-		
-		<Node name="Collision">
-			<EdgeSetTopologyContainer src="@../Container" />
-			<MechanicalObject name="ms"   />
-			<Line color="1 1 0 1" />
-			<NeedleGeometry name="catheter" />
-<!-- 			<Sphere radius="0.0001" color="1 1 1 1" /> -->
-            <ValuesFromIndices name="tip" template="Vec3d" in="@ms.position" indices="0 1 2 3 4 5" />
-            <AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@tip.out" noiseOrthogonalVariance="0.001" noisePrincipalVariance="0.001" noisePrincipalDirection="1 0 0"/>
-			<BeamLinearMapping localCoord="false" />
-<!--             <PlaneForceField normal="0 1 0.2" d="-1" stiffness="11" draw="true" /> -->
-<!--          <PlaneForceField normal="-1 0 0" d="-2" draw="true" /> -->
-		</Node>
-<!-- 	<WriteState filename ="WritfeStateTipGroundTruth"/> -->
-	</Node>
+    <Node name="simulation">
+        <Node name="referenceModel"> 
+            <EulerImplicitSolver rayleighMass="0.01" rayleighStiffness="0.1" />			
+            <CGLinearSolver name="solver" iterations="50" tolerance="1e-6" threshold="1e-6" />
+            <MechanicalObject template="Vec3d" name="MO" position="0 0 0  1 0 0  2 0 0  3 0 0  4 0 0" showObject="0"/>
+            <StiffSpringForceField name="SPFF" spring="0 1 10000 5 1.0   1 2 10000 5 1.0   2 3 10000 5 1.0    3 4 10000 5 1.0" />
+            <PlaneForceField name="PFF" normal="1 0 0" d="-0.8" draw="true"/>
+            <PartialFixedConstraint indices="0" />
+            <DiagonalMass mass="0.2 0.2 0.2 0.2 0.2" />
+            <Sphere radius="0.05" color="1 0 0 0.5"/>
+            <WriteState filename ="gMITHESE" observations="true" />	 
+        </Node>
+
+        <Node name="noisyObs"> 		
+            <AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@../referenceModel/MO.position" noiseOrthogonalVariance="0.0005" noisePrincipalVariance="0.0005" noisePrincipalDirection="1 1 0"/> 
+            <MechanicalObject template="Vec3d" name="MO" position="@NoiseEngine.outputPositions" showObject="0"/>		
+            <Sphere radius="0.05" color="0 0 1 0.5"/>		
+        </Node>
+        
+<!--        <Node name="target"> 
+            <MechanicalObject template="Vec3d" name="MO" position="@../noisyObs/NoiseEngine.outputPositions" showObject="0"/>	
+            <Sphere radius="0.05" color="0 0 1"/>
+            <WriteState filename ="ObsNoiseMITHESE_x" observations="true"/>	
+        </Node>-->
+        
+<!--        <Node name="target"> 
+            <MechanicalObject template="Vec3d" name="MO" position="@../noisyObs/NoiseEngine.outputPositions" showObject="0"/>	
+            <Sphere radius="0.05" color="0 0 1"/>
+            <WriteState filename ="NoisyPositionMITHESE" />	
+        </Node>-->
+        
+        <Node name="target"> 
+            <MechanicalObject template="Vec3d" name="MO" position="@../referenceModel/MO.position" showObject="0"/>	
+            <Sphere radius="0.05" color="0.5 0.5 1"/>
+            <WriteState filename ="GroundTruthPositionMITHESE" />	
+        </Node>
+	</Node>  
 	
     
      <Node name="ImageProcessor" >
-<!-- 		<VisualStyle displayFlags="showCollisionModels" /> -->
         <OpenCVImageProcessor name="processor" streamer="../video" />
-        <OpenCV3Dto2DTracker name="detector2D" in="@../beam/Collision/NoiseEngine.outputPositions" projectionMatrix="@../opengl.projectionMatrix"/>
-<!-- 		<PointSetTopologyContainer name="Container" position="@detector2D.out"/> -->
-<!-- 		<PointSetTopologyModifier name="Modifier" />	 -->
-		<MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
-<!-- 		<PointGeometry name="markers" /> -->
-<!-- 		<EngineToTopology name="pointsTopo" position="@../loader.detector3D:out" />         -->
-<!-- 		<SphereModel radius="0.0055" color="0 1 0 1" /> -->
-		<WriteState filename="TEST_dt" observations="true" />
-	</Node>
-
+        <OpenCV3Dto2DTracker name="detector2D" in="@../simulation/noisyObs/NoiseEngine.outputPositions" projectionMatrix="@../opengl.projectionMatrix"/>
+        <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
+        <WriteState filename="TEST_dt" observations="true" />
+     </Node>
     
-    <Node name="GroundTruthCatheter"> 
-		<MechanicalObject template="Rigid" name="MO" position="@../beam/catDoFs.position" showObject="0"/>		
-		<WriteState filename="TEST_dtGT" groundTruth="true" />
-		<Sphere radius="0.2" color="0 0 1 1"/>		
-	</Node>
 </Node>

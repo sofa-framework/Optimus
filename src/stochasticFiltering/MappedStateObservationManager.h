@@ -98,6 +98,10 @@ public:
     Data<double> noiseStdev;
     Data<int> abberantIndex;
     Data<bool> doNotMapObservations;
+    Data<bool> d_use2dObservations;
+    Data<Mat3x4d> d_projectionMatrix;
+
+
     SingleLink<MappedStateObservationManager<FilterType, DataTypes1, DataTypes2>, StateWrapper, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> stateWrapperLink;
 
     boost::mt19937* pRandGen; // I don't seed it on purpouse (it's not relevant)
