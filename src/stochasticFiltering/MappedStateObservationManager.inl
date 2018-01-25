@@ -232,11 +232,11 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getPredict
             double rz = P[2][0] *  predictedMappedStateEdit[i][0] + P[2][1] *  predictedMappedStateEdit[i][1] + P[2][2] *  predictedMappedStateEdit[i][2] + P[2][3];
             V2D[i][0]=rx* (1.0/rz);
             V2D[i][1]=ry* (1.0/rz);
-         }
+        }
 
         for (size_t i = 0; i < predictedMappedStateEdit.size(); i++)
             for (size_t d = 0; d < 2; d++)
-           _predictedObservation(2*i+d) = V2D[i][d];
+                _predictedObservation(2*i+d) = V2D[i][d];
     }
 }
 
