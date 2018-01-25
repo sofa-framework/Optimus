@@ -4,16 +4,22 @@ scene_parameters:
         volume_file_name: "../../data/cylinder/cylinder2_385.vtk"
         observation_file_name: "observations/cylinder2_385"
         observation_points_file_name: "../../data/cylinder/cyl2_385_obs1.vtk"
+
     general_parameters:
         gravity: "0 -9.81 0"
         total_mass: 0.2
+        delta_time: 0.01
+        rayleigh_mass: 0.1
+        rayleigh_stiffness: 0.1
         boundary_conditions_list:
             - condition_type: "elastic"   # options are "fixed" and "elastic"
               boxes_coordinates: "-0.005 -0.005 -0.002 0.005 0.005 0.002 -0.005  -0.005 0.298 0.005 0.005 0.302"
               spring_stiffness_values: "150 300"
+
     obs_generating_parameters:
         object_young_moduli: "150 300"
         save_observations: 1
+
     filtering_parameters:
         output_directory_prefix: "outCyl2_138_"
         output_directory_suffix: "_springs1observation"

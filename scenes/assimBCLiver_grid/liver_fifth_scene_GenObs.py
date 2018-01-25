@@ -38,8 +38,6 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
             self.configFileName = "cyl_scene_config.yml"
 
         self.options.parseYaml(self.configFileName)
-        self.rayleighMass = 0.1
-        self.rayleighStiffness = 3
 
         rootNode.findData('dt').value = self.options.model.dt
         rootNode.findData('gravity').value = self.options.model.gravity
@@ -61,7 +59,7 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
         # rootNode/simuNode
         simuNode = rootNode.createChild('simuNode')
         self.simuNode = simuNode
-        simuNode.createObject('EulerImplicitSolver', rayleighStiffness=self.rayleighStiffness, rayleighMass=self.rayleighMass)
+        simuNode.createObject('EulerImplicitSolver', rayleighStiffness=self.options.model.rayleighStiffness, rayleighMass=self.options.model.rayleighMass)
         simuNode.createObject('SparsePARDISOSolver', name='LDLsolver', verbose='0', symmetric='2', exportDataToFolder='')
         # simuNode.createObject('MeshVTKLoader', name='loader', filename=self.options.model.volumeFileName)
         simuNode.createObject('MeshGmshLoader', name='loader', filename=self.options.model.volumeFileName)
@@ -82,11 +80,20 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
         simuNode.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
         simuNode.createObject('UniformMass', totalMass=self.options.model.totalMass)
 
-        simuNode.createObject('TetrahedronFEMForceField', updateStiffness='1', name='FEM', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='5000')
+        simuNode.createObject('TetrahedronFEMForceField', updateStiffness='1', name='FEM', listening='true', drawHeterogeneousTetra='1', method='large', youngModulus='5000', poissonRatio='0.45')
 
         if self.options.observations.save:
             simuNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1')
             simuNode.createObject('Monitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.options.observations.valueFileName, ExportPositions='1', ExportVelocities='0', ExportForces='0')
+
+        obsNode = simuNode.createChild('obsNode')        
+        obsNode.createObject('MeshVTKLoader', name='obsLoader', filename=self.options.observations.positionFileName)        
+        obsNode.createObject('MechanicalObject', name='SourceMO', src="@obsLoader")
+        obsNode.createObject('BarycentricMapping')
+        obsNode.createObject('BoxROI', name='observationNodeBox', box='-1 -1 -1 1 1 1')
+        obsNode.createObject('Monitor', name='ObservationMonitor', indices='@observationNodeBox.indices', fileName='observations/node', ExportPositions='1', ExportVelocities='0', ExportForces='0')
+        
+
 
 
         # rootNode/simuNode/oglNode

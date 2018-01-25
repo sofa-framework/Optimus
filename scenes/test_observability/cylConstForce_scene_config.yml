@@ -7,12 +7,17 @@ scene_parameters:
     general_parameters:
         gravity: "0 0 0"
         total_mass: 0.2
+        delta_time: 0.01
+        rayleigh_mass: 0.1
+        rayleigh_stiffness: 0.1
         boundary_conditions_list:
             - condition_type: "fixed"   # options are "fixed" and "elastic"
               boxes_coordinates: "-0.05 -0.05 -0.002 0.05 0.05 0.002   -0.05 -0.05 0.298 0.05 0.05 0.302"
+
     obs_generating_parameters:
         object_young_moduli: "1500 4000"
         save_observations: 1
+
     filtering_parameters:
         output_directory_prefix: "outCyl2_385_"
         output_directory_suffix: "_forceFieldVerification"

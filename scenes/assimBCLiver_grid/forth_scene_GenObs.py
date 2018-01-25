@@ -38,8 +38,6 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
             self.configFileName = "cyl_scene_config.yml"
 
         self.options.parseYaml(self.configFileName)
-        self.rayleighMass = 0.1
-        self.rayleighStiffness = 3
 
         rootNode.findData('dt').value = self.options.model.dt
         rootNode.findData('gravity').value = self.options.model.gravity
@@ -61,7 +59,7 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
         # rootNode/simuNode
         simuNode = rootNode.createChild('simuNode')
         self.simuNode = simuNode
-        simuNode.createObject('EulerImplicitSolver', rayleighStiffness=self.rayleighStiffness, rayleighMass=self.rayleighMass)
+        simuNode.createObject('EulerImplicitSolver', rayleighStiffness=self.options.model.rayleighStiffness, rayleighMass=self.options.model.rayleighMass)
         simuNode.createObject('SparsePARDISOSolver', name='LDLsolver', verbose='0', symmetric='2', exportDataToFolder='')
         simuNode.createObject('MeshVTKLoader', name='loader', filename=self.options.model.volumeFileName)
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')

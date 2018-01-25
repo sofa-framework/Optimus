@@ -27,17 +27,20 @@ class Model:
         return
     
     volumeFileName = ''
-    dt = 0.01
     gravity = [0, 0, 0]
     totalMass = 0
+    dt = 0.01
     rayleighMass = 0.1
-    rayleighStiffness = 3
+    rayleighStiffness = 0.1
     bcList = []
 
     def parseYaml(self, configData):
         self.volumeFileName = configData['scene_parameters']['system_parameters']['volume_file_name']
         self.gravity = configData['scene_parameters']['general_parameters']['gravity']
         self.totalMass = configData['scene_parameters']['general_parameters']['total_mass']
+        self.dt = configData['scene_parameters']['general_parameters']['delta_time']
+        self.rayleighMass = configData['scene_parameters']['general_parameters']['rayleigh_mass']
+        self.rayleighStiffness = configData['scene_parameters']['general_parameters']['rayleigh_stiffness']
         for index in range(0, len(configData['scene_parameters']['general_parameters']['boundary_conditions_list'])):
             self.bcList.append(BoundaryConditions())
             self.bcList[len(self.bcList) - 1].parseYaml(configData, index)
