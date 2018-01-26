@@ -437,6 +437,8 @@ void ROUKFilter<FilterType>::computeSimplexSigmaPoints(EMatrixX& sigmaMat) {
 
     alpha = Type(1.0)/Type(r);
     alphaVar = (this->useUnbiasedVariance.getValue()) ? Type(1.0)/Type(r-1) : Type(1.0)/Type(r);
+    vecAlphaVar.resize(r);
+    vecAlphaVar.fill(alphaVar);
 }
 
 template <class FilterType>

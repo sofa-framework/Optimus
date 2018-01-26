@@ -104,7 +104,7 @@ protected:
     size_t sigmaPointsNum;
     bool alphaConstant;
 
-    EVectorX vecAlpha;
+    EVectorX vecAlpha, vecAlphaVar;
     EVectorX stateExp, predObsExp;
     EMatrixX stateCovar, obsCovar;
     EVectorX estimMinimBounds, estimMaximBounds;

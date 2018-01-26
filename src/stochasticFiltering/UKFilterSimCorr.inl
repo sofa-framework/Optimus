@@ -52,8 +52,8 @@ void UKFilterSimCorr<FilterType>::computePrediction()
     /// compute the expected value
     stateExp.fill(FilterType(0.0));
     for (size_t i = 0; i < sigmaPointsNum; i++)
-        stateExp += matXi.col(i);
-    stateExp = stateExp * alpha;
+        stateExp += matXi.col(i) * vecAlpha(i);
+    // stateExp = stateExp * alpha;
 
     stateCovar.fill(FilterType(0.0));
     EVectorX tmpX(stateSize);
@@ -63,9 +63,9 @@ void UKFilterSimCorr<FilterType>::computePrediction()
        tmpX = matXi.col(i) - stateExp;
        for (size_t x = 0; x < stateSize; x++)
            for (size_t y = 0; y < stateSize; y++)
-               stateCovar(x,y) += tmpX(x)*tmpX(y);
+               stateCovar(x,y) += vecAlphaVar(i) * tmpX(x)*tmpX(y);
     }
-    stateCovar = alphaVar*stateCovar;
+    // stateCovar = alphaVar*stateCovar;
 
     PRNS("X(n+1)-: " << stateExp.transpose());
     PRNS("P(n+1)-: \n" << stateCovar);
@@ -117,12 +117,12 @@ void UKFilterSimCorr<FilterType>::computeCorrection()
             stateWrappers[0]->computeSimulationStep(xCol, mechParams, id);
             observationManager->getPredictedObservation(this->actualTime, id,  zCol);
             matZmodel.col(i) = zCol;
-            predObsExp = predObsExp + zCol;
-            stateExp = stateExp + xCol;
+            predObsExp = predObsExp + zCol * vecAlpha(i);
+            stateExp = stateExp + xCol * vecAlpha(i);
         }
         //PRNS("Z: \n" << matZmodel);
-        predObsExp = alpha*predObsExp;
-        stateExp = alpha*stateExp;
+        //predObsExp = alpha*predObsExp;
+        //stateExp = alpha*stateExp;
 
         EMatrixX matPxz(stateSize, observationSize);
         EMatrixX matPz(observationSize, observationSize);
@@ -139,14 +139,15 @@ void UKFilterSimCorr<FilterType>::computeCorrection()
            vz = z - predObsExp;
            for (size_t x = 0; x < stateSize; x++)
                for (size_t y = 0; y < observationSize; y++)
-                   matPxz(x,y) += vx(x)*vz(y);
+                   matPxz(x,y) += vecAlphaVar(i) * vx(x)*vz(y);
 
            for (size_t x = 0; x < observationSize; x++)
                for (size_t y = 0; y < observationSize; y++)
-                   matPz(x,y) += vz(x)*vz(y);
+                   matPz(x,y) += vecAlphaVar(i) * vz(x)*vz(y);
         }
-        matPxz = alphaVar * matPxz;
-        matPz = alphaVar * matPz + obsCovar;
+        //matPxz = alphaVar * matPxz;
+        //matPz = alphaVar * matPz + obsCovar;
+        matPz = matPz + obsCovar;
         //PRNS("ObsCovar: " << obsCovar);
 
         EMatrixX matK(stateSize, observationSize);
@@ -314,6 +315,8 @@ void UKFilterSimCorr<FilterType>::computeSimplexSigmaPoints(EMatrixX& sigmaMat) 
     alpha = vecAlpha(0);
 
     alphaVar = (this->useUnbiasedVariance.getValue()) ? Type(1.0)/Type(r-1) : Type(1.0)/Type(r);
+    vecAlphaVar.resize(r);
+    vecAlphaVar.fill(alphaVar);
 }
 
 
@@ -351,7 +354,24 @@ void UKFilterSimCorr<FilterType>::computeStarSigmaPoints(EMatrixX& sigmaMat) {
     vecAlpha(2 * p) = Type(lambda)/Type(2 * (p + lambda)); // + (1 - this->lambdaScale * this->lambdaScale + beta)
     alphaConstant = false;
 
-    alphaVar = (this->useUnbiasedVariance.getValue()) ? Type(1.0)/Type(r-1) : Type(1.0)/Type(r);
+    vecAlphaVar.resize(r);
+    if (this->useUnbiasedVariance.getValue()) {
+        for (size_t i = 0; i < 2 * p; i++) {
+            vecAlphaVar(i) = Type(1.0)/Type(2 * (p + lambda));
+        }
+        // double beta = 2.0;
+        vecAlphaVar(2 * p) = Type(lambda)/Type(2 * (p + lambda)); // + (1 - this->lambdaScale * this->lambdaScale + beta)
+
+        alphaVar = Type(1.0)/Type(r-1);
+    } else {
+        for (size_t i = 0; i < 2 * p; i++) {
+            vecAlphaVar(i) = Type(1.0)/Type(2 * (p + lambda) + 1);
+        }
+        // double beta = 2.0;
+        vecAlphaVar(2 * p) = Type(lambda)/Type(2 * (p + lambda) + 1); // + (1 - this->lambdaScale * this->lambdaScale + beta)
+
+        alphaVar = Type(1.0)/Type(r);
+    }
 }
 
 

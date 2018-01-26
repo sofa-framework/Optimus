@@ -99,7 +99,9 @@ void UKFilterClassic<FilterType>::computePrediction()
     stateCovar.setZero();
     EMatrixX matXiTrans= matXi.transpose();
     EMatrixX centeredPxx = matXiTrans.rowwise() - matXiTrans.colwise().mean();
-    EMatrixX covPxx = (centeredPxx.adjoint() * centeredPxx) / double(centeredPxx.rows() );
+    EMatrixX weightedCenteredPxx = centeredPxx.array().colwise() * vecAlphaVar.array();
+    EMatrixX covPxx = (centeredPxx.adjoint() * weightedCenteredPxx);
+    //EMatrixX covPxx = (centeredPxx.adjoint() * centeredPxx) / double(centeredPxx.rows() );
     stateCovar = covPxx + modelCovar;
 
     masterStateWrapper->setState(stateExp, mechParams);
@@ -139,12 +141,15 @@ void UKFilterClassic<FilterType>::computeCorrection()
 
         EMatrixX centeredCx = matXiTrans.rowwise() - matXiTrans.colwise().mean();
         EMatrixX centeredCz = matZItrans.rowwise() - matZItrans.colwise().mean();
-        EMatrixX covPxz = (centeredCx.adjoint() * centeredCz) / double(centeredCx.rows() );
+        //EMatrixX covPxz = (centeredCx.adjoint() * centeredCz) / double(centeredCx.rows() );
+        EMatrixX weightedCenteredCz = centeredCz.array().colwise() * vecAlphaVar.array();
+        EMatrixX covPxz = (centeredCx.adjoint() * weightedCenteredCz);
         matPxz=covPxz;
 
-        EMatrixX covPzz = (centeredCz.adjoint() * centeredCz) / double(centeredCz.rows() );
+        //EMatrixX covPzz = (centeredCz.adjoint() * centeredCz) / double(centeredCz.rows() );
+        EMatrixX covPzz = (centeredCz.adjoint() * weightedCenteredCz);
         matPz=covPzz;
-        matPz= obsCovar+ matPz;
+        matPz = obsCovar + matPz;
 
         EMatrixX matK(stateSize, observationSize);
         double epsilon= 1e-15;
@@ -394,7 +399,9 @@ void UKFilterClassic<FilterType>::computeSimplexSigmaPoints(EMatrixX& sigmaMat) 
     alphaConstant = true;
     alpha = vecAlpha(0);
 
-    //alphaVar = (this->useUnbiasedVariance.getValue()) ? Type(1.0)/Type(r-1) : Type(1.0)/Type(r);
+    alphaVar = (this->useUnbiasedVariance.getValue()) ? Type(1.0)/Type(r-1) : Type(1.0)/Type(r);
+    vecAlphaVar.resize(r);
+    vecAlphaVar.fill(alphaVar);
 }
 
 template <class FilterType>
@@ -431,7 +438,24 @@ void UKFilterClassic<FilterType>::computeStarSigmaPoints(EMatrixX& sigmaMat) {
     vecAlpha(2 * p) = Type(lambda)/Type(2 * (p + lambda)); // + (1 - this->lambdaScale * this->lambdaScale + beta)
     alphaConstant = false;
 
-    //alphaVar = (this->useUnbiasedVariance.getValue()) ? Type(1.0)/Type(r-1) : Type(1.0)/Type(r);
+    vecAlphaVar.resize(r);
+    if (this->useUnbiasedVariance.getValue()) {
+        for (size_t i = 0; i < 2 * p; i++) {
+            vecAlphaVar(i) = Type(1.0)/Type(2 * (p + lambda));
+        }
+        // double beta = 2.0;
+        vecAlphaVar(2 * p) = Type(lambda)/Type(2 * (p + lambda)); // + (1 - this->lambdaScale * this->lambdaScale + beta)
+
+        alphaVar = Type(1.0)/Type(r-1);
+    } else {
+        for (size_t i = 0; i < 2 * p; i++) {
+            vecAlphaVar(i) = Type(1.0)/Type(2 * (p + lambda) + 1);
+        }
+        // double beta = 2.0;
+        vecAlphaVar(2 * p) = Type(lambda)/Type(2 * (p + lambda) + 1); // + (1 - this->lambdaScale * this->lambdaScale + beta)
+
+        alphaVar = Type(1.0)/Type(r);
+    }
 }
 
 

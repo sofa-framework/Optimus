@@ -160,7 +160,7 @@ protected:
     size_t sigmaPointsNum;
     bool alphaConstant;
 
-    EVectorX vecAlpha;
+    EVectorX vecAlpha, vecAlphaVar;
     EMatrixX matU, matUinv;
     EMatrixX matItrans, matI;
     EMatrixX matDv;
