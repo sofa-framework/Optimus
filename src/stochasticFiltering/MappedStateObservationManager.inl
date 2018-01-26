@@ -46,10 +46,6 @@ MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::MappedStateObse
     , abberantIndex( initData(&abberantIndex, int(-1), "abberantIndex", "index of an aberrant point") )
     , doNotMapObservations( initData(&doNotMapObservations, false, "doNotMapObservations", "if real observations are read from a file (not the mechanical object)") )
     , stateWrapperLink(initLink("stateWrapper", "link to the state wrapper needed to perform apply (perhaps to be changed)"))
-    , d_use2dObservations(initData(&d_use2dObservations, false, "use2dObservation", "Set to True if using 2D observations"))
-    , d_projectionMatrix( initData(&d_projectionMatrix, Mat3x4d(defaulttype::Vec<4,float>(1.0,0.0,0.0,0.0),
-                                                                defaulttype::Vec<4,float>(0.0,1.0,0.0,0.0),
-                                                                defaulttype::Vec<4,float>(0.0,0.0,1.0,0.0)), "projectionMatrix","Projection matrix"))
 
 {    
 }
@@ -194,50 +190,40 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::hasObserva
 
 template <class FilterType, class DataTypes1, class DataTypes2>
 bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getPredictedObservation(double _time, int _id, EVectorX& _predictedObservation) {
-    const Mat3x4d & P = d_projectionMatrix.getValue();
-    helper::vector <Vector3> V;
-    helper::vector <Vector2> V2D;
+
+    _predictedObservation.resize(this->observationSize);
 
     Data<typename DataTypes1::VecCoord> predictedMasterState;
     Data<typename DataTypes2::VecCoord> predictedMappedState;
+    Data<typename DataTypes2::VecCoord> predicted2DMasterState;
 
     typename DataTypes1::VecCoord& predictedMasterStateEdit = *predictedMasterState.beginEdit();
     typename DataTypes2::VecCoord& predictedMappedStateEdit = *predictedMappedState.beginEdit();
+    typename DataTypes2::VecCoord& predicted2DMasterStateEdit = *predicted2DMasterState.beginEdit();
 
     predictedMasterStateEdit.resize(masterState->getSize());
     predictedMappedStateEdit.resize(mappedState->getSize());
+    predicted2DMasterStateEdit.resize(masterState->getSize());
 
-    stateWrapper->getActualPosition(_id, predictedMasterStateEdit);
-    //stateWrapper->setSofaVectorFromFilterVector(_state, predictedMasterStateEdit);
-    sofa::core::MechanicalParams mp;
+    if(d_use2dObservations.getValue()){
+        stateWrapper->getActual2DPosition(_id, predictedMasterStateEdit, predicted2DMasterStateEdit);
+        for (size_t i = 0; i < predictedMappedStateEdit.size(); i++)
+            for (size_t d = 0; d < 2; d++)
+                _predictedObservation(2*i+d) = predicted2DMasterStateEdit[i][d];
+    }else{
+        stateWrapper->getActualPosition(_id, predictedMasterStateEdit);
+        //stateWrapper->setSofaVectorFromFilterVector(_state, predictedMasterStateEdit);
+        sofa::core::MechanicalParams mp;
 
-    sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > masterState = predictedMasterState;
-    //std::cout << "id: " << _id << std::endl;
-    //std::cout << "Actual poistions: " << masterState << std::endl;
+        sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > masterState = predictedMasterState;
 
+        mapping->apply(&mp, predictedMappedState, predictedMasterState);
 
-    mapping->apply(&mp, predictedMappedState, predictedMasterState);
-
-    _predictedObservation.resize(this->observationSize);
-    V2D.resize(this->observationSize);
-
-    if(!d_use2dObservations.getValue()){
         for (size_t i = 0; i < predictedMappedStateEdit.size(); i++)
             for (size_t d = 0; d < 3; d++)
                 _predictedObservation(3*i+d) = predictedMappedStateEdit[i][d];
-    }else{
-        for (size_t i = 0; i < predictedMappedStateEdit.size(); i++){
-            double rx = P[0][0] *  predictedMappedStateEdit[i][0] + P[0][1] *  predictedMappedStateEdit[i][1] + P[0][2] *  predictedMappedStateEdit[i][2] + P[0][3];
-            double ry = P[1][0] *  predictedMappedStateEdit[i][0] + P[1][1] *  predictedMappedStateEdit[i][1] + P[1][2] *  predictedMappedStateEdit[i][2] + P[1][3];
-            double rz = P[2][0] *  predictedMappedStateEdit[i][0] + P[2][1] *  predictedMappedStateEdit[i][1] + P[2][2] *  predictedMappedStateEdit[i][2] + P[2][3];
-            V2D[i][0]=rx* (1.0/rz);
-            V2D[i][1]=ry* (1.0/rz);
-        }
-
-        for (size_t i = 0; i < predictedMappedStateEdit.size(); i++)
-            for (size_t d = 0; d < 2; d++)
-                _predictedObservation(2*i+d) = V2D[i][d];
     }
+
 }
 
 

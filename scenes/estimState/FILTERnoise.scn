@@ -23,19 +23,19 @@
         <Sphere radius="0.05" color="0 1 0 1"/>                                       
         <Node name="obsNode" >        
             <MechanicalObject position="0 0 0"/>
-            <SimulatedStateObservationSource template="Vec3d" name="observations" monitorPrefix="ObsNoiseMITHESE"/>	
+            <SimulatedStateObservationSource template="Vec2d" name="observations" monitorPrefix="Obs2D"/>	
             <MappedStateObservationManager name="MOBS" listening="1" stateWrapper="@../StateWrapper" verbose="1" doNotMapObservations="1" observationStdev="0.0005"/>
             <IdentityMapping />
         </Node>         
         
-        <Node name="VISUALNoisyObs"> 
+<!--        <Node name="VISUALNoisyObs"> 
             <MechanicalObject template="Vec3d" name="MO" position="0 0 0  1 0 0  2 0 0  3 0 0  4 0 0" showObject="0"/>
             <ReadState filename="NoisyPositionMITHESE" />
             <Sphere radius="0.05" color="0 0 1 0.1"/>                                       
-        </Node>
+        </Node>-->
         <Node name="VISUALReferenceModel"> 
             <MechanicalObject template="Vec3d" name="MO" position="0 0 0  1 0 0  2 0 0  3 0 0  4 0 0" showObject="0"/>
-            <ReadState filename="GroundTruthPositionMITHESE" />
+            <ReadState filename="GroundTruth2D" />
             <Sphere radius="0.05" color="1 0 0 1"/>                                       
         </Node>
 	</Node>

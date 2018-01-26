@@ -124,6 +124,8 @@ public:
     EMatrixX modelErrorVariance;
     EMatrixX modelErrorVarianceInverse;
     FilterType modelErrorVarianceValue;
+    Data<Mat3x4d> d_projectionMatrix;
+
 
     Data<double> d_positionStdev;  /// standart deviation for positions
     Data<double> d_velocityStdev;  /// standart deviation for velocities
@@ -150,6 +152,7 @@ public:
     void storeMState();
     void reinitMState(const core::MechanicalParams* _mechParams);
     void getActualPosition(int _id, VecCoord& _pos);
+    void getActual2DPosition(int _id, VecCoord& _3Dpos, VecCoord& _pos);
 
     void setState(EVectorX& _state, const core::MechanicalParams* _mparams) {
         this->state = _state;
