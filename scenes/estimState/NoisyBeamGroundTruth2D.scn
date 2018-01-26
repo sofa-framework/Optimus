@@ -45,7 +45,7 @@
         <Node name="target"> 
             <MechanicalObject template="Vec3d" name="MO" position="@../referenceModel/MO.position" showObject="0"/>	
             <Sphere radius="0.05" color="0.5 0.5 1"/>
-            <WriteState filename ="GroundTruthPositionMITHESE" />	
+            <WriteState filename ="GroundTruth2D" />	
         </Node>
 	</Node>  
 	
@@ -54,7 +54,7 @@
         <OpenCVImageProcessor name="processor" streamer="../video" />
         <OpenCV3Dto2DTracker name="detector2D" in="@../simulation/noisyObs/NoiseEngine.outputPositions" projectionMatrix="@../opengl.projectionMatrix"/>
         <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
-        <WriteState filename="TEST_dt" observations="true" />
+        <WriteState filename="Obs2D_x.txt" observations="true" />
      </Node>
     
 </Node>

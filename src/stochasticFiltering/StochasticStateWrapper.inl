@@ -79,6 +79,9 @@ StochasticStateWrapper<DataTypes, FilterType>::StochasticStateWrapper()
     , modelStdev( initData(&modelStdev, FilterType(0.0), "modelStdev", "standard deviation in observations") )
     , d_positionStdev( initData(&d_positionStdev, "positionStdev", "estimate standard deviation for positions"))
     , d_velocityStdev( initData(&d_velocityStdev, "velocityStdev", "estimate standard deviation for velocities"))
+    , d_projectionMatrix( initData(&d_projectionMatrix, Mat3x4d(defaulttype::Vec<4,float>(1.0,0.0,0.0,0.0),
+                                                                defaulttype::Vec<4,float>(0.0,1.0,0.0,0.0),
+                                                                defaulttype::Vec<4,float>(0.0,0.0,1.0,0.0)), "projectionMatrix","Projection matrix"))
 {
 }
 
@@ -213,16 +216,6 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
         }
     }
 
-    /// obsolete!!!!
-    if (estimateExternalForces.getValue()) {
-        for (size_t i = 0; i < freeNodes.size(); i++) {
-            std::pair<size_t, size_t> pr(freeNodes[i], vsi++);
-            externalForcesPairs.push_back(pr);
-        }
-    }
-    /// \obsolete!!!!
-
-
     this->reducedStateIndex = Dim * vsi;
     for (size_t pi = 0; pi < vecOptimParams.size(); pi++) {
         helper::vector<size_t> opv;
@@ -308,17 +301,6 @@ void StochasticStateWrapper<DataTypes, FilterType>::copyStateFilter2Sofa(const c
         }
     }
 
-
-    /// TO BE DEPRECATED!
-    extForces.clear();
-    extForces.resize(this->mechanicalState->getSize() );
-    for (helper::vector<std::pair<size_t, size_t> >::iterator it = externalForcesPairs.begin(); it != externalForcesPairs.end(); it++) {
-        for (size_t d = 0; d < DimForces; d++) {
-            extForces[it->first][d] = this->state(DimForces*it->second + d);
-        }
-    }
-    /// \TO BE DEPRECATED!
-
     sofa::simulation::MechanicalPropagateOnlyPositionAndVelocityVisitor(_mechParams).execute( this->gnode );
 
     /// let the OptimParams to extract the actual values of parameters from the verdandi state
@@ -382,8 +364,21 @@ void StochasticStateWrapper<DataTypes, FilterType>::reinitMState(const core::Mec
 }
 
 template <class DataTypes, class FilterType>
-void StochasticStateWrapper<DataTypes, FilterType>::getActualPosition(int _id, VecCoord& _pos) {    
+void StochasticStateWrapper<DataTypes, FilterType>::getActualPosition(int _id, VecCoord& _pos) {
     _pos = sigmaStatePos[_id];
+}
+
+template <class DataTypes, class FilterType>
+void StochasticStateWrapper<DataTypes, FilterType>::getActual2DPosition(int _id,VecCoord& _3Dpos, VecCoord& _pos) {
+    const Mat3x4d & P = d_projectionMatrix.getValue();
+    _3Dpos = sigmaStatePos[_id];
+
+    double rx = P[0][0] * _3Dpos[_id][0] + P[0][1] *  _3Dpos[_id][1] + P[0][2] *  _3Dpos[_id][2] + P[0][3];
+    double ry = P[1][0] * _3Dpos[_id][0] + P[1][1] *  _3Dpos[_id][1] + P[1][2] *  _3Dpos[_id][2] + P[1][3];
+    double rz = P[2][0] * _3Dpos[_id][0] + P[2][1] *  _3Dpos[_id][1] + P[2][2] *  _3Dpos[_id][2] + P[2][3];
+
+    _pos[_id][0]=rx* (1.0/rz);
+    _pos[_id][1]=ry* (1.0/rz);
 }
 
 
