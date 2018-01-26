@@ -15,6 +15,11 @@ namespace stochastic
 template <class FilterType, class mType>
 UKFilter<FilterType, mType>::UKFilter()
     : Inherit()
+    , d_projectionMatrix( initData(&d_projectionMatrix, Mat3x4d(defaulttype::Vec<4,float>(1.0,0.0,0.0,0.0),
+                                                                    defaulttype::Vec<4,float>(0.0,1.0,0.0,0.0),
+                                                                    defaulttype::Vec<4,float>(0.0,0.0,1.0,0.0)), "projectionMatrix","Projection matrix"))
+    , d_filename( initData(&d_filename, "filename", "output file name"))
+    , outfile(NULL)
     , observationErrorVarianceType( initData(&observationErrorVarianceType, std::string("inverse"), "observationErrorVarianceType", "if set to inverse, work directly with the inverse of the matrix" ) )
     , d_obsStdev( initData(&d_obsStdev, double(0.0), "obsStdev", "standard deviation of generated noise") )
     , d_stateStdev( initData(&d_stateStdev, double(0.0), "stateStdev", "standard deviation of generated noise") )
@@ -23,11 +28,6 @@ UKFilter<FilterType, mType>::UKFilter()
     , d_state( initData(&d_state, "state", "actual expected value of reduced state (parameters) estimated by the filter" ) )
     , d_variance( initData(&d_variance, "variance", "actual variance  of reduced state (parameters) estimated by the filter" ) )
     , d_covariance( initData(&d_covariance, "covariance", "actual co-variance  of reduced state (parameters) estimated by the filter" ) )
-    , d_projectionMatrix( initData(&d_projectionMatrix, Mat3x4d(defaulttype::Vec<4,float>(1.0,0.0,0.0,0.0),
-                                                                    defaulttype::Vec<4,float>(0.0,1.0,0.0,0.0),
-                                                                    defaulttype::Vec<4,float>(0.0,0.0,1.0,0.0)), "projectionMatrix","Projection matrix"))
-    , d_filename( initData(&d_filename, "filename", "output file name"))
-    , outfile(NULL)
 {
 
 }

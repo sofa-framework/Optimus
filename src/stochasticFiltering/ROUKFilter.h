@@ -101,7 +101,7 @@ void* threadFunction(void* inArgs) {
     bool saveLog = threadData->saveLog;
 
     if (saveLog) {
-        sprintf(name, "thread%02d.out", id);
+        sprintf(name, "thread%02lu.out", id);
         fd.open(name);
         fd << "Thread " << id << std::endl;
         //fd << "Sigma points to process: " << sigIDs << std::endl;
@@ -116,6 +116,7 @@ void* threadFunction(void* inArgs) {
     }
     fd.close();
     delete mechParams;
+    return nullptr;
 }
 
 extern "C"{
@@ -164,6 +165,7 @@ protected:
     EMatrixX matItrans, matI;
     EMatrixX matDv;
     EMatrixX matXi;
+    EVectorX estimMinimBounds, estimMaximBounds;
 
     Type alpha, alphaVar;
 
@@ -184,6 +186,7 @@ public:
     Data<helper::vector<FilterType> > reducedVariance;
     Data<helper::vector<FilterType> > reducedCovariance;
     Data<helper::vector<FilterType> > d_reducedInnovation;
+    Data<bool> d_boundParameters;
 
 
     void init();

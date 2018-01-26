@@ -167,14 +167,14 @@ public:
 
             size_t vpi = 0;
             if (estimatePosition.getValue()) {
-                for (size_t index = 0; index < this->positionVariance.size(); index++, vpi++) {
+                for (size_t index = 0; index < (size_t)this->positionVariance.size(); index++, vpi++) {
                     this->stateErrorVariance(vpi,vpi) = this->positionVariance[index];
                 }
             }
 
             /// vpi continues to increase since velocity is always after position
             if (estimateVelocity.getValue()) {
-                for (size_t index = 0; index < this->velocityVariance.size(); index++, vpi++) {
+                for (size_t index = 0; index < (size_t)this->velocityVariance.size(); index++, vpi++) {
                     this->stateErrorVariance(vpi,vpi) = this->velocityVariance[index];
                 }
             }
@@ -208,11 +208,11 @@ public:
 
             if (estimatePosition.getValue() && estimateVelocity.getValue()){
                 modelErrorVariance = EMatrixX::Identity(this->stateSize, this->stateSize) ;
-                for (size_t index = 0; index < this->positionVariance.size(); index++, vpi++) {
+                for (size_t index = 0; index < (size_t)this->positionVariance.size(); index++, vpi++) {
                     modelErrorVariance(vpi,vpi) = this->positionVariance[index];
                 }
-                for (size_t index = this->positionVariance.size(); index < this->stateSize; index++, vpi++) {
-                    for (size_t indexV = 0; indexV < this->velocityVariance.size(); indexV++)
+                for (size_t index = this->positionVariance.size(); index < (size_t)this->stateSize; index++, vpi++) {
+                    for (size_t indexV = 0; indexV < (size_t)this->velocityVariance.size(); indexV++)
                     modelErrorVariance(vpi,vpi) = this->velocityVariance[indexV];
                 }
                 for (size_t pi = (this->positionVariance.size()+this->velocityVariance.size()); pi < this->stateSize; pi++){
@@ -252,6 +252,48 @@ public:
                 this->stateErrorVarianceProjector(i+this->reducedStateIndex,i) = Type(1.0);
         }
         return this->stateErrorVarianceProjector;
+    }
+
+    virtual EVectorX& getMinimumBound() {
+        if (this->estimMinimumBound.rows() == 0) {
+            size_t paramsSize = 0;
+            for (size_t opi = 0; opi < this->vecOptimParams.size(); opi++) {
+                paramsSize += this->vecOptimParams[opi]->size();
+            }
+
+            this->estimMinimumBound.resize(paramsSize);
+            this->estimMinimumBound.setZero();
+        }
+
+        for (size_t opi = 0; opi < this->vecOptimParams.size(); opi++) {
+            helper::vector<double> minimumBounds;
+            this->vecOptimParams[opi]->getMinimumBounds(minimumBounds);
+
+            for (size_t index = 0; index < this->vecOptimParams[opi]->size(); index++)
+                this->estimMinimumBound(index) = minimumBounds[index];
+        }
+        return this->estimMinimumBound;
+    }
+
+    virtual EVectorX& getMaximumBound() {
+        if (this->estimMaximumBound.rows() == 0) {
+            size_t paramsSize = 0;
+            for (size_t opi = 0; opi < this->vecOptimParams.size(); opi++) {
+                paramsSize += this->vecOptimParams[opi]->size();
+            }
+
+            this->estimMaximumBound.resize(paramsSize);
+            this->estimMaximumBound.setZero();
+        }
+
+        for (size_t opi = 0; opi < this->vecOptimParams.size(); opi++) {
+            helper::vector<double> maximumBounds;
+            this->vecOptimParams[opi]->getMaximumBounds(maximumBounds);
+
+            for (size_t index = 0; index < this->vecOptimParams[opi]->size(); index++)
+                this->estimMaximumBound(index) = maximumBounds[index];
+        }
+        return this->estimMaximumBound;
     }
 
     Data<bool> m_solveVelocityConstraintFirst;

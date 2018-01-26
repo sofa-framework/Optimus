@@ -82,9 +82,10 @@ protected:
     bool alphaConstant;
     std::vector<int> m_sigmaPointObservationIndexes;
 
-    EVectorX vecAlpha;
+    EVectorX vecAlpha, vecAlphaVar;
     EVectorX stateExp, predObsExp;
     EMatrixX stateCovar, obsCovar, modelCovar;
+    EVectorX estimMinimBounds, estimMaximBounds;
 
 
     EMatrixX matItrans, matI;
@@ -112,6 +113,7 @@ public:
     Data<helper::vector<FilterType> > d_variance;
     Data<helper::vector<FilterType> > d_covariance;
     Data<helper::vector<FilterType> > d_innovation;
+    Data<bool> d_boundParameters;
     double m_omega;
 
     void init();

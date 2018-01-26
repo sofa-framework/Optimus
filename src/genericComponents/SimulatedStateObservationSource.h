@@ -121,7 +121,7 @@ public:
         } else {
             size_t ix = (fabs(dt) < 1e-10) ? 0 : size_t(round(_time/dt));
             //PRNS("Getting observation for time " << _time << " index: " << ix);
-            if (ix >= int(positions.size())) {
+            if (ix >= size_t(positions.size())) {
                 PRNE("No observation for time " << _time << " , using the last one from " << positions.size()-1);
                 ix = positions.size() - 1;
             }

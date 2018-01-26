@@ -61,6 +61,30 @@ void OptimParams<sofa::helper::vector<double> >::getInitVariance(DVec& _variance
 
 }
 
+template<>
+void OptimParams<sofa::helper::vector<double> >::getMinimumBounds(DVec& _minimumBounds) {
+    size_t numParams = this->m_numParams.getValue();
+    _minimumBounds.resize(numParams);
+    for (size_t i = 0; i < numParams; i++) {
+        if (m_min.getValue().size() <= i)
+            _minimumBounds[i] = m_min.getValue()[m_min.getValue().size() - 1];
+        else
+            _minimumBounds[i] = m_min.getValue()[i];
+    }
+}
+
+template<>
+void OptimParams<sofa::helper::vector<double> >::getMaximumBounds(DVec& _maximumBounds) {
+    size_t numParams = this->m_numParams.getValue();
+    _maximumBounds.resize(numParams);
+    for (size_t i = 0; i < numParams; i++) {
+        if (m_max.getValue().size() <= i)
+            _maximumBounds[i] = m_max.getValue()[m_max.getValue().size() - 1];
+        else
+            _maximumBounds[i] = m_max.getValue()[i];
+    }
+}
+
 /*template<>
 void OptimParams<sofa::helper::vector<double> >::getValueTempl(DVec& _value) {
     _value.resize(m_val.getValue().size());
@@ -578,6 +602,34 @@ void OptimParams<Vec3dTypes::VecCoord>::getInitVariance(DVec& _variance) {
     for (size_t i = 0; i < numParams; i++)
         for (size_t j = 0; j < m_dim; j++, ij++)
             _variance[ij] = SQR(m_stdev.getValue()[i][j]);
+}
+
+template<>
+void OptimParams<Vec3dTypes::VecCoord>::getMinimumBounds(DVec& _minimumBounds) {
+    size_t numParams = this->m_numParams.getValue();
+    _minimumBounds.resize(numParams);
+    size_t ij = 0;
+    for (size_t i = 0; i < numParams; i++) {
+        for (size_t j = 0; j < m_dim; j++, ij++)
+            if (m_min.getValue().size() <= i)
+                _minimumBounds[i] = m_min.getValue()[m_min.getValue().size() - 1][j];
+            else
+                _minimumBounds[i] = m_min.getValue()[i][j];
+    }
+}
+
+template<>
+void OptimParams<Vec3dTypes::VecCoord>::getMaximumBounds(DVec& _maximumBounds) {
+    size_t numParams = this->m_numParams.getValue();
+    _maximumBounds.resize(numParams);
+    size_t ij = 0;
+    for (size_t i = 0; i < numParams; i++) {
+        for (size_t j = 0; j < m_dim; j++, ij++)
+            if (m_max.getValue().size() <= i)
+                _maximumBounds[i] = m_max.getValue()[m_max.getValue().size() - 1][j];
+            else
+                _maximumBounds[i] = m_max.getValue()[i][j];
+    }
 }
 
 template<>

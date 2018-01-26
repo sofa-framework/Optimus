@@ -16,15 +16,14 @@ template <class FilterType>
 UKFilterClassic<FilterType>::UKFilterClassic()
     : Inherit()
     , d_exportPrefix( initData(&d_exportPrefix, "exportPrefix", "prefix for storing various quantities into files"))
+    , d_filenameCov( initData(&d_filenameCov, "filenameCov", "output file name"))
+    , d_filenameInn( initData(&d_filenameInn, "filenameInn", "output file name"))
+    , d_filenameFinalState( initData(&d_filenameFinalState, "filenameFinalState", "output file name"))
     , d_state( initData(&d_state, "state", "actual expected value of reduced state (parameters) estimated by the filter" ) )
     , d_variance( initData(&d_variance, "variance", "actual variance  of reduced state (parameters) estimated by the filter" ) )
     , d_covariance( initData(&d_covariance, "covariance", "actual co-variance  of reduced state (parameters) estimated by the filter" ) )
     , d_innovation( initData(&d_innovation, "innovation", "innovation value computed by the filter" ) )
-    , d_filenameCov( initData(&d_filenameCov, "filenameCov", "output file name"))
-    , d_filenameInn( initData(&d_filenameInn, "filenameInn", "output file name"))
-    , d_filenameFinalState( initData(&d_filenameFinalState, "filenameFinalState", "output file name"))
-
-
+    , d_boundParameters( initData(&d_boundParameters, false, "boundFilterState", "will paremeters be bounded during simulation" ) )
 {
 
 }
@@ -63,8 +62,25 @@ void UKFilterClassic<FilterType>::computePrediction()
     /// Computes X_{n}^{(i)-} sigma points        
     for (size_t i = 0; i < sigmaPointsNum; i++) {
         matXi.col(i) = stateExp + matPsqrt * matI.row(i).transpose();
+
+        /// project the values that are out of bounds
+        size_t colSize = matXi.col(i).size();
+        if (d_boundParameters.getValue()) {
+            for (size_t index = 0; index < (size_t)estimMinimBounds.size(); index++) {
+                if (matXi.col(i)(colSize - estimMinimBounds.size() + index) < estimMinimBounds(index)) {
+                    // PRNS("correcting values: ");
+                    matXi.col(i)(colSize - estimMinimBounds.size() + index) = estimMinimBounds(index);
+                    // PRNS("Result of sigma point " << i << ": " << matXi.col(i).transpose());
+                }
+            }
+            for (size_t index = 0; index < (size_t)estimMaximBounds.size(); index++) {
+                if (matXi.col(i)(colSize - estimMaximBounds.size() + index) > estimMaximBounds(index)) {
+                    matXi.col(i)(colSize - estimMaximBounds.size() + index) = estimMaximBounds(index);
+                }
+            }
+        }
     }
-//    PRNS("sigmaPoints: \n " << matXi.transpose());
+    //PRNS("sigmaPoints: \n " << matXi.transpose());
     //PRNS("matI: \n" << matI);
     //PRNS("MatXi: \n" << matXi);
 
@@ -74,10 +90,10 @@ void UKFilterClassic<FilterType>::computePrediction()
     /// compute the expected value
     stateExp.fill(FilterType(0.0));
     for (size_t i = 0; i < sigmaPointsNum; i++) {
-        stateExp += matXi.col(i);
+        stateExp += matXi.col(i) * vecAlpha(i);
         //PRNS("Result of sigma point " << i << ": " << matXi.col(i).transpose());
     }
-    stateExp = stateExp * alpha;
+    // stateExp = stateExp * alpha;
 
 
     stateCovar.setZero();
@@ -109,10 +125,10 @@ void UKFilterClassic<FilterType>::computeCorrection()
             //PRNS("Zcol: \n" << m_sigmaPointObservationIndexes[i]);
             //PRNS("Zcol: \n" << zCol.transpose());
             matZmodel.col(i) = zCol;
-            predObsExp = predObsExp + zCol;
+            predObsExp = predObsExp + zCol * vecAlpha(i);
 
         }
-        predObsExp = alpha*predObsExp;
+        //predObsExp = alpha*predObsExp;
 //        PRNS("predictedObservation: \n" << matZmodel.transpose());
 
         EMatrixX matPxz(stateSize, observationSize);
@@ -153,7 +169,7 @@ void UKFilterClassic<FilterType>::computeCorrection()
 
         EVectorX diag;
         diag.resize(stateCovar.rows());
-        for (size_t i = 0; i < stateCovar.rows(); i++) {
+        for (size_t i = 0; i < (size_t)stateCovar.rows(); i++) {
             diag(i)=stateCovar(i,i);
         }
         PRNS("P(n+1)+n: \n" << diag.transpose());
@@ -189,7 +205,7 @@ void UKFilterClassic<FilterType>::computeCorrection()
         }
 
         char nstepc[100];
-        sprintf(nstepc, "%04d", stepNumber);
+        sprintf(nstepc, "%04lu", stepNumber);
         if (! exportPrefix.empty()) {
             std::string fileName = exportPrefix + "/covar_" + nstepc + ".txt";
             std::ofstream ofs;
@@ -310,6 +326,11 @@ void UKFilterClassic<FilterType>::bwdInit() {
     modelCovar = masterStateWrapper->getModelErrorVariance();
     //PRNS("modelCovar: \n" << modelCovar);
 
+    /// Initialise model parameter bounds
+    if (d_boundParameters.getValue()) {
+        estimMinimBounds = masterStateWrapper->getMinimumBound();
+        estimMaximBounds = masterStateWrapper->getMaximumBound();
+    }
 
     stateExp = masterStateWrapper->getState();
 

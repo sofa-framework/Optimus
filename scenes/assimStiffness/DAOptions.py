@@ -67,6 +67,7 @@ class Filter:
     useUnbiasedVariance = 0
     sigmaPointsTopology = ''
     lambdaScale = 1
+    boundFilterState = 0
 
     def parseYaml(self, configData):    
         self.kind = configData['scene_parameters']['filtering_parameters']['filter_kind']
@@ -80,6 +81,7 @@ class Filter:
         self.useUnbiasedVariance = configData['scene_parameters']['filtering_parameters']['use_unbiased_variance']
         self.sigmaPointsTopology = configData['scene_parameters']['filtering_parameters']['sigma_points_topology']
         self.lambdaScale = configData['scene_parameters']['filtering_parameters']['sigma_points_scale']
+        self.boundFilterState = configData['scene_parameters']['filtering_parameters']['bound_filter_state']
 
         return
 

@@ -45,12 +45,11 @@ MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::MappedStateObse
     , noiseStdev( initData(&noiseStdev, double(0.0), "noiseStdev", "standard deviation of generated noise") )
     , abberantIndex( initData(&abberantIndex, int(-1), "abberantIndex", "index of an aberrant point") )
     , doNotMapObservations( initData(&doNotMapObservations, false, "doNotMapObservations", "if real observations are read from a file (not the mechanical object)") )
-    , stateWrapperLink(initLink("stateWrapper", "link to the state wrapper needed to perform apply (perhaps to be changed)"))
     , d_use2dObservations(initData(&d_use2dObservations, false, "use2dObservation", "Set to True if using 2D observations"))
     , d_projectionMatrix( initData(&d_projectionMatrix, Mat3x4d(defaulttype::Vec<4,float>(1.0,0.0,0.0,0.0),
                                                                 defaulttype::Vec<4,float>(0.0,1.0,0.0,0.0),
                                                                 defaulttype::Vec<4,float>(0.0,0.0,1.0,0.0)), "projectionMatrix","Projection matrix"))
-
+    , stateWrapperLink(initLink("stateWrapper", "link to the state wrapper needed to perform apply (perhaps to be changed)"))
 {    
 }
 
@@ -238,6 +237,7 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getPredict
             for (size_t d = 0; d < 2; d++)
                 _predictedObservation(2*i+d) = V2D[i][d];
     }
+    return true;
 }
 
 

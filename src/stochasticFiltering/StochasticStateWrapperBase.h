@@ -129,6 +129,10 @@ protected:
     EMatrixX modelErrorVariance;
     //double m_omega;
 
+    /// estimation bound
+    EVectorX estimMinimumBound;
+    EVectorX estimMaximumBound;
+
     /// decomposed variance in reduced-order filtering
     EMatrixX stateErrorVarianceReduced;
     EMatrixX stateErrorVarianceProjector;
@@ -200,6 +204,14 @@ public:
 
     virtual EMatrixX& getStateErrorVarianceReduced() {
         return stateErrorVarianceReduced;
+    }
+
+    virtual EVectorX& getMinimumBound() {
+        return estimMinimumBound;
+    }
+
+    virtual EVectorX& getMaximumBound() {
+        return estimMaximumBound;
     }
 
     virtual void writeState(double timeStep) {

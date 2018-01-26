@@ -14,13 +14,14 @@ namespace stochastic
 
 template <class FilterType>
 UKFilterSimCorr<FilterType>::UKFilterSimCorr()
-    : Inherit()    
+    : Inherit()
+    , d_filename( initData(&d_filename, "filename", "output file name"))
+    , outfile(NULL)
     , d_state( initData(&d_state, "state", "actual expected value of reduced state (parameters) estimated by the filter" ) )
     , d_variance( initData(&d_variance, "variance", "actual variance  of reduced state (parameters) estimated by the filter" ) )
     , d_covariance( initData(&d_covariance, "covariance", "actual co-variance  of reduced state (parameters) estimated by the filter" ) )
     , d_innovation( initData(&d_innovation, "innovation", "innovation value computed by the filter" ) )
-    , d_filename( initData(&d_filename, "filename", "output file name"))
-    , outfile(NULL)
+    , d_boundParameters( initData(&d_boundParameters, false, "boundFilterState", "will paremeters be bounded during simulation" ) )
 {
 
 }
@@ -83,8 +84,25 @@ void UKFilterSimCorr<FilterType>::computeCorrection()
         /// Computes X_{n}^{(i)-} sigma points
         for (size_t i = 0; i < sigmaPointsNum; i++) {
             matXi.col(i) = stateExp + matPsqrt * matI.row(i).transpose();
+
+            /// project the values that are out of bounds
+            size_t colSize = matXi.col(i).size();
+            if (d_boundParameters.getValue()) {
+                for (size_t index = 0; index < (size_t)estimMinimBounds.size(); index++) {
+                    if (matXi.col(i)(colSize - estimMinimBounds.size() + index) < estimMinimBounds(index)) {
+                        // PRNS("correcting values: ");
+                        matXi.col(i)(colSize - estimMinimBounds.size() + index) = estimMinimBounds(index);
+                        // PRNS("Result of sigma point " << i << ": " << matXi.col(i).transpose());
+                    }
+                }
+                for (size_t index = 0; index < (size_t)estimMaximBounds.size(); index++) {
+                    if (matXi.col(i)(colSize - estimMaximBounds.size() + index) > estimMaximBounds(index)) {
+                        matXi.col(i)(colSize - estimMaximBounds.size() + index) = estimMaximBounds(index);
+                    }
+                }
+            }
         }
-        //PRNS("MatXi: \n" << matXi);
+        PRNS("MatXi: \n" << matXi);
 
         EVectorX xCol(stateSize), zCol(observationSize);
         int id;
@@ -231,6 +249,12 @@ void UKFilterSimCorr<FilterType>::bwdInit() {
     /// Initialize Model's Error Covariance
     stateCovar = masterStateWrapper->getStateErrorVariance();
     stateExp = masterStateWrapper->getState();
+
+    /// Initialise model parameter bounds
+    if (d_boundParameters.getValue()) {
+        estimMinimBounds = masterStateWrapper->getMinimumBound();
+        estimMaximBounds = masterStateWrapper->getMaximumBound();
+    }
 
     /// compute sigma points
     switch (this->m_sigmaTopology) {

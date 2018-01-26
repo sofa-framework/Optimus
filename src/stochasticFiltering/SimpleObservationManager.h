@@ -98,7 +98,7 @@ public:
     virtual bool hasObservation(double _time); /// TODO
 //    virtual bool getInnovation(double _time, EVectorX& _state, EVectorX& _innovation);
     virtual bool getInnovation(double _time, EVectorX& _predictedObservationMean, EVectorX& _innovation);    
-    virtual bool getPredictedObservation(double _time, int _id, EVectorX& _predictedObservation) {}
+    virtual bool getPredictedObservation(double _time, int _id, EVectorX& _predictedObservation) { return false; }
 
     /// obsolete
     virtual bool predictedObservation(double _time, EVectorX& _state, EVectorX& _observationPrec, EVectorX& _observation);

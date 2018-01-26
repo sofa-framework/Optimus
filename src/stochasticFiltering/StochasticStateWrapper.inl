@@ -76,9 +76,9 @@ StochasticStateWrapper<DataTypes, FilterType>::StochasticStateWrapper()
     , estimatePosition( initData(&estimatePosition, false, "estimatePosition", "estimate the position (e.g., if initial conditions with uncertainty") )
     , estimateVelocity( initData(&estimateVelocity, false, "estimateVelocity", "estimate the velocity (e.g., if initial conditions with uncertainty") )
     , estimateExternalForces( initData(&estimateExternalForces, false, "estimateExternalForces", "estimate the external forces(e.g., if initial conditions with uncertainty") )
+    , modelStdev( initData(&modelStdev, FilterType(0.0), "modelStdev", "standard deviation in observations") )
     , d_positionStdev( initData(&d_positionStdev, "positionStdev", "estimate standard deviation for positions"))
     , d_velocityStdev( initData(&d_velocityStdev, "velocityStdev", "estimate standard deviation for velocities"))
-    , modelStdev( initData(&modelStdev, FilterType(0.0), "modelStdev", "standard deviation in observations") )
 {
 }
 
@@ -267,7 +267,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::setSofaVectorFromFilterVecto
             return;
         }
 
-        if ((Dim*it->second + Dim) >= _state.rows()) {
+        if ((Dim*it->second + Dim) >= (size_t)_state.rows()) {
             PRNE("Accessing DA vector out of bounds: " << Dim*it->second + Dim <<  " vs. " << _state.rows());
             return;
         }

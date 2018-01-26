@@ -169,6 +169,8 @@ public:
     virtual void paramsToVector(VectorXd& _vector) = 0;
 
     virtual void getInitVariance(DVec& _variance) = 0;  /// provide variance as a vector of length given by the number of parameters
+    virtual void getMinimumBounds(DVec& _variance) = 0;  /// provide the low parameter bound as a vector of length given by the number of parameters
+    virtual void getMaximumBounds(DVec& _variance) = 0;  /// provide the high parameter bound as a vector of length given by the number of parameters
     
 
     OptimParamsBase()
@@ -281,6 +283,8 @@ public:
     static std::string templateName(const OptimParams<DataTypes>* = NULL) { std::string name = sofa::component::container::templateName<DataTypes>()(); return(name); }       
 
     void getInitVariance(DVec& /*_variance*/)  {}
+    void getMinimumBounds(DVec& _minimumBounds) {}
+    void getMaximumBounds(DVec& _maximumBounds) {}
 
 
 protected:
