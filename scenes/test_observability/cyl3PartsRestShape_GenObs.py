@@ -38,6 +38,8 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
             self.configFileName = "cyl_scene_config.yml"
 
         self.options.parseYaml(self.configFileName)
+        self.rayleighMass = 0.1
+        self.rayleighStiffness = 0.1
 
         rootNode.findData('dt').value = self.options.model.dt
         rootNode.findData('gravity').value = self.options.model.gravity
@@ -58,13 +60,13 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
 
         # rootNode/externalImpact
         dotNode = rootNode.createChild('dotNode')
-        self.impactPoint = dotNode.createObject('MechanicalObject', template='Vec3d', name='dot', showObject='true', position='0.0 -0.02 0.12')
+        self.impactPoint = dotNode.createObject('MechanicalObject', template='Vec3d', name='dot', showObject='true', position='0.0 -0.02 0.107')
         self.index = 0
 
         # rootNode/simuNode
         simuNode = rootNode.createChild('simuNode')
         self.simuNode = simuNode
-        simuNode.createObject('EulerImplicitSolver', rayleighStiffness=self.options.model.rayleighStiffness, rayleighMass=self.options.model.rayleighMass)
+        simuNode.createObject('EulerImplicitSolver', rayleighStiffness=self.rayleighStiffness, rayleighMass=self.rayleighMass)
         simuNode.createObject('SparsePARDISOSolver', name='LDLsolver', verbose='0', symmetric='2', exportDataToFolder='')
         simuNode.createObject('MeshVTKLoader', name='loader', filename=self.options.model.volumeFileName)
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')
@@ -85,15 +87,22 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
 
         simuNode.createObject('Indices2ValuesMapper', indices='1 2 3 4 5 6 7 8 9 10', values=self.options.observations.youngModuli, name='youngMapper', inputValues='@loader.dataset')
         simuNode.createObject('TetrahedronFEMForceField', updateStiffness='1', name='FEM', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
-        simuNode.createObject('VTKExporter', position='@Volume.position', edges='0', tetras='1', listening='0', XMLformat='0', exportAtEnd='1', exportEveryNumberOfSteps='0', filename='observations/directScene.vtk')
 
         if self.options.observations.save:
             simuNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1')
             simuNode.createObject('Monitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.options.observations.valueFileName, ExportPositions='1', ExportVelocities='0', ExportForces='0')
 
         # rootNode/simuNode/attached
-        simuNode.createObject('BoxROI', name='impactBounds', box='-0.01 -0.03 0.11 0.01 0.01 0.12')
+        #attachedNode = simuNode.createChild('Attached')
+        #self.attachedNode = attachedNode
+        #attachedNode.createObject('MechanicalObject', template='Vec3d', name='dofs', showObject='true', position=self.options.impact.position)
+        #attachedNode.createObject('RestShapeSpringsForceField', name='Springs', stiffness='10', angularStiffness='1', external_rest_shape='@../../dotNode/dot')
+        #attachedNode.createObject('BarycentricMapping')
+        #attachedNode.createObject('BoxROI', name='impactBounds', box='0.08 0.1 0.31 0.22 0.27 0.46')
+        #attachedNode.createObject('Monitor', name='toolMonitor', template='Vec3d', showPositions='1', indices='@impactBounds.indices', ExportPositions='1', fileName=self.options.impact.positionFileName)
+        simuNode.createObject('BoxROI', name='impactBounds', box='-0.01 -0.02 0.1 0.01 -0.01 0.11')
         simuNode.createObject('RestShapeSpringsForceField', name='Springs', stiffness='10000', angularStiffness='1', external_rest_shape='@dotNode/dot', points='@impactBounds.indices')
+        ##simuNode.createObject('ConstantForceField', name='appliedForce', indices='@impactBounds.indices', totalForce='0.0 -2.0 0.0')
         simuNode.createObject('Monitor', name='toolMonitor', template='Vec3d', showPositions='1', indices='@impactBounds.indices', ExportPositions='1', fileName=self.options.impact.positionFileName)
 
 

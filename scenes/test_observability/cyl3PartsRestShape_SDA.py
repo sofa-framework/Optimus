@@ -96,7 +96,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         # node.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
         node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
 
-        node.createObject('MechanicalObject', src="@/loader", name="Volume")
+        self.sourcePoint = node.createObject('MechanicalObject', src="@/loader", name="Volume")
         node.createObject('TetrahedronSetTopologyContainer', name="Container", src="@/loader", tags=" ")
         node.createObject('TetrahedronSetTopologyModifier', name="Modifier")        
         node.createObject('TetrahedronSetTopologyAlgorithms', name="TopoAlgo")
@@ -114,10 +114,8 @@ class synth1_BCDA(Sofa.PythonScriptController):
                 print 'Unknown type of boundary conditions'
                     
         node.createObject('OptimParams', name="paramE", optimize="1", numParams=self.options.filter.nparams, template="Vector", initValue=self.options.filter.paramInitExpVal, min=self.options.filter.paramMinExpVal, max=self.options.filter.paramMaxExpVal, stdev=self.options.filter.paramInitStdev, transformParams=self.options.filter.transformParams)
-        node.createObject('Indices2ValuesMapper', name='youngMapper', indices='1 2 3 4 5 6 7 8 9 10', values='@paramE.value', inputValues='@/loader.dataset')
-        #node.createObject('Indices2ValuesMapper', name='youngMapper', indices='1 2 3 4 5 6 7 8 9 10', values='4500 13800', inputValues='@/loader.dataset')
+        node.createObject('Indices2ValuesMapper', name='youngMapper', indices='1 3 4 5 6 7 8 9 10', values='@paramE.value', inputValues='@/loader.dataset', defaultValue='6000')
         node.createObject('TetrahedronFEMForceField', name='FEM', updateStiffness='1', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
-        node.createObject('VTKExporter', position='@Volume.position', edges='0', tetras='1', listening='0', XMLformat='0', exportAtEnd='1', exportEveryNumberOfSteps='0', filename='observations/stochasticScene2.vtk')
 
         # rootNode/simuNode/oglNode
         oglNode = node.createChild('oglNode')
@@ -126,11 +124,26 @@ class synth1_BCDA(Sofa.PythonScriptController):
         # node.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus="1e5", poissonRatio="0.45", method="large")
 
         impactSimu = node.createChild('externalImpSimu')
-        impactSimu.createObject('MechanicalObject', name="state", template='Vec3d', useTopology='false', position=self.options.impact.position)
+        #impactSimu.createObject('MechanicalObject', name="state", template='Vec3d', useTopology='false', position='0.0 -0.3 0.11')
+        self.targetPoint = impactSimu.createObject('MechanicalObject', name="state", template='Vec3d', useTopology='false', position=self.options.impact.position)
         impactSimu.createObject('SimulatedStateObservationSource', name="ImpactSim", template='Vec3d', printLog="1", monitorPrefix=self.options.impact.positionFileName, drawSize="0.0015", controllerMode="1")
 
-        node.createObject('BoxROI', name='impactBounds', box='-0.01 -0.03 0.11 0.01 0.01 0.12')
-        self.toolSprings = node.createObject('RestShapeSpringsForceField', name="impactSpring", stiffness="1000", angularStiffness='1', external_rest_shape='@externalImpSimu/state', points='@impactBounds.indices')
+        # node.createObject('BoxROI', name='impactBounds', box='-0.01 -0.02 0.1 0.01 -0.01 0.11')
+        # self.toolSprings = node.createObject('RestShapeSpringsForceField', name="impactSpring", stiffness="10", angularStiffness='1', external_rest_shape='@externalImpSimu/state', points='@impactBounds.indices')
+        externalNode = node.createChild('ExternalImpact')
+        externalNode.createObject('MechanicalObject', name='dofs', template='Vec3d', position=self.options.impact.position)
+        self.toolSprings = externalNode.createObject('RestShapeSpringsForceField', name="impactSpring", stiffness="1000", angularStiffness='1', external_rest_shape='@../externalImpSimu/state')
+        externalNode.createObject('BarycentricMapping')
+
+        #forceDirection = []
+        #forceDirection.append(self.targetPoint.findData('position').value[0][0] - self.sourcePoint.findData('position').value[42][0])
+        #forceDirection.append(self.targetPoint.findData('position').value[0][1] - self.sourcePoint.findData('position').value[42][1])
+        #forceDirection.append(self.targetPoint.findData('position').value[0][2] - self.sourcePoint.findData('position').value[42][2])
+        #norm = math.sqrt(forceDirection[0] * forceDirection[0] + forceDirection[1] * forceDirection[1] + forceDirection[2] * forceDirection[2])
+        #forceDirection[0] = forceDirection[0] / norm * 2.0
+        #forceDirection[1] = forceDirection[1] / norm * 2.0
+        #forceDirection[2] = forceDirection[2] / norm * 2.0
+        #self.forceField = node.createObject('ConstantForceField', name='appliedForce', indices='@impactBounds.indices', totalForce=forceDirection)
                 
         return 0
 
@@ -174,7 +187,18 @@ class synth1_BCDA(Sofa.PythonScriptController):
         # self.process.initializationObjects(node)
         return 0
 
-    def onEndAnimationStep(self, deltaTime):  
+    def onEndAnimationStep(self, deltaTime):
+
+        # update constant force value
+        #forceDirection = []
+        #forceDirection.append(self.targetPoint.findData('position').value[0][0] - self.sourcePoint.findData('position').value[42][0])
+        #forceDirection.append(self.targetPoint.findData('position').value[0][1] - 0.01 - self.sourcePoint.findData('position').value[42][1])
+        #forceDirection.append(self.targetPoint.findData('position').value[0][2] - self.sourcePoint.findData('position').value[42][2])
+        #norm = math.sqrt(forceDirection[0] * forceDirection[0] + forceDirection[1] * forceDirection[1] + forceDirection[2] * forceDirection[2])
+        #forceDirection[0] = forceDirection[0] / norm * 2.0
+        #forceDirection[1] = forceDirection[1] / norm * 2.0
+        #forceDirection[2] = forceDirection[2] / norm * 2.0
+        #self.forceField.findData('totalForce').value = forceDirection
 
         if self.options.export.state:
             if (self.options.filter.kind == 'ROUKF'):

@@ -4,6 +4,7 @@ scene_parameters:
         volume_file_name: "../../data/cylinder/cylinder2_385.vtk"
         observation_file_name: "observations/cylinder2forceField_385"
         observation_points_file_name: "../../data/cylinder/cyl2_385_obs1.vtk"
+
     general_parameters:
         gravity: "0 0 0"
         total_mass: 0.2
@@ -25,8 +26,8 @@ scene_parameters:
         optim_params_size: 2
         filter_kind: "UKFSimCorr"   # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
         use_unbiased_variance: "0"
-        initial_stiffness: [500, 500]
-        minimal_stiffness: [0, 0]
+        initial_stiffness: [1200, 1200]
+        minimal_stiffness: [500, 500]
         maximal_stiffness: [100000, 100000]
         initial_standart_deviation: 500
         observation_noise_standart_deviation: 1e-3
@@ -36,5 +37,6 @@ scene_parameters:
         sigma_points_scale: 1
         save_state: 1
         save_internal_data: 1
+        bound_filter_state: 1
 ...
 
