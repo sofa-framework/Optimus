@@ -32,7 +32,7 @@ scene_parameters:
         initial_standart_deviation: 500
         observation_noise_standart_deviation: 1e-3
         positions_standart_deviation: 1e-3
-        transform_parameters: absolute
+        transform_parameters: none
         sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
         sigma_points_scale: 1
         save_state: 1

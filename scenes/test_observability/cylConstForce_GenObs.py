@@ -88,7 +88,7 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
         # add constant force field
         simuNode.createObject('BoxROI', name='forceBounds', box='-0.01 -0.03 0.11 0.01 0.01 0.12')
         #simuNode.createObject('BoxROI', name='forceBounds', box='-1 -1 -1 1 1 1')
-        simuNode.createObject('ConstantForceField', name='appliedForce', indices='@forceBounds.indices', totalForce='0.0 -2.0 0.0')
+        simuNode.createObject('ConstantForceField', name='appliedForce', indices='@forceBounds.indices', totalForce='0.0 -1.0 0.0')
 
         # rootNode/simuNode/oglNode
         oglNode = simuNode.createChild('oglNode')

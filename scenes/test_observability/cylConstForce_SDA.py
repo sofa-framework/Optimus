@@ -126,7 +126,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         # add constant force field
         node.createObject('BoxROI', name='forceBounds', box='-0.01 -0.03 0.11 0.01 0.01 0.12')
         #node.createObject('BoxROI', name='forceBounds', box='-1 -1 -1 1 1 1')
-        node.createObject('ConstantForceField', name='appliedForce', indices='@forceBounds.indices', totalForce='0.0 -2.0 0.0')
+        node.createObject('ConstantForceField', name='appliedForce', indices='@forceBounds.indices', totalForce='0.0 -1.0 0.0')
                 
         return 0
 
