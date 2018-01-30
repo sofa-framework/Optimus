@@ -52,12 +52,13 @@
 		<FixedConstraint indices="0" />
 		<DiagonalMass mass="@paramMass.value" />
 <!--         <UniformMass totalMass="0.5"/> -->
-<!--         <Sphere radius="0.05" color="0 1 0 1"/>                                        -->
+        <Sphere radius="0.05" color="0 1 0 1"/>                                       
 		<Node name="obsNode" >        
 			<MechanicalObject position="0 0 0"/>
 			<SimulatedStateObservationSource template="Vec3d" name="observations" trackedObservations="@../../simulation/noisyObs/NoiseEngine.outputPositions"/>	
-			<MappedStateObservationManager name="MOBS" listening="1" stateWrapper="@../StateWrapper" verbose="1" doNotMapObservations="1" observationStdev="0.0005"/>
-            <IdentityMapping />
+            <SimpleObservationManager name="MOBS" template="Vec3d" listening="1"  stateWrapper="@../StateWrapper" verbose="1" observationStdev="0.0005"/>
+<!-- 			<MappedStateObservationManager name="MOBS" listening="1" stateWrapper="@../StateWrapper" verbose="1" doNotMapObservations="1" observationStdev="0.0005"/> -->
+<!--             <IdentityMapping /> -->
 		</Node> 	
 	</Node>  
 	 

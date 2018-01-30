@@ -368,20 +368,6 @@ void StochasticStateWrapper<DataTypes, FilterType>::getActualPosition(int _id, V
     _pos = sigmaStatePos[_id];
 }
 
-template <class DataTypes, class FilterType>
-void StochasticStateWrapper<DataTypes, FilterType>::getActual2DPosition(int _id,VecCoord& _3Dpos, VecCoord& _pos) {
-    const Mat3x4d & P = d_projectionMatrix.getValue();
-    _3Dpos = sigmaStatePos[_id];
-
-    double rx = P[0][0] * _3Dpos[_id][0] + P[0][1] *  _3Dpos[_id][1] + P[0][2] *  _3Dpos[_id][2] + P[0][3];
-    double ry = P[1][0] * _3Dpos[_id][0] + P[1][1] *  _3Dpos[_id][1] + P[1][2] *  _3Dpos[_id][2] + P[1][3];
-    double rz = P[2][0] * _3Dpos[_id][0] + P[2][1] *  _3Dpos[_id][1] + P[2][2] *  _3Dpos[_id][2] + P[2][3];
-
-    _pos[_id][0]=rx* (1.0/rz);
-    _pos[_id][1]=ry* (1.0/rz);
-}
-
-
 
 template <class DataTypes, class FilterType>
 void StochasticStateWrapper<DataTypes, FilterType>::initializeStep(size_t _stepNumber) {

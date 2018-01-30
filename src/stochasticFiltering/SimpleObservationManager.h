@@ -63,15 +63,12 @@ public:
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, 1> EVectorX;
 
     typedef typename DataTypes1::Real Real1;
-    typedef core::behavior::MechanicalState<DataTypes1> MasterState;
-    typedef core::behavior::MechanicalState<DataTypes2> MappedState;
-    typedef sofa::core::Mapping<DataTypes1, DataTypes2> Mapping;
+    typedef core::behavior::MechanicalState<DataTypes2> MasterState;
     typedef sofa::component::container::SimulatedStateObservationSource<DataTypes1> ObservationSource;
     typedef StochasticStateWrapper<DataTypes2,FilterType> StateWrapper; ///Before it was DataTypes1
 
-    typedef defaulttype::Rigid3dTypes MechanicalType;
-    typedef typename MechanicalType::VecCoord VecCoord;
-    typedef typename MechanicalType::VecDeriv VecDeriv;
+    typedef typename DataTypes2::VecCoord VecCoord;
+    typedef typename DataTypes2::VecDeriv VecDeriv;
 
 
     SimpleObservationManager();
@@ -96,21 +93,18 @@ public:
     void bwdInit();
 
     virtual bool hasObservation(double _time); /// TODO
-//    virtual bool getInnovation(double _time, EVectorX& _state, EVectorX& _innovation);
-    virtual bool getInnovation(double _time, EVectorX& _predictedObservationMean, EVectorX& _innovation);    
-    virtual bool getPredictedObservation(double _time, int _id, EVectorX& _predictedObservation) { return false; }
-
-    /// obsolete
-    virtual bool predictedObservation(double _time, EVectorX& _state, EVectorX& _observationPrec, EVectorX& _observation);
+    virtual bool getInnovation(double _time, EVectorX& _state, EVectorX& _innovation);
+    virtual bool getPredictedObservation(double _time, int _id, EVectorX& _predictedObservation);
 
     typename DataTypes1::VecCoord realObservations;
     typename helper::vector< VecCoord > modelObservations;
 
-    Data<typename DataTypes1::VecCoord> inputObservationData;
-    Data<typename DataTypes2::VecCoord> mappedObservationData;
     Data<double> noiseStdev;
     Data<int> abberantIndex;
     Data<bool> doNotMapObservations;
+    Data<bool> d_use2dObservations;
+    Data<Mat3x4d> d_projectionMatrix;
+
     SingleLink<SimpleObservationManager<FilterType, DataTypes1, DataTypes2>, StateWrapper, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> stateWrapperLink;
 
     boost::mt19937* pRandGen; // I don't seed it on purpouse (it's not relevant)

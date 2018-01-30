@@ -93,7 +93,7 @@ void UKFilterClassic<FilterType>::computePrediction()
         stateExp += matXi.col(i) * vecAlpha(i);
         //PRNS("Result of sigma point " << i << ": " << matXi.col(i).transpose());
     }
-    // stateExp = stateExp * alpha;
+
 
 
     stateCovar.setZero();
@@ -128,29 +128,23 @@ void UKFilterClassic<FilterType>::computeCorrection()
             //PRNS("Zcol: \n" << zCol.transpose());
             matZmodel.col(i) = zCol;
             predObsExp = predObsExp + zCol * vecAlpha(i);
-
         }
-        //predObsExp = alpha*predObsExp;
-//        PRNS("predictedObservation: \n" << matZmodel.transpose());
 
         EMatrixX matPxz(stateSize, observationSize);
         EMatrixX matPz(observationSize, observationSize);
 
         EMatrixX matXiTrans= matXi.transpose();
         EMatrixX matZItrans = matZmodel.transpose();
-
         EMatrixX centeredCx = matXiTrans.rowwise() - matXiTrans.colwise().mean();
         EMatrixX centeredCz = matZItrans.rowwise() - matZItrans.colwise().mean();
         //EMatrixX covPxz = (centeredCx.adjoint() * centeredCz) / double(centeredCx.rows() );
         EMatrixX weightedCenteredCz = centeredCz.array().colwise() * vecAlphaVar.array();
         EMatrixX covPxz = (centeredCx.adjoint() * weightedCenteredCz);
         matPxz=covPxz;
-
         //EMatrixX covPzz = (centeredCz.adjoint() * centeredCz) / double(centeredCz.rows() );
         EMatrixX covPzz = (centeredCz.adjoint() * weightedCenteredCz);
         matPz=covPzz;
         matPz = obsCovar + matPz;
-
         EMatrixX matK(stateSize, observationSize);
         double epsilon= 1e-15;
         Eigen::JacobiSVD<Eigen::MatrixXd> svd(matPz, Eigen::ComputeThinU | Eigen::ComputeThinV);
@@ -167,7 +161,6 @@ void UKFilterClassic<FilterType>::computeCorrection()
 
         EVectorX innovation(observationSize);
         observationManager->getInnovation(this->actualTime, predObsExp, innovation);
-
         //PRNS("innovation: " << innovation);
         stateExp = stateExp + matK * innovation;
         stateCovar = stateCovar - matK*matPxz.transpose();

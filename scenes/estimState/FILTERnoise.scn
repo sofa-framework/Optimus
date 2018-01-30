@@ -23,9 +23,9 @@
         <Sphere radius="0.05" color="0 1 0 1"/>                                       
         <Node name="obsNode" >        
             <MechanicalObject position="0 0 0"/>
-            <SimulatedStateObservationSource template="Vec2d" name="observations" monitorPrefix="Obs2D"/>	
-            <MappedStateObservationManager name="MOBS" listening="1" stateWrapper="@../StateWrapper" verbose="1" doNotMapObservations="1" observationStdev="0.0005"/>
-            <IdentityMapping />
+            <SimulatedStateObservationSource template="Vec2d" name="observations" monitorPrefix="Obs2D"/>	                                <SimpleObservationManager name="MOBS" template="Vec2d" listening="1"  stateWrapper="@../StateWrapper" verbose="1" observationStdev="0.0005"/>
+<!--             <MappedStateObservationManager name="MOBS" listening="1" stateWrapper="@../StateWrapper" verbose="1" doNotMapObservations="1" observationStdev="0.0005"/> -->
+<!--             <IdentityMapping /> -->
         </Node>         
         
 <!--        <Node name="VISUALNoisyObs"> 

@@ -98,7 +98,6 @@ public:
     Data<double> noiseStdev;
     Data<int> abberantIndex;
     Data<bool> doNotMapObservations;
-    Data<bool> d_use2dObservations;
 
 
     SingleLink<MappedStateObservationManager<FilterType, DataTypes1, DataTypes2>, StateWrapper, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> stateWrapperLink;

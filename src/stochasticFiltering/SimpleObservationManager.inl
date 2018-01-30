@@ -43,6 +43,10 @@ SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::SimpleObservationMan
     , noiseStdev( initData(&noiseStdev, double(0.0), "noiseStdev", "standard deviation of generated noise") )
     , abberantIndex( initData(&abberantIndex, int(-1), "abberantIndex", "index of an aberrant point") )
     , doNotMapObservations( initData(&doNotMapObservations, false, "doNotMapObservations", "if real observations are read from a file (not the mechanical object)") )
+    , d_use2dObservations(initData(&d_use2dObservations, false, "use2dObservation", "Set to True if using 2D observations"))
+    , d_projectionMatrix( initData(&d_projectionMatrix, Mat3x4d(defaulttype::Vec<4,float>(1.0,0.0,0.0,0.0),
+                                                                defaulttype::Vec<4,float>(0.0,1.0,0.0,0.0),
+                                                                defaulttype::Vec<4,float>(0.0,0.0,1.0,0.0)), "projectionMatrix","Projection matrix"))
     , stateWrapperLink(initLink("stateWrapper", "link to the state wrapper needed to perform apply (perhaps to be changed)"))
 {
 }
@@ -66,20 +70,20 @@ void SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::init()
         PRNE("Link to state wrapper not initialized!");
     }
 
-//    masterState = dynamic_cast<MasterState*>(mapping->getFromModel());
-//    if (masterState != NULL) {
-//        PRNS("Found master mechanical state: " << masterState->getName());
-//    }
-//    else {
-//        PRNE("No master mechanical state found!");
-//    }
+    this->gnode->get(masterState);
+    if (masterState != NULL) {
+        PRNS("Found master mechanical state: " << masterState->getName());
+    }
+    else {
+        PRNE("No master mechanical state found!");
+    }
 
-//    /// initialize noise generator:
-//    if (noiseStdev.getValue() != 0.0) {
-//        pRandGen = new boost::mt19937;
-//        pNormDist = new boost::normal_distribution<>(0.0, noiseStdev.getValue());
-//        pVarNorm = new boost::variate_generator<boost::mt19937&, boost::normal_distribution<> >(*pRandGen, *pNormDist);
-//    }
+    /// initialize noise generator:
+    if (noiseStdev.getValue() != 0.0) {
+        pRandGen = new boost::mt19937;
+        pNormDist = new boost::normal_distribution<>(0.0, noiseStdev.getValue());
+        pVarNorm = new boost::variate_generator<boost::mt19937&, boost::normal_distribution<> >(*pRandGen, *pNormDist);
+    }
 }
 
 template <class FilterType, class DataTypes1, class DataTypes2>
@@ -87,12 +91,14 @@ void SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::bwdInit()
 {
     this->observationSize = observationSource->getStateSize() * DataTypes1::spatial_dimensions;
     obsSize= observationSource->getStateSize() * DataTypes1::spatial_dimensions;
+    Inherit::bwdInit();
+
 }
 
 template <class FilterType, class DataTypes1, class DataTypes2>
 bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::hasObservation(double _time) {
-//    //PRNS("Getting observation at time " << this->actualTime);
-      bool hasObservation = observationSource->getObservation(this->actualTime, realObservations);
+
+    bool hasObservation = observationSource->getObservation(this->actualTime, realObservations);
 
     if (!hasObservation) {
         PRNE("No observation for time " << _time);
@@ -103,18 +109,22 @@ bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::hasObservation(
 }
 
 template <class FilterType, class DataTypes1, class DataTypes2>
-bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovation(double _time, EVectorX& _predictedObservationMean, EVectorX& _innovation)
+bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovation(double _time, EVectorX& _state, EVectorX& _innovation)
 {
     if (_time != this->actualTime) {
-        PRNE("Observation for time " << this->actualTime << " not prepare, call hasObservation first!");
+        PRNE("Observation for time " << this->actualTime << " not prepared, call hasObservation first!");
         return(false);
     }
 
-        for (size_t ii = 0; ii < 1; ii++) {
-            for (size_t jj = 0; jj < obsSize; jj++)
-                _innovation(jj) = realObservations[ii][jj] - _predictedObservationMean(jj);
-        }
+    if (_innovation.rows() != long(this->observationSize)) {
+        PRNE("Wrong innovation size: " << _innovation.rows() << " should be " << this->observationSize);
+        return(false);
+    }
 
+    if ((stateWrapper->getFilterKind() == SIMCORR) || (stateWrapper->getFilterKind() == CLASSIC)) {
+        for (size_t i = 0; i < this->observationSize; i++)
+            _innovation(i) = realObservations[0](i) - _state(i);
+    }
 
     return true;
 
@@ -122,44 +132,42 @@ bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovation(d
 }
 
 template <class FilterType, class DataTypes1, class DataTypes2>
-bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::predictedObservation(double _time, EVectorX& _state, EVectorX& _observationPrec, EVectorX& _observation)
+bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getPredictedObservation(double _time, int _id, EVectorX& _predictedObservation)
 {
+    const Mat3x4d & P = d_projectionMatrix.getValue();
+    _predictedObservation.resize(this->observationSize);
 
-    ///****TO REVIEW ONLY USED FOR STATE ESTIMATION (POSITION VELOCITY)*****///
+    Data<typename DataTypes1::VecCoord> predicted2DState;
+    Data<typename DataTypes2::VecCoord> predicted3DState;
 
-    if (_time != this->actualTime) {
-        PRNE("Observation for time " << this->actualTime << " not prepare, call hasObservation first!");
-        return(false);
+    typename DataTypes1::VecCoord& predicted2DStateEdit = *predicted2DState.beginEdit();
+    typename DataTypes2::VecCoord& predicted3DStateEdit = *predicted3DState.beginEdit();
+
+    predicted3DStateEdit.resize(masterState->getSize());
+    predicted3DStateEdit.resize(masterState->getSize());
+
+    stateWrapper->getActualPosition(_id, predicted3DStateEdit);
+    if(d_use2dObservations.getValue()){
+        for (int i = 0; i < predicted3DStateEdit.size(); i++){
+            double rx = P[0][0] * predicted3DStateEdit[i][0] + P[0][1] * predicted3DStateEdit[i][1] + P[0][2] * predicted3DStateEdit[i][2] + P[0][3];
+            double ry = P[1][0] * predicted3DStateEdit[i][0] + P[1][1] * predicted3DStateEdit[i][1] + P[1][2] * predicted3DStateEdit[i][2] + P[1][3];
+            double rz = P[2][0] * predicted3DStateEdit[i][0] + P[2][1] * predicted3DStateEdit[i][1] + P[2][2] * predicted3DStateEdit[i][2] + P[2][3];
+
+            predicted2DStateEdit[i][0]=rx* (1.0/rz);
+            predicted2DStateEdit[i][1]=ry* (1.0/rz);
+        }
+        for (size_t i = 0; i < predicted3DStateEdit.size(); i++)
+            for (size_t d = 0; d < 2; d++)
+                _predictedObservation(2*i+d) = predicted2DStateEdit[i][d];
+
+    }else{
+        for (size_t i = 0; i < predicted3DStateEdit.size(); i++)
+            for (size_t d = 0; d < 3; d++)
+                _predictedObservation(3*i+d) = predicted3DStateEdit[i][d];
+
     }
-//    size_t ssize = _state.rows();
-//    size_t osize = 3;
-
-//    double dt = this-> gnode->getDt();
-//    matH.resize(osize,ssize);
-//    matH.setZero();
-
-//    if (this->stateWrapper->estimatingPosition() && this->stateWrapper->estimatingVelocity()) {
-//        for (size_t i = 3; i < ssize; i++)
-//            matH(i,i)=0;
-//        _observation=matH*_state;
-//    }
-
-//    if (this->stateWrapper->estimatingPosition() && !this->stateWrapper->estimatingVelocity()) {
-//        for (size_t i = (ssize-osize); i < ssize ; i++){
-//            for (size_t j = 0 ; j < osize ; j++){
-//                matH(i,j)=1;
-//                _observation=matH*_state;
-//            }
-//        }
-//    }
-
-//    if (!this->stateWrapper->estimatingPosition() && this->stateWrapper->estimatingVelocity()) {
-//        for (size_t i = 0; i < ssize; i++)
-//            matH(i,i)=dt;
-//        _observation=_observationPrec +matH*_state;
-//    }
-
     return true;
+
 }
 
 
