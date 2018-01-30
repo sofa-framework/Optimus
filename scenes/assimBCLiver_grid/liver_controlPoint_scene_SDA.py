@@ -62,7 +62,8 @@ class synth1_BCDA(Sofa.PythonScriptController):
         
         return 0
 
-    
+
+
     def createGlobalComponents(self, node):
         # scene global stuff                
         node.findData('gravity').value=self.options.model.gravity
@@ -84,18 +85,25 @@ class synth1_BCDA(Sofa.PythonScriptController):
             
         # node.createObject('MeshVTKLoader', name='loader', filename=self.options.model.volumeFileName)
         node.createObject('MeshGmshLoader', name='loader', filename=self.options.model.volumeFileName)
-        #node.createObject('MeshSTLLoader', name='objectSLoader', filename=self.surfaceSTL)
+
+        impactSimu = node.createChild('externalImpSimu')
+        impactSimu.createObject('PreStochasticWrapper')
+        impactSimu.createObject('EulerImplicitSolver')
+        impactSimu.createObject('CGLinearSolver')
+        impactSimu.createObject('MechanicalObject', name="state", template='Vec3d', useTopology='false', position=self.options.impact.position)
+        impactSimu.createObject('SimulatedStateObservationSource', name="ImpactSim", template='Vec3d', printLog="1", monitorPrefix=self.options.impact.positionFileName, drawSize="0.0015", controllerMode="1")
         
-        return 0        
+        return 0
+
 
 
     #components common for both master and slave: the simulation itself (without observations and visualizations)
     def createCommonComponents(self, node):                                  
         #node.createObject('StaticSolver', applyIncrementFactor="0")        
-        node.createObject('EulerImplicitSolver', rayleighStiffness='0.1', rayleighMass='0.1')
+        node.createObject('EulerImplicitSolver', vdamping='5.0', rayleighStiffness=self.options.model.rayleighStiffness, rayleighMass=self.options.model.rayleighMass)
+        node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
         # node.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")   
         #node.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
-        node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
 
         node.createObject('MechanicalObject', src="@/loader", name="Volume")
         node.createObject('TetrahedronSetTopologyContainer', name="Container", src="@/loader", tags=" ")
@@ -123,22 +131,11 @@ class synth1_BCDA(Sofa.PythonScriptController):
             else:
                 print 'Unknown type of boundary conditions'
 
-        # rootNode/simuNode/oglNode
-        oglNode = node.createChild('oglNode')
-        self.oglNode = oglNode
-        oglNode.createObject('OglModel', color='0 0 0 0')
-        # node.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus="1e5", poissonRatio="0.45", method="large")
-
-        impactSimu = node.createChild('externalImpSimu')
-        impactSimu.createObject('MechanicalObject', name="state", template='Vec3d', useTopology='false', position=self.options.impact.position)
-        impactSimu.createObject('SimulatedStateObservationSource', name="ImpactSim", template='Vec3d', printLog="1", monitorPrefix=self.options.impact.positionFileName, drawSize="0.0015", controllerMode="1")
-
-        externalNode = node.createChild('ExternalImpact')
-        externalNode.createObject('MechanicalObject', name='dofs', template='Vec3d', position=self.options.impact.position)
-        self.toolSprings = externalNode.createObject('RestShapeSpringsForceField', name="impactSpring", stiffness="100", angularStiffness='1', external_rest_shape='@../externalImpSimu/state')
-        externalNode.createObject('BarycentricMapping')
+        node.createObject('BoxROI', name='impactBounds', box='0.14 0.15 0.37 0.18 0.17 0.4')
+        self.toolSprings = node.createObject('RestShapeSpringsForceField', name="impactSpring", stiffness="10000", angularStiffness='1', external_rest_shape='@../externalImpSimu/state', points='@impactBounds.indices')
                 
         return 0
+
 
 
     def createMasterScene(self, node):
@@ -154,9 +151,8 @@ class synth1_BCDA(Sofa.PythonScriptController):
         obsNode.createObject('ShowSpheres', radius="0.0015", color="1 1 0 1", position='@MOBS.mappedObservations')
 
         return 0
-  
 
-    
+
 
     def createScene(self,node):
         # r_slaves = [] # list of created auxiliary nodes
