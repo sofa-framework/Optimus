@@ -84,6 +84,15 @@ class synth1_BCDA(Sofa.PythonScriptController):
             
         node.createObject('MeshVTKLoader', name='loader', filename=self.options.model.volumeFileName)
         #node.createObject('MeshSTLLoader', name='objectSLoader', filename=self.surfaceSTL)
+
+        impactSimu = node.createChild('externalImpSimu')
+        #impactSimu.createObject('MechanicalObject', name="state", template='Vec3d', useTopology='false', position='0.0 -0.3 0.11')
+        impactSimu.createObject('PreStochasticWrapper')
+        impactSimu.createObject('EulerImplicitSolver')
+        impactSimu.createObject('CGLinearSolver')
+        self.targetPoint = impactSimu.createObject('MechanicalObject', name="state", template='Vec3d', useTopology='false', position=self.options.impact.position)
+        impactSimu.createObject('SimulatedStateObservationSource', name="ImpactSim", template='Vec3d', printLog="1", monitorPrefix=self.options.impact.positionFileName, drawSize="0.0015", controllerMode="1")
+        impactSimu.createObject('ShowSpheres', radius='0.005', color='1 0 1 1', position='@state.position')
         
         return 0        
 
@@ -114,26 +123,29 @@ class synth1_BCDA(Sofa.PythonScriptController):
                 print 'Unknown type of boundary conditions'
                     
         node.createObject('OptimParams', name="paramE", optimize="1", numParams=self.options.filter.nparams, template="Vector", initValue=self.options.filter.paramInitExpVal, min=self.options.filter.paramMinExpVal, max=self.options.filter.paramMaxExpVal, stdev=self.options.filter.paramInitStdev, transformParams=self.options.filter.transformParams)
-        node.createObject('Indices2ValuesMapper', name='youngMapper', indices='1 3 4 5 6 7 8 9 10', values='@paramE.value', inputValues='@/loader.dataset', defaultValue='6000')
+        node.createObject('Indices2ValuesMapper', name='youngMapper', indices='1 3', values='@paramE.value', inputValues='@/loader.dataset', defaultValue='6000')
         node.createObject('TetrahedronFEMForceField', name='FEM', updateStiffness='1', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
 
+        node.createObject('BoxROI', name='impactBounds', box='-0.01 -0.02 0.1 0.01 -0.01 0.11')
+        self.toolSprings = node.createObject('RestShapeSpringsForceField', name="impactSpring", points='@impactBounds.indices', stiffness="10e8", angularStiffness='1', external_rest_shape='@/externalImpSimu/state', drawSpring='1')
+
         # rootNode/simuNode/oglNode
-        oglNode = node.createChild('oglNode')
-        self.oglNode = oglNode
-        oglNode.createObject('OglModel', color='0 0 0 0')
+        #oglNode = node.createChild('oglNode')
+        #self.oglNode = oglNode
+        #oglNode.createObject('OglModel', color='0 0 0 0')
+        #oglNode.createObject('BarycentricMapping')
         # node.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus="1e5", poissonRatio="0.45", method="large")
 
-        impactSimu = node.createChild('externalImpSimu')
-        #impactSimu.createObject('MechanicalObject', name="state", template='Vec3d', useTopology='false', position='0.0 -0.3 0.11')
-        self.targetPoint = impactSimu.createObject('MechanicalObject', name="state", template='Vec3d', useTopology='false', position=self.options.impact.position)
-        impactSimu.createObject('SimulatedStateObservationSource', name="ImpactSim", template='Vec3d', printLog="1", monitorPrefix=self.options.impact.positionFileName, drawSize="0.0015", controllerMode="1")
+        
 
-        # node.createObject('BoxROI', name='impactBounds', box='-0.01 -0.02 0.1 0.01 -0.01 0.11')
+        
         # self.toolSprings = node.createObject('RestShapeSpringsForceField', name="impactSpring", stiffness="10", angularStiffness='1', external_rest_shape='@externalImpSimu/state', points='@impactBounds.indices')
-        externalNode = node.createChild('ExternalImpact')
-        externalNode.createObject('MechanicalObject', name='dofs', template='Vec3d', position=self.options.impact.position)
-        self.toolSprings = externalNode.createObject('RestShapeSpringsForceField', name="impactSpring", stiffness="1000", angularStiffness='1', external_rest_shape='@../externalImpSimu/state')
-        externalNode.createObject('BarycentricMapping')
+
+
+        # externalNode = node.createChild('ExternalImpact')
+        # externalNode.createObject('MechanicalObject', name='dofs', template='Vec3d', position=self.options.impact.position)
+        
+        # externalNode.createObject('BarycentricMapping')
 
         #forceDirection = []
         #forceDirection.append(self.targetPoint.findData('position').value[0][0] - self.sourcePoint.findData('position').value[42][0])
@@ -162,11 +174,8 @@ class synth1_BCDA(Sofa.PythonScriptController):
         obsNode.createObject('ShowSpheres', radius="0.002", color="1 0 0 1", position='@SourceMO.position')
         obsNode.createObject('ShowSpheres', radius="0.0015", color="1 1 0 1", position='@MOBS.mappedObservations')
 
-
-
         return 0
   
-
     
 
     def createScene(self,node):

@@ -26,21 +26,21 @@ scene_parameters:
         optim_params_size: 2
         filter_kind: "UKFClassic"   # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
         use_unbiased_variance: "0"
-        initial_stiffness: [500, 500]
+        initial_stiffness: [1000, 1000]
         minimal_stiffness: [300, 300]
         maximal_stiffness: [100000, 100000]
         initial_standart_deviation: 500
         observation_noise_standart_deviation: 1e-3
-        positions_standart_deviation: 1e-3
-        transform_parameters: none
+        positions_standart_deviation: 1e-6
+        transform_parameters: absolute
         sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
         sigma_points_scale: 1
         save_state: 1
         save_internal_data: 1
-        bound_filter_state: 1
+        bound_filter_state: 0
 
     impact_parameters:
         observation_file_name: "observations/cylinder3impact"
-        position: "0.0 -0.01 0.11"
+        position: "0.0 -0.02 0.107"
 ...
 
