@@ -127,7 +127,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         node.createObject('TetrahedronFEMForceField', name='FEM', updateStiffness='1', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
 
         node.createObject('BoxROI', name='impactBounds', box='-0.01 -0.02 0.1 0.01 -0.01 0.11')
-        self.toolSprings = node.createObject('RestShapeSpringsForceField', name="impactSpring", points='@impactBounds.indices', stiffness="10e8", angularStiffness='1', external_rest_shape='@/externalImpSimu/state', drawSpring='1')
+        self.toolSprings = node.createObject('RestShapeSpringsForceField', name="impactSpring", points='@impactBounds.indices', stiffness="10000", angularStiffness='1', external_rest_shape='@/externalImpSimu/state', drawSpring='1')
 
         # rootNode/simuNode/oglNode
         #oglNode = node.createChild('oglNode')

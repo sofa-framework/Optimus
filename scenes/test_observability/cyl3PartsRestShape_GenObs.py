@@ -118,7 +118,7 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
         return 0;
 
     def onEndAnimationStep(self, deltaTime):    	
-        if self.index < 10000:
+        if self.index < 800:
             position = self.impactPoint.findData('position').value
             position[0][1] = position[0][1] - 0.0002
             self.impactPoint.findData('position').value = position

@@ -24,13 +24,13 @@ scene_parameters:
         output_directory_suffix: "_cyl3RestShapeVerification"
         output_files_suffix: "test"
         optim_params_size: 2
-        filter_kind: "UKFClassic"   # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
+        filter_kind: "UKFSimCorr"   # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
         use_unbiased_variance: "0"
         initial_stiffness: [1000, 1000]
         minimal_stiffness: [300, 300]
         maximal_stiffness: [100000, 100000]
         initial_standart_deviation: 500
-        observation_noise_standart_deviation: 1e-3
+        observation_noise_standart_deviation: 1e-10
         positions_standart_deviation: 1e-6
         transform_parameters: absolute
         sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
