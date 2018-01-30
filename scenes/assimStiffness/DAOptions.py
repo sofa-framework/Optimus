@@ -115,10 +115,11 @@ class Observations:
     youngModuli = 6000
 
     def parseYaml(self, configData):    
-        self.valueFileName = configData['scene_parameters']['system_parameters']['observation_file_name']        
+        self.valueFileName = configData['scene_parameters']['system_parameters']['observation_file_name']
         self.positionFileName = configData['scene_parameters']['system_parameters']['observation_points_file_name']   
         self.stdev = configData['scene_parameters']['filtering_parameters']['observation_noise_standart_deviation']
         self.youngModuli = configData['scene_parameters']['obs_generating_parameters']['object_young_moduli']
+        self.save = configData['scene_parameters']['obs_generating_parameters']['save_observations']
         self.groundTruth = self.youngModuli
         
 
@@ -159,7 +160,7 @@ class Export:
             if (archiveResults):
                 if not os.path.isdir('archive'):
                     os.mkdir('archive')
-                archFolder = 'archive/'+self.folder+datetime.datetime.now().strftime("%Y_%b_%d-%I:%M")
+                archFolder = 'archive/'+self.folder+datetime.datetime.now().strftime("%Y_%b_%d-%I:%M-%S")
                 print "Archiving existing results to archive: ", archFolder
                 shutil.move(self.folder, archFolder)
 
