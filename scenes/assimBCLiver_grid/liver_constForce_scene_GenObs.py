@@ -86,20 +86,16 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
             simuNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1')
             simuNode.createObject('Monitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.options.observations.valueFileName, ExportPositions='1', ExportVelocities='0', ExportForces='0')
 
+        # add constant force field
+        simuNode.createObject('BoxROI', name='impactBounds', box='0.14 0.15 0.4 0.16 0.17 0.43')
+        simuNode.createObject('ConstantForceField', name='appliedForce', indices='@impactBounds.indices', totalForce='0.0 -2.0 0.9')
+
         obsNode = simuNode.createChild('obsNode')        
         obsNode.createObject('MeshVTKLoader', name='obsLoader', filename=self.options.observations.positionFileName)        
         obsNode.createObject('MechanicalObject', name='SourceMO', src="@obsLoader")
         obsNode.createObject('BarycentricMapping')
         obsNode.createObject('BoxROI', name='observationNodeBox', box='-1 -1 -1 1 1 1')
         obsNode.createObject('Monitor', name='ObservationMonitor', indices='@observationNodeBox.indices', fileName='observations/node', ExportPositions='1', ExportVelocities='0', ExportForces='0')
-        
-
-
-
-        # rootNode/simuNode/oglNode
-        oglNode = simuNode.createChild('oglNode')
-        self.oglNode = oglNode
-        oglNode.createObject('OglModel')
 
         return 0;
 

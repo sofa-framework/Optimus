@@ -6,10 +6,10 @@ scene_parameters:
         observation_points_file_name: "../../data/cylinder/liver_obs1_2.vtk"
 
     general_parameters:
-        gravity: "0 -9.81 0"
+        gravity: "0 0 0"
         total_mass: 0.2
         delta_time: 0.01
-        rayleigh_mass: 0.1
+        rayleigh_mass: 200.1
         rayleigh_stiffness: 0.1
         boundary_conditions_list:
             - condition_type: "elastic"   # options are "fixed" and "elastic"
@@ -33,10 +33,11 @@ scene_parameters:
         initial_standart_deviation: 100
         observation_noise_standart_deviation: 1e-3
         positions_standart_deviation: 1e-3
-        transform_parameters: absolute
+        transform_parameters: none
         sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
         sigma_points_scale: 1
         save_state: 1
         save_internal_data: 1
+        bound_filter_state: 1
 ...
 
