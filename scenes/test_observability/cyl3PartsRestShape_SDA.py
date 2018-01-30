@@ -83,10 +83,8 @@ class synth1_BCDA(Sofa.PythonScriptController):
             print 'Unknown filter type!'
             
         node.createObject('MeshVTKLoader', name='loader', filename=self.options.model.volumeFileName)
-        #node.createObject('MeshSTLLoader', name='objectSLoader', filename=self.surfaceSTL)
-
+        
         impactSimu = node.createChild('externalImpSimu')
-        #impactSimu.createObject('MechanicalObject', name="state", template='Vec3d', useTopology='false', position='0.0 -0.3 0.11')
         impactSimu.createObject('PreStochasticWrapper')
         impactSimu.createObject('EulerImplicitSolver')
         impactSimu.createObject('CGLinearSolver')
@@ -101,9 +99,9 @@ class synth1_BCDA(Sofa.PythonScriptController):
     def createCommonComponents(self, node):                                  
         #node.createObject('StaticSolver', applyIncrementFactor="0")        
         node.createObject('EulerImplicitSolver', rayleighStiffness=self.options.model.rayleighStiffness, rayleighMass=self.options.model.rayleighMass)
+        node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
         # node.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")   
         # node.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
-        node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
 
         self.sourcePoint = node.createObject('MechanicalObject', src="@/loader", name="Volume")
         node.createObject('TetrahedronSetTopologyContainer', name="Container", src="@/loader", tags=" ")
@@ -127,36 +125,8 @@ class synth1_BCDA(Sofa.PythonScriptController):
         node.createObject('TetrahedronFEMForceField', name='FEM', updateStiffness='1', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
 
         node.createObject('BoxROI', name='impactBounds', box='-0.01 -0.02 0.1 0.01 -0.01 0.11')
-        self.toolSprings = node.createObject('RestShapeSpringsForceField', name="impactSpring", points='@impactBounds.indices', stiffness="10000", angularStiffness='1', external_rest_shape='@/externalImpSimu/state', drawSpring='1')
+        self.toolSprings = node.createObject('RestShapeSpringsForceField', name="impactSpring", stiffness="10000", angularStiffness='1', external_rest_shape='@/externalImpSimu/state', drawSpring='1', points='@impactBounds.indices')
 
-        # rootNode/simuNode/oglNode
-        #oglNode = node.createChild('oglNode')
-        #self.oglNode = oglNode
-        #oglNode.createObject('OglModel', color='0 0 0 0')
-        #oglNode.createObject('BarycentricMapping')
-        # node.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus="1e5", poissonRatio="0.45", method="large")
-
-        
-
-        
-        # self.toolSprings = node.createObject('RestShapeSpringsForceField', name="impactSpring", stiffness="10", angularStiffness='1', external_rest_shape='@externalImpSimu/state', points='@impactBounds.indices')
-
-
-        # externalNode = node.createChild('ExternalImpact')
-        # externalNode.createObject('MechanicalObject', name='dofs', template='Vec3d', position=self.options.impact.position)
-        
-        # externalNode.createObject('BarycentricMapping')
-
-        #forceDirection = []
-        #forceDirection.append(self.targetPoint.findData('position').value[0][0] - self.sourcePoint.findData('position').value[42][0])
-        #forceDirection.append(self.targetPoint.findData('position').value[0][1] - self.sourcePoint.findData('position').value[42][1])
-        #forceDirection.append(self.targetPoint.findData('position').value[0][2] - self.sourcePoint.findData('position').value[42][2])
-        #norm = math.sqrt(forceDirection[0] * forceDirection[0] + forceDirection[1] * forceDirection[1] + forceDirection[2] * forceDirection[2])
-        #forceDirection[0] = forceDirection[0] / norm * 2.0
-        #forceDirection[1] = forceDirection[1] / norm * 2.0
-        #forceDirection[2] = forceDirection[2] / norm * 2.0
-        #self.forceField = node.createObject('ConstantForceField', name='appliedForce', indices='@impactBounds.indices', totalForce=forceDirection)
-                
         return 0
 
 
@@ -197,17 +167,6 @@ class synth1_BCDA(Sofa.PythonScriptController):
         return 0
 
     def onEndAnimationStep(self, deltaTime):
-
-        # update constant force value
-        #forceDirection = []
-        #forceDirection.append(self.targetPoint.findData('position').value[0][0] - self.sourcePoint.findData('position').value[42][0])
-        #forceDirection.append(self.targetPoint.findData('position').value[0][1] - 0.01 - self.sourcePoint.findData('position').value[42][1])
-        #forceDirection.append(self.targetPoint.findData('position').value[0][2] - self.sourcePoint.findData('position').value[42][2])
-        #norm = math.sqrt(forceDirection[0] * forceDirection[0] + forceDirection[1] * forceDirection[1] + forceDirection[2] * forceDirection[2])
-        #forceDirection[0] = forceDirection[0] / norm * 2.0
-        #forceDirection[1] = forceDirection[1] / norm * 2.0
-        #forceDirection[2] = forceDirection[2] / norm * 2.0
-        #self.forceField.findData('totalForce').value = forceDirection
 
         if self.options.export.state:
             if (self.options.filter.kind == 'ROUKF'):

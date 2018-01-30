@@ -90,11 +90,6 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
         #simuNode.createObject('BoxROI', name='forceBounds', box='-1 -1 -1 1 1 1')
         simuNode.createObject('ConstantForceField', name='appliedForce', indices='@forceBounds.indices', totalForce='0.0 -1.0 0.0')
 
-        # rootNode/simuNode/oglNode
-        oglNode = simuNode.createChild('oglNode')
-        self.oglNode = oglNode
-        oglNode.createObject('OglModel')
-
         return 0;
 
     def onMouseButtonLeft(self, mouseX,mouseY,isPressed):

@@ -59,6 +59,9 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
         # rootNode/externalImpact
         dotNode = rootNode.createChild('dotNode')
         self.impactPoint = dotNode.createObject('MechanicalObject', template='Vec3d', name='dot', showObject='true', position='0.0 -0.02 0.12')
+        if self.options.observations.save:
+        	dotNode.createObject('BoxROI', name='impactBounds1', box='-0.01 -0.03 0.11 0.01 -0.01 0.13')
+        	dotNode.createObject('Monitor', name='toolMonitor', template='Vec3d', showPositions='0', indices='0', ExportPositions='1', fileName=self.options.impact.positionFileName)
         self.index = 0
 
         # rootNode/simuNode
@@ -85,7 +88,7 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
 
         simuNode.createObject('Indices2ValuesMapper', indices='1 2 3 4 5 6 7 8 9 10', values=self.options.observations.youngModuli, name='youngMapper', inputValues='@loader.dataset')
         simuNode.createObject('TetrahedronFEMForceField', updateStiffness='1', name='FEM', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
-        simuNode.createObject('VTKExporter', position='@Volume.position', edges='0', tetras='1', listening='0', XMLformat='0', exportAtEnd='1', exportEveryNumberOfSteps='0', filename='observations/directScene.vtk')
+        #simuNode.createObject('VTKExporter', position='@Volume.position', edges='0', tetras='1', listening='0', XMLformat='0', exportAtEnd='1', exportEveryNumberOfSteps='0', filename='observations/directScene.vtk')
 
         if self.options.observations.save:
             simuNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1')
@@ -94,13 +97,6 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
         # rootNode/simuNode/attached
         simuNode.createObject('BoxROI', name='impactBounds', box='-0.01 -0.03 0.11 0.01 0.01 0.12')
         simuNode.createObject('RestShapeSpringsForceField', name='Springs', stiffness='10000', angularStiffness='1', external_rest_shape='@dotNode/dot', points='@impactBounds.indices')
-        simuNode.createObject('Monitor', name='toolMonitor', template='Vec3d', showPositions='1', indices='@impactBounds.indices', ExportPositions='1', fileName=self.options.impact.positionFileName)
-
-
-        # rootNode/simuNode/oglNode
-        oglNode = simuNode.createChild('oglNode')
-        self.oglNode = oglNode
-        oglNode.createObject('OglModel')
 
         return 0;
 

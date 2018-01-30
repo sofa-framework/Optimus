@@ -62,7 +62,7 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
         dotNode = rootNode.createChild('dotNode')
         self.impactPoint = dotNode.createObject('MechanicalObject', template='Vec3d', name='dot', showObject='true', position='0.0 -0.02 0.107')
         if self.options.observations.save:
-        	dotNode.createObject('BoxROI', name='impactBounds1', box='-0.01 -0.02 0.1 0.01 -0.01 0.11')
+        	dotNode.createObject('BoxROI', name='impactBounds1', box='-0.01 -0.03 0.1 0.01 -0.01 0.11')
         	dotNode.createObject('Monitor', name='toolMonitor', template='Vec3d', showPositions='0', indices='0', ExportPositions='1', fileName=self.options.impact.positionFileName)
 
         dotNode.createObject('ShowSpheres', radius='0.005', color='1 0 1 1', position='@dot.position')
@@ -108,12 +108,6 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
         simuNode.createObject('BoxROI', name='impactBounds', box='-0.01 -0.02 0.1 0.01 -0.01 0.11')
         simuNode.createObject('RestShapeSpringsForceField', name='Springs', stiffness='10000', angularStiffness='1', external_rest_shape='@dotNode/dot', points='@impactBounds.indices', external_points='0')
         ##simuNode.createObject('ConstantForceField', name='appliedForce', indices='@impactBounds.indices', totalForce='0.0 -2.0 0.0')
-        
-
-        # rootNode/simuNode/oglNode
-        oglNode = simuNode.createChild('oglNode')
-        self.oglNode = oglNode
-        oglNode.createObject('OglModel')
 
         return 0;
 
