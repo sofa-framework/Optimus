@@ -28,6 +28,7 @@ def createScene(rootNode):
     return 0;
 
 
+
 class cylGravity_GenObs (Sofa.PythonScriptController):
 
     options = DAOptions.DAOptions()
@@ -51,26 +52,32 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
 
         return None;
 
+
+
     def createGraph(self,rootNode):
         nu=0.45
         E=5000
         
-        rootNode.createObject('VisualStyle', displayFlags='showVisualModels hideBehaviorModels hideCollisionModels hideMappings hideForceFields')
+        rootNode.createObject('VisualStyle', displayFlags='showVisualModels hideBehaviorModels hideCollisionModels hideMappings showForceFields')
 
         # rootNode/externalImpact
-        impactNode = rootNode.createChild('impactNode')
-        self.impactNode = impactNode
-        impactNode.createObject('EulerImplicitSolver', firstOrder='false', vdamping=self.vdamping, rayleighStiffness=self.options.model.rayleighStiffness, rayleighMass=self.options.model.rayleighMass)
-        impactNode.createObject('CGLinearSolver', iterations='25', tolerance='1e-5', threshold='1e-5')
-        impactNode.createObject('GeomagicDriver', name='GeomagicDevice', deviceName='Default Device', scale='0.02', orientationBase='0 1 -1 -1', positionBase='0.16 0.18 0.28', orientationTool='0 0 0 1')
-        impactNode.createObject('MechanicalObject', template='Rigid', name='GeomagicMO', position='@GeomagicDevice.positionDevice')
-        impactNode.createObject('Sphere', color='0.5 0.5 0.5 1', radius='0.014', template='Rigid')
-        impactNode.createObject('BoxROI', name='geomagicBounds', box='-0.05 -0.05 -0.05 0.52 0.3 0.4')
-        impactNode.createObject('Monitor', name='toolMonitor', template='Rigid', showPositions='1', indices='@geomagicBounds.indices', ExportPositions='1', fileName='observations/geomagic')
+        dotNode = rootNode.createChild('dotNode')
+        self.dotNode = dotNode
+        dotNode.createObject('EulerImplicitSolver', firstOrder='false', vdamping=self.vdamping, rayleighStiffness=self.options.model.rayleighStiffness, rayleighMass=self.options.model.rayleighMass)
+        dotNode.createObject('CGLinearSolver', iterations='25', tolerance='1e-5', threshold='1e-5')
+        dotNode.createObject('GeomagicDriver', name='GeomagicDevice', deviceName='Default Device', scale='0.02', orientationBase='0 1 -1 -1', positionBase='-0.06 0.08 0.37', orientationTool='0 0 0 1')
+        dotNode.createObject('MechanicalObject', template='Rigid', name='GeomagicMO', position='@GeomagicDevice.positionDevice')
+        dotNode.createObject('Sphere', color='0.5 0.5 0.5 1', radius='0.014', template='Rigid')
+        if self.options.observations.save:
+            dotNode.createObject('BoxROI', name='geomagicBounds', box='-0.05 -0.05 -0.05 0.52 0.3 0.4')
+            dotNode.createObject('Monitor', name='toolMonitor', template='Rigid', showPositions='1', indices='@geomagicBounds.indices', ExportPositions='1', fileName='observations/geomagic')
 
-        dotNode = impactNode.createChild('dotNode')
-        dotNode.createObject('MechanicalObject', template='Vec3d', name='dot', showObject='true', position='0.0 0.0 0.0')
-        dotNode.createObject('RigidMapping', name='meshGeomagicMapping', input='@../GeomagicMO', output='@dot')
+        mappingNode = dotNode.createChild('mappingNode')
+        mappingNode.createObject('MechanicalObject', template='Vec3d', name='dot', showObject='true', position='0.0 0.0 0.0')
+        mappingNode.createObject('RigidMapping', name='meshGeomagicMapping', input='@../GeomagicMO', output='@dot')
+        if self.options.observations.save:
+            mappingNode.createObject('BoxROI', name='dotBounds', box='-0.05 -0.05 -0.05 0.52 0.3 0.4')
+            mappingNode.createObject('Monitor', name='toolMonitor', template='Vec3d', showPositions='1', indices='@dotBounds.indices', ExportPositions='1', fileName=self.options.impact.positionFileName)
 	
         # rootNode/simuNode
         simuNode = rootNode.createChild('simuNode')
@@ -80,6 +87,11 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
         # simuNode.createObject('MeshVTKLoader', name='loader', filename=self.options.model.volumeFileName)
         simuNode.createObject('MeshGmshLoader', name='loader', filename=self.options.model.volumeFileName)
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')
+
+        simuNode.createObject('BoxROI', name='impactBounds', box='0.14 0.15 0.37 0.18 0.17 0.4')
+        simuNode.createObject('RestShapeSpringsForceField', name='Springs', stiffness='10000', angularStiffness='1', external_rest_shape='@../dotNode/mappingNode/dot', points='@impactBounds.indices')
+        simuNode.createObject('GeomagicDeviceListener', template='Vec3d', geomagicButtonPressed='@../dotNode/GeomagicDevice.button1', geomagicSecondButtonPressed='@../dotNode/GeomagicDevice.button2', geomagicPosition='@../dotNode/GeomagicDevice.positionDevice', saveAttachmentData='true', filename='observations/listener.txt')
+
         for index in range(0, len(self.options.model.bcList)):
             bcElement = self.options.model.bcList[index]
             simuNode.createObject('BoxROI', box=bcElement.boundBoxes, name='boundBoxes'+str(index), drawBoxes='0')
@@ -105,17 +117,9 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
             simuNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1')
             simuNode.createObject('Monitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.options.observations.valueFileName, ExportPositions='1', ExportVelocities='0', ExportForces='0')
 
-        # rootNode/simuNode/attached
-        attachedNode = simuNode.createChild('Attached')
-        self.attachedNode = attachedNode
-        attachedNode.createObject('MechanicalObject', template='Vec3d', name='dofs', showObject='true', position=self.options.impact.position)
-        attachedNode.createObject('RestShapeSpringsForceField', name='Springs', stiffness='25', angularStiffness='1', external_rest_shape='@../../impactNode/dotNode/dot')
-        attachedNode.createObject('GeomagicDeviceListener', template='Vec3d', geomagicButtonPressed='@../../impactNode/GeomagicDevice.button1', geomagicSecondButtonPressed='@../../impactNode/GeomagicDevice.button2', geomagicPosition='@../../impactNode/GeomagicDevice.positionDevice', saveAttachmentData='true', filename='observations/listener.txt')
-        attachedNode.createObject('BarycentricMapping')
-        attachedNode.createObject('BoxROI', name='impactBounds', box='0.08 0.1 0.31 0.22 0.27 0.46')
-        attachedNode.createObject('Monitor', name='toolMonitor', template='Vec3d', showPositions='1', indices='@impactBounds.indices', ExportPositions='1', fileName=self.options.impact.positionFileName)
-
         return 0;
+
+
 
     def onMouseButtonLeft(self, mouseX,mouseY,isPressed):
         ## usage e.g.
