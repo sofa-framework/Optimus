@@ -28,7 +28,7 @@ scene_parameters:
         filter_kind: "UKFSimCorr"   # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
         use_unbiased_variance: "0"
         initial_stiffness: [100, 100]
-        minimal_stiffness: [0, 0]
+        minimal_stiffness: [50, 50]
         maximal_stiffness: [100000, 100000]
         initial_standart_deviation: 100
         observation_noise_standart_deviation: 1e-3
