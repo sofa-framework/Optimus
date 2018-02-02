@@ -75,17 +75,13 @@ public:
     ~SimpleObservationManager() {}
 
 protected:
-    size_t inputVectorSize, masterVectorSize, mappedVectorSize;     /// real sizes of vectors
-    size_t inputStateSize, masterStateSize, mappedStateSize; /// number of points in each vector
-    size_t obsSize;
 
     MasterState* masterState;
     ObservationSource *observationSource;
     StateWrapper* stateWrapper;
 
     double actualObservationTime;
-    EVectorX actualObservation;
-    EMatrixX matH;
+
 
 
 public:
@@ -99,18 +95,10 @@ public:
     typename DataTypes1::VecCoord realObservations;
     typename helper::vector< VecCoord > modelObservations;
 
-    Data<double> noiseStdev;
-    Data<int> abberantIndex;
-    Data<bool> doNotMapObservations;
     Data<bool> d_use2dObservations;
     Data<Mat3x4d> d_projectionMatrix;
 
     SingleLink<SimpleObservationManager<FilterType, DataTypes1, DataTypes2>, StateWrapper, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> stateWrapperLink;
-
-    boost::mt19937* pRandGen; // I don't seed it on purpouse (it's not relevant)
-    boost::normal_distribution<>* pNormDist;
-    boost::variate_generator<boost::mt19937&, boost::normal_distribution<> >* pVarNorm;
-    helper::vector<double> noise;
 
     /// Pre-construction check method called by ObjectFactory.
     /// Check that DataTypes matches the MechanicalState.

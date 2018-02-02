@@ -103,7 +103,7 @@ protected:
     helper::vector<size_t> sigmaPoints2WrapperIDs;
     helper::vector<helper::vector<size_t> > wrapper2SigmaPointsIDs;
 
-    /// functions
+    /// functions_initial
     void computeSimplexSigmaPoints(EMatrixX& sigmaMat);
     void computeStarSigmaPoints(EMatrixX& sigmaMat);
 
@@ -127,6 +127,11 @@ public:
     {
         return
     }*/
+    void stabilizeMatrix (EMatrixX& _initial, EMatrixX& _stabilized);
+    void pseudoInverse (EMatrixX& M,EMatrixX& pinvM );
+    void writeValidationPlot (std::string filename ,EVectorX& state );
+
+
     virtual void computePerturbedStates();
 
     virtual void computePrediction(); // Compute perturbed state included in computeprediction    

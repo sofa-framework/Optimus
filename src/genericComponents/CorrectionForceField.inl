@@ -100,6 +100,9 @@ void CorrectionForceField<DataTypes>::addKToMatrix(const core::MechanicalParams*
 
 template<class DataTypes>
 void CorrectionForceField<DataTypes>::draw(const core::visual::VisualParams* vparams) {
+
+
+
 //    if (! vparams->displayFlags().getShowCollisionModels()) return;
 
 //    helper::ReadAccessor<Data <VecCoord> > x = *this->mstate->read(core::VecCoordId::position());

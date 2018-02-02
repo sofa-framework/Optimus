@@ -11,28 +11,20 @@
 
 
     <Node name="filteredModel"> 
-        <StochasticStateWrapper name="StateWrapper" verbose="1" estimatePosition="1" estimateVelocity="0" positionStdev="0.001" velocityStdev="0.0005" modelStdev="0.0005"/>
-<!--         <OptimParams name="paramMass" optimize="1" numParams='5' template="Vector" initValue="0.8  1.2  0.4  0.9 1" stdev="0.08" transformParams="1"/> -->
+        <StochasticStateWrapper name="StateWrapper" verbose="1" estimatePosition="1" estimateVelocity="1" positionStdev="0.000" velocityStdev="0.0005" modelStdev="0.0005"/>
         <EulerImplicitSolver rayleighMass="0.01" rayleighStiffness="0.1" />		
         <CGLinearSolver iterations="50" tolerance="1e-6" threshold="1e-6" />      
         <MechanicalObject template="Vec3d" name="MO" position="0 0 0  1 0 0  2 0 0  3 0 0  4 0 0" showObject="0"/>
         <StiffSpringForceField name="SPFF" spring="0 1 10000 5 1.0   1 2 10000 5 1.0   2 3 10000 5 1.0    3 4 10000 5 1.0" />
-        <PartialFixedConstraint indices="0" />
-<!--         <DiagonalMass mass="@paramMass.value" /> -->
+        <FixedConstraint indices="0" />
+<!--         <PlaneForceField name="PFF" normal="1 0 0" d="-0.8" draw="true"/> -->
         <DiagonalMass mass="0.05 0.05 0.05 0.05 0.05" />
         <Sphere radius="0.05" color="0 1 0 1"/>                                       
         <Node name="obsNode" >        
             <MechanicalObject position="0 0 0"/>
-            <SimulatedStateObservationSource template="Vec2d" name="observations" monitorPrefix="Obs2D"/>	                                <SimpleObservationManager name="MOBS" template="Vec2d" listening="1"  stateWrapper="@../StateWrapper" verbose="1" observationStdev="0.0005"/>
-<!--             <MappedStateObservationManager name="MOBS" listening="1" stateWrapper="@../StateWrapper" verbose="1" doNotMapObservations="1" observationStdev="0.0005"/> -->
-<!--             <IdentityMapping /> -->
+            <SimulatedStateObservationSource template="Vec2d" name="observations" monitorPrefix="Obs2D"/>	                                <SimpleObservationManager name="MOBS" template="Vec2d" listening="1"  stateWrapper="@../StateWrapper" use2dObservation="true" projectionMatrix="[724.264 -8.86968e-14 -408 14120.8,-1.25436e-13 -724.264 -300 11248.4,-1.22465e-16 1.49976e-32 -1 37.4945]" verbose="1" observationStdev="0.0005"/>
         </Node>         
         
-<!--        <Node name="VISUALNoisyObs"> 
-            <MechanicalObject template="Vec3d" name="MO" position="0 0 0  1 0 0  2 0 0  3 0 0  4 0 0" showObject="0"/>
-            <ReadState filename="NoisyPositionMITHESE" />
-            <Sphere radius="0.05" color="0 0 1 0.1"/>                                       
-        </Node>-->
         <Node name="VISUALReferenceModel"> 
             <MechanicalObject template="Vec3d" name="MO" position="0 0 0  1 0 0  2 0 0  3 0 0  4 0 0" showObject="0"/>
             <ReadState filename="GroundTruth2D" />
@@ -40,7 +32,6 @@
         </Node>
 	</Node>
         <Node name="VISUALIncorrectModel"> 
-            <PreStochasticWrapper />
             <EulerImplicitSolver rayleighMass="0.01" rayleighStiffness="0.1" />			
             <CGLinearSolver name="solver" iterations="50" tolerance="1e-6" threshold="1e-6" />
             <MechanicalObject template="Vec3d" name="MO" position="0 0 0  1 0 0  2 0 0  3 0 0  4 0 0" showObject="0"/>
