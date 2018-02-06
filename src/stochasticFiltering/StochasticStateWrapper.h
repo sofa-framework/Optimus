@@ -120,7 +120,7 @@ public:
     Data<bool> estimateVelocity;
     Data<bool> estimateExternalForces;
     Data<bool> optimForces;
-    Data<FilterType> modelStdev;
+    Data<FilterType> velModelStdev, posModelStdev, paramModelStdev;
     EMatrixX modelErrorVariance;
     EMatrixX modelErrorVarianceInverse;
     FilterType modelErrorVarianceValue;
@@ -198,31 +198,30 @@ public:
     virtual EMatrixX& getModelErrorVariance() {
         if (this->modelErrorVariance.rows() == 0) {
 
-            FilterType modelStDev = modelStdev.getValue();
-            modelErrorVarianceValue = modelStDev * modelStDev;
-            modelErrorVariance = EMatrixX::Identity(this->stateSize, this->stateSize) * modelErrorVarianceValue;
+            FilterType posModelStDev = posModelStdev.getValue();
+            FilterType velModelStDev = velModelStdev.getValue();
+            FilterType paramModelStDev = paramModelStdev.getValue();
+            modelErrorVarianceValue = posModelStDev * posModelStDev;
+            modelErrorVariance = EMatrixX::Identity(this->stateSize, this->stateSize)*modelErrorVarianceValue;
             modelErrorVarianceInverse = EMatrixX::Identity(this->stateSize, this->stateSize) / modelErrorVarianceValue;
 
             size_t vpi = 0;
-            for (size_t pi = this->positionVariance.size(); pi < this->stateSize; pi++){
+            for (size_t pi = this->reducedStateIndex; pi < this->stateSize; pi++){
                     this->modelErrorVariance(pi,pi) = 0; /// Q is zero for parameters
             }
 
             if (estimatePosition.getValue() && estimateVelocity.getValue()){
-                modelErrorVariance = EMatrixX::Identity(this->stateSize, this->stateSize) ;
-                for (size_t index = 0; index < (size_t)this->positionVariance.size(); index++, vpi++) {
-                    modelErrorVariance(vpi,vpi) = this->positionVariance[index];
-                }
-                for (size_t index = this->positionVariance.size(); index < (size_t)this->stateSize; index++, vpi++) {
-                    for (size_t indexV = 0; indexV < (size_t)this->velocityVariance.size(); indexV++)
-                    modelErrorVariance(vpi,vpi) = this->velocityVariance[indexV];
-                }
-                for (size_t pi = (this->positionVariance.size()+this->velocityVariance.size()); pi < this->stateSize; pi++){
-                        this->modelErrorVariance(pi,pi) = 0; /// Q is zero for parameters
-                }
+                modelErrorVariance = EMatrixX::Identity(this->stateSize, this->stateSize);
+
+                for (size_t index = 0; index < this->positionVariance.size(); index++)
+                    modelErrorVariance(index,index) = posModelStDev*posModelStDev  ;
+
+                for (size_t index = this->positionVariance.size(); index < this->reducedStateIndex; index++)
+                    modelErrorVariance(index,index) = velModelStDev*velModelStDev  ;
+
+                for (size_t pi = this->reducedStateIndex; pi < this->stateSize; pi++)
+                    modelErrorVariance(pi,pi) = paramModelStDev*paramModelStDev;
             }
-
-
         }
         return this->modelErrorVariance;
     }

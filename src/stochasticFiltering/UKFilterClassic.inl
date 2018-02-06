@@ -74,9 +74,9 @@ void UKFilterClassic<FilterType>::computePrediction()
             }
         }
     }
-
     /// Compute the state
     computePerturbedStates();
+
 
     /// compute the expected value
     stateExp.fill(FilterType(0.0));
@@ -91,8 +91,8 @@ void UKFilterClassic<FilterType>::computePrediction()
     EMatrixX weightedCenteredPxx = centeredPxx.array().colwise() * vecAlphaVar.array();
     EMatrixX covPxx = (centeredPxx.adjoint() * weightedCenteredPxx);
     //EMatrixX covPxx = (centeredPxx.adjoint() * centeredPxx) / double(centeredPxx.rows() )
-    unstablestateCovar = covPxx + modelCovar;
-    stabilizeMatrix(unstablestateCovar,stateCovar);
+    stateCovar = covPxx + modelCovar;
+//    stabilizeMatrix(unstablestateCovar,stateCovar);
 
     masterStateWrapper->setState(stateExp, mechParams);
 
@@ -112,8 +112,6 @@ void UKFilterClassic<FilterType>::computeCorrection()
         /// compute predicted observations
         for (size_t i = 0; i < sigmaPointsNum; i++) {
             observationManager->getPredictedObservation(this->actualTime, m_sigmaPointObservationIndexes[i],  zCol);
-            //PRNS("Zcol: \n" << m_sigmaPointObservationIndexes[i]);
-            //PRNS("Zcol: \n" << zCol.transpose());
             matZmodel.col(i) = zCol;
             predObsExp = predObsExp + zCol * vecAlpha(i);
         }
@@ -134,12 +132,12 @@ void UKFilterClassic<FilterType>::computeCorrection()
         //EMatrixX covPxz = (centeredCx.adjoint() * centeredCz) / double(centeredCx.rows() );
         EMatrixX weightedCenteredCz = centeredCz.array().colwise() * vecAlphaVar.array();
         EMatrixX covPxz = (centeredCx.adjoint() * weightedCenteredCz);
-        unstablematPxz=covPxz;
-        stabilizeMatrix(unstablematPxz,matPxz);
+        matPxz=covPxz;
+//        stabilizeMatrix(unstablematPxz,matPxz);
         //EMatrixX covPzz = (centeredCz.adjoint() * centeredCz) / double(centeredCz.rows() );
         EMatrixX covPzz = (centeredCz.adjoint() * weightedCenteredCz);
-        unstablematPzz = obsCovar + covPzz;
-        stabilizeMatrix(unstablematPzz,matPz);
+        matPz = obsCovar + covPzz;
+//        stabilizeMatrix(unstablematPzz,matPz);
         EMatrixX matK(stateSize, observationSize);
         pseudoInverse(matPz, pinvmatPz);
         matK =matPxz*pinvmatPz;
@@ -148,6 +146,8 @@ void UKFilterClassic<FilterType>::computeCorrection()
         EVectorX innovation(observationSize);
         observationManager->getInnovation(this->actualTime, predObsExp, innovation);
         stateExp = stateExp + matK * innovation;
+        PRNS("FINAL STATE X(n+1)+n: \n" << stateExp.transpose());
+
         stateCovar = stateCovar - matK*matPxz.transpose();
 
         EVectorX diag;
@@ -155,24 +155,21 @@ void UKFilterClassic<FilterType>::computeCorrection()
         for (size_t i = 0; i < (size_t)stateCovar.rows(); i++) {
             diag(i)=stateCovar(i,i);
         }
-        PRNS("P(n+1)+n: \n" << diag.transpose());
+        PRNS("FINAL COVARIANCE DIAGONAL P(n+1)+n:  \n" << diag.transpose());
 
         //stateWrappers[0]->computeSimulationStep(stateExp, mechParams, id);
 
-        PRNS("X(n+1)+: \n" << stateExp.transpose());
+//        PRNS("X(n+1)+: \n" << stateExp.transpose());
 
         masterStateWrapper->setState(stateExp, mechParams);
         //masterStateWrapper->transformState(stateExp, mechParams);
 
         helper::WriteAccessor<Data <helper::vector<FilterType> > > stat = d_state;
         helper::WriteAccessor<Data <helper::vector<FilterType> > > var = d_variance;
-        //helper::WriteAccessor<Data <helper::vector<FilterType> > > covar = d_covariance;
         helper::WriteAccessor<Data <helper::vector<FilterType> > > innov = d_innovation;
 
         stat.resize(stateSize);
         var.resize(stateSize);
-        //size_t numCovariances = (stateSize*(stateSize-1))/2;
-        //covar.resize(numCovariances);
         innov.resize(observationSize);
 
         //size_t gli = 0;
@@ -292,7 +289,7 @@ void UKFilterClassic<FilterType>::bwdInit() {
     stateCovar = masterStateWrapper->getStateErrorVariance();
     modelCovar = masterStateWrapper->getModelErrorVariance();
 
-    /// Initialise model parameter bounds
+            /// Initialise model parameter bounds
     if (d_boundParameters.getValue()) {
         estimMinimBounds = masterStateWrapper->getMinimumBound();
         estimMaximBounds = masterStateWrapper->getMaximumBound();

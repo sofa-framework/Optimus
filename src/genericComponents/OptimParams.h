@@ -60,16 +60,16 @@ struct templateName
 };
 
 template<>
-struct templateName<Vec3dTypes::VecCoord>
+struct templateName<Vec3dTypes::VecDeriv>
 {
-    std::string operator ()(void) { return("VecCoord3d"); }
+    std::string operator ()(void) { return("VecDeriv3d"); }
 };
 
-template<>
-struct templateName<Rigid3dTypes::VecDeriv>
-{
-    std::string operator ()(void) { return("RigidDeriv3d"); }
-};
+//template<>
+//struct templateName<Rigid3dTypes::VecDeriv>
+//{
+//    std::string operator ()(void) { return("RigidDeriv3d"); }
+//};
 
 template<>
 struct templateName<Vec3fTypes::VecCoord>
@@ -143,6 +143,7 @@ public:
 
 protected:    
     size_t m_dim;
+    size_t mstate_dim;
     Data< bool > m_optimize;            ///if OptimParams component are used in Verdandi optimization
     Data< size_t > m_numParams;
     Data< std::string > m_transformParams;

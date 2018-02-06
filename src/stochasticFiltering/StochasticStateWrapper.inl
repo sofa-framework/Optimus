@@ -76,7 +76,11 @@ StochasticStateWrapper<DataTypes, FilterType>::StochasticStateWrapper()
     , estimatePosition( initData(&estimatePosition, false, "estimatePosition", "estimate the position (e.g., if initial conditions with uncertainty") )
     , estimateVelocity( initData(&estimateVelocity, false, "estimateVelocity", "estimate the velocity (e.g., if initial conditions with uncertainty") )
     , estimateExternalForces( initData(&estimateExternalForces, false, "estimateExternalForces", "estimate the external forces(e.g., if initial conditions with uncertainty") )
-    , modelStdev( initData(&modelStdev, FilterType(0.0), "modelStdev", "standard deviation in observations") )
+    , posModelStdev( initData(&posModelStdev, FilterType(0.0), "posModelStdev", "standard deviation in observations") )
+    , velModelStdev( initData(&velModelStdev, FilterType(0.0), "velModelStdev", "standard deviation in observations") )
+    , paramModelStdev( initData(&paramModelStdev, FilterType(0.0), "paramModelStdev", "standard deviation in observations") )
+
+
     , d_positionStdev( initData(&d_positionStdev, "positionStdev", "estimate standard deviation for positions"))
     , d_velocityStdev( initData(&d_velocityStdev, "velocityStdev", "estimate standard deviation for velocities"))
     , d_projectionMatrix( initData(&d_projectionMatrix, Mat3x4d(defaulttype::Vec<4,float>(1.0,0.0,0.0,0.0),
@@ -190,7 +194,6 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
             std::pair<size_t, size_t> pr(freeNodes[i], vsi++);
             positionPairs.push_back(pr);
         }
-
         /// add standart deviation for positions
         this->positionVariance.resize(Dim * positionPairs.size());
         for (size_t index = 0; index < Dim * positionPairs.size(); index++) {
@@ -208,7 +211,6 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
             std::pair<size_t, size_t> pr(freeNodes[i], vsi++);
             velocityPairs.push_back(pr);
         }
-
         /// add standart deviation for velocities
         this->velocityVariance.resize(Dim * velocityPairs.size());
         for (size_t index = 0; index < Dim * velocityPairs.size(); index++) {

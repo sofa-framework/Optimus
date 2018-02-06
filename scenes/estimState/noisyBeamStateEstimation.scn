@@ -17,9 +17,8 @@
             <StiffSpringForceField name="SPFF" spring="0 1 10000 5 1.0   1 2 10000 5 1.0   2 3 10000 5 1.0    3 4 10000 5 1.0" />
             <PlaneForceField name="PFF" normal="0 1 0" d="-3" draw="true"/>
             <FixedConstraint indices="0" />
-            <DiagonalMass mass="0.2 0.2 0.2 0.2 0.2" />
+            <DiagonalMass mass="0.2 0.2" />
             <Sphere radius="0.06" color="1 0 0 0.5"/>
-            <Line color="1 0 0 0.5"/>
             <WriteState filename ="g" observations="true" />	 
         </Node>
 
@@ -35,33 +34,29 @@
             <MechanicalObject template="Vec3d" name="MO" position="0 0 0  1 0 0  2 0 0  3 0 0  4 0 0" showObject="0"/>
             <StiffSpringForceField name="SPFF" spring="0 1 10000 5 1.0   1 2 10000 5 1.0   2 3 10000 5 1.0    3 4 10000 5 1.0" />
             <FixedConstraint indices="0" />
-            <DiagonalMass mass="0.05 0.05 0.05 0.05 0.05" />
+            <DiagonalMass mass="0.05" />
             <Sphere radius="0.05" color="0.5 0 1 1"/>
-            <Line color="0.5 0 1 1"/>
         </Node>	 
     </Node> 
 
     <Node name="filteredModel" > 		
-        <StochasticStateWrapper name="StateWrapper" verbose="1" estimatePosition="1" estimateVelocity="1" positionStdev="0.00000" velocityStdev="0.001" modelStdev="0.0005"/>
-<!--         <OptimParams name="paramForces" optimize="1" numParams='15' template="Vector" initValue="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0" stdev="0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 " transformParams="0"/> -->
+        <StochasticStateWrapper name="StateWrapper" verbose="1" estimatePosition="1" estimateVelocity="1" positionStdev="0.01" velocityStdev="0.01" 
+        posModelStdev="0" velModelStdev="0" paramModelStdev="1"/>
+        <OptimParams name="paramForces" optimize="1" numParams='15' template="VecDeriv3d" initValue="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0" stdev="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" transformParams="0" parametricMechanicalObject="@MO" verbose="1"/>
         <EulerImplicitSolver rayleighMass="0.01" rayleighStiffness="0.1" />		
         <CGLinearSolver iterations="50" tolerance="1e-6" threshold="1e-6" />      
         <MechanicalObject template="Vec3d" name="MO" position="0 0 0  1 0 0  2 0 0  3 0 0  4 0 0" showObject="0"/>
         <StiffSpringForceField name="SPFF" spring="0 1 10000 5 1.0   1 2 10000 5 1.0   2 3 10000 5 1.0    3 4 10000 5 1.0" />
-        <PartialFixedConstraint indices="0" />
-<!--         <CorrectionForceField forces="@paramForces.value" /> -->
-
-        <PlaneForceField name="PFF" normal="0 1 0" d="-3" draw="true"/>
-        <!-- 		<DiagonalMass mass="@paramMass.value" /> -->
-        <DiagonalMass mass="0.05 0.05 0.05 0.05 0.05" />
+<!--         <FixedConstraint indices="0" /> -->
+        <CorrectionForceField forces="@paramForces.value" />
+<!--         <PlaneForceField name="PFF" normal="0 1 0" d="-3" draw="true"/> -->
+        <DiagonalMass mass="0.05 0.05 " />
         <Sphere radius="0.05" color="0 1 0 1"/>    
         
         <Node name="obsNode" >        
             <MechanicalObject position="0 0 0"/>
             <SimulatedStateObservationSource template="Vec3d" name="observations" trackedObservations="@../../simulation/noisyObs/NoiseEngine.outputPositions"/>	
             <SimpleObservationManager name="MOBS" template="Vec3d" listening="1"  stateWrapper="@../StateWrapper" verbose="1" observationStdev="0.0005"/>
-            <!-- 			<MappedStateObservationManager name="MOBS" listening="1" stateWrapper="@../StateWrapper" verbose="1" doNotMapObservations="1" observationStdev="0.0005"/> -->
-            <!--             <IdentityMapping /> -->
         </Node> 	
     </Node>  
 
