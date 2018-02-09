@@ -31,7 +31,9 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
     def createGraph(self,node):
     	self.cameraReactivated=False
-        self.rootNode=node    
+        self.rootNode=node
+
+        self.iterations = 40    
 
         print  "Create graph called (Python side)\n"
 	
@@ -71,7 +73,8 @@ class synth1_BCDA(Sofa.PythonScriptController):
         node.createObject('ViewerSetting', cameraMode='Perspective', resolution='1000 700', objectPickingMethod='Ray casting')
         node.createObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels')
 
-        node.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")        
+        #node.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")
+        node.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1", computationTimeFile=self.options.time.computationTimeFileName)
 
         if (self.options.filter.kind == 'ROUKF'):
             self.filter = node.createObject('ROUKFilter', name="ROUKF", verbose="1", useUnbiasedVariance=self.options.filter.useUnbiasedVariance, sigmaTopology=self.options.filter.sigmaPointsTopology, lambdaScale=self.options.filter.lambdaScale, boundFilterState=self.options.filter.boundFilterState)        
@@ -125,8 +128,9 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
         # add constant force field
         node.createObject('BoxROI', name='forceBounds', box='-0.01 -0.03 0.11 0.01 0.01 0.12')
-        #node.createObject('BoxROI', name='forceBounds', box='-1 -1 -1 1 1 1')
-        node.createObject('ConstantForceField', name='appliedForce', indices='@forceBounds.indices', totalForce='0.0 -1.0 0.0')
+        self.constantForce = node.createObject('ConstantForceField', name='appliedForce', indices='@forceBounds.indices', totalForce='0.0 -1.0 0.0')
+        node.createObject('BoxROI', name='oppForceBounds', box='-0.01 -0.01 0.11 0.01 0.03 0.12')
+        self.oppositeConstantForce = node.createObject('ConstantForceField', name='oppAppliedForce', indices='@oppForceBounds.indices', totalForce='0.0 1.0 0.0', isCompliance='1')
                 
         return 0
 
@@ -175,7 +179,14 @@ class synth1_BCDA(Sofa.PythonScriptController):
         # self.process.initializationObjects(node)
         return 0
 
-    def onEndAnimationStep(self, deltaTime):  
+    def onEndAnimationStep(self, deltaTime):
+
+        self.iterations = self.iterations - 1
+        if self.iterations == 0:
+            self.constantForce.findData('isCompliance').value = 1 - self.constantForce.findData('isCompliance').value
+            self.oppositeConstantForce.findData('isCompliance').value = 1 - self.oppositeConstantForce.findData('isCompliance').value
+            self.iterations = 80
+
 
         if self.options.export.state:
             if (self.options.filter.kind == 'ROUKF'):

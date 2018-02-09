@@ -48,7 +48,8 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
         return None;
 
     def createGraph(self,rootNode):
-        
+        self.iterations = 40
+
         # rootNode
         rootNode.createObject('RequiredPlugin', pluginName='Optimus')
         rootNode.createObject('RequiredPlugin', pluginName='SofaPardisoSolver')
@@ -87,8 +88,19 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
 
         # add constant force field
         simuNode.createObject('BoxROI', name='forceBounds', box='-0.01 -0.03 0.11 0.01 0.01 0.12')
-        #simuNode.createObject('BoxROI', name='forceBounds', box='-1 -1 -1 1 1 1')
-        simuNode.createObject('ConstantForceField', name='appliedForce', indices='@forceBounds.indices', totalForce='0.0 -1.0 0.0')
+        self.constantForce = simuNode.createObject('ConstantForceField', name='appliedForce', indices='@forceBounds.indices', totalForce='0.0 -1.0 0.0')
+        simuNode.createObject('BoxROI', name='oppForceBounds', box='-0.01 -0.01 0.11 0.01 0.03 0.12')
+        self.oppositeConstantForce = simuNode.createObject('ConstantForceField', name='oppAppliedForce', indices='@oppForceBounds.indices', totalForce='0.0 1.0 0.0', isCompliance='1')
+
+        return 0;
+
+    def onEndAnimationStep(self, deltaTime):
+
+        self.iterations = self.iterations - 1
+        if self.iterations == 0:
+            self.constantForce.findData('isCompliance').value = 1 - self.constantForce.findData('isCompliance').value
+            self.oppositeConstantForce.findData('isCompliance').value = 1 - self.oppositeConstantForce.findData('isCompliance').value
+            self.iterations = 80
 
         return 0;
 
@@ -129,10 +141,6 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
         return 0;
 
     def onGUIEvent(self, strControlID,valueName,strValue):
-        ## Please feel free to add an example for a simple usage in /home/ip/Work/sofa/MyPlugins/Optimus/scenes/assimStiffness//home/ip/Work/sofa/master/src/applications/plugins/SofaPython/scn2python.py
-        return 0;
-
-    def onEndAnimationStep(self, deltaTime):
         ## Please feel free to add an example for a simple usage in /home/ip/Work/sofa/MyPlugins/Optimus/scenes/assimStiffness//home/ip/Work/sofa/master/src/applications/plugins/SofaPython/scn2python.py
         return 0;
 
