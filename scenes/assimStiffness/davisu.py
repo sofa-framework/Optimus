@@ -82,9 +82,9 @@ for i in range(0, nparams):
     vll = numpy.squeeze([x - y for x,y in zip(ev, stdev)])
     vlu = numpy.squeeze([x + y for x,y in zip(ev, stdev)])
 
-    spl1.plot(rng, ev, color=cmap(i),  linestyle='solid')
-    spl1.plot(rng, vll, color=cmap(i),  linestyle='dashed')
-    spl1.plot(rng, vlu, color=cmap(i),  linestyle='dashed')
+    spl1.plot(rng, ev, color=cmap(i),  linestyle='solid', linewidth=4)
+    spl1.plot(rng, vll, color=cmap(i),  linestyle='dashed', linewidth=4)
+    spl1.plot(rng, vlu, color=cmap(i),  linestyle='dashed', linewidth=4)
 
 
     # print options.observations.groundTruth
@@ -94,7 +94,7 @@ for i in range(0, nparams):
     # print groundTruthValues    
     groundTruthData = [numpy.int(elem) * groundTruthValues[i] for elem in data]
     # plt.plot(rng, groundTruthData, color=cmap(i), linestyle='None', marker=r'$\clubsuit$', markersize=5)
-    spl1.plot(rng, groundTruthData, color=cmap(i), linestyle='dotted')
+    spl1.plot(rng, groundTruthData, color=cmap(i), linestyle='dotted', linewidth=4)
     # plt.setp(lines, color=cmap(i), linewidth=2.0)
 
     spl1.set_title('Params '+folder)

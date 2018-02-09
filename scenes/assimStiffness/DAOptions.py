@@ -171,6 +171,21 @@ class Export:
 
 
 
+class Time:
+    def __init__(self):
+        return
+
+    computationTimeFileName = ''
+
+    def parseYaml(self, configData, folderName):
+        if 'time_parameters' in configData['scene_parameters']:
+            self.computationTimeFileName = folderName + '/' + configData['scene_parameters']['time_parameters']['computation_time_file_name']
+
+        return
+
+
+
+
 class DAOptions:
     def __init__(self):
         return
@@ -182,6 +197,7 @@ class DAOptions:
     observations = Observations()
     export = Export()
     impact = Impact()
+    time = Time()
 
 
     def parseYaml(self, configFileName):
@@ -194,6 +210,7 @@ class DAOptions:
                 self.observations.parseYaml(configData)
                 self.export.parseYaml(configData, self.filter)
                 self.impact.parseYaml(configData)
+                self.time.parseYaml(configData, self.export.folder)
 
             except yaml.YAMLError as exc:
                 print(exc)
