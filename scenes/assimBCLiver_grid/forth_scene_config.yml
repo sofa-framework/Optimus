@@ -38,5 +38,6 @@ scene_parameters:
         sigma_points_scale: 1
         save_state: 1
         save_internal_data: 1
+        bound_filter_state: 1
 ...
 
