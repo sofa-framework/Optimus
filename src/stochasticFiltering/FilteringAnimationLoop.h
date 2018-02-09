@@ -114,6 +114,7 @@ public:
     sofa::simulation::Node* gnode;
     int numStep;
     Data<bool> verbose;
+    core::objectmodel::DataFileName d_timeDataFile;
 
     void init();
     void bwdInit();

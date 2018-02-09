@@ -28,6 +28,12 @@
 #include "FilteringAnimationLoop.h"
 
 #include <sofa/core/ObjectFactory.h>
+#include <sofa/helper/AdvancedTimer.h>
+
+// quick fix
+# include <unistd.h>
+# include <sys/time.h>
+# include <iomanip>
 
 namespace sofa
 {
@@ -48,6 +54,7 @@ FilteringAnimationLoop::FilteringAnimationLoop()
     : Inherit()
     , gnode(0)
     , verbose( initData(&verbose, false, "verbose", "print out traces") )
+    , d_timeDataFile( initData(&d_timeDataFile, std::string(""), "computationTimeFile", "file to save computation results") )
 {
 }
 
@@ -56,6 +63,7 @@ FilteringAnimationLoop::FilteringAnimationLoop(sofa::simulation::Node* _gnode)
     : Inherit()
     , gnode(_gnode)
     , verbose( initData(&verbose, false, "verbose", "print out traces") )
+    , d_timeDataFile( initData(&d_timeDataFile, std::string(""), "computationTimeFile", "file to save computation results") )
 {
     assert(gnode);
 }
@@ -84,6 +92,14 @@ void FilteringAnimationLoop::init() {
         PRNS("pre-stochastic filter " << preStochasticWrappers[i]->getName() << " found");
 
     actualStep = 0;
+
+    if (d_timeDataFile.getValue().size() > 0) {
+        std::ofstream outputFile;
+        outputFile.open(d_timeDataFile.getFullPath(), std::fstream::app);
+        outputFile << "This file contains data about computation time:";
+        outputFile << std::endl;
+        outputFile.close();
+    }
 }
 
 void FilteringAnimationLoop::bwdInit() {
@@ -109,12 +125,42 @@ void FilteringAnimationLoop::step(const core::ExecParams* _params, SReal /*_dt*/
     for (size_t i = 0; i < preStochasticWrappers.size(); i++)
         preStochasticWrappers[i]->step(_params, actualStep);
 
+    // add advanced timer to the system
+    //sofa::helper::AdvancedTimer::stepBegin("KalmanFilterStep");
+    struct timeval tv;
+
+    if (d_timeDataFile.getValue().size() > 0) {
+        gettimeofday(&tv,0);
+        std::ofstream outputFile;
+        outputFile.open(d_timeDataFile.getFullPath(), std::fstream::app);
+        outputFile << "Iteration step: " << actualStep << std::endl;
+        outputFile << "Start time: " << tv.tv_sec;
+        outputFile.fill('0');
+        outputFile << std::setw(6) << tv.tv_usec << std::endl;
+        outputFile.fill(' ');
+        outputFile.close();
+    }
+
     filter->initializeStep(_params, actualStep);
     //TIC
     filter->computePrediction();
     //TOCTIC("== prediction total");
     filter->computeCorrection();
     //TOC("== correction total");
+
+    // compute signle iteration step
+    //sofa::helper::AdvancedTimer::stepEnd("KalmanFilterStep");
+
+    if (d_timeDataFile.getValue().size() > 0) {
+        gettimeofday(&tv,0);
+        std::ofstream outputFile;
+        outputFile.open(d_timeDataFile.getFullPath(), std::fstream::app);
+        outputFile << "End time: " << tv.tv_sec;
+        outputFile.fill('0');
+        outputFile << std::setw(6) << tv.tv_usec << std::endl;
+        outputFile.fill(' ');
+        outputFile.close();
+    }
 
     sofa::simulation::AnimateEndEvent ev2(dt);
     SingleLevelEventVisitor act2 ( _params, &ev2, gnode );
