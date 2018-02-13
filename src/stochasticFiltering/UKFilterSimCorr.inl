@@ -162,7 +162,7 @@ void UKFilterSimCorr<FilterType>::computeCorrection()
         ////    }
         //matPxz = alphaVar * matPxz;
         //matPz = alphaVar * matPz + obsCovar;
-        matPz = matPz + obsCovar;
+        ////    matPz = matPz + obsCovar;
         //PRNS("ObsCovar: " << obsCovar);
 
         EMatrixX matK(stateSize, observationSize);
