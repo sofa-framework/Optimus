@@ -30,7 +30,7 @@ UKFilterSimCorr<FilterType>::UKFilterSimCorr()
 template <class FilterType>
 void UKFilterSimCorr<FilterType>::computePrediction()
 {    
-    PRNS("Computing prediction, T= " << this->actualTime  << " ======");
+    //PRNS("Computing prediction, T= " << this->actualTime  << " ======");
     /// Computes background error variance Cholesky factorization.
     Eigen::LLT<EMatrixX> lltU(stateCovar);
     EMatrixX matPsqrt = lltU.matrixL();
@@ -56,26 +56,31 @@ void UKFilterSimCorr<FilterType>::computePrediction()
     // stateExp = stateExp * alpha;
 
     stateCovar.fill(FilterType(0.0));
-    EVectorX tmpX(stateSize);
-    tmpX.fill(FilterType(0.0));
-
-    for (size_t i = 0; i < sigmaPointsNum; i++) {
-       tmpX = matXi.col(i) - stateExp;
-       for (size_t x = 0; x < stateSize; x++)
-           for (size_t y = 0; y < stateSize; y++)
-               stateCovar(x,y) += vecAlphaVar(i) * tmpX(x)*tmpX(y);
-    }
+    ////    EVectorX tmpX(stateSize);
+    ////    tmpX.fill(FilterType(0.0));
+    ////    for (size_t i = 0; i < sigmaPointsNum; i++) {
+    ////       tmpX = matXi.col(i) - stateExp;
+    ////       for (size_t x = 0; x < stateSize; x++)
+    ////           for (size_t y = 0; y < stateSize; y++)
+    ////               stateCovar(x,y) += vecAlphaVar(i) * tmpX(x)*tmpX(y);
+    ////    }
+    EMatrixX matXiTrans= matXi.transpose();
+    EMatrixX centeredPxx = matXiTrans.rowwise() - matXiTrans.colwise().mean();
+    EMatrixX weightedCenteredPxx = centeredPxx.array().colwise() * vecAlphaVar.array();
+    EMatrixX covPxx = (centeredPxx.adjoint() * weightedCenteredPxx);
+    //EMatrixX covPxx = (centeredPxx.adjoint() * centeredPxx) / double(centeredPxx.rows() )
+    stateCovar = covPxx;
     // stateCovar = alphaVar*stateCovar;
 
-    PRNS("X(n+1)-: " << stateExp.transpose());
-    PRNS("P(n+1)-: \n" << stateCovar);
+    //PRNS("X(n+1)-: " << stateExp.transpose());
+    //PRNS("P(n+1)-: \n" << stateCovar);
 }
 
 template <class FilterType>
 void UKFilterSimCorr<FilterType>::computeCorrection()
 {            
     if (observationManager->hasObservation(this->actualTime)) {
-        PRNS("======= Computing correction, T= " << this->actualTime << " ======");
+        //PRNS("======= Computing correction, T= " << this->actualTime << " ======");
 
         /// Compute variance factorization
         Eigen::LLT<EMatrixX> lltU(stateCovar);
@@ -102,7 +107,7 @@ void UKFilterSimCorr<FilterType>::computeCorrection()
                 }
             }
         }
-        PRNS("MatXi: \n" << matXi);
+        //PRNS("MatXi: \n" << matXi);
 
         EVectorX xCol(stateSize), zCol(observationSize);
         int id;
@@ -129,22 +134,32 @@ void UKFilterSimCorr<FilterType>::computeCorrection()
         matPxz.fill(FilterType(0.0));
         matPz.fill(FilterType(0.0));
 
-        EVectorX vx(stateSize), z(observationSize), vz(observationSize);
-        vx.fill(FilterType(0.0));
-        vz.fill(FilterType(0.0));
-        z.fill(FilterType(0.0));
-        for (size_t i = 0; i < sigmaPointsNum; i++) {
-           vx = matXi.col(i) - stateExp;
-           z = matZmodel.col(i);
-           vz = z - predObsExp;
-           for (size_t x = 0; x < stateSize; x++)
-               for (size_t y = 0; y < observationSize; y++)
-                   matPxz(x,y) += vecAlphaVar(i) * vx(x)*vz(y);
+        EMatrixX matXiTrans= matXi.transpose();
+        EMatrixX matZItrans = matZmodel.transpose();
+        EMatrixX centeredCx = matXiTrans.rowwise() - matXiTrans.colwise().mean();
+        EMatrixX centeredCz = matZItrans.rowwise() - matZItrans.colwise().mean();
+        EMatrixX weightedCenteredCz = centeredCz.array().colwise() * vecAlphaVar.array();
+        EMatrixX covPxz = (centeredCx.adjoint() * weightedCenteredCz);
+        matPxz=covPxz;
+        EMatrixX covPzz = (centeredCz.adjoint() * weightedCenteredCz);
+        matPz = obsCovar + covPzz;
 
-           for (size_t x = 0; x < observationSize; x++)
-               for (size_t y = 0; y < observationSize; y++)
-                   matPz(x,y) += vecAlphaVar(i) * vz(x)*vz(y);
-        }
+        ////    EVectorX vx(stateSize), z(observationSize), vz(observationSize);
+        ////    vx.fill(FilterType(0.0));
+        ////    vz.fill(FilterType(0.0));
+        ////    z.fill(FilterType(0.0));
+        ////    for (size_t i = 0; i < sigmaPointsNum; i++) {
+        ////       vx = matXi.col(i) - stateExp;
+        ////       z = matZmodel.col(i);
+        ////       vz = z - predObsExp;
+        ////       for (size_t x = 0; x < stateSize; x++)
+        ////           for (size_t y = 0; y < observationSize; y++)
+        ////               matPxz(x,y) += vecAlphaVar(i) * vx(x)*vz(y);
+        ////
+        ////       for (size_t x = 0; x < observationSize; x++)
+        ////           for (size_t y = 0; y < observationSize; y++)
+        ////               matPz(x,y) += vecAlphaVar(i) * vz(x)*vz(y);
+        ////    }
         //matPxz = alphaVar * matPxz;
         //matPz = alphaVar * matPz + obsCovar;
         matPz = matPz + obsCovar;
@@ -161,8 +176,8 @@ void UKFilterSimCorr<FilterType>::computeCorrection()
 
         stateWrappers[0]->computeSimulationStep(stateExp, mechParams, id);
 
-        PRNS("X(n+1)+: \n" << stateExp.transpose());
-        PRNS("P(n+1)+n: \n" << stateCovar);
+        //PRNS("X(n+1)+: \n" << stateExp.transpose());
+        //PRNS("P(n+1)+n: \n" << stateCovar);
 
         helper::WriteAccessor<Data <helper::vector<FilterType> > > stat = d_state;
         helper::WriteAccessor<Data <helper::vector<FilterType> > > var = d_variance;
