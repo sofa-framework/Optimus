@@ -53,13 +53,17 @@ else :
 if (len(commandLineArguments) > 1):
     folder=commandLineArguments[1]
 else:
-    folder = ['outCyl2_2264_UKFSimCorr_forceField2264Verification']
-    folder.append('outCyl2_2264_ROUKF_forceField2264Verification')
-    folder.append('outCyl2_2264_UKFClassic_forceField2264Verification')
+    folder = ['outCyl3_770_UKFSimCorr_cyl3ForceField770Verification_init2000']
+    folder.append('outCyl3_770_ROUKF_cyl3ForceField770Verification_init2000')
+    #folder.append('outCyl2_385_UKFClassic_forceField385Verification_init2000')
 
 # plot computation time
 fig2 = plt.figure(100)
 spl2 = fig2.add_subplot(111)
+
+# plot variance values
+fig3 = plt.figure(200)
+spl3 = fig3.add_subplot(111)
 
 for generalIndex in range (0, len(folder)):
 
@@ -93,6 +97,7 @@ for generalIndex in range (0, len(folder)):
     data = numpy.ones(nsteps)
 
     averageDiff = numpy.zeros(nsteps)
+    averageVariance = numpy.zeros(nsteps)
 
     for i in range(0, nparams):
         si = i +nstate - nparams;
@@ -133,9 +138,12 @@ for generalIndex in range (0, len(folder)):
 
         diffVal = numpy.squeeze([abs(x - int(y)) for x,y in zip(ev, groundTruthData)])
         averageDiff = [x + y for x,y in zip(averageDiff, diffVal)]
+        averageVariance = [x + y for x,y in zip(averageVariance, stdev)]
+
 
 
     averageDiff = [x / nparams for x in averageDiff]
+    averageVariance = [x / nparams for x in averageVariance]
 
     # extract time result data
     timeVal = load_time_data(options.time.computationTimeFileName)
@@ -149,9 +157,13 @@ for generalIndex in range (0, len(folder)):
 
     cmap = plt.cm.get_cmap('hsv', len(folder) + 1)
 
-    #print averageDiff
+    # print averageDiff
     spl2.plot(timeShift, averageDiff, color=cmap(generalIndex),  linestyle='solid', label=options.filter.kind)
     spl2.set_title('General computation time ')
+
+    # print averageDiff
+    spl3.plot(timeShift, averageVariance, color=cmap(generalIndex),  linestyle='solid', label=options.filter.kind)
+    spl3.set_title('Variance values ')
     
 legend = spl2.legend(loc='upper center', shadow=True, fontsize='x-large')
 legend.get_frame().set_facecolor('#FFFFFF')
