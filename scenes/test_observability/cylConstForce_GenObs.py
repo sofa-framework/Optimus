@@ -87,11 +87,9 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
             simuNode.createObject('Monitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.options.observations.valueFileName, ExportPositions='1', ExportVelocities='0', ExportForces='0')
 
         # add constant force field
-        #simuNode.createObject('BoxROI', name='forceBounds', box='-0.01 -0.03 0.11 0.01 0.01 0.12')
-        simuNode.createObject('BoxROI', name='forceBounds', box='-0.01 -0.03 0.1 0.01 -0.01 0.11')
+        simuNode.createObject('BoxROI', name='forceBounds', box=self.options.impact.externalForceBound)
         self.constantForce = simuNode.createObject('ConstantForceField', name='appliedForce', indices='@forceBounds.indices', totalForce='0.0 -1.0 0.0')
-        #simuNode.createObject('BoxROI', name='oppForceBounds', box='-0.01 -0.01 0.11 0.01 0.03 0.12')
-        simuNode.createObject('BoxROI', name='oppForceBounds', box='-0.01 0.012 0.1 0.01 0.03 0.11')
+        simuNode.createObject('BoxROI', name='oppForceBounds', box=self.options.impact.reverseForceBound)
         self.oppositeConstantForce = simuNode.createObject('ConstantForceField', name='oppAppliedForce', indices='@oppForceBounds.indices', totalForce='0.0 1.0 0.0', isCompliance='1')
 
         return 0;

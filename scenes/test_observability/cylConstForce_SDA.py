@@ -127,11 +127,9 @@ class synth1_BCDA(Sofa.PythonScriptController):
         # node.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus="1e5", poissonRatio="0.45", method="large")
 
         # add constant force field
-        node.createObject('BoxROI', name='forceBounds', box='-0.01 -0.03 0.11 0.01 0.01 0.12')
-        #node.createObject('BoxROI', name='forceBounds', box='-0.01 -0.03 0.1 0.01 -0.01 0.11')
+        node.createObject('BoxROI', name='forceBounds', box=self.options.impact.externalForceBound)
         self.constantForce = node.createObject('ConstantForceField', name='appliedForce', indices='@forceBounds.indices', totalForce='0.0 -1.0 0.0')
-        node.createObject('BoxROI', name='oppForceBounds', box='-0.01 -0.01 0.11 0.01 0.03 0.12')
-        #node.createObject('BoxROI', name='oppForceBounds', box='-0.01 0.012 0.1 0.01 0.03 0.11')
+        node.createObject('BoxROI', name='oppForceBounds', box=self.options.impact.reverseForceBound)
         self.oppositeConstantForce = node.createObject('ConstantForceField', name='oppAppliedForce', indices='@oppForceBounds.indices', totalForce='0.0 1.0 0.0', isCompliance='1')
                 
         return 0
@@ -143,11 +141,6 @@ class synth1_BCDA(Sofa.PythonScriptController):
         self.createCommonComponents(node)
 
         obsNode = node.createChild('obsNode')        
-        # obsNode.createObject('MechanicalObject', name='SourceMO', position='0.02 0 0.08 0.02 0 0.16    0.0141 0.0141 0.08    0.0141 -0.0141 0.08    0.0141 0.0141 0.16    0.0141 -0.0141 0.16    0.02 0 0.0533    0.02 0 0.107   \
-        #     0.02 0 0.133    0.02 0 0.187    0.02 0 0.213    0.0175 0.00961 0.0649    0.00925 0.0177 0.0647    0.0139 0.0144 0.0398    0.00961 -0.0175 0.0649    0.0177 -0.00925 0.0647  \
-        #     0.0144 -0.0139 0.0402    0.0177 0.00936 0.145    0.0095 0.0176 0.145    0.0175 0.00961 0.0951    0.00925 0.0177 0.0953    0.0139 0.0144 0.12    0.00937 -0.0177 0.145   \
-        #     0.0176 -0.00949 0.145    0.00935 -0.0177 0.0953    0.0176 -0.00949 0.095    0.0142 -0.0141 0.12    0.0177 0.00937 0.175    0.00949 0.0176 0.175    0.014 0.0143 0.2   \
-        #     0.00959 -0.0175 0.175    0.0177 -0.00924 0.175    0.0143 -0.014 0.2')        
         obsNode.createObject('MeshVTKLoader', name='obsLoader', filename=self.options.observations.positionFileName)        
         obsNode.createObject('MechanicalObject', name='SourceMO', src="@obsLoader")
         obsNode.createObject('BarycentricMapping')

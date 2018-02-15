@@ -93,11 +93,17 @@ class Impact:
 
     positionFileName = ''  
     position = ''
+    externalForceBound = ''
+    reverseForceBound = ''
 
     def parseYaml(self, configData):
         if 'impact_parameters' in configData['scene_parameters']:
-            self.positionFileName = configData['scene_parameters']['impact_parameters']['observation_file_name']
-            self.position = configData['scene_parameters']['impact_parameters']['position']
+            if 'position' in configData['scene_parameters']['impact_parameters']:
+                self.positionFileName = configData['scene_parameters']['impact_parameters']['observation_file_name']
+                self.position = configData['scene_parameters']['impact_parameters']['position']
+            if 'external_force_bound' in configData['scene_parameters']['impact_parameters']:
+                self.externalForceBound = configData['scene_parameters']['impact_parameters']['external_force_bound']
+                self.reverseForceBound = configData['scene_parameters']['impact_parameters']['reverse_force_bound']
 
         return
 
