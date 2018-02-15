@@ -243,7 +243,7 @@ void OptimParams<sofa::helper::vector<double> >::paramsToVector(VectorXd& _vecto
         for (size_t i = 0; i < paramIndices.size(); i++)
             _vector[paramIndices[i]] = val[i];
     }
-    std::cout << "paramsToVector raVal\n" << _vector << std::endl;
+    //std::cout << "paramsToVector raVal\n" << _vector << std::endl;
 }
 
 template<>
