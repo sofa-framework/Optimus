@@ -6,6 +6,9 @@ import sys
 import matplotlib.pyplot as plt
 from itertools import repeat
 
+inputList = ['outCyl3_770_UKFSimCorr_cyl3ForceField770Verification_init2000']
+inputList.append('outCyl3_770_ROUKF_cyl3ForceField770Verification_init2000')
+#inputList.append('outCyl2_385_UKFClassic_forceField385Verification_init2000')
 
 def load_matrix_from_file(f):
     if type(f) == types.StringType:
@@ -53,9 +56,7 @@ else :
 if (len(commandLineArguments) > 1):
     folder=commandLineArguments[1]
 else:
-    folder = ['outCyl3_770_UKFSimCorr_cyl3ForceField770Verification_init2000']
-    folder.append('outCyl3_770_ROUKF_cyl3ForceField770Verification_init2000')
-    #folder.append('outCyl2_385_UKFClassic_forceField385Verification_init2000')
+    folder = inputList
 
 # plot computation time
 fig2 = plt.figure(100)
