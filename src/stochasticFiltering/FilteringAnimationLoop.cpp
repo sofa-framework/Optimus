@@ -30,10 +30,8 @@
 #include <sofa/core/ObjectFactory.h>
 #include <sofa/helper/AdvancedTimer.h>
 
-// quick fix
-# include <unistd.h>
-# include <sys/time.h>
-# include <iomanip>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/date_time/gregorian/gregorian_types.hpp>
 
 namespace sofa
 {
@@ -127,17 +125,15 @@ void FilteringAnimationLoop::step(const core::ExecParams* _params, SReal /*_dt*/
 
     // add advanced timer to the system
     //sofa::helper::AdvancedTimer::stepBegin("KalmanFilterStep");
-    struct timeval tv;
+    boost::posix_time::time_duration currentMomentMicroseconds;
+    boost::posix_time::ptime time_t_epoch(boost::gregorian::date(1970,1,1));
 
     if (d_timeDataFile.getValue().size() > 0) {
-        gettimeofday(&tv,0);
+        currentMomentMicroseconds = boost::posix_time::microsec_clock::local_time() - time_t_epoch;
         std::ofstream outputFile;
         outputFile.open(d_timeDataFile.getFullPath(), std::fstream::app);
         outputFile << "Iteration step: " << actualStep << std::endl;
-        outputFile << "Start time: " << tv.tv_sec;
-        outputFile.fill('0');
-        outputFile << std::setw(6) << tv.tv_usec << std::endl;
-        outputFile.fill(' ');
+        outputFile << "Start time: " << currentMomentMicroseconds.total_microseconds() << std::endl;
         outputFile.close();
     }
 
@@ -152,13 +148,10 @@ void FilteringAnimationLoop::step(const core::ExecParams* _params, SReal /*_dt*/
     //sofa::helper::AdvancedTimer::stepEnd("KalmanFilterStep");
 
     if (d_timeDataFile.getValue().size() > 0) {
-        gettimeofday(&tv,0);
+        currentMomentMicroseconds = boost::posix_time::microsec_clock::local_time() - time_t_epoch;
         std::ofstream outputFile;
         outputFile.open(d_timeDataFile.getFullPath(), std::fstream::app);
-        outputFile << "End time: " << tv.tv_sec;
-        outputFile.fill('0');
-        outputFile << std::setw(6) << tv.tv_usec << std::endl;
-        outputFile.fill(' ');
+        outputFile << "End time: " << currentMomentMicroseconds.total_microseconds() << std::endl;
         outputFile.close();
     }
 
