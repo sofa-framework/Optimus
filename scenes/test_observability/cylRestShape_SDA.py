@@ -72,7 +72,8 @@ class synth1_BCDA(Sofa.PythonScriptController):
         node.createObject('ViewerSetting', cameraMode='Perspective', resolution='1000 700', objectPickingMethod='Ray casting')
         node.createObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels')
 
-        node.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")        
+        #node.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")
+        node.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1", computationTimeFile=self.options.time.computationTimeFileName)
 
         if (self.options.filter.kind == 'ROUKF'):
             self.filter = node.createObject('ROUKFilter', name="ROUKF", verbose="1", useUnbiasedVariance=self.options.filter.useUnbiasedVariance, sigmaTopology=self.options.filter.sigmaPointsTopology, lambdaScale=self.options.filter.lambdaScale, boundFilterState=self.options.filter.boundFilterState)        
