@@ -135,6 +135,8 @@ for generalIndex in range (0, len(folder)):
         spl1.plot(rng, groundTruthData, color=cmap(i), linestyle='dotted', linewidth=4)
         # plt.setp(lines, color=cmap(i), linewidth=2.0)
 
+        spl1.set_xlabel('iterations')
+        spl1.set_ylabel('stiffness with variance')
         spl1.set_title('Params '+folder[generalIndex])
 
         diffVal = numpy.squeeze([abs(x - int(y)) for x,y in zip(ev, groundTruthData)])
@@ -160,14 +162,21 @@ for generalIndex in range (0, len(folder)):
 
     # print averageDiff
     spl2.plot(timeShift, averageDiff, color=cmap(generalIndex),  linestyle='solid', label=options.filter.kind)
-    spl2.set_title('General computation time ')
+    spl2.set_xlabel('time in milliseconds')
+    spl2.set_ylabel('average difference between estimation and groundtruth')
+    spl2.set_title('General computation time:')
 
     # print averageDiff
     spl3.plot(timeShift, averageVariance, color=cmap(generalIndex),  linestyle='solid', label=options.filter.kind)
-    spl3.set_title('Variance values ')
+    spl3.set_xlabel('time in milliseconds')
+    spl3.set_ylabel('average standart deviation')
+    spl3.set_title('Standart deviation values:')
     
-legend = spl2.legend(loc='upper center', shadow=True, fontsize='x-large')
-legend.get_frame().set_facecolor('#FFFFFF')
+legendForSpl2 = spl2.legend(loc='upper center', shadow=True, fontsize='x-large')
+legendForSpl2.get_frame().set_facecolor('#FFFFFF')
+legendForSpl3 = spl3.legend(loc='upper center', shadow=True, fontsize='x-large')
+legendForSpl3.get_frame().set_facecolor('#FFFFFF')
 plt.show()
+
 
 

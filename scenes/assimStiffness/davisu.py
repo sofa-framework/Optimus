@@ -97,6 +97,8 @@ for i in range(0, nparams):
     spl1.plot(rng, groundTruthData, color=cmap(i), linestyle='dotted', linewidth=4)
     # plt.setp(lines, color=cmap(i), linewidth=2.0)
 
+    spl1.set_xlabel('iterations')
+    spl1.set_ylabel('stiffness with variance')
     spl1.set_title('Params '+folder)
 
 # plot innovation values
