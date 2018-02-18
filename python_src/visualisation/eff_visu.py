@@ -1,3 +1,5 @@
+import sys
+sys.path.append(os.getcwd() + '/../../python_src/configuration')
 from DAOptions import DAOptions
 import numpy
 import types

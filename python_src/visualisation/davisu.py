@@ -1,8 +1,9 @@
+import sys
+sys.path.append(os.getcwd() + '/../../python_src/configuration')
 from DAOptions import DAOptions
 import numpy
 import types
 import math
-import sys
 import matplotlib.pyplot as plt
 from itertools import repeat
 

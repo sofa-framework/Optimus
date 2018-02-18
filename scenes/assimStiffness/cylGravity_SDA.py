@@ -3,6 +3,7 @@ import math
 import os
 import sys
 import csv
+sys.path.append(os.getcwd() + '/../../python_src/configuration')
 import DAOptions
 
 __file = __file__.replace('\\', '/') # windows
