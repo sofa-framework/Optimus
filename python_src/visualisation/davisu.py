@@ -1,4 +1,5 @@
 import sys
+import os
 sys.path.append(os.getcwd() + '/../../python_src/configuration')
 from DAOptions import DAOptions
 import numpy
@@ -93,9 +94,9 @@ for i in range(0, nparams):
     
     
     # print groundTruthValues    
-    groundTruthData = [numpy.int(elem) * groundTruthValues[i] for elem in data]
+    groundTruthData = [numpy.int(elem) * float(groundTruthValues[i]) for elem in data]
     # plt.plot(rng, groundTruthData, color=cmap(i), linestyle='None', marker=r'$\clubsuit$', markersize=5)
-    spl1.plot(rng, groundTruthData, color=cmap(i), linestyle='dotted', linewidth=4)
+    spl1.plot(rng, groundTruthData, color=cmap(i), linestyle='soliddotted', linewidth=4)
     # plt.setp(lines, color=cmap(i), linewidth=2.0)
 
     spl1.set_xlabel('iterations')
