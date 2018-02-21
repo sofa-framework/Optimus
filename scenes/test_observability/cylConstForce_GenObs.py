@@ -62,7 +62,7 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
         self.simuNode = simuNode
         # simuNode.createObject('EulerImplicitSolver', rayleighStiffness=self.options.model.rayleighStiffness, rayleighMass=self.options.model.rayleighMass)        
         simuNode.createObject('VariationalSymplecticSolver', rayleighStiffness=self.options.model.rayleighStiffness, rayleighMass=self.options.model.rayleighMass, 
-            newtonError='1e-12', steps='10', verbose='0')
+            newtonError='1e-12', steps='1', verbose='0')
         simuNode.createObject('SparsePARDISOSolver', name='LDLsolver', verbose='0', symmetric='2', exportDataToFolder='')
         simuNode.createObject('MeshVTKLoader', name='loader', filename=self.options.model.volumeFileName)
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')
@@ -89,10 +89,14 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
             simuNode.createObject('Monitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.options.observations.valueFileName, ExportPositions='1', ExportVelocities='0', ExportForces='0')
 
         # add constant force field
+        self.forceIndex = 1
         simuNode.createObject('BoxROI', name='forceBounds', box=self.options.impact.externalForceBound)
-        self.constantForce = simuNode.createObject('ConstantForceField', name='appliedForce', indices='@forceBounds.indices', totalForce='0.0 -1.0 0.0')
+        self.constantForce = simuNode.createObject('ConstantForceField', name='appliedForce', 
+            indices='@forceBounds.indices', totalForce='0.0 0.0 0.0')
         simuNode.createObject('BoxROI', name='oppForceBounds', box=self.options.impact.reverseForceBound)
-        self.oppositeConstantForce = simuNode.createObject('ConstantForceField', name='oppAppliedForce', indices='@oppForceBounds.indices', totalForce='0.0 1.0 0.0', isCompliance='1')
+        self.oppositeConstantForce = simuNode.createObject('ConstantForceField', name='oppAppliedForce', 
+            indices='@oppForceBounds.indices', totalForce='0.0 1.0 0.0')
+        
 
         return 0;
 
@@ -100,8 +104,14 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
 
         self.iterations = self.iterations - 1
         if self.iterations == 0:
-            self.constantForce.findData('isCompliance').value = 1 - self.constantForce.findData('isCompliance').value
-            self.oppositeConstantForce.findData('isCompliance').value = 1 - self.oppositeConstantForce.findData('isCompliance').value
+            self.forceIndex = (self.forceIndex + 1)  % 2
+            if self.forceIndex == 0:
+                self.constantForce.findData('totalForce').value = [0.0, -1.0, 0.0]
+                self.oppositeConstantForce.findData('totalForce').value = [0.0, 0.0, 0.0]
+            elif self.forceIndex == 1:
+                self.constantForce.findData('totalForce').value = [0.0, 0.0, 0.0]
+                self.oppositeConstantForce.findData('totalForce').value = [0.0, 1.0, 0.0]
+            
             self.iterations = 80
 
         return 0;

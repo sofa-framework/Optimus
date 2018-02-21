@@ -96,7 +96,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         #node.createObject('StaticSolver', applyIncrementFactor="0")        
         # node.createObject('EulerImplicitSolver', rayleighStiffness=self.options.model.rayleighStiffness, rayleighMass=self.options.model.rayleighMass)
         node.createObject('VariationalSymplecticSolver', rayleighStiffness=self.options.model.rayleighStiffness, rayleighMass=self.options.model.rayleighMass, 
-            newtonError='1e-12', steps='10', verbose='0')
+            newtonError='1e-12', steps='1', verbose='0')
         # node.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")   
         # node.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
         node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
@@ -129,10 +129,19 @@ class synth1_BCDA(Sofa.PythonScriptController):
         # node.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus="1e5", poissonRatio="0.45", method="large")
 
         # add constant force field
+        # node.createObject('BoxROI', name='forceBounds', box=self.options.impact.externalForceBound)
+        # self.constantForce = node.createObject('ConstantForceField', name='appliedForce', indices='@forceBounds.indices', totalForce='0.0 -1.0 0.0')
+        # node.createObject('BoxROI', name='oppForceBounds', box=self.options.impact.reverseForceBound)
+        # self.oppositeConstantForce = node.createObject('ConstantForceField', name='oppAppliedForce', indices='@oppForceBounds.indices', totalForce='0.0 1.0 0.0', isCompliance='1')
+
+        self.forceIndex = 1
         node.createObject('BoxROI', name='forceBounds', box=self.options.impact.externalForceBound)
-        self.constantForce = node.createObject('ConstantForceField', name='appliedForce', indices='@forceBounds.indices', totalForce='0.0 -1.0 0.0')
+        self.constantForce = node.createObject('ConstantForceField', name='appliedForce', 
+            indices='@forceBounds.indices', totalForce='0.0 0.0 0.0')
         node.createObject('BoxROI', name='oppForceBounds', box=self.options.impact.reverseForceBound)
-        self.oppositeConstantForce = node.createObject('ConstantForceField', name='oppAppliedForce', indices='@oppForceBounds.indices', totalForce='0.0 1.0 0.0', isCompliance='1')
+        self.oppositeConstantForce = node.createObject('ConstantForceField', name='oppAppliedForce', 
+            indices='@oppForceBounds.indices', totalForce='0.0 1.0 0.0')
+        
                 
         return 0
 
@@ -178,10 +187,22 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
     def onEndAnimationStep(self, deltaTime):
 
+        # self.iterations = self.iterations - 1
+        # if self.iterations == 0:
+        #     self.constantForce.findData('isCompliance').value = 1 - self.constantForce.findData('isCompliance').value
+        #     self.oppositeConstantForce.findData('isCompliance').value = 1 - self.oppositeConstantForce.findData('isCompliance').value
+        #     self.iterations = 80
+
         self.iterations = self.iterations - 1
         if self.iterations == 0:
-            self.constantForce.findData('isCompliance').value = 1 - self.constantForce.findData('isCompliance').value
-            self.oppositeConstantForce.findData('isCompliance').value = 1 - self.oppositeConstantForce.findData('isCompliance').value
+            self.forceIndex = (self.forceIndex + 1)  % 2
+            if self.forceIndex == 0:
+                self.constantForce.findData('totalForce').value = [0.0, -1.0, 0.0]
+                self.oppositeConstantForce.findData('totalForce').value = [0.0, 0.0, 0.0]
+            elif self.forceIndex == 1:
+                self.constantForce.findData('totalForce').value = [0.0, 0.0, 0.0]
+                self.oppositeConstantForce.findData('totalForce').value = [0.0, 1.0, 0.0]
+            
             self.iterations = 80
 
 
