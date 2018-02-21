@@ -24,12 +24,14 @@ set(HEADER_FILES
     src/genericComponents/ObservationSource.h
     src/genericComponents/SimulatedStateObservationSource.h
     src/genericComponents/SimulatedStateObservationSource.inl
+    src/genericComponents/SimulatedStateObservationStreamer.h
+    src/genericComponents/SimulatedStateObservationStreamer.inl
     src/genericComponents/AddNoiseEngine.h
     src/genericComponents/AddNoiseEngine.inl
     src/genericComponents/Transform3dToRigid.inl
     src/genericComponents/Transform3dToRigid.h
-   src/genericComponents/CorrectionForceField.h
-   src/genericComponents/CorrectionForceField.inl
+    src/genericComponents/CorrectionForceField.h
+    src/genericComponents/CorrectionForceField.inl
     )
 
 set(SOURCE_FILES
@@ -37,9 +39,10 @@ set(SOURCE_FILES
     src/genericComponents/OptimParams.cpp
     src/genericComponents/PointProjection.cpp
     src/genericComponents/SimulatedStateObservationSource.cpp
+    src/genericComponents/SimulatedStateObservationStreamer.cpp
     src/genericComponents/AddNoiseEngine.cpp
     src/genericComponents/Transform3dToRigid.cpp
-   src/genericComponents/CorrectionForceField.cpp
+    src/genericComponents/CorrectionForceField.cpp
     )
 
 set(README_FILES 
