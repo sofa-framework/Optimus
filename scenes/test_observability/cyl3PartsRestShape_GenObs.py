@@ -38,8 +38,6 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
             self.configFileName = "cyl_scene_config.yml"
 
         self.options.parseYaml(self.configFileName)
-        self.rayleighMass = 0.1
-        self.rayleighStiffness = 0.1
 
         rootNode.findData('dt').value = self.options.model.dt
         rootNode.findData('gravity').value = self.options.model.gravity
@@ -71,7 +69,8 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
         # rootNode/simuNode
         simuNode = rootNode.createChild('simuNode')
         self.simuNode = simuNode
-        simuNode.createObject('EulerImplicitSolver', rayleighStiffness=self.rayleighStiffness, rayleighMass=self.rayleighMass)
+        # simuNode.createObject('EulerImplicitSolver', rayleighStiffness=self.options.model.rayleighStiffness, rayleighMass=self.options.model.rayleighMass)
+        simuNode.createObject('VariationalSymplecticSolver', rayleighStiffness=self.options.model.rayleighStiffness, rayleighMass=self.options.model.rayleighMass,             newtonError='1e-12', steps='1', verbose='0')
         simuNode.createObject('SparsePARDISOSolver', name='LDLsolver', verbose='0', symmetric='2', exportDataToFolder='')
         simuNode.createObject('MeshVTKLoader', name='loader', filename=self.options.model.volumeFileName)
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')
@@ -112,9 +111,9 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
         return 0;
 
     def onEndAnimationStep(self, deltaTime):    	
-        if self.index < 800:
+        if self.index < 2000:
             position = self.impactPoint.findData('position').value
-            position[0][1] = position[0][1] - 0.0002
+            position[0][1] = position[0][1] - 0.0001
             self.impactPoint.findData('position').value = position
             self.index = self.index + 1
 

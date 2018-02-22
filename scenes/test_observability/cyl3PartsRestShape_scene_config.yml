@@ -3,7 +3,7 @@ scene_parameters:
     system_parameters:
         volume_file_name: "../../data/cylinder/cylinder3_770.vtk"
         observation_file_name: "observations/cylinder3_770"
-        observation_points_file_name: "../../data/cylinder/cyl3_770_obs31.vtk"
+        observation_points_file_name: "../../data/cylinder/cyl10_4245_obs33.vtk"
 
     general_parameters:
         gravity: "0 0 0"
@@ -21,16 +21,16 @@ scene_parameters:
 
     filtering_parameters:
         output_directory_prefix: "outCyl3_770_"
-        output_directory_suffix: "_cyl3RestShapeVerification"
+        output_directory_suffix: "_cyl3RestShape_init500"
         output_files_suffix: "test"
         optim_params_size: 2
-        filter_kind: "UKFSimCorr"   # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
+        filter_kind: "ROUKF"   # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
         use_unbiased_variance: "0"
         initial_stiffness: [1000, 1000]
         minimal_stiffness: [300, 300]
         maximal_stiffness: [100000, 100000]
         initial_standart_deviation: 500
-        observation_noise_standart_deviation: 1e-10
+        observation_noise_standart_deviation: 1e-3
         positions_standart_deviation: 1e-6
         transform_parameters: none
         sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
@@ -42,5 +42,8 @@ scene_parameters:
     impact_parameters:
         observation_file_name: "observations/cylinder3impact"
         position: "0.0 -0.02 0.107"
+
+    time_parameters:
+        computation_time_file_name: "computationTime.txt"
 ...
 
