@@ -77,7 +77,7 @@ public:
     ~SimulatedStateObservationStreamer();
 
     Data<bool> verbose;
-    Data<VecCoord> m_trackedObservations;
+    Data<VecCoord> m_streamObservations;
     VecCoord m_actualObservation;
     Data<double> m_actualTime;
     Data<SReal> m_drawSize;

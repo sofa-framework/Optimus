@@ -50,10 +50,8 @@ namespace container
 template<class DataTypes>
 SimulatedStateObservationStreamer<DataTypes>::SimulatedStateObservationStreamer()
     : SimulatedStateObservationSource<DataTypes>()
-    , verbose( initData(&verbose, false, "verbose", "print tracing informations") )
-    , m_trackedObservations( initData (&m_trackedObservations, "trackedObservation", "observations obtained from another source") )
+    , m_streamObservations( initData (&m_streamObservations, "streamObservation", "observations obtained from another source") )
     , m_actualTime( initData (&m_actualTime, "actualTime", "actual iteration time") )
-    , m_drawSize( initData(&m_drawSize, SReal(0.0),"drawSize","size of observation spheres in each time step") )
     , m_prevTime( initData (&m_prevTime, "previousTime", "previous iteration time") )
 {
 
@@ -68,13 +66,13 @@ SimulatedStateObservationStreamer<DataTypes>::~SimulatedStateObservationStreamer
 template<class DataTypes>
 void SimulatedStateObservationStreamer<DataTypes>::init()
 {    
-    helper::ReadAccessor<Data<VecCoord> > tracObs = m_trackedObservations;
+    helper::ReadAccessor<Data<VecCoord> > tracObs = m_streamObservations;
 
     /// take observations from another component (tracking)
     if (tracObs.size() > 0) {
         nParticles = tracObs.size();
         std::cout << "[" << this->getName() << "]: taking observations from other source, size: " << tracObs.size() << std::endl;
-        m_actualObservation = (m_trackedObservations.getValue());
+        m_actualObservation = (m_streamObservations.getValue());
     }
 
     this->f_listening.setValue(true);
@@ -119,7 +117,7 @@ void SimulatedStateObservationStreamer<DataTypes>::handleEvent(core::objectmodel
         for (size_t index = 0; index < m_actualObservation.size(); index++)
             m_prevObservation[index] = m_actualObservation[index];
 
-        helper::ReadAccessor<Data<VecCoord> > tracObs = m_trackedObservations;
+        helper::ReadAccessor<Data<VecCoord> > tracObs = m_streamObservations;
         if (tracObs.size() > 0) {
             nParticles = tracObs.size();
             std::cout << "[" << this->getName() << "]: taking observations from other source, size: " << tracObs.size() << std::endl;
