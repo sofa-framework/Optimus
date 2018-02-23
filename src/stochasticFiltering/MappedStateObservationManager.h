@@ -88,6 +88,7 @@ protected:
 public:
     void init();
     void bwdInit();
+    void initializeObservationData();
 
     virtual bool hasObservation(double _time); /// TODO    
     virtual bool getInnovation(double _time, EVectorX& _state, EVectorX& _innovation);
@@ -98,7 +99,6 @@ public:
     Data<double> noiseStdev;
     Data<int> abberantIndex;
     Data<bool> doNotMapObservations;
-
 
     SingleLink<MappedStateObservationManager<FilterType, DataTypes1, DataTypes2>, StateWrapper, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> stateWrapperLink;
 

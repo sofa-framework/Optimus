@@ -91,6 +91,7 @@ public:
     ObservationManager()
         :Inherit()
         , observationStdev( initData(&observationStdev, FilterType(0.0), "observationStdev", "standard deviation in observations") )
+        , initialiseObservationsAtFirstStep( initData(&initialiseObservationsAtFirstStep, false, "initialiseObservationsAtFirstStep", "if true initialise component during first iteration") )
     {}
 
     ~ObservationManager() {}
@@ -104,6 +105,7 @@ protected:
 
 public:
     Data<FilterType> observationStdev;
+    Data<bool> initialiseObservationsAtFirstStep;
 
     virtual bool hasObservation(double _time) = 0;
     virtual bool getInnovation(double _time, EVectorX& _state, EVectorX& _innovation) = 0;
@@ -134,6 +136,12 @@ public:
     void bwdInit() {
         Inherit::bwdInit();
 
+        if (!initialiseObservationsAtFirstStep.getValue()) {
+            initializeObservationData();
+        }
+    }
+
+    void initializeObservationData() {
         if (observationSize == 0) {
             PRNE("No observations available, cannot allocate the structures!");
         }

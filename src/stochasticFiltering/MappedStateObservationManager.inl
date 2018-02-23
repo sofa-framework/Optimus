@@ -103,12 +103,22 @@ void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::bwdInit()
 {
     inputStateSize = observationSource->getStateSize();
     masterStateSize = masterState->getSize();
-    mappedStateSize = mappedState->getSize();    
+    mappedStateSize = mappedState->getSize();
 
     inputVectorSize = inputStateSize*DataTypes1::spatial_dimensions;
     masterVectorSize = masterStateSize*DataTypes1::spatial_dimensions;
     mappedVectorSize = mappedStateSize*DataTypes1::spatial_dimensions;
 
+    if (!Inherit::initialiseObservationsAtFirstStep.getValue()) {
+        initializeObservationData();
+    }
+
+    Inherit::bwdInit();
+}
+
+template <class FilterType, class DataTypes1, class DataTypes2>
+void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::initializeObservationData()
+{
     typename DataTypes1::VecCoord& inputObsState = *inputObservationData.beginEdit();
     inputObsState.resize(inputStateSize);
     observationSource->getStateAtTime(0.0, inputObsState);
@@ -139,11 +149,17 @@ void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::bwdInit()
     actualObservation.resize(this->observationSize);
     noise.clear();
     noise.resize(this->observationSize);
-    Inherit::bwdInit();    
+
+    Inherit::initializeObservationData();
 }
 
 template <class FilterType, class DataTypes1, class DataTypes2>
 bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::hasObservation(double _time) {
+    if (Inherit::initialiseObservationsAtFirstStep.getValue()) {
+        initializeObservationData();
+        Inherit::initialiseObservationsAtFirstStep.setValue(false);
+    }
+
     typename DataTypes1::VecCoord& inputObsState = *inputObservationData.beginEdit();
     //PRNS("Getting observation at time " << this->actualTime);
     bool hasObservation = observationSource->getObservation(this->actualTime, inputObsState);

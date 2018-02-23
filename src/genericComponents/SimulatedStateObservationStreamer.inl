@@ -49,7 +49,7 @@ namespace container
 
 template<class DataTypes>
 SimulatedStateObservationStreamer<DataTypes>::SimulatedStateObservationStreamer()
-    : Inherit()
+    : SimulatedStateObservationSource<DataTypes>()
     , verbose( initData(&verbose, false, "verbose", "print tracing informations") )
     , m_trackedObservations( initData (&m_trackedObservations, "trackedObservation", "observations obtained from another source") )
     , m_actualTime( initData (&m_actualTime, "actualTime", "actual iteration time") )

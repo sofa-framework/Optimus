@@ -55,12 +55,11 @@ namespace container
 
 
 template<class DataTypes>
-class SOFA_SIMULATION_COMMON_API SimulatedStateObservationStreamer : public SimulatedStateObservationSourceBase //  ObservationSource
+class SOFA_SIMULATION_COMMON_API SimulatedStateObservationStreamer : public SimulatedStateObservationSource<DataTypes> //  ObservationSource
 {
 public:
-    SOFA_CLASS(SOFA_TEMPLATE(SimulatedStateObservationStreamer, DataTypes) ,BaseObject);
+    SOFA_CLASS(SOFA_TEMPLATE(SimulatedStateObservationStreamer, DataTypes) , SOFA_TEMPLATE(SimulatedStateObservationSource, DataTypes));
 
-    typedef SimulatedStateObservationSourceBase Inherit;
     typedef typename DataTypes::VecCoord VecCoord;
     typedef typename DataTypes::Coord Coord;
     typedef typename DataTypes::Real Real;
