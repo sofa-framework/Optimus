@@ -65,6 +65,7 @@ public:
         //, useModelIncertitude( initData(&useModelIncertitude, false, "useModelIncertitude", "if true, the state covariance is computed by adding Q") )
         , lambdaScale( initData(&lambdaScale, 1.0, "lambdaScale", "scaling for sigma points") )
         , m_sigmaTopologyType( initData(&m_sigmaTopologyType, "sigmaTopology", "sigma topology type") )
+        , initialiseObservationsAtFirstStep( initData(&initialiseObservationsAtFirstStep, false, "initialiseObservationsAtFirstStep", "if true initialise component during first iteration") )
     {
 
     }
@@ -94,6 +95,8 @@ public:
     //Data<bool> useModelIncertitude;
     Data<double> lambdaScale;
     Data< std::string > m_sigmaTopologyType;
+    Data<bool> initialiseObservationsAtFirstStep;
+
 
     void init() {
         Inherit::init();

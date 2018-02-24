@@ -113,6 +113,7 @@ class Observations:
     def __init__(self):
         return
 
+    observationsFromStream = 0
     valueFileName = ''
     positionFileName = ''
     groundTruth = ''
@@ -120,13 +121,16 @@ class Observations:
     stdev = 1e-3
     youngModuli = 6000
 
-    def parseYaml(self, configData):    
-        self.valueFileName = configData['scene_parameters']['system_parameters']['observation_file_name']
-        self.positionFileName = configData['scene_parameters']['system_parameters']['observation_points_file_name']   
+    def parseYaml(self, configData):
+        if 'load_observations_from_stream' in configData['scene_parameters']['system_parameters']:
+            self.observationsFromStream = configData['scene_parameters']['system_parameters']['load_observations_from_stream']
         self.stdev = configData['scene_parameters']['filtering_parameters']['observation_noise_standart_deviation']
-        self.youngModuli = configData['scene_parameters']['obs_generating_parameters']['object_young_moduli']
-        self.save = configData['scene_parameters']['obs_generating_parameters']['save_observations']
-        self.groundTruth = self.youngModuli
+        if self.observationsFromStream == 0:
+            self.valueFileName = configData['scene_parameters']['system_parameters']['observation_file_name']
+            self.positionFileName = configData['scene_parameters']['system_parameters']['observation_points_file_name']
+            self.youngModuli = configData['scene_parameters']['obs_generating_parameters']['object_young_moduli']
+            self.save = configData['scene_parameters']['obs_generating_parameters']['save_observations']
+            self.groundTruth = self.youngModuli
         
 
 

@@ -95,7 +95,7 @@ void ROUKFilter<FilterType>::computePerturbedStates(EVectorX& _meanState) {
 template <class FilterType>
 void ROUKFilter<FilterType>::computePrediction()
 {
-    PRNS("Computing prediction, T= " << this->actualTime);
+    //PRNS("Computing prediction, T= " << this->actualTime);
 
     EMatrixX tmpStateVarProj(stateSize, reducedStateSize);
     EMatrixX tmpStateVarProj2(stateSize, reducedStateSize);
@@ -104,7 +104,7 @@ void ROUKFilter<FilterType>::computePrediction()
     EVectorX vecX = masterStateWrapper->getState();
     Eigen::LLT<EMatrixX> lltU(matUinv);
     matUinv = lltU.matrixL();
-    TOC("== prediction: Cholesky ");
+    //TOC("== prediction: Cholesky ");
 
     tmpStateVarProj = masterStateWrapper->getStateErrorVarianceProjector();
 
@@ -116,6 +116,7 @@ void ROUKFilter<FilterType>::computePrediction()
     //TOC("== prediction multiplication1 == ");
 
     masterStateWrapper->setStateErrorVarianceProjector(tmpStateVarProj2);
+    //PRNS("\n vecX\n " << vecX.transpose());
     for (size_t i = 0; i < sigmaPointsNum; i++)
         matXi.col(i) = vecX;
 
@@ -151,12 +152,12 @@ void ROUKFilter<FilterType>::computePrediction()
     //TOCTIC("== prediction compute perturbations ==");
 
     /// TODO: add resampling!!!
-
     if (useBlasToMultiply.getValue())
         blasMultAdd(matXi, matItrans, tmpStateVarProj2, alpha, 0.0);
     else
         tmpStateVarProj2 = alpha*matXi * matItrans;
     //TOC("== prediction multiplication3 ==");
+    //PRNS("\n errorVarProj \n " << matItrans.transpose());
 
     masterStateWrapper->setStateErrorVarianceProjector(tmpStateVarProj2);
     masterStateWrapper->setState(vecX, this->mechParams);
@@ -167,7 +168,7 @@ void ROUKFilter<FilterType>::computePrediction()
 template <class FilterType>
 void ROUKFilter<FilterType>::computeCorrection()
 {
-    PRNS("Computing correction, T= " << this->actualTime);
+    //PRNS("Computing correction, T= " << this->actualTime);
 
     if (!alphaConstant) {
         PRNE("Version for non-constant alpha not implemented!");
@@ -181,6 +182,8 @@ void ROUKFilter<FilterType>::computeCorrection()
         EMatrixX matZItrans(sigmaPointsNum, observationSize);
         vecZ.setZero();
         //asumEMat("correction input mat",matXi);
+
+
         for (size_t i = 0; i < sigmaPointsNum; i++) {
             vecXCol = matXi.col(i);
             vecZCol.setZero();
@@ -193,7 +196,12 @@ void ROUKFilter<FilterType>::computeCorrection()
 
         EMatrixX matHLtrans(reducedStateSize, observationSize);
         matHLtrans = alphaVar*matItrans.transpose()*matZItrans;
+        //PRNS("\n alphaVar\n " << alphaVar);
+        //PRNS("\n matItrans\n " << matItrans);
+        //PRNS("\n matZItrans\n " << matZItrans);
+        //PRNS("\n mult\n " << matItrans.transpose()*matZItrans);
         //asumEMat("HL_trans", matHLtrans);
+        //PRNS("\n matHLtrans\n " << matHLtrans);
 
         EMatrixX matWorkingPO(reducedStateSize, observationSize), matTemp;
         if (observationErrorVarianceType.getValue() == "inverse") {
@@ -211,13 +219,21 @@ void ROUKFilter<FilterType>::computeCorrection()
         EVectorX reducedInnovation(reducedStateSize);
         reducedInnovation = Type(-1.0) * matUinv*matWorkingPO*vecZ;
         //asumEMat("matUinv", matUinv);
+        //PRNS("\n matUinv\n " << matUinv);
         //asumEMat("matWorkingPO", matWorkingPO);
+        //PRNS("\n matWorkingPO\n " << matWorkingPO);
         //asumEVec("reduced innovation", reducedInnovation);
+        //PRNS("\n vecZ \n " << vecZ);
 
         EVectorX state = masterStateWrapper->getState();
+        //PRNS("state\n " << state.transpose());
         EMatrixX errorVarProj = masterStateWrapper->getStateErrorVarianceProjector();
         state = state + errorVarProj*reducedInnovation;
+        //PRNS("\n errorVarProj \n " << errorVarProj.transpose());
+        //PRNS("\n reducedInnovation \n " << reducedInnovation);
         masterStateWrapper->setState(state,mechParams);
+        //PRNS("\n state+ \n" << state.transpose());
+
 
         //std::cout << "FST " << this->stepNumber << " " << this->actualTime << std::endl;
 
@@ -329,7 +345,6 @@ void ROUKFilter<FilterType>::bwdInit() {
     PRNS("bwdInit");
     assert(masterStateWrapper);
 
-    observationSize = this->observationManager->getObservationSize();
     stateSize = masterStateWrapper->getStateSize();
     matU = masterStateWrapper->getStateErrorVarianceReduced();
 
@@ -360,12 +375,17 @@ void ROUKFilter<FilterType>::bwdInit() {
     PRNS("State size: " << stateSize);
     PRNS("Reduced state size: " << reducedStateSize);
     PRNS("Number of sigma points: " << sigmaPointsNum);
-    PRNS("Observation size: " << observationSize);
+
+    // initialise observation data
+    if (!initialiseObservationsAtFirstStep.getValue()) {
+        observationSize = this->observationManager->getObservationSize();
+        PRNS("Observation size: " << observationSize);
+    }
 
     EMatrixX matPalphaV(reducedStateSize, reducedStateSize);
     matItrans.resize(sigmaPointsNum, reducedStateSize);
 
-    if (alphaConstant) {        
+    if (alphaConstant) {
         matPalphaV = alphaVar*matVtrans.transpose()*matVtrans;
         matPalphaV = matPalphaV.inverse();
         matItrans = matVtrans*matPalphaV.transpose();
@@ -382,7 +402,7 @@ void ROUKFilter<FilterType>::bwdInit() {
 
     /// prepare structures for parallel computing
     sigmaPoints2WrapperIDs.resize(sigmaPointsNum, 0);
-    wrapper2SigmaPointsIDs.resize(numThreads);    
+    wrapper2SigmaPointsIDs.resize(numThreads);
     for (size_t i = 0; i < sigmaPointsNum; i++) {
         size_t threadID = i%(numThreads);
         sigmaPoints2WrapperIDs[i] = threadID;
@@ -398,6 +418,12 @@ void ROUKFilter<FilterType>::bwdInit() {
 template <class FilterType>
 void ROUKFilter<FilterType>::initializeStep(const core::ExecParams* _params, const size_t _step) {
     Inherit::initializeStep(_params, _step);
+
+    if (initialiseObservationsAtFirstStep.getValue()) {
+        observationSize = this->observationManager->getObservationSize();
+        PRNS("Observation size: " << observationSize);
+        initialiseObservationsAtFirstStep.setValue(false);
+    }
 
     for (size_t i = 0; i < stateWrappers.size(); i++)
         stateWrappers[i]->initializeStep(stepNumber);

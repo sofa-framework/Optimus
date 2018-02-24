@@ -101,14 +101,6 @@ void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::init()
 template <class FilterType, class DataTypes1, class DataTypes2>
 void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::bwdInit()
 {
-    inputStateSize = observationSource->getStateSize();
-    masterStateSize = masterState->getSize();
-    mappedStateSize = mappedState->getSize();
-
-    inputVectorSize = inputStateSize*DataTypes1::spatial_dimensions;
-    masterVectorSize = masterStateSize*DataTypes1::spatial_dimensions;
-    mappedVectorSize = mappedStateSize*DataTypes1::spatial_dimensions;
-
     if (!Inherit::initialiseObservationsAtFirstStep.getValue()) {
         initializeObservationData();
     }
@@ -119,6 +111,14 @@ void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::bwdInit()
 template <class FilterType, class DataTypes1, class DataTypes2>
 void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::initializeObservationData()
 {
+    inputStateSize = observationSource->getStateSize();
+    masterStateSize = masterState->getSize();
+    mappedStateSize = mappedState->getSize();
+
+    inputVectorSize = inputStateSize*DataTypes1::spatial_dimensions;
+    masterVectorSize = masterStateSize*DataTypes1::spatial_dimensions;
+    mappedVectorSize = mappedStateSize*DataTypes1::spatial_dimensions;
+
     typename DataTypes1::VecCoord& inputObsState = *inputObservationData.beginEdit();
     inputObsState.resize(inputStateSize);
     observationSource->getStateAtTime(0.0, inputObsState);

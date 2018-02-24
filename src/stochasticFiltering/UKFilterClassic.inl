@@ -275,15 +275,20 @@ void UKFilterClassic<FilterType>::init() {
 template <class FilterType>
 void UKFilterClassic<FilterType>::bwdInit() {
     assert(masterStateWrapper);
-    observationSize = this->observationManager->getObservationSize();
-    PRNS("Observation size: " << observationSize);
-    if (observationSize == 0) {
-        PRNE("No observations available, cannot allocate the structures!");
-    }
+
     stateSize = masterStateWrapper->getStateSize();
     PRNS("StateSize " << stateSize);
-    /// Initialize Observation's Error Covariance
-    obsCovar = observationManager->getErrorVariance();
+
+    /// Initialize Observation's data
+    if (!initialiseObservationsAtFirstStep.getValue()) {
+        observationSize = this->observationManager->getObservationSize();
+        PRNS("Observation size: " << observationSize);
+        if (observationSize == 0) {
+            PRNE("No observations available, cannot allocate the structures!");
+        }
+        obsCovar = observationManager->getErrorVariance();
+    }
+
 
     /// Initialize Model's Error Covariance
     stateCovar = masterStateWrapper->getStateErrorVariance();
@@ -318,6 +323,16 @@ void UKFilterClassic<FilterType>::bwdInit() {
 template <class FilterType>
 void UKFilterClassic<FilterType>::initializeStep(const core::ExecParams* _params, const size_t _step) {
     Inherit::initializeStep(_params, _step);
+
+    if (initialiseObservationsAtFirstStep.getValue()) {
+        observationSize = this->observationManager->getObservationSize();
+        PRNS("Observation size: " << observationSize);
+        if (observationSize == 0) {
+            PRNE("No observations available, cannot allocate the structures!");
+        }
+        obsCovar = observationManager->getErrorVariance();
+        initialiseObservationsAtFirstStep.setValue(false);
+    }
 
     for (size_t i = 0; i < stateWrappers.size(); i++)
         stateWrappers[i]->initializeStep(stepNumber);
