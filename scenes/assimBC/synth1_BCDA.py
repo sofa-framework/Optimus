@@ -88,7 +88,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         node.createObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels')
 
         node.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")        
-        self.filter = node.createObject('ROUKFilter', name="ROUKF", sigmaPointType="simplex", verbose="1")        
+        self.filter = node.createObject('ROUKFilter', name="ROUKF", sigmaPointType="simplex", verbose="1", useUnbiasedVariance='0')        
             
         node.createObject('MeshVTKLoader', name='objectLoader', filename=self.volumeVTK)
         node.createObject('MeshSTLLoader', name='objectSLoader', filename=self.surfaceSTL)
@@ -104,9 +104,10 @@ class synth1_BCDA(Sofa.PythonScriptController):
         #node.createObject('StaticSolver', applyIncrementFactor="0")
         #node.createObject('SparsePARDISOSolver')        
 
+        # node.createObject('EulerImplicitSolver', rayleighStiffness='0.1', rayleighMass='0.1')
         node.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")   
-        node.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
-        node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToDir="", iterativeSolverNumbering="0")
+        # node.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
+        node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
 
         node.createObject('MechanicalObject', src="@/objectLoader", name="Volume")
         node.createObject('TetrahedronSetTopologyContainer', name="Container", src="@/objectLoader", tags=" ")
@@ -116,10 +117,12 @@ class synth1_BCDA(Sofa.PythonScriptController):
         node.createObject('UniformMass', totalMass="0.2513")
 
         # node.createObject('BoxROI', name='fixedBox1', box='-0.001 -0.001 -0.011 0.011 0.001 0.001', drawBoxes='1')
-        node.createObject('BoxROI', name='fixedBox1', box='-0.001 -0.001 -0.011 0.101 0.001 0.001', drawBoxes='1')
+        node.createObject('BoxROI', name='fixedBox1', box='-0.001 -0.001 -0.011 0.101 0.001 0.001', drawBoxes='1', doUpdate='0')
         # node.createObject('BoxROI', name="fixedBox1", box="-0.001 0.052 -0.001   0.1631 0.054 0.0131")        
-        self.optimParams = node.createObject('OptimParams', name="springStiffness", template="Vector", numParams="@fixedBox1.nbIndices",initValue=self.paramInitExp, stdev=self.paramInitSD, transformParams="1", optimize="1", printLog="1")
-        node.createObject('ExtendedRestShapeSpringForceField', name="fixedSpring", points="@fixedBox1.indices", stiffness="@springStiffness.value",showIndicesScale='0', springThickness="3", listening="1", updateStiffness="1", printLog="0")
+        self.optimParams = node.createObject('OptimParams', name="springStiffness", template="Vector", numParams="@fixedBox1.nbIndices",
+            initValue=self.paramInitExp, stdev=self.paramInitSD, transformParams="absolute", optimize="1", printLog="1")
+        node.createObject('ExtendedRestShapeSpringForceField', name="fixedSpring", points="@fixedBox1.indices", stiffness="@springStiffness.value",
+            showIndicesScale='0', springThickness="3", listening="1", updateStiffness="1", printLog="0")
         node.createObject('ColorMap',colorScheme="Blue to Red")                                                                  
         #node.createObject('MJEDTetrahedralForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=self.materialParams)
         node.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=self.materialParams)
@@ -168,7 +171,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
 
     def createMasterScene(self, node):
-        node.createObject('StochasticStateWrapper',name="StateWrapper",verbose='1', estimatePositions='1')
+        node.createObject('StochasticStateWrapper',name="StateWrapper",verbose='1', estimatePosition='1')
         
         self.createCommonComponents(node)
 
@@ -179,6 +182,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         obsNode.createObject('BarycentricMapping')                   
         obsNode.createObject('MappedStateObservationManager', name="MOBS", observationStdev=self.obsInitSD, listening="1", stateWrapper="@../StateWrapper",doNotMapObservations="1",verbose="1")
         obsNode.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix=self.obsMonitorPrefix, drawSize="0.000")
+        obsNode.createObject('ShowSpheres', position='@MOBS.observations',color='1.0 0.0 1.0 1', radius="0.0012")
     
         visNode = node.createChild('ObjectVisualization')
         visNode.createObject('VisualStyle', displayFlags='showVisual showBehavior showCollision hideMapping showWireframe hideNormals')
@@ -187,6 +191,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         visNode.createObject('Line',color="0 0 0 1")
         visNode.createObject('Triangle',color="1 0 0 1")
         visNode.createObject('BarycentricMapping')
+
         #visNode.createObject('VTKExporter',filename="vtkExp/beam",XMLformat="true",listening="true",edges="0",triangles="1",quads="0",tetras="0",exportAtBegin="1",exportAtEnd="0",exportEveryNumberOfSteps="1")
 
         #visNode2 = node.createChild('ObjectVisualization2')
@@ -196,7 +201,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         #visNode2.createObject('Triangle',color="1 0 0 0.2")
         #visNode2.createObject('BarycentricMapping')
 
-        node.createObject('BoxROI', box='-0.001 -0.001 -0.011 0.105 0.001 0.001', drawBoxes='0', name='baseROI')
+        node.createObject('BoxROI', box='-0.001 -0.001 -0.011 0.105 0.001 0.001', drawBoxes='0', name='baseROI', doUpdate='0')
         self.basePoints=node.createObject('PointsFromIndices', template='Vec3d', name='fixedA', indices='@baseROI.indices', position="@Volume.position")
 
 

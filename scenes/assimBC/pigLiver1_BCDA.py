@@ -112,10 +112,10 @@ class pigLiver1_BCDA(Sofa.PythonScriptController):
         node.findData('dt').value="1"
         
         node.createObject('ViewerSetting', cameraMode='Perspective', resolution='1000 700', objectPickingMethod='Ray casting')
-        node.createObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels hideForceFields showCollisionModels')
+        node.createObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels')
 
         node.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")        
-        self.filter=node.createObject('ROUKFilter', name="ROUKF", verbose="1")        
+        self.filter=node.createObject('ROUKFilter', name="ROUKF", verbose="1", useUnbiasedVariance='0')        
 
         node.createObject('MeshVTKLoader', name='objectLoader', filename='../../data/pigLiver/liverLobe0_992.vtk', scale3d=self.meshScale, translation=self.meshTranslation, rotation=self.meshRotation)
         node.createObject('MeshSTLLoader', name='objectSLoader', filename='../../data/pigLiver/liverLobe0_3914.stl', scale3d=self.meshScale, translation=self.meshTranslation, rotation=self.meshRotation)
@@ -126,33 +126,33 @@ class pigLiver1_BCDA(Sofa.PythonScriptController):
         features.createObject('PreStochasticWrapper')
         features.createObject('LKOpticalFlowTrackerSimple', maskName='', vidName='../../data/pigLiver/porcineLiverCut1.avi', name='LK', winSize='31', detectorThresh='190', scaleImg=self.videoScaleFactor, displayFeatures=self.dispFeatures, view='1')
         features.createObject('TransformEngine',name='scaleFeatures',input_position='@LK.outputFeatures',scale=self.featuresScaleFactor)
-        features.createObject('MechanicalObject', position='@scaleFeatures.output_position', name='DOFs')
+        features.createObject('MechanicalObject', rest_position='@scaleFeatures.output_position', position='@scaleFeatures.output_position', name='DOFs')
         
-        features.createObject('BoxROI', name="Z0", box='0.18 0.045 -0.001   0.21 0.055 0.001', drawBoxes=self.drawBoxes, drawSize="3", position='@DOFs.rest_position')
-        features.createObject('BoxROI', name="Z1", box='0.115 0.060 -0.001   0.125 0.065 0.001', drawBoxes=self.drawBoxes, drawSize="3", position='@DOFs.rest_position')
+        features.createObject('BoxROI', name="Z0", box='0.18 0.045 -0.001   0.21 0.055 0.001', drawBoxes=self.drawBoxes, drawSize="3", position='@DOFs.rest_position', doUpdate='0')
+        features.createObject('BoxROI', name="Z1", box='0.115 0.060 -0.001   0.125 0.065 0.001', drawBoxes=self.drawBoxes, drawSize="3", position='@DOFs.rest_position', doUpdate='0')
         #features.createObject('BoxROI', name="Z1", box='0.125 0.040 -0.001   0.135 0.045 0.001', drawBoxes=self.drawBoxes, drawSize="3", position='@DOFs.rest_position')
         # features.createObject('BoxROI', name="Z1", box='0.137 0.042 -0.001   0.147 0.046 0.001', drawBoxes=self.drawBoxes, drawSize="3", position='@DOFs.rest_position')
-        features.createObject('BoxROI', name="Z2", box='0.11 0.090 -0.001   0.12 0.094 0.001', drawBoxes=self.drawBoxes, drawSize="3", position='@DOFs.rest_position')
+        features.createObject('BoxROI', name="Z2", box='0.11 0.090 -0.001   0.12 0.094 0.001', drawBoxes=self.drawBoxes, drawSize="3", position='@DOFs.rest_position', doUpdate='0')
 
-        features.createObject('BoxROI', name="Z3", box='0.11 0.110 -0.001   0.12 0.115 0.001', drawBoxes=self.drawBoxes, drawSize="3", position='@DOFs.rest_position')       
-        features.createObject('BoxROI', name="Z4", box='0.17 0.110 -0.001   0.18 0.115 0.001', drawBoxes=self.drawBoxes, drawSize="3", position='@DOFs.rest_position')       
+        features.createObject('BoxROI', name="Z3", box='0.11 0.110 -0.001   0.12 0.115 0.001', drawBoxes=self.drawBoxes, drawSize="3", position='@DOFs.rest_position', doUpdate='0')       
+        features.createObject('BoxROI', name="Z4", box='0.17 0.110 -0.001   0.18 0.115 0.001', drawBoxes=self.drawBoxes, drawSize="3", position='@DOFs.rest_position', doUpdate='0')       
 
-        features.createObject('BoxROI', name="Z10", box='0.1 0.03 -0.001   0.16 0.12 0.001', drawBoxes=self.drawBoxes, drawSize="3", position='@DOFs.rest_position')
-        features.createObject('BoxROI', name="Z11", box='0.16 0.083 -0.001   0.22 0.12 0.001', drawBoxes=self.drawBoxes, drawSize="3", position='@DOFs.rest_position') 
+        features.createObject('BoxROI', name="Z10", box='0.1 0.03 -0.001   0.16 0.12 0.001', drawBoxes=self.drawBoxes, drawSize="3", position='@DOFs.rest_position', doUpdate='0')
+        features.createObject('BoxROI', name="Z11", box='0.16 0.083 -0.001   0.22 0.12 0.001', drawBoxes=self.drawBoxes, drawSize="3", position='@DOFs.rest_position', doUpdate='0') 
 
 
         
         if self.obsControl == 0:    # only the tool            
-            features.createObject('MergeVectors', name='ControlIx', nbInputs='1', input1='@Z0.indices')            
+            features.createObject('MergeVectors', name='ControlIx', nbInputs='1', input1='@Z0.indices', template='int')            
             
         elif self.obsControl == 1:            
-            features.createObject('MergeVectors', name='ControlIx', nbInputs='3', input1='@Z0.indices', input2='@Z1.indices', input3='@Z2.indices')
+            features.createObject('MergeVectors', name='ControlIx', nbInputs='3', input1='@Z0.indices', input2='@Z1.indices', input3='@Z2.indices', template='int')
         
         elif self.obsControl == 2:
-            features.createObject('MergeVectors', name='ControlIx', nbInputs='2', input1='@Z0.indices', input2='@Z1.indices')
+            features.createObject('MergeVectors', name='ControlIx', nbInputs='2', input1='@Z0.indices', input2='@Z1.indices', template='int')
 
         elif self.obsControl == 3:
-            features.createObject('MergeVectors', name='ControlIx', nbInputs='2', input1='@Z0.indices', input2='@Z2.indices')
+            features.createObject('MergeVectors', name='ControlIx', nbInputs='2', input1='@Z0.indices', input2='@Z2.indices', template='int')
 
         features.createObject('MergeVectors', name='ObservIx', nbInputs='2', input1='@Z10.indices', input2='@Z11.indices')
         features.createObject('MergeVectors', name='LandmIx', nbInputs='3', input1='@Z1.indices', input2='@Z3.indices', input3='@Z4.indices')
@@ -162,19 +162,23 @@ class pigLiver1_BCDA(Sofa.PythonScriptController):
         features.createObject('PointsFromIndices', template='Vec3d', name='ObservPoints', indices='@ObservIx.output')        
         features.createObject('PointsFromIndices', template='Vec3d', name='LandmarkPoints', indices='@LandmIx.output')
 
-        toolNode = node.createChild('tool')
-        self.trackToolMO=toolNode.createObject('MechanicalObject', scale3d='1 1 1', position='@/features/ControlPoints.indices_position', name='MO')
-        toolNode.createObject('Sphere', color='0.0 0.0 1.0 1', radius=self.sr5, template='Vec3d')
-        # toolNode.createObject('BoxROI', name="allBox", box='-1 -1 -1 1 1 1', drawBoxes="0", drawSize="3")
-        # toolNode.createObject('Monitor', name='outLiver/tool', showPositions='1', indices="@allBox.indices", ExportPositions="1", ExportVelocities="0", ExportForces="0")
+        features.createObject('ShowSpheres', position='@ControlPoints.indices_position',color='0.0 0.0 1.0 1', radius=self.sr5)
+        features.createObject('ShowSpheres', position='@ObservPoints.indices_position',color='0.0 0.5 0.0 1', radius=self.sr4)
+        # features.createObject('ShowSpheres', position='@LandmarkPoints.indices_position', color='1.0 0 1.0 1', radius=self.sr5)
 
-        obsNode = node.createChild('obs')
-        self.trackObsMO=obsNode.createObject('MechanicalObject', scale3d='1 1 1', position='@/features/ObservPoints.indices_position', name='MO')
-        obsNode.createObject('Sphere', color='0.0 0.5 0.0 1', radius=self.sr4, template='Vec3d')
+        # toolNode = node.createChild('tool')
+        # self.trackToolMO=toolNode.createObject('MechanicalObject', scale3d='1 1 1', position='@/features/ControlPoints.indices_position', name='MO')
+        # toolNode.createObject('Sphere', color='0.0 0.0 1.0 1', radius=self.sr5, template='Vec3d')
+        # # toolNode.createObject('BoxROI', name="allBox", box='-1 -1 -1 1 1 1', drawBoxes="0", drawSize="3")
+        # # toolNode.createObject('Monitor', name='outLiver/tool', showPositions='1', indices="@allBox.indices", ExportPositions="1", ExportVelocities="0", ExportForces="0")
 
-        landNode = node.createChild('land')
-        self.imageLM=landNode.createObject('MechanicalObject', scale3d='1 1 1', position='@/features/LandmarkPoints.indices_position', name='MO')
-        landNode.createObject('Sphere', color='1.0 0 1.0 1', radius=self.sr5, template='Vec3d')
+        # obsNode = node.createChild('obs')
+        # self.trackObsMO=obsNode.createObject('MechanicalObject', scale3d='1 1 1', position='@/features/ObservPoints.indices_position', name='MO')
+        # obsNode.createObject('Sphere', color='0.0 0.5 0.0 1', radius=self.sr4, template='Vec3d')
+
+        # landNode = node.createChild('land')
+        # self.imageLM=landNode.createObject('MechanicalObject', scale3d='1 1 1', position='@/features/LandmarkPoints.indices_position', name='MO')
+        # landNode.createObject('Sphere', color='1.0 0 1.0 1', radius=self.sr5, template='Vec3d')
 
         return 0
         
@@ -182,9 +186,10 @@ class pigLiver1_BCDA(Sofa.PythonScriptController):
 
     #components common for both master and slave: the simulation itself (without observations and visualizations)
     def createCommonComponents(self, node):                    
+    	# node.createObject('EulerImplicitSolver', rayleighStiffness='0.1', rayleighMass='0.1')
         node.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")   
         # node.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
-        node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToDir="", iterativeSolverNumbering="0")
+        node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")        
 
         node.createObject('MechanicalObject', src="@/objectLoader", name="Volume")
         node.createObject('TetrahedronSetTopologyContainer', name="Container", src="@/objectLoader", tags=" ")
@@ -193,9 +198,12 @@ class pigLiver1_BCDA(Sofa.PythonScriptController):
         node.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
         node.createObject('UniformMass', totalMass="0.2513")
 
-        # node.createObject('BoxROI', name="fixedBox1", box="-0.001 0.052 -0.001   0.1631 0.054 0.0131")
+        node.createObject('BoxROI', name="fixedBox1", box="-0.001 0.052 -0.001   0.1631 0.054 0.0131", doUpdate='0')
         # node.createObject('BoxROI', name="fixedBox1", box='100 400 -100 700 500 100', drawBoxes='1')
-        node.createObject('OptimParams', name="springStiffness", template="Vector", numParams=self.nFixedIX, initValue=self.statParams[0], stdev=self.statParams[1], transformParams="1", optimize="1", printLog="0")
+        # node.createObject('FixedConstraint', indices=self.fixedIX)
+
+        node.createObject('OptimParams', name="springStiffness", template="Vector", numParams=self.nFixedIX, initValue=self.statParams[0], stdev=self.statParams[1], 
+        	transformParams="absolute", optimize="1", printLog="0")
 
         if len(self.estimatedStiffness) > 0:
             estimSpring=node.createObject('ExtendedRestShapeSpringForceField', name="fixedSpring", points=self.fixedIX, stiffness=0, springThickness="3", listening="1",  showIndicesScale="0", updateStiffness="1", printLog="0")
@@ -225,9 +233,12 @@ class pigLiver1_BCDA(Sofa.PythonScriptController):
         
         node.createObject('Mapped3DoFForceField', mappedFEM="mappedTool/toolSpring", mappedMechObject="mappedTool/MO", mapping="mappedTool/baryMapping", printLog="0")        
         mappedTool = node.createChild('mappedTool')
-        mappedTool.createObject('MechanicalObject', scale3d='1 1 1', rest_position='@/features/ControlPoints.indices_position', name='MO')
-        mappedTool.createObject('Sphere', color='0.0 1.0 1.0 1', radius=self.sr1, template='Vec3d')
-        self.toolSprings=mappedTool.createObject('ExtendedRestShapeSpringForceField', external_rest_shape='/features/MO', numStepsSpringOn='10000', stiffness='1e8', name='toolSpring', springColor='0 1 0 1', updateStiffness='1', printLog='0', listening='1', angularStiffness='0', startTimeSpringOn='0')
+        mappedTool.createObject('MechanicalObject', scale3d='1 1 1', position='@/features/ControlPoints.indices_position', name='MO')
+        # mappedTool.createObject('Sphere', color='0.0 1.0 1.0 1', radius=self.sr1, template='Vec3d')
+        mappedTool.createObject('BoxROI', name='allPoints', box='-10 -10 -10 10 10 10', doUpdate='0')
+        self.toolSprings=mappedTool.createObject('ExtendedRestShapeSpringForceField', external_rest_shape='/features/DOFs', numStepsSpringOn='10000', points='@allPoints.indices',
+        	external_points='@/features/ControlIx.output',
+        	stiffness='1e8', name='toolSpring', springColor='0 1 0 1', updateStiffness='1', printLog='0', listening='1', angularStiffness='0', startTimeSpringOn='0')
         mappedTool.createObject('BarycentricMapping', name="baryMapping")
 
 
@@ -236,22 +247,22 @@ class pigLiver1_BCDA(Sofa.PythonScriptController):
 
 
     def createMasterScene(self, node):
-        node.createObject('StochasticStateWrapper',name="StateWrapper",verbose="1")
+        node.createObject('StochasticStateWrapper',name="StateWrapper",verbose='1', estimatePosition='1')
         
         self.createCommonComponents(node)
         
         obsNode = node.createChild('obsNode')
-        obsNode.createObject('MechanicalObject', scale3d='1 1 1', rest_position='@/features/ObservPoints.indices_position', name='MO')
-        #obsNode.createObject('Sphere', color='0.8 0.5 1.0 1', radius=self.sr1, template='Vec3d')
+        obsNode.createObject('MechanicalObject', scale3d='1 1 1', position='@/features/ObservPoints.indices_position', name='MO')
+        obsNode.createObject('Sphere', color='0.8 0.5 1.0 1', radius=self.sr1, template='Vec3d')
         obsNode.createObject('BarycentricMapping', name="baryMapping")
         obsNode.createObject('MappedStateObservationManager', name="MOBS", observationStdev=self.statParams[2], noiseStdev="0.0", listening="1", stateWrapper="@../StateWrapper",doNotMapObservations="1",verbose="1")
         obsNode.createObject('SimulatedStateObservationSource', name="ObsSource", trackedObservations='@/features/ObservPoints.indices_position', monitorPrefix="../obsBoundaryDA/brickC_150316/obsA")
 
-        landNode = node.createChild('landNode')
-        self.modelLM=landNode.createObject('MechanicalObject', scale3d='1 1 1', rest_position='@/features/LandmarkPoints.indices_position', name='MO')
-        #landNode.createObject('Sphere', color='0.5 0.6 1.0 1', radius=self.sr1, template='Vec3d')
-        landNode.createObject('BarycentricMapping', name="baryMapping")
-        # landNode.createObject('TargetFeatureErrorMetric', targetPositions='@MO.position', sourcePosition='@/landNode/MO.position', )
+        # landNode = node.createChild('landNode')
+        # self.modelLM=landNode.createObject('MechanicalObject', scale3d='1 1 1', position='@/features/LandmarkPoints.indices_position', name='MO')
+        # #landNode.createObject('Sphere', color='0.5 0.6 1.0 1', radius=self.sr1, template='Vec3d')
+        # landNode.createObject('BarycentricMapping', name="baryMapping")
+        # # landNode.createObject('TargetFeatureErrorMetric', targetPositions='@MO.position', sourcePosition='@/landNode/MO.position', )
 
         
 
@@ -275,8 +286,8 @@ class pigLiver1_BCDA(Sofa.PythonScriptController):
         visNode.createObject('BarycentricMapping')
         #visNode.createObject('VTKExporter',filename="vtkExp/beam",XMLformat="true",listening="true",edges="0",triangles="1",quads="0",tetras="0",exportAtBegin="1",exportAtEnd="0",exportEveryNumberOfSteps="1")
 
-        obsVisuNode = node.createChild('ObservationVisualization')
-        obsVisuNode.createObject('MechanicalObject', name="aux_Source", position="@../obsNode/MOBS.mappedObservations")
+        # obsVisuNode = node.createChild('ObservationVisualization')
+        # obsVisuNode.createObject('MechanicalObject', name="aux_Source", position="@../obsNode/MOBS.mappedObservations")
         # obsVisuNode.createObject('Sphere', radius=self.sr2, color="0.2 0.8 0.2 1")
 
         #node.createObject('MeshSubsetEngine', name='attachPoints', inputPosition='@../MO.position', indices=self.fixedIX)
@@ -290,8 +301,8 @@ class pigLiver1_BCDA(Sofa.PythonScriptController):
  
 
     def createSlaveScene(self, node):
-        node.createObject('VisualStyle', name='VisualStyle', displayFlags='hideBehaviorModels hideForceFields hideCollisionModels')
-        wrapper=node.createObject('StochasticStateWrapper',name="StateWrapper",verbose="1")
+        node.createObject('VisualStyle', name='VisualStyle', displayFlags='hideBehaviorModels showForceFields hideCollisionModels')
+        wrapper=node.createObject('StochasticStateWrapper',name="StateWrapper",verbose="1", estimatePosition='1')
         wrapper.findData("name").value = "StochasticWrapperSlave"
         wrapper.findData("slave").value = 1;        
         
