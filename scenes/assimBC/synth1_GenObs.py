@@ -19,11 +19,11 @@ class synth1_GenObs (Sofa.PythonScriptController):
         E=5000
         volumeFileName='../../data/brickD/brickD_536.vtk'
         surfaceSTL='../../data/brickD/brickD_536.stl'
-        outputDir='observations/brickD_ogrid4'        
+        outputDir='observationsEuler/brickD_ogrid4'        
         saveObservations=1
 
         if saveObservations:
-        	os.system('mv '+outputDir+ ' observations/arch')
+        	os.system('mv '+outputDir+ ' observationsEuler/arch')
         	os.system('mkdir -p '+outputDir)
 
         self.toolForceFile = open("toolForce.txt", "w")        
@@ -52,9 +52,9 @@ class synth1_GenObs (Sofa.PythonScriptController):
         # rootNode/simuNode
         simuNode = rootNode.createChild('simu')
         simuNode.activated = 'true'
-        # simuNode.createObject('EulerImplicitSolver', firstOrder="0")
+        simuNode.createObject('EulerImplicitSolver', firstOrder="0")
         # simuNode.createObject('EulerImplicitSolver', rayleighStiffness='0.1', rayleighMass='0.1')
-        simuNode.createObject('NewtonStaticSolver', maxIt='3', name='NewtonStatic', correctionTolerance='1e-8', convergeOnResidual='1', residualTolerance='1e-8', printLog='1')
+        # simuNode.createObject('NewtonStaticSolver', maxIt='3', name='NewtonStatic', correctionTolerance='1e-8', convergeOnResidual='1', residualTolerance='1e-8', printLog='1')
         # simuNode.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
         # simuNode.createObject('StaticSolver')
         simuNode.createObject('SparsePARDISOSolver', symmetric='1', exportDataToFolder='', name='precond', iterativeSolverNumbering='1')

@@ -1,21 +1,21 @@
 addpath '~/AncillaIP/Matlab';
 %groundTruth=[1500 6000 2000];   %P1
-groundTruth=[500 6000 1500];   %P2
+groundTruth=zeros(1,16);   %P2
 showStdev = 1;
-nsteps=1000;
+nsteps=-1;
 
 %prefix = '../assimStiffness/outCyl3_770_P1_pull_';
 %prefix = '../assimStiffness/outCyl3_770_P2';
-prefix='../assimStiffness/outCyl3_770_'
+prefix='../assimBC/outSynth1Euler_';
 
-filterType='UKFSimCorr';
+%filterType='UKFSimCorr';
 %filterType='UKFClassic';
-%filterType='ROUKF';
+filterType='ROUKF';
 
 suffix= '_failed';
 
-estStateFile=[prefix filterType suffix '/state_test.txt'];
-estVarFile=[prefix filterType suffix '/variance_test.txt'];
+estStateFile=[prefix filterType '/state.txt'];
+estVarFile=[prefix filterType '/variance.txt'];
 
 %===================================================================
 nparams=size(groundTruth,2);
@@ -26,8 +26,6 @@ if nsteps < 0
     nsteps=size(estState,1);
 end
     
-nstate=size(estState,2);
-
 estState=estState(1:nsteps,nstate-nparams+1:nstate);
 estVar=estVar(1:nsteps,nstate-nparams+1:nstate);
 estStd=sqrt(estVar);

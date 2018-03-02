@@ -31,10 +31,13 @@ class synth1_BCDA(Sofa.PythonScriptController):
         lamb=(E*nu)/((1+nu)*(1-2*nu))
         mu=E/(2+2*nu)
         self.materialParams='{} {}'.format(mu,lamb)
+
+        # self.filterKind = 'ROUKF'
+        self.filterKind = 'UKFSimCorr'
         
         self.ogridID=4
-        inputDir='observations/brickD_ogrid'+str(self.ogridID)
-        outDir='outSynth1'
+        inputDir='observationsEuler/brickD_ogrid'+str(self.ogridID)
+        outDir='outSynth1Euler_'+self.filterKind
         self.volumeVTK=inputDir+'/object_0.vtk'
         self.surfaceSTL='../../data/brickD/brickD_536.stl'
         self.obsVTK=inputDir+'/observations_0.vtk'
@@ -47,23 +50,28 @@ class synth1_BCDA(Sofa.PythonScriptController):
         self.m_saveToFile = 0
         self.m_slaveScenesCreated = 0 # auxiliary, circumvents attribute of instance method
 
-        self.saveState = 0
+        self.saveState = 1
         self.saveToolForces=0
         self.saveAssess=0
 
         self.paramInitExp = 0.0
-        self.paramInitSD = 5
+        self.paramInitSD = 100
         self.obsInitSD= 1e-4
 
-        self.suffix='psd'+str(self.paramInitSD)+'#osd'+str(self.obsInitSD)+'#ogrid'+str(self.ogridID)
+        # self.suffix='psd'+str(self.paramInitSD)+'#osd'+str(self.obsInitSD)+'#ogrid'+str(self.ogridID)
+        self.suffix=''
 
         if self.saveState:
-            self.stateExpFile=outDir+'/state_'+self.suffix+'.txt'
-            self.stateVarFile=outDir+'/variance_'+self.suffix+'.txt'
-            self.stateCovarFile=outDir+'/covariance_'+self.suffix+'.txt'
+            self.stateExpFile=outDir+'/state'+self.suffix+'.txt'
+            self.stateVarFile=outDir+'/variance'+self.suffix+'.txt'
+            self.stateCovarFile=outDir+'/covariance'+self.suffix+'.txt'
+            self.innovationFile=outDir+'/innovation_test.txt'
+            self.computationTimeFile=outDir+'/computationTime.txt'
             os.system('rm '+self.stateExpFile)
             os.system('rm '+self.stateVarFile)
             os.system('rm '+self.stateCovarFile)
+            os.system('rm '+self.innovationFile)
+            os.system('rm '+self.computationTimeFile)
       
         if self.saveToolForces:
             self.toolForceFile=outDir+'/toolForce_'+self.suffix+'.txt'
@@ -87,8 +95,12 @@ class synth1_BCDA(Sofa.PythonScriptController):
         node.createObject('ViewerSetting', cameraMode='Perspective', resolution='1000 700', objectPickingMethod='Ray casting')
         node.createObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels')
 
-        node.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")        
-        self.filter = node.createObject('ROUKFilter', name="ROUKF", sigmaPointType="simplex", verbose="1", useUnbiasedVariance='0')        
+        node.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")
+
+        if (self.filterKind == 'ROUKF'):
+        	self.filter = node.createObject('ROUKFilter', name="ROUKF", sigmaTopology="Simplex", verbose="1", useUnbiasedVariance='0')        
+        elif (self.filterKind == 'UKFSimCorr'):
+        	self.filter = node.createObject('UKFilterSimCorr', name="UKF", verbose="1", sigmaTopology="Simplex", useUnbiasedVariance="0",  lambdaScale="1", boundFilterState="0")
             
         node.createObject('MeshVTKLoader', name='objectLoader', filename=self.volumeVTK)
         node.createObject('MeshSTLLoader', name='objectSLoader', filename=self.surfaceSTL)
@@ -105,7 +117,8 @@ class synth1_BCDA(Sofa.PythonScriptController):
         #node.createObject('SparsePARDISOSolver')        
 
         # node.createObject('EulerImplicitSolver', rayleighStiffness='0.1', rayleighMass='0.1')
-        node.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")   
+        node.createObject('EulerImplicitSolver', firstOrder="0")
+        # node.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")   
         # node.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
         node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
 
@@ -289,15 +302,27 @@ class synth1_BCDA(Sofa.PythonScriptController):
             f2.write('\n')
             f2.close()
 
-            rcv=self.filter.findData('reducedCovariance').value
-            reducedCovariance = [val for sublist in rcv for val in sublist]
-            #print 'Reduced Covariance:'
-            #print reducedCovariance
+            # rcv=self.filter.findData('reducedCovariance').value
+            # reducedCovariance = [val for sublist in rcv for val in sublist]
+            # #print 'Reduced Covariance:'
+            # #print reducedCovariance
 
-            f3 = open(self.stateCovarFile, "a")
-            f3.write(" ".join(map(lambda x: str(x), reducedCovariance)))
-            f3.write('\n')
-            f3.close()
+            # f3 = open(self.stateCovarFile, "a")
+            # f3.write(" ".join(map(lambda x: str(x), reducedCovariance)))
+            # f3.write('\n')
+            # f3.close()
+
+            # if (self.filterKind == 'ROUKF'):
+            #     innov=self.filter.findData('reducedInnovation').value
+            # elif (self.filterKind == 'UKFSimCorr' or self.options.filter.kind == 'UKFClassic'):
+            #     innov=self.filter.findData('innovation').value
+
+            # innovation = [val for sublist in innov for val in sublist]            
+
+            # f3b = open(self.innovationFile, "a")        
+            # f3b.write(" ".join(map(lambda x: str(x), innovation)))
+            # f3b.write('\n')
+            # f3b.close()   
 
         if self.saveToolForces:
             tsp=self.toolSprings.findData('totalForce').value
@@ -305,8 +330,8 @@ class synth1_BCDA(Sofa.PythonScriptController):
             f4.write(" ".join(map(lambda x: str(x), tsp[0])))
             f4.write('\n')
             f4.close()            
-            print 'Tool forces:'
-            print tsp
+            #print 'Tool forces:'
+            #print tsp
 
         if self.saveAssess:
             tsp=self.asMO.findData('position').value
@@ -315,7 +340,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
             f5.write('\n')
             f5.close()                        
 
-        print self.basePoints.findData('indices_position').value
+        #print self.basePoints.findData('indices_position').value
 
         return 0
 
