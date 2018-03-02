@@ -34,7 +34,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         
         self.ogridID=4
         inputDir='observations'
-        outDir='outSDA'
+        outDir='outROUKF'
         self.volumeVTK=inputDir+'/object_0.vtk'
         self.surfaceSTL='../../data/brickD/brickD_536.stl'
         self.obsVTK=inputDir+'/observations_0.vtk'
