@@ -1,5 +1,7 @@
 #!/bin/bash
 
+mkdir -p roukf_testing
+
 echo "Generating observations..."
 runSofa -g batch -n 301 assimBC_synthBrick_GenObs.py &> genObsOut
 echo "... done"
