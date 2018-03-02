@@ -34,10 +34,22 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
         # self.filterKind = 'ROUKF'
         self.filterKind = 'UKFSimCorr'
+        self.estimatePosition='0'
+
+        self.integration = 'Euler'
+        # self.integration = 'VarSym3'
+        # self.integration = 'Newton3'
+
+        
+
+        # self.integration = 'Euler'
+        # self.integration = 'VarSym3'
         
         self.ogridID=4
-        inputDir='observationsEuler/brickD_ogrid'+str(self.ogridID)
-        outDir='outSynth1Euler_'+self.filterKind
+        inputDir='observations_'+self.integration+'/brickD_ogrid'+str(self.ogridID)
+        outDir='resSynth1_'+self.integration+'_'+self.filterKind
+
+        os.system('mkdir -p '+outDir)
         self.volumeVTK=inputDir+'/object_0.vtk'
         self.surfaceSTL='../../data/brickD/brickD_536.stl'
         self.obsVTK=inputDir+'/observations_0.vtk'
@@ -55,7 +67,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         self.saveAssess=0
 
         self.paramInitExp = 0.0
-        self.paramInitSD = 100
+        self.paramInitSD = 5
         self.obsInitSD= 1e-4
 
         # self.suffix='psd'+str(self.paramInitSD)+'#osd'+str(self.obsInitSD)+'#ogrid'+str(self.ogridID)
@@ -116,9 +128,16 @@ class synth1_BCDA(Sofa.PythonScriptController):
         #node.createObject('StaticSolver', applyIncrementFactor="0")
         #node.createObject('SparsePARDISOSolver')        
 
-        # node.createObject('EulerImplicitSolver', rayleighStiffness='0.1', rayleighMass='0.1')
-        node.createObject('EulerImplicitSolver', firstOrder="0")
-        # node.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")   
+        if self.integration == 'Euler':
+            node.createObject('EulerImplicitSolver', rayleighStiffness='0.1', rayleighMass='0.1')
+        elif self.integration == 'Newton3':
+            node.createObject('NewtonStaticSolver', maxIt='3', name='NewtonStatic', correctionTolerance='1e-8', convergeOnResidual='1', residualTolerance='1e-8', printLog='1')
+        elif self.integration == 'VarSym3':
+            node.createObject('VariationalSymplecticSolver', rayleighStiffness='1', rayleighMass='1',
+             newtonError='1e-12', steps='3', verbose='0', useIncrementalPotentialEnergy='1')
+
+
+        
         # node.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
         node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
 
@@ -183,8 +202,8 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
 
 
-    def createMasterScene(self, node):
-        node.createObject('StochasticStateWrapper',name="StateWrapper",verbose='1', estimatePosition='1')
+    def createMasterScene(self, node):        
+        node.createObject('StochasticStateWrapper',name="StateWrapper",verbose='1', estimatePosition=self.estimatePosition)
         
         self.createCommonComponents(node)
 
@@ -281,8 +300,11 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
     def onEndAnimationStep(self, deltaTime):  
 
-        if self.saveState:              
-            rs=self.filter.findData('reducedState').value
+        if self.saveState:                          
+            if self.filterKind == 'ROUKF':
+                rs=self.filter.findData('reducedState').value
+            else:
+                rs=self.filter.findData('state').value
             reducedState = [val for sublist in rs for val in sublist]
             #print 'Reduced state:'
             #print reducedState
@@ -291,8 +313,12 @@ class synth1_BCDA(Sofa.PythonScriptController):
             f1.write(" ".join(map(lambda x: str(x), reducedState)))
             f1.write('\n')
             f1.close()    
-                    
-            rv=self.filter.findData('reducedVariance').value
+            
+            if self.filterKind == 'ROUKF':
+                rv=self.filter.findData('reducedVariance').value
+            else:
+                rv=self.filter.findData('variance').value        
+            
             reducedVariance = [val for sublist in rv for val in sublist]
             #print 'Reduced variance:'
             #print reducedVariance

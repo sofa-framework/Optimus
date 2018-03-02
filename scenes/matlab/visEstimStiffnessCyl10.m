@@ -6,13 +6,17 @@ nsteps=-1;
 
 %prefix = '../assimStiffness/outCyl3_770_P1_pull_';
 %prefix = '../assimStiffness/outCyl3_770_P2';
-prefix='../assimBC/outSynth1Euler_';
 
-%filterType='UKFSimCorr';
+%integ='Euler'
+%integ='Newton3'
+integ='VarSym3'
+
+%prefix='../assimBC/outSynth1Euler_';
+prefix=['../assimBC/resSynth1_' integ '_'];
+
+filterType='UKFSimCorr';
 %filterType='UKFClassic';
-filterType='ROUKF';
-
-suffix= '_failed';
+%filterType='ROUKF';
 
 estStateFile=[prefix filterType '/state.txt'];
 estVarFile=[prefix filterType '/variance.txt'];
@@ -25,6 +29,8 @@ estVar=load(estVarFile);
 if nsteps < 0
     nsteps=size(estState,1);
 end
+
+nstate=nparams
     
 estState=estState(1:nsteps,nstate-nparams+1:nstate);
 estVar=estVar(1:nsteps,nstate-nparams+1:nstate);
@@ -51,7 +57,7 @@ for i=1:nparams
     end
     
 end
-title(sprintf('State  %s', filterType));
+title(sprintf('State  %s', [filterType ' ' integ]));
 
 return
 

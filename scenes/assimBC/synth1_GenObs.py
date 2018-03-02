@@ -17,16 +17,21 @@ class synth1_GenObs (Sofa.PythonScriptController):
     def createGraph(self,rootNode):
         nu=0.45
         E=5000
+        #self.integration = 'Euler'
+        #self.integration = 'Newton3'
+        self.integration = 'VarSym3'
+
+
         volumeFileName='../../data/brickD/brickD_536.vtk'
         surfaceSTL='../../data/brickD/brickD_536.stl'
-        outputDir='observationsEuler/brickD_ogrid4'        
+        outputDir='observations_'+self.integration+'/brickD_ogrid4'        
         saveObservations=1
 
         if saveObservations:
-        	os.system('mv '+outputDir+ ' observationsEuler/arch')
+        	os.system('mv '+outputDir+ ' observations'+self.integration+'/arch')
         	os.system('mkdir -p '+outputDir)
 
-        self.toolForceFile = open("toolForce.txt", "w")        
+        #self.toolForceFile = open("toolForce.txt", "w")        
 
         # rootNode
         rootNode.createObject('VisualStyle', displayFlags='showVisual showBehavior showCollision hideMapping showWireframe hideNormals')        
@@ -52,10 +57,17 @@ class synth1_GenObs (Sofa.PythonScriptController):
         # rootNode/simuNode
         simuNode = rootNode.createChild('simu')
         simuNode.activated = 'true'
-        simuNode.createObject('EulerImplicitSolver', firstOrder="0")
-        # simuNode.createObject('EulerImplicitSolver', rayleighStiffness='0.1', rayleighMass='0.1')
-        # simuNode.createObject('NewtonStaticSolver', maxIt='3', name='NewtonStatic', correctionTolerance='1e-8', convergeOnResidual='1', residualTolerance='1e-8', printLog='1')
-        # simuNode.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
+        # simuNode.createObject('EulerImplicitSolver', firstOrder="0")
+
+        if self.integration == 'Euler':
+            simuNode.createObject('EulerImplicitSolver', rayleighStiffness='0.1', rayleighMass='0.1')
+        elif self.integration == 'Newton3':
+            simuNode.createObject('NewtonStaticSolver', maxIt='3', name='NewtonStatic', correctionTolerance='1e-8', convergeOnResidual='1', residualTolerance='1e-8', printLog='1')
+        elif self.integration == 'VarSym3':
+            simuNode.createObject('VariationalSymplecticSolver', rayleighStiffness='1', rayleighMass='1',
+             newtonError='1e-12', steps='3', verbose='0', useIncrementalPotentialEnergy='1')
+
+                # simuNode.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
         # simuNode.createObject('StaticSolver')
         simuNode.createObject('SparsePARDISOSolver', symmetric='1', exportDataToFolder='', name='precond', iterativeSolverNumbering='1')
 
@@ -174,9 +186,9 @@ class synth1_GenObs (Sofa.PythonScriptController):
         #print 'Total tool force: ',totalToolForce        
         #self.toolForceFile.write("%g %g %g\n" % (totalToolForce[0][0], totalToolForce[0][1], totalToolForce[0][2]))
 
-        asPos = self.asMO.findData('position').value
-        print 'AsPos ', asPos        
-        print len(asPos)        
+        #asPos = self.asMO.findData('position').value
+        #print 'AsPos ', asPos        
+        #print len(asPos)        
 
         return 0;
 
@@ -224,5 +236,5 @@ class synth1_GenObs (Sofa.PythonScriptController):
         return 0;
 
     def cleanup(self):        
-        self.toolForceFile.close()
+        #self.toolForceFile.close()
         return 0;
