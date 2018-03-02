@@ -19,7 +19,7 @@ class synth1_GenObs (Sofa.PythonScriptController):
         E=5000
         volumeFileName='../../data/brickD/brickD_536.vtk'
         surfaceSTL='../../data/brickD/brickD_536.stl'
-        outputDir='observations'
+        outputDir='obs_testing'
         saveObservations=1
 
         if saveObservations:

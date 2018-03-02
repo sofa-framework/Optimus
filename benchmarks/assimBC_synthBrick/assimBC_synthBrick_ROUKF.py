@@ -33,8 +33,8 @@ class synth1_BCDA(Sofa.PythonScriptController):
         self.materialParams='{} {}'.format(mu,lamb)
         
         self.ogridID=4
-        inputDir='observations'
-        outDir='outROUKF'
+        inputDir='obs_testing'
+        outDir='roukf_testing'
         self.volumeVTK=inputDir+'/object_0.vtk'
         self.surfaceSTL='../../data/brickD/brickD_536.stl'
         self.obsVTK=inputDir+'/observations_0.vtk'
