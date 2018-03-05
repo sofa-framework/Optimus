@@ -73,17 +73,40 @@ protected:
     sofa::simulation::Node* m_node;
 };
 
-class FilteringEvent : public sofa::core::objectmodel::Event
+
+class  SOFA_SIMULATION_CORE_API DAPredictionEndEvent : public sofa::core::objectmodel::Event
 {
 public:
-    FilteringEvent() {}
-    ~FilteringEvent() {}
 
-    int type;
+    SOFA_EVENT_H( DAPredictionEndEvent )
 
-    virtual const char* getClassName() const { return "FilteringEvent"; }
-    virtual size_t getEventTypeIndex() const { return 0; }
+    DAPredictionEndEvent( SReal dt );
 
+    ~DAPredictionEndEvent();
+
+    SReal getDt() const { return dt; }
+
+    virtual const char* getClassName() const { return "AssimilationEndEvent"; }
+protected:
+    SReal dt;
+};
+
+
+class SOFA_SIMULATION_CORE_API DACorrectionEndEvent : public sofa::core::objectmodel::Event
+{
+public:
+
+    SOFA_EVENT_H( DACorrectionEndEvent )
+
+    DACorrectionEndEvent( SReal dt );
+
+    ~DACorrectionEndEvent();
+
+    SReal getDt() const { return dt; }
+
+    virtual const char* getClassName() const { return "AssimilationEndEvent"; }
+protected:
+    SReal dt;
 };
 
 

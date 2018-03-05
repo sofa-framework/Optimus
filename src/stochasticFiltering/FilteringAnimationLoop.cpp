@@ -29,6 +29,7 @@
 
 #include <sofa/core/ObjectFactory.h>
 #include <sofa/helper/AdvancedTimer.h>
+#include <sofa/simulation/PropagateEventVisitor.h>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/date_time/gregorian/gregorian_types.hpp>
@@ -41,6 +42,33 @@ namespace component
 
 namespace simulation
 {
+
+SOFA_EVENT_CPP( DAPredictionEndEvent )
+
+DAPredictionEndEvent::DAPredictionEndEvent(SReal dt)
+    : sofa::core::objectmodel::Event()
+    , dt(dt)
+{
+}
+
+
+DAPredictionEndEvent::~DAPredictionEndEvent()
+{
+}
+
+SOFA_EVENT_CPP( DACorrectionEndEvent )
+
+DACorrectionEndEvent::DACorrectionEndEvent(SReal dt)
+    : sofa::core::objectmodel::Event()
+    , dt(dt)
+{
+}
+
+
+DACorrectionEndEvent::~DACorrectionEndEvent()
+{
+}
+
 
 SOFA_DECL_CLASS(FilteringAnimationLoop)
 
@@ -140,8 +168,16 @@ void FilteringAnimationLoop::step(const core::ExecParams* _params, SReal /*_dt*/
     filter->initializeStep(_params, actualStep);
     //TIC
     filter->computePrediction();
-    //TOCTIC("== prediction total");
+    DAPredictionEndEvent predEvent ( dt );
+    sofa::simulation::PropagateEventVisitor predEVisitor ( _params, &predEvent );
+    gnode->execute ( predEVisitor );
+    //TOCTIC("== prediction total");    
+
+
     filter->computeCorrection();
+    DACorrectionEndEvent corrEvent ( dt );
+    sofa::simulation::PropagateEventVisitor corrEVisitor ( _params, &corrEvent );
+    gnode->execute ( corrEVisitor );
     //TOC("== correction total");
 
     // compute signle iteration step
@@ -155,6 +191,7 @@ void FilteringAnimationLoop::step(const core::ExecParams* _params, SReal /*_dt*/
         outputFile.close();
     }
 
+    /// this should be probably removed:
     sofa::simulation::AnimateEndEvent ev2(dt);
     SingleLevelEventVisitor act2 ( _params, &ev2, gnode );
     gnode->execute ( act2 );
