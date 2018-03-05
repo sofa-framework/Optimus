@@ -52,6 +52,8 @@ class SOFA_OptimusPlugin_API VTKExporterDA : public VTKExporter
 public:
     SOFA_CLASS(VTKExporterDA,VTKExporter);
 
+    void handleEvent(sofa::core::objectmodel::Event *) override;
+
 
 };
 
