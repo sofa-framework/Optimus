@@ -31,32 +31,37 @@ class synth1_BCDA(Sofa.PythonScriptController):
         lamb=(E*nu)/((1+nu)*(1-2*nu))
         mu=E/(2+2*nu)
         self.materialParams='{} {}'.format(mu,lamb)
-
-        # self.filterKind = 'ROUKF'
-        self.filterKind = 'UKFSimCorr'
-        self.estimatePosition='0'
-
-        self.integration = 'Euler'
-        # self.integration = 'VarSym3'
-        # self.integration = 'Newton3'
-
-        
+               
+        self.geometry = 'brickD'
+        self.fixedPoints = 1
+        self.obsPoints = 'ogrid4'
 
         # self.integration = 'Euler'
-        # self.integration = 'VarSym3'
+        # self.numIter = 1
+        #self.integration = 'Newton'
+        #self.numIter = 3
+        self.integration = 'VarSym'
+        self.numIter = 3
+
+        self.toolTrajectory = 1
+
+        #self.filterKind = 'ROUKF'
+        self.filterKind = 'UKFSimCorr'
+        self.estimatePosition = '0'
+		
+        self.inputDir=self.geometry+'_FP'+str(self.fixedPoints)+'_OP'+self.obsPoints+'_INT'+self.integration+str(self.numIter)+'_TR'+str(self.toolTrajectory)+'/observations'
+        self.outDir=self.geometry+'_FP'+str(self.fixedPoints)+'_OP'+self.obsPoints+'_INT'+self.integration+str(self.numIter)+'_TR'+str(self.toolTrajectory)+'/DA_'+self.filterKind
         
-        self.ogridID=4
-        inputDir='observations_'+self.integration+'/brickD_ogrid'+str(self.ogridID)
-        outDir='resSynth1_'+self.integration+'_'+self.filterKind
+        os.system('mv '+self.outDir+' '+self.outDir+'_arch')
+        os.system('mkdir -p '+self.outDir)
 
-        os.system('mkdir -p '+outDir)
-        self.volumeVTK=inputDir+'/object_0.vtk'
+        self.volumeVTK=self.inputDir+'/object_0.vtk'
         self.surfaceSTL='../../data/brickD/brickD_536.stl'
-        self.obsVTK=inputDir+'/observations_0.vtk'
-        self.toolVTK=inputDir+'/tool_0.vtk'
+        self.obsVTK=self.inputDir+'/observations_0.vtk'
+        self.toolVTK=self.inputDir+'/tool_0.vtk'
 
-        self.obsMonitorPrefix=inputDir+'/observations'
-        self.toolMonitorPrefix=inputDir+'/tool'
+        self.obsMonitorPrefix=self.inputDir+'/observations'
+        self.toolMonitorPrefix=self.inputDir+'/tool'
         
         self.m_slaveSceneCount = 0
         self.m_saveToFile = 0
@@ -74,11 +79,11 @@ class synth1_BCDA(Sofa.PythonScriptController):
         self.suffix=''
 
         if self.saveState:
-            self.stateExpFile=outDir+'/state'+self.suffix+'.txt'
-            self.stateVarFile=outDir+'/variance'+self.suffix+'.txt'
-            self.stateCovarFile=outDir+'/covariance'+self.suffix+'.txt'
-            self.innovationFile=outDir+'/innovation_test.txt'
-            self.computationTimeFile=outDir+'/computationTime.txt'
+            self.stateExpFile=self.outDir+'/state'+self.suffix+'.txt'
+            self.stateVarFile=self.outDir+'/variance'+self.suffix+'.txt'
+            self.stateCovarFile=self.outDir+'/covariance'+self.suffix+'.txt'
+            self.innovationFile=self.outDir+'/innovation_test.txt'
+            self.computationTimeFile=self.outDir+'/computationTime.txt'
             os.system('rm '+self.stateExpFile)
             os.system('rm '+self.stateVarFile)
             os.system('rm '+self.stateCovarFile)
@@ -86,12 +91,12 @@ class synth1_BCDA(Sofa.PythonScriptController):
             os.system('rm '+self.computationTimeFile)
       
         if self.saveToolForces:
-            self.toolForceFile=outDir+'/toolForce_'+self.suffix+'.txt'
+            self.toolForceFile=self.outDir+'/toolForce_'+self.suffix+'.txt'
             os.system('rm '+self.toolForceFile);
 
 
         if self.saveAssess:
-            self.assessFile=outDir+'/assess_'+self.suffix+'.txt'
+            self.assessFile=self.outDir+'/assess_'+self.suffix+'.txt'
             os.system('rm '+self.assessFile);            
 
         self.createScene(node)
@@ -130,12 +135,11 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
         if self.integration == 'Euler':
             node.createObject('EulerImplicitSolver', rayleighStiffness='0.1', rayleighMass='0.1')
-        elif self.integration == 'Newton3':
-            node.createObject('NewtonStaticSolver', maxIt='3', name='NewtonStatic', correctionTolerance='1e-8', convergeOnResidual='1', residualTolerance='1e-8', printLog='1')
-        elif self.integration == 'VarSym3':
+        elif self.integration == 'Newton':
+            node.createObject('NewtonStaticSolver', maxIt=self.numIter, name='NewtonStatic', correctionTolerance='1e-8', convergeOnResidual='1', residualTolerance='1e-8', printLog='1')
+        elif self.integration == 'VarSym':
             node.createObject('VariationalSymplecticSolver', rayleighStiffness='1', rayleighMass='1',
-             newtonError='1e-12', steps='3', verbose='0', useIncrementalPotentialEnergy='1')
-
+             newtonError='1e-12', steps=self.numIter, verbose='0', useIncrementalPotentialEnergy='1')
 
         
         # node.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
@@ -149,8 +153,10 @@ class synth1_BCDA(Sofa.PythonScriptController):
         node.createObject('UniformMass', totalMass="0.2513")
 
         # node.createObject('BoxROI', name='fixedBox1', box='-0.001 -0.001 -0.011 0.011 0.001 0.001', drawBoxes='1')
-        node.createObject('BoxROI', name='fixedBox1', box='-0.001 -0.001 -0.011 0.101 0.001 0.001', drawBoxes='1', doUpdate='0')
-        # node.createObject('BoxROI', name="fixedBox1", box="-0.001 0.052 -0.001   0.1631 0.054 0.0131")        
+        if self.fixedPoints  == 1:
+        	node.createObject('BoxROI', name='fixedBox1', box='-0.001 -0.001 -0.011 0.101 0.001 0.001', drawBoxes='1', doUpdate='0')
+        	# node.createObject('BoxROI', name="fixedBox1", box="-0.001 0.052 -0.001   0.1631 0.054 0.0131")        
+
         self.optimParams = node.createObject('OptimParams', name="springStiffness", template="Vector", numParams="@fixedBox1.nbIndices",
             initValue=self.paramInitExp, stdev=self.paramInitSD, transformParams="absolute", optimize="1", printLog="1")
         node.createObject('ExtendedRestShapeSpringForceField', name="fixedSpring", points="@fixedBox1.indices", stiffness="@springStiffness.value",
@@ -158,7 +164,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         node.createObject('ColorMap',colorScheme="Blue to Red")                                                                  
         #node.createObject('MJEDTetrahedralForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=self.materialParams)
         node.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=self.materialParams)
-        # node.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus="1e5", poissonRatio="0.45", method="large")
+        # node.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus="1e5", poissonRatio="0.45", method="large")       
 
         #node.createObject('BoxROI', name='fixedBoxA', box='-0.001 -0.001 -0.011 0.003 0.001 0.001', drawBoxes='0')
         #node.createObject('PointsFromIndices', template='Vec3d', name='fixedA', indices='@fixedBoxA.indices', position="@Volume.rest_position")
@@ -198,6 +204,9 @@ class synth1_BCDA(Sofa.PythonScriptController):
         toolMapped.createObject('Sphere',radius="0.002",color="0 0 1 1") 
         toolMapped.createObject('BarycentricMapping',name="baryMapping")
 
+        node.createObject('VTKExporterDA', filename=self.outDir+'/DAobject.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="1",
+        	exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1")
+
         return 0
 
 
@@ -223,8 +232,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         visNode.createObject('Line',color="0 0 0 1")
         visNode.createObject('Triangle',color="1 0 0 1")
         visNode.createObject('BarycentricMapping')
-
-        #visNode.createObject('VTKExporter',filename="vtkExp/beam",XMLformat="true",listening="true",edges="0",triangles="1",quads="0",tetras="0",exportAtBegin="1",exportAtEnd="0",exportEveryNumberOfSteps="1")
+        
 
         #visNode2 = node.createChild('ObjectVisualization2')
         #visNode2.createObject('VisualStyle', displayFlags='showVisual showBehavior showCollision hideMapping hideWireframe hideNormals')

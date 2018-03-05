@@ -17,18 +17,32 @@ class synth1_GenObs (Sofa.PythonScriptController):
     def createGraph(self,rootNode):
         nu=0.45
         E=5000
-        #self.integration = 'Euler'
-        #self.integration = 'Newton3'
-        self.integration = 'VarSym3'
-
+        lamb=(E*nu)/((1+nu)*(1-2*nu))
+        mu=E/(2+2*nu)
+        materialParams='{} {}'.format(mu,lamb)
 
         volumeFileName='../../data/brickD/brickD_536.vtk'
         surfaceSTL='../../data/brickD/brickD_536.stl'
-        outputDir='observations_'+self.integration+'/brickD_ogrid4'        
+        self.geometry = 'brickD'
+        self.fixedPoints = 1
+        self.obsPoints = 'ogrid4'
+
+        #self.integration = 'Euler'
+        #self.numIter = 1
+
+        #self.integration = 'Newton'
+        #self.numIter = 3
+
+        self.integration = 'VarSym'
+        self.numIter = 3
+
+        self.toolTrajectory = 1
+
+        outputDir=self.geometry+'_FP'+str(self.fixedPoints)+'_OP'+self.obsPoints+'_INT'+self.integration+str(self.numIter)+'_TR'+str(self.toolTrajectory)+'/observations'
         saveObservations=1
 
         if saveObservations:
-        	os.system('mv '+outputDir+ ' observations'+self.integration+'/arch')
+        	os.system('mv '+outputDir+' arch')
         	os.system('mkdir -p '+outputDir)
 
         #self.toolForceFile = open("toolForce.txt", "w")        
@@ -42,11 +56,13 @@ class synth1_GenObs (Sofa.PythonScriptController):
         # rootNode/tool
         tool = rootNode.createChild('tool')
         tool.createObject('MechanicalObject', name='MO', position='0.045 0.1 0.0   0.05 0.1 0.0   0.055 0.1 0.0   0.045 0.1 -0.005   0.05 0.1 -0.005   0.055 0.1 -0.005    0.045 0.1 -0.01   0.05 0.1 -0.01   0.055 0.1 -0.01')
-        tool.createObject('Sphere', color='0 0 1 1', radius='0.0014')
-        tool.createObject('LinearMotionStateController', indices='0 1 2 3 4 5 6 7 8', keyTimes='0 200', keyDisplacements='0 0 0    0.0 0.04 0')
+        tool.createObject('Mesh', position='@MO.position', edges='0 1  1 2  2 3  3 4  4 5  5 6  6 7  7 8')   # added only to avoid VTKExporter crashing
+        tool.createObject('ShowSpheres', position='@MO.position', color='0 0 1 1', radius='0.0014')
+        if self.toolTrajectory == 1:
+            tool.createObject('LinearMotionStateController', indices='0 1 2 3 4 5 6 7 8', keyTimes='0 200', keyDisplacements='0 0 0    0.0 0.04 0')
 
         if saveObservations:
-            tool.createObject('VTKExporter', position="@MO.position", edges="0", listening="0" , XMLformat='0', exportAtBegin='1', exportEveryNumberOfSteps="0", filename=outputDir+'/tool.vtk')
+            tool.createObject('VTKExporter', name='toolExporter', position="@MO.position", edges="1", listening="0" , XMLformat='0', exportAtBegin='1', exportEveryNumberOfSteps="0", filename=outputDir+'/tool.vtk')
             tool.createObject('BoxROI', name='toolDOFs', box='-1 -1 -1 1 1 1')        
             tool.createObject('Monitor', name='toolMonitor', fileName=outputDir+'/tool', showPositions='1', indices="@toolDOFs.indices", ExportPositions="1", ExportVelocities="1", ExportForces="1")
 
@@ -61,11 +77,11 @@ class synth1_GenObs (Sofa.PythonScriptController):
 
         if self.integration == 'Euler':
             simuNode.createObject('EulerImplicitSolver', rayleighStiffness='0.1', rayleighMass='0.1')
-        elif self.integration == 'Newton3':
-            simuNode.createObject('NewtonStaticSolver', maxIt='3', name='NewtonStatic', correctionTolerance='1e-8', convergeOnResidual='1', residualTolerance='1e-8', printLog='1')
-        elif self.integration == 'VarSym3':
+        elif self.integration == 'Newton':
+            simuNode.createObject('NewtonStaticSolver', maxIt=self.numIter, name='NewtonStatic', correctionTolerance='1e-8', convergeOnResidual='1', residualTolerance='1e-8', printLog='1')
+        elif self.integration == 'VarSym':
             simuNode.createObject('VariationalSymplecticSolver', rayleighStiffness='1', rayleighMass='1',
-             newtonError='1e-12', steps='3', verbose='0', useIncrementalPotentialEnergy='1')
+             newtonError='1e-12', steps=self.numIter, verbose='0', useIncrementalPotentialEnergy='1')
 
                 # simuNode.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
         # simuNode.createObject('StaticSolver')
@@ -82,10 +98,7 @@ class synth1_GenObs (Sofa.PythonScriptController):
         # simuNode.createObject('MechanicalObject', src='@/grid/grid', showIndicesScale='0.00025', name='MO', template='Vec3d', showIndices='0')
         simuNode.createObject('MechanicalObject', src='@loader', showIndicesScale='0.00025', name='MO', template='Vec3d', showIndices='0')
         simuNode.createObject('UniformMass', totalmass='0.01')
-
-        lamb=(E*nu)/((1+nu)*(1-2*nu))
-        mu=E/(2+2*nu)
-        materialParams='{} {}'.format(mu,lamb)
+        
         #simuNode.createObject('MJEDTetrahedralForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=materialParams)        
         simuNode.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=materialParams)
         
@@ -94,7 +107,8 @@ class synth1_GenObs (Sofa.PythonScriptController):
 
         # simuNode.createObject('Sphere', radius="0.0003")
 
-        simuNode.createObject('BoxROI', box='-0.001 -0.001 -0.011 0.025 0.001 0.001', drawBoxes='0', name='FROI1')
+        if self.fixedPoints == 1:
+            simuNode.createObject('BoxROI', box='-0.001 -0.001 -0.011 0.025 0.001 0.001', drawBoxes='0', name='FROI1')
         # simuNode.createObject('BoxROI', box='0.075 -0.001 -0.011 0.101 0.001 0.001', drawBoxes='1', name='FROI2')
         # simuNode.createObject('BoxROI', box='-0.001 -0.001 -0.011 0.101 0.001 0.001', drawBoxes='1', name='FROI')
         simuNode.createObject('ExtendedRestShapeSpringForceField', stiffness='1e5', name='fixingSpring', points='@FROI1.indices', showIndicesScale='0', springColor='0 1 0 1', startTimeSpringOn='0', numStepsSpringOn='10000')
@@ -104,7 +118,7 @@ class synth1_GenObs (Sofa.PythonScriptController):
         simuNode.createObject('PointsFromIndices', template='Vec3d', name='FixedPoints', indices='@FROI1.indices')
 
         if saveObservations:
-            simuNode.createObject('VTKExporter', position="@MO.position", listening="1" , XMLformat='0', exportAtBegin="1", exportAtEnd='0', exportEveryNumberOfSteps="0", 
+            simuNode.createObject('VTKExporter', position="@MO.position", listening="1" , XMLformat='0', exportAtBegin="1", exportAtEnd='0', exportEveryNumberOfSteps="1", 
                 filename=outputDir+'/object.vtk', tetras='1', edges='0')
 
         # rootNode/object/mappedTool
@@ -131,7 +145,10 @@ class synth1_GenObs (Sofa.PythonScriptController):
         # obsGrid.createObject('RegularGrid', name="grid", min='0.0 0.01 0.0', max='0.1 0.1 -0.01', n='10 10 3')  # obs. grid1        
         # obsGrid.createObject('RegularGrid', name="grid", min='0.0 0.01 0.0', max='0.1 0.1 -0.0', n='10 10 1')  # obs. grid2
         # obsGrid.createObject('RegularGrid', name="grid", min='0.0 0.01 0.0', max='0.1 0.03 -0.0', n='10 3 1')  # obs. grid3
-        obsGrid.createObject('RegularGrid', name="grid", min='0.0 0.08 0.0', max='0.1 0.1 -0.0', n='10 3 1')  # obs. grid4
+
+        if self.obsPoints == 'ogrid4':
+            obsGrid.createObject('RegularGrid', name="grid", min='0.0 0.08 0.0', max='0.1 0.1 -0.0', n='10 3 1')  # obs. ogrid4
+
         obsGrid.createObject('MechanicalObject', src='@grid', showIndicesScale='0.00025', name='MO', template='Vec3d', showIndices='1')        
         obsGrid.createObject('BarycentricMapping')
         # obsGrid.createObject('Sphere', radius="0.0006", color="1 0 1 1")
