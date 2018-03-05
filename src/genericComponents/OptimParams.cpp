@@ -51,11 +51,11 @@ void OptimParams<sofa::helper::vector<double> >::getInitVariance(DVec& _variance
     switch (transParamType) {
     case 3:
         for (size_t i = 0; i < _variance.size(); i++)
-            _variance[i] = log(SQR(m_stdev.getValue()[i]));
+            _variance[i] = log(helper::SQR(m_stdev.getValue()[i]));
         break;
     default:
         for (size_t i = 0; i < _variance.size(); i++)
-            _variance[i] = SQR(m_stdev.getValue()[i]);
+            _variance[i] = helper::SQR(m_stdev.getValue()[i]);
 
     }
 
@@ -677,7 +677,7 @@ void OptimParams<Vec3dTypes::VecCoord>::getInitVariance(DVec& _variance) {
     size_t ij = 0;
     for (size_t i = 0; i < mstate_dim; i++)
         for (size_t j = 0; j < 3; j++, ij++)
-            _variance[ij] = SQR(m_stdev.getValue()[i][j]);
+            _variance[ij] = helper::SQR(m_stdev.getValue()[i][j]);
 
 }
 
