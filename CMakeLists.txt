@@ -10,7 +10,7 @@ find_package(SofaBase REQUIRED)
 find_package(SofaGeneral REQUIRED)
 find_package(SofaPardisoSolver QUIET)
 
-set(LINKER_DEPENDENCIES SofaComponentBase SofaComponentGeneral SofaBaseTopology blas gsl)
+set(LINKER_DEPENDENCIES SofaComponentBase SofaComponentGeneral SofaBaseTopology SofaExporter blas gsl)
 set(COMPILATION_FLAGS "-DSOFA_BUILD_OPTIMUS -Wno-unused-local-typedef -Wno-deprecated")
 
 set ( STOCHASTIC_FILTERING "0" CACHE BOOL "Set to activate the compilation the new filtering module replacing Verdandi" )
@@ -32,6 +32,7 @@ set(HEADER_FILES
     src/genericComponents/Transform3dToRigid.h
     src/genericComponents/CorrectionForceField.h
     src/genericComponents/CorrectionForceField.inl
+    src/genericComponents/VTKExporterDA.h
     )
 
 set(SOURCE_FILES
@@ -43,6 +44,7 @@ set(SOURCE_FILES
     src/genericComponents/AddNoiseEngine.cpp
     src/genericComponents/Transform3dToRigid.cpp
     src/genericComponents/CorrectionForceField.cpp
+    src/genericComponents/VTKExporterDA.cpp
     )
 
 set(README_FILES 
