@@ -50,14 +50,12 @@ void VTKExporterDA::handleEvent(sofa::core::objectmodel::Event *event)
         this->stepCounter++;
         if(this->stepCounter >= maxStep)
         {
-            std::cout << this->getName() << ": SAVING" << std::endl;
             this->stepCounter = 0;
             if(fileFormat.getValue())
                 writeVTKXML();
             else
                 writeVTKSimple();
-        } else
-            std::cout << this->getName() << ": SKIPPING" << std::endl;
+        }
     }
 }
 
