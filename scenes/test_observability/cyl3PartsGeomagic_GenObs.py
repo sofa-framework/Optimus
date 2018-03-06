@@ -8,6 +8,7 @@ import DAOptions
 
 __file = __file__.replace('\\', '/') # windows
 
+loadGeomagicTrack = 1
 
 def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', pluginName='SofaPython')   
@@ -65,7 +66,10 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
         self.dotNode = dotNode
         dotNode.createObject('EulerImplicitSolver', firstOrder='false', vdamping=self.vdamping, rayleighStiffness=self.options.model.rayleighStiffness, rayleighMass=self.options.model.rayleighMass)
         dotNode.createObject('CGLinearSolver', iterations='25', tolerance='1e-5', threshold='1e-5')
-        dotNode.createObject('GeomagicDriver', name='GeomagicDevice', deviceName='Default Device', scale='0.02', orientationBase='0 1 -1 -1', positionBase='-0.2 -0.1 0.07', orientationTool='0 0 0 1')
+        if loadGeomagicTrack:
+            dotNode.createObject('GeomagicEmulator', name='GeomagicDevice', positionFilename='geomagicObservations/geomagic_x.txt', buttonFilename='geomagicObservations/listener.txt')
+        else:
+            dotNode.createObject('GeomagicDriver', name='GeomagicDevice', deviceName='Default Device', scale='0.02', orientationBase='0 1 -1 -1', positionBase='-0.205 -0.095 0.078', orientationTool='0 0 0 1')
         dotNode.createObject('MechanicalObject', template='Rigid', name='GeomagicMO', position='@GeomagicDevice.positionDevice')
         dotNode.createObject('Sphere', color='0.5 0.5 0.5 1', radius='0.014', template='Rigid')
         if self.options.observations.save:
@@ -82,8 +86,9 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
         # rootNode/simuNode
         simuNode = rootNode.createChild('simuNode')
         self.simuNode = simuNode
+        simuNode.createObject('NewtonStaticSolver', maxIt=self.numIter, name='NewtonStatic', correctionTolerance='1e-8', convergeOnResidual='1', residualTolerance='1e-8', printLog='1')
         # simuNode.createObject('EulerImplicitSolver', firstOrder='false', vdamping=self.vdamping, rayleighStiffness=self.options.model.rayleighStiffness, rayleighMass=self.options.model.rayleighMass)
-        simuNode.createObject('VariationalSymplecticSolver', rayleighStiffness=self.options.model.rayleighStiffness, rayleighMass=self.options.model.rayleighMass, newtonError='1e-12', steps='1', verbose='0')
+        #simuNode.createObject('VariationalSymplecticSolver', rayleighStiffness=self.options.model.rayleighStiffness, rayleighMass=self.options.model.rayleighMass, newtonError='1e-12', steps='1', verbose='0')
         simuNode.createObject('SparsePARDISOSolver', name='LDLsolver', verbose='0', symmetric='1', exportDataToFolder='')
         simuNode.createObject('MeshVTKLoader', name='loader', filename=self.options.model.volumeFileName)
         # simuNode.createObject('MeshGmshLoader', name='loader', filename=self.options.model.volumeFileName)
