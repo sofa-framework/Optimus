@@ -102,16 +102,16 @@ class synth1_BCDA(Sofa.PythonScriptController):
         node.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
         node.createObject('UniformMass', totalMass=self.totalMass)
 
-        node.createObject('BoxROI', box='-0.05 -0.05 -0.002   0.05 0.05 0.002', name='fixedBox1')
-        node.createObject('BoxROI', box='-0.05 -0.05  0.298   0.05 0.05 0.302', name='fixedBox2')
+        node.createObject('BoxROI', box='-0.05 -0.05 -0.002   0.05 0.05 0.002', name='fixedBox1', doUpdate='0')
+        node.createObject('BoxROI', box='-0.05 -0.05  0.298   0.05 0.05 0.302', name='fixedBox2', doUpdate='0')
         node.createObject('MergeSets', name='mergeIndices', in2='@fixedBox2.indices', in1='@fixedBox1.indices')
         node.createObject('FixedConstraint', indices='@mergeIndices.out')
                     
-        node.createObject('OptimParams', name="paramE", optimize="1", numParams='10', template="Vector", initValue="6000", stdev="1000", transformParams="1")
+        node.createObject('OptimParams', name="paramE", optimize="1", numParams='10', template="Vector", initValue="6000", stdev="1000", transformParams="absolute")
         node.createObject('Indices2ValuesMapper', name='youngMapper', indices='1 2 3 4 5 6 7 8 9 10', values='@paramE.value', inputValues='@/loader.dataset')
         node.createObject('TetrahedronFEMForceField', name='FEM', updateStiffness='1', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
-        node.createObject('LinearSolverConstraintCorrection')
-        # node.createObject('PardisoConstraintCorrection', solverName='lsolver', schurSolverName='lsolver')
+        # node.createObject('LinearSolverConstraintCorrection')
+        node.createObject('PardisoConstraintCorrection', solverName='lsolver', schurSolverName='lsolver')
 
         # create collision model
         surface=node.createChild('collision')        
@@ -153,10 +153,11 @@ class synth1_BCDA(Sofa.PythonScriptController):
         floor.createObject('Triangle',simulated="false", bothSide="true", contactFriction="0.00", color="1 1 0 1")
         floor.createObject('Line', simulated="false", bothSide="true", contactFriction="0.0", color="1 1 0 1")
         floor.createObject('Point', simulated="false", bothSide="true", contactFriction="0.0", color="1 1 0 1")                                 
+        return
 
 
     def createMasterScene(self, node):
-        node.createObject('StochasticStateWrapper',name="StateWrapper",verbose='1', langrangeMultipliers='1')
+        node.createObject('StochasticStateWrapper',name="StateWrapper",verbose='1', langrangeMultipliers='1', estimatePosition='1')
         node.createObject('GenericConstraintSolver', maxIterations='1000', tolerance='1e-6', printLog='0', allVerified='0')
 
         node.createObject('CollisionPipeline', depth="6", verbose="0", draw="0")
