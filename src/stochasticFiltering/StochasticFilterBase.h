@@ -61,7 +61,7 @@ public:
         , mechParams(0)
         , verbose( initData(&verbose, false, "verbose", "print tracing informations") )
         , reducedOrder( initData(&reducedOrder, false, "reducedOrder", "reduced order type of the filter") )
-        , useUnbiasedVariance( initData(&useUnbiasedVariance, 0, "useUnbiasedVariance", "if true, the unbiased variance is computed (normalization by 1/(n-1) [not activated for UKFClassic!") )
+        , useUnbiasedVariance( initData(&useUnbiasedVariance, false, "useUnbiasedVariance", "if true, the unbiased variance is computed (normalization by 1/(n-1) [not activated for UKFClassic!") )
         //, useModelIncertitude( initData(&useModelIncertitude, false, "useModelIncertitude", "if true, the state covariance is computed by adding Q") )
         , lambdaScale( initData(&lambdaScale, 1.0, "lambdaScale", "scaling for sigma points") )
         , m_sigmaTopologyType( initData(&m_sigmaTopologyType, "sigmaTopology", "sigma topology type") )
