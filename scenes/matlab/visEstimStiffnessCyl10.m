@@ -4,22 +4,19 @@ groundTruth=zeros(1,16);   %P2
 showStdev = 1;
 nsteps=-1;
 
-%prefix = '../assimStiffness/outCyl3_770_P1_pull_';
-%prefix = '../assimStiffness/outCyl3_770_P2';
-
-%integ='Euler'
+%integ='Euler1'
 %integ='Newton3'
 integ='VarSym3'
 
-%prefix='../assimBC/outSynth1Euler_';
-prefix=['../assimBC/resSynth1_' integ '_'];
-
-filterType='UKFSimCorr';
+%filterType='UKFSimCorr';
 %filterType='UKFClassic';
-%filterType='ROUKF';
+filterType='ROUKF';
 
-estStateFile=[prefix filterType '/state.txt'];
-estVarFile=[prefix filterType '/variance.txt'];
+inputDir=['../assimBC/brickD_FP1_OPogrid4_INT' integ '_TR1/DA_' filterType];
+
+
+estStateFile=[inputDir '/state.txt'];
+estVarFile=[inputDir '/variance.txt'];
 
 %===================================================================
 nparams=size(groundTruth,2);
