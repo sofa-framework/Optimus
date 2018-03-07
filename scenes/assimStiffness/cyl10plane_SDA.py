@@ -33,23 +33,35 @@ class synth1_BCDA(Sofa.PythonScriptController):
         self.materialParams='{} {}'.format(mu,lamb)
 
         self.volumeFileName='../../data/cylinder/cylinder10_4245.vtk'
-        self.surfaceFileName='../../data/cylinder/cylinder10_4245.stl'
-        self.observationFileName='observations/cylinder10plane_4245'
+        self.surfaceFileName='../../data/cylinder/cylinder10_4245.stl'        
         self.dt='0.01'
         self.gravity='0 -9.81 0'
         self.totalMass='0.2'
         #self.totalMass='0.3769'
         self.rayleighMass=0.1
         self.rayleighStiffness=3
-                        
-        self.outDir='outCyl10plane'
+
+        # self.filterKind = 'ROUKF'
+        # self.estimatePosition = 1
+
+        self.filterKind = 'UKFSimCorr'
+        self.estimatePosition = 0
+
+        self.planeCollision = 1
+                               
+        
+        self.outDir='test' #outCyl10plane_'+self.filterKind if self.planeCollision == 1 else 'outCyl10_'+self.filterKind
+        self.observationFileName='observations/cyl10Gravity_plane_4245' if self.planeCollision == 1 else 'observations/cyl10Gravity_4245'        
+
+        os.system('mv -rf '+self.outDir+' arch')
+        os.system('mkdir -p '+self.outDir)
         
         self.saveState = 1
-        self.suffix='test'   #psd'+str(self.paramInitSD)+'#osd'+str(self.obsInitSD)+'#ogrid'+str(self.ogridID)
+        self.suffix=''   #psd'+str(self.paramInitSD)+'#osd'+str(self.obsInitSD)+'#ogrid'+str(self.ogridID)
         if self.saveState:
-            self.stateExpFile=self.outDir+'/state_'+self.suffix+'.txt'
-            self.stateVarFile=self.outDir+'/variance_'+self.suffix+'.txt'
-            self.stateCovarFile=self.outDir+'/covariance_'+self.suffix+'.txt'
+            self.stateExpFile=self.outDir+'/state'+self.suffix+'.txt'
+            self.stateVarFile=self.outDir+'/variance'+self.suffix+'.txt'
+            self.stateCovarFile=self.outDir+'/covariance'+self.suffix+'.txt'
             os.system('rm '+self.stateExpFile)
             os.system('rm '+self.stateVarFile)
             os.system('rm '+self.stateCovarFile)
@@ -78,7 +90,10 @@ class synth1_BCDA(Sofa.PythonScriptController):
         node.createObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels hideVisualModels')
 
         node.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")        
-        self.filter = node.createObject('ROUKFilter', name="ROUKF", verbose="1")        
+        if self.filterKind == 'ROUKF':
+            self.filter = node.createObject('ROUKFilter', name="ROUKF", verbose="1")
+        elif self.filterKind == 'UKFSimCorr':
+            self.filter = node.createObject('UKFilterSimCorr', name="UKFSC", verbose="1")
             
         node.createObject('MeshVTKLoader', name='loader', filename=self.volumeFileName)
         node.createObject('MeshSTLLoader', name='sloader', filename=self.surfaceFileName)        
@@ -93,7 +108,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         node.createObject('EulerImplicitSolver', rayleighStiffness=self.rayleighStiffness, rayleighMass=self.rayleighMass)
         # node.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")   
         # node.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
-        node.createObject('SparsePARDISOSolver', name="lsolver", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
+        node.createObject('SparsePARDISOSolver', name="lsolver", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0", pardisoSchurComplement='1')
 
         node.createObject('MechanicalObject', src="@/loader", name="Volume")
         node.createObject('TetrahedronSetTopologyContainer', name="Container", src="@/loader", tags=" ")
@@ -110,18 +125,21 @@ class synth1_BCDA(Sofa.PythonScriptController):
         node.createObject('OptimParams', name="paramE", optimize="1", numParams='10', template="Vector", initValue="6000", stdev="1000", transformParams="absolute")
         node.createObject('Indices2ValuesMapper', name='youngMapper', indices='1 2 3 4 5 6 7 8 9 10', values='@paramE.value', inputValues='@/loader.dataset')
         node.createObject('TetrahedronFEMForceField', name='FEM', updateStiffness='1', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
-        # node.createObject('LinearSolverConstraintCorrection')
-        node.createObject('PardisoConstraintCorrection', solverName='lsolver', schurSolverName='lsolver')
+
+        if self.planeCollision == 1:
+            # node.createObject('LinearSolverConstraintCorrection')
+            node.createObject('PardisoConstraintCorrection', solverName='lsolver', schurSolverName='lsolver')
 
         # create collision model
-        surface=node.createChild('collision')        
-        surface.createObject('TriangleSetTopologyContainer', position='@/sloader.position', name='TriangleContainer', triangles='@/sloader.triangles')
-        surface.createObject('TriangleSetTopologyModifier', name='Modifier')
-        surface.createObject('MechanicalObject', showIndices='false', name='mstate')
-        surface.createObject('Triangle', color='1 0 0 1', group=0)
-        surface.createObject('Line', color='1 0 0 1', group=0)
-        surface.createObject('Point', color='1 0 0 1', group=0)
-        surface.createObject('BarycentricMapping', name='bpmapping')
+        if self.planeCollision == 1:
+            surface=node.createChild('collision')        
+            surface.createObject('TriangleSetTopologyContainer', position='@/sloader.position', name='TriangleContainer', triangles='@/sloader.triangles')
+            surface.createObject('TriangleSetTopologyModifier', name='Modifier')
+            surface.createObject('MechanicalObject', showIndices='false', name='mstate')
+            surface.createObject('Triangle', color='1 0 0 1', group=0)
+            surface.createObject('Line', color='1 0 0 1', group=0)
+            surface.createObject('Point', color='1 0 0 1', group=0)
+            surface.createObject('BarycentricMapping', name='bpmapping')
 
         # create observation node
         obsNode = node.createChild('observations')
@@ -147,24 +165,26 @@ class synth1_BCDA(Sofa.PythonScriptController):
         return 0
 
     def createObstacle(self, node): 
-        floor = node.createChild('floor')
-        floor.createObject('RegularGrid', nx="2", ny="2", nz="2", xmin="-0.1", xmax="0.1",  ymin="-0.059", ymax="-0.061", zmin="0.0", zmax="0.3")
-        floor.createObject('MechanicalObject', template="Vec3d")
-        floor.createObject('Triangle',simulated="false", bothSide="true", contactFriction="0.00", color="1 1 0 1")
-        floor.createObject('Line', simulated="false", bothSide="true", contactFriction="0.0", color="1 1 0 1")
-        floor.createObject('Point', simulated="false", bothSide="true", contactFriction="0.0", color="1 1 0 1")                                 
+        if self.planeCollision == 1:
+            floor = node.createChild('floor')
+            floor.createObject('RegularGrid', nx="2", ny="2", nz="2", xmin="-0.1", xmax="0.1",  ymin="-0.059", ymax="-0.061", zmin="0.0", zmax="0.3")
+            floor.createObject('MechanicalObject', template="Vec3d")
+            floor.createObject('Triangle',simulated="false", bothSide="true", contactFriction="0.00", color="1 1 0 1")
+            floor.createObject('Line', simulated="false", bothSide="true", contactFriction="0.0", color="1 1 0 1")
+            floor.createObject('Point', simulated="false", bothSide="true", contactFriction="0.0", color="1 1 0 1")                                 
         return
 
 
     def createMasterScene(self, node):
-        node.createObject('StochasticStateWrapper',name="StateWrapper",verbose='1', langrangeMultipliers='1', estimatePosition='1')
-        node.createObject('GenericConstraintSolver', maxIterations='1000', tolerance='1e-6', printLog='0', allVerified='0')
+        node.createObject('StochasticStateWrapper',name="StateWrapper",verbose='1', langrangeMultipliers=self.planeCollision, estimatePosition=self.estimatePosition)
 
-        node.createObject('CollisionPipeline', depth="6", verbose="0", draw="0")
-        node.createObject('BruteForceDetection', name="N2")
-        node.createObject('LocalMinDistance', name="Proximity",  alarmDistance='0.002', contactDistance='0.001',  angleCone='90.0', filterIntersection='0')
-        node.createObject('DefaultContactManager', name="Response", response="FrictionContact", responseParams='mu=0')
-            
+        if self.planeCollision == 1:
+            node.createObject('GenericConstraintSolver', maxIterations='1000', tolerance='1e-6', printLog='0', allVerified='0')
+            node.createObject('CollisionPipeline', depth="6", verbose="0", draw="0")
+            node.createObject('BruteForceDetection', name="N2")
+            node.createObject('LocalMinDistance', name="Proximity",  alarmDistance='0.002', contactDistance='0.001',  angleCone='90.0', filterIntersection='0')
+            node.createObject('DefaultContactManager', name="Response", response="FrictionContact", responseParams='mu=0')
+
         self.createDeformableBody(node)
         self.createObstacle(node)
 
@@ -210,36 +230,40 @@ class synth1_BCDA(Sofa.PythonScriptController):
         # self.process.initializationObjects(node)
         return 0
 
-    def onEndAnimationStep(self, deltaTime):  
+    def onEndAnimationStep(self, deltaTime): 
+        
+        stateName = 'reducedState' if self.filterKind == 'ROUKF' else 'state'
+        varName = 'reducedVariance' if self.filterKind == 'ROUKF' else 'variance'
+        covarName = 'reducedCovariance' if self.filterKind == 'ROUKF' else 'covariance'
 
         if self.saveState:              
-            rs=self.filter.findData('reducedState').value
-            reducedState = [val for sublist in rs for val in sublist]
+            rs=self.filter.findData(stateName).value
+            state = [val for sublist in rs for val in sublist]
             #print 'Reduced state:'
             #print reducedState
 
             f1 = open(self.stateExpFile, "a")        
-            f1.write(" ".join(map(lambda x: str(x), reducedState)))
+            f1.write(" ".join(map(lambda x: str(x), state)))
             f1.write('\n')
             f1.close()    
                     
-            rv=self.filter.findData('reducedVariance').value
-            reducedVariance = [val for sublist in rv for val in sublist]
+            rv=self.filter.findData(varName).value
+            variance = [val for sublist in rv for val in sublist]
             #print 'Reduced variance:'
             #print reducedVariance
 
             f2 = open(self.stateVarFile, "a")        
-            f2.write(" ".join(map(lambda x: str(x), reducedVariance)))
+            f2.write(" ".join(map(lambda x: str(x), variance)))
             f2.write('\n')
             f2.close()
 
-            rcv=self.filter.findData('reducedCovariance').value
-            reducedCovariance = [val for sublist in rcv for val in sublist]
+            rcv=self.filter.findData(covarName).value
+            covariance = [val for sublist in rcv for val in sublist]
             #print 'Reduced Covariance:'
             #print reducedCovariance
 
             f3 = open(self.stateCovarFile, "a")
-            f3.write(" ".join(map(lambda x: str(x), reducedCovariance)))
+            f3.write(" ".join(map(lambda x: str(x), covariance)))
             f3.write('\n')
             f3.close()    
 

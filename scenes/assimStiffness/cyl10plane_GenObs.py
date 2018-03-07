@@ -26,8 +26,7 @@ class cyl10_GenObs (Sofa.PythonScriptController):
 
     def __init__(self, rootNode, commandLineArguments) :         
         self.volumeFileName='../../data/cylinder/cylinder10_4245.vtk'
-        self.surfaceFileName='../../data/cylinder/cylinder10_4245.stl'
-        self.observationFileName='observations/cylinder10plane_4245'
+        self.surfaceFileName='../../data/cylinder/cylinder10_4245.stl'        
         self.dt='0.01'
         self.gravity='0 -9.81 0'
         self.totalMass='0.2'
@@ -37,12 +36,16 @@ class cyl10_GenObs (Sofa.PythonScriptController):
         self.youngModuli='3500 4000 1000 6000 2000 7000 2500 8000 3000 1500'
 
         self.saveObservations=1
+        self.planeCollision = 0
 
         rootNode.findData('dt').value = self.dt
         rootNode.findData('gravity').value = self.gravity
 
         self.commandLineArguments = commandLineArguments
         print "Command line arguments for python : "+str(commandLineArguments)
+
+        
+        self.observationFileName='observations/cyl10Gravity_plane_4245' if self.planeCollision == 1 else 'observations/cyl10Gravity_4245'        
 
         os.system('mkdir -p observations')        
         self.createGraph(rootNode)
@@ -60,20 +63,22 @@ class cyl10_GenObs (Sofa.PythonScriptController):
         rootNode.createObject('VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels hideVisual')
 
         #LM collisions:
-        rootNode.createObject('FreeMotionAnimationLoop')
-        rootNode.createObject('GenericConstraintSolver', maxIterations='1000', tolerance='1e-6', printLog='0', allVerified='0')
+        if self.planeCollision == 1:
+            rootNode.createObject('FreeMotionAnimationLoop')
+            rootNode.createObject('GenericConstraintSolver', maxIterations='1000', tolerance='1e-6', printLog='0', allVerified='0')
 
-        rootNode.createObject('CollisionPipeline', depth="6", verbose="0", draw="0")
-        rootNode.createObject('BruteForceDetection', name="N2")
-        rootNode.createObject('LocalMinDistance', name="Proximity",  alarmDistance='0.002', contactDistance='0.001',  angleCone='90.0', filterIntersection='0')
-        rootNode.createObject('DefaultContactManager', name="Response", response="FrictionContact", responseParams='mu=0')
+            rootNode.createObject('CollisionPipeline', depth="6", verbose="0", draw="0")
+            rootNode.createObject('BruteForceDetection', name="N2")
+            rootNode.createObject('LocalMinDistance', name="Proximity",  alarmDistance='0.002', contactDistance='0.001',  angleCone='90.0', filterIntersection='0')
+            rootNode.createObject('DefaultContactManager', name="Response", response="FrictionContact", responseParams='mu=0')
+
 
         # rootNode/simuNode
         simuNode = rootNode.createChild('simuNode')
         self.simuNode = simuNode
         simuNode.createObject('MeshVTKLoader', name='loader', filename=self.volumeFileName)        
         simuNode.createObject('EulerImplicitSolver', rayleighStiffness=self.rayleighStiffness, rayleighMass=self.rayleighMass)
-        simuNode.createObject('SparsePARDISOSolver', name='lsolver', verbose='0')        
+        simuNode.createObject('SparsePARDISOSolver', name='lsolver', verbose='0', pardisoSchurComplement='1')
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')
         simuNode.createObject('BoxROI', box='-0.05 -0.05 -0.002   0.05 0.05 0.002', name='fixedBox1')
         simuNode.createObject('BoxROI', box='-0.05 -0.05  0.298   0.05 0.05 0.302', name='fixedBox2')
@@ -93,31 +98,34 @@ class cyl10_GenObs (Sofa.PythonScriptController):
             simuNode.createObject('Monitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.observationFileName, ExportPositions='1', ExportVelocities='0', ExportForces='0')
 
 
-        #simuNode.createObject('PardisoConstraintCorrection', solverName='lsolver', schurSolverName='lsolver')
-        simuNode.createObject('LinearSolverConstraintCorrection')
+        if self.planeCollision:
+            simuNode.createObject('PardisoConstraintCorrection', solverName='lsolver', schurSolverName='lsolver')
+            # simuNode.createObject('LinearSolverConstraintCorrection')
 
 
-        surface=simuNode.createChild('collision')
-        surface.createObject('MeshSTLLoader', name='sloader', filename=self.surfaceFileName)
-        surface.createObject('TriangleSetTopologyContainer', position='@sloader.position', name='TriangleContainer', triangles='@sloader.triangles')
-        surface.createObject('TriangleSetTopologyModifier', name='Modifier')
-        surface.createObject('MechanicalObject', showIndices='false', name='mstate')
-        surface.createObject('Triangle', color='1 0 0 1', group=0)
-        surface.createObject('Line', color='1 0 0 1', group=0)
-        surface.createObject('Point', color='1 0 0 1', group=0)
-        surface.createObject('BarycentricMapping', name='bpmapping')
+        if self.planeCollision:
+            surface=simuNode.createChild('collision')
+            surface.createObject('MeshSTLLoader', name='sloader', filename=self.surfaceFileName)
+            surface.createObject('TriangleSetTopologyContainer', position='@sloader.position', name='TriangleContainer', triangles='@sloader.triangles')
+            surface.createObject('TriangleSetTopologyModifier', name='Modifier')
+            surface.createObject('MechanicalObject', showIndices='false', name='mstate')
+            surface.createObject('Triangle', color='1 0 0 1', group=0)
+            surface.createObject('Line', color='1 0 0 1', group=0)
+            surface.createObject('Point', color='1 0 0 1', group=0)
+            surface.createObject('BarycentricMapping', name='bpmapping')
 
         # rootNode/simuNode/oglNode
         oglNode = simuNode.createChild('oglNode')
         self.oglNode = oglNode
         oglNode.createObject('OglModel')
 
-        floor = simuNode.createChild('floor')
-        floor.createObject('RegularGrid', nx="2", ny="2", nz="2", xmin="-0.1", xmax="0.1",  ymin="-0.059", ymax="-0.061", zmin="0.0", zmax="0.3")
-        floor.createObject('MechanicalObject', template="Vec3d")
-        floor.createObject('Triangle',simulated="false", bothSide="true", contactFriction="0.00", color="1 0 0 1")
-        floor.createObject('Line', simulated="false", bothSide="true", contactFriction="0.0")
-        floor.createObject('Point', simulated="false", bothSide="true", contactFriction="0.0")
+        if self.planeCollision:
+            floor = simuNode.createChild('floor')
+            floor.createObject('RegularGrid', nx="2", ny="2", nz="2", xmin="-0.1", xmax="0.1",  ymin="-0.059", ymax="-0.061", zmin="0.0", zmax="0.3")
+            floor.createObject('MechanicalObject', template="Vec3d")
+            floor.createObject('Triangle',simulated="false", bothSide="true", contactFriction="0.00", color="1 0 0 1")
+            floor.createObject('Line', simulated="false", bothSide="true", contactFriction="0.0")
+            floor.createObject('Point', simulated="false", bothSide="true", contactFriction="0.0")
 
         return 0;
 
