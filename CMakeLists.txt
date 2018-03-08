@@ -10,7 +10,7 @@ find_package(SofaBase REQUIRED)
 find_package(SofaGeneral REQUIRED)
 find_package(SofaPardisoSolver QUIET)
 
-set(LINKER_DEPENDENCIES SofaComponentBase SofaComponentGeneral SofaBaseTopology SofaExporter blas gsl)
+set(LINKER_DEPENDENCIES SofaComponentBase SofaComponentGeneral SofaBaseTopology SofaExporter blas)
 set(COMPILATION_FLAGS "-DSOFA_BUILD_OPTIMUS -Wno-unused-local-typedef -Wno-deprecated")
 
 set ( STOCHASTIC_FILTERING "0" CACHE BOOL "Set to activate the compilation the new filtering module replacing Verdandi" )
