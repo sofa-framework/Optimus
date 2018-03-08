@@ -1,5 +1,13 @@
 #!/bin/bash
 
+if [ $# == "1" ]; then
+        SOFA_EXEC=$1
+else
+        SOFA_EXEC=runSofa
+fi
+echo "Using SOFA executable: " $SOFA_EXEC
+
+rm -rf roukf_testing
 mkdir -p roukf_testing
 
 echo "Generating observations..."
