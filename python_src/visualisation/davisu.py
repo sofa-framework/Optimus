@@ -8,6 +8,10 @@ import math
 import matplotlib.pyplot as plt
 from itertools import repeat
 
+# select the visual style
+plt.style.use('classic')
+#print(plt.style.available)
+
 def load_matrix_from_file(f):
     if type(f) == types.StringType:
         fo = open(f, 'r')

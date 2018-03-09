@@ -8,6 +8,10 @@ import math
 import matplotlib.pyplot as plt
 from itertools import repeat
 
+# select the visual style
+plt.style.use('classic')
+#print(plt.style.available)
+
 inputList = ['outCyl3_770_UKFSimCorr_cyl3ForceField770Verification_init2000']
 inputList.append('outCyl3_770_ROUKF_cyl3ForceField770Verification_init2000')
 #inputList.append('outCyl2_385_UKFClassic_forceField385Verification_init2000')
@@ -63,6 +67,9 @@ else:
 # plot computation time
 fig2 = plt.figure(100)
 spl2 = fig2.add_subplot(111)
+spl2.set_axisbelow(True)
+spl2.xaxis.grid(color='gray', linestyle='dotted')
+spl2.yaxis.grid(color='gray', linestyle='dotted')
 
 # plot variance values
 fig3 = plt.figure(200)
