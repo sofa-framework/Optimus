@@ -25,6 +25,8 @@ def createScene(rootNode):
 class cyl10_GenObs (Sofa.PythonScriptController):
 
     def __init__(self, rootNode, commandLineArguments) :         
+        self.geometry = 'cyl10'
+
         self.volumeFileName='../../data/cylinder/cylinder10_4245.vtk'
         self.surfaceFileName='../../data/cylinder/cylinder10_4245.stl'        
         self.dt='0.01'
@@ -35,7 +37,7 @@ class cyl10_GenObs (Sofa.PythonScriptController):
         self.rayleighStiffness=3
         self.youngModuli='3500 4000 1000 6000 2000 7000 2500 8000 3000 1500'
 
-        self.saveObservations=1
+        self.saveObservations=0
         self.planeCollision = 0
 
         rootNode.findData('dt').value = self.dt
@@ -43,11 +45,26 @@ class cyl10_GenObs (Sofa.PythonScriptController):
 
         self.commandLineArguments = commandLineArguments
         print "Command line arguments for python : "+str(commandLineArguments)
-
         
-        self.observationFileName='observations/cyl10Gravity_plane_4245' if self.planeCollision == 1 else 'observations/cyl10Gravity_4245'        
 
-        os.system('mkdir -p observations')        
+        self.integration = 'Euler'
+        self.numIter = 1
+
+        #self.integration = 'Newton'
+        #self.numIter = 3
+        
+
+        self.observationDir=self.geometry+'gravity_INT'+self.integration+str(self.numIter)+'/observations'
+
+        if self.planeCollision:
+            self.observationDir= self.observationDir + '_plane'
+    
+
+        if self.saveObservations:
+            os.system('mv '+self.observationDir+' arch')
+            os.system('mkdir -p '+self.observationDir)
+
+
         self.createGraph(rootNode)
 
 
@@ -77,7 +94,10 @@ class cyl10_GenObs (Sofa.PythonScriptController):
         simuNode = rootNode.createChild('simuNode')
         self.simuNode = simuNode
         simuNode.createObject('MeshVTKLoader', name='loader', filename=self.volumeFileName)        
-        simuNode.createObject('EulerImplicitSolver', rayleighStiffness=self.rayleighStiffness, rayleighMass=self.rayleighMass)
+        # simuNode.createObject('EulerImplicitSolver', rayleighStiffness=self.rayleighStiffness, rayleighMass=self.rayleighMass)
+        simuNode.createObject('NewtonStaticSolver', maxIt='1', correctionTolerance='1e-8', residualTolerance='1e-8', convergeOnResidual='1')
+        simuNode.createObject('StepPCGLinearSolver', name='lsolverit', precondOnTimeStep='1', use_precond='1', tolerance='1', verbose='1', listening='1', preconditioners='lsolver')
+        # simuNode.createObject('ShewchukPCGLinearSolver', name='lsolverit', precondOnTimeStep='1', use_precond='1', tolerance='1', verbose='1', listening='1', preconditioners='lsolver')
         simuNode.createObject('SparsePARDISOSolver', name='lsolver', verbose='0', pardisoSchurComplement='1')
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')
         simuNode.createObject('BoxROI', box='-0.05 -0.05 -0.002   0.05 0.05 0.002', name='fixedBox1')
@@ -95,7 +115,7 @@ class cyl10_GenObs (Sofa.PythonScriptController):
 
         if self.saveObservations:
             simuNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1')
-            simuNode.createObject('Monitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.observationFileName, ExportPositions='1', ExportVelocities='0', ExportForces='0')
+            simuNode.createObject('Monitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.observationDir+'/pos', ExportPositions='1', ExportVelocities='0', ExportForces='0')
 
 
         if self.planeCollision:

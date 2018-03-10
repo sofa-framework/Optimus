@@ -47,7 +47,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         self.filterKind = 'UKFSimCorr'
         self.estimatePosition = 0
 
-        self.planeCollision = 1
+        self.planeCollision = 0
                                
         
         self.outDir='test' #outCyl10plane_'+self.filterKind if self.planeCollision == 1 else 'outCyl10_'+self.filterKind
