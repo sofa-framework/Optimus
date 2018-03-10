@@ -56,8 +56,9 @@ class synth1_BCDA(Sofa.PythonScriptController):
         #self.integration = 'Newton'
         #self.numIter = 3                 
 
+        sdaSuffix = '_precond_s1_pcg15'
         self.observationDir=self.geometry+'gravity_INT'+self.integration+str(self.numIter)+'/observations'
-        self.outDir=self.geometry+'gravity_INT'+self.integration+str(self.numIter)+'/'+self.filterKind
+        self.outDir=self.geometry+'gravity_INT'+self.integration+str(self.numIter)+'/'+self.filterKind+sdaSuffix
         if self.planeCollision:
             self.observationDir= self.observationDir + '_plane'
             self.outDir= self.outDir + '_plane'
@@ -117,9 +118,10 @@ class synth1_BCDA(Sofa.PythonScriptController):
         #node.createObject('StaticSolver', applyIncrementFactor="0")  
         node=parentNode.createChild('cylinder')      
         node.createObject('EulerImplicitSolver', rayleighStiffness=self.rayleighStiffness, rayleighMass=self.rayleighMass)
-        # node.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")   
-        # node.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
-        node.createObject('SparsePARDISOSolver', name="lsolver", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0", pardisoSchurComplement='1')
+        # node.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")           
+        node.createObject('StepPCGLinearSolver', name='lsolverit', precondOnTimeStep='1', use_precond='1', tolerance='1e-15', iterations='500',
+         verbose='0', update_step='10', listening='1', preconditioners='lsolver')
+        node.createObject('SparsePARDISOSolver', name="lsolver", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0", pardisoSchurComplement='0')
 
         node.createObject('MechanicalObject', src="@/loader", name="Volume")
         node.createObject('TetrahedronSetTopologyContainer', name="Container", src="@/loader", tags=" ")

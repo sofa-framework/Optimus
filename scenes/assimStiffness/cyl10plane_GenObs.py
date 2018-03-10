@@ -37,24 +37,22 @@ class cyl10_GenObs (Sofa.PythonScriptController):
         self.rayleighStiffness=3
         self.youngModuli='3500 4000 1000 6000 2000 7000 2500 8000 3000 1500'
 
-        self.saveObservations=0
+        self.saveObservations=1
         self.planeCollision = 0
 
         rootNode.findData('dt').value = self.dt
         rootNode.findData('gravity').value = self.gravity
 
         self.commandLineArguments = commandLineArguments
-        print "Command line arguments for python : "+str(commandLineArguments)
-        
+        print "Command line arguments for python : "+str(commandLineArguments)        
 
         self.integration = 'Euler'
         self.numIter = 1
 
         #self.integration = 'Newton'
-        #self.numIter = 3
-        
+        #self.numIter = 3        
 
-        self.observationDir=self.geometry+'gravity_INT'+self.integration+str(self.numIter)+'/observations'
+        self.observationDir=self.geometry+'gravity_INT'+self.integration+str(self.numIter)+'/observations_s1_test'
         if self.planeCollision:
             self.observationDir= self.observationDir + '_plane'
     
@@ -63,9 +61,7 @@ class cyl10_GenObs (Sofa.PythonScriptController):
             os.system('mv '+self.observationDir+' arch')
             os.system('mkdir -p '+self.observationDir)
 
-
         self.createGraph(rootNode)
-
 
         return None;
 
@@ -95,9 +91,11 @@ class cyl10_GenObs (Sofa.PythonScriptController):
         simuNode.createObject('MeshVTKLoader', name='loader', filename=self.volumeFileName)        
         simuNode.createObject('EulerImplicitSolver', rayleighStiffness=self.rayleighStiffness, rayleighMass=self.rayleighMass)
         # simuNode.createObject('NewtonStaticSolver', maxIt='1', correctionTolerance='1e-8', residualTolerance='1e-8', convergeOnResidual='1')
-        # simuNode.createObject('StepPCGLinearSolver', name='lsolverit', precondOnTimeStep='1', use_precond='1', tolerance='1', verbose='1', listening='1', preconditioners='lsolver')
-        # simuNode.createObject('ShewchukPCGLinearSolver', name='lsolverit', precondOnTimeStep='1', use_precond='1', tolerance='1', verbose='1', listening='1', preconditioners='lsolver')
-        simuNode.createObject('SparsePARDISOSolver', name='lsolver', verbose='0', pardisoSchurComplement='1')
+        # simuNode.createObject('StepPCGLinearSolver', name='lsolverit', precondOnTimeStep='0', use_precond='1', tolerance='1e-10', iterations='500',
+        #  verbose='0', update_step='10', listening='1', preconditioners='lsolver')
+        # simuNode.createObject('ShewchukPCGLinearSolver', name='lsolverit', iterations='500', use_precond='1', tolerance='1e-10', preconditioners='lsolver')
+        # simuNode.createObject('CGLinearSolver', name='lsolverit', tolerance='1e-10', threshold='1e-10', iterations='500', verbose='0')
+        simuNode.createObject('SparsePARDISOSolver', name='lsolver', verbose='0', pardisoSchurComplement='1', symmetric='1')
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')
         simuNode.createObject('BoxROI', box='-0.05 -0.05 -0.002   0.05 0.05 0.002', name='fixedBox1')
         simuNode.createObject('BoxROI', box='-0.05 -0.05  0.298   0.05 0.05 0.302', name='fixedBox2')
