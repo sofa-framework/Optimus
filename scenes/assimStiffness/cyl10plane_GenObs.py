@@ -55,7 +55,6 @@ class cyl10_GenObs (Sofa.PythonScriptController):
         
 
         self.observationDir=self.geometry+'gravity_INT'+self.integration+str(self.numIter)+'/observations'
-
         if self.planeCollision:
             self.observationDir= self.observationDir + '_plane'
     
@@ -94,9 +93,9 @@ class cyl10_GenObs (Sofa.PythonScriptController):
         simuNode = rootNode.createChild('simuNode')
         self.simuNode = simuNode
         simuNode.createObject('MeshVTKLoader', name='loader', filename=self.volumeFileName)        
-        # simuNode.createObject('EulerImplicitSolver', rayleighStiffness=self.rayleighStiffness, rayleighMass=self.rayleighMass)
-        simuNode.createObject('NewtonStaticSolver', maxIt='1', correctionTolerance='1e-8', residualTolerance='1e-8', convergeOnResidual='1')
-        simuNode.createObject('StepPCGLinearSolver', name='lsolverit', precondOnTimeStep='1', use_precond='1', tolerance='1', verbose='1', listening='1', preconditioners='lsolver')
+        simuNode.createObject('EulerImplicitSolver', rayleighStiffness=self.rayleighStiffness, rayleighMass=self.rayleighMass)
+        # simuNode.createObject('NewtonStaticSolver', maxIt='1', correctionTolerance='1e-8', residualTolerance='1e-8', convergeOnResidual='1')
+        # simuNode.createObject('StepPCGLinearSolver', name='lsolverit', precondOnTimeStep='1', use_precond='1', tolerance='1', verbose='1', listening='1', preconditioners='lsolver')
         # simuNode.createObject('ShewchukPCGLinearSolver', name='lsolverit', precondOnTimeStep='1', use_precond='1', tolerance='1', verbose='1', listening='1', preconditioners='lsolver')
         simuNode.createObject('SparsePARDISOSolver', name='lsolver', verbose='0', pardisoSchurComplement='1')
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')

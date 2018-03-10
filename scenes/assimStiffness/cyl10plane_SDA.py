@@ -32,6 +32,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         mu=E/(2+2*nu)
         self.materialParams='{} {}'.format(mu,lamb)
 
+        self.geometry = 'cyl10'
         self.volumeFileName='../../data/cylinder/cylinder10_4245.vtk'
         self.surfaceFileName='../../data/cylinder/cylinder10_4245.stl'        
         self.dt='0.01'
@@ -41,17 +42,27 @@ class synth1_BCDA(Sofa.PythonScriptController):
         self.rayleighMass=0.1
         self.rayleighStiffness=3
 
-        # self.filterKind = 'ROUKF'
-        # self.estimatePosition = 1
+        self.filterKind = 'ROUKF'
+        self.estimatePosition = 1
 
-        self.filterKind = 'UKFSimCorr'
-        self.estimatePosition = 0
+        # self.filterKind = 'UKFSimCorr'
+        # self.estimatePosition = 0
 
         self.planeCollision = 0
-                               
-        
-        self.outDir='test' #outCyl10plane_'+self.filterKind if self.planeCollision == 1 else 'outCyl10_'+self.filterKind
-        self.observationFileName='observations/cyl10Gravity_plane_4245' if self.planeCollision == 1 else 'observations/cyl10Gravity_4245'        
+                          
+        self.integration = 'Euler'
+        self.numIter = 1
+
+        #self.integration = 'Newton'
+        #self.numIter = 3                 
+
+        self.observationDir=self.geometry+'gravity_INT'+self.integration+str(self.numIter)+'/observations'
+        self.outDir=self.geometry+'gravity_INT'+self.integration+str(self.numIter)+'/'+self.filterKind
+        if self.planeCollision:
+            self.observationDir= self.observationDir + '_plane'
+            self.outDir= self.outDir + '_plane'
+
+        self.observationFileName=self.observationDir+'/pos'
 
         os.system('mv -rf '+self.outDir+' arch')
         os.system('mkdir -p '+self.outDir)
