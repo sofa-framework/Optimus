@@ -60,16 +60,16 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
             if self.planeCollision:
                 prefix = prefix + 'plane_'
 
-            mainFolder = prefix + opt['model']['int']['type'] + str(opt['model']['int']['maxit']) + suffix
+            self.mainFolder = prefix + opt['model']['int']['type'] + str(opt['model']['int']['maxit']) + suffix
 
-            os.system('mv '+mainFolder+' '+mainFolder+'_arch')
-            os.system('mkdir '+mainFolder)
+            os.system('mv '+self.mainFolder+' '+self.mainFolder+'_arch')
+            os.system('mkdir '+self.mainFolder)
 
         if self.saveObs:
-            self.obsFile = mainFolder + '/' + opt['io']['obsFileName']
+            self.obsFile = self.mainFolder + '/' + opt['io']['obsFileName']
 
         if self.saveGeo:
-            self.geoFolder = mainFolder + '/' + opt['io']['obsFileName']+'VTK'
+            self.geoFolder = self.mainFolder + '/' + opt['io']['obsFileName']+'VTK'
             os.system('mkdir -p '+self.geoFolder)
 
         self.createGraph(rootNode)
@@ -109,9 +109,9 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
         # simuNode.createObject('ShewchukPCGLinearSolver', name='lsolverit', iterations='500', use_precond='1', tolerance='1e-10', preconditioners='lsolver')
         # simuNode.createObject('CGLinearSolver', name='lsolverit', tolerance='1e-10', threshold='1e-10', iterations='500', verbose='0')
         
-        simuNode.createObject('SparsePARDISOSolver', name='lsolver', verbose='0', pardisoSchurComplement='1', symmetric='1')
+        simuNode.createObject('SparsePARDISOSolver', name='lsolver', verbose='0', pardisoSchurComplement='1', symmetric=self.opt['model']['linsol']['sym'])
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')        
-        simuNode.createObject('BoxROI', box=self.opt['model']['bc']['boxes'], name='fixedBox')
+        simuNode.createObject('BoxROI', box=self.opt['model']['bc']['boxes'], name='fixedBox', drawBoxes='1')
         simuNode.createObject('FixedConstraint', indices='@fixedBox.indices')        
         simuNode.createObject('TetrahedronSetTopologyContainer', name="Container", src="@loader", tags=" ")
         simuNode.createObject('TetrahedronSetTopologyModifier', name="Modifier")        
@@ -119,12 +119,15 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
         simuNode.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
         simuNode.createObject('UniformMass', totalMass=self.opt['model']['total_mass'])
 
-        simuNode.createObject('Indices2ValuesMapper', indices='1 2 3 4 5 6 7 8 9 10', values=self.opt['model']['young_moduli'], 
+        youngModuli=self.opt['model']['young_moduli']
+        indices = range(1, len(youngModuli)+1)
+        simuNode.createObject('Indices2ValuesMapper', indices=indices, values=youngModuli, 
             name='youngMapper', inputValues='@loader.dataset')
+
         simuNode.createObject('TetrahedronFEMForceField', updateStiffness='1', name='FEM', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
 
         if self.saveGeo:
-            simuNode.createObject('VTKExporter', filename=self.geoFolder+'/objectDA.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="1",
+            simuNode.createObject('VTKExporter', filename=self.geoFolder+'/object.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="1",
                 exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1")
 
 
@@ -167,39 +170,40 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
     
 
     def initGraph(self, node):
-        ## Please feel free to add an example for a simple usage in /home/ip/Work/sofa/MyPlugins/Optimus/scenes/assimStiffness//home/ip/Work/sofa/master/src/applications/plugins/SofaPython/scn2python.py
+        
         return 0;
 
     def storeResetState(self):
-        ## Please feel free to add an example for a simple usage in /home/ip/Work/sofa/MyPlugins/Optimus/scenes/assimStiffness//home/ip/Work/sofa/master/src/applications/plugins/SofaPython/scn2python.py
+        
         return 0;
 
     def cleanup(self):
-        ## Please feel free to add an example for a simple usage in /home/ip/Work/sofa/MyPlugins/Optimus/scenes/assimStiffness//home/ip/Work/sofa/master/src/applications/plugins/SofaPython/scn2python.py
+        if self.saveObs or self.saveGeo:
+            print 'Observations saved to '+self.mainFolder         
         return 0;
 
     def onEndAnimationStep(self, deltaTime):
-        ## Please feel free to add an example for a simple usage in /home/ip/Work/sofa/MyPlugins/Optimus/scenes/assimStiffness//home/ip/Work/sofa/master/src/applications/plugins/SofaPython/scn2python.py
+        
         return 0;
 
     def onLoaded(self, node):
-        ## Please feel free to add an example for a simple usage in /home/ip/Work/sofa/MyPlugins/Optimus/scenes/assimStiffness//home/ip/Work/sofa/master/src/applications/plugins/SofaPython/scn2python.py
+        
         return 0;
 
     def reset(self):
-        ## Please feel free to add an example for a simple usage in /home/ip/Work/sofa/MyPlugins/Optimus/scenes/assimStiffness//home/ip/Work/sofa/master/src/applications/plugins/SofaPython/scn2python.py
+        
         return 0;
 
     def bwdInitGraph(self, node):
-        ## Please feel free to add an example for a simple usage in /home/ip/Work/sofa/MyPlugins/Optimus/scenes/assimStiffness//home/ip/Work/sofa/master/src/applications/plugins/SofaPython/scn2python.py
+        
         return 0;
 
     def onScriptEvent(self, senderNode, eventName,data):
-        ## Please feel free to add an example for a simple usage in /home/ip/Work/sofa/MyPlugins/Optimus/scenes/assimStiffness//home/ip/Work/sofa/master/src/applications/plugins/SofaPython/scn2python.py
+        
         return 0;
 
     def onBeginAnimationStep(self, deltaTime):
-        ## Please feel free to add an example for a simple usage in /home/ip/Work/sofa/MyPlugins/Optimus/scenes/assimStiffness//home/ip/Work/sofa/master/src/applications/plugins/SofaPython/scn2python.py
+        
         return 0;
 
 

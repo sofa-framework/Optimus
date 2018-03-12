@@ -59,11 +59,11 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         if self.planeCollision:
             prefix = prefix + 'plane_'
 
-        mainFolder = prefix + opt['model']['int']['type'] + str(opt['model']['int']['maxit']) + suffix    
-        self.obsFile = mainFolder + '/' + opt['io']['obsFileName']
+        self.mainFolder = prefix + opt['model']['int']['type'] + str(opt['model']['int']['maxit']) + suffix    
+        self.obsFile = self.mainFolder + '/' + opt['io']['obsFileName']
 
         if self.saveEst:
-            self.estFolder = mainFolder + '/' + opt['filter']['kind'] + opt['io']['sdaFolderSuffix']
+            self.estFolder = self.mainFolder + '/' + opt['filter']['kind'] + opt['io']['sdaFolderSuffix']
             
             os.system('mv '+self.estFolder+' '+self.estFolder+'_arch')
             os.system('mkdir '+self.estFolder)
@@ -76,7 +76,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             os.system('rm '+self.stateCovarFile)
 
         if self.saveGeo:
-            self.geoFolder = mainFolder + '/' + opt['filter']['kind'] + opt['io']['sdaFolderSuffix'] + '/VTK'
+            self.geoFolder = self.mainFolder + '/' + opt['filter']['kind'] + opt['io']['sdaFolderSuffix'] + '/VTK'
             os.system('mkdir -p '+self.geoFolder)
 
 
@@ -120,7 +120,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             modelNode.createObject('DefaultContactManager', name="Response", response="FrictionContact", responseParams='mu=0')
 
         # /ModelNode/cylinder
-        node=modelNode.createChild('cylinder')  
+        simuNode=modelNode.createChild('cylinder')  
 
         intType = self.opt['model']['int']['type']
         intMaxit = self.opt['model']['int']['maxit']
@@ -128,41 +128,44 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         rstiff = self.opt['model']['int']['rstiff']
 
         if intType == 'Euler':
-            node.createObject('EulerImplicitSolver', rayleighStiffness=rstiff, rayleighMass=rmass)
+            simuNode.createObject('EulerImplicitSolver', rayleighStiffness=rstiff, rayleighMass=rmass)
 
-        # node.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")           
-        # node.createObject('StepPCGLinearSolver', name='lsolverit', precondOnTimeStep='1', use_precond='1', tolerance='1e-15', iterations='500',
-        #        verbose='0', update_step='10', listening='1', preconditioners='lsolver')
-        node.createObject('SparsePARDISOSolver', name="lsolver", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0", pardisoSchurComplement='0')
+        # simuNode.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")           
+        # simuNode.createObject('StepPCGLinearSolver', name='lsolverit', precondOnTimeStep='1', use_precond='1', tolerance='1e-15', iterations='500',
+        #        verbose='0', update_step='10', listening='1', preconditioners='lsolver')        
+        simuNode.createObject('SparsePARDISOSolver', name='lsolver', verbose='0', pardisoSchurComplement='1', symmetric=self.opt['model']['linsol']['sym'])
 
-        node.createObject('MechanicalObject', src="@/loader", name="Volume")
-        node.createObject('BoxROI', box=self.opt['model']['bc']['boxes'], name='fixedBox')
-        node.createObject('FixedConstraint', indices='@fixedBox.indices')        
-        node.createObject('TetrahedronSetTopologyContainer', name="Container", src="@/loader", tags=" ")
-        node.createObject('TetrahedronSetTopologyModifier', name="Modifier")        
-        node.createObject('TetrahedronSetTopologyAlgorithms', name="TopoAlgo")
-        node.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
-        node.createObject('UniformMass', totalMass=self.opt['model']['total_mass'])
+        simuNode.createObject('MechanicalObject', src="@/loader", name="Volume")
+        simuNode.createObject('BoxROI', box=self.opt['model']['bc']['boxes'], name='fixedBox')
+        simuNode.createObject('FixedConstraint', indices='@fixedBox.indices')        
+        simuNode.createObject('TetrahedronSetTopologyContainer', name="Container", src="@/loader", tags=" ")
+        simuNode.createObject('TetrahedronSetTopologyModifier', name="Modifier")        
+        simuNode.createObject('TetrahedronSetTopologyAlgorithms', name="TopoAlgo")
+        simuNode.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
+        simuNode.createObject('UniformMass', totalMass=self.opt['model']['total_mass'])
         
-        node.createObject('OptimParams', name="paramE", optimize="1", template="Vector", 
+        simuNode.createObject('OptimParams', name="paramE", optimize="1", template="Vector", 
             numParams=self.opt['filter']['nparams'], transformParams=self.opt['filter']['param_transform'],
             initValue=self.opt['filter']['param_init_exval'], stdev=self.opt['filter']['param_init_stdev'])
-            
-        node.createObject('Indices2ValuesMapper', name='youngMapper', indices='1 2 3 4 5 6 7 8 9 10', values='@paramE.value', inputValues='@/loader.dataset')
-        node.createObject('TetrahedronFEMForceField', name='FEM', updateStiffness='1', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
+
+        youngModuli=self.opt['model']['young_moduli']
+        indices = range(1, len(youngModuli)+1)
+        simuNode.createObject('Indices2ValuesMapper', indices=indices, values='@paramE.value', name='youngMapper', inputValues='@/loader.dataset')
+
+        simuNode.createObject('TetrahedronFEMForceField', name='FEM', updateStiffness='1', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
 
         if self.saveGeo:
-            node.createObject('VTKExporterDA', filename=self.geoFolder+'/object.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="1",
+            simuNode.createObject('VTKExporterDA', filename=self.geoFolder+'/object.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="1",
                 exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1")
 
         
         if self.planeCollision == 1:
-            # node.createObject('LinearSolverConstraintCorrection')
-            node.createObject('PardisoConstraintCorrection', solverName='lsolver', schurSolverName='lsolver')
+            # simuNode.createObject('LinearSolverConstraintCorrection')
+            simuNode.createObject('PardisoConstraintCorrection', solverName='lsolver', schurSolverName='lsolver')
 
         # /ModelNode/cylinder/collision
         if self.planeCollision == 1:
-            surface=node.createChild('collision')        
+            surface=simuNode.createChild('collision')        
             surface.createObject('TriangleSetTopologyContainer', position='@/sloader.position', name='TriangleContainer', triangles='@/sloader.triangles')
             surface.createObject('TriangleSetTopologyModifier', name='Modifier')
             surface.createObject('MechanicalObject', showIndices='false', name='mstate')
@@ -172,7 +175,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             surface.createObject('BarycentricMapping', name='bpmapping')
 
         # /ModelNode/cylinder/observations
-        obsNode = node.createChild('observations')
+        obsNode = simuNode.createChild('observations')
         obsNode.createObject('MechanicalObject', name='SourceMO', position='0.02 0 0.08 0.02 0 0.16    0.0141 0.0141 0.08    0.0141 -0.0141 0.08    0.0141 0.0141 0.16    0.0141 -0.0141 0.16    0.02 0 0.0533    0.02 0 0.107   \
             0.02 0 0.133    0.02 0 0.187    0.02 0 0.213    0.0175 0.00961 0.0649    0.00925 0.0177 0.0647    0.0139 0.0144 0.0398    0.00961 -0.0175 0.0649    0.0177 -0.00925 0.0647  \
             0.0144 -0.0139 0.0402    0.0177 0.00936 0.145    0.0095 0.0176 0.145    0.0175 0.00961 0.0951    0.00925 0.0177 0.0953    0.0139 0.0144 0.12    0.00937 -0.0177 0.145   \
@@ -187,7 +190,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
 
 
         # /ModelNode/cylinder/visualization
-        oglNode = node.createChild('visualization')
+        oglNode = simuNode.createChild('visualization')
         self.oglNode = oglNode
         oglNode.createObject('OglModel', color='1 0 0 1')
         oglNode.createObject('BarycentricMapping')        
@@ -250,6 +253,13 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         # print self.basePoints.findData('indices_position').value
 
         return 0
+
+    def cleanup(self):
+        if self.saveEst or self.saveGeo:
+            print 'Estimations saved to '+self.estFolder
+            print 'Geometries saved to '+self.geoFolder
+
+        return 0;
 
     def onScriptEvent(self, senderNode, eventName,data):        
         return 0;
