@@ -26,6 +26,7 @@ def createScene(rootNode):
         configFileName = commandLineArguments[1]
     else:
         print 'ERROR: Must supply a yaml config file as an argument!'
+        return
 
 
     with open(configFileName, 'r') as stream:
@@ -109,7 +110,8 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
         # simuNode.createObject('ShewchukPCGLinearSolver', name='lsolverit', iterations='500', use_precond='1', tolerance='1e-10', preconditioners='lsolver')
         # simuNode.createObject('CGLinearSolver', name='lsolverit', tolerance='1e-10', threshold='1e-10', iterations='500', verbose='0')
         
-        simuNode.createObject('SparsePARDISOSolver', name='lsolver', verbose='0', pardisoSchurComplement='1', symmetric=self.opt['model']['linsol']['sym'])
+        simuNode.createObject('SparsePARDISOSolver', name='lsolver', verbose='0', pardisoSchurComplement=self.planeCollision, 
+            symmetric=self.opt['model']['linsol']['pardisoSym'], exportDataToFolder=self.opt['model']['linsol']['pardisoFolder'])
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')        
         simuNode.createObject('BoxROI', box=self.opt['model']['bc']['boxes'], name='fixedBox', drawBoxes='1')
         simuNode.createObject('FixedConstraint', indices='@fixedBox.indices')        

@@ -8,6 +8,7 @@ model:
     gravity: [0, -9.81, 0]
     total_mass: 0.2
     young_moduli: [3500, 4000, 1000, 6000, 2000, 7000, 2500, 8000, 3000, 1500]
+        
     int:   # temporal integrator properties
         type: 'Euler'
         rmass: 0.1
@@ -16,13 +17,18 @@ model:
     bc:
         type: 'fixed'
         boxes: '-0.05 -0.05 -0.002   0.05 0.05 0.002   -0.05 -0.05  0.298   0.05 0.05 0.302'
+
+    linsol:
+        usePCG: 1
+        pardisoSym: 2
+        pardisoFolder: ''
         
     plane_collision: 0
 
 io:    
     prefix: 'cyl10gravity_'
     suffix: ''
-    saveGeo: 1
+    saveGeo: 0
     saveObs: 1                  # GO only
     obsFileName: 'obs'
     saveEst: 1                  # SDA only
@@ -38,6 +44,4 @@ filter:                         # SDA only
     sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
     sigma_points_scale: 1
     bound_filter_state: 1
-
-
 ...

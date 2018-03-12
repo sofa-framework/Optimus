@@ -26,6 +26,7 @@ def createScene(rootNode):
         configFileName = commandLineArguments[1]
     else:
         print 'ERROR: Must supply a yaml config file as an argument!'
+        return
 
 
     with open(configFileName, 'r') as stream:
@@ -98,7 +99,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         self.filterKind = self.opt['filter']['kind']
 
         if self.filterKind == 'ROUKF':
-            self.filter = rootNode.createObject('ROUKFilter', name="ROUKF", verbose="1")
+            self.filter = rootNode.createObject('ROUKFilter', name="ROUKF", verbose="1", useBlasToMultiply='0')
             estimatePosition = 1
         elif self.filterKind == 'UKFSimCorr':
             self.filter = rootNode.createObject('UKFilterSimCorr', name="UKFSC", verbose="1")
@@ -129,12 +130,17 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
 
         if intType == 'Euler':
             simuNode.createObject('EulerImplicitSolver', rayleighStiffness=rstiff, rayleighMass=rmass)
+        elif intType == 'Newton':
+            simuNode.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")           
 
-        # simuNode.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")           
-        # simuNode.createObject('StepPCGLinearSolver', name='lsolverit', precondOnTimeStep='1', use_precond='1', tolerance='1e-15', iterations='500',
-        #        verbose='0', update_step='10', listening='1', preconditioners='lsolver')        
-        simuNode.createObject('SparsePARDISOSolver', name='lsolver', verbose='0', pardisoSchurComplement='1', symmetric=self.opt['model']['linsol']['sym'])
+        
+        if self.opt['model']['linsol']['usePCG']:
+            simuNode.createObject('StepPCGLinearSolver', name='lsolverit', precondOnTimeStep='1', use_precond='1', tolerance='1e-10', iterations='500',
+                verbose='0', listening='1', preconditioners='lsolver')
 
+        simuNode.createObject('SparsePARDISOSolver', name='lsolver', verbose='0', pardisoSchurComplement=self.planeCollision, 
+            symmetric=self.opt['model']['linsol']['pardisoSym'], exportDataToFolder=self.opt['model']['linsol']['pardisoFolder'])
+        
         simuNode.createObject('MechanicalObject', src="@/loader", name="Volume")
         simuNode.createObject('BoxROI', box=self.opt['model']['bc']['boxes'], name='fixedBox')
         simuNode.createObject('FixedConstraint', indices='@fixedBox.indices')        
@@ -222,7 +228,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         
             rs=self.filter.findData(stateName).value
             state = [val for sublist in rs for val in sublist]
-            #print 'Reduced state:'
+            print 'State:',state
             #print reducedState
 
             f1 = open(self.stateExpFile, "a")        
@@ -255,8 +261,10 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         return 0
 
     def cleanup(self):
-        if self.saveEst or self.saveGeo:
+        if self.saveEst:
             print 'Estimations saved to '+self.estFolder
+
+        if self.saveGeo:
             print 'Geometries saved to '+self.geoFolder
 
         return 0;
