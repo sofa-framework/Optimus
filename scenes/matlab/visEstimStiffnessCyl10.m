@@ -1,18 +1,21 @@
 addpath '~/AncillaIP/Matlab';
 %groundTruth=[1500 6000 2000];   %P1
-groundTruth=zeros(1,16);   %P2
+groundTruth=[3500 4000 1000 6000 2000 7000 2500 8000 3000 1500];
+%$groundTruth=zeros(1,10);   %P2
 showStdev = 1;
 nsteps=-1;
 
-%integ='Euler1'
+integ='Euler1'
 %integ='Newton3'
-integ='VarSym3'
+%integ='VarSym3'
 
 %filterType='UKFSimCorr';
 %filterType='UKFClassic';
 filterType='ROUKF';
 
-inputDir=['../assimBC/brickD_FP1_OPogrid4_INT' integ '_TR1/DA_' filterType];
+%inputDir=['../assimBC/brickD_FP1_OPogrid4_INT' integ '_TR1/DA_' filterType];
+
+inputDir='../assimStiffness/cyl10gravity_Euler1/ROUKF';
 
 
 estStateFile=[inputDir '/state.txt'];
