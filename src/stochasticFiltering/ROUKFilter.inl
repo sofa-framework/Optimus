@@ -72,6 +72,13 @@ void ROUKFilter<FilterType>::computePerturbedStates(EVectorX& _meanState) {
             xCol = matXi.col(i);
             stateWrappers[sigmaPoints2WrapperIDs[i]]->transformState(xCol, mechParams);
             matXi.col(i) = xCol;
+
+            /*char fileName[100];
+            sprintf(fileName, "sigma_%03d_%03d", this->stepNumber, i);
+            std::ofstream cvmFile;
+            cvmFile.open(fileName);
+            cvmFile << xCol << std::endl;
+            cvmFile.close();*/
         }
         _meanState = alpha * matXi.rowwise().sum();
     } else {
