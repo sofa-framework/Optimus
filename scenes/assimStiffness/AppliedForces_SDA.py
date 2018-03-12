@@ -5,6 +5,7 @@ import sys
 import csv
 import yaml
 import pprint
+import numpy as np
 
 __file = __file__.replace('\\', '/') # windows
 
@@ -63,9 +64,9 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         self.mainFolder = prefix + opt['model']['int']['type'] + str(opt['model']['int']['maxit']) + suffix    
         self.obsFile = self.mainFolder + '/' + opt['io']['obsFileName']
 
-        if self.saveEst:
-            self.estFolder = self.mainFolder + '/' + opt['filter']['kind'] + opt['io']['sdaFolderSuffix']
-            
+        self.estFolder = self.mainFolder + '/' + opt['filter']['kind'] + '_' + opt['filter']['obs_tag'] + opt['io']['sdaFolderSuffix']
+
+        if self.saveEst:                        
             os.system('mv '+self.estFolder+' '+self.estFolder+'_arch')
             os.system('mkdir '+self.estFolder)
 
@@ -77,7 +78,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             os.system('rm '+self.stateCovarFile)
 
         if self.saveGeo:
-            self.geoFolder = self.mainFolder + '/' + opt['filter']['kind'] + opt['io']['sdaFolderSuffix'] + '/VTK'
+            self.geoFolder = self.estFolder + '/VTK'
             os.system('mkdir -p '+self.geoFolder)
 
 
@@ -148,7 +149,12 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         simuNode.createObject('TetrahedronSetTopologyModifier', name="Modifier")        
         simuNode.createObject('TetrahedronSetTopologyAlgorithms', name="TopoAlgo")
         simuNode.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
-        simuNode.createObject('UniformMass', totalMass=self.opt['model']['total_mass'])
+
+        if 'total_mass' in self.opt['model'].keys():
+            simuNode.createObject('UniformMass', totalMass=self.opt['model']['total_mass'])
+
+        if 'density' in self.opt['model'].keys():
+            simuNode.createObject('MeshMatrixMass', printMass='0', lumping='1', massDensity=self.opt['model']['density'], name='mass')    
         
         simuNode.createObject('OptimParams', name="paramE", optimize="1", template="Vector", 
             numParams=self.opt['filter']['nparams'], transformParams=self.opt['filter']['param_transform'],
@@ -182,11 +188,17 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
 
         # /ModelNode/cylinder/observations
         obsNode = simuNode.createChild('observations')
-        obsNode.createObject('MechanicalObject', name='SourceMO', position='0.02 0 0.08 0.02 0 0.16    0.0141 0.0141 0.08    0.0141 -0.0141 0.08    0.0141 0.0141 0.16    0.0141 -0.0141 0.16    0.02 0 0.0533    0.02 0 0.107   \
-            0.02 0 0.133    0.02 0 0.187    0.02 0 0.213    0.0175 0.00961 0.0649    0.00925 0.0177 0.0647    0.0139 0.0144 0.0398    0.00961 -0.0175 0.0649    0.0177 -0.00925 0.0647  \
-            0.0144 -0.0139 0.0402    0.0177 0.00936 0.145    0.0095 0.0176 0.145    0.0175 0.00961 0.0951    0.00925 0.0177 0.0953    0.0139 0.0144 0.12    0.00937 -0.0177 0.145   \
-            0.0176 -0.00949 0.145    0.00935 -0.0177 0.0953    0.0176 -0.00949 0.095    0.0142 -0.0141 0.12    0.0177 0.00937 0.175    0.00949 0.0176 0.175    0.014 0.0143 0.2   \
-            0.00959 -0.0175 0.175    0.0177 -0.00924 0.175    0.0143 -0.014 0.2')        
+        obsNode.createObject('MeshVTKLoader', name='obsloader', filename=self.opt['filter']['obs_points'])
+        obsNode.createObject('MechanicalObject', name='SourceMO', position='@obsloader.position')
+        # obsNode.createObject('MechanicalObject', name='SourceMO', position='0.02 0 0.08 0.02 0 0.16    0.0141 0.0141 0.08    0.0141 -0.0141 0.08    0.0141 0.0141 0.16    0.0141 -0.0141 0.16    0.02 0 0.0533    0.02 0 0.107   \
+        #     0.02 0 0.133    0.02 0 0.187    0.02 0 0.213    0.0175 0.00961 0.0649    0.00925 0.0177 0.0647    0.0139 0.0144 0.0398    0.00961 -0.0175 0.0649    0.0177 -0.00925 0.0647  \
+        #     0.0144 -0.0139 0.0402    0.0177 0.00936 0.145    0.0095 0.0176 0.145    0.0175 0.00961 0.0951    0.00925 0.0177 0.0953    0.0139 0.0144 0.12    0.00937 -0.0177 0.145   \
+        #     0.0176 -0.00949 0.145    0.00935 -0.0177 0.0953    0.0176 -0.00949 0.095    0.0142 -0.0141 0.12    0.0177 0.00937 0.175    0.00949 0.0176 0.175    0.014 0.0143 0.2   \
+        #     0.00959 -0.0175 0.175    0.0177 -0.00924 0.175    0.0143 -0.014 0.2')
+
+        obsNode.createObject('VTKExporter', name='temporaryExporter', filename='tempObs.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="0",
+                exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="0", position='@SourceMO.position')
+        
         obsNode.createObject('BarycentricMapping')
         obsNode.createObject('MappedStateObservationManager', name="MOBS", listening="1", stateWrapper="@../../StateWrapper", verbose="1",
                     observationStdev=self.opt['filter']['observ_stdev'], noiseStdev='0.0')
@@ -228,7 +240,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         
             rs=self.filter.findData(stateName).value
             state = [val for sublist in rs for val in sublist]
-            print 'State:',state
+            print 'State:',state            
             #print reducedState
 
             f1 = open(self.stateExpFile, "a")        
@@ -238,6 +250,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
                     
             rv=self.filter.findData(varName).value
             variance = [val for sublist in rv for val in sublist]
+            print 'Stdev: ', np.sqrt(variance)
             #print 'Reduced variance:'
             #print reducedVariance
 

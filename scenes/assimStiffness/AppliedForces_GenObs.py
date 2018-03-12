@@ -119,7 +119,12 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
         simuNode.createObject('TetrahedronSetTopologyModifier', name="Modifier")        
         simuNode.createObject('TetrahedronSetTopologyAlgorithms', name="TopoAlgo")
         simuNode.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
-        simuNode.createObject('UniformMass', totalMass=self.opt['model']['total_mass'])
+
+        if 'total_mass' in self.opt['model'].keys():
+            simuNode.createObject('UniformMass', totalMass=self.opt['model']['total_mass'])
+
+        if 'density' in self.opt['model'].keys():
+            simuNode.createObject('MeshMatrixMass', printMass='0', lumping='1', massDensity=self.opt['model']['density'], name='mass')
 
         youngModuli=self.opt['model']['young_moduli']
         indices = range(1, len(youngModuli)+1)
