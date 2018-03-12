@@ -51,6 +51,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
                                 
         self.planeCollision = opt['model']['plane_collision']
         self.saveEst = opt['io']['saveEst']
+        self.saveGeo = opt["io"]["saveGeo"]
                             
         prefix = opt['io']['prefix']
         suffix = opt['io']['suffix']
@@ -73,6 +74,11 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             os.system('rm '+self.stateExpFile)
             os.system('rm '+self.stateVarFile)
             os.system('rm '+self.stateCovarFile)
+
+        if self.saveGeo:
+            self.geoFolder = mainFolder + '/' + opt['filter']['kind'] + opt['io']['sdaFolderSuffix'] + '_VTK'
+            os.system('mkdir -p '+self.geoFolder)
+
 
         self.createGraph(rootNode)
 
@@ -145,6 +151,11 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         node.createObject('Indices2ValuesMapper', name='youngMapper', indices='1 2 3 4 5 6 7 8 9 10', values='@paramE.value', inputValues='@/loader.dataset')
         node.createObject('TetrahedronFEMForceField', name='FEM', updateStiffness='1', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
 
+        if self.saveGeo:
+            node.createObject('VTKExporterDA', filename=self.geoFolder+'/object.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="1",
+                exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1")
+
+        
         if self.planeCollision == 1:
             # node.createObject('LinearSolverConstraintCorrection')
             node.createObject('PardisoConstraintCorrection', solverName='lsolver', schurSolverName='lsolver')

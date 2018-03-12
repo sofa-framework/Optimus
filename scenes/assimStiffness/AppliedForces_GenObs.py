@@ -49,10 +49,11 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
         pp = pprint.PrettyPrinter(indent=4)
         pp.pprint(opt)
                         
-        self.saveObs=opt['io']['saveObs']
+        self.saveObs = opt['io']['saveObs']
+        self.saveGeo = opt["io"]["saveGeo"]
         self.planeCollision = opt['model']['plane_collision']
                         
-        if self.saveObs:
+        if self.saveObs or self.saveGeo:
             prefix = opt['io']['prefix']
             suffix = opt['io']['suffix']
 
@@ -63,7 +64,13 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
 
             os.system('mv '+mainFolder+' '+mainFolder+'_arch')
             os.system('mkdir '+mainFolder)
+
+        if self.saveObs:
             self.obsFile = mainFolder + '/' + opt['io']['obsFileName']
+
+        if self.saveGeo:
+            self.geoFolder = mainFolder + '/' + opt['io']['obsFileName']+'VTK'
+            os.system('mkdir -p '+self.geoFolder)
 
         self.createGraph(rootNode)
 
@@ -115,6 +122,11 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
         simuNode.createObject('Indices2ValuesMapper', indices='1 2 3 4 5 6 7 8 9 10', values=self.opt['model']['young_moduli'], 
             name='youngMapper', inputValues='@loader.dataset')
         simuNode.createObject('TetrahedronFEMForceField', updateStiffness='1', name='FEM', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
+
+        if self.saveGeo:
+            simuNode.createObject('VTKExporter', filename=self.geoFolder+'/objectDA.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="1",
+                exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1")
+
 
         if self.saveObs:
             simuNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1')
