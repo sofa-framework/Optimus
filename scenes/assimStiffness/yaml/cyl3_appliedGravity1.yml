@@ -1,0 +1,52 @@
+# some of the parameters are only for GenObs scene (GO), some for assimilation scene (SDA)
+
+---
+model:
+    dt: 0.01
+    vol_mesh: '../../data/cylinder/cylinder3_770.vtk'
+    surf_mesh: '../../data/cylinder/cylinder3_770.stl'
+    gravity: [0, -9.81, 0]
+    #total_mass: 0.2
+    density: 200
+    #young_moduli: [100000, 50000, 1000]   #E1
+    young_moduli: [100000, 50000, 100000]   #E2
+    
+    int:   # temporal integrator properties
+        type: 'Euler'
+        rmass: 0.1
+        rstiff: 3
+        maxit: 1
+    bc:
+        type: 'fixed'
+        #boxes: '-0.05 -0.05 -0.002   0.05 0.05 0.002   -0.05 -0.05  0.238   0.05 0.05 0.242'
+        boxes: '-0.05 -0.05 -0.002   0.05 0.05 0.002'
+
+    linsol:
+        usePCG: 0
+        pardisoSym: 2
+        pardisoFolder: ''
+        
+    plane_collision: 0
+
+io:    
+    prefix: 'cyl3gravity_'
+    suffix: '_fixLeft_E2MM'
+    saveGeo: 1
+    saveObs: 1                  # GO only
+    obsFileName: 'obs'
+    saveEst: 1                  # SDA only
+    sdaFolderSuffix: ''         # SDA only
+
+filter:                         # SDA only
+    kind: 'ROUKF'               # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
+    nparams: 3
+    param_init_exval: [50000, 50000, 50000]
+    param_init_stdev: [20000, 20000, 20000]
+    param_transform: 'absolute'
+    obs_tag: obs10
+    obs_points: '../../data/cylinder/cyl3_obs10.vtk'
+    observ_stdev: 1e-4    
+    sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
+    sigma_points_scale: 1
+    bound_filter_state: 1
+...
