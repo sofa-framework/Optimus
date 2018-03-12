@@ -76,7 +76,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             os.system('rm '+self.stateCovarFile)
 
         if self.saveGeo:
-            self.geoFolder = mainFolder + '/' + opt['filter']['kind'] + opt['io']['sdaFolderSuffix'] + '_VTK'
+            self.geoFolder = mainFolder + '/' + opt['filter']['kind'] + opt['io']['sdaFolderSuffix'] + '/VTK'
             os.system('mkdir -p '+self.geoFolder)
 
 

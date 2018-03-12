@@ -153,6 +153,7 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
         oglNode = simuNode.createChild('oglNode')
         self.oglNode = oglNode
         oglNode.createObject('OglModel')
+        oglNode.createObject('BarycentricMapping')        
 
         if self.planeCollision:
             floor = simuNode.createChild('floor')
