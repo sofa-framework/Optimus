@@ -51,14 +51,12 @@ void OptimParams<sofa::helper::vector<double> >::getInitVariance(DVec& _variance
     switch (transParamType) {
     case 3:
         for (size_t i = 0; i < _variance.size(); i++)
-            _variance[i] = log(helper::SQR(m_stdev.getValue()[i]));
+            _variance[i] = helper::SQR(log(m_stdev.getValue()[i]));
         break;
     default:
         for (size_t i = 0; i < _variance.size(); i++)
             _variance[i] = helper::SQR(m_stdev.getValue()[i]);
-
     }
-
 }
 
 template<>
@@ -66,10 +64,10 @@ void OptimParams<sofa::helper::vector<double> >::getMinimumBounds(DVec& _minimum
     size_t numParams = this->m_numParams.getValue();
     _minimumBounds.resize(numParams);
     for (size_t i = 0; i < numParams; i++) {
-        if (m_min.getValue().size() <= i)
-            _minimumBounds[i] = m_min.getValue()[m_min.getValue().size() - 1];
+        if (m_minVal.getValue().size() <= i)
+            _minimumBounds[i] = m_minVal.getValue()[m_minVal.getValue().size() - 1];
         else
-            _minimumBounds[i] = m_min.getValue()[i];
+            _minimumBounds[i] = m_minVal.getValue()[i];
     }
 }
 
@@ -78,31 +76,18 @@ void OptimParams<sofa::helper::vector<double> >::getMaximumBounds(DVec& _maximum
     size_t numParams = this->m_numParams.getValue();
     _maximumBounds.resize(numParams);
     for (size_t i = 0; i < numParams; i++) {
-        if (m_max.getValue().size() <= i)
-            _maximumBounds[i] = m_max.getValue()[m_max.getValue().size() - 1];
+        if (m_maxVal.getValue().size() <= i)
+            _maximumBounds[i] = m_maxVal.getValue()[m_maxVal.getValue().size() - 1];
         else
-            _maximumBounds[i] = m_max.getValue()[i];
+            _maximumBounds[i] = m_maxVal.getValue()[i];
     }
 }
-
-/*template<>
-void OptimParams<sofa::helper::vector<double> >::getValueTempl(DVec& _value) {
-    _value.resize(m_val.getValue().size());
-    for (size_t i = 0; i < _value.size(); i++)
-        _value[i] = m_val.getValue()[i];
-}
-
-template<>
-void OptimParams<sofa::helper::vector<double> >::setValueTempl(const DVec& _value) {
-    helper::vector<double>* val = m_val.beginEdit();
-    for (size_t i = 0; i < _value.size(); i++)
-        val->at(i) = _value[i];
-    m_val.endEdit();
-}*/
 
 template<>
 void OptimParams<sofa::helper::vector<double> >::vectorToParams(VectorXd& _vector) {    
     helper::WriteAccessor<Data<helper::vector<double> > > val = m_val;
+    helper::ReadAccessor<Data<helper::vector<double> > > minVal = m_minVal;
+    helper::ReadAccessor<Data<helper::vector<double> > > maxVal = m_maxVal;
 
     switch (transParamType) {
     case 1:
@@ -113,7 +98,7 @@ void OptimParams<sofa::helper::vector<double> >::vectorToParams(VectorXd& _vecto
     case 2:
         // std::cout << "backward step " << std::endl;
         for (size_t i = 0; i < this->paramIndices.size(); i++) {
-            val[i]=sigmoid(_vector[this->paramIndices[i]], m_max.getValue()[i], m_min.getValue()[i]);
+            val[i]=sigmoid(_vector[this->paramIndices[i]], maxVal[i], minVal[i]);
             //std::cout << val[i] << std::endl;
         }
         break;
@@ -121,6 +106,15 @@ void OptimParams<sofa::helper::vector<double> >::vectorToParams(VectorXd& _vecto
         for (size_t i = 0; i < this->paramIndices.size(); i++) {
             val[i]=exp(_vector[this->paramIndices[i]]);
             //std::cout << val[i] << std::endl;
+        }
+        break;
+    case 4:
+        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+            double inVal = _vector[this->paramIndices[i]];
+            //std::cout << "HERE: " << inVal << " vs " << minVal[i] << " " <<(inVal < minVal[i]) << std::endl;
+            val[i] = (inVal < minVal[i]) ? minVal[i] : inVal;
+            val[i] = (val[i] > maxVal[i]) ? maxVal[i] : val[i];
+            //std::cout <<  "  val: " << val[i] << std::endl;
         }
         break;
     default:
@@ -132,6 +126,8 @@ void OptimParams<sofa::helper::vector<double> >::vectorToParams(VectorXd& _vecto
 template<>
 void OptimParams<sofa::helper::vector<double> >::vectorToParams(VectorXf& _vector) {    
     helper::WriteAccessor<Data<helper::vector<double> > > val = m_val;
+    helper::ReadAccessor<Data<helper::vector<double> > > minVal = m_minVal;
+    helper::ReadAccessor<Data<helper::vector<double> > > maxVal = m_maxVal;
 
     switch (transParamType) {
     case 1:
@@ -141,13 +137,20 @@ void OptimParams<sofa::helper::vector<double> >::vectorToParams(VectorXf& _vecto
         break;
     case 2:
         for (size_t i = 0; i < this->paramIndices.size(); i++) {
-            val[i]=sigmoid(_vector[this->paramIndices[i]], m_max.getValue()[i], m_min.getValue()[i]);
+            val[i]=sigmoid(_vector[this->paramIndices[i]], maxVal[i], minVal[i]);
         }
         break;
     case 3:
         for (size_t i = 0; i < this->paramIndices.size(); i++) {
             val[i]=exp(_vector[this->paramIndices[i]]);
             //std::cout << val[i] << std::endl;
+        }
+        break;
+    case 4:
+        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+            double inVal = _vector[this->paramIndices[i]];
+            val[i] = (inVal < minVal[i]) ? minVal[i] : inVal;
+            val[i] = (val[i] > maxVal[i]) ? maxVal[i] : val[i];
         }
         break;
     default:
@@ -156,70 +159,10 @@ void OptimParams<sofa::helper::vector<double> >::vectorToParams(VectorXf& _vecto
     }
 }
 
-template<>
-void OptimParams<sofa::helper::vector<double> >::rawVectorToParams(const double* _vector) {
-    helper::WriteAccessor<Data<helper::vector<double> > > val = m_val;
-
-    switch (transParamType) {
-    case 1:
-        for (size_t i = 0; i < this->paramIndices.size(); i++) {
-            val[i]=fabs(_vector[this->paramIndices[i]]);
-        }
-        break;
-    case 2:
-        for (size_t i = 0; i < this->paramIndices.size(); i++) {
-            val[i]=sigmoid(_vector[this->paramIndices[i]], m_max.getValue()[i], m_min.getValue()[i]);
-        }
-        break;
-    case 3:
-        for (size_t i = 0; i < this->paramIndices.size(); i++) {
-            val[i]=exp(_vector[this->paramIndices[i]]);
-            //std::cout << val[i] << std::endl;
-        }
-        break;
-    default:
-        for (size_t i = 0; i < this->paramIndices.size(); i++)
-            val[i] = _vector[this->paramIndices[i]];
-    }
-
-    //std::cout << this->getContext()->getName() << "::" << this->getName() << " params: " << val << std::endl;
-}
-
-template<>
-void OptimParams<sofa::helper::vector<double> >::rawVectorToParamsParallel(const double* _vector)
-{
-    //std::cout<<"INFO: rawVectorToParamsParallel\n";
-    //std::cout << this->getContext()->getName() << "::" << this->getName() << " paramIdx size: " << this->paramIndices << std::endl;
-    helper::WriteAccessor<Data<helper::vector<double> > > val = m_val;
-    switch (transParamType) {
-    case 1:
-        for (size_t i = 0; i < this->paramIndices.size(); i++) {
-            val[i]=fabs(_vector[this->paramIndices[i]]);
-        }
-        break;
-    case 2:
-        for (size_t i = 0; i < this->paramIndices.size(); i++) {
-            val[i]=sigmoid(_vector[this->paramIndices[i]], m_max.getValue()[i], m_min.getValue()[i]);
-        }
-        break;
-    case 3:
-        for (size_t i = 0; i < this->paramIndices.size(); i++) {
-            val[i]=exp(_vector[this->paramIndices[i]]);
-            //std::cout << val[i] << std::endl;
-        }
-        break;
-    default:
-        for (size_t i = 0; i < this->paramIndices.size(); i++)
-            val[i] = _vector[this->paramIndices[i]];
-    }
-    //std::cout << this->getContext()->getName() << "::" << this->getName() << " params: " << val << std::endl;
-}
 
 template<>
 void OptimParams<sofa::helper::vector<double> >::paramsToVector(VectorXd& _vector) {
     helper::ReadAccessor<Data<helper::vector<double> > > val = m_val; // real values of parameters
-
-
 
     switch (transParamType) {
     case 1:
@@ -229,8 +172,8 @@ void OptimParams<sofa::helper::vector<double> >::paramsToVector(VectorXd& _vecto
     case 2:
         // std::cout << "forward step " << std::endl;
         for (size_t i = 0; i < this->paramIndices.size(); i++) {
-            _vector[paramIndices[i]] = double(logit(val[i], m_max.getValue()[i], m_min.getValue()[i]));
-            //std::cout << val[i] << " " << logit(val[i], m_max.getValue()[i], m_min.getValue()[i]) << std::endl;
+            _vector[paramIndices[i]] = double(logit(val[i], m_maxVal.getValue()[i], m_minVal.getValue()[i]));
+            //std::cout << val[i] << " " << logit(val[i], m_maxVal.getValue()[i], m_minVal.getValue()[i]) << std::endl;
         }
         break;
     case 3:
@@ -257,7 +200,7 @@ void OptimParams<sofa::helper::vector<double> >::paramsToVector(VectorXf& _vecto
         break;
     case 2:
         for (size_t i = 0; i < this->paramIndices.size(); i++) {
-            _vector[paramIndices[i]] = float(logit(val[i], m_max.getValue()[i], m_min.getValue()[i]));
+            _vector[paramIndices[i]] = float(logit(val[i], m_maxVal.getValue()[i], m_minVal.getValue()[i]));
         }
         break;
     case 3:
@@ -271,64 +214,6 @@ void OptimParams<sofa::helper::vector<double> >::paramsToVector(VectorXf& _vecto
             _vector[paramIndices[i]] = float(val[i]);
     }
 }
-
-
-template<>
-// puts the params at the known indices
-void OptimParams<sofa::helper::vector<double> >::paramsToRawVector(double* _vector) {
-    helper::ReadAccessor<Data<helper::vector<double> > > val = m_val; // real values of parameters
-
-    //std::cout<<"INFO: paramsToRawVectorDouble\n";
-    switch (transParamType) {
-    case 1:
-        for (size_t i = 0; i < paramIndices.size(); i++)
-            _vector[paramIndices[i]] = fabs(val[i]);
-        break;
-    case 2:
-        for (size_t i = 0; i < this->paramIndices.size(); i++) {
-            _vector[paramIndices[i]] = logit(val[i], m_max.getValue()[i], m_min.getValue()[i]);
-        }
-        break;
-    case 3:
-        for (size_t i = 0; i < this->paramIndices.size(); i++) {
-            _vector[paramIndices[i]] = log(val[i]);
-            //std::cout << val[i] << std::endl;
-        }
-        break;
-    default:
-        for (size_t i = 0; i < paramIndices.size(); i++)
-            _vector[paramIndices[i]] = val[i];
-    }
-
-}
-
-template<>
-void OptimParams<sofa::helper::vector<double> >::paramsToRawVectorParallel(double* _vector)
-{    
-    //std::cout<<"INFO:: paramsToRawVectorParallel\n";
-    helper::ReadAccessor<Data<helper::vector<double> > > val = m_val;
-    switch (transParamType) {
-    case 1:
-        for (size_t i = 0; i < paramIndices.size(); i++)
-            _vector[paramIndices[i]] = fabs(val[i]);
-        break;
-    case 2:
-        for (size_t i = 0; i < this->paramIndices.size(); i++) {
-            _vector[paramIndices[i]] = logit(val[i], m_max.getValue()[i], m_min.getValue()[i]);
-        }
-        break;
-    case 3:
-        for (size_t i = 0; i < this->paramIndices.size(); i++) {
-            _vector[paramIndices[i]] = log(val[i]);
-            //std::cout << val[i] << std::endl;
-        }
-        break;
-    default:
-        for (size_t i = 0; i < paramIndices.size(); i++)
-            _vector[paramIndices[i]] = val[i];
-    }
-}
-
 
 
 template<>
@@ -397,6 +282,23 @@ void OptimParams<sofa::helper::vector<double> >::init() {
         }
     }
 
+    size_t numParams = m_numParams.getValue();
+    if (numParams > 1 && m_maxVal.getValue().size() == 1) {
+        const double val = m_maxVal.getValue()[0];
+        helper::WriteAccessor<Data<sofa::helper::vector<double> > > wMaxVal = m_maxVal;
+        wMaxVal.resize(numParams, val);
+        for (size_t i = 0; i < numParams; i++)
+            wMaxVal[i] = val;
+    }
+
+    if (numParams > 1 && m_minVal.getValue().size() == 1) {
+        const double val = m_minVal.getValue()[0];
+        helper::WriteAccessor<Data<sofa::helper::vector<double> > > wMinVal = m_minVal;
+        wMinVal.resize(numParams, val);
+        for (size_t i = 0; i < numParams; i++)
+            wMinVal[i] = val;
+    }
+
     if (nInitVal != 0) {
         helper::WriteAccessor<Data<sofa::helper::vector<double> > > val = m_val;
         if (val.size() == 0) {
@@ -405,14 +307,14 @@ void OptimParams<sofa::helper::vector<double> >::init() {
                 val[i] = initVal[i];
         }
 
-        helper::WriteAccessor<Data<sofa::helper::vector<double> > > minVal = m_min;
+        helper::WriteAccessor<Data<sofa::helper::vector<double> > > minVal = m_minVal;
         if (minVal.size() == 0) {
             minVal.resize(nInitVal);
             for (size_t i = 0; i < nInitVal; i++)
                 minVal[i] = initVal[i];
         }
 
-        helper::WriteAccessor<Data<sofa::helper::vector<double> > > maxVal = m_max;
+        helper::WriteAccessor<Data<sofa::helper::vector<double> > > maxVal = m_maxVal;
         if (maxVal.size() == 0) {
             maxVal.resize(nInitVal);
             for (size_t i = 0; i < nInitVal; i++)
@@ -610,38 +512,6 @@ void OptimParams<Vec3dTypes::VecDeriv>::vectorToParams(VectorXd& _vector) {
 }
 
 template<>
-void OptimParams<Vec3dTypes::VecDeriv>::rawVectorToParams(const double* _vector) {
-    helper::WriteAccessor<Data<Vec3dTypes::VecDeriv> > waVal = m_val;
-
-    size_t numParams = mstate_dim;
-    size_t k = 0;
-
-    switch (transParamType) {
-    case 1:
-        for (size_t i = 0; i < numParams; i++)
-            for (size_t j = 0; j < 3, k < this->paramIndices.size() ; j++, k++)
-                waVal[i][j] = _vector[paramIndices[k]];
-        break;
-    case 2:
-        // std::cout << "backward step " << std::endl;
-        for (size_t i = 0; i < numParams; i++)
-            for (size_t j = 0; j < 3, k < this->paramIndices.size() ; j++, k++)
-                waVal[i][j] = _vector[paramIndices[k]];
-        break;
-    case 3:
-        for (size_t i = 0; i < numParams; i++)
-            for (size_t j = 0; j < 3, k < this->paramIndices.size() ; j++, k++)
-                waVal[i][j] = _vector[paramIndices[k]];
-        break;
-    default:
-        for (size_t i = 0; i < numParams; i++)
-            for (size_t j = 0; j < 3, k < this->paramIndices.size() ; j++, k++)
-                waVal[i][j] = _vector[paramIndices[k]];
-    }
-}
-
-
-template<>
 void OptimParams<Vec3dTypes::VecDeriv>::paramsToVector(VectorXd& _vector) {
     helper::ReadAccessor<Data<Vec3dTypes::VecCoord> > raVal = m_val;
     size_t k = 0;
@@ -688,10 +558,10 @@ void OptimParams<Vec3dTypes::VecCoord>::getMinimumBounds(DVec& _minimumBounds) {
 //    size_t ij = 0;
 //    for (size_t i = 0; i < numParams; i++) {
 //        for (size_t j = 0; j < mstate_dim; j++, ij++)
-//            if (m_min.getValue().size() <= i)
-//                _minimumBounds[i] = m_min.getValue()[m_min.getValue().size() - 1][j];
+//            if (m_minVal.getValue().size() <= i)
+//                _minimumBounds[i] = m_minVal.getValue()[m_minVal.getValue().size() - 1][j];
 //            else
-//                _minimumBounds[i] = m_min.getValue()[i][j];
+//                _minimumBounds[i] = m_minVal.getValue()[i][j];
 //    }
 }
 
@@ -702,10 +572,10 @@ void OptimParams<Vec3dTypes::VecCoord>::getMaximumBounds(DVec& _maximumBounds) {
 //    size_t ij = 0;
 //    for (size_t i = 0; i < numParams; i++) {
 //        for (size_t j = 0; j < mstate_dim; j++, ij++)
-//            if (m_max.getValue().size() <= i)
-//                _maximumBounds[i] = m_max.getValue()[m_max.getValue().size() - 1][j];
+//            if (m_maxVal.getValue().size() <= i)
+//                _maximumBounds[i] = m_maxVal.getValue()[m_maxVal.getValue().size() - 1][j];
 //            else
-//                _maximumBounds[i] = m_max.getValue()[i][j];
+//                _maximumBounds[i] = m_maxVal.getValue()[i][j];
 //    }
 }
 
@@ -1010,21 +880,6 @@ void OptimParams<double>::handleEvent(core::objectmodel::Event *event) {
             }
     }
 }
-/*template<>
-void OptimParams<Vec3dTypes::VecCoord>::getValueTempl(DVec& _value) {
-    _value.resize(m_val.getValue().size());
-    for (size_t i = 0; i < _value.size(); i++)
-        _value[i] = m_val.getValue()[i];
-}
-
-template<>
-void OptimParams<Vec3dTypes::VecCoord>::setValueTempl(const DVec& _value) {
-    helper::vector<double>* val = m_val.beginEdit();
-    for (size_t i = 0; i < _value.size(); i++)
-        val->at(i) = _value[i];
-    m_val.endEdit();
-}*/
-
 /// DECLARATIONS
 
 
@@ -1083,6 +938,198 @@ template class SOFA_OptimusPlugin_API OptimParams<Vec3fTypes::VecCoord>;*/
 } // namespace container
 } // namespace component
 } // namespace sofa
+
+
+
+//template<>
+/// puts the params at the known indices
+//void OptimParams<sofa::helper::vector<double> >::paramsToRawVector(double* _vector) {
+//    helper::ReadAccessor<Data<helper::vector<double> > > val = m_val; // real values of parameters
+
+//    //std::cout<<"INFO: paramsToRawVectorDouble\n";
+//    switch (transParamType) {
+//    case 1:
+//        for (size_t i = 0; i < paramIndices.size(); i++)
+//            _vector[paramIndices[i]] = fabs(val[i]);
+//        break;
+//    case 2:
+//        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+//            _vector[paramIndices[i]] = logit(val[i], m_maxVal.getValue()[i], m_minVal.getValue()[i]);
+//        }
+//        break;
+//    case 3:
+//        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+//            _vector[paramIndices[i]] = log(val[i]);
+//            //std::cout << val[i] << std::endl;
+//        }
+//        break;
+//    default:
+//        for (size_t i = 0; i < paramIndices.size(); i++)
+//            _vector[paramIndices[i]] = val[i];
+//    }
+
+//}
+
+//template<>
+//void OptimParams<sofa::helper::vector<double> >::paramsToRawVectorParallel(double* _vector)
+//{
+//    //std::cout<<"INFO:: paramsToRawVectorParallel\n";
+//    helper::ReadAccessor<Data<helper::vector<double> > > val = m_val;
+//    switch (transParamType) {
+//    case 1:
+//        for (size_t i = 0; i < paramIndices.size(); i++)
+//            _vector[paramIndices[i]] = fabs(val[i]);
+//        break;
+//    case 2:
+//        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+//            _vector[paramIndices[i]] = logit(val[i], m_maxVal.getValue()[i], m_minVal.getValue()[i]);
+//        }
+//        break;
+//    case 3:
+//        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+//            _vector[paramIndices[i]] = log(val[i]);
+//            //std::cout << val[i] << std::endl;
+//        }
+//        break;
+//    default:
+//        for (size_t i = 0; i < paramIndices.size(); i++)
+//            _vector[paramIndices[i]] = val[i];
+//    }
+//}
+
+/*template<>
+void OptimParams<sofa::helper::vector<double> >::getValueTempl(DVec& _value) {
+    _value.resize(m_val.getValue().size());
+    for (size_t i = 0; i < _value.size(); i++)
+        _value[i] = m_val.getValue()[i];
+}
+
+template<>
+void OptimParams<sofa::helper::vector<double> >::setValueTempl(const DVec& _value) {
+    helper::vector<double>* val = m_val.beginEdit();
+    for (size_t i = 0; i < _value.size(); i++)
+        val->at(i) = _value[i];
+    m_val.endEdit();
+}*/
+
+//template<>
+//void OptimParams<sofa::helper::vector<double> >::rawVectorToParams(const double* _vector) {
+//    helper::WriteAccessor<Data<helper::vector<double> > > val = m_val;
+
+//    switch (transParamType) {
+//    case 1:
+//        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+//            val[i]=fabs(_vector[this->paramIndices[i]]);
+//        }
+//        break;
+//    case 2:
+//        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+//            val[i]=sigmoid(_vector[this->paramIndices[i]], m_maxVal.getValue()[i], m_minVal.getValue()[i]);
+//        }
+//        break;
+//    case 3:
+//        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+//            val[i]=exp(_vector[this->paramIndices[i]]);
+//            //std::cout << val[i] << std::endl;
+//        }
+//        break;
+//    case 4:
+//        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+//            val[i]=std::max(_vector[this->paramIndices[i]], m_minVal.getValue()[i]);
+//            val[i]=std::min(_vector[this->paramIndices[i]], m_maxVal.getValue()[i]);
+//            //std::cout << val[i] << std::endl;
+//        }
+//        break;
+//    default:
+//        for (size_t i = 0; i < this->paramIndices.size(); i++)
+//            val[i] = _vector[this->paramIndices[i]];
+//    }
+
+//    //std::cout << this->getContext()->getName() << "::" << this->getName() << " params: " << val << std::endl;
+//}
+
+//template<>
+//void OptimParams<sofa::helper::vector<double> >::rawVectorToParamsParallel(const double* _vector)
+//{
+//    //std::cout<<"INFO: rawVectorToParamsParallel\n";
+//    //std::cout << this->getContext()->getName() << "::" << this->getName() << " paramIdx size: " << this->paramIndices << std::endl;
+//    helper::WriteAccessor<Data<helper::vector<double> > > val = m_val;
+//    switch (transParamType) {
+//    case 1:
+//        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+//            val[i]=fabs(_vector[this->paramIndices[i]]);
+//        }
+//        break;
+//    case 2:
+//        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+//            val[i]=sigmoid(_vector[this->paramIndices[i]], m_maxVal.getValue()[i], m_minVal.getValue()[i]);
+//        }
+//        break;
+//    case 3:
+//        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+//            val[i]=exp(_vector[this->paramIndices[i]]);
+//            //std::cout << val[i] << std::endl;
+//        }
+//        break;
+//    case 4:
+//        for (size_t i = 0; i < this->paramIndices.size(); i++) {
+//            val[i]=std::max(_vector[this->paramIndices[i]], m_minVal.getValue()[i]);
+//            val[i]=std::min(_vector[this->paramIndices[i]], m_maxVal.getValue()[i]);
+//            //std::cout << val[i] << std::endl;
+//        }
+//        break;
+//    default:
+//        for (size_t i = 0; i < this->paramIndices.size(); i++)
+//            val[i] = _vector[this->paramIndices[i]];
+//    }
+//    //std::cout << this->getContext()->getName() << "::" << this->getName() << " params: " << val << std::endl;
+//}
+//template<>
+//void OptimParams<Vec3dTypes::VecDeriv>::rawVectorToParams(const double* _vector) {
+//    helper::WriteAccessor<Data<Vec3dTypes::VecDeriv> > waVal = m_val;
+
+//    size_t numParams = mstate_dim;
+//    size_t k = 0;
+
+//    switch (transParamType) {
+//    case 1:
+//        for (size_t i = 0; i < numParams; i++)
+//            for (size_t j = 0; j < 3, k < this->paramIndices.size() ; j++, k++)
+//                waVal[i][j] = _vector[paramIndices[k]];
+//        break;
+//    case 2:
+//        // std::cout << "backward step " << std::endl;
+//        for (size_t i = 0; i < numParams; i++)
+//            for (size_t j = 0; j < 3, k < this->paramIndices.size() ; j++, k++)
+//                waVal[i][j] = _vector[paramIndices[k]];
+//        break;
+//    case 3:
+//        for (size_t i = 0; i < numParams; i++)
+//            for (size_t j = 0; j < 3, k < this->paramIndices.size() ; j++, k++)
+//                waVal[i][j] = _vector[paramIndices[k]];
+//        break;
+//    default:
+//        for (size_t i = 0; i < numParams; i++)
+//            for (size_t j = 0; j < 3, k < this->paramIndices.size() ; j++, k++)
+//                waVal[i][j] = _vector[paramIndices[k]];
+//    }
+//}
+/*template<>
+void OptimParams<Vec3dTypes::VecCoord>::getValueTempl(DVec& _value) {
+    _value.resize(m_val.getValue().size());
+    for (size_t i = 0; i < _value.size(); i++)
+        _value[i] = m_val.getValue()[i];
+}
+
+template<>
+void OptimParams<Vec3dTypes::VecCoord>::setValueTempl(const DVec& _value) {
+    helper::vector<double>* val = m_val.beginEdit();
+    for (size_t i = 0; i < _value.size(); i++)
+        val->at(i) = _value[i];
+    m_val.endEdit();
+}*/
+
+
 
 
 

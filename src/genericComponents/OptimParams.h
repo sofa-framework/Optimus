@@ -153,16 +153,12 @@ protected:
     bool saveParam;
     int transParamType;
 
-    //SingleLink<OptimParamsBase,mechState,BaseLink::FLAG_NONE> mstate;
-    //SingleLink<OptimParamsBase,mechState,BaseLink::FLAG_STRONGLINK> mstate;
-
-    // I dont like this
     IVec paramIndices;  /// mapping of parameters stored in m_val to Verdandi state vector
 
 public:
     
-    virtual void rawVectorToParams(const double* _vector) = 0;  /// copy values from a input vector into parameters at correct positions
-    virtual void paramsToRawVector(double* _vector) = 0;  /// copy values from parameters to the output vector at correct positions
+    //virtual void rawVectorToParams(const double* _vector) = 0;  /// copy values from a input vector into parameters at correct positions
+    //virtual void paramsToRawVector(double* _vector) = 0;  /// copy values from parameters to the output vector at correct positions
 
     virtual void vectorToParams(VectorXf& _vector) = 0;
     virtual void vectorToParams(VectorXd& _vector) = 0;
@@ -181,15 +177,10 @@ public:
         , m_transformParams( initData(&m_transformParams, "transformParams", "transform estimated params. Choice: none, absolute, sigmoid, exponential") )
         , m_prescribedParamKeys( initData (&m_prescribedParamKeys, "prescribedParamKeys", "prescribed params in list format: ti p1i ... pni") )
         , m_exportParamFile( initData(&m_exportParamFile, std::string(""), "exportParamFile", "store the parameter at the begining of each time step") )
-        , m_interpolateSmooth( initData(&m_interpolateSmooth, true, "interpolateSmooth", "use hyperbolic tangent to interpolate the parameters (linear interpolation if false") )
-        //, mstate(initLink("mstate", "MechanicalStatefor which all stiffness coeficients are to be approximated"), mm)
+        , m_interpolateSmooth( initData(&m_interpolateSmooth, true, "interpolateSmooth", "use hyperbolic tangent to interpolate the parameters (linear interpolation if false") )        
     {}
 
-    void init() {
-
-        //mstate = dynamic_cast< mechState* >(getContext()->getMechanicalState());
-        //if(!mstate) this->serr<<"ProjectiveConstraintSet<DataTypes>::init(), no mstate . This may be because there is no MechanicalState in the local context, or because the type is not compatible." << this->sendl;
-
+    void init() {       
         if (!m_prescribedParamKeys.getValue().empty()) {
             if (m_optimize.getValue()) {
                 std::cout << this->getName() << ": WARNING: parameters can be either optimized or prescribed, optimization set to false" << std::endl;
@@ -214,32 +205,14 @@ public:
         if (std::strcmp(transf.c_str(), "exponential") == 0)
             transParamType = 3;
 
+        if (std::strcmp(transf.c_str(), "project") == 0)
+            transParamType = 4;
+
     }
 
     size_t size() {
         return(m_numParams.getValue() * m_dim);
     }
-
-    void rawVectorToParams(const double* _rawVector, size_t /*_size*/) {
-        /*if (!_size != size()) {
-            std::cerr << "Vector sizes differ!" << std::endl;
-            return;
-        }*/
-        rawVectorToParams(_rawVector);
-    }
-
-
-
-    void paramsToRawVector(double* _rawVector, size_t /*_size*/) {
-
-            paramsToRawVector(_rawVector);
-    }
-
-    virtual void rawVectorToParamsParallel(const double* /*_vector*/){std::cout<<"failure!\n";}
-    virtual void paramsToRawVectorParallel(double* /*_vector*/){std::cout<<"failure!\n";}
-
-    //void rawVectorToParamsParallel(const double* _rawVector);
-    //void paramsToRawVectorParallel(double* __rawVector);
 
     IVec& getVStateParamIndices() {
         return paramIndices;
@@ -291,22 +264,14 @@ public:
 protected:
     Data< DataTypes > m_val;            /// real actual value of parameters
     Data< DataTypes > m_initVal;        /// initial value
-    Data< DataTypes > m_min;
-    Data< DataTypes > m_max;
+    Data< DataTypes > m_minVal;
+    Data< DataTypes > m_maxVal;
     Data< DataTypes > m_stdev;          /// standard deviation
 
     SingleLink<OptimParams<DataTypes>, loader_t, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> m_loader;
     std::vector<std::pair<double, DataTypes> > m_paramKeys;
 
     /// must be implemented in specializations    
-    virtual void rawVectorToParams(const double* /*_vector*/) {
-        std::cerr << "[" << this->getName() << "] ERROR: rawVectorToParams not implemented!" << std::endl;
-    }
-
-    virtual void paramsToRawVector(double* /*_vector*/) {
-        std::cerr << "[" << this->getName() << "] ERROR: paramsToRawVector not implemented!" << std::endl;
-    }
-
     virtual void vectorToParams(VectorXf& /*_vector*/) {
 //        std::cerr << "[" << this->getName() << "] ERROR: vectorToParams not implemented!" << std::endl;
     }
@@ -321,10 +286,7 @@ protected:
 
     virtual void paramsToVector(VectorXd& /*_vector*/) {
         std::cerr << "[" << this->getName() << "] ERROR: paramsToVector not implemented!" << std::endl;
-    }
-
-    virtual void rawVectorToParamsParallel(const double* /*_vector*/){}
-    virtual void paramsToRawVectorParallel(double* /*_vector*/){}
+    }   
 
     virtual void handleEvent(core::objectmodel::Event */*event*/) {}
 
@@ -346,3 +308,35 @@ protected:
 #endif /*OPTIMPARAMS_H_*/
 
 
+//    void rawVectorToParams(const double* _rawVector, size_t /*_size*/) {
+//        /*if (!_size != size()) {
+//            std::cerr << "Vector sizes differ!" << std::endl;
+//            return;
+//        }*/
+//        rawVectorToParams(_rawVector);
+//    }
+
+
+
+//    void paramsToRawVector(double* _rawVector, size_t /*_size*/) {
+
+//            paramsToRawVector(_rawVector);
+//    }
+
+//    virtual void rawVectorToParamsParallel(const double* /*_vector*/){std::cout<<"failure!\n";}
+//    virtual void paramsToRawVectorParallel(double* /*_vector*/){std::cout<<"failure!\n";}
+
+    //void rawVectorToParamsParallel(const double* _rawVector);
+    //void paramsToRawVectorParallel(double* __rawVector);
+
+
+//    virtual void rawVectorToParams(const double* /*_vector*/) {
+//        std::cerr << "[" << this->getName() << "] ERROR: rawVectorToParams not implemented!" << std::endl;
+//    }
+
+//    virtual void paramsToRawVector(double* /*_vector*/) {
+//        std::cerr << "[" << this->getName() << "] ERROR: paramsToRawVector not implemented!" << std::endl;
+//    }
+
+//    virtual void rawVectorToParamsParallel(const double* /*_vector*/){}
+//    virtual void paramsToRawVectorParallel(double* /*_vector*/){}

@@ -46,8 +46,8 @@ OptimParams<DataTypes>::OptimParams(loader_t* mm)
     , m_paramMOLinkrigid(initLink("parametricMechanicalObjectRigid", "link to a mechanical object which is considered as parameter (only for Rigid)"))
     , m_val( initData(&m_val, "value", "parameter value") )
     , m_initVal( initData(&m_initVal, "initValue", "initial parameter value") )
-    , m_min( initData(&m_min, "min", "lower bound for parameter") )
-    , m_max( initData(&m_max, "max", "higher bound for parameter") )
+    , m_minVal( initData(&m_minVal, "minValue", "lower bound for parameter") )
+    , m_maxVal( initData(&m_maxVal, "maxValue", "higher bound for parameter") )
     , m_stdev( initData(&m_stdev, "stdev", "standard variation") )
     , m_loader(initLink("loader", "loader for mechanical state for which we approximate stiffness of ALL elements"), mm)
 
@@ -86,8 +86,8 @@ void OptimParams<helper::vector<double> >::bwdInit()
 
         sofa::helper::WriteAccessor< Data<helper::vector<double> > > initValues = m_initVal;
         sofa::helper::WriteAccessor< Data<helper::vector<double> > > values = m_val;
-        sofa::helper::WriteAccessor< Data<helper::vector<double> > > min = m_min;
-        sofa::helper::WriteAccessor< Data<helper::vector<double> > > max = m_max;
+        sofa::helper::WriteAccessor< Data<helper::vector<double> > > min = m_minVal;
+        sofa::helper::WriteAccessor< Data<helper::vector<double> > > max = m_maxVal;
         sofa::helper::WriteAccessor< Data<helper::vector<double> > > stdev = m_stdev;
 
 
@@ -103,8 +103,8 @@ void OptimParams<helper::vector<double> >::bwdInit()
         {
              initValues[i]=m_initVal.getValue()[0];
              values[i]=m_val.getValue()[0];
-             min[i]=m_min.getValue()[0];
-             max[i]=m_max.getValue()[0];
+             min[i]=m_minVal.getValue()[0];
+             max[i]=m_maxVal.getValue()[0];
              stdev[i]=m_stdev.getValue()[0];
         }
     }
