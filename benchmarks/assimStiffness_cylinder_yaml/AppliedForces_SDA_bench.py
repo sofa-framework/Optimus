@@ -103,7 +103,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             estimatePosition = 1
         elif self.filterKind == 'UKFSimCorr':
             self.filter = rootNode.createObject('UKFilterSimCorr', name="UKFSC", verbose="1")
-            estimatePosition = 1
+            estimatePosition = 0
             
         rootNode.createObject('MeshVTKLoader', name='loader', filename=self.opt['model']['vol_mesh'])
         rootNode.createObject('MeshSTLLoader', name='sloader', filename=self.opt['model']['surf_mesh'])
