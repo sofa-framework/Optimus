@@ -107,7 +107,6 @@ protected:
     EVectorX vecAlpha, vecAlphaVar;
     EVectorX stateExp, predObsExp;
     EMatrixX stateCovar, obsCovar;
-    EVectorX estimMinimBounds, estimMaximBounds;
 
 
     EMatrixX matItrans, matI;
@@ -131,8 +130,7 @@ public:
     Data<helper::vector<FilterType> > d_state;
     Data<helper::vector<FilterType> > d_variance;
     Data<helper::vector<FilterType> > d_covariance;
-    Data<helper::vector<FilterType> > d_innovation;
-    Data<bool> d_boundParameters;
+    Data<helper::vector<FilterType> > d_innovation;    
 
     void init();
     void bwdInit();

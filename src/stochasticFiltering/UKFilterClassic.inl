@@ -22,8 +22,7 @@ UKFilterClassic<FilterType>::UKFilterClassic()
     , d_state( initData(&d_state, "state", "actual expected value of reduced state (parameters) estimated by the filter" ) )
     , d_variance( initData(&d_variance, "variance", "actual variance  of reduced state (parameters) estimated by the filter" ) )
     , d_covariance( initData(&d_covariance, "covariance", "actual co-variance  of reduced state (parameters) estimated by the filter" ) )
-    , d_innovation( initData(&d_innovation, "innovation", "innovation value computed by the filter" ) )
-    , d_boundParameters( initData(&d_boundParameters, false, "boundFilterState", "will paremeters be bounded during simulation" ) )
+    , d_innovation( initData(&d_innovation, "innovation", "innovation value computed by the filter" ) ) 
 {
 
 }
@@ -57,22 +56,7 @@ void UKFilterClassic<FilterType>::computePrediction()
 
     /// Computes X_{n}^{(i)-} sigma points
     for (size_t i = 0; i < sigmaPointsNum; i++) {
-        matXi.col(i) = stateExp + matPsqrt * matI.row(i).transpose();
-
-        /// project the values that are out of bounds
-        size_t colSize = matXi.col(i).size();
-        if (d_boundParameters.getValue()) {
-            for (size_t index = 0; index < (size_t)estimMinimBounds.size(); index++) {
-                if (matXi.col(i)(colSize - estimMinimBounds.size() + index) < estimMinimBounds(index)) {
-                    matXi.col(i)(colSize - estimMinimBounds.size() + index) = estimMinimBounds(index);
-                }
-            }
-            for (size_t index = 0; index < (size_t)estimMaximBounds.size(); index++) {
-                if (matXi.col(i)(colSize - estimMaximBounds.size() + index) > estimMaximBounds(index)) {
-                    matXi.col(i)(colSize - estimMaximBounds.size() + index) = estimMaximBounds(index);
-                }
-            }
-        }
+        matXi.col(i) = stateExp + matPsqrt * matI.row(i).transpose();       
     }
     /// Compute the state
     computePerturbedStates();
@@ -293,12 +277,6 @@ void UKFilterClassic<FilterType>::bwdInit() {
     /// Initialize Model's Error Covariance
     stateCovar = masterStateWrapper->getStateErrorVariance();
     modelCovar = masterStateWrapper->getModelErrorVariance();
-
-            /// Initialise model parameter bounds
-    if (d_boundParameters.getValue()) {
-        estimMinimBounds = masterStateWrapper->getMinimumBound();
-        estimMaximBounds = masterStateWrapper->getMaximumBound();
-    }
 
     stateExp = masterStateWrapper->getState();
 

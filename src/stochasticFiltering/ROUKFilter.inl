@@ -55,8 +55,7 @@ ROUKFilter<FilterType>::ROUKFilter()
     , reducedState( initData(&reducedState, "reducedState", "actual expected value of reduced state (parameters) estimated by the filter" ) )
     , reducedVariance( initData(&reducedVariance, "reducedVariance", "actual variance  of reduced state (parameters) estimated by the filter" ) )
     , reducedCovariance( initData(&reducedCovariance, "reducedCovariance", "actual co-variance  of reduced state (parameters) estimated by the filter" ) )
-    , d_reducedInnovation( initData(&d_reducedInnovation, "reducedInnovation", "innovation value computed by the filter" ) )
-    , d_boundParameters( initData(&d_boundParameters, false, "boundFilterState", "will paremeters be bounded during simulation" ) )
+    , d_reducedInnovation( initData(&d_reducedInnovation, "reducedInnovation", "innovation value computed by the filter" ) )    
 {    
     this->reducedOrder.setValue(true);
 }
@@ -135,26 +134,7 @@ void ROUKFilter<FilterType>::computePrediction()
         blasMultAdd(tmpStateVarProj2, matI, matXi, 1.0, 1.0);
     else
         matXi = matXi + tmpStateVarProj2 * matI;
-    //TOC("== prediction multiplication2 == ");
-
-    for (size_t i = 0; i < sigmaPointsNum; i++) {
-        /// project the values that are out of bounds
-        size_t colSize = matXi.col(i).size();
-        if (d_boundParameters.getValue()) {
-            for (size_t index = 0; index < (size_t)estimMinimBounds.size(); index++) {
-                if (matXi.col(i)(colSize - estimMinimBounds.size() + index) < estimMinimBounds(index)) {
-                    // PRNS("correcting values: ");
-                    matXi.col(i)(colSize - estimMinimBounds.size() + index) = estimMinimBounds(index);
-                    // PRNS("Result of sigma point " << i << ": " << matXi.col(i).transpose());
-                }
-            }
-            for (size_t index = 0; index < (size_t)estimMaximBounds.size(); index++) {
-                if (matXi.col(i)(colSize - estimMaximBounds.size() + index) > estimMaximBounds(index)) {
-                    matXi.col(i)(colSize - estimMaximBounds.size() + index) = estimMaximBounds(index);
-                }
-            }
-        }
-    }
+    //TOC("== prediction multiplication2 == ");   
 
     //TIC;
     computePerturbedStates(vecX);   
@@ -359,13 +339,7 @@ void ROUKFilter<FilterType>::bwdInit() {
     matU = masterStateWrapper->getStateErrorVarianceReduced();
 
     reducedStateSize = matU.cols();
-    matUinv = matU.inverse();
-
-    /// Initialise model parameter bounds
-    if (d_boundParameters.getValue()) {
-        estimMinimBounds = masterStateWrapper->getMinimumBound();
-        estimMaximBounds = masterStateWrapper->getMaximumBound();
-    }
+    matUinv = matU.inverse();   
 
     //PRNW("size: " << matU.rows() << " X " << matU.cols());
 

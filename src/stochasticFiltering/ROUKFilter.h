@@ -165,7 +165,6 @@ protected:
     EMatrixX matItrans, matI;
     EMatrixX matDv;
     EMatrixX matXi;
-    EVectorX estimMinimBounds, estimMaximBounds;
 
     Type alpha, alphaVar;
 
@@ -185,8 +184,7 @@ public:
     Data<helper::vector<FilterType> > reducedState;
     Data<helper::vector<FilterType> > reducedVariance;
     Data<helper::vector<FilterType> > reducedCovariance;
-    Data<helper::vector<FilterType> > d_reducedInnovation;
-    Data<bool> d_boundParameters;
+    Data<helper::vector<FilterType> > d_reducedInnovation;    
 
 
     void init();
