@@ -70,7 +70,9 @@ void ROUKFilter<FilterType>::computePerturbedStates(EVectorX& _meanState) {
         EVectorX xCol(stateSize);
         for (size_t i = 0; i < sigmaPointsNum; i++) {
             xCol = matXi.col(i);
+            //std::cout << "Before simul:" << xCol(stateSize-3) << " " << xCol(stateSize-2) << " " << xCol(stateSize-1) << std::endl;
             stateWrappers[sigmaPoints2WrapperIDs[i]]->transformState(xCol, mechParams);
+            //std::cout << "After simul:" << xCol(stateSize-3) << " " << xCol(stateSize-2) << " " << xCol(stateSize-1) << std::endl;
             matXi.col(i) = xCol;
 
             /*char fileName[100];
@@ -109,6 +111,7 @@ void ROUKFilter<FilterType>::computePrediction()
 
     TIC
     EVectorX vecX = masterStateWrapper->getState();
+    //std::cout << "State: " << vecX.transpose() << std::endl;
     Eigen::LLT<EMatrixX> lltU(matUinv);
     matUinv = lltU.matrixL();
     //TOC("== prediction: Cholesky ");
@@ -417,6 +420,37 @@ void ROUKFilter<FilterType>::bwdInit() {
     }
 
     masterStateWrapper->writeState(double(0.0));
+
+
+    /// export initial stochastic state
+    helper::WriteAccessor<Data <helper::vector<FilterType> > > redState = reducedState;
+    helper::WriteAccessor<Data <helper::vector<FilterType> > > redVar = reducedVariance;
+    helper::WriteAccessor<Data <helper::vector<FilterType> > > redCovar = reducedCovariance;
+
+    EVectorX state = masterStateWrapper->getState();
+    EMatrixX errorVarProj = masterStateWrapper->getStateErrorVarianceProjector();
+    size_t reducedStateIndex = stateSize - reducedStateSize;
+    EMatrixX parErrorVarProj(reducedStateSize,reducedStateSize);
+    for (size_t i = 0; i < reducedStateSize; i++)
+        for (size_t j = 0; j < reducedStateSize; j++)
+            parErrorVarProj(i,j) = errorVarProj(reducedStateIndex+i,j);
+    EMatrixX covarianceMatrix(reducedStateSize, reducedStateSize);
+    covarianceMatrix = parErrorVarProj * matUinv * parErrorVarProj.transpose();
+
+    redState.resize(reducedStateSize);
+    redVar.resize(reducedStateSize);
+    size_t numCovariances = (reducedStateSize*(reducedStateSize-1))/2;
+    redCovar.resize(numCovariances);
+
+    size_t gli = 0;
+    for (size_t i = 0; i < reducedStateSize; i++) {
+        redState[i] = state[reducedStateIndex+i];
+        redVar[i] = covarianceMatrix(i,i);
+        for (size_t j = i+1; j < reducedStateSize; j++) {
+            redCovar[gli++] = covarianceMatrix(i,j);
+        }
+    }
+
 
     //std::cout << "SigmaWrapper: " << sigmaPoints2WrapperIDs << std::endl;
     //std::cout << "WrapperSigma: " << wrapper2SigmaPointsIDs << std::endl;
