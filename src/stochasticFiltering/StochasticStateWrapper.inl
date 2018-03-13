@@ -79,8 +79,6 @@ StochasticStateWrapper<DataTypes, FilterType>::StochasticStateWrapper()
     , posModelStdev( initData(&posModelStdev, FilterType(0.0), "posModelStdev", "standard deviation in observations") )
     , velModelStdev( initData(&velModelStdev, FilterType(0.0), "velModelStdev", "standard deviation in observations") )
     , paramModelStdev( initData(&paramModelStdev, FilterType(0.0), "paramModelStdev", "standard deviation in observations") )
-
-
     , d_positionStdev( initData(&d_positionStdev, "positionStdev", "estimate standard deviation for positions"))
     , d_velocityStdev( initData(&d_velocityStdev, "velocityStdev", "estimate standard deviation for velocities"))
     , d_projectionMatrix( initData(&d_projectionMatrix, Mat3x4d(defaulttype::Vec<4,float>(1.0,0.0,0.0,0.0),
@@ -242,6 +240,8 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
     copyStateSofa2Filter();
 }
 
+
+/// function called from observation manager when it needs to perform mapping (a more elegant solution could/should be found)
 template <class DataTypes, class FilterType>
 void StochasticStateWrapper<DataTypes, FilterType>::setSofaVectorFromFilterVector(EVectorX& _state, typename DataTypes::VecCoord& _vec) {
     if (_vec.size() != mechanicalState->getSize()) {
@@ -274,11 +274,12 @@ void StochasticStateWrapper<DataTypes, FilterType>::setSofaVectorFromFilterVecto
     }
 }
 
+
+/// function that sets SOFA state (position, velocity, parameters) from this->state (stochastic state, Eigen vector)
 template <class DataTypes, class FilterType>
 void StochasticStateWrapper<DataTypes, FilterType>::copyStateFilter2Sofa(const core::MechanicalParams* _mechParams, bool _setVelocityFromPosition) {
     typename MechanicalState::WriteVecCoord pos = mechanicalState->writePositions();
     typename MechanicalState::WriteVecDeriv vel = mechanicalState->writeVelocities();
-    typename MechanicalState::WriteVecDeriv extForces = typename MechanicalState::WriteVecDeriv(mechanicalState->write(core::VecDerivId::externalForce()));
 
     for (helper::vector<std::pair<size_t, size_t> >::iterator it = positionPairs.begin(); it != positionPairs.end(); it++) {
         for (size_t d = 0; d < Dim; d++) {
@@ -310,12 +311,11 @@ void StochasticStateWrapper<DataTypes, FilterType>::copyStateFilter2Sofa(const c
         vecOptimParams[opi]->vectorToParams(this->state);
 }
 
+/// function that compies SOFA state (position, velocity, parameters) to this->state (stochastic state, Eigen vector)
 template <class DataTypes, class FilterType>
 void StochasticStateWrapper<DataTypes, FilterType>::copyStateSofa2Filter() {
     typename MechanicalState::ReadVecCoord pos = mechanicalState->readPositions();
-    typename MechanicalState::ReadVecDeriv vel = mechanicalState->readVelocities();
-    typename MechanicalState::ReadVecDeriv extForces = typename MechanicalState::ReadVecDeriv(mechanicalState->read(core::VecDerivId::externalForce()));
-
+    typename MechanicalState::ReadVecDeriv vel = mechanicalState->readVelocities();    
 
     for (helper::vector<std::pair<size_t, size_t> >::iterator it = positionPairs.begin(); it != positionPairs.end(); it++)
         for (size_t d = 0; d < Dim; d++) {
@@ -326,16 +326,12 @@ void StochasticStateWrapper<DataTypes, FilterType>::copyStateSofa2Filter() {
         for (size_t d = 0; d < Dim; d++)
             this->state(Dim*it->second + d) = vel[it->first][d];
 
-    for (helper::vector<std::pair<size_t, size_t> >::iterator it = externalForcesPairs.begin(); it != externalForcesPairs.end(); it++)
-        for (size_t d = 0; d < DimForces; d++)
-            this->state(DimForces*it->second + d) = extForces[it->first][d];
-
     for (size_t opi = 0; opi < vecOptimParams.size(); opi++)
         vecOptimParams[opi]->paramsToVector(this->state);
 
 }
 
-
+/// create an internal copy of SOFA state (positions and velocities); needed to reinitialize before simulation of each sigma point
 template <class DataTypes, class FilterType>
 void StochasticStateWrapper<DataTypes, FilterType>::storeMState() {
     /// store the actual mechanical state (position, velocity)
@@ -351,6 +347,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::storeMState() {
     }
 }
 
+/// re-initialize SOFA state (positions and velocities) from back-up create by storeMState
 template <class DataTypes, class FilterType>
 void StochasticStateWrapper<DataTypes, FilterType>::reinitMState(const core::MechanicalParams* _mechParams) {
     typename MechanicalState::WriteVecCoord pos = mechanicalState->writePositions();
@@ -364,6 +361,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::reinitMState(const core::Mec
     sofa::simulation::MechanicalPropagateOnlyPositionAndVelocityVisitor(_mechParams).execute( this->gnode );
 
 }
+
 
 template <class DataTypes, class FilterType>
 void StochasticStateWrapper<DataTypes, FilterType>::getActualPosition(int _id, VecCoord& _pos) {
@@ -470,12 +468,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::transformState(EVectorX &_ve
     }
 }
 
-/*template <class DataTypes, class FilterType>
-void StochasticStateWrapper<DataTypes, FilterType>::setSofaTime(const core::ExecParams* _execParams) {
-    std::cout << "Setting SOFA time with " << this->actualTime << std::endl;
-    this->gnode->setTime (this->actualTime);
-    this->gnode->template execute< sofa::simulation::UpdateSimulationContextVisitor >(_execParams);
-}*/
+/// perform a simulation step, code taken from DefaultAnimationLoop
 
 template <class DataTypes, class FilterType>
 void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStep(const core::ExecParams* execParams, bool _updateTime) {
@@ -551,6 +544,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStep(const core::
 
 }
 
+/// perform a simulation step with collisions, code taken from FreeMotionAnimationLoop
 
 template <class DataTypes, class FilterType>
 void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStepWithLM(const core::ExecParams* params, bool _updateTime) {
