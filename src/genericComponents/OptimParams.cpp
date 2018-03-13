@@ -60,30 +60,6 @@ void OptimParams<sofa::helper::vector<double> >::getInitVariance(DVec& _variance
 }
 
 template<>
-void OptimParams<sofa::helper::vector<double> >::getMinimumBounds(DVec& _minimumBounds) {
-    size_t numParams = this->m_numParams.getValue();
-    _minimumBounds.resize(numParams);
-    for (size_t i = 0; i < numParams; i++) {
-        if (m_minVal.getValue().size() <= i)
-            _minimumBounds[i] = m_minVal.getValue()[m_minVal.getValue().size() - 1];
-        else
-            _minimumBounds[i] = m_minVal.getValue()[i];
-    }
-}
-
-template<>
-void OptimParams<sofa::helper::vector<double> >::getMaximumBounds(DVec& _maximumBounds) {
-    size_t numParams = this->m_numParams.getValue();
-    _maximumBounds.resize(numParams);
-    for (size_t i = 0; i < numParams; i++) {
-        if (m_maxVal.getValue().size() <= i)
-            _maximumBounds[i] = m_maxVal.getValue()[m_maxVal.getValue().size() - 1];
-        else
-            _maximumBounds[i] = m_maxVal.getValue()[i];
-    }
-}
-
-template<>
 void OptimParams<sofa::helper::vector<double> >::vectorToParams(VectorXd& _vector) {    
     helper::WriteAccessor<Data<helper::vector<double> > > val = m_val;
     helper::ReadAccessor<Data<helper::vector<double> > > minVal = m_minVal;
@@ -121,6 +97,12 @@ void OptimParams<sofa::helper::vector<double> >::vectorToParams(VectorXd& _vecto
         for (size_t i = 0; i < this->paramIndices.size(); i++)
             val[i] = _vector[this->paramIndices[i]];
     }
+
+    /*std::cout <<"Values used in SOFA:" << std::endl;
+    for (size_t i = 0; i < this->paramIndices.size(); i++) {
+        std::cout <<  " " << val[i];
+    }
+    std::cout << std::endl;*/
 }
 
 template<>
@@ -551,33 +533,6 @@ void OptimParams<Vec3dTypes::VecCoord>::getInitVariance(DVec& _variance) {
 
 }
 
-template<>
-void OptimParams<Vec3dTypes::VecCoord>::getMinimumBounds(DVec& _minimumBounds) {
-//    size_t numParams = this->m_numParams.getValue();
-//    _minimumBounds.resize(numParams);
-//    size_t ij = 0;
-//    for (size_t i = 0; i < numParams; i++) {
-//        for (size_t j = 0; j < mstate_dim; j++, ij++)
-//            if (m_minVal.getValue().size() <= i)
-//                _minimumBounds[i] = m_minVal.getValue()[m_minVal.getValue().size() - 1][j];
-//            else
-//                _minimumBounds[i] = m_minVal.getValue()[i][j];
-//    }
-}
-
-template<>
-void OptimParams<Vec3dTypes::VecCoord>::getMaximumBounds(DVec& _maximumBounds) {
-//    size_t numParams = this->m_numParams.getValue();
-//    _maximumBounds.resize(numParams);
-//    size_t ij = 0;
-//    for (size_t i = 0; i < numParams; i++) {
-//        for (size_t j = 0; j < mstate_dim; j++, ij++)
-//            if (m_maxVal.getValue().size() <= i)
-//                _maximumBounds[i] = m_maxVal.getValue()[m_maxVal.getValue().size() - 1][j];
-//            else
-//                _maximumBounds[i] = m_maxVal.getValue()[i][j];
-//    }
-}
 
 template<>
 void OptimParams<Vec3dTypes::VecDeriv>::handleEvent(core::objectmodel::Event *event) {
