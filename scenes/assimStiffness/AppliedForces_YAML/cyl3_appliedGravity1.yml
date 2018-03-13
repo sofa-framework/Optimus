@@ -8,8 +8,9 @@ model:
     gravity: [0, -9.81, 0]
     #total_mass: 0.2
     density: 200
+    young_moduli: [1000, 4000, 2000]   #E1
     #young_moduli: [100000, 50000, 1000]   #E1
-    young_moduli: [100000, 50000, 100000]   #E2
+    #young_moduli: [100000, 50000, 100000]   #E2
     
     int:   # temporal integrator properties
         type: 'Euler'
@@ -18,8 +19,8 @@ model:
         maxit: 1
     bc:
         type: 'fixed'
-        #boxes: '-0.05 -0.05 -0.002   0.05 0.05 0.002   -0.05 -0.05  0.238   0.05 0.05 0.242'
-        boxes: '-0.05 -0.05 -0.002   0.05 0.05 0.002'
+        boxes: '-0.05 -0.05 -0.002   0.05 0.05 0.002   -0.05 -0.05  0.238   0.05 0.05 0.242'
+        #boxes: '-0.05 -0.05 -0.002   0.05 0.05 0.002'
 
     linsol:
         usePCG: 0
@@ -30,23 +31,25 @@ model:
 
 io:    
     prefix: 'cyl3gravity_'
-    suffix: '_fixLeft_E2MM'
-    saveGeo: 1
-    saveObs: 1                  # GO only
+    suffix: ''
+    saveGeo: 0
+    saveObs: 0                  # GO only
     obsFileName: 'obs'
     saveEst: 1                  # SDA only
-    sdaFolderSuffix: ''         # SDA only
+    sdaFolderSuffix: '_proj2'         # SDA only
 
 filter:                         # SDA only
     kind: 'ROUKF'               # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
     nparams: 3
-    param_init_exval: [50000, 50000, 50000]
-    param_init_stdev: [20000, 20000, 20000]
-    param_transform: 'absolute'
-    obs_tag: obs10
-    obs_points: '../../data/cylinder/cyl3_obs10.vtk'
-    observ_stdev: 1e-4    
+    param_init_exval: [3000, 3000, 3000]
+    param_init_stdev: [1000, 1000, 1000]
+    param_min_val: [200]
+    param_max_val: [1e10]
+    param_transform: 'project'
+    obs_tag: obs33
+    obs_points: '../../data/cylinder/cyl3_obs33.vtk'
+    observ_stdev: 1e-3     
     sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
     sigma_points_scale: 1
-    bound_filter_state: 1
+    
 ...

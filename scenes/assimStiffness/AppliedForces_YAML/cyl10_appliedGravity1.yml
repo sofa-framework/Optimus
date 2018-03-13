@@ -19,8 +19,8 @@ model:
         boxes: '-0.05 -0.05 -0.002   0.05 0.05 0.002   -0.05 -0.05  0.298   0.05 0.05 0.302'
 
     linsol:
-        usePCG: 1
-        pardisoSym: 2
+        usePCG: 0
+        pardisoSym: 1
         pardisoFolder: ''
         
     plane_collision: 0
@@ -32,18 +32,19 @@ io:
     saveObs: 1                  # GO only
     obsFileName: 'obs'
     saveEst: 1                  # SDA only
-    sdaFolderSuffix: ''         # SDA only
+    sdaFolderSuffix: '_proj5'         # SDA only
 
 filter:                         # SDA only
     kind: 'ROUKF'               # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
     nparams: 10
-    param_init_exval: [6000]
+    param_init_exval: [4000]
     param_init_stdev: [1000]
-    param_transform: 'absolute'
-    obs_tag: obs33
-    obs_points: '../../data/cylinder/cyl10_4245_obs33.vtk'
-    observ_stdev: 2e-3    
+    param_min_val: [100]
+    param_max_val: [1e10]
+    param_transform: 'project'
+    obs_tag: obs120
+    obs_points: '../../data/cylinder/cyl10_4245_obs120.vtk'
+    observ_stdev: 1e-3
     sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
-    sigma_points_scale: 1
-    bound_filter_state: 1
+    sigma_points_scale: 1    
 ...
