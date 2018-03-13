@@ -100,11 +100,11 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         self.filterKind = self.opt['filter']['kind']
 
         if self.filterKind == 'ROUKF':
-            self.filter = rootNode.createObject('ROUKFilter', name="ROUKF", verbose="1", useBlasToMultiply='0')
-            estimatePosition = 1
+            self.filter = rootNode.createObject('ROUKFilter', name="ROUKF", verbose="1", useBlasToMultiply='1')
+            estimatePosition = 1            
         elif self.filterKind == 'UKFSimCorr':
             self.filter = rootNode.createObject('UKFilterSimCorr', name="UKFSC", verbose="1")
-            estimatePosition = 1
+            estimatePosition = 0
             
         rootNode.createObject('MeshVTKLoader', name='loader', filename=self.opt['model']['vol_mesh'])
         rootNode.createObject('MeshSTLLoader', name='sloader', filename=self.opt['model']['surf_mesh'])
@@ -112,7 +112,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         # /ModelNode
         modelNode=rootNode.createChild('ModelNode')
         modelNode.createObject('StochasticStateWrapper',name="StateWrapper",verbose='1', 
-            langrangeMultipliers=self.planeCollision, estimatePosition=estimatePosition)
+            langrangeMultipliers=self.planeCollision, estimatePosition=estimatePosition, estimateVelocity='0')
 
         if self.planeCollision == 1:
             modelNode.createObject('GenericConstraintSolver', maxIterations='1000', tolerance='1e-6', printLog='0', allVerified='0')
@@ -158,7 +158,8 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         
         simuNode.createObject('OptimParams', name="paramE", optimize="1", template="Vector", 
             numParams=self.opt['filter']['nparams'], transformParams=self.opt['filter']['param_transform'],
-            initValue=self.opt['filter']['param_init_exval'], stdev=self.opt['filter']['param_init_stdev'])
+            initValue=self.opt['filter']['param_init_exval'], stdev=self.opt['filter']['param_init_stdev'],
+            minValue=self.opt['filter']['param_min_val'], maxValue=self.opt['filter']['param_max_val'])
 
         youngModuli=self.opt['model']['young_moduli']
         indices = range(1, len(youngModuli)+1)
@@ -231,9 +232,19 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         self.total_time =     0            
         return 0
 
-    def onEndAnimationStep(self, deltaTime): 
-        
-        if self.saveEst:              
+    def bwdInitGraph(self, node):
+    	self.exportStochasticState()
+    	return 0
+
+    def onEndAnimationStep(self, deltaTime):         
+        self.exportStochasticState()
+
+        # print self.basePoints.findData('indices_position').value
+
+        return 0
+
+    def exportStochasticState(self):
+    	if self.saveEst:              
             stateName = 'reducedState' if self.filterKind == 'ROUKF' else 'state'
             varName = 'reducedVariance' if self.filterKind == 'ROUKF' else 'variance'
             covarName = 'reducedCovariance' if self.filterKind == 'ROUKF' else 'covariance'
@@ -269,9 +280,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             f3.write('\n')
             f3.close()    
 
-        # print self.basePoints.findData('indices_position').value
-
-        return 0
+            return
 
     def cleanup(self):
         if self.saveEst:
