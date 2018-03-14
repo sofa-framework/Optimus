@@ -1,13 +1,14 @@
 addpath '~/AncillaIP/Matlab';
 %groundTruth=[1500 6000 2000];   %P1
 %groundTruth=[3500 4000 1000 6000 2000 7000 2500 8000 3000 1500];
-groundTruth=[1000 4000 2000];   %P1
+%groundTruth=[1000 4000 2000];   %P1
 %$groundTruth=zeros(1,10);   %P2
+groundTruth = zeros(1,16);
 showStdev = 1;
-nsteps=200;
+nsteps=50;
 
-integ='Euler1'
-%integ='Newton3'
+%integ='Euler1'
+integ='Newton3'
 %integ='VarSym3'
 
 %filterType='UKFSimCorr';
@@ -18,7 +19,8 @@ filterType='ROUKF';
 %trans = 'exp';
 trans = 'proj';
 
-inputDir=['../assimStiffness/cyl3gravity_Euler1/ROUKF_obs33_' trans '2'];
+inputDir=['../assimBC/brickD_Newton3_fp1_tr1_ogrid4/ROUKFproj_OSD-3']
+%inputDir=['../assimStiffness/cyl3gravity_Euler1/ROUKF_obs33_' trans '2'];
 %inputDir='../assimStiffness/cyl10gravity_Euler1/ROUKF_obs120_proj5';
 
 
