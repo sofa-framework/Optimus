@@ -1,0 +1,56 @@
+# some of the parameters are only for GenObs scene (GO), some for assimilation scene (SDA)
+
+---
+model:
+    dt: 1
+    vol_mesh: '../../data/brickD/brickD_536.vtk'
+    surf_mesh: '../../data/brickD/brickD_536.stl'
+    gravity: [0,0,0]
+    total_mass: 0.01
+    #density: 200
+    young_modulus: 5000   #E1
+    poisson_ratio: 0.45    
+    
+    int:   # temporal integrator properties
+        type: 'Newton'
+        rmass: 0.1
+        rstiff: 3
+        maxit: 3
+    bc:
+        type: 'penalty'
+        tag: 'fp1'        
+        boxes: [-0.001, -0.001, -0.011, 0.025, 0.001, 0.001]
+
+    linsol:
+        usePCG: 0
+        pardisoSym: 1
+        pardisoFolder: ''
+        
+    control:
+        tag: 'tr1'
+        times: [0, 200]
+        displ: [0, 0, 0,    0.0, 0.04, 0]
+
+io:    
+    prefix: 'brickD_'
+    suffix: ''
+    saveGeo: 0
+    saveObs: 1                  # GO only    
+    saveEst: 1                  # SDA only
+    sdaFolderSuffix: 'absPCG'         # SDA only
+    obs_id:  'ogrid4'
+    save_existing_folder: 0
+
+filter:                         # SDA only
+    kind: 'ROUKF'               # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
+    #nparams: 3
+    estim_bc_box: [-0.001, -0.001, -0.011, 0.101, 0.001, 0.001]
+    param_init_exval: [0]
+    param_init_stdev: [5]
+    param_min_val: [200]
+    param_max_val: [1e10]
+    param_transform: 'absolute'
+    observ_stdev: 1e-4
+    sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
+    sigma_points_scale: 1    
+...

@@ -98,7 +98,6 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         rootNode.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")
 
         self.filterKind = self.opt['filter']['kind']
-
         if self.filterKind == 'ROUKF':
             self.filter = rootNode.createObject('ROUKFilter', name="ROUKF", verbose="1", useBlasToMultiply='1')
             estimatePosition = 1            
