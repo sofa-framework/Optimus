@@ -31,7 +31,7 @@ template <class FilterType>
 void UKFilterClassic<FilterType>::computePerturbedStates()
 {
     EVectorX xCol(stateSize);
-    int currentPointID;
+    int currentPointID = 0;
 
     for (size_t i = 0; i < sigmaPointsNum; i++) {
         xCol = matXi.col(i);
