@@ -3,8 +3,10 @@ import math
 import os
 import sys
 import csv
-sys.path.append(os.getcwd() + '/../../python_src/configuration')
-import DAOptions
+import shutil
+import yaml
+sys.path.append(os.getcwd() + '/../../python_src/utils')
+from FileSystemUtils import FolderHandler
 
 __file = __file__.replace('\\', '/') # windows
 
@@ -20,73 +22,88 @@ def createScene(rootNode):
         commandLineArguments = []
     else :
         commandLineArguments = sys.argv
-    rootNode.createObject('PythonScriptController', name='SynthBCDA', filename=__file, classname='synth1_BCDA', variables=' '.join(commandLineArguments[1:]))
 
+    if len(commandLineArguments) > 1:
+        configFileName = commandLineArguments[1]
+    else:
+        print 'ERROR: Must supply a yaml config file as an argument!'
+        return
+    print "Command line arguments for python : " + str(commandLineArguments)
+
+    with open(configFileName, 'r') as stream:
+        try:
+            options = yaml.load(stream)            
+
+        except yaml.YAMLError as exc:
+            print(exc)
+            return
+
+    cylConstForce_SDA(rootNode, options, configFileName)
+    return 0
 
 
 # Class definition 
-class synth1_BCDA(Sofa.PythonScriptController):
+class cylConstForce_SDA(Sofa.PythonScriptController):
 
-    options = DAOptions.DAOptions()
-
-    def createGraph(self,node):
+    def __init__(self, rootNode, options, configFileName):
+        self.options = options
     	self.cameraReactivated=False
-        self.rootNode=node
 
+        self.folderName = options['scene_parameters']['filtering_parameters']['output_directory_prefix'] + options['scene_parameters']['filtering_parameters']['filter_kind'] + options['scene_parameters']['filtering_parameters']['output_directory_suffix']
+        folderCreator = FolderHandler()
+        folderCreator.createFolder(self.folderName, archiveResults=1)
+        shutil.copy(configFileName, self.folderName + '/daconfig.yml')
+
+        self.createGraph(rootNode)
+
+        
+
+    def createGraph(self, rootNode):
+
+        self.rootNode=rootNode
         self.iterations = 40    
+        print "Create graph called (Python side)\n"
 
-        print  "Create graph called (Python side)\n"
-	
-        # load configuration from yaml file
-        if len(self.findData("variables").value) > 0:
-            self.configFileName = self.findData("variables").value[0][0]
-        else:
-            self.configFileName = "cyl_scene_config.yml"
+        self.lambdaScale = 1.0
+        if self.options['scene_parameters']['filtering_parameters']['filter_kind'] == 'ROUKF':
+            self.estimPosition='1'
+            self.estimVelocity='0'          
 
-        self.options.parseYaml(self.configFileName)
-        self.options.export.createFolder(archiveResults=1)
-        self.options.init(copyConfigFile=1)
-        
-        if self.options.filter.kind=='ROUKF':
-            self.options.filter.estimPosition='1'
-            self.options.filter.estimVelocity='0'          
+        if self.options['scene_parameters']['filtering_parameters']['filter_kind'] == 'UKFSimCorr':
+            self.estimPosition='0'
+            self.estimVelocity='0'
 
-        if self.options.filter.kind=='UKFSimCorr':
-            self.options.filter.estimPosition='0'
-            self.options.filter.estimVelocity='0'
+        if self.options['scene_parameters']['filtering_parameters']['filter_kind'] == 'UKFClassic':
+            self.estimPosition='1'
+            self.estimVelocity='0'
 
-        if self.options.filter.kind=='UKFClassic':
-            self.options.filter.estimPosition='1'
-            self.options.filter.estimVelocity='0'
-            
-        
-        self.createScene(node)        
+        self.createScene(rootNode)        
         
         return 0
 
     
-    def createGlobalComponents(self, node):
+    def createGlobalComponents(self, rootNode):
         # scene global stuff                
-        node.findData('gravity').value=self.options.model.gravity
-        node.findData('dt').value=self.options.model.dt
+        rootNode.findData('gravity').value = self.options['scene_parameters']['general_parameters']['gravity']
+        rootNode.findData('dt').value = self.options['scene_parameters']['general_parameters']['delta_time']
         
-        node.createObject('ViewerSetting', cameraMode='Perspective', resolution='1000 700', objectPickingMethod='Ray casting')
-        node.createObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels')
+        rootNode.createObject('ViewerSetting', cameraMode='Perspective', resolution='1000 700', objectPickingMethod='Ray casting')
+        rootNode.createObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels')
 
-        #node.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")
-        node.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1", computationTimeFile=self.options.time.computationTimeFileName)
+        #rootNode.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")
+        rootNode.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1", computationTimeFile=self.options['scene_parameters']['time_parameters']['computation_time_file_name'])
 
-        if (self.options.filter.kind == 'ROUKF'):
-            self.filter = node.createObject('ROUKFilter', name="ROUKF", verbose="1", useUnbiasedVariance=self.options.filter.useUnbiasedVariance, sigmaTopology=self.options.filter.sigmaPointsTopology, lambdaScale=self.options.filter.lambdaScale, boundFilterState=self.options.filter.boundFilterState)        
-        elif (self.options.filter.kind == 'UKFSimCorr'):
-            self.filter = node.createObject('UKFilterSimCorr', name="UKF", verbose="1", useUnbiasedVariance=self.options.filter.useUnbiasedVariance, sigmaTopology=self.options.filter.sigmaPointsTopology, lambdaScale=self.options.filter.lambdaScale, boundFilterState=self.options.filter.boundFilterState) 
-        elif (self.options.filter.kind == 'UKFClassic'):
-            self.filter = node.createObject('UKFilterClassic', name="UKFClas", verbose="1", exportPrefix=self.options.export.folder, useUnbiasedVariance=self.options.filter.useUnbiasedVariance, sigmaTopology=self.options.filter.sigmaPointsTopology, lambdaScale=self.options.filter.lambdaScale, boundFilterState=self.options.filter.boundFilterState)
+        if (self.options['scene_parameters']['filtering_parameters']['filter_kind'] == 'ROUKF'):
+            self.filter = rootNode.createObject('ROUKFilter', name="ROUKF", verbose="1", useUnbiasedVariance=self.options['scene_parameters']['filtering_parameters']['use_unbiased_variance'], sigmaTopology=self.options['scene_parameters']['filtering_parameters']['sigma_points_topology'], lambdaScale=self.lambdaScale)        
+        elif (self.options['scene_parameters']['filtering_parameters']['filter_kind'] == 'UKFSimCorr'):
+            self.filter = rootNode.createObject('UKFilterSimCorr', name="UKF", verbose="1", useUnbiasedVariance=self.options['scene_parameters']['filtering_parameters']['use_unbiased_variance'], sigmaTopology=self.options['scene_parameters']['filtering_parameters']['sigma_points_topology'], lambdaScale=self.lambdaScale) 
+        elif (self.options['scene_parameters']['filtering_parameters']['filter_kind'] == 'UKFClassic'):
+            self.filter = rootNode.createObject('UKFilterClassic', name="UKFClas", verbose="1", exportPrefix=self.folderName, useUnbiasedVariance=self.optionsself.options['scene_parameters']['filtering_parameters']['use_unbiased_variance'], sigmaTopology=self.options['scene_parameters']['filtering_parameters']['sigma_points_topology'], lambdaScale=self.lambdaScale)
         else:
             print 'Unknown filter type!'
             
-        node.createObject('MeshVTKLoader', name='loader', filename=self.options.model.volumeFileName)
-        #node.createObject('MeshSTLLoader', name='objectSLoader', filename=self.surfaceSTL)
+        rootNode.createObject('MeshVTKLoader', name='loader', filename=self.options['scene_parameters']['system_parameters']['volume_file_name'])
+        #rootNode.createObject('MeshSTLLoader', name='objectSLoader', filename=self.surfaceSTL)
         
         return 0        
 
@@ -94,8 +111,8 @@ class synth1_BCDA(Sofa.PythonScriptController):
     #components common for both master and slave: the simulation itself (without observations and visualizations)
     def createCommonComponents(self, node):                                  
         #node.createObject('StaticSolver', applyIncrementFactor="0")        
-        node.createObject('EulerImplicitSolver', rayleighStiffness=self.options.model.rayleighStiffness, rayleighMass=self.options.model.rayleighMass)
-        # node.createObject('VariationalSymplecticSolver', rayleighStiffness=self.options.model.rayleighStiffness, rayleighMass=self.options.model.rayleighMass,             newtonError='1e-12', steps='1', verbose='0')
+        node.createObject('EulerImplicitSolver', rayleighStiffness=self.options['scene_parameters']['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['scene_parameters']['general_parameters']['rayleigh_mass'])
+        # node.createObject('VariationalSymplecticSolver', rayleighStiffness=self.options['scene_parameters']['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['scene_parameters']['general_parameters']['rayleigh_mass'], newtonError='1e-12', steps='1', verbose='0')
         # node.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")   
         # node.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
         node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
@@ -105,19 +122,25 @@ class synth1_BCDA(Sofa.PythonScriptController):
         node.createObject('TetrahedronSetTopologyModifier', name="Modifier")        
         node.createObject('TetrahedronSetTopologyAlgorithms', name="TopoAlgo")
         node.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
-        node.createObject('UniformMass', totalMass=self.options.model.totalMass)
+        if 'total_mass' in self.options['scene_parameters']['general_parameters'].keys():
+            node.createObject('UniformMass', totalMass=self.options['scene_parameters']['general_parameters']['total_mass'])
+        if 'density' in self.options['scene_parameters']['general_parameters'].keys():
+            node.createObject('MeshMatrixMass', printMass='0', lumping='1', massDensity=self.options['scene_parameters']['general_parameters']['density'], name='mass')
 
-        for index in range(0, len(self.options.model.bcList)):
-            bcElement = self.options.model.bcList[index]
-            node.createObject('BoxROI', box=bcElement.boundBoxes, name='boundBoxes'+str(index))
-            if (bcElement.bcType == 'fixed'):
-                node.createObject('FixedConstraint', indices='@boundBoxes'+str(index)+'.indices')
-            elif (bcElement.bcType == 'elastic'):
-                node.createObject('RestShapeSpringsForceField', stiffness=bcElement.boundaryStiffness, angularStiffness="1", points='@boundBoxes'+str(index)+'.indices')
-            else:
-                print 'Unknown type of boundary conditions'
+        if 'boundary_conditions_list' in self.options['scene_parameters']['general_parameters'].keys():
+            for index in range(0, len(self.options['scene_parameters']['general_parameters']['boundary_conditions_list'])):
+                bcElement = self.options['scene_parameters']['general_parameters']['boundary_conditions_list'][index]
+                print bcElement
+                node.createObject('BoxROI', box=bcElement['boxes_coordinates'], name='boundBoxes'+str(index), drawBoxes='0', doUpdate='0')
+                if bcElement['condition_type'] == 'fixed':
+                    node.createObject('FixedConstraint', indices='@boundBoxes'+str(index)+'.indices')
+                elif bcElement['condition_type'] == 'elastic':
+                    node.createObject('RestShapeSpringsForceField', stiffness=bcElement['spring_stiffness_values'], angularStiffness="1", points='@boundBoxes'+str(index)+'.indices')
+                else:
+                    print 'Unknown type of boundary conditions'
+
                     
-        node.createObject('OptimParams', name="paramE", optimize="1", numParams=self.options.filter.nparams, template="Vector", initValue=self.options.filter.paramInitExpVal, min=self.options.filter.paramMinExpVal, max=self.options.filter.paramMaxExpVal, stdev=self.options.filter.paramInitStdev, transformParams=self.options.filter.transformParams)
+        node.createObject('OptimParams', name="paramE", optimize="1", numParams=self.options['scene_parameters']['filtering_parameters']['optim_params_size'], template="Vector", initValue=self.options['scene_parameters']['filtering_parameters']['initial_stiffness'], minValue=self.options['scene_parameters']['filtering_parameters']['minimal_stiffness'], maxValue=self.options['scene_parameters']['filtering_parameters']['maximal_stiffness'], stdev=self.options['scene_parameters']['filtering_parameters']['initial_standart_deviation'], transformParams=self.options['scene_parameters']['filtering_parameters']['transform_parameters'])
         node.createObject('Indices2ValuesMapper', name='youngMapper', indices='1 2 3 4 5 6 7 8 9 10', values='@paramE.value', inputValues='@/loader.dataset')
         node.createObject('TetrahedronFEMForceField', name='FEM', updateStiffness='1', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
 
@@ -128,34 +151,26 @@ class synth1_BCDA(Sofa.PythonScriptController):
         # node.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus="1e5", poissonRatio="0.45", method="large")
 
         # add constant force field
-        # node.createObject('BoxROI', name='forceBounds', box=self.options.impact.externalForceBound)
-        # self.constantForce = node.createObject('ConstantForceField', name='appliedForce', indices='@forceBounds.indices', totalForce='0.0 -1.0 0.0')
-        # node.createObject('BoxROI', name='oppForceBounds', box=self.options.impact.reverseForceBound)
-        # self.oppositeConstantForce = node.createObject('ConstantForceField', name='oppAppliedForce', indices='@oppForceBounds.indices', totalForce='0.0 1.0 0.0', isCompliance='1')
-
         self.forceIndex = 1
-        node.createObject('BoxROI', name='forceBounds', box=self.options.impact.externalForceBound)
-        self.constantForce = node.createObject('ConstantForceField', name='appliedForce', 
-            indices='@forceBounds.indices', totalForce='0.0 0.0 0.0')
-        node.createObject('BoxROI', name='oppForceBounds', box=self.options.impact.reverseForceBound)
-        self.oppositeConstantForce = node.createObject('ConstantForceField', name='oppAppliedForce', 
-            indices='@oppForceBounds.indices', totalForce='0.0 1.0 0.0')
-        
+        node.createObject('BoxROI', name='forceBounds', box=self.options['scene_parameters']['impact_parameters']['external_force_bound'], doUpdate='0')
+        self.constantForce = node.createObject('ConstantForceField', name='appliedForce', indices='@forceBounds.indices', totalForce='0.0 0.0 0.0')
+        node.createObject('BoxROI', name='oppForceBounds', box=self.options['scene_parameters']['impact_parameters']['reverse_force_bound'], doUpdate='0')
+        self.oppositeConstantForce = node.createObject('ConstantForceField', name='oppAppliedForce', indices='@oppForceBounds.indices', totalForce='0.0 1.0 0.0')
                 
         return 0
 
 
     def createMasterScene(self, node):
-        node.createObject('StochasticStateWrapper',name="StateWrapper",verbose="1", estimatePosition=self.options.filter.estimPosition, positionStdev=self.options.filter.positionStdev, estimateVelocity=self.options.filter.estimVelocity)
+        node.createObject('StochasticStateWrapper',name="StateWrapper",verbose="1", estimatePosition=self.estimPosition, positionStdev=self.options['scene_parameters']['filtering_parameters']['positions_standart_deviation'], estimateVelocity=self.estimVelocity)
         
         self.createCommonComponents(node)
 
         obsNode = node.createChild('obsNode')        
-        obsNode.createObject('MeshVTKLoader', name='obsLoader', filename=self.options.observations.positionFileName)        
+        obsNode.createObject('MeshVTKLoader', name='obsLoader', filename=self.options['scene_parameters']['system_parameters']['observation_points_file_name'])        
         obsNode.createObject('MechanicalObject', name='SourceMO', src="@obsLoader")
         obsNode.createObject('BarycentricMapping')
-        obsNode.createObject('MappedStateObservationManager', name="MOBS", observationStdev=self.options.observations.stdev, noiseStdev="0.0", listening="1", stateWrapper="@../StateWrapper", verbose="1")
-        obsNode.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix=self.options.observations.valueFileName)
+        obsNode.createObject('MappedStateObservationManager', name="MOBS", observationStdev=self.options['scene_parameters']['filtering_parameters']['observation_noise_standart_deviation'], noiseStdev="0.0", listening="1", stateWrapper="@../StateWrapper", verbose="1")
+        obsNode.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix=self.options['scene_parameters']['system_parameters']['observation_file_name'])
         obsNode.createObject('ShowSpheres', radius="0.002", color="1 0 0 1", position='@SourceMO.position')
         obsNode.createObject('ShowSpheres', radius="0.0015", color="1 1 0 1", position='@MOBS.mappedObservations')
 
@@ -205,61 +220,65 @@ class synth1_BCDA(Sofa.PythonScriptController):
             self.iterations = 80
 
 
-        if self.options.export.state:
-            if (self.options.filter.kind == 'ROUKF'):
+        if self.options['scene_parameters']['filtering_parameters']['save_state']:
+            if (self.options['scene_parameters']['filtering_parameters']['filter_kind'] == 'ROUKF'):
                 st=self.filter.findData('reducedState').value
-            elif (self.options.filter.kind == 'UKFSimCorr' or self.options.filter.kind == 'UKFClassic'):
+            elif (self.options['scene_parameters']['filtering_parameters']['filter_kind'] == 'UKFSimCorr' or self.options['scene_parameters']['filtering_parameters']['filter_kind'] == 'UKFClassic'):
                 st=self.filter.findData('state').value
 
             state = [val for sublist in st for val in sublist]
             #print 'Reduced state:'
             #print reducedState
 
-            print 'Storing to',self.options.export.stateExpValFile
-            f1 = open(self.options.export.stateExpValFile, "a")        
+            self.stateExpValFile = self.folderName + '/state_' + self.options['scene_parameters']['filtering_parameters']['output_files_suffix'] + '.txt'
+            print 'Storing to', self.stateExpValFile
+            f1 = open(self.stateExpValFile, "a")        
             f1.write(" ".join(map(lambda x: str(x), state)))
             f1.write('\n')
             f1.close()    
 
-            if (self.options.filter.kind == 'ROUKF'):
+            if (self.options['scene_parameters']['filtering_parameters']['filter_kind'] == 'ROUKF'):
                 var=self.filter.findData('reducedVariance').value
-            elif (self.options.filter.kind == 'UKFSimCorr' or self.options.filter.kind == 'UKFClassic'):
+            elif (self.options['scene_parameters']['filtering_parameters']['filter_kind'] == 'UKFSimCorr' or self.options['scene_parameters']['filtering_parameters']['filter_kind'] == 'UKFClassic'):
                 var=self.filter.findData('variance').value
                                 
             variance = [val for sublist in var for val in sublist]
             #print 'Reduced variance:'
             #print reducedVariance
 
-            f2 = open(self.options.export.stateVarFile, "a")        
+            self.stateVarFile = self.folderName + '/variance_' + self.options['scene_parameters']['filtering_parameters']['output_files_suffix'] + '.txt'
+            f2 = open(self.stateVarFile, "a")        
             f2.write(" ".join(map(lambda x: str(x), variance)))
             f2.write('\n')
             f2.close()
 
-            if (self.options.filter.kind == 'ROUKF'):
+            if (self.options['scene_parameters']['filtering_parameters']['filter_kind'] == 'ROUKF'):
                 covar=self.filter.findData('reducedCovariance').value
-            elif (self.options.filter.kind == 'UKFSimCorr' or self.options.filter.kind == 'UKFClassic'):
+            elif (self.options['scene_parameters']['filtering_parameters']['filter_kind'] == 'UKFSimCorr' or self.options['scene_parameters']['filtering_parameters']['filter_kind'] == 'UKFClassic'):
                 covar=self.filter.findData('covariance').value
             
             covariance = [val for sublist in covar for val in sublist]
             #print 'Reduced Covariance:'
             #print reducedCovariance
 
-            f3 = open(self.options.export.stateCovarFile, "a")
+            self.stateCovarFile = self.folderName + '/covariance_' + self.options['scene_parameters']['filtering_parameters']['output_files_suffix'] + '.txt'
+            f3 = open(self.stateCovarFile, "a")
             f3.write(" ".join(map(lambda x: str(x), covariance)))
             f3.write('\n')
             f3.close()
 
-        if self.options.export.internalData:
-            if (self.options.filter.kind == 'ROUKF'):
+        if self.options['scene_parameters']['filtering_parameters']['save_internal_data']:
+            if (self.options['scene_parameters']['filtering_parameters']['filter_kind'] == 'ROUKF'):
                 innov=self.filter.findData('reducedInnovation').value
-            elif (self.options.filter.kind == 'UKFSimCorr' or self.options.filter.kind == 'UKFClassic'):
+            elif (self.options['scene_parameters']['filtering_parameters']['filter_kind'] == 'UKFSimCorr' or self.options['scene_parameters']['filtering_parameters']['filter_kind'] == 'UKFClassic'):
                 innov=self.filter.findData('innovation').value
 
             innovation = [val for sublist in innov for val in sublist]
             #print 'Reduced state:'
             #print reducedState
 
-            f4 = open(self.options.export.innovationFile, "a")        
+            self.innovationFile = self.folderName + '/innovation_' + self.options['scene_parameters']['filtering_parameters']['output_files_suffix'] + '.txt'
+            f4 = open(self.innovationFile, "a")        
             f4.write(" ".join(map(lambda x: str(x), innovation)))
             f4.write('\n')
             f4.close()      
