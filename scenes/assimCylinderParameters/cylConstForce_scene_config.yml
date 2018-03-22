@@ -35,8 +35,8 @@ scene_parameters:
         transform_parameters: none
         sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
         sigma_points_scale: 1
-        save_state: 0
-        save_internal_data: 0
+        save_state: 1
+        save_internal_data: 1
         bound_filter_state: 1
 
     impact_parameters:

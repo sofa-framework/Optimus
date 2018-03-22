@@ -1,14 +1,13 @@
 import sys
 import os
-sys.path.append(os.getcwd() + '/../../python_src/configuration')
-from DAOptions import DAOptions
 import numpy
 import types
 import math
+import yaml
 import matplotlib.pyplot as plt
 from itertools import repeat
 
-# select the visual style
+# select the visual style for images
 plt.style.use('classic')
 #print(plt.style.available)
 
@@ -37,13 +36,22 @@ else :
 if (len(commandLineArguments) > 1):
     folder=commandLineArguments[1]
 else:
-    folder='outCyl3_770_P1_pull_ROUKF_1'
+    print 'ERROR: Must supply a yaml config file as an argument!'
+    sys.exit()
 
-options = DAOptions()
-options.parseYaml(folder+'/daconfig.yml')
+print "Command line arguments for python : " + str(commandLineArguments)
 
-stateExpVal = load_matrix_from_file(options.export.stateExpValFile)
-stateVar = load_matrix_from_file(options.export.stateVarFile)
+options = dict()
+with open(folder+'/daconfig.yml', 'r') as stream:
+    try:
+        options = yaml.load(stream)            
+
+    except yaml.YAMLError as exc:
+        print(exc)
+        sys.exit()
+
+stateExpVal = load_matrix_from_file(folder+'/'+options['visual_parameters']['state_file_name'])
+stateVar = load_matrix_from_file(folder+'/'+options['visual_parameters']['variance_file_name'])
 
 
 # plot stiffnesses with variances
@@ -51,7 +59,7 @@ fig1 = plt.figure(1)
 spl1 = fig1.add_subplot(111)
 
 nstate=numpy.size(stateVar[1,:])
-nparams=options.filter.nparams
+nparams=options['scene_parameters']['filtering_parameters']['optim_params_size']
 nsteps=numpy.size(stateVar[:,1])
 
 print "Number of steps: ", nsteps
@@ -60,21 +68,21 @@ print "Size of the state: ", nstate
 
 
 rng=xrange(0,nsteps)
-rng=[i*options.model.dt for i in rng]
+rng=[i*options['scene_parameters']['general_parameters']['delta_time'] for i in rng]
 
 cmap = plt.cm.get_cmap('hsv', nparams+1)
 
-groundTruthStr = options.observations.groundTruth
+groundTruthStr = options['scene_parameters']['obs_generating_parameters']['object_young_moduli']
 groundTruthValues = groundTruthStr.split(' ')
 data = numpy.ones(nsteps);
 
 for i in range(0, nparams):
     si = i +nstate - nparams;
     # print i,' ',si
-    if options.filter.transformParams == 'absolute':        
+    if options['scene_parameters']['filtering_parameters']['transform_parameters'] == 'absolute':        
         ev = abs(stateExpVal[:,si])
         var = abs(stateVar[:,si])
-    elif options.filter.transformParams == 'exponential':
+    elif options['scene_parameters']['filtering_parameters']['transform_parameters'] == 'exponential':
         ev = numpy.exp(stateExpVal[:,si])
         var = numpy.exp(stateVar[:,si])        
     else:
@@ -93,14 +101,14 @@ for i in range(0, nparams):
     spl1.plot(rng, vlu, color=cmap(i),  linestyle='dashed', linewidth=4)
 
 
-    # print options.observations.groundTruth
+    # print options['scene_parameters']['obs_generating_parameters']['object_young_moduli']
     #, rng, vll, rng, vlu)
     
     
     # print groundTruthValues    
     groundTruthData = [numpy.int(elem) * float(groundTruthValues[i]) for elem in data]
     # plt.plot(rng, groundTruthData, color=cmap(i), linestyle='None', marker=r'$\clubsuit$', markersize=5)
-    spl1.plot(rng, groundTruthData, color=cmap(i), linestyle='soliddotted', linewidth=4)
+    spl1.plot(rng, groundTruthData, color=cmap(i), linestyle='dotted', linewidth=4)
     # plt.setp(lines, color=cmap(i), linewidth=2.0)
 
     spl1.set_xlabel('iterations')
@@ -108,8 +116,8 @@ for i in range(0, nparams):
     spl1.set_title('Params '+folder)
 
 # plot innovation values
-if options.export.internalData == 1:    
-    innovationVal = load_matrix_from_file(options.export.innovationFile)
+if options['scene_parameters']['filtering_parameters']['save_internal_data'] == 1:    
+    innovationVal = load_matrix_from_file(folder+'/'+options['visual_parameters']['innovation_file_name'])
 
     fig2 = plt.figure(2)
     spl2 = fig2.add_subplot(111)
@@ -120,7 +128,7 @@ if options.export.internalData == 1:
     print "Innovation size: ",ninnov
 
     rng=xrange(0,nsteps)
-    rng=[i*options.model.dt for i in rng]
+    rng=[i*options['scene_parameters']['general_parameters']['delta_time'] for i in rng]
 
     cmap = plt.cm.get_cmap('hsv', ninnov+1)
 

@@ -1,14 +1,13 @@
 import sys
 import os
-sys.path.append(os.getcwd() + '/../../python_src/configuration')
-from DAOptions import DAOptions
 import numpy
 import types
 import math
+import yaml
 import matplotlib.pyplot as plt
 from itertools import repeat
 
-# select the visual style
+# select the visual style for images
 plt.style.use('classic')
 #print(plt.style.available)
 
@@ -77,11 +76,17 @@ spl3 = fig3.add_subplot(111)
 
 for generalIndex in range (0, len(folder)):
 
-    options = DAOptions()
-    options.parseYaml(folder[generalIndex] + '/daconfig.yml')
+    options = dict()
+    with open(folder[generalIndex]+'/daconfig.yml', 'r') as stream:
+        try:
+            options = yaml.load(stream)            
 
-    stateExpVal = load_matrix_from_file(options.export.stateExpValFile)
-    stateVar = load_matrix_from_file(options.export.stateVarFile)
+        except yaml.YAMLError as exc:
+            print(exc)
+            sys.exit()
+
+    stateExpVal = load_matrix_from_file(folder[generalIndex]+'/'+options['visual_parameters']['state_file_name'])
+    stateVar = load_matrix_from_file(folder[generalIndex]+'/'+options['visual_parameters']['variance_file_name'])
 
 
     # plot stiffnesses with variances
@@ -89,7 +94,7 @@ for generalIndex in range (0, len(folder)):
     spl1 = fig1.add_subplot(111)
 
     nstate=numpy.size(stateVar[1,:])
-    nparams=options.filter.nparams
+    nparams=options['scene_parameters']['filtering_parameters']['optim_params_size']
     nsteps=numpy.size(stateVar[:,1])
 
     print "Number of steps: ", nsteps
@@ -98,11 +103,11 @@ for generalIndex in range (0, len(folder)):
 
 
     rng=xrange(0,nsteps)
-    rng=[i*options.model.dt for i in rng]
+    rng=[i*options['scene_parameters']['general_parameters']['delta_time'] for i in rng]
 
     cmap = plt.cm.get_cmap('hsv', nparams+1)
 
-    groundTruthStr = options.observations.groundTruth
+    groundTruthStr = options['scene_parameters']['obs_generating_parameters']['object_young_moduli']
     groundTruthValues = groundTruthStr.split(' ')
     data = numpy.ones(nsteps)
 
@@ -112,10 +117,10 @@ for generalIndex in range (0, len(folder)):
     for i in range(0, nparams):
         si = i +nstate - nparams;
         # print i,' ',si
-        if options.filter.transformParams == 'absolute':        
+        if options['scene_parameters']['filtering_parameters']['transform_parameters'] == 'absolute':        
             ev = abs(stateExpVal[:,si])
             var = abs(stateVar[:,si])
-        elif options.filter.transformParams == 'exponential':
+        elif options['scene_parameters']['filtering_parameters']['transform_parameters'] == 'exponential':
             ev = numpy.exp(stateExpVal[:,si])
             var = numpy.exp(stateVar[:,si])        
         else:
@@ -134,7 +139,7 @@ for generalIndex in range (0, len(folder)):
         spl1.plot(rng, vlu, color=cmap(i),  linestyle='dashed', linewidth=4)
 
 
-        # print options.observations.groundTruth
+        # print options['scene_parameters']['obs_generating_parameters']['object_young_moduli']
         #, rng, vll, rng, vlu)
     
     
@@ -146,7 +151,7 @@ for generalIndex in range (0, len(folder)):
 
         spl1.set_xlabel('iterations')
         spl1.set_ylabel('stiffness with variance')
-        spl1.set_title('Params '+folder[generalIndex])
+        spl1.set_title('Params ' + folder[generalIndex])
 
         diffVal = numpy.squeeze([abs(x - int(y)) for x,y in zip(ev, groundTruthData)])
         averageDiff = [x + y for x,y in zip(averageDiff, diffVal)]
@@ -158,7 +163,7 @@ for generalIndex in range (0, len(folder)):
     averageVariance = [x / nparams for x in averageVariance]
 
     # extract time result data
-    timeVal = load_time_data(options.time.computationTimeFileName)
+    timeVal = load_time_data(folder[generalIndex]+'/'+options['scene_parameters']['time_parameters']['computation_time_file_name'])
     timeShift = []
     timeShift.append(timeVal[0])
     for index in range(1, len(timeVal)):
@@ -170,13 +175,13 @@ for generalIndex in range (0, len(folder)):
     cmap = plt.cm.get_cmap('hsv', len(folder) + 1)
 
     # print averageDiff
-    spl2.plot(timeShift, averageDiff, color=cmap(generalIndex),  linestyle='solid', label=options.filter.kind)
+    spl2.plot(timeShift, averageDiff, color=cmap(generalIndex),  linestyle='solid', label=options['scene_parameters']['filtering_parameters']['filter_kind'])
     spl2.set_xlabel('time in milliseconds')
     spl2.set_ylabel('average difference between estimation and groundtruth')
     spl2.set_title('General computation time:')
 
     # print averageDiff
-    spl3.plot(timeShift, averageVariance, color=cmap(generalIndex),  linestyle='solid', label=options.filter.kind)
+    spl3.plot(timeShift, averageVariance, color=cmap(generalIndex),  linestyle='solid', label=options['scene_parameters']['filtering_parameters']['filter_kind'])
     spl3.set_xlabel('time in milliseconds')
     spl3.set_ylabel('average standart deviation')
     spl3.set_title('Standart deviation values:')

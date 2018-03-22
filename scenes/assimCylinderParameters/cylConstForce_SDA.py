@@ -3,7 +3,6 @@ import math
 import os
 import sys
 import csv
-import shutil
 import yaml
 sys.path.append(os.getcwd() + '/../../python_src/utils')
 from FileSystemUtils import FolderHandler
@@ -52,7 +51,27 @@ class cylConstForce_SDA(Sofa.PythonScriptController):
         self.folderName = options['scene_parameters']['filtering_parameters']['output_directory_prefix'] + options['scene_parameters']['filtering_parameters']['filter_kind'] + options['scene_parameters']['filtering_parameters']['output_directory_suffix']
         folderCreator = FolderHandler()
         folderCreator.createFolder(self.folderName, archiveResults=1)
-        shutil.copy(configFileName, self.folderName + '/daconfig.yml')
+       
+        # create file with parameters and additional information
+        self.options['visual_parameters'] = {}
+        self.stateFileName = 'state_' + self.options['scene_parameters']['filtering_parameters']['output_files_suffix'] + '.txt'
+        self.options['visual_parameters']['state_file_name'] = self.stateFileName
+        self.varianceFileName = 'variance_' + self.options['scene_parameters']['filtering_parameters']['output_files_suffix'] + '.txt'
+        self.options['visual_parameters']['variance_file_name'] = self.varianceFileName
+        self.covarianceFileName = 'covariance_' + self.options['scene_parameters']['filtering_parameters']['output_files_suffix'] + '.txt'
+        self.options['visual_parameters']['covariance_file_name'] = self.covarianceFileName
+        self.innovationFileName = 'innovation_' + self.options['scene_parameters']['filtering_parameters']['output_files_suffix'] + '.txt'
+        self.options['visual_parameters']['innovation_file_name'] = self.innovationFileName
+        
+        self.informationFileName = self.folderName + '/daconfig.yml'
+
+        with open(self.informationFileName, 'w') as stream:
+            try:
+                yaml.dump(self.options, stream, default_flow_style=False)
+
+            except yaml.YAMLError as exc:
+                print(exc)
+                return
 
         self.createGraph(rootNode)
 
@@ -91,14 +110,14 @@ class cylConstForce_SDA(Sofa.PythonScriptController):
         rootNode.createObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels')
 
         #rootNode.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")
-        rootNode.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1", computationTimeFile=self.options['scene_parameters']['time_parameters']['computation_time_file_name'])
+        rootNode.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1", computationTimeFile=self.folderName+'/'+self.options['scene_parameters']['time_parameters']['computation_time_file_name'])
 
         if (self.options['scene_parameters']['filtering_parameters']['filter_kind'] == 'ROUKF'):
             self.filter = rootNode.createObject('ROUKFilter', name="ROUKF", verbose="1", useUnbiasedVariance=self.options['scene_parameters']['filtering_parameters']['use_unbiased_variance'], sigmaTopology=self.options['scene_parameters']['filtering_parameters']['sigma_points_topology'], lambdaScale=self.lambdaScale)        
         elif (self.options['scene_parameters']['filtering_parameters']['filter_kind'] == 'UKFSimCorr'):
             self.filter = rootNode.createObject('UKFilterSimCorr', name="UKF", verbose="1", useUnbiasedVariance=self.options['scene_parameters']['filtering_parameters']['use_unbiased_variance'], sigmaTopology=self.options['scene_parameters']['filtering_parameters']['sigma_points_topology'], lambdaScale=self.lambdaScale) 
         elif (self.options['scene_parameters']['filtering_parameters']['filter_kind'] == 'UKFClassic'):
-            self.filter = rootNode.createObject('UKFilterClassic', name="UKFClas", verbose="1", exportPrefix=self.folderName, useUnbiasedVariance=self.optionsself.options['scene_parameters']['filtering_parameters']['use_unbiased_variance'], sigmaTopology=self.options['scene_parameters']['filtering_parameters']['sigma_points_topology'], lambdaScale=self.lambdaScale)
+            self.filter = rootNode.createObject('UKFilterClassic', name="UKFClas", verbose="1", exportPrefix=self.folderName, useUnbiasedVariance=self.options['scene_parameters']['filtering_parameters']['use_unbiased_variance'], sigmaTopology=self.options['scene_parameters']['filtering_parameters']['sigma_points_topology'], lambdaScale=self.lambdaScale)
         else:
             print 'Unknown filter type!'
             
@@ -193,8 +212,8 @@ class cylConstForce_SDA(Sofa.PythonScriptController):
 
     def initGraph(self,node):
         print 'Init graph called (python side)'
-        self.step    =     0
-        self.total_time =     0
+        self.step = 0
+        self.total_time = 0
         
         # self.process.initializationObjects(node)
         return 0
@@ -230,7 +249,7 @@ class cylConstForce_SDA(Sofa.PythonScriptController):
             #print 'Reduced state:'
             #print reducedState
 
-            self.stateExpValFile = self.folderName + '/state_' + self.options['scene_parameters']['filtering_parameters']['output_files_suffix'] + '.txt'
+            self.stateExpValFile = self.folderName + '/' + self.stateFileName
             print 'Storing to', self.stateExpValFile
             f1 = open(self.stateExpValFile, "a")        
             f1.write(" ".join(map(lambda x: str(x), state)))
@@ -246,7 +265,7 @@ class cylConstForce_SDA(Sofa.PythonScriptController):
             #print 'Reduced variance:'
             #print reducedVariance
 
-            self.stateVarFile = self.folderName + '/variance_' + self.options['scene_parameters']['filtering_parameters']['output_files_suffix'] + '.txt'
+            self.stateVarFile = self.folderName + '/' + self.varianceFileName
             f2 = open(self.stateVarFile, "a")        
             f2.write(" ".join(map(lambda x: str(x), variance)))
             f2.write('\n')
@@ -261,7 +280,7 @@ class cylConstForce_SDA(Sofa.PythonScriptController):
             #print 'Reduced Covariance:'
             #print reducedCovariance
 
-            self.stateCovarFile = self.folderName + '/covariance_' + self.options['scene_parameters']['filtering_parameters']['output_files_suffix'] + '.txt'
+            self.stateCovarFile = self.folderName + '/' + self.covarianceFileName
             f3 = open(self.stateCovarFile, "a")
             f3.write(" ".join(map(lambda x: str(x), covariance)))
             f3.write('\n')
@@ -277,7 +296,7 @@ class cylConstForce_SDA(Sofa.PythonScriptController):
             #print 'Reduced state:'
             #print reducedState
 
-            self.innovationFile = self.folderName + '/innovation_' + self.options['scene_parameters']['filtering_parameters']['output_files_suffix'] + '.txt'
+            self.innovationFile = self.folderName + '/' + self.innovationFileName
             f4 = open(self.innovationFile, "a")        
             f4.write(" ".join(map(lambda x: str(x), innovation)))
             f4.write('\n')
