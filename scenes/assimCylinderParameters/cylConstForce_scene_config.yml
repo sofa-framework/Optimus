@@ -7,7 +7,7 @@ scene_parameters:
 
     general_parameters:
         gravity: "0 0 0"
-        total_mass: 0.2
+        density: 200 # total_mass: 0.2
         delta_time: 0.01
         rayleigh_mass: 20.1
         rayleigh_stiffness: 0.1
@@ -16,17 +16,17 @@ scene_parameters:
               boxes_coordinates: "-0.05 -0.05 -0.002 0.05 0.05 0.002   -0.05 -0.05 0.298 0.05 0.05 0.302"
 
     obs_generating_parameters:
-        object_young_moduli: "15000 40000"
+        object_young_moduli: "1500 4000"
         save_observations: 1
 
     filtering_parameters:
         output_directory_prefix: "outCyl2_385_"
-        output_directory_suffix: "_forceField385Verification_stiff10_init10000"
+        output_directory_suffix: "_forceField385Verification_init500"
         output_files_suffix: "test"
         optim_params_size: 2
-        filter_kind: "ROUKF"   # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
+        filter_kind: "UKFSimCorr"   # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
         use_unbiased_variance: "0"
-        initial_stiffness: [10000, 10000]
+        initial_stiffness: [500, 500]
         minimal_stiffness: [300, 300]
         maximal_stiffness: [1000000, 1000000]
         initial_standart_deviation: 500
@@ -35,8 +35,8 @@ scene_parameters:
         transform_parameters: none
         sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
         sigma_points_scale: 1
-        save_state: 1
-        save_internal_data: 1
+        save_state: 0
+        save_internal_data: 0
         bound_filter_state: 1
 
     impact_parameters:
