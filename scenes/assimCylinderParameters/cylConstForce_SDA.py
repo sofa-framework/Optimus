@@ -100,6 +100,7 @@ class cylConstForce_SDA(Sofa.PythonScriptController):
         
         return 0
 
+
     
     def createGlobalComponents(self, rootNode):
         # scene global stuff                
@@ -193,12 +194,9 @@ class cylConstForce_SDA(Sofa.PythonScriptController):
         obsNode.createObject('ShowSpheres', radius="0.002", color="1 0 0 1", position='@SourceMO.position')
         obsNode.createObject('ShowSpheres', radius="0.0015", color="1 1 0 1", position='@MOBS.mappedObservations')
 
-
-
         return 0
-  
 
-    
+
 
     def createScene(self,node):
         # r_slaves = [] # list of created auxiliary nodes

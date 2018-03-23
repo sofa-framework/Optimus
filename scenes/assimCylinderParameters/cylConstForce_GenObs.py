@@ -55,10 +55,6 @@ class cylConstForce_GenObs (Sofa.PythonScriptController):
         self.iterations = 40
 
         # rootNode
-        rootNode.createObject('RequiredPlugin', pluginName='Optimus')
-        rootNode.createObject('RequiredPlugin', pluginName='SofaPardisoSolver')
-        # rootNode.createObject('RequiredPlugin', pluginName='SofaMJEDFEM')
-        rootNode.createObject('RequiredPlugin', pluginName='ImageMeshAux')
         rootNode.createObject('VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels hideVisual')
 
         # rootNode/simuNode
