@@ -171,7 +171,7 @@ public:
         : m_dim(1)
         , m_optimize( initData(&m_optimize, false, "optimize", "the parameters handled in the component will be optimized by Verdandi") )
         , m_numParams( initData(&m_numParams, size_t(0), "numParams", "number of params for vectorial data (input values replicated)") )
-        , m_transformParams( initData(&m_transformParams, "transformParams", "transform estimated params. Choice: none, absolute, sigmoid, exponential") )
+        , m_transformParams( initData(&m_transformParams, "transformParams", "transform estimated params. Choice: none, absolute, sigmoid, exponential, project") )
         , m_prescribedParamKeys( initData (&m_prescribedParamKeys, "prescribedParamKeys", "prescribed params in list format: ti p1i ... pni") )
         , m_exportParamFile( initData(&m_exportParamFile, std::string(""), "exportParamFile", "store the parameter at the begining of each time step") )
         , m_interpolateSmooth( initData(&m_interpolateSmooth, true, "interpolateSmooth", "use hyperbolic tangent to interpolate the parameters (linear interpolation if false") )        
