@@ -117,6 +117,10 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
             simuNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1')
             simuNode.createObject('Monitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.options.observations.valueFileName, ExportPositions='1', ExportVelocities='0', ExportForces='0')
 
+        visuNode = simuNode.createChild('visu')
+        visuNode.createObject('OglModel', name='VisualModel', material="texture Ambient 1 0.5 0.5 0.5 1.0 Diffuse 1 1.0 1.0 1.0 1.0", fileMesh='data/liver-smooth.obj')
+        visuNode.createObject('BarycentricMapping', name='VisualMapping', input='@../Volume', output='@VisualModel')
+
         return 0;
 
 
