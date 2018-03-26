@@ -7,7 +7,7 @@ scene_parameters:
 
     general_parameters:
         gravity: "0 0 0"
-        total_mass: 0.2
+        density: 200 # total_mass: 0.2
         delta_time: 0.01
         rayleigh_mass: 200.1
         rayleigh_stiffness: 0.1
@@ -33,11 +33,10 @@ scene_parameters:
         initial_standart_deviation: 100
         observation_noise_standart_deviation: 1e-3
         positions_standart_deviation: 1e-3
-        transform_parameters: none
+        transform_parameters: project
         sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
         sigma_points_scale: 1
         save_state: 1
         save_internal_data: 1
-        bound_filter_state: 1
 ...
 
