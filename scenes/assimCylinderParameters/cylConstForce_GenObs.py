@@ -42,7 +42,7 @@ def createScene(rootNode):
 
 class cylConstForce_GenObs (Sofa.PythonScriptController):
 
-    def __init__(self, rootNode, options) :
+    def __init__(self, rootNode, options):
         self.options = options
 
         rootNode.findData('dt').value = options['scene_parameters']['general_parameters']['delta_time']
