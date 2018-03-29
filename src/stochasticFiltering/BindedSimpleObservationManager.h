@@ -22,8 +22,8 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef SIMPLEOBSERVATIONMANAGER_H_
-#define SIMPLEOBSERVATIONMANAGER_H_
+#ifndef BindedSimpleObservationManager_H_
+#define BindedSimpleObservationManager_H_
 
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/RigidTypes.h>
@@ -51,10 +51,10 @@ namespace stochastic
 using namespace defaulttype;
 
 template <class FilterType, class DataTypes1, class DataTypes2>
-class SimpleObservationManager: public sofa::component::stochastic::ObservationManager<FilterType>
+class BindedSimpleObservationManager: public sofa::component::stochastic::ObservationManager<FilterType>
 {
 public:
-    SOFA_CLASS(SOFA_TEMPLATE3(SimpleObservationManager, FilterType, DataTypes1, DataTypes2), SOFA_TEMPLATE(ObservationManager, FilterType));
+    SOFA_CLASS(SOFA_TEMPLATE3(BindedSimpleObservationManager, FilterType, DataTypes1, DataTypes2), SOFA_TEMPLATE(ObservationManager, FilterType));
 
     typedef typename sofa::component::stochastic::ObservationManager<FilterType> Inherit;
     //typedef typename Inherit::EVectorX EVectorX;
@@ -70,9 +70,17 @@ public:
     typedef typename DataTypes2::VecCoord VecCoord;
     typedef typename DataTypes2::VecDeriv VecDeriv;
 
+    Data<bool> d_use2dObservations;
+    Data<Mat3x4d> d_projectionMatrix;
+    Data<double> d_proj_dist;
 
-    SimpleObservationManager();
-    ~SimpleObservationManager() {}
+    SingleLink<BindedSimpleObservationManager<FilterType, DataTypes1, DataTypes2>, StateWrapper, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> stateWrapperLink;
+    typedef core::behavior::MechanicalState<DataTypes2> MechState;
+    Data <std::string> d_mappedStatePath;
+
+
+    BindedSimpleObservationManager();
+    ~BindedSimpleObservationManager() {}
 
 protected:
 
@@ -82,23 +90,22 @@ protected:
 
     double actualObservationTime;
 
+    helper::vector<int> bindId;
+    MechState* mappedState;
 
-
-public:
+    public:
     void init();
     void bwdInit();
 
-    virtual bool hasObservation(double _time); /// TODO
+    virtual bool hasObservation(double _time ); /// TODO
     virtual bool getInnovation(double _time, EVectorX& _state, EVectorX& _innovation);
     virtual bool getPredictedObservation(double _time, int _id, EVectorX& _predictedObservation);
 
     typename DataTypes1::VecCoord realObservations;
     typename helper::vector< VecCoord > modelObservations;
 
-    Data<bool> d_use2dObservations;
-    Data<Mat3x4d> d_projectionMatrix;
 
-    SingleLink<SimpleObservationManager<FilterType, DataTypes1, DataTypes2>, StateWrapper, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> stateWrapperLink;
+
 
     /// Pre-construction check method called by ObjectFactory.
     /// Check that DataTypes matches the MechanicalState.
@@ -114,10 +121,12 @@ public:
         return templateName(this);
     }
 
-    static std::string templateName(const SimpleObservationManager< FilterType, DataTypes1,  DataTypes2>* = NULL)
+    static std::string templateName(const BindedSimpleObservationManager< FilterType, DataTypes1,  DataTypes2>* = NULL)
     {
         return DataTypes1::Name()+ std::string(",") + DataTypes2::Name();
     }
+
+
 
 
 }; /// class
@@ -127,6 +136,6 @@ public:
 } // component
 } // sofa
 
-#endif // SIMPLEOBSERVATIONMANAGER_H
+#endif // BindedSimpleObservationManager_H
 
 

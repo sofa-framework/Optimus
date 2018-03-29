@@ -23,6 +23,9 @@ UKFilterClassic<FilterType>::UKFilterClassic()
     , d_variance( initData(&d_variance, "variance", "actual variance  of reduced state (parameters) estimated by the filter" ) )
     , d_covariance( initData(&d_covariance, "covariance", "actual co-variance  of reduced state (parameters) estimated by the filter" ) )
     , d_innovation( initData(&d_innovation, "innovation", "innovation value computed by the filter" ) ) 
+    , d_draw(initData(&d_draw, false, "draw","Activation of draw"))
+    , d_radius_draw( initData(&d_radius_draw, "radiusDraw", "radius of the spheres") )
+
 {
 
 }
@@ -447,6 +450,22 @@ void UKFilterClassic<FilterType>::computeStarSigmaPoints(EMatrixX& sigmaMat) {
     }
 }
 
+template <class FilterType>
+void UKFilterClassic<FilterType>::draw(const core::visual::VisualParams* vparams ) {
+    if(d_draw.getValue()){
+        if (vparams->displayFlags().getShowVisualModels()) {
+            std::vector<sofa::defaulttype::Vec3d> predpoints;
+            predpoints.resize(predObsExp.rows()*(1.0/3));
+
+            for (unsigned i =0;  i < predpoints.size(); i++){
+                for(unsigned j =0;  j < 3; j++){
+                    predpoints[i][j]=predObsExp(3*i+j) ;
+                }
+                vparams->drawTool()->drawSpheres(predpoints,  d_radius_draw.getValue(), sofa::defaulttype::Vec<4, float>(1.0f,0.0f,1.0f,1.0f));
+            }
+        }
+    }
+}
 
 } // stochastic
 } // component

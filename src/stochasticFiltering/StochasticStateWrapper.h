@@ -63,6 +63,17 @@ namespace component
 {
 namespace stochastic
 {
+template<class DataTypes>
+class InternalCopy {
+public :
+
+    typedef typename DataTypes::VecCoord VecCoord;
+
+    void copyStateToFilter(helper::vector<std::pair<size_t, size_t> > & pairs, const VecCoord & ) {}
+
+    void copyFilterToSofa(helper::vector<std::pair<size_t, size_t> > & pairs, VecCoord & ) {}
+
+};
 
 using namespace defaulttype;
 
@@ -79,7 +90,7 @@ public:
     typedef typename DataTypes::Coord Deriv;
     typedef FilterType Type;
 
-    enum { Dim = Coord::spatial_dimensions, DimForces = 6};
+    enum { Dim = Coord::spatial_dimensions};
 
 
     typedef typename core::behavior::MechanicalState<DataTypes> MechanicalState;
@@ -96,18 +107,20 @@ protected:
     MechanicalState *mechanicalState;
     FixedConstraint* fixedConstraint;
     helper::vector<OptimParamsBase*> vecOptimParams;
+    InternalCopy<DataTypes> m_internalCopy;
 
     VecCoord beginTimeStepPos;
     VecDeriv beginTimeStepVel;
+    VecCoord beginTimeStepMappedPos;
 
     helper::vector<VecCoord> sigmaStatePos;
     helper::vector<VecDeriv> sigmaStateVel;
+    helper::vector<VecCoord> sigmaMappedStatePos;
 
     bool valid;
     helper::vector<size_t> fixedNodes, freeNodes;
     helper::vector<std::pair<size_t, size_t> > positionPairs;
     helper::vector<std::pair<size_t, size_t> > velocityPairs;
-    helper::vector<std::pair<size_t, size_t> > externalForcesPairs;
 
     void copyStateFilter2Sofa(const core::MechanicalParams *_mechParams, bool _setVelocityFromPosition = false);  // copy actual DA state to SOFA state and propagate to mappings
     void copyStateSofa2Filter();  // copy the actual SOFA state to DA state
@@ -118,40 +131,30 @@ public:
     Data<bool> d_langrangeMultipliers;    
     Data<bool> estimatePosition;
     Data<bool> estimateVelocity;
-    Data<bool> estimateExternalForces;
-    Data<bool> optimForces;
-    Data<FilterType> velModelStdev, posModelStdev, paramModelStdev;
+    Data<FilterType>  posModelStdev, velModelStdev, paramModelStdev;
+    Data<double> d_positionStdev;  /// standart deviation for positions
+    Data<double> d_velocityStdev;  /// standart deviation for velocities
+    Data <std::string> d_mappedStatePath;
+    Data< bool  > d_draw;
+    Data< double  > d_radius_draw;
     EMatrixX modelErrorVariance;
     EMatrixX modelErrorVarianceInverse;
     FilterType modelErrorVarianceValue;
-    Data<Mat3x4d> d_projectionMatrix;
-
-
-    Data<double> d_positionStdev;  /// standart deviation for positions
-    Data<double> d_velocityStdev;  /// standart deviation for velocities
-
-    bool estimatingPosition() {
-        return this->estimatePosition.getValue();
-    }
-
-    bool estimatingVelocity() {
-        return this->estimateVelocity.getValue();
-    }
-
-    bool estimatingExternalForces() {
-        return this->estimateExternalForces.getValue();
-    }    
 
     void init();
     void bwdInit();
 
     void transformState(EVectorX& _vecX, const core::MechanicalParams* _mparams, int* _stateID);
+    void lastApplyOperator(EVectorX& _vecX, const core::MechanicalParams* _mparams);
+
     //void setSofaTime(const core::ExecParams* _execParams);
     void computeSimulationStep(EVectorX& _state, const core::MechanicalParams* mparams,  int& _stateID);
     void initializeStep(size_t _stepNumber);
     void storeMState();
     void reinitMState(const core::MechanicalParams* _mechParams);
     void getActualPosition(int _id, VecCoord& _pos);
+    void getActualMappedPosition(int _id, VecCoord& _mapPos);
+    void draw(const core::visual::VisualParams* vparams);
 
     void setState(EVectorX& _state, const core::MechanicalParams* _mparams) {
         this->state = _state;
@@ -188,7 +191,6 @@ public:
 
                 for (size_t pi = 0; pi < this->vecOptimParams[opi]->size(); pi++, vpi++)
                     this->stateErrorVariance(vpi,vpi) = variance[pi];
-                    //this->stateErrorVariance(vpi,vpi) = Type(Type(1.0) / (stdev[pi] * stdev[pi]));
             }
         }
         return this->stateErrorVariance;
@@ -217,6 +219,16 @@ public:
                     modelErrorVariance(index,index) = posModelStDev*posModelStDev  ;
 
                 for (size_t index = this->positionVariance.size(); index < this->reducedStateIndex; index++)
+                    modelErrorVariance(index,index) = velModelStDev*velModelStDev  ;
+
+                for (size_t pi = this->reducedStateIndex; pi < this->stateSize; pi++)
+                    modelErrorVariance(pi,pi) = paramModelStDev*paramModelStDev;
+            }
+
+            if (!estimatePosition.getValue() && estimateVelocity.getValue()){
+                modelErrorVariance = EMatrixX::Identity(this->stateSize, this->stateSize);
+
+                for (size_t index = 0; index < this->reducedStateIndex; index++)
                     modelErrorVariance(index,index) = velModelStDev*velModelStDev  ;
 
                 for (size_t pi = this->reducedStateIndex; pi < this->stateSize; pi++)
@@ -256,6 +268,22 @@ public:
     }   
 
     Data<bool> m_solveVelocityConstraintFirst;
+
+    template<class T>
+    static bool canCreate(T*& obj, core::objectmodel::BaseContext* context, core::objectmodel::BaseObjectDescription* arg)
+    {
+        //        if (dynamic_cast<MState *>(context->getMechanicalState()) == NULL) return false;
+        return sofa::core::objectmodel::BaseObject::canCreate(obj, context, arg);
+    }
+    virtual std::string getTemplateName() const
+    {
+        return templateName(this);
+    }
+
+    static std::string templateName(const StochasticStateWrapper<DataTypes, FilterType>* = NULL)
+    {
+        return DataTypes::Name();
+    }
 
 protected :
 

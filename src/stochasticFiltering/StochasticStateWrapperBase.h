@@ -123,11 +123,12 @@ protected:
     /// stochastic state
     size_t stateSize;
     EVectorX state;
+    bool EstimatePOSITION;
+
     EMatrixX stateErrorVariance;
     EVectorX positionVariance;
     EVectorX velocityVariance;
     EMatrixX modelErrorVariance;
-    //double m_omega;
 
     /// decomposed variance in reduced-order filtering
     EMatrixX stateErrorVarianceReduced;
@@ -148,6 +149,7 @@ public:
 
     /// function required by classical and reduced-order filters (preform simulation -> compute new sigma state)
     virtual void transformState(EVectorX& _vecX, const core::MechanicalParams* mparams,  int* _stateID = nullptr) = 0;
+    virtual void lastApplyOperator(EVectorX& _vecX, const core::MechanicalParams* mparams) = 0;
 
     /// function required by sim-corr filters (perform simulation -> store results internally to compute the observation)
     virtual void computeSimulationStep(EVectorX& _state, const core::MechanicalParams* mparams,  int& _stateID) = 0;
@@ -172,6 +174,9 @@ public:
 
     size_t getStateSize() {
         return state.rows();
+    }
+    virtual bool& estimPosition() {
+        return EstimatePOSITION ;
     }
 
     virtual EMatrixX& getModelErrorVariance() {

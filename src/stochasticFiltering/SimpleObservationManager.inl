@@ -48,6 +48,12 @@ SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::SimpleObservationMan
 {
 }
 
+
+
+
+
+
+
 template <class FilterType, class DataTypes1, class DataTypes2>
 void SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::init()
 {
@@ -124,12 +130,14 @@ bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovation(d
 template <class FilterType, class DataTypes1, class DataTypes2>
 bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getPredictedObservation(double _time, int _id, EVectorX& _predictedObservation)
 {
+    if (_time != this->actualTime) {
+    }
     const Mat3x4d & P = d_projectionMatrix.getValue();
-
     _predictedObservation.resize(this->observationSize);
 
     Data<typename DataTypes1::VecCoord> predicted2DState;
     Data<typename DataTypes2::VecCoord> predicted3DState;
+
 
     typename DataTypes1::VecCoord& predicted2DStateEdit = *predicted2DState.beginEdit();
     typename DataTypes2::VecCoord& predicted3DStateEdit = *predicted3DState.beginEdit();
@@ -140,7 +148,7 @@ bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getPredictedObs
     predicted2DStateEdit.resize(predicted3DStateEdit.size());
 
     if(d_use2dObservations.getValue()){
-        for (int i = 0; i < predicted3DStateEdit.size(); i++){
+        for (unsigned i = 0; i < predicted3DStateEdit.size(); i++){
             double rx = P[0][0] * predicted3DStateEdit[i][0] + P[0][1] * predicted3DStateEdit[i][1] + P[0][2] * predicted3DStateEdit[i][2] + P[0][3];
             double ry = P[1][0] * predicted3DStateEdit[i][0] + P[1][1] * predicted3DStateEdit[i][1] + P[1][2] * predicted3DStateEdit[i][2] + P[1][3];
             double rz = P[2][0] * predicted3DStateEdit[i][0] + P[2][1] * predicted3DStateEdit[i][1] + P[2][2] * predicted3DStateEdit[i][2] + P[2][3];
@@ -150,8 +158,9 @@ bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getPredictedObs
         for (size_t i = 0; i < predicted3DStateEdit.size(); i++){
             for (size_t d = 0; d < 2; d++){
                 _predictedObservation(2*i+d) = predicted2DStateEdit[i][d];
-}
+            }
         }
+
     }else{
         for (size_t i = 0; i < predicted3DStateEdit.size(); i++)
             for (size_t d = 0; d < 3; d++)
@@ -159,6 +168,7 @@ bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getPredictedObs
 
     }
     return true;
+
 
 }
 

@@ -109,7 +109,9 @@ public:
     Data<helper::vector<FilterType> > d_state;
     Data<helper::vector<FilterType> > d_variance;
     Data<helper::vector<FilterType> > d_covariance;
-    Data<helper::vector<FilterType> > d_innovation;    
+    Data<helper::vector<FilterType> > d_innovation;
+    Data< bool  > d_draw;
+    Data< double  > d_radius_draw;
     double m_omega;
 
     void init();
@@ -135,6 +137,7 @@ public:
     virtual void computeCorrection();
 
     virtual void initializeStep(const core::ExecParams* _params, const size_t _step);
+    void draw(const core::visual::VisualParams* vparams);
 
 
 }; /// class

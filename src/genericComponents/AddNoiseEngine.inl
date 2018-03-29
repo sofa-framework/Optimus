@@ -124,7 +124,7 @@ double  AddNoiseEngine<DataTypes>::getRandomGauss(const double mean, const doubl
 
 template <class DataTypes>
 void AddNoiseEngine<DataTypes>::handleEvent(core::objectmodel::Event *event) {
-    if (dynamic_cast<sofa::simulation::AnimateBeginEvent *>(event))
+    if (dynamic_cast<sofa::simulation::AnimateEndEvent *>(event))
     {
         update();
     }
