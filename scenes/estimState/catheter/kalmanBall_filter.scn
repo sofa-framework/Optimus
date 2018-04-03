@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<Node    name="root" dt="0.01" gravity="0 0 0" > 
+<RequiredPlugin pluginName="Optimus"/>
+    <RequiredPlugin pluginName="ImageMeshAux" />
+
+<VisualStyle displayFlags="showVisualModels hideBehaviorModels showCollisionModels hideMappings showForceFields hideWireframe" />	
+<BackgroundSetting color="1 1 1 1" />
+<ViewerSetting resolution="837 600" />
+<FilteringAnimationLoop name="StochAnimLoop" verbose="1"/>
+<UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0" filenameInn="print/print_inn_1" filenameCov="print/print_cov_1" filenameFinalState="print/print_state_1"/>
+
+
+    <Node name="simulation">
+        <PreStochasticWrapper />
+            <Node name="ReferenceModel"> 
+            <MechanicalObject template="Vec3" name="MO" position=" 0 0 0" />
+            <ReadState filename="Reference_ball" />
+            <Sphere radius="0.01" color="1 0 0 0.5"/>
+        </Node>
+
+    </Node> 
+     
+    <Node name="filteredModel">     
+        
+        <StochasticStateWrapper name="StateWrapper" template="Vec3d" verbose="1" estimatePosition="1" estimateVelocity="1" positionStdev="0.15" velocityStdev="0.15" posModelStdev="0.0" velModelStdev="0.1" paramModelStdev="0.00001" langrangeMultipliers="0" draw="true" radiusDraw="0.005"/>    
+        <EulerImplicitSolver  />
+        <SparseLUSolver name="BTD"/>
+<!--         <OptimParams name="paramPlane" optimize="1" template ="Vector" initValue="-0.3"  stdev="0.1" />  -->
+         <OptimParams name="paramForces" optimize="1" parametricMechanicalObject="@MO"  template="VecDeriv3d" initValue="0 0 0" stdev="0.000015 0.000015 0.000015" /> 
+
+        <MechanicalObject template="Vec3d" name="MO" position="0 0 0" velocity="0.01 0.01 0.01" showObject="0"/>
+        <PlaneForceField name="PFF" normal="0 1 0" d="-0.3" draw="true" stiffness="1"/>
+        <UniformMass totalmass="0.001" />
+        <CorrectionForceField forces="@paramForces.value" />
+        <ShowSpheres  radius="0.01"  color="0 1 0 1" position="@MO.position" />
+
+        <Node name="obsNode" activated="1">        
+                <SimulatedStateObservationSource template="Vec3d" name="observations" monitorPrefix="Obs3D_ball"/>                               
+                <SimpleObservationManager name="MOBS" template="Vec3d,Vec3d" listening="1"  stateWrapper="@../StateWrapper" verbose="1" observationStdev="0.1"/>
+        </Node> 
+        
+    <Node name="MatlabPlotGroundTruth"> 
+        <MechanicalObject template="Vec3" name="MO" position="@../MO.position" showObject="0"/>		
+        <IdentityMapping/>
+        <WriteObservation filename="print/FilteredBeam_1" observations="true" groundTruth="true"/>
+    </Node>
+    </Node>
+    
+    
+</Node>

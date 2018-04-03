@@ -91,7 +91,7 @@ void WriteObservation::init()
     const std::string& filename = f_filename.getFullPath();
     if (!filename.empty()) {
         outfile = new std::ofstream(filename.c_str());
-        if (d_observations.getValue()){
+        if (d_observations.getValue() && !d_groundTruth.getValue()){
             ( *outfile ) << "# Gnuplot File : positions of "
                          << d_indices.getValue().size() << " particle(s) Monitored"
                          <<  std::endl;
@@ -190,8 +190,8 @@ void WriteObservation::handleEvent(sofa::core::objectmodel::Event* event)
         if (writeCurrent)
         {
 
-            if (d_groundTruth.getValue())
-                time=time+this->getContext()->getDt();
+//            if (d_groundTruth.getValue())
+//                time=time+this->getContext()->getDt();
 
             if (outfile)
             {

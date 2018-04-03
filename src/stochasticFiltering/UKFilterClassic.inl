@@ -81,13 +81,30 @@ void UKFilterClassic<FilterType>::computePrediction()
     stateCovar = covPxx + modelCovar;
 //    stabilizeMatrix(unstablestateCovar,stateCovar);
 
-    masterStateWrapper->setState(stateExp, mechParams);
+    if (masterStateWrapper->estimPosition()) {
+        masterStateWrapper->setState(stateExp, mechParams);
+    }else{
+        masterStateWrapper->lastApplyOperator(stateExp, mechParams);
+    }
+    if(observationManager->ComputeOnlyPrediction() ){
+        PRNS("PREDICTED STATE X(n+1)+n: \n" << stateExp.transpose());
 
+        EVectorX diag;
+        diag.resize(stateCovar.rows());
+        for (size_t i = 0; i < (size_t)stateCovar.rows(); i++) {
+            diag(i)=stateCovar(i,i);
+        }
+        PRNS("PREDICTED COVARIANCE DIAGONAL P(n+1)+n:  \n" << diag.transpose());
+    }
 }
 
 template <class FilterType>
 void UKFilterClassic<FilterType>::computeCorrection()
-{            
+{
+    if(observationManager->ComputeOnlyPrediction() ){
+        PRNS("======= No Observation - Computing Only Prediction =======")
+                return;
+    }
     if (observationManager->hasObservation(this->actualTime)) {
         PRNS("======= Computing correction, T= " << this->actualTime << " ======");
 
@@ -144,13 +161,11 @@ void UKFilterClassic<FilterType>::computeCorrection()
         }
         PRNS("FINAL COVARIANCE DIAGONAL P(n+1)+n:  \n" << diag.transpose());
 
-        //stateWrappers[0]->computeSimulationStep(stateExp, mechParams, id);
-
-//        PRNS("X(n+1)+: \n" << stateExp.transpose());
-
-        masterStateWrapper->setState(stateExp, mechParams);
-        //masterStateWrapper->transformState(stateExp, mechParams);
-
+        if (masterStateWrapper->estimPosition()) {
+            masterStateWrapper->setState(stateExp, mechParams);
+        }else{
+            masterStateWrapper->lastApplyOperator(stateExp, mechParams);
+        }
         helper::WriteAccessor<Data <helper::vector<FilterType> > > stat = d_state;
         helper::WriteAccessor<Data <helper::vector<FilterType> > > var = d_variance;
         helper::WriteAccessor<Data <helper::vector<FilterType> > > innov = d_innovation;
@@ -159,13 +174,9 @@ void UKFilterClassic<FilterType>::computeCorrection()
         var.resize(stateSize);
         innov.resize(observationSize);
 
-        //size_t gli = 0;
         for (size_t i = 0; i < stateSize; i++) {
             stat[i] = stateExp[i];
             var[i] = stateCovar(i,i);
-            //for (size_t j = i+1; j < stateSize; j++) {
-            //    covar[gli++] = stateCovar(i,j);
-            //}
         }
         for (size_t index = 0; index < observationSize; index++) {
             innov[index] = innovation[index];
@@ -279,6 +290,12 @@ void UKFilterClassic<FilterType>::bwdInit() {
 
     /// Initialize Model's Error Covariance
     stateCovar = masterStateWrapper->getStateErrorVariance();
+    EVectorX diag;
+    diag.resize(stateCovar.rows());
+    for (size_t i = 0; i < (size_t)stateCovar.rows(); i++) {
+        diag(i)=stateCovar(i,i);
+    }
+    PRNS("INIT COVARIANCE DIAGONAL P(n+1)+n:  \n" << diag.transpose());
     modelCovar = masterStateWrapper->getModelErrorVariance();
 
     stateExp = masterStateWrapper->getState();
