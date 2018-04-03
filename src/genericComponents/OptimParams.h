@@ -65,16 +65,10 @@ struct templateName<Vec3dTypes::VecDeriv>
     std::string operator ()(void) { return("VecDeriv3d"); }
 };
 
-//template<>
-//struct templateName<Rigid3dTypes::VecDeriv>
-//{
-//    std::string operator ()(void) { return("RigidDeriv3d"); }
-//};
-
 template<>
-struct templateName<Vec3fTypes::VecCoord>
+struct templateName<Rigid3dTypes::VecDeriv>
 {
-    std::string operator ()(void) { return("VecCoord3f"); }
+    std::string operator ()(void) { return("RigidDeriv3d"); }
 };
 
 
@@ -167,6 +161,7 @@ public:
 
     virtual void getInitVariance(DVec& _variance) = 0;  /// provide variance as a vector of length given by the number of parameters    
 
+
     OptimParamsBase()
         : m_dim(1)
         , m_optimize( initData(&m_optimize, false, "optimize", "the parameters handled in the component will be optimized by Verdandi") )
@@ -251,9 +246,23 @@ public:
     SingleLink<OptimParams<DataTypes>, MechStateRigid3d, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> m_paramMOLinkrigid;
     MechStateVec3d* paramMO;
     MechStateRigid3d* paramMOrigid;
-    static std::string templateName(const OptimParams<DataTypes>* = NULL) { std::string name = sofa::component::container::templateName<DataTypes>()(); return(name); }       
-
     void getInitVariance(DVec& /*_variance*/)  {}    
+
+    /// Pre-construction check method called by ObjectFactory.
+    /// Check that DataTypes matches the MechanicalState.
+    template<class T>
+    static bool canCreate(T*& obj, core::objectmodel::BaseContext* context, core::objectmodel::BaseObjectDescription* arg)
+    {
+        //        if (dynamic_cast<MState *>(context->getMechanicalState()) == NULL) return false;
+        return sofa::core::objectmodel::BaseObject::canCreate(obj, context, arg);
+    }
+
+    virtual std::string getTemplateName() const
+    {
+        return templateName(this);
+    }
+    static std::string templateName(const OptimParams<DataTypes>* = NULL) { std::string name = sofa::component::container::templateName<DataTypes>()(); return(name); }
+
 
 protected:
     Data< DataTypes > m_val;            /// real actual value of parameters

@@ -32,6 +32,8 @@ set(HEADER_FILES
     src/genericComponents/Transform3dToRigid.h
     src/genericComponents/CorrectionForceField.h
     src/genericComponents/CorrectionForceField.inl
+    src/genericComponents/WriteObservation.h
+    src/genericComponents/WriteObservation.inl
     src/genericComponents/VTKExporterDA.h
     )
 
@@ -44,6 +46,7 @@ set(SOURCE_FILES
     src/genericComponents/AddNoiseEngine.cpp
     src/genericComponents/Transform3dToRigid.cpp
     src/genericComponents/CorrectionForceField.cpp
+    src/genericComponents/WriteObservation.cpp
     src/genericComponents/VTKExporterDA.cpp
     )
 
@@ -80,6 +83,8 @@ if ( ${STOCHASTIC_FILTERING} )
 		src/stochasticFiltering/UKMappedStateObservationManager.inl
 		src/stochasticFiltering/SimpleObservationManager.h
 		src/stochasticFiltering/SimpleObservationManager.inl
+                src/stochasticFiltering/BindedSimpleObservationManager.h
+                src/stochasticFiltering/BindedSimpleObservationManager.inl
 		src/stochasticFiltering/PreStochasticWrapper.h
 		src/stochasticFiltering/ForceFieldSensitivity.h
 	)
@@ -97,6 +102,7 @@ if ( ${STOCHASTIC_FILTERING} )
 		src/stochasticFiltering/MappedStateObservationManager.cpp
                 #src/stochasticFiltering/UKMappedStateObservationManager.cpp
 		src/stochasticFiltering/SimpleObservationManager.cpp
+                src/stochasticFiltering/BindedSimpleObservationManager.cpp
 		src/stochasticFiltering/PreStochasticWrapper.cpp
 	)
 

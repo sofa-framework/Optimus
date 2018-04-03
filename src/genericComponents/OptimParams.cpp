@@ -415,31 +415,23 @@ void OptimParams<Vec3dTypes::VecDeriv>::init() {
     helper::ReadAccessor<Data<Vec3dTypes::VecDeriv> >initVal = m_initVal;
     size_t nInitVal = initVal.size();
 
-    if (nInitVal != mstate_dim){
-        sout << this->getName() << ": Bad initVal values. Setting it according to the mstate " << paramMO->getName() << " of dimension "<< mstate_dim << sendl;
-        nInitVal = mstate_dim;
+    if (nInitVal != mstate_dim ){
+        PRNE ("Wrong values of parameter \"initValue\" in OptimParams. \nRESET it consistent with dimension of "<< paramMO->getName())
+        return;
     }
+
     if ( (m_numParams.getValue() == 0 && nInitVal > 0) || m_numParams.getValue() == nInitVal*3) {
          sout << this->getName() << ": setting parameter number according to init. value vector: " << nInitVal*3 << sendl;
          m_numParams.setValue(nInitVal*3);
     } else {
-        if (m_numParams.getValue() > 0 && nInitVal == mstate_dim) {
-//            nInitVal = m_numParams.getValue()/3.0;
-//            sout << this->getName() << ": copying initial value to " << nInitVal << " positions" << sendl;
-//            Vec3dTypes::VecDeriv valueinitVal[0];
-
-//            sout << this->getName() << ": Resizing init value vector to " << nInitVal << sendl;
-//            helper::WriteAccessor<Data<Vec3dTypes::VecDeriv> > wInitVal = m_initVal;
-//            wInitVal.wref().resize(nInitVal);
-//            for (size_t i = 0; i < nInitVal; i++)
-//                wInitVal[i] = value;
+        if (m_numParams.getValue() > 0 && nInitVal ==  mstate_dim ) {
 
         } else {
             serr << this->getName() << ": Incompatible input: numParams: " << m_numParams.getValue() << " wth value = " << nInitVal*3 << sendl;
             return;
         }
     }
-    if (nInitVal != 0) {
+    if (nInitVal != 0 || nInitVal==mstate_dim) {
         helper::WriteAccessor<Data<Vec3dTypes::VecDeriv> > val = m_val;
 
         if (val.size() == 0) {
@@ -458,6 +450,8 @@ void OptimParams<Vec3dTypes::VecDeriv>::init() {
             for (size_t i = 1; i < nInitVal; i++)
                 stdev[i] = stdev[0];
         }
+    }else{
+         PRNE ("Wrong initValue. Must be consistent with "<< paramMO->getName() << "dimensions. ")
     }
 }
 
@@ -466,31 +460,11 @@ template<>
 void OptimParams<Vec3dTypes::VecDeriv>::vectorToParams(VectorXd& _vector) {
     helper::WriteAccessor<Data<Vec3dTypes::VecDeriv> > waVal = m_val;
 
-    size_t numParams = mstate_dim;
+    size_t numParams =  mstate_dim ;
     size_t k = 0;
-    switch (transParamType) {
-    case 1:
-        for (size_t i = 0; i < numParams; i++)
-            for (size_t j = 0; j < 3, k < this->paramIndices.size() ; j++, k++)
-                waVal[i][j] = _vector[paramIndices[k]];
-        break;
-    case 2:
-        // std::cout << "backward step " << std::endl;
-        for (size_t i = 0; i < numParams; i++)
-            for (size_t j = 0; j < 3, k < this->paramIndices.size() ; j++, k++)
-                waVal[i][j] = _vector[paramIndices[k]];
-        break;
-    case 3:
-        for (size_t i = 0; i < numParams; i++)
-            for (size_t j = 0; j < 3, k < this->paramIndices.size() ; j++, k++)
-                waVal[i][j] = _vector[paramIndices[k]];
-        break;
-    default:
-        for (size_t i = 0; i < numParams; i++)
-            for (size_t j = 0; j < 3, k < this->paramIndices.size() ; j++, k++)
-                waVal[i][j] = _vector[paramIndices[k]];
-    }
-
+    for (size_t i = 0; i < numParams; i++)
+        for (size_t j = 0; k < this->paramIndices.size() ; j++, k++)
+            waVal[i][j] = _vector[paramIndices[k]];
 }
 
 template<>
@@ -498,36 +472,17 @@ void OptimParams<Vec3dTypes::VecDeriv>::paramsToVector(VectorXd& _vector) {
     helper::ReadAccessor<Data<Vec3dTypes::VecCoord> > raVal = m_val;
     size_t k = 0;
 
-
-    switch (transParamType) {
-    case 1:
-        for (size_t i = 0; i < mstate_dim; i++)
-            for (size_t j = 0; j < 3, k < this->paramIndices.size() ; j++, k++)
-                _vector[paramIndices[k]]=raVal[i][j];
-        break;
-    case 2:
-        for (size_t i = 0; i < mstate_dim; i++)
-            for (size_t j = 0; j < 3, k < this->paramIndices.size() ; j++, k++)
-                _vector[paramIndices[k]]=raVal[i][j];
-        break;
-    case 3:
-        for (size_t i = 0; i < mstate_dim; i++)
-            for (size_t j = 0; j < 3, k < this->paramIndices.size() ; j++, k++)
-                _vector[paramIndices[k]]=raVal[i][j];
-        break;
-    default:
-        for (size_t i = 0; i < mstate_dim; i++)
-            for (size_t j = 0; j < 3, k < this->paramIndices.size() ; j++, k++)
-                _vector[paramIndices[k]]=raVal[i][j];
-    }
+    for (size_t i = 0; i <  mstate_dim ; i++)
+        for (size_t j = 0; k < this->paramIndices.size() ; j++, k++)
+            _vector[paramIndices[k]]=raVal[i][j];
 }
 
 template<>
-void OptimParams<Vec3dTypes::VecCoord>::getInitVariance(DVec& _variance) {
+void OptimParams<Vec3dTypes::VecDeriv>::getInitVariance(DVec& _variance) {
     size_t numParams = this->m_numParams.getValue();
     _variance.resize(numParams);
     size_t ij = 0;
-    for (size_t i = 0; i < mstate_dim; i++)
+    for (size_t i = 0; i <  mstate_dim ; i++)
         for (size_t j = 0; j < 3; j++, ij++)
             _variance[ij] = helper::SQR(m_stdev.getValue()[i][j]);
 
@@ -538,7 +493,6 @@ template<>
 void OptimParams<Vec3dTypes::VecDeriv>::handleEvent(core::objectmodel::Event *event) {
     if (dynamic_cast<sofa::simulation::AnimateBeginEvent *>(event))
     {
-        //if (!this->m_optimize.getValue()) {
             double actTime = this->getTime() + this->getContext()->getDt(); /// the time has not been increased yet
             std::cout << "[" << this->getName() << "] begin event at time: " << actTime << std::endl;
 
@@ -567,8 +521,6 @@ void OptimParams<Vec3dTypes::VecDeriv>::handleEvent(core::objectmodel::Event *ev
                 double r1 = (actTime-t1)/(t2-t1);
                 double r2 = (t2-actTime)/(t2-t1);
 
-                //std::cout << "Time slot: " << timeSlot << " actual time: " << actTime << " ratii: " << r1 << " " << r2 << std::endl;
-
                 helper::WriteAccessor<Data<Vec3dTypes::VecDeriv > > val = m_val;
                 std::cout << "[" << this->getName() << "] Value: ";
                 for (size_t i = 0; i < val.size(); i++) {
@@ -585,8 +537,6 @@ void OptimParams<Vec3dTypes::VecDeriv>::handleEvent(core::objectmodel::Event *ev
                 std::cout << std::endl;
 
             }
-
-        //}
 
         if (this->saveParam) {
             std::ofstream paramFile(m_exportParamFile.getValue().c_str(), std::ios::app);
@@ -605,146 +555,158 @@ void OptimParams<Vec3dTypes::VecDeriv>::handleEvent(core::objectmodel::Event *ev
 
 /// Specialization for RigidDeriv3d
 
-//template<>
-//void OptimParams<Rigid3dTypes::VecDeriv>::init() {
-//    Inherit1::init();
-//    paramMOrigid = m_paramMOLinkrigid.get();
+template<>
+void OptimParams<Rigid3dTypes::VecDeriv>::init() {
+    Inherit1::init();
+    paramMOrigid = m_paramMOLinkrigid.get();
 
-//    this->m_dim = 6;
+    if (paramMOrigid == NULL)
+        std::cerr << "WARNING: cannot find the parametric mechanical state, assuming no mechanical state is associated with the parameters" << std::endl;
+    else {
+        std::cout << "Mechanical state associated with the parameters: " << paramMOrigid->getName() << std::endl;
 
-//    if (paramMOrigid == NULL)
-//        std::cerr << "WARNING: cannot find the parametric mechanical state, assuming no mechanical state is associated with the parameters" << std::endl;
-//    else {
-//        std::cout << "Mechanical state associated with the parameters: " << paramMOrigid->getName() << std::endl;
+        typename MechStateRigid3d::ReadVecCoord moPos = paramMOrigid->readPositions();
+        mstate_dim = moPos.size();
 
-//        int moSize = 6 ; /// TODO retrieve catheter nodes
-//        helper::WriteAccessor<Data<Rigid3dTypes::VecDeriv> > waInitVal = m_initVal;
-//        Rigid3dTypes::Deriv initForces = Rigid3dTypes::Deriv() ;
-//        waInitVal.resize(moSize);
-
-//        for (int i = 0; i < moSize; i++)
-//            waInitVal[i] = initForces;
-//    }
-//    helper::ReadAccessor<Data<Rigid3dTypes::VecDeriv> > raInitVal = m_initVal;
-//    helper::WriteAccessor<Data<Rigid3dTypes::VecDeriv> > waVal = m_val;
-//    int numParams = raInitVal.size();
-//    m_numParams.setValue(numParams);
-//    waVal.resize(numParams);
-//    for (int i = 0; i < numParams; i++)
-//        waVal[i] = raInitVal[i];
-
-//}
+    }
+    helper::ReadAccessor<Data<Rigid3dTypes::VecDeriv> >initVal = m_initVal;
+    size_t nInitVal = initVal.size();
 
 
-//template<>
-//void OptimParams<Rigid3dTypes::VecDeriv>::vectorToParams(VectorXd& _vector) {
-//    helper::WriteAccessor<Data<Rigid3dTypes::VecDeriv> > waVal = m_val;
+    if (nInitVal != mstate_dim ){
+        PRNE ("Wrong values of parameter \"initValue\" in OptimParams. \nRESET it consistent with dimension of "<< paramMO->getName())
+        return;
+    }
 
-//    size_t numParams = m_numParams.getValue();
-//    size_t k = 0;
-//    for (size_t i = 0; i < numParams; i++)
-//        for (size_t j = 0; j < 6; j++, k++)
-//            waVal[i][j] = _vector[paramIndices[k]];
+    if ( (m_numParams.getValue() == 0 && nInitVal > 0) || m_numParams.getValue() == nInitVal*6) {
+         sout << this->getName() << ": setting parameter number according to init. value vector: " << nInitVal*6 << sendl;
+         m_numParams.setValue(nInitVal*6);
+    } else {
+        if (m_numParams.getValue() > 0 && nInitVal == mstate_dim) {
 
-////    if (paramMOrigid != NULL) {
-////        typename MechStateRigid3d::ReadVecDeriv moWForces = paramMOrigid->writeForces();
-////        helper::ReadAccessor<Data<Rigid3dTypes::VecDeriv> > raVal = m_val;
+        } else {
+            serr << this->getName() << ": Incompatible input: numParams: " << m_numParams.getValue() << " wth value = " << nInitVal*3 << sendl;
+            return;
+        }
+    }
+    if (nInitVal != 0 || nInitVal==mstate_dim) {
+        helper::WriteAccessor<Data<Rigid3dTypes::VecDeriv> > val = m_val;
 
-////        for (size_t i = 0; i < numParams; i++)
-////            moWForces[i] = raVal[i];
-////    }
+        if (val.size() == 0) {
+            val.resize(nInitVal);
+            for (size_t i = 0; i < nInitVal; i++)
+                val[i] = initVal[i];
+        }
 
-//}
-
-//template<>
-//void OptimParams<Rigid3dTypes::VecDeriv>::paramsToVector(VectorXd& _vector) {
-//    size_t numParams = m_numParams.getValue();
-////    if (paramMOrigid != NULL) {
-////        typename MechStateRigid3d::ReadVecDeriv moRForces = paramMOrigid->readForces();
-////        helper::WriteAccessor<Data<Rigid3dTypes::VecDeriv> > waVal = m_val;
-
-
-////        for (size_t i = 0; i < numParams; i++)
-////            waVal[i] = moRForces[i];
-////    }
-
-//    helper::ReadAccessor<Data<Rigid3dTypes::VecDeriv> > raVal = m_val;
-//    size_t k = 0;
-//    for (size_t i = 0; i < numParams; i++)
-//        for (size_t j = 0; j < 6; j++, k++)
-//            _vector[paramIndices[k]] = raVal[i][j];
-
-//}
+        helper::WriteAccessor<Data<Rigid3dTypes::VecDeriv> > stdev = m_stdev;
+        if (stdev.size() == 0) {
+            stdev.resize(nInitVal);
+            PRNW("Standard deviation not used, setting to 0!")
+        } else if (stdev.size() != nInitVal) {
+            PRNW("|stdev| != |init value|, resizing and taking the first member of stdev. ")
+                    stdev.resize(nInitVal);
+            for (size_t i = 1; i < nInitVal; i++)
+                stdev[i] = stdev[0];
+        }
+    }else{
+         PRNE ("Wrong initValue. Must be consistent with "<< paramMO->getName() << "dimensions. ")
+    }
+}
 
 
-//template<>
-//void OptimParams<Rigid3dTypes::VecDeriv>::handleEvent(core::objectmodel::Event *event) {
-//    if (dynamic_cast<sofa::simulation::AnimateBeginEvent *>(event))
-//    {
-//        //if (!this->m_optimize.getValue()) {
-//            double actTime = this->getTime() + this->getContext()->getDt(); /// the time has not been increased yet
-//            std::cout << "[" << this->getName() << "] begin event at time: " << actTime << std::endl;
+template<>
+void OptimParams<Rigid3dTypes::VecDeriv>::vectorToParams(VectorXd& _vector) {
+    helper::WriteAccessor<Data<Rigid3dTypes::VecDeriv> > waVal = m_val;
 
-//            int timeSlot = -1;
+    size_t numParams = mstate_dim;
+    size_t k = 0;
+    for (size_t i = 0; i < numParams; i++)
+        for (size_t j = 0;  k < this->paramIndices.size() ; j++, k++)
+            waVal[i][j] = _vector[paramIndices[k]];
+}
 
-//            for (size_t i = 1; i < m_paramKeys.size() && timeSlot < 0; i++) {
-//                if (m_paramKeys[i-1].first <= actTime && actTime < m_paramKeys[i].first) {
-//                    timeSlot = i-1;
-//                }
-//            }
-//            std::cout << "HERE" << std::endl;
-//            if (timeSlot == -1) {
-//                if (actTime >= m_paramKeys.back().first) {
-//                    helper::WriteAccessor<Data<Rigid3dTypes::VecDeriv> > val = m_val;
-//                    std::cout << "["  << this->getName() << "] const val: ";
-//                    for (size_t i = 0; i < val.size(); i++) {
-//                        val[i] = m_paramKeys.back().second[i];
-//                        std::cout << " " << val[i];
-//                    }
-//                    std::cout << std::endl;
-//                } else {
-//                    std::cerr << this->getName() << " ERROR: no slot found for time " << actTime << std::endl;
-//                }
-//            } else {
-//                double t1 = m_paramKeys[timeSlot].first;
-//                double t2 = m_paramKeys[timeSlot+1].first;
+template<>
+void OptimParams<Rigid3dTypes::VecDeriv>::paramsToVector(VectorXd& _vector) {
+    helper::ReadAccessor<Data<Rigid3dTypes::VecDeriv> > raVal = m_val;
+    size_t k = 0;
+
+    for (size_t i = 0; i < mstate_dim; i++)
+        for (size_t j = 0; k < this->paramIndices.size() ; j++, k++)
+            _vector[paramIndices[k]]=raVal[i][j];
+}
+
+
+template<>
+void OptimParams<Rigid3dTypes::VecDeriv>::getInitVariance(DVec& _variance) {
+    size_t numParams = this->m_numParams.getValue();
+    _variance.resize(numParams);
+    size_t ij = 0;
+    for (size_t i = 0; i < mstate_dim; i++)
+        for (size_t j = 0; j < 6; j++, ij++)
+            _variance[ij] = helper::SQR(m_stdev.getValue()[i][j]);
+
+}
+
+template<>
+void OptimParams<Rigid3dTypes::VecDeriv>::handleEvent(core::objectmodel::Event *event) {
+    if (dynamic_cast<sofa::simulation::AnimateBeginEvent *>(event))
+    {
+            double actTime = this->getTime() + this->getContext()->getDt(); /// the time has not been increased yet
+            std::cout << "[" << this->getName() << "] begin event at time: " << actTime << std::endl;
+
+            int timeSlot = -1;
+
+            for (size_t i = 1; i < m_paramKeys.size() && timeSlot < 0; i++) {
+                if (m_paramKeys[i-1].first <= actTime && actTime < m_paramKeys[i].first) {
+                    timeSlot = i-1;
+                }
+            }
+            if (timeSlot == -1) {
+                if (actTime >= m_paramKeys.back().first) {
+                    helper::WriteAccessor<Data<Rigid3dTypes::VecDeriv> > val = m_val;
+                    std::cout << "["  << this->getName() << "] const val: ";
+                    for (size_t i = 0; i < val.size(); i++) {
+                        val[i] = m_paramKeys.back().second[i];
+                        std::cout << " " << val[i];
+                    }
+                    std::cout << std::endl;
+                } else {
+                    std::cerr << this->getName() << " ERROR: no slot found for time " << actTime << std::endl;
+                }
+            } else {
+                double t1 = m_paramKeys[timeSlot].first;
+                double t2 = m_paramKeys[timeSlot+1].first;
 //                double r1 = (actTime-t1)/(t2-t1);
 //                double r2 = (t2-actTime)/(t2-t1);
 
-//                //std::cout << "Time slot: " << timeSlot << " actual time: " << actTime << " ratii: " << r1 << " " << r2 << std::endl;
+                helper::WriteAccessor<Data<Rigid3dTypes::VecDeriv > > val = m_val;
+                std::cout << "[" << this->getName() << "] Value: ";
+                for (size_t i = 0; i < val.size(); i++) {
+                    Rigid3dTypes::Deriv v1=m_paramKeys[timeSlot].second[i];
+                    Rigid3dTypes::Deriv v2=m_paramKeys[timeSlot+1].second[i];
 
-//                helper::WriteAccessor<Data<Rigid3dTypes::VecDeriv> > val = m_val;
-//                std::cout << "[" << this->getName() << "] Value: ";
-//                for (size_t i = 0; i < val.size(); i++) {
-//                    Rigid3dTypes::Deriv v1=m_paramKeys[timeSlot].second[i];
-//                    Rigid3dTypes::Deriv v2=m_paramKeys[timeSlot+1].second[i];
+                    /// (y2-y1)*(tanh(3.5*(a-(t0+t1)/2))+1)/2+y1
+                    if (this->m_interpolateSmooth.getValue())
+                        val[i] =  (v2-v1)*(tanh(2*(actTime-(t1+t2)/2))+1)/2+v1;
+//                    else
+//                        val[i] = r2*v1 + r1*v2;
+//                    std::cout << " " << val[i];
+                }
+                std::cout << std::endl;
+            }
 
-//                    /// (y2-y1)*(tanh(3.5*(a-(t0+t1)/2))+1)/2+y1
-//                    if (this->m_interpolateSmooth.getValue())
-//                        val[i] =  (v2-v1)*(tanh(2*(actTime-(t1+t2)/2))+1)/2+v1;
-////                    else
-////                        val[i] = r2*v1 + r1*v2;
-////                    std::cout << " " << val[i];
-//                }
-//                std::cout << std::endl;
-
-//            }
-
-//        //}
-
-//        if (this->saveParam) {
-//            std::ofstream paramFile(m_exportParamFile.getValue().c_str(), std::ios::app);
-//            if (paramFile.is_open()) {
-//                helper::ReadAccessor<Data<Rigid3dTypes::VecDeriv> > val = m_val;
-//                for (size_t i = 0; i < val.size(); i++)
-//                    paramFile << val[i] << " ";
-//                paramFile << '\n';
-//                paramFile.close();
-//            }
-//        }
-
-//    }
-//}
+        if (this->saveParam) {
+            std::ofstream paramFile(m_exportParamFile.getValue().c_str(), std::ios::app);
+            if (paramFile.is_open()) {
+                helper::ReadAccessor<Data<Rigid3dTypes::VecDeriv> > val = m_val;
+                for (size_t i = 0; i < val.size(); i++)
+                    paramFile << val[i] << " ";
+                paramFile << '\n';
+                paramFile.close();
+            }
+        }
+    }
+}
 
 
 /// Specialization for double
@@ -846,49 +808,24 @@ int OptimParamsClass = core::RegisterObject("Optimization Parameters")
         #ifndef SOFA_FLOAT
         .add< OptimParams<double> >()
         .add< OptimParams<Vec3d> >()
-                                        /*.add< OptimParams<Vec2d> >()
-                                        .add< OptimParams<Vec1d> >()
-                                        .add< OptimParams<RigidCoord<3,double> > >()
-                                        .add< OptimParams<RigidCoord<2,double> > >()*/
         .add< OptimParams<sofa::helper::vector<double> > >()
         .add< OptimParams<Vec3dTypes::VecDeriv> >()
-//        .add< OptimParams<Rigid3dTypes::VecDeriv> >()
+        .add< OptimParams<Rigid3dTypes::VecDeriv> >()
 
         #endif
         #ifndef SOFA_DOUBLE
-        /*.add< OptimParams<float> >(true)
-                                        .add< OptimParams<Vec3f> >()
-                                        .add< OptimParams<Vec2f> >()
-                                        .add< OptimParams<Vec1f> >()
-                                        .add< OptimParams<RigidCoord<3,float> > >()
-                                        .add< OptimParams<RigidCoord<2,float> > >()
-                                        .add< OptimParams<sofa::helper::vector<float> > >()
-                                        .add< OptimParams<Vec3fTypes::VecCoord> >()*/
         #endif
         ;
 
 #ifndef SOFA_FLOAT
 template class SOFA_OptimusPlugin_API OptimParams<double>;
 template class SOFA_OptimusPlugin_API OptimParams<Vec3d>;
-/*template class SOFA_OptimusPlugin_API OptimParams<Vec2d>;
-template class SOFA_OptimusPlugin_API OptimParams<Vec1d>;
-template class SOFA_OptimusPlugin_API OptimParams<RigidCoord<3,double> >;
-template class SOFA_OptimusPlugin_API OptimParams<RigidCoord<2,double> >;*/
 template class SOFA_OptimusPlugin_API OptimParams<sofa::helper::vector<double> >;
 template class SOFA_OptimusPlugin_API OptimParams<Vec3dTypes::VecDeriv>;
-//template class SOFA_OptimusPlugin_API OptimParams<Rigid3dTypes::VecDeriv>;
+template class SOFA_OptimusPlugin_API OptimParams<Rigid3dTypes::VecDeriv>;
 #endif
 #ifndef SOFA_DOUBLE
-/*template class SOFA_OptimusPlugin_API OptimParams<float>;
-template class SOFA_OptimusPlugin_API OptimParams<Vec3f>;
-template class SOFA_OptimusPlugin_API OptimParams<Vec2f>;
-template class SOFA_OptimusPlugin_API OptimParams<Vec1f>;
-template class SOFA_OptimusPlugin_API OptimParams<RigidCoord<3,float> >;
-template class SOFA_OptimusPlugin_API OptimParams<RigidCoord<2,float> >;
-template class SOFA_OptimusPlugin_API OptimParams<sofa::helper::vector<float> >;
-template class SOFA_OptimusPlugin_API OptimParams<Vec3fTypes::VecCoord>;*/
 #endif
-
 
 } // namespace container
 } // namespace component
