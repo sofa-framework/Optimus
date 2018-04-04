@@ -110,7 +110,7 @@ StochasticStateWrapper<DataTypes, FilterType>::StochasticStateWrapper()
     , d_mappedStatePath(initData(&d_mappedStatePath, "mappedState", "Link to Virtual Mapped Catheter "))
     , d_draw(initData(&d_draw, false, "draw","Activation of draw"))
     , d_radius_draw( initData(&d_radius_draw, "radiusDraw", "radius of the spheres") )
-
+    , d_fullMatrix( initData(&d_fullMatrix, "fullMatrix", "testing the full matrix" ) )
 {
 }
 

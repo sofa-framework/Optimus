@@ -45,6 +45,8 @@
 
 #include <SofaConstraint/LCPConstraintSolver.h>
 
+#include <SofaBaseLinearSolver/FullMatrix.h>
+
 #include <sofa/core/ObjectFactory.h>
 #include <sofa/core/VecId.h>
 
@@ -89,6 +91,8 @@ public:
     typedef typename DataTypes::Coord Coord;
     typedef typename DataTypes::Coord Deriv;
     typedef FilterType Type;
+
+    typedef typename sofa::component::linearsolver::FullMatrix<FilterType> FullMatrix;
 
     enum { Dim = Coord::spatial_dimensions};
 
@@ -137,9 +141,12 @@ public:
     Data <std::string> d_mappedStatePath;
     Data< bool  > d_draw;
     Data< double  > d_radius_draw;
+    Data<FullMatrix> d_fullMatrix;
+
     EMatrixX modelErrorVariance;
     EMatrixX modelErrorVarianceInverse;
     FilterType modelErrorVarianceValue;
+
 
     void init();
     void bwdInit();
