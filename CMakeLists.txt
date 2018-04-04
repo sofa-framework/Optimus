@@ -34,6 +34,7 @@ set(HEADER_FILES
     src/genericComponents/CorrectionForceField.inl
     src/genericComponents/WriteObservation.h
     src/genericComponents/WriteObservation.inl
+    src/genericComponents/FilterEvents.h
     src/genericComponents/VTKExporterDA.h
     )
 
@@ -47,6 +48,7 @@ set(SOURCE_FILES
     src/genericComponents/Transform3dToRigid.cpp
     src/genericComponents/CorrectionForceField.cpp
     src/genericComponents/WriteObservation.cpp
+    src/genericComponents/FilterEvents.cpp
     src/genericComponents/VTKExporterDA.cpp
     )
 

@@ -23,45 +23,48 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 
-#include "VTKExporterDA.h"
+
+#include <sofa/core/objectmodel/Event.h>
+#include "initOptimusPlugin.h"
 #include "FilterEvents.h"
 
 namespace sofa
 {
-
 namespace component
 {
-
-namespace misc
+namespace stochastic
 {
 
-SOFA_DECL_CLASS(VTKExporterDA)
+SOFA_EVENT_CPP( PredictionEndEvent )
 
-int VTKExporterClassDA = core::RegisterObject("Save geometries in VTK, compatible with Optimus data assimilation")
-        .add< VTKExporterDA >();
-
-
-void VTKExporterDA::handleEvent(sofa::core::objectmodel::Event *event)
+PredictionEndEvent::PredictionEndEvent(SReal dt)
+    : sofa::core::objectmodel::Event()
+    , dt(dt)
 {
-    if (sofa::component::stochastic::CorrectionEndEvent::checkEventType(event)) {
-        unsigned int maxStep = this->exportEveryNbSteps.getValue();
-        if (maxStep == 0) return;
-
-        this->stepCounter++;
-        if(this->stepCounter >= maxStep)
-        {
-            this->stepCounter = 0;
-            if(fileFormat.getValue())
-                writeVTKXML();
-            else
-                writeVTKSimple();
-        }
-    }
 }
 
 
-}   /// misc
+PredictionEndEvent::~PredictionEndEvent()
+{
+}
 
-}   /// component
+SOFA_EVENT_CPP( CorrectionEndEvent )
 
-}   /// sofa
+CorrectionEndEvent::CorrectionEndEvent(SReal dt)
+    : sofa::core::objectmodel::Event()
+    , dt(dt)
+{
+}
+
+
+CorrectionEndEvent::~CorrectionEndEvent()
+{
+}
+
+
+
+}  /// sofa
+
+}  /// component
+
+}  /// stochastic

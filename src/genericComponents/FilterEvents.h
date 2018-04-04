@@ -22,46 +22,61 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
+#ifndef FILTEREVENTS_H_
+#define FILTEREVENTS_H_
 
-#include "VTKExporterDA.h"
-#include "FilterEvents.h"
+#include "initOptimusPlugin.h"
+#include <sofa/core/objectmodel/Event.h>
 
 namespace sofa
 {
-
 namespace component
 {
-
-namespace misc
+namespace stochastic
 {
 
-SOFA_DECL_CLASS(VTKExporterDA)
-
-int VTKExporterClassDA = core::RegisterObject("Save geometries in VTK, compatible with Optimus data assimilation")
-        .add< VTKExporterDA >();
-
-
-void VTKExporterDA::handleEvent(sofa::core::objectmodel::Event *event)
+class  SOFA_STOCHASTIC_API PredictionEndEvent : public sofa::core::objectmodel::Event
 {
-    if (sofa::component::stochastic::CorrectionEndEvent::checkEventType(event)) {
-        unsigned int maxStep = this->exportEveryNbSteps.getValue();
-        if (maxStep == 0) return;
+public:
 
-        this->stepCounter++;
-        if(this->stepCounter >= maxStep)
-        {
-            this->stepCounter = 0;
-            if(fileFormat.getValue())
-                writeVTKXML();
-            else
-                writeVTKSimple();
-        }
-    }
-}
+    SOFA_EVENT_H( PredictionEndEvent )
+
+    PredictionEndEvent( SReal dt );
+
+    ~PredictionEndEvent();
+
+    SReal getDt() const { return dt; }
+
+    virtual const char* getClassName() const { return "AssimilationEndEvent"; }
+protected:
+    SReal dt;
+};
 
 
-}   /// misc
+class SOFA_STOCHASTIC_API CorrectionEndEvent : public sofa::core::objectmodel::Event
+{
+public:
 
-}   /// component
+    SOFA_EVENT_H( CorrectionEndEvent )
+
+    CorrectionEndEvent( SReal dt );
+
+    ~CorrectionEndEvent();
+
+    SReal getDt() const { return dt; }
+
+    virtual const char* getClassName() const { return "AssimilationEndEvent"; }
+protected:
+    SReal dt;
+};
+
+
+
+}   /// stochastic
+
+}   /// components
 
 }   /// sofa
+
+
+#endif

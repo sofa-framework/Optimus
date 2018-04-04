@@ -40,35 +40,8 @@ namespace sofa
 namespace component
 {
 
-namespace simulation
+namespace stochastic
 {
-
-SOFA_EVENT_CPP( DAPredictionEndEvent )
-
-DAPredictionEndEvent::DAPredictionEndEvent(SReal dt)
-    : sofa::core::objectmodel::Event()
-    , dt(dt)
-{
-}
-
-
-DAPredictionEndEvent::~DAPredictionEndEvent()
-{
-}
-
-SOFA_EVENT_CPP( DACorrectionEndEvent )
-
-DACorrectionEndEvent::DACorrectionEndEvent(SReal dt)
-    : sofa::core::objectmodel::Event()
-    , dt(dt)
-{
-}
-
-
-DACorrectionEndEvent::~DACorrectionEndEvent()
-{
-}
-
 
 SOFA_DECL_CLASS(FilteringAnimationLoop)
 
@@ -168,14 +141,14 @@ void FilteringAnimationLoop::step(const core::ExecParams* _params, SReal /*_dt*/
     filter->initializeStep(_params, actualStep);
     //TIC
     filter->computePrediction();
-    DAPredictionEndEvent predEvent ( dt );
+    PredictionEndEvent predEvent ( dt );
     sofa::simulation::PropagateEventVisitor predEVisitor ( _params, &predEvent );
     gnode->execute ( predEVisitor );
     //TOCTIC("== prediction total");    
 
 
     filter->computeCorrection();
-    DACorrectionEndEvent corrEvent ( dt );
+    CorrectionEndEvent corrEvent ( dt );
     sofa::simulation::PropagateEventVisitor corrEVisitor ( _params, &corrEvent );
     gnode->execute ( corrEVisitor );
     //TOC("== correction total");
@@ -227,7 +200,7 @@ void SingleLevelEventVisitor::processObject(sofa::simulation::Node*, core::objec
         obj->handleEvent( m_event );
 }
 
-} // namespace simulation
+} // namespace stochastic
 } // namespace component
 } // namespace sofa
 
