@@ -75,6 +75,8 @@ public :
 
     void copyFilterToSofa(helper::vector<std::pair<size_t, size_t> > & pairs, VecCoord & ) {}
 
+    void stateDim() {}
+
 };
 
 using namespace defaulttype;
@@ -98,6 +100,7 @@ public:
 
 
     typedef typename core::behavior::MechanicalState<DataTypes> MechanicalState;
+    typedef typename core::behavior::MechanicalState<DataTypes> MappedMechanicalState;
     typedef typename component::projectiveconstraintset::FixedConstraint<DataTypes> FixedConstraint;
     typedef sofa::component::container::OptimParamsBase OptimParamsBase;
 
@@ -109,9 +112,13 @@ public:
 
 protected:
     MechanicalState *mechanicalState;
+    MappedMechanicalState *mappedState;
     FixedConstraint* fixedConstraint;
     helper::vector<OptimParamsBase*> vecOptimParams;
     InternalCopy<DataTypes> m_internalCopy;
+    size_t posDim;
+    size_t velDim;
+
 
     VecCoord beginTimeStepPos;
     VecDeriv beginTimeStepVel;
@@ -129,7 +136,7 @@ protected:
     void copyStateFilter2Sofa(const core::MechanicalParams *_mechParams, bool _setVelocityFromPosition = false);  // copy actual DA state to SOFA state and propagate to mappings
     void copyStateSofa2Filter();  // copy the actual SOFA state to DA state
     void computeSofaStep(const core::ExecParams* execParams, bool _updateTime);
-    void computeSofaStepWithLM(const core::ExecParams* params, bool _updateTime);
+    void computeSofaStepWithLM(const core::ExecParams* params);
 
 public:
     Data<bool> d_langrangeMultipliers;    
@@ -147,6 +154,7 @@ public:
     EMatrixX modelErrorVarianceInverse;
     FilterType modelErrorVarianceValue;
 
+    void stateDim();
 
     void init();
     void bwdInit();
@@ -214,7 +222,6 @@ public:
             modelErrorVariance = EMatrixX::Identity(this->stateSize, this->stateSize)*modelErrorVarianceValue;
             modelErrorVarianceInverse = EMatrixX::Identity(this->stateSize, this->stateSize) / modelErrorVarianceValue;
 
-            size_t vpi = 0;
             for (size_t pi = this->reducedStateIndex; pi < this->stateSize; pi++){
                     this->modelErrorVariance(pi,pi) = 0; /// Q is zero for parameters
             }
@@ -222,7 +229,7 @@ public:
             if (estimatePosition.getValue() && estimateVelocity.getValue()){
                 modelErrorVariance = EMatrixX::Identity(this->stateSize, this->stateSize);
 
-                for (size_t index = 0; index < this->positionVariance.size(); index++)
+                for (unsigned index = 0; index < this->positionVariance.size(); index++)
                     modelErrorVariance(index,index) = posModelStDev*posModelStDev  ;
 
                 for (size_t index = this->positionVariance.size(); index < this->reducedStateIndex; index++)

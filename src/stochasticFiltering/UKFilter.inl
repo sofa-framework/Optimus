@@ -114,7 +114,7 @@ void UKFilter<double, Vec3dTypes>::propagatePerturbedStates(EVectorX & _meanStat
             stateWrappers[0]->computeSimulationStep(xCol, mechParams, id);
             sigmaPointsIDs[i] = id;
             PRNS("Sigma point: " << i << " id: " << id);
-            observationManager->getPredictedObservation(this->actualTime, id,  modelObservations);
+            observationManager->getPredictedObservation(id,  modelObservations);
             //PRNS("model observations values: " << modelObservations);
             matZmodel.col(i) = modelObservations;
             //stateWrappers[0]->restoreState();

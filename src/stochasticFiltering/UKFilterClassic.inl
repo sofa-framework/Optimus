@@ -72,14 +72,12 @@ void UKFilterClassic<FilterType>::computePrediction()
     }
 
     stateCovar.setZero();
-    EMatrixX unstablestateCovar(stateSize,stateSize);
     EMatrixX matXiTrans= matXi.transpose();
     EMatrixX centeredPxx = matXiTrans.rowwise() - matXiTrans.colwise().mean();
     EMatrixX weightedCenteredPxx = centeredPxx.array().colwise() * vecAlphaVar.array();
     EMatrixX covPxx = (centeredPxx.adjoint() * weightedCenteredPxx);
     //EMatrixX covPxx = (centeredPxx.adjoint() * centeredPxx) / double(centeredPxx.rows() )
     stateCovar = covPxx + modelCovar;
-//    stabilizeMatrix(unstablestateCovar,stateCovar);
 
     if (masterStateWrapper->estimPosition()) {
         masterStateWrapper->setState(stateExp, mechParams);
@@ -115,17 +113,13 @@ void UKFilterClassic<FilterType>::computeCorrection()
 
         /// compute predicted observations
         for (size_t i = 0; i < sigmaPointsNum; i++) {
-            observationManager->getPredictedObservation(this->actualTime, m_sigmaPointObservationIndexes[i],  zCol);
+            observationManager->getPredictedObservation(m_sigmaPointObservationIndexes[i],  zCol);
             matZmodel.col(i) = zCol;
             predObsExp = predObsExp + zCol * vecAlpha(i);
         }
 
         EMatrixX matPxz(stateSize, observationSize);
-        EMatrixX unstablematPxz(stateSize, observationSize);
-
         EMatrixX matPz(observationSize, observationSize);
-        EMatrixX unstablematPzz(stateSize, observationSize);
-
         EMatrixX pinvmatPz(observationSize, observationSize);
 
 
@@ -137,11 +131,9 @@ void UKFilterClassic<FilterType>::computeCorrection()
         EMatrixX weightedCenteredCz = centeredCz.array().colwise() * vecAlphaVar.array();
         EMatrixX covPxz = (centeredCx.adjoint() * weightedCenteredCz);
         matPxz=covPxz;
-//        stabilizeMatrix(unstablematPxz,matPxz);
         //EMatrixX covPzz = (centeredCz.adjoint() * centeredCz) / double(centeredCz.rows() );
         EMatrixX covPzz = (centeredCz.adjoint() * weightedCenteredCz);
         matPz = obsCovar + covPzz;
-//        stabilizeMatrix(unstablematPzz,matPz);
         EMatrixX matK(stateSize, observationSize);
         pseudoInverse(matPz, pinvmatPz);
         matK =matPxz*pinvmatPz;

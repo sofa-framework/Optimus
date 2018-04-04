@@ -110,7 +110,7 @@ public:
 
     virtual bool hasObservation(double _time) = 0;
     virtual bool getInnovation(double _time, EVectorX& _state, EVectorX& _innovation) = 0;
-    virtual bool getPredictedObservation(double _time, int _id, EVectorX& _predictedObservation) = 0;
+    virtual bool getPredictedObservation(int _id, EVectorX& _predictedObservation) = 0;
 
     virtual bool& ComputeOnlyPrediction(){
         return this->noObservation;

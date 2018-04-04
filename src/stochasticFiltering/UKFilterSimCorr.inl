@@ -102,7 +102,7 @@ void UKFilterSimCorr<FilterType>::computeCorrection()
             xCol = matXi.col(i);
             //PRNS("X: " << xCol.transpose());
             stateWrappers[0]->computeSimulationStep(xCol, mechParams, id);
-            observationManager->getPredictedObservation(this->actualTime, id,  zCol);
+            observationManager->getPredictedObservation(id,  zCol);
             matZmodel.col(i) = zCol;
             predObsExp = predObsExp + zCol * vecAlpha(i);
             stateExp = stateExp + xCol * vecAlpha(i);

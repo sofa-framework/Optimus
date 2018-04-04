@@ -142,6 +142,7 @@ protected:
 
     /// size of the associated mechanical state
     size_t mStateSize;  /// size of the mechanical state
+    size_t mappedMStateSize; /// size of the mapped mechanical state
 public:
     void init() {
         Inherit::init();

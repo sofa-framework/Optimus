@@ -204,7 +204,7 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::hasObserva
 }
 
 template <class FilterType, class DataTypes1, class DataTypes2>
-bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getPredictedObservation(double _time, int _id, EVectorX& _predictedObservation) {
+bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getPredictedObservation(int _id, EVectorX& _predictedObservation) {
 
 
     Data<typename DataTypes1::VecCoord> predictedMasterState;

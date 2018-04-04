@@ -105,7 +105,7 @@ bool BindedSimpleObservationManager<FilterType,DataTypes1,DataTypes2>::hasObserv
 }
 
 template <class FilterType, class DataTypes1, class DataTypes2>
-bool BindedSimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getPredictedObservation(double _time, int _id, EVectorX& _predictedObservation)
+bool BindedSimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getPredictedObservation(int _id, EVectorX& _predictedObservation)
 {
     const Mat3x4d & P = d_projectionMatrix.getValue();
 

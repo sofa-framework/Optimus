@@ -134,10 +134,8 @@ bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovation(d
 }
 
 template <class FilterType, class DataTypes1, class DataTypes2>
-bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getPredictedObservation(double _time, int _id, EVectorX& _predictedObservation)
+bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getPredictedObservation(int _id, EVectorX& _predictedObservation)
 {
-    if (_time != this->actualTime) {
-    }
     const Mat3x4d & P = d_projectionMatrix.getValue();
     _predictedObservation.resize(this->observationSize);
 
