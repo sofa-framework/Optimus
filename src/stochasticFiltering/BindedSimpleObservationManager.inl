@@ -126,7 +126,7 @@ bool BindedSimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getPredic
     real2DObservationsEdit.resize((this->observationSize)*0.5);
     bindedPredicted2DStateEdit.resize((this->observationSize)*0.5);
 
-    stateWrapper->getActualMappedPosition(_id, allPredicted3DStateEdit);
+//    stateWrapper->getActualMappedPosition(_id, allPredicted3DStateEdit);
     allPredicted2DStateEdit.resize(allPredicted3DStateEdit.size());
 
     for (unsigned i = 0; i < allPredicted3DStateEdit.size(); i++){

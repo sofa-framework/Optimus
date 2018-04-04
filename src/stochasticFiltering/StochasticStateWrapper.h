@@ -100,7 +100,7 @@ public:
 
 
     typedef typename core::behavior::MechanicalState<DataTypes> MechanicalState;
-    typedef typename core::behavior::MechanicalState<DataTypes> MappedMechanicalState;
+//    typedef typename core::behavior::MechanicalState<DataTypes> MappedMechanicalState;
     typedef typename component::projectiveconstraintset::FixedConstraint<DataTypes> FixedConstraint;
     typedef sofa::component::container::OptimParamsBase OptimParamsBase;
 
@@ -112,7 +112,7 @@ public:
 
 protected:
     MechanicalState *mechanicalState;
-    MappedMechanicalState *mappedState;
+//    MappedMechanicalState *mappedState;
     FixedConstraint* fixedConstraint;
     helper::vector<OptimParamsBase*> vecOptimParams;
     InternalCopy<DataTypes> m_internalCopy;
@@ -168,7 +168,7 @@ public:
     void storeMState();
     void reinitMState(const core::MechanicalParams* _mechParams);
     void getActualPosition(int _id, VecCoord& _pos);
-    void getActualMappedPosition(int _id, VecCoord& _mapPos);
+    void getActualMappedPosition(/*int _id, VecCoord& _mapPos*/);
     void draw(const core::visual::VisualParams* vparams);
 
     void setState(EVectorX& _state, const core::MechanicalParams* _mparams) {

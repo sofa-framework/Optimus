@@ -75,8 +75,8 @@ if ( ${STOCHASTIC_FILTERING} )
 		src/stochasticFiltering/MappedStateObservationManager.inl
                 src/stochasticFiltering/SimpleObservationManager.h
 		src/stochasticFiltering/SimpleObservationManager.inl
-                src/stochasticFiltering/BindedSimpleObservationManager.h
-                src/stochasticFiltering/BindedSimpleObservationManager.inl
+#                src/stochasticFiltering/BindedSimpleObservationManager.h
+#                src/stochasticFiltering/BindedSimpleObservationManager.inl
 		src/stochasticFiltering/PreStochasticWrapper.h
 		src/stochasticFiltering/ForceFieldSensitivity.h
 	)
@@ -89,7 +89,7 @@ if ( ${STOCHASTIC_FILTERING} )
 		src/stochasticFiltering/StochasticStateWrapper.cpp
                 src/stochasticFiltering/MappedStateObservationManager.cpp
                 src/stochasticFiltering/SimpleObservationManager.cpp
-                src/stochasticFiltering/BindedSimpleObservationManager.cpp
+#                src/stochasticFiltering/BindedSimpleObservationManager.cpp
 		src/stochasticFiltering/PreStochasticWrapper.cpp
 	)
 
