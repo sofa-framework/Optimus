@@ -71,11 +71,11 @@ void Transform3dToRigid::init() {
 
            Quat q;
            defaulttype::Matrix3 M(X,Y,Z);
-           defaulttype::Matrix3 N = M;
+           //defaulttype::Matrix3 N = M;
            M.transpose();
            q.fromMatrix(M);
 //           q.fromFrame(X,Y,Z);
-           defaulttype::Matrix3 T= M*N;
+           //defaulttype::Matrix3 T= M*N;
 
 //           std::cout << "T=" << T << std::endl;
 

@@ -77,8 +77,8 @@ void AddNoiseEngine<DataTypes>::init() {
 //    std::cout << "O1 = " << orth1 << std::endl;
 //    std::cout << "O2 = " << orth2 << std::endl;
 
-    helper::ReadAccessor< Data< VecCoord > > inputPos = _inputPositions;
-    helper::WriteAccessor< Data< VecCoord > > outputPos = _outputPositionsWithNoise;
+    //helper::ReadAccessor< Data< VecCoord > > inputPos = _inputPositions;
+    //helper::WriteAccessor< Data< VecCoord > > outputPos = _outputPositionsWithNoise;
 
 
 

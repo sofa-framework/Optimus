@@ -58,7 +58,7 @@ void CorrectionForceField<DataTypes>::bwdInit()
 }
 
 template<class DataTypes>
-void CorrectionForceField<DataTypes>::addForce(const core::MechanicalParams* mparams, DataVecDeriv& f, const DataVecCoord& x, const DataVecDeriv& v)
+void CorrectionForceField<DataTypes>::addForce(const core::MechanicalParams* /* mparams */, DataVecDeriv& f, const DataVecCoord& /* x */, const DataVecDeriv& /* v */)
 {
     sofa::helper::WriteAccessor< DataVecDeriv > f1 = f;
 
@@ -71,7 +71,7 @@ void CorrectionForceField<DataTypes>::addForce(const core::MechanicalParams* mpa
 
 
 template<class DataTypes>
-void CorrectionForceField<DataTypes>::addDForce(const core::MechanicalParams* mparams, DataVecDeriv& df, const DataVecDeriv& dx)
+void CorrectionForceField<DataTypes>::addDForce(const core::MechanicalParams* /* mparams */, DataVecDeriv& /* df */, const DataVecDeriv& /* dx */)
 {
 //    sofa::helper::WriteAccessor< DataVecDeriv > df1 = df;
 //    Real kFactor = (Real)mparams->kFactorIncludingRayleighDamping(this->rayleighStiffness.getValue());
@@ -84,7 +84,7 @@ void CorrectionForceField<DataTypes>::addDForce(const core::MechanicalParams* mp
 
 
 template<class DataTypes>
-void CorrectionForceField<DataTypes>::addKToMatrix(const core::MechanicalParams* mparams, const sofa::core::behavior::MultiMatrixAccessor* matrix )
+void CorrectionForceField<DataTypes>::addKToMatrix(const core::MechanicalParams* /* mparams */, const sofa::core::behavior::MultiMatrixAccessor* /* matrix */)
 {
 //    sofa::core::behavior::MultiMatrixAccessor::MatrixRef mref = matrix->getMatrix(this->mstate);
 //    sofa::defaulttype::BaseMatrix* mat = mref.matrix;
@@ -99,7 +99,7 @@ void CorrectionForceField<DataTypes>::addKToMatrix(const core::MechanicalParams*
 }
 
 template<class DataTypes>
-void CorrectionForceField<DataTypes>::draw(const core::visual::VisualParams* vparams) {
+void CorrectionForceField<DataTypes>::draw(const core::visual::VisualParams* /* vparams */) {
 
 
 
