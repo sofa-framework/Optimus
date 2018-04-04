@@ -229,8 +229,8 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _
 
 template<class DataTypes>
 void SimulatedStateObservationSource<DataTypes>::draw(const core::visual::VisualParams* vparams) {
-//    if (!vparams->displayFlags().getShowBehaviorModels())
-//        return;
+    if (!vparams->displayFlags().getShowBehaviorModels())
+        return;
 
 //    helper::ReadAccessor<Data<VecCoord> > tracObs = m_trackedObservations;
 
@@ -262,7 +262,7 @@ void SimulatedStateObservationSource<DataTypes>::handleEvent(core::objectmodel::
         } else {
             double time = this->getTime();
             size_t ix = (fabs(dt) < 1e-10) ? 0 : size_t(round(time/dt));
-            if (ix >= int(positions.size()))
+            if (ix >= unsigned(positions.size()))
                 ix = positions.size() - 1;
 
             core::behavior::MechanicalState<DataTypes> *mState = dynamic_cast<core::behavior::MechanicalState<DataTypes>*> (this->getContext()->getMechanicalState());

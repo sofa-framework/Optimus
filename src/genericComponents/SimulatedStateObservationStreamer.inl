@@ -83,8 +83,8 @@ void SimulatedStateObservationStreamer<DataTypes>::init()
 
 template<class DataTypes>
 void SimulatedStateObservationStreamer<DataTypes>::draw(const core::visual::VisualParams* vparams) {
-//    if (!vparams->displayFlags().getShowBehaviorModels())
-//        return;
+    if (!vparams->displayFlags().getShowBehaviorModels())
+        return;
 
 //    helper::ReadAccessor<Data<VecCoord> > tracObs = m_trackedObservations;
 

@@ -107,6 +107,7 @@ bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::hasObservation(
 template <class FilterType, class DataTypes1, class DataTypes2>
 bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovation(double _time, EVectorX& _state, EVectorX& _innovation)
 {
+    this->noObservation= observationSource->OnlyPrediction();
     if (_time != this->actualTime) {
         PRNE("Observation for time " << this->actualTime << " not prepared, call hasObservation first!");
         return(false);
@@ -118,8 +119,13 @@ bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovation(d
     }
 
     if ((stateWrapper->getFilterKind() == SIMCORR) || (stateWrapper->getFilterKind() == CLASSIC)) {
-        for (size_t i = 0; i < this->observationSize; i++)
-            _innovation(i) = realObservations[0](i) - _state(i);
+        if(observationSource->OnlyPrediction()){
+            for (size_t i = 0; i < this->observationSize; i++)
+                _innovation(i) = 0;
+        }else{
+            for (size_t i = 0; i < this->observationSize; i++)
+                _innovation(i) = realObservations[0](i) - _state(i);
+        }
     }
 
     return true;

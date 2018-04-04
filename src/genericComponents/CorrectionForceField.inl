@@ -65,7 +65,7 @@ void CorrectionForceField<DataTypes>::addForce(const core::MechanicalParams* mpa
     f1.resize(d_forces.getValue().size() );
 
     for (unsigned int i=0; i<d_forces.getValue().size(); i++) {
-        f1[i] -= d_forces.getValue()[i];
+        f1[i] += d_forces.getValue()[i];
    }
 }
 

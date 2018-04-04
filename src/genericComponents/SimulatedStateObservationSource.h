@@ -92,12 +92,12 @@ public:
     Data<VecCoord> m_actualObservation;
     Data<SReal> m_drawSize;
     Data<bool> m_controllerMode;
-
     Data<VecCoord> m_trackedObservations;
 
     /// maps:  time + vector
     //std::map<double, VecCoord> positions;
     std::vector<VecCoord> positions;    
+    bool ComputeOnlyPrediction ;
 
     void init();
 
@@ -113,17 +113,18 @@ public:
     }
 
     bool getObservation(double _time, VecCoord& _observation) {
-
         helper::ReadAccessor<Data<VecCoord> > tracObs = m_trackedObservations;
         if (tracObs.size() > 0 ) {
             m_actualObservation.setValue(m_trackedObservations.getValue());
             _observation = m_actualObservation.getValue();
+            this->ComputeOnlyPrediction = false;
         } else {
             size_t ix = (fabs(dt) < 1e-10) ? 0 : size_t(round(_time/dt));
             //PRNS("Getting observation for time " << _time << " index: " << ix);
             if (ix >= size_t(positions.size())) {
-                PRNE("No observation for time " << _time << " , using the last one from " << positions.size()-1);
+                PRNE("No observation for time " << _time << " Computing Only Prediction ");
                 ix = positions.size() - 1;
+                this->ComputeOnlyPrediction = true;
             }
             m_actualObservation.setValue(positions[ix]);
             _observation = positions[ix];
@@ -156,6 +157,10 @@ public:
         PRNE("No observation found for time " << _time);
         return(false);*/
 
+    }
+
+    virtual bool& OnlyPrediction(){
+        return this->ComputeOnlyPrediction;
     }
 
     int getNParticles() {

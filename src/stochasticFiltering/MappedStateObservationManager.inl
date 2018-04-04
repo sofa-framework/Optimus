@@ -95,7 +95,7 @@ void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::init()
         pRandGen = new boost::mt19937;
         pNormDist = new boost::normal_distribution<>(0.0, noiseStdev.getValue());
         pVarNorm = new boost::variate_generator<boost::mt19937&, boost::normal_distribution<> >(*pRandGen, *pNormDist);
-    }    
+    }
 }
 
 template <class FilterType, class DataTypes1, class DataTypes2>
@@ -172,11 +172,11 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::hasObserva
     /// put the observation imported from a file via mapping  (yields actualObservation)
     actualObservation.setZero();
     if (!this->doNotMapObservations.getValue()) {
-       sofa::core::MechanicalParams mp;
-       //std::cout << "Input observation: " << inputObsState << std::endl;
-       mapping->apply(&mp, mappedObservationData, inputObservationData);
-       sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > mappedObsState = mappedObservationData;
-       //std::cout << "Mapped observation: " << mappedObsState << std::endl;
+        sofa::core::MechanicalParams mp;
+        //std::cout << "Input observation: " << inputObsState << std::endl;
+        mapping->apply(&mp, mappedObservationData, inputObservationData);
+        sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > mappedObsState = mappedObservationData;
+        //std::cout << "Mapped observation: " << mappedObsState << std::endl;
 
         for (size_t i = 0; i < mappedStateSize; i++) {
             for (size_t d = 0; d < 3; d++) {
@@ -236,6 +236,7 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getPredict
 template <class FilterType, class DataTypes1, class DataTypes2>
 bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovation(double _time, EVectorX& _state, EVectorX& _innovation)
 {
+    this->noObservation= observationSource->OnlyPrediction();
     if (_time != this->actualTime) {
         PRNE("Observation for time " << this->actualTime << " not prepared, call hasObservation first!");
         return(false);
@@ -268,8 +269,14 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovat
 
     /// TEMPORARY: _state here is the predicted observation computed before
     if ((stateWrapper->getFilterKind() == SIMCORR) || (stateWrapper->getFilterKind() == CLASSIC)) {
-        for (size_t i = 0; i < this->observationSize; i++)
-            _innovation(i) = actualObservation(i) - _state(i);
+        if(observationSource->OnlyPrediction()){
+            for (size_t i = 0; i < this->observationSize; i++)
+                _innovation(i) = 0;
+
+        }else{
+            for (size_t i = 0; i < this->observationSize; i++)
+                _innovation(i) = actualObservation(i) - _state(i);
+        }
     }
 
     return(true);
