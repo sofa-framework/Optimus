@@ -1,0 +1,26 @@
+Using SOFA executable:  runSofa
+Generating observations...
+... done
+Running data assimilation...
+... done
+Comparing state w.r.t. benchmark:
+  Mean row-wise norm of difference:  8.33334625996e-11
+  Max  row-wise norm of difference:  1.00001216197e-08
+  Element-wise mean of difference:  8.33362416112e-12
+  Element-wise max  of difference:  1.00001216197e-08
+Comparing variance w.r.t. benchmark:
+  Mean row-wise norm of difference:  1.77390886018e-11
+  Max  row-wise norm of difference:  9.99898475129e-09
+  Element-wise mean of difference:  -2.75585949123e-12
+  Element-wise max  of difference:  9.99898475129e-09
+Comparing covariance w.r.t. benchmark:
+Traceback (most recent call last):
+  File "../helper/compareData.py", line 14, in <module>
+    if sh1[1] != sh2[1]:
+IndexError: tuple index out of range
+Comparing innovation w.r.t. benchmark:
+  Mean row-wise norm of difference:  4.58742642424e-15
+  Max  row-wise norm of difference:  2.4740559768e-14
+  Element-wise mean of difference:  -2.03558444662e-17
+  Element-wise max  of difference:  1.0000680839e-14
+
