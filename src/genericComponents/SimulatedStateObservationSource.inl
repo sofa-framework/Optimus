@@ -56,7 +56,7 @@ SimulatedStateObservationSource<DataTypes>::SimulatedStateObservationSource()
     , m_drawSize( initData(&m_drawSize, SReal(0.0),"drawSize","size of observation spheres in each time step") )
     , m_controllerMode( initData(&m_controllerMode, false,"controllerMode","if true, sets the mechanical object in begin animation step") )
     , m_trackedObservations( initData (&m_trackedObservations, "trackedObservations", "tracked observations: temporary solution!!!") )
-    , d_asynObs(initData(&d_asynObs, false, "asynObs","Activation of draw"))
+    , d_asynObs(initData(&d_asynObs, false, "asynObs","Asynchronous or Missing Observations"))
 
 {
 
