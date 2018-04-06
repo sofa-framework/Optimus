@@ -26,6 +26,7 @@
 #include <sofa/core/visual/VisualParams.h>
 #include <sofa/simulation/Node.h>
 #include <sofa/core/objectmodel/DataFileName.h>
+#include "FilterEvents.h"
 
 #include <fstream>
 #include <sstream>
@@ -133,7 +134,7 @@ void WriteObservation::reset()
 
 void WriteObservation::handleEvent(sofa::core::objectmodel::Event* event)
 {
-    if (/* simulation::AnimateBeginEvent* ev = */simulation::AnimateEndEvent::checkEventType(event))
+    if (sofa::component::stochastic::CorrectionEndEvent::checkEventType(event))
     {
         double time = getContext()->getTime();
         if (!mmodel) return;

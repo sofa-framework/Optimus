@@ -7,7 +7,7 @@
 <BackgroundSetting color="1 1 1 1" />
 <ViewerSetting resolution="837 600" />
 <FilteringAnimationLoop name="StochAnimLoop" verbose="1"/>
-<UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0" filenameCov="print/print_cov_4" filenameInn="print/print_inn_4" filenameFinalState="print/print_state_4"/>
+<UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0" filenameCov="print/print_cov_1" filenameInn="print/print_inn_1" filenameFinalState="print/print_state_1"/>
 
 
     <Node name="simulation">
@@ -15,14 +15,14 @@
             <Node name="ReferenceModel"> 
             <MechanicalObject template="Vec3" name="MO" position=" 0   0 0" />
             <ReadState filename="Reference_ball" />
-            <Sphere radius="0.01" color="1 0 0 0.5"/>
+            <Sphere radius="0.1" color="1 0 0 0.5"/>
             </Node>
 
     </Node> 
      
     <Node name="filteredModel">     
         
-        <StochasticStateWrapper name="StateWrapper" template="Vec3d" verbose="1" estimatePosition="1" estimateVelocity="1" positionStdev="0.15" velocityStdev="0.15" posModelStdev="0.0" velModelStdev="0.0" paramModelStdev="0.000" langrangeMultipliers="0" draw="true" radiusDraw="0.005"/>    
+        <StochasticStateWrapper name="StateWrapper" template="Vec3d" verbose="1" estimatePosition="0" estimateVelocity="1" positionStdev="0.15" velocityStdev="0.15" posModelStdev="0.0" velModelStdev="0.0001" paramModelStdev="0.000" langrangeMultipliers="0" draw="true" radiusDraw="0.005"/>    
         <EulerImplicitSolver  />
         <SparseLUSolver name="BTD"/>
         <OptimParams name="paramPlane" optimize="1" template ="Vector" initValue="-0.3"  stdev="0.1" /> 
@@ -32,18 +32,18 @@
         <PlaneForceField name="PFF" normal="0 1 0" d="@paramPlane.value" draw="true" stiffness="1"/>
         <UniformMass totalmass="0.001" />
 <!--         <CorrectionForceField forces="@paramForces.value" /> -->
-        <ShowSpheres  radius="0.01"  color="0 1 0 1" position="@MO.position" />
+        <ShowSpheres  radius="0.1"  color="0 1 0 1" position="@MO.position" />
 
         <Node name="obsNode" activated="1">        
                 <SimulatedStateObservationSource template="Vec3d" name="observations" monitorPrefix="Obs3D_ballAsyn" asynObs="true"/>                               
                 <SimpleObservationManager name="MOBS" template="Vec3d,Vec3d" listening="1"  stateWrapper="@../StateWrapper" verbose="1" observationStdev="0.1"/>
         </Node> 
-        
     <Node name="MatlabPlotGroundTruth"> 
         <MechanicalObject template="Vec3" name="MO" position="@../MO.position" showObject="0"/>		
         <IdentityMapping/>
-        <WriteObservation filename="print/FilteredBeam_4" observations="true" groundTruth="true"/>
+        <WriteObservation filename="FilteredBeam_1" observations="true" groundTruth="true"/>
     </Node>
+
     </Node>
     
     
