@@ -52,10 +52,12 @@ SimulatedStateObservationSource<DataTypes>::SimulatedStateObservationSource()
     : Inherit()
     , verbose( initData(&verbose, false, "verbose", "print tracing informations") )
     , m_monitorPrefix( initData(&m_monitorPrefix, std::string("monitor1"), "monitorPrefix", "prefix of the monitor-generated file") )
-    , m_actualObservation( initData (&m_actualObservation, "actualObservation", "actual observation") )    
+    , m_actualObservation( initData (&m_actualObservation, "actualObservation", "actual observation") )
     , m_drawSize( initData(&m_drawSize, SReal(0.0),"drawSize","size of observation spheres in each time step") )
     , m_controllerMode( initData(&m_controllerMode, false,"controllerMode","if true, sets the mechanical object in begin animation step") )
     , m_trackedObservations( initData (&m_trackedObservations, "trackedObservations", "tracked observations: temporary solution!!!") )
+    , d_asynObs(initData(&d_asynObs, false, "asynObs","Activation of draw"))
+
 {
 
 }
@@ -68,8 +70,10 @@ SimulatedStateObservationSource<DataTypes>::~SimulatedStateObservationSource()
 
 template<class DataTypes>
 void SimulatedStateObservationSource<DataTypes>::init()
-{    
-    helper::ReadAccessor<Data<VecCoord> > tracObs = m_trackedObservations;
+{
+    if(d_asynObs.getValue())
+        std::cout << "[SimulatedStateObservationSource] Asynchronous Observations Used "<<std::endl;
+     helper::ReadAccessor<Data<VecCoord> > tracObs = m_trackedObservations;
 
     /// take observations from another component (tracking)
     if (tracObs.size() > 0) {
@@ -79,15 +83,94 @@ void SimulatedStateObservationSource<DataTypes>::init()
     } else {   /// read observations from a file
         //std::cout << this->getName() << " Init started" << std::endl;
         std::string posFile = m_monitorPrefix.getValue() + "_x.txt";
-
-        parseMonitorFile(posFile);
+        if (d_asynObs.getValue()) {
+            parseAsynMonitorFile(posFile);
+        } else {
+            parseMonitorFile(posFile);
+        }
         m_actualObservation.setValue(positions[0]);  // OK, since there is at least the dummy observation
     }
 
     if (m_controllerMode.getValue())
         this->f_listening.setValue(true);
 
-    //std::cout << "Init done" << std::endl;
+}
+
+template<class DataTypes>
+void SimulatedStateObservationSource<DataTypes>::parseAsynMonitorFile(std::string& _name) {
+    observationTable.clear();
+#ifdef __APPLE__
+    setlocale(LC_ALL, "C");
+#else
+    std::setlocale(LC_ALL, "C");
+#endif
+
+    std::ifstream file(_name.c_str());
+
+    nParticles = 0;
+    nObservations = 0;
+    initTime = -1.0;
+
+    if (file.good()) {
+        /// parse the header of a monitor-generated file:
+        std::string line;
+
+        nParticles = 0;
+        do {
+            getline(file, line);
+
+            if (line.substr(0,14) == std::string("# nParticles :")) {
+                std::istringstream stm(line.substr(15));
+                stm >> nParticles;
+                if(nParticles==0){
+                    std::cerr << "[SimulatedStateObservationSource] ERROR nParticles is zero. Please check the header of Observations File " << std::endl;
+                    return;
+                }
+                else
+                std::cout << "[SimulatedStateObservationSource] nParticles observed: " << nParticles << std::endl;
+            }
+        } while (line[0] == '#');
+        do {
+            std::istringstream stm(line) ;
+            std::vector<double> numbers ;
+
+            double time;
+            stm >> time; //skip dt
+
+            double n ;
+            while( stm >> n ) numbers.push_back(n) ;
+
+            VecCoord position;
+            for (unsigned i=0; i<numbers.size(); i+= Coord::size()) {
+                Coord pos;
+                for (unsigned j=0;j<Coord::size();j++) {
+                    pos[j] = numbers[i+j];
+                }
+                position.push_back(pos);
+            }
+
+            positions.push_back(position);
+            observationTable[time] = position;
+            nObservations++;
+
+        } while (getline(file, line));
+    } else {
+        PRNE("Cannot open " << name);
+        return;
+    }
+
+    PRNS("Number of observations: " << nObservations << " |tbl| = " << observationTable.size())
+
+            if (nObservations > 0) {
+        sout << "Valid observations available: #observations: " << nObservations << " #particles: " << nParticles << std::endl;
+    }
+#ifdef __APPLE__
+    setlocale(LC_ALL, "C");
+#else
+    std::setlocale(LC_ALL, "C");
+#endif
+
+
 }
 
 template<class DataTypes>
@@ -127,12 +210,12 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _
             return;
         }
 
-        std::stringstream ss(line);         
-        std::istream_iterator<std::string> it(ss);         
-        std::istream_iterator<std::string> end;         
-        std::vector<std::string> tokens(it, end);        
+        std::stringstream ss(line);
+        std::istream_iterator<std::string> it(ss);
+        std::istream_iterator<std::string> end;
+        std::vector<std::string> tokens(it, end);
 
-        int tki = 0;        
+        int tki = 0;
         while (std::strcmp(tokens[tki++].c_str(),"number")!=0) ;
 
         nParticles = tokens.size() - tki;
@@ -227,29 +310,30 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _
 }
 
 
+
 template<class DataTypes>
 void SimulatedStateObservationSource<DataTypes>::draw(const core::visual::VisualParams* vparams) {
     if (!vparams->displayFlags().getShowBehaviorModels())
         return;
 
-//    helper::ReadAccessor<Data<VecCoord> > tracObs = m_trackedObservations;
+    //    helper::ReadAccessor<Data<VecCoord> > tracObs = m_trackedObservations;
 
-//    std::vector<sofa::defaulttype::Vec3d> points;
-//    if (tracObs.size() > 0 ) {
+    //    std::vector<sofa::defaulttype::Vec3d> points;
+    //    if (tracObs.size() > 0 ) {
 
-//    } else {
-//        double time = this->getTime();
-//        size_t ix = (fabs(dt) < 1e-10) ? 0 : size_t(round(time/dt));
-//        if (ix >= int(positions.size()))
-//            ix = positions.size() - 1;
+    //    } else {
+    //        double time = this->getTime();
+    //        size_t ix = (fabs(dt) < 1e-10) ? 0 : size_t(round(time/dt));
+    //        if (ix >= int(positions.size()))
+    //            ix = positions.size() - 1;
 
-//        points.resize(positions[ix].size());
+    //        points.resize(positions[ix].size());
 
-//        for (size_t i = 0;  i < points.size(); i++)
-//            points[i] = positions[ix][i];
-//    }
+    //        for (size_t i = 0;  i < points.size(); i++)
+    //            points[i] = positions[ix][i];
+    //    }
 
-//    vparams->drawTool()->drawSpheres(points, float(m_drawSize.getValue()), sofa::defaulttype::Vec<4, float> (0.0f, 0.0f, 1.0f, 1.0f));
+    //    vparams->drawTool()->drawSpheres(points, float(m_drawSize.getValue()), sofa::defaulttype::Vec<4, float> (0.0f, 0.0f, 1.0f, 1.0f));
 }
 
 template<class DataTypes>

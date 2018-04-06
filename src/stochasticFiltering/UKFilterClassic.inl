@@ -78,32 +78,29 @@ void UKFilterClassic<FilterType>::computePrediction()
     EMatrixX covPxx = (centeredPxx.adjoint() * weightedCenteredPxx);
     //EMatrixX covPxx = (centeredPxx.adjoint() * centeredPxx) / double(centeredPxx.rows() )
     stateCovar = covPxx + modelCovar;
+    for (size_t i = 0; i < (size_t)stateCovar.rows(); i++) {
+        diagStateCov(i)=stateCovar(i,i);
+    }
+
 
     if (masterStateWrapper->estimPosition()) {
         masterStateWrapper->setState(stateExp, mechParams);
     }else{
         masterStateWrapper->lastApplyOperator(stateExp, mechParams);
     }
-    if(observationManager->ComputeOnlyPrediction() ){
-        PRNS("PREDICTED STATE X(n+1)+n: \n" << stateExp.transpose());
 
-        EVectorX diag;
-        diag.resize(stateCovar.rows());
-        for (size_t i = 0; i < (size_t)stateCovar.rows(); i++) {
-            diag(i)=stateCovar(i,i);
-        }
-        PRNS("PREDICTED COVARIANCE DIAGONAL P(n+1)+n:  \n" << diag.transpose());
+    if(!hasObs){
+        PRNS("PREDICTED STATE X(n+1)+n: \n" << stateExp.transpose());
+        PRNS("PREDICTED COVARIANCE DIAGONAL P(n+1)+n:  \n" << diagStateCov.transpose());
     }
 }
 
 template <class FilterType>
 void UKFilterClassic<FilterType>::computeCorrection()
 {
-    if(observationManager->ComputeOnlyPrediction() ){
-        PRNS("======= No Observation - Computing Only Prediction =======")
-                return;
-    }
-    if (observationManager->hasObservation(this->actualTime)) {
+
+    hasObs = observationManager->hasObservation(this->actualTime);
+    if (hasObs) {
         PRNS("======= Computing correction, T= " << this->actualTime << " ======");
 
         EVectorX zCol(observationSize);
@@ -142,16 +139,17 @@ void UKFilterClassic<FilterType>::computeCorrection()
         EVectorX innovation(observationSize);
         observationManager->getInnovation(this->actualTime, predObsExp, innovation);
         stateExp = stateExp + matK * innovation;
-        PRNS("FINAL STATE X(n+1)+n: \n" << stateExp.transpose());
 
         stateCovar = stateCovar - matK*matPxz.transpose();
 
-        EVectorX diag;
-        diag.resize(stateCovar.rows());
         for (size_t i = 0; i < (size_t)stateCovar.rows(); i++) {
-            diag(i)=stateCovar(i,i);
+            diagStateCov(i)=stateCovar(i,i);
         }
-        PRNS("FINAL COVARIANCE DIAGONAL P(n+1)+n:  \n" << diag.transpose());
+
+        if(hasObs){
+            PRNS("FINAL STATE X(n+1)+n: \n" << stateExp.transpose());
+            PRNS("FINAL COVARIANCE DIAGONAL P(n+1)+n:  \n" << diagStateCov.transpose());
+        }
 
         if (masterStateWrapper->estimPosition()) {
             masterStateWrapper->setState(stateExp, mechParams);
@@ -183,10 +181,10 @@ void UKFilterClassic<FilterType>::computeCorrection()
             ofs << stateCovar << std::endl;
         }
 
-        writeValidationPlot(d_filenameCov.getValue(),diag);
         writeValidationPlot(d_filenameInn.getValue(),innovation);
-        writeValidationPlot(d_filenameFinalState.getValue() ,stateExp);
     }
+    writeValidationPlot(d_filenameCov.getValue(),diagStateCov);
+    writeValidationPlot(d_filenameFinalState.getValue() ,stateExp);
 }
 
 
@@ -282,12 +280,13 @@ void UKFilterClassic<FilterType>::bwdInit() {
 
     /// Initialize Model's Error Covariance
     stateCovar = masterStateWrapper->getStateErrorVariance();
-    EVectorX diag;
-    diag.resize(stateCovar.rows());
+
+    diagStateCov.resize(stateCovar.rows());
     for (size_t i = 0; i < (size_t)stateCovar.rows(); i++) {
-        diag(i)=stateCovar(i,i);
+        diagStateCov(i)=stateCovar(i,i);
     }
-    PRNS("INIT COVARIANCE DIAGONAL P(n+1)+n:  \n" << diag.transpose());
+    PRNS(" INIT COVARIANCE DIAGONAL P(n+1)+n:  \n" << diagStateCov.transpose());
+
     modelCovar = masterStateWrapper->getModelErrorVariance();
 
     stateExp = masterStateWrapper->getState();

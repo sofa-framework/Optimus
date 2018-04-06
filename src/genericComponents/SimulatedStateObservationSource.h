@@ -58,7 +58,7 @@ namespace container
 */
 class SOFA_SIMULATION_COMMON_API SimulatedStateObservationSourceBase : public BaseObject //  ObservationSource
 {
-  public:
+public:
     virtual int getObsDimention() = 0;
 };
 
@@ -93,11 +93,12 @@ public:
     Data<SReal> m_drawSize;
     Data<bool> m_controllerMode;
     Data<VecCoord> m_trackedObservations;
+    Data< bool  > d_asynObs;
+
 
     /// maps:  time + vector
-    //std::map<double, VecCoord> positions;
-    std::vector<VecCoord> positions;    
-    bool ComputeOnlyPrediction ;
+
+    std::vector<VecCoord> positions;
 
     void init();
 
@@ -106,61 +107,58 @@ public:
     void draw(const core::visual::VisualParams* vparams);
 
     void parseMonitorFile(std::string& _name);
-
+    void parseAsynMonitorFile(std::string& _name);
     /// an "alias" for better naming
     bool getStateAtTime(double _time, VecCoord& _state) {
         return(getObservation(_time, _state));
     }
 
+#define ROUND 1000000.0
+
     bool getObservation(double _time, VecCoord& _observation) {
-        helper::ReadAccessor<Data<VecCoord> > tracObs = m_trackedObservations;
-        if (tracObs.size() > 0 ) {
-            m_actualObservation.setValue(m_trackedObservations.getValue());
-            _observation = m_actualObservation.getValue();
-            this->ComputeOnlyPrediction = false;
-        } else {
-            size_t ix = (fabs(dt) < 1e-10) ? 0 : size_t(round(_time/dt));
-            //PRNS("Getting observation for time " << _time << " index: " << ix);
-            if (ix >= size_t(positions.size())) {
-                PRNE("No observation for time " << _time << " Computing Only Prediction ");
-                ix = positions.size() - 1;
-                this->ComputeOnlyPrediction = true;
+        if (d_asynObs.getValue()) {
+            helper::ReadAccessor<Data<VecCoord> > tracObs = m_trackedObservations;
+            if (tracObs.size() > 0 ) {
+                m_actualObservation.setValue(m_trackedObservations.getValue());
+                _observation = m_actualObservation.getValue();
+            } else {
+                int tround = (int) (_time * ROUND);
+                _time = tround / ROUND; // round the value time
+                typename std::map<double, VecCoord>::iterator it = observationTable.find(_time);
+                if (it == observationTable.end()) {
+                    PRNE("No observation for time " << _time << " Computing Only Prediction ");
+                    m_actualObservation.setValue(VecCoord());
+                    _observation = VecCoord();
+                    return false;
+                } else {
+                    m_actualObservation.setValue(it->second);
+                    _observation = it->second;
+                    if (it->second.empty()){
+                        PRNE("No observation for time " << _time << " Computing Only Prediction ");
+                        return false;
+                    }
+                }
             }
-            m_actualObservation.setValue(positions[ix]);
-            _observation = positions[ix];
-        }
+            return(true);
+        } else {
+            helper::ReadAccessor<Data<VecCoord> > tracObs = m_trackedObservations;
+            if (tracObs.size() > 0 ) {
+                m_actualObservation.setValue(m_trackedObservations.getValue());
+                _observation = m_actualObservation.getValue();
+            } else {
+                size_t ix = (fabs(dt) < 1e-10) ? 0 : size_t(round(_time/dt));
+                //PRNS("Getting observation for time " << _time << " index: " << ix);
+                if (ix >= size_t(positions.size())) {
+                    PRNE("No observation for time " << _time << " , using the last one from " << positions.size()-1);
+                    ix = positions.size() - 1;
+                }
+                m_actualObservation.setValue(positions[ix]);
+                _observation = positions[ix];
+            }
 
-        return(true);
-
-        /// TODO: switch to the new way of storing and gettting the observations!!!
-        /*double firstTime = observationTable.begin()->first;
-        if (_time <= firstTime) {
-            PRNW("Requested observation time " << _time << ", given observation for time " << firstTime);
-            _observation = observationTable.begin()->second;
             return(true);
         }
 
-        double lastTime = observationTable.rbegin()->first;
-        if (_time >= lastTime) {
-            PRNW("Requested observation time " << _time << ", given observation for time " << lastTime);
-            _observation = observationTable.rbegin()->second;
-            return(true);
-        }
-
-        typename ObservationTable::iterator it = observationTable.find(_time);
-        if (it != observationTable.end()) {
-            PRNS("Giving observation in time " << _time);
-            _observation = it->second;
-            return(true);
-        }
-
-        PRNE("No observation found for time " << _time);
-        return(false);*/
-
-    }
-
-    virtual bool& OnlyPrediction(){
-        return this->ComputeOnlyPrediction;
     }
 
     int getNParticles() {

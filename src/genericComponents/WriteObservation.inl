@@ -100,6 +100,10 @@ void WriteObservation::init()
             for (unsigned int i = 0; i < d_indices.getValue().size(); i++)
                 ( *outfile ) << d_indices.getValue()[i] << " ";
             ( *outfile ) << std::endl;
+
+            ( *outfile ) << "# nParticles : "
+                          << d_indices.getValue().size() << std::endl;
+
         }
         if( !outfile->is_open() )
         {

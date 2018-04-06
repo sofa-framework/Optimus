@@ -13,8 +13,6 @@
             <MechanicalObject template="Vec3d" name="MO" position="0 0 0 " velocity="0.05 -0.2 0.01" showObject="0"/>
             <PlaneForceField name="PFF" normal="0 1 0" d="-0.5" draw="true" stiffness="500"/>
             <UniformMass totalmass="0.001" />
-<!--             <CorrectionForceField forces="0 0 -0.03" /> -->
-
             <ShowSpheres  radius="0.01"  color="0 0 1 1" position="@MO.position"    />
     </Node>  
 
@@ -38,7 +36,7 @@
     
     <Node name="MatlabPlotGroundTruth"> 
         <MechanicalObject template="Vec3" name="MO" position="@../ball/MO.position" showObject="0"/>		
-<!--         <WriteObservation filename="g" observations="true" groundTruth="true"/> -->
+        <WriteObservation filename="g" observations="true" groundTruth="true"/>
     </Node>
     <Node name="MatlabPlotNoisyObs"> 		
         <MechanicalObject template="Vec3d" name="MO" position="@../noisyObs/NoiseEngine.outputPositions" />	

@@ -83,7 +83,8 @@ protected:
 
     EVectorX vecAlpha, vecAlphaVar;
     EVectorX stateExp, predObsExp;
-    EMatrixX stateCovar, obsCovar, modelCovar;    
+    EMatrixX stateCovar, obsCovar, modelCovar;
+    EVectorX diagStateCov;
 
     EMatrixX matItrans, matI;
     EMatrixX matXi, matZmodel;
@@ -112,7 +113,7 @@ public:
     Data< bool  > d_draw;
     Data< double  > d_radius_draw;
     double m_omega;
-
+    bool hasObs;
     void init();
     void bwdInit();
 

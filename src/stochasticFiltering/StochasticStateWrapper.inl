@@ -275,7 +275,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
 
     this->stateSize = vsi + vpi;
 
-    this->reducedStateSize = vsi;
+    this->reducedStateSize = vpi;
 
     PRNS("Initializing stochastic state with size " << this->stateSize);
     PRNS("Reduced state index: " << this->reducedStateIndex << " size: " << this->reducedStateSize);
@@ -306,13 +306,13 @@ void StochasticStateWrapper<DataTypes, FilterType>::setSofaVectorFromFilterVecto
             return;
         }
 
-        if ((Dim*it->second + Dim) >= (size_t)_state.rows()) {
-            PRNE("Accessing DA vector out of bounds: " << Dim*it->second + Dim <<  " vs. " << _state.rows());
+        if ((it->second + posDim) >= (size_t)_state.rows()) {
+            PRNE("Accessing DA vector out of bounds: " << it->second + posDim <<  " vs. " << _state.rows());
             return;
         }
 
-        for (size_t d = 0; d < Dim; d++) {
-            _vec[it->first][d] = _state(Dim*it->second + d);
+        for (size_t d = 0; d < posDim; d++) {
+            _vec[it->first][d] = _state(it->second + d);
         }
         //PRNS("Setting free[" << it->first << "] = " << _vec[it->first]);
     }
