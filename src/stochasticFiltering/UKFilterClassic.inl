@@ -88,11 +88,6 @@ void UKFilterClassic<FilterType>::computePrediction()
     }else{
         masterStateWrapper->lastApplyOperator(stateExp, mechParams);
     }
-
-    if(!hasObs){
-        PRNS("PREDICTED STATE X(n+1)+n: \n" << stateExp.transpose());
-        PRNS("PREDICTED COVARIANCE DIAGONAL P(n+1)+n:  \n" << diagStateCov.transpose());
-    }
 }
 
 template <class FilterType>
@@ -146,10 +141,9 @@ void UKFilterClassic<FilterType>::computeCorrection()
             diagStateCov(i)=stateCovar(i,i);
         }
 
-        if(hasObs){
-            PRNS("FINAL STATE X(n+1)+n: \n" << stateExp.transpose());
-            PRNS("FINAL COVARIANCE DIAGONAL P(n+1)+n:  \n" << diagStateCov.transpose());
-        }
+        PRNS("FINAL STATE X(n+1)+n: \n" << stateExp.transpose());
+        PRNS("FINAL COVARIANCE DIAGONAL P(n+1)+n:  \n" << diagStateCov.transpose());
+
 
         if (masterStateWrapper->estimPosition()) {
             masterStateWrapper->setState(stateExp, mechParams);
@@ -185,6 +179,11 @@ void UKFilterClassic<FilterType>::computeCorrection()
     }
     writeValidationPlot(d_filenameCov.getValue(),diagStateCov);
     writeValidationPlot(d_filenameFinalState.getValue() ,stateExp);
+
+    if(!hasObs){
+        PRNS("PREDICTED STATE X(n+1)+n: \n" << stateExp.transpose());
+        PRNS("PREDICTED COVARIANCE DIAGONAL P(n+1)+n:  \n" << diagStateCov.transpose());
+    }
 }
 
 
