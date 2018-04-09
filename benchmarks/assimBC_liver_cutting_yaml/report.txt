@@ -1,0 +1,26 @@
+Using SOFA executable:  runSofa
+Generating observations...
+... done
+Running data assimilation...
+... done
+Comparing state w.r.t. benchmark:
+  Mean row-wise norm of difference:  7.05670761544e-09
+  Max  row-wise norm of difference:  4.80321361512e-08
+  Element-wise mean of difference:  -4.0735658106e-10
+  Element-wise max  of difference:  1.40000082638e-08
+Comparing variance w.r.t. benchmark:
+  Mean row-wise norm of difference:  5.5780788783e-11
+  Max  row-wise norm of difference:  1.323782569e-09
+  Element-wise mean of difference:  -1.66848530754e-11
+  Element-wise max  of difference:  1.00000008274e-10
+Comparing covariance w.r.t. benchmark:
+  Mean row-wise norm of difference:  1.63250136061e-11
+  Max  row-wise norm of difference:  2.97583621396e-10
+  Element-wise mean of difference:  5.79591443523e-13
+  Element-wise max  of difference:  1.61999968995e-10
+Comparing innovation w.r.t. benchmark:
+  Mean row-wise norm of difference:  1.48330401852e-12
+  Max  row-wise norm of difference:  4.04139619985e-11
+  Element-wise mean of difference:  1.68517703782e-14
+  Element-wise max  of difference:  3.34999944451e-11
+
