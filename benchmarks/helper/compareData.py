@@ -11,7 +11,7 @@ a2 = np.loadtxt(f2)
 sh1 = a1.shape
 sh2 = a2.shape
 
-if sh1[1] != sh2[1]:
+if len(sh1) > 1 and len(sh2) > 1 and sh1[1] != sh2[1]:
 	print 'Error: arrays have different number of columns, cannot compare'
 	exit()
 
@@ -23,14 +23,25 @@ if sh2[0] < nl:
 	print 'Number of rows in second data (',sh2[0],') is smaller than required size ',nl	
 	exit()
 
-b1 = a1[:nl,:]
-b2 = a2[:nl,:]
+if len(sh1) > 1:
+	b1 = a1[:nl,:]
+	b2 = a2[:nl,:]
 
-df = np.subtract(b1, b2)
-#dfrel = np.divide(df, a1)
+	df = np.subtract(b1, b2)
+	#dfrel = np.divide(df, a1)
 
-dfn = np.linalg.norm(df, axis=1)
-#dfnrel = np.linalg.norm(dfrel, axis=1)
+	dfn = np.linalg.norm(df, axis=1)
+	#dfnrel = np.linalg.norm(dfrel, axis=1)
+else:
+	b1 = a1[:nl]
+	b2 = a2[:nl]
+
+	df = np.subtract(b1, b2)
+	#dfrel = np.divide(df, a1)
+
+	dfn = np.linalg.norm(df)
+	#dfnrel = np.linalg.norm(dfrel)
+
 
 # print "  Mean row-wise norm of difference: abs = ",  np.mean(dfn), " rel = ", np.mean(dfnrel)
 # print "  Max  row-wise norm of difference: abs = ", np.max(dfn), " rel = ", np.max(dfnrel)
