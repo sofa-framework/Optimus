@@ -7,14 +7,12 @@ import yaml
 
 __file = __file__.replace('\\', '/') # windows
 
-loadGeomagicTrack = 1
 
 def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
     rootNode.createObject('RequiredPlugin', name='Pardiso', pluginName='SofaPardisoSolver')
     rootNode.createObject('RequiredPlugin', name='IMAUX', pluginName='ImageMeshAux')
     # rootNode.createObject('RequiredPlugin', name='MJED', pluginName='SofaMJEDFEM')
-    rootNode.createObject('RequiredPlugin', pluginName='Geomagic')
     rootNode.createObject('RequiredPlugin', name='BoundaryConditions', pluginName="BoundaryConditionsPlugin")
     
     try : 
@@ -67,10 +65,7 @@ class cyl3PartsGeomagic_GenObs (Sofa.PythonScriptController):
         self.dotNode = dotNode
         dotNode.createObject('EulerImplicitSolver', firstOrder='false', vdamping=self.vdamping, rayleighStiffness=self.options['scene_parameters']['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['scene_parameters']['general_parameters']['rayleigh_mass'])
         dotNode.createObject('CGLinearSolver', iterations='25', tolerance='1e-5', threshold='1e-5')
-        if loadGeomagicTrack:
-            dotNode.createObject('GeomagicEmulator', name='GeomagicDevice', positionFilename='geomagicObservations/geomagic_x.txt', buttonFilename='geomagicObservations/listener.txt')
-        else:
-            dotNode.createObject('GeomagicDriver', name='GeomagicDevice', deviceName='Default Device', scale='0.02', orientationBase='0 1 -1 -1', positionBase='-0.205 -0.095 0.078', orientationTool='0 0 0 1')
+        dotNode.createObject('GeomagicEmulator', name='GeomagicDevice', positionFilename='geomagicObservations/geomagic_x.txt', buttonFilename='geomagicObservations/listener.txt')
         dotNode.createObject('MechanicalObject', template='Rigid', name='GeomagicMO', position='@GeomagicDevice.positionDevice')
         dotNode.createObject('Sphere', color='0.5 0.5 0.5 1', radius='0.014', template='Rigid')
         if self.options['scene_parameters']['obs_generating_parameters']['save_observations']:
