@@ -92,13 +92,7 @@ void FilteringAnimationLoop::init() {
 
     actualStep = 0;
 
-    if (d_timeDataFile.getValue().size() > 0) {
-        std::ofstream outputFile;
-        outputFile.open(d_timeDataFile.getFullPath(), std::fstream::app);
-        outputFile << "This file contains data about computation time:";
-        outputFile << std::endl;
-        outputFile.close();
-    }
+    m_timeProfiler.init(d_timeDataFile);
 }
 
 void FilteringAnimationLoop::bwdInit() {
@@ -126,17 +120,7 @@ void FilteringAnimationLoop::step(const core::ExecParams* _params, SReal /*_dt*/
 
     // add advanced timer to the system
     //sofa::helper::AdvancedTimer::stepBegin("KalmanFilterStep");
-    boost::posix_time::time_duration currentMomentMicroseconds;
-    boost::posix_time::ptime time_t_epoch(boost::gregorian::date(1970,1,1));
-
-    if (d_timeDataFile.getValue().size() > 0) {
-        currentMomentMicroseconds = boost::posix_time::microsec_clock::local_time() - time_t_epoch;
-        std::ofstream outputFile;
-        outputFile.open(d_timeDataFile.getFullPath(), std::fstream::app);
-        outputFile << "Iteration step: " << actualStep << std::endl;
-        outputFile << "Start time: " << currentMomentMicroseconds.total_microseconds() << std::endl;
-        outputFile.close();
-    }
+    m_timeProfiler.SaveStartTime();
 
     filter->initializeStep(_params, actualStep);
     //TIC
@@ -155,14 +139,7 @@ void FilteringAnimationLoop::step(const core::ExecParams* _params, SReal /*_dt*/
 
     // compute signle iteration step
     //sofa::helper::AdvancedTimer::stepEnd("KalmanFilterStep");
-
-    if (d_timeDataFile.getValue().size() > 0) {
-        currentMomentMicroseconds = boost::posix_time::microsec_clock::local_time() - time_t_epoch;
-        std::ofstream outputFile;
-        outputFile.open(d_timeDataFile.getFullPath(), std::fstream::app);
-        outputFile << "End time: " << currentMomentMicroseconds.total_microseconds() << std::endl;
-        outputFile.close();
-    }
+    m_timeProfiler.SaveEndTime();
 
     /// this should be probably removed:
     sofa::simulation::AnimateEndEvent ev2(dt);

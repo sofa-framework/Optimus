@@ -47,6 +47,7 @@
 #include "StochasticFilterBase.h"
 #include "PreStochasticWrapper.h"
 #include "../genericComponents/FilterEvents.h"
+#include "../genericComponents/TimeProfiling.h"
 
 namespace sofa
 {
@@ -103,6 +104,7 @@ public:
     int numStep;
     Data<bool> verbose;
     core::objectmodel::DataFileName d_timeDataFile;
+    sofa::component::stochastic::TimeProfiling m_timeProfiler;
 
     void init();
     void bwdInit();

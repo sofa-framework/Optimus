@@ -17,6 +17,7 @@ set ( STOCHASTIC_FILTERING "0" CACHE BOOL "Set to activate the compilation the n
 
 set(HEADER_FILES
     src/initOptimusPlugin.h
+    src/genericComponents/TimeProfiling.h
     src/genericComponents/OptimParams.h
     src/genericComponents/OptimParams.inl
     src/genericComponents/PointProjection.h
