@@ -593,7 +593,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStep(const core::
 
     sofa::helper::AdvancedTimer::stepBegin("AnimationStep");
     //std::cout<<"step "<<step++<<std::endl;
-    sofa::helper::AdvancedTimer::begin("Animate");
+    //sofa::helper::AdvancedTimer::begin("Animate");
     //std::cout<<"step "<<step++<<std::endl;
 
 #ifdef SOFA_DUMP_VISITOR_INFO
@@ -653,7 +653,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStep(const core::
 #ifdef SOFA_DUMP_VISITOR_INFO
     simulation::Visitor::printCloseNode("Step");
 #endif
-    sofa::helper::AdvancedTimer::end("Animate");
+    //sofa::helper::AdvancedTimer::end("Animate");
     sofa::helper::AdvancedTimer::stepEnd("AnimationStep");
 
 }
