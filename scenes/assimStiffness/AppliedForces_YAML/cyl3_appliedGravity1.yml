@@ -51,5 +51,12 @@ filter:                         # SDA only
     observ_stdev: 1e-3     
     sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
     sigma_points_scale: 1
-    
+
+time:
+    timer_name: 'filter_computation_statistics'
+    time_statistics_file: "computationTime.txt"
+    time_profiling: 1
+    iterations_interval: 1
+    iteration_amount: 2000
+
 ...

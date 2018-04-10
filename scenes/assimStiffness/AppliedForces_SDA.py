@@ -64,7 +64,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         self.mainFolder = prefix + opt['model']['int']['type'] + str(opt['model']['int']['maxit']) + suffix    
         self.obsFile = self.mainFolder + '/' + opt['io']['obsFileName']
 
-        self.estFolder = self.mainFolder + '/' + opt['filter']['kind'] + '_' + opt['filter']['obs_tag'] + opt['io']['sdaFolderSuffix']
+        self.estFolder = self.mainFolder + '/' + opt['filter']['kind'] + '_' + opt['filter']['obs_tag'] + '_' + str(opt['model']['linsol']['usePCG']) + opt['io']['sdaFolderSuffix']
 
         if self.saveEst:                        
             os.system('mv '+self.estFolder+' '+self.estFolder+'_arch')
@@ -83,11 +83,14 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
 
 
         self.createGraph(rootNode)
+        if opt['time']['time_profiling']:
+            self.createTimeProfiler()
 
         return
 
     def createGraph(self,rootNode):
         self.rootNode=rootNode
+        self.iterations = 0
         
         rootNode.findData('dt').value = self.opt['model']['dt']
         rootNode.findData('gravity').value = self.opt['model']['gravity']
@@ -224,6 +227,13 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
                 
         return 0
 
+    def createTimeProfiler(self):
+        print 'Time statistics file: ' + self.estFolder + '/' + self.opt['time']['time_statistics_file']
+        Sofa.timerSetInterval(self.opt['time']['timer_name'], self.opt['time']['iterations_interval'])    # Set the number of steps neded to compute the timer
+        Sofa.timerSetOutputType(self.opt['time']['timer_name'], 'ljson')    # Set output file format
+
+        return 0
+
 
     def initGraph(self,node):
         print 'Init graph called (python side)'
@@ -235,12 +245,33 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
     	self.exportStochasticState()
     	return 0
 
-    def onEndAnimationStep(self, deltaTime):         
+    def onBeginAnimationStep(self, deltaTime):
+        if self.opt['time']['time_profiling']:
+            Sofa.timerSetEnabled(self.opt['time']['timer_name'], True)
+            Sofa.timerBegin(self.opt['time']['timer_name'])
+
+        return 0
+
+    def onEndAnimationStep(self, deltaTime):
+        self.iterations = self.iterations + 1
         self.exportStochasticState()
+        self.saveTimeStatistics()
 
         # print self.basePoints.findData('indices_position').value
 
         return 0
+
+    def saveTimeStatistics(self):
+        if self.opt['time']['time_profiling']:
+            if self.iterations < self.opt['time']['iteration_amount']:
+                result = Sofa.timerEnd(self.opt['time']['timer_name'], self.rootNode)
+                if result != None :
+                    with open(self.estFolder + '/' + self.opt['time']['time_statistics_file'], "a") as outputFile:
+                        outputFile.write(result + ",")
+                        outputFile.close()
+
+        return 0
+
 
     def exportStochasticState(self):
     	if self.saveEst:              
