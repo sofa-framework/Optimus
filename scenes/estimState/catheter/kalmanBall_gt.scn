@@ -25,18 +25,18 @@
     
     <Node name="WRITEnoisy3Dobs"> 		
         <MechanicalObject template="Vec3d" name="MO" position="@../noisyObs/NoiseEngine.outputPositions" />	
-<!--         <WriteObservation filename="Obs3D_ball_x.txt" observations="true" indices="0  " /> -->
+        <StochasticPositionHandler filename="Obs3D_ball_x.txt" observations="true" indices="0  " />
     </Node>
 
     <Node name="WRITEGroundTruthCatheter"> 
         <MechanicalObject template="Vec3" name="MO" position="@../ball/MO.position" showObject="0"/>		
-<!--         <WriteObservation filename="Reference_ball" /> -->
+        <StochasticPositionHandler filename="Reference_ball" />
     </Node>
 
     
     <Node name="MatlabPlotGroundTruth"> 
         <MechanicalObject template="Vec3" name="MO" position="@../ball/MO.position" showObject="0"/>		
-        <WriteObservation filename="g" observations="true" groundTruth="true"/>
+        <StochasticPositionHandler filename="g" observations="true" groundTruth="true"/>
     </Node>
     <Node name="MatlabPlotNoisyObs"> 		
         <MechanicalObject template="Vec3d" name="MO" position="@../noisyObs/NoiseEngine.outputPositions" />	

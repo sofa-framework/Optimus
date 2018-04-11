@@ -176,14 +176,14 @@ void UKFilterClassic<FilterType>::computeCorrection()
         }
 
         writeValidationPlot(d_filenameInn.getValue(),innovation);
-    }
-    writeValidationPlot(d_filenameCov.getValue(),diagStateCov);
-    writeValidationPlot(d_filenameFinalState.getValue() ,stateExp);
-
-    if(!hasObs){
+    }else{
         PRNS("PREDICTED STATE X(n+1)+n: \n" << stateExp.transpose());
         PRNS("PREDICTED COVARIANCE DIAGONAL P(n+1)+n:  \n" << diagStateCov.transpose());
     }
+
+    writeValidationPlot(d_filenameCov.getValue(),diagStateCov);
+    writeValidationPlot(d_filenameFinalState.getValue() ,stateExp);
+
 }
 
 

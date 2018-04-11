@@ -33,8 +33,10 @@ set(HEADER_FILES
     src/genericComponents/Transform3dToRigid.h
     src/genericComponents/CorrectionForceField.h
     src/genericComponents/CorrectionForceField.inl
-    src/genericComponents/WriteObservation.h
-    src/genericComponents/WriteObservation.inl
+#    src/genericComponents/InputForceField.h
+#    src/genericComponents/InputForceField.inl
+    src/genericComponents/StochasticPositionHandler.h
+    src/genericComponents/StochasticPositionHandler.inl
     src/genericComponents/FilterEvents.h
     src/genericComponents/VTKExporterDA.h
     )
@@ -48,7 +50,8 @@ set(SOURCE_FILES
     src/genericComponents/AddNoiseEngine.cpp
     src/genericComponents/Transform3dToRigid.cpp
     src/genericComponents/CorrectionForceField.cpp
-    src/genericComponents/WriteObservation.cpp
+#    src/genericComponents/InputForceField.cpp
+    src/genericComponents/StochasticPositionHandler.cpp
     src/genericComponents/FilterEvents.cpp
     src/genericComponents/VTKExporterDA.cpp
     )

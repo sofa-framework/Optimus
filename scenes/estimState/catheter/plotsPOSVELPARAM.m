@@ -5,55 +5,55 @@ clc
 g= dlmread('g');
 % n = dlmread('n');
 
-A=[0.0225 0.0225 0.0225 0.0];
+A=[0.0225 0.0225 0.0225  0.0225 0.0225 0.0225];
 
-cov_00 = dlmread('print/print_cov_0');
-cov_0=cat(1,A,cov_00);
+% cov_00 = dlmread('print/print_cov_0');
+% cov_0=cat(1,A,cov_00);
 cov_10 = dlmread('print/print_cov_1');
 cov_1=cat(1,A,cov_10);
-f_0= dlmread('FilteredBeam_0');
-f_1= dlmread('FilteredBeam_1');
+% f_0= dlmread('FilteredBeam_0');
+f_1= dlmread('print/FilteredBeam_1');
 s_1= dlmread('print/print_state_1');
-s_0= dlmread('print/print_state_0');
-ms=size(cov_00,1);
+% s_0= dlmread('print/print_state_0');
+ms=size(cov_10,1);
 
 %% PRINTING VELOCITY AMPLITUDE 
-% V_1=s_1(:,1:3);
-% V_0=s_0(:,1:3);
-% n_1=ones(ms,1);
-% n_0=n_1;
-% 
-% for i =1:ms
-%    n_1(i)=norm(V_1(i,:));
-%    n_0(i)=norm(V_0(i,:));
-% end
-% 
-% figure1=figure('NumberTitle', 'off', 'Name', 'Compare Velocity Magnitude')
-% plot(n_1, 'Linewidth',2,'MarkerSize',1,'Color',[0.200000002980232 0.200000002980232 1])
-% hold on
-% grid on
-% plot(n_0, 'Linewidth',1.1, 'MarkerSize',1,'Color',[0.635294139385223 0.0784313753247261 0.184313729405403])
-% % Create textbox
-% annotation(figure1,'textbox',...
-%     [0.148368421052632 0.78556263269639 0.137461538461538 0.0530785562632696],...
-%     'Color',[0.400000005960464 0 0.200000002980232],...
-%     'String','Q = 0.1',...
-%     'FitBoxToText','off',...
-%     'EdgeColor','none');
-% % Create textbox
-% annotation(figure1,'textbox',...
-%     [0.147558704453441 0.83864118895966 0.137461538461538 0.0530785562632696],...
-%     'Color',[0 0 1],...
-%     'String',{'Q = 0.0001'},...
-%     'FitBoxToText','off',...
-%     'EdgeColor','none');
-% % Create line
-% annotation(figure1,'line',[0.46547447086987 0.463855037671489],...
-%     [0.105986676795419 0.923396443249772],'Color',[1 0 0],'LineWidth',1,...
-%     'LineStyle','--');
-% xlabel('t - [simulation step]') % x-axis label
-% ylabel('norm ') % y-axis label
-% title( 'Velocity Magnitude Comparison - State Vector With Only Velocity and Parameter  ' ) ;
+V_1=s_1(:,3:4);
+P_1=s_1(:,1:3);
+n_v=ones(ms,1);
+n_p=n_v;
+
+for i =1:ms
+   n_v(i)=norm(V_1(i,:));
+   n_p(i)=norm(P_1(i,:));
+end
+
+figure1=figure('NumberTitle', 'off', 'Name', 'Compare Velocity Magnitude')
+plot(n_1, 'Linewidth',2,'MarkerSize',1,'Color',[0.200000002980232 0.200000002980232 1])
+hold on
+grid on
+plot(n_0, 'Linewidth',1.1, 'MarkerSize',1,'Color',[0.635294139385223 0.0784313753247261 0.184313729405403])
+% Create textbox
+annotation(figure1,'textbox',...
+    [0.148368421052632 0.78556263269639 0.137461538461538 0.0530785562632696],...
+    'Color',[0.400000005960464 0 0.200000002980232],...
+    'String','Q = 0.1',...
+    'FitBoxToText','off',...
+    'EdgeColor','none');
+% Create textbox
+annotation(figure1,'textbox',...
+    [0.147558704453441 0.83864118895966 0.137461538461538 0.0530785562632696],...
+    'Color',[0 0 1],...
+    'String',{'Qv = 0.1'},...
+    'FitBoxToText','off',...
+    'EdgeColor','none');
+% Create line
+annotation(figure1,'line',[0.46547447086987 0.463855037671489],...
+    [0.105986676795419 0.923396443249772],'Color',[1 0 0],'LineWidth',1,...
+    'LineStyle','--');
+xlabel('t - [simulation step]') % x-axis label
+ylabel('norm ') % y-axis label
+title( 'Velocity Magnitude Comparison - State Vector With Only Velocity and Parameter  ' ) ;
 %% PRINTING PARAMETER ESTIMATION 
 % 
 % p_0=s_0(1:ms,4);

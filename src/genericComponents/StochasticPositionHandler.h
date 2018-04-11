@@ -19,8 +19,8 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef SOFA_COMPONENT_MISC_WriteObservation_H
-#define SOFA_COMPONENT_MISC_WriteObservation_H
+#ifndef SOFA_COMPONENT_MISC_StochasticPositionHandler_H
+#define SOFA_COMPONENT_MISC_StochasticPositionHandler_H
 
 #include <sofa/core/behavior/ForceField.h>
 #include <sofa/core/behavior/BaseMechanicalState.h>
@@ -47,40 +47,31 @@ namespace misc
  * Stop to write the state if the kinematic energy reach a given threshold (stopAt)
  * The energy will be measured at each period determined by keperiod
 */
-class  WriteObservation: public core::objectmodel::BaseObject
+class  StochasticPositionHandler: public core::objectmodel::BaseObject
 {
 public:
-    SOFA_CLASS(WriteObservation,core::objectmodel::BaseObject);
+    SOFA_CLASS(StochasticPositionHandler,core::objectmodel::BaseObject);
 
     sofa::core::objectmodel::DataFileName f_filename;
     Data < bool > f_writeX;
-    Data < bool > f_writeX0;
-    Data < bool > f_writeV;
-    Data < bool > f_writeF;
-    Data < double > f_interval;
-    Data < helper::vector<double> > f_time;
-    Data < double > f_period;
-    Data < helper::vector<unsigned int> > f_DOFsX;
-    Data < helper::vector<unsigned int> > f_DOFsV;
-    Data < double > f_stopAt;
     Data < double > f_keperiod;
     Data < bool > d_groundTruth;
     Data < bool > d_observations;
     Data< helper::vector<unsigned int> > d_indices;
+    Data < bool > d_finalStochPos;
+
 protected:
     core::behavior::BaseMechanicalState* mmodel;
     std::ofstream* outfile;
 
     unsigned int nextTime;
     double lastTime;
-    bool kineticEnergyThresholdReached;
-    double timeToTestEnergyIncrease;
-    double savedKineticEnergy;
 
 
-    WriteObservation();
 
-    virtual ~WriteObservation();
+    StochasticPositionHandler();
+
+    virtual ~StochasticPositionHandler();
 public:
     virtual void init() override;
 
@@ -88,7 +79,9 @@ public:
 
     virtual void reset() override;
 
+//    virtual void finalStochasticState(sofa::core::objectmodel::Event* event) ;
     virtual void handleEvent(sofa::core::objectmodel::Event* event) override;
+
     double time_prec;
 
 
@@ -104,12 +97,12 @@ public:
 
 };
 
-///Create WriteObservation component in the graph each time needed
-class  WriteObservationCreator: public simulation::Visitor
+///Create StochasticPositionHandler component in the graph each time needed
+class  StochasticPositionHandlerCreator: public simulation::Visitor
 {
 public:
-    WriteObservationCreator(const core::ExecParams* params);
-    WriteObservationCreator(const core::ExecParams* params, const std::string &n, bool _recordX, bool _recordV, bool _recordF, bool _createInMapping, int c=0);
+    StochasticPositionHandlerCreator(const core::ExecParams* params);
+    StochasticPositionHandlerCreator(const core::ExecParams* params, const std::string &n, bool _recordX, bool _recordV, bool _recordF, bool _createInMapping, int c=0);
     virtual Result processNodeTopDown( simulation::Node*  );
 
     void setSceneName(std::string &n) { sceneName = n; }
@@ -117,31 +110,31 @@ public:
     void setRecordV(bool b) {recordV=b;}
     void setRecordF(bool b) {recordF=b;}
     void setCreateInMapping(bool b) { createInMapping=b; }
-    void setCounter(int c) { counterWriteObservation = c; }
-    virtual const char* getClassName() const { return "WriteObservationCreator"; }
+    void setCounter(int c) { counterStochasticPositionHandler = c; }
+    virtual const char* getClassName() const { return "StochasticPositionHandlerCreator"; }
 protected:
     std::string sceneName;
     std::string extension;
     bool recordX,recordV,recordF;
     bool createInMapping;
 
-    int counterWriteObservation; //avoid to have two same files if two mechanical objects has the same name
+    int counterStochasticPositionHandler; //avoid to have two same files if two mechanical objects has the same name
 
-    void addWriteObservation(sofa::core::behavior::BaseMechanicalState*ms, simulation::Node* gnode);
+    void addStochasticPositionHandler(sofa::core::behavior::BaseMechanicalState*ms, simulation::Node* gnode);
 
 };
 
-class  WriteObservationActivator: public simulation::Visitor
+class  StochasticPositionHandlerActivator: public simulation::Visitor
 {
 public:
-    WriteObservationActivator( const core::ExecParams* params, bool active) : Visitor(params), state(active) {}
+    StochasticPositionHandlerActivator( const core::ExecParams* params, bool active) : Visitor(params), state(active) {}
     virtual Result processNodeTopDown( simulation::Node*  );
 
     bool getState() const { return state; }
     void setState(bool active) { state=active; }
-    virtual const char* getClassName() const { return "WriteObservationActivator"; }
+    virtual const char* getClassName() const { return "StochasticPositionHandlerActivator"; }
 protected:
-    void changeStateWriter(sofa::component::misc::WriteObservation *ws);
+    void changeStateWriter(sofa::component::misc::StochasticPositionHandler *ws);
 
     bool state;
 };

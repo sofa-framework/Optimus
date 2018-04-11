@@ -1,0 +1,105 @@
+<?xml version="1.0"?>
+<Node    name="root" dt="0.01" gravity="0 -0.01 0" > 
+<RequiredPlugin pluginName="Optimus"/>
+    <RequiredPlugin pluginName="ImageMeshAux" />
+
+<VisualStyle displayFlags="showVisualModels hideBehaviorModels showCollisionModels hideMappings showForceFields hideWireframe" />	
+<BackgroundSetting color="1 1 1 1" />
+<ViewerSetting resolution="837 600" />
+<FilteringAnimationLoop name="StochAnimLoop" verbose="1"/>
+<UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0" filenameCov="print/print_cov_1" filenameInn="print/print_inn_1" filenameFinalState="print/print_state_1"/>
+
+
+    <Node name="simulation">
+        <PreStochasticWrapper />
+            <Node name="ReferenceModel"> 
+                <EulerImplicitSolver  />
+                <CGLinearSolver />
+                <MechanicalObject template="Vec3" name="MO" position=" 0 1 0" />
+                <ReadState filename="LMReference_ballPlane" />
+                <ShowSpheres  radius="0.0005"  color="1 0 0 1" position="@MO.position" />
+            </Node>
+<!--            <Node name="VisualRealSaladBowl1">
+                <VisualStyle displayFlags="hideWireframe " /> 
+                <MeshObjLoader name="surface" filename="mesh/meanPlane.obj"  />
+                <MeshTopology src="@surface" />
+                <MechanicalObject name="DOFs" />
+                <OglModel name="VisualModel" src="@surface"    material="Default Diffuse 1 1 0 0 0.2 Ambient 0 0 0 0 0 Specular 0 0 0 0 0 Emissive 0 0 0 0 0 Shininess 0 45" />/>
+            </Node>
+            <Node name="VisualRealSaladBowl2">
+                <VisualStyle displayFlags="hideWireframe " /> 
+                <MeshObjLoader name="surface" filename="mesh/supPlane.obj"  />
+                <MeshTopology src="@surface" />
+                <MechanicalObject name="DOFs" />
+                <OglModel name="VisualModel" src="@surface"  material="Default Diffuse 1 0 0 1 0.2 Ambient 0 0 0 0 0 Specular 0 0 0 0 0 Emissive 0 0 0 0 0 Shininess 0 45" />/>
+            </Node>
+            <Node name="VisualRealSaladBowl3">
+                <VisualStyle displayFlags="hideWireframe " /> 
+                <MeshObjLoader name="surface" filename="mesh/infPlane.obj"  />
+                <MeshTopology src="@surface" />
+                <MechanicalObject name="DOFs" />
+                <OglModel name="VisualModel" src="@surface"  material="Default Diffuse 1 0 0 1 0.2 Ambient 0 0 0 0 0 Specular 0 0 0 0 0 Emissive 0 0 0 0 0 Shininess 0 45" />/>
+            </Node>
+            <Node name="VisualRealSaladBowl4">
+                <VisualStyle displayFlags="hideWireframe " /> 
+                <MeshObjLoader name="surface" filename="mesh/realPlane.obj"  />
+                <MeshTopology src="@surface" />
+                <MechanicalObject name="DOFs" />
+                <OglModel name="VisualModel" src="@surface"  material="Default Diffuse 1 0 1 0 0.2 Ambient 0 0 0 0 0 Specular 0 0 0 0 0 Emissive 0 0 0 0 0 Shininess 0 45" />/>
+            </Node>-->
+    </Node> 
+     
+    <Node name="filteredModel">     
+        <StochasticStateWrapper name="StateWrapper" template="Vec3d" verbose="1" estimatePosition="1" estimateVelocity="1" positionStdev="0.15" velocityStdev="0.15" posModelStdev="0.0" velModelStdev="0.1" paramModelStdev="0.00" langrangeMultipliers="1" draw="true" radiusDraw="0.0002"/>    
+        <GenericConstraintSolver name="GenericConstraintSolver"  printLog="0"  maxIterations="1000"  tolerance="1e-10"  allVerified="0" />
+        <CollisionPipeline depth="6" verbose="0" draw="0"/>
+        <BruteForceDetection name="N2" />
+        <DefaultContactManager name="Response" response="FrictionContact" responseParams="mu=0"/>
+        
+        <Node name="ball" >
+            <EulerImplicitSolver  />
+            <SparseLUSolver name="BTD"/>
+            <OptimParams name="paramPlane" optimize="1" template ="Vector" initValue="0.000005"  stdev="0.003" transformParams="2" /> 
+            <MechanicalObject template="Vec3d" name="MO" position="0 1 0" showObject="0"/>
+            <UniformMass totalmass="0.001" />
+            <ShowSpheres  radius="0.0005"  color="0 1 0 1" position="@MO.position" />
+<!--             <StochasticPositionHandler filename="print/FilteredBeam_1" observations="true" groundTruth="true" finalStochPos="true"/> -->
+
+            <LinearSolverConstraintCorrection name="LinearSolverConstraintCorrection" solverName="BTD" />
+            
+            <Node name="CollisionBall" >
+                <MechanicalObject name="ms"  />
+                <Point/>
+                <IdentityMapping input="@../MO" output="@ms"/>
+            </Node>
+
+        <Node name="obsNode" activated="1">        
+                <SimulatedStateObservationSource template="Vec3d" name="observations" monitorPrefix="Obs3D_LMballPlane" asynObs="true"/>                               
+                <SimpleObservationManager name="MOBS" template="Vec3d,Vec3d" listening="1"  stateWrapper="@../../StateWrapper" verbose="1" observationStdev="0.1"/>
+        </Node>
+        
+    <LocalMinDistance name="Proximity" alarmDistance="0.002" contactDistance="@paramPlane.value"  angleCone="90.0" filterIntersection="0"/>
+    </Node>  
+    
+    <Node name="Vessel">
+        <VisualStyle displayFlags="showWireframe showCollisionModels" /> 
+        <MeshObjLoader name="surface" filename="mesh/infPlane.obj"  />
+        <MeshTopology src="@surface" />
+        <MechanicalObject name="DOFs" />
+        <OglModel name="VisualModel" src="@surface" texturename="mesh/texture.png"  material="Default Diffuse 1 1 1 1 0.3 Ambient 0 0 0 0 0 Specular 0 0 0 0 0 Emissive 0 0 0 0 0 Shininess 0 45" />/>
+            <Node name="CollisionVessel">
+                    <TriangleSetTopologyContainer name="Container" src="@../surface" />
+                    <MechanicalObject name="MS" src="@../surface" />                  
+                    <Triangle />
+                    <Line  />
+                    <Point/>
+                    <BarycentricMapping input="@../DOFs" output="@MS"/>
+            </Node> 
+        </Node>
+        
+
+
+    </Node>
+    
+    
+</Node>

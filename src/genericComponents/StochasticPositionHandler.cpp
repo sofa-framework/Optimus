@@ -19,7 +19,7 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#include <genericComponents/WriteObservation.inl>
+#include <genericComponents/StochasticPositionHandler.inl>
 #include <sofa/core/ObjectFactory.h>
 
 namespace sofa
@@ -31,39 +31,39 @@ namespace component
 namespace misc
 {
 
-SOFA_DECL_CLASS(WriteObservation)
+SOFA_DECL_CLASS(StochasticPositionHandler)
 
 using namespace defaulttype;
 
 
 
-int WriteObservationClass = core::RegisterObject("Write State vectors to file at each timestep")
-        .add< WriteObservation >();
+int StochasticPositionHandlerClass = core::RegisterObject("Write State vectors to file at each timestep")
+        .add< StochasticPositionHandler >();
 
-WriteObservationCreator::WriteObservationCreator(const core::ExecParams* params)
+StochasticPositionHandlerCreator::StochasticPositionHandlerCreator(const core::ExecParams* params)
     :simulation::Visitor(params)
     , sceneName("")
     , recordX(true)
     , recordV(true)
     , createInMapping(false)
-    , counterWriteObservation(0)
+    , counterStochasticPositionHandler(0)
 {
 }
 
-WriteObservationCreator::WriteObservationCreator(const core::ExecParams* params, const std::string &n, bool _recordX, bool _recordV, bool _recordF, bool _createInMapping, int c)
+StochasticPositionHandlerCreator::StochasticPositionHandlerCreator(const core::ExecParams* params, const std::string &n, bool _recordX, bool _recordV, bool _recordF, bool _createInMapping, int c)
     :simulation::Visitor(params)
     , sceneName(n)
     , recordX(_recordX)
     , recordV(_recordV)
     , recordF(_recordF)
     , createInMapping(_createInMapping)
-    , counterWriteObservation(c)
+    , counterStochasticPositionHandler(c)
 {
 }
 
 
 //Create a Write State component each time a mechanical state is found
-simulation::Visitor::Result WriteObservationCreator::processNodeTopDown( simulation::Node* gnode)
+simulation::Visitor::Result StochasticPositionHandlerCreator::processNodeTopDown( simulation::Node* gnode)
 {
     sofa::core::behavior::BaseMechanicalState * mstate=gnode->mechanicalState;
     if (!mstate)   return simulation::Visitor::RESULT_CONTINUE;
@@ -72,37 +72,36 @@ simulation::Visitor::Result WriteObservationCreator::processNodeTopDown( simulat
     if (!isSimulated) return simulation::Visitor::RESULT_CONTINUE;
 
     //We have a mechanical state
-    addWriteObservation(mstate, gnode);
+    addStochasticPositionHandler(mstate, gnode);
     return simulation::Visitor::RESULT_CONTINUE;
 }
 
 
-void WriteObservationCreator::addWriteObservation(sofa::core::behavior::BaseMechanicalState *ms, simulation::Node* gnode)
+void StochasticPositionHandlerCreator::addStochasticPositionHandler(sofa::core::behavior::BaseMechanicalState *ms, simulation::Node* gnode)
 {
     sofa::core::objectmodel::BaseContext* context = gnode->getContext();
     sofa::core::BaseMapping *mapping;
     context->get(mapping);
     if ( createInMapping || mapping == NULL)
     {
-        sofa::component::misc::WriteObservation::SPtr ws;
+        sofa::component::misc::StochasticPositionHandler::SPtr ws;
         context->get(ws, this->subsetsToManage, core::objectmodel::BaseContext::Local);
         if ( ws == NULL )
         {
-            ws = sofa::core::objectmodel::New<WriteObservation>();
+            ws = sofa::core::objectmodel::New<StochasticPositionHandler>();
             gnode->addObject(ws);
             ws->f_writeX.setValue(recordX);
-            ws->f_writeV.setValue(recordV);
-            ws->f_writeF.setValue(recordF);
+
             for (core::objectmodel::TagSet::iterator it=this->subsetsToManage.begin(); it != this->subsetsToManage.end(); ++it)
                 ws->addTag(*it);
 
         }
         std::ostringstream ofilename;
-        ofilename << sceneName << "_" << counterWriteObservation << "_" << ms->getName()  << "_mstate" << extension ;
+        ofilename << sceneName << "_" << counterStochasticPositionHandler << "_" << ms->getName()  << "_mstate" << extension ;
 
         ws->f_filename.setValue(ofilename.str()); ws->init(); ws->f_listening.setValue(true);  //Activated at init
 
-        ++counterWriteObservation;
+        ++counterStochasticPositionHandler;
 
     }
 }
@@ -110,14 +109,14 @@ void WriteObservationCreator::addWriteObservation(sofa::core::behavior::BaseMech
 
 
 //if state is true, we activate all the write states present in the scene.
-simulation::Visitor::Result WriteObservationActivator::processNodeTopDown( simulation::Node* gnode)
+simulation::Visitor::Result StochasticPositionHandlerActivator::processNodeTopDown( simulation::Node* gnode)
 {
-    sofa::component::misc::WriteObservation *ws = gnode->get< sofa::component::misc::WriteObservation >(this->subsetsToManage);
+    sofa::component::misc::StochasticPositionHandler *ws = gnode->get< sofa::component::misc::StochasticPositionHandler >(this->subsetsToManage);
     if (ws != NULL) { changeStateWriter(ws);}
     return simulation::Visitor::RESULT_CONTINUE;
 }
 
-void WriteObservationActivator::changeStateWriter(sofa::component::misc::WriteObservation*ws)
+void StochasticPositionHandlerActivator::changeStateWriter(sofa::component::misc::StochasticPositionHandler*ws)
 {
     if (!state) ws->reset();
     ws->f_listening.setValue(state);

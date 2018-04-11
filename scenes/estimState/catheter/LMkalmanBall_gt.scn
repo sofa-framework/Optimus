@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<Node    name="root" dt="0.01" gravity="0 -0.01 0" >
+    <RequiredPlugin pluginName="Optimus"/>
+    <RequiredPlugin pluginName="OpenCVPlugin" />
+    <RequiredPlugin pluginName="ImageMeshAux" />
+
+    <VisualStyle displayFlags=" showCollisionModels showForceFields" />
+    <BackgroundSetting color="1 1 1 1" />
+    <FreeMotionAnimationLoop />
+    <GenericConstraintSolver maxIt="1000" tolerance="1e-10" printLog="false" />
+    <CollisionPipeline depth="6" verbose="0" draw="0"/>
+    <BruteForceDetection name="N2" />
+    <LocalMinDistance name="Proximity" alarmDistance="0.002" contactDistance="0.0005"  angleCone="90.0" filterIntersection="0"/>
+    <DefaultContactManager name="Response" response="FrictionContact" responseParams="mu=0"/>
+
+
+    <Node name="ball">
+            <EulerImplicitSolver />
+            <SparseLUSolver />
+            <MechanicalObject template="Vec3d" name="MO" position="0 1 0 "  showObject="0"/>
+            <UniformMass totalmass="0.001" />
+            <ShowSpheres  radius="0.01"  color="0 0 1 1" position="@MO.position"    />
+<!--             <InputForceField forces="0.0005 -0.002 0.0001" /> -->
+            <Node name="CollisionBall" >
+                <MechanicalObject name="ms" position="@MO.position"   />
+                <Point/>
+                <IdentityMapping />
+            </Node>
+            
+            <LinearSolverConstraintCorrection />  
+            
+    </Node>  
+
+    <Node name="Plane" >
+            <VisualStyle displayFlags="showWireframe" /> 
+            <MeshObjLoader name="surface" filename="mesh/realPlane.obj"  />
+            <MeshTopology src="@surface" />
+            <MechanicalObject name="DOFs" />
+            <OglModel name="VisualModel" src="@surface" texturename="mesh/texture.png"/>
+            <Node name="CollisionPlane">
+                    <TriangleSetTopologyContainer name="Container" src="@../surface" />
+                    <MechanicalObject name="MS" src="@../surface" />                  
+                    <Triangle color = " 1 1 1 1 "/>
+                    <Line  />
+                    <Point/>
+                    <BarycentricMapping input="@../DOFs" output="@MS"/>
+            </Node>   
+    </Node>
+            
+    
+    
+    <Node name="noisyObs"> 		
+        <MechanicalObject template="Vec3d" name="MO" position="@../ball/MO.position"  showObject="0"/>	
+        <AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@MO.position" noiseOrthogonalVariance="1e-3" noisePrincipalVariance="1e-3" noisePrincipalDirection="1 1 1"/>
+        <ShowSpheres  radius="0.01"  color="1 0 0 1" position="@NoiseEngine.outputPositions"    />
+    </Node>
+    
+    
+    <Node name="WRITEnoisy3Dobs"> 		
+        <MechanicalObject template="Vec3d" name="MO" position="@../noisyObs/NoiseEngine.outputPositions" />	
+        <StochasticPositionHandler filename="Obs3D_LMballPlane_x.txt" observations="true" indices="0  " />
+    </Node>
+
+    <Node name="WRITEGroundTruthCatheter"> 
+        <MechanicalObject template="Vec3" name="MO" position="@../ball/MO.position" showObject="0"/>		
+         <WriteState filename="LMReference_ballPlane" /> 
+    </Node>
+
+    
+    <Node name="MatlabPlotGroundTruth"> 
+        <MechanicalObject template="Vec3" name="MO" position="@../ball/MO.position" showObject="0"/>		
+        <StochasticPositionHandler filename="LMgPlane" observations="true" groundTruth="true"/>
+    </Node>
+    
+    <Node name="MatlabPlotNoisyObs"> 		
+        <MechanicalObject template="Vec3d" name="MO" position="@../noisyObs/NoiseEngine.outputPositions" />	
+        <StochasticPositionHandler filename="LMnPlane" observations="true" groundTruth="true"/>
+
+    </Node>
+
+</Node>
