@@ -230,7 +230,10 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
     def createTimeProfiler(self):
         print 'Time statistics file: ' + self.estFolder + '/' + self.opt['time']['time_statistics_file']
         Sofa.timerSetInterval(self.opt['time']['timer_name'], self.opt['time']['iterations_interval'])    # Set the number of steps neded to compute the timer
-        Sofa.timerSetOutputType(self.opt['time']['timer_name'], 'ljson')    # Set output file format
+        Sofa.timerSetOutputType(self.opt['time']['timer_name'], 'json')    # Set output file format
+        with open(self.estFolder + '/' + self.opt['time']['time_statistics_file'], "a") as outputFile:
+            outputFile.write('{')
+            outputFile.close()
 
         return 0
 
