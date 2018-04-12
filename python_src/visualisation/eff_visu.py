@@ -59,7 +59,7 @@ except :
 else :
     commandLineArguments = sys.argv
 if (len(commandLineArguments) > 1):
-    folder=commandLineArguments[1]
+    folder = commandLineArguments[1]
 else:
     folder = inputList
 

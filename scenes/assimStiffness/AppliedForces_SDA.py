@@ -266,12 +266,19 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
 
     def saveTimeStatistics(self):
         if self.opt['time']['time_profiling']:
-            if self.iterations < self.opt['time']['iteration_amount']:
+            if self.iterations <= self.opt['time']['iteration_amount']:
                 result = Sofa.timerEnd(self.opt['time']['timer_name'], self.rootNode)
                 if result != None :
                     with open(self.estFolder + '/' + self.opt['time']['time_statistics_file'], "a") as outputFile:
                         outputFile.write(result + ",")
                         outputFile.close()
+            # replace last symbol
+            if self.iterations == self.opt['time']['iteration_amount']:
+                with open(self.estFolder + '/' + self.opt['time']['time_statistics_file'], "a") as outputFile:
+                    outputFile.seek(-1, os.SEEK_END)
+                    outputFile.truncate()
+                    outputFile.write("\n}")
+                    outputFile.close()
 
         return 0
 

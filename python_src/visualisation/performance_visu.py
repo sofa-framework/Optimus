@@ -17,7 +17,7 @@ only_leaves_performance = 0
 
 def create_tree(node, nodeName, graph, nodesList):
     leafNode = 1
-    if len(node) > 0:
+    if not isinstance(node, float) and len(node) > 0:
         for item in node.keys():
             if item == "end_time" or item == "start_time":
                 continue
@@ -33,7 +33,7 @@ def create_tree(node, nodeName, graph, nodesList):
 
 
 def compute_performance(node, nodeName, nodesList, executedTime):
-    if len(node) > 0:
+    if not isinstance(node, float) and len(node) > 0:
         for item in node.keys():
             if item == "start_time" or len(item) < 1:
                 continue
@@ -89,9 +89,9 @@ img = mpimg.imread('insertions.png')
 fig1 = plt.figure(1)
 spl1 = fig1.add_subplot(111)
 imgplot = spl1.imshow(img)
+spl1.set_title('Graph of nested timesteps')
 
 
-print nodesList
 ### create histogramm of performance
 executedTime = numpy.zeros(len(nodesList))
 for index in range(1, len(statistics) + 1):
@@ -104,8 +104,6 @@ spl2 = fig2.add_subplot(111)
 amount = numpy.arange(len(executedTime))
 width = 1
 rects = spl2.bar(amount, executedTime, width, color='r')
-print nodesList
-
 
 # Label the functions below  bars
 for index in range(0, len(rects)):
@@ -114,6 +112,9 @@ for index in range(0, len(rects)):
     position = numpy.array((rect.get_x(), -1.05))
     trans_angle = plt.gca().transData.transform_angles(numpy.array((90,)), position.reshape((1, 2)))[0]
     spl2.text(rect.get_x() + rect.get_width() / 2.0, 0, nodesList[index], rotation=trans_angle, rotation_mode='anchor', ha='center', va='bottom')
+
+spl2.set_ylabel('general time, ms', fontsize=40)
+spl2.set_title('Computational time after ' + str(len(statistics)) + ' iterations')
 
 
 # Give ourselves some more room at the bottom of the plot
