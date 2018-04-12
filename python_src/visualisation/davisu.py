@@ -36,7 +36,7 @@ else :
 if (len(commandLineArguments) > 1):
     folder=commandLineArguments[1]
 else:
-    print 'ERROR: Must supply a yaml config file as an argument!'
+    print 'ERROR: Must supply a folder with results as an argument!'
     sys.exit()
 
 print "Command line arguments for python : " + str(commandLineArguments)
@@ -59,7 +59,7 @@ fig1 = plt.figure(1)
 spl1 = fig1.add_subplot(111)
 
 nstate=numpy.size(stateVar[1,:])
-nparams=options['scene_parameters']['filtering_parameters']['optim_params_size']
+nparams=options['filtering_parameters']['optim_params_size']
 nsteps=numpy.size(stateVar[:,1])
 
 print "Number of steps: ", nsteps
@@ -68,21 +68,21 @@ print "Size of the state: ", nstate
 
 
 rng=xrange(0,nsteps)
-rng=[i*options['scene_parameters']['general_parameters']['delta_time'] for i in rng]
+rng=[i*options['general_parameters']['delta_time'] for i in rng]
 
 cmap = plt.cm.get_cmap('hsv', nparams+1)
 
-groundTruthStr = options['scene_parameters']['obs_generating_parameters']['object_young_moduli']
+groundTruthStr = options['obs_generating_parameters']['object_young_moduli']
 groundTruthValues = groundTruthStr.split(' ')
 data = numpy.ones(nsteps);
 
 for i in range(0, nparams):
     si = i +nstate - nparams;
     # print i,' ',si
-    if options['scene_parameters']['filtering_parameters']['transform_parameters'] == 'absolute':        
+    if options['filtering_parameters']['transform_parameters'] == 'absolute':
         ev = abs(stateExpVal[:,si])
         var = abs(stateVar[:,si])
-    elif options['scene_parameters']['filtering_parameters']['transform_parameters'] == 'exponential':
+    elif options['filtering_parameters']['transform_parameters'] == 'exponential':
         ev = numpy.exp(stateExpVal[:,si])
         var = numpy.exp(stateVar[:,si])        
     else:
@@ -116,7 +116,7 @@ for i in range(0, nparams):
     spl1.set_title('Params '+folder)
 
 # plot innovation values
-if options['scene_parameters']['filtering_parameters']['save_internal_data'] == 1:    
+if options['filtering_parameters']['save_internal_data'] == 1:
     innovationVal = load_matrix_from_file(folder+'/'+options['visual_parameters']['innovation_file_name'])
 
     fig2 = plt.figure(2)
@@ -128,7 +128,7 @@ if options['scene_parameters']['filtering_parameters']['save_internal_data'] == 
     print "Innovation size: ",ninnov
 
     rng=xrange(0,nsteps)
-    rng=[i*options['scene_parameters']['general_parameters']['delta_time'] for i in rng]
+    rng=[i*options['general_parameters']['delta_time'] for i in rng]
 
     cmap = plt.cm.get_cmap('hsv', ninnov+1)
 

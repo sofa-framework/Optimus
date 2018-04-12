@@ -19,8 +19,12 @@ def create_tree(node, nodeName, graph, nodesList):
     leafNode = 1
     if len(node) > 0:
         for item in node.keys():
-            if item == "Values":
+            if item == "end_time" or item == "start_time":
                 continue
+            ##### fix due to empty nodes in result file #####
+            if len(item) < 1:
+                continue
+            ##### fix due to empty nodes in result file #####
             graph.add_edge(nodeName, item)
             leafNode = 0
             create_tree(node[item], item, graph, nodesList)
@@ -31,10 +35,12 @@ def create_tree(node, nodeName, graph, nodesList):
 def compute_performance(node, nodeName, nodesList, executedTime):
     if len(node) > 0:
         for item in node.keys():
-            if item == "Values":
+            if item == "start_time" or len(item) < 1:
+                continue
+            if item == "end_time":
                 for index in range(0, len(nodesList)):
                     if nodesList[index] == nodeName:
-                        executedTime[index] = executedTime[index] + float(node[item]['Total'])
+                        executedTime[index] = executedTime[index] + float(node['end_time']) - float(node['start_time'])
             else:
                 compute_performance(node[item], item, nodesList, executedTime)
 
@@ -65,7 +71,7 @@ with open(dataFile, 'r') as stream:
 
 
 ### create a tree of dependences
-fullNode = statistics['1']['TOTAL']
+fullNode = statistics['1']['records']
 insertionsGraph = PG.AGraph(directed=True, strict=True)
 nodesList = []
 
@@ -85,11 +91,12 @@ spl1 = fig1.add_subplot(111)
 imgplot = spl1.imshow(img)
 
 
+print nodesList
 ### create histogramm of performance
 executedTime = numpy.zeros(len(nodesList))
 for index in range(1, len(statistics) + 1):
-    fillNode = statistics[str(index)]['TOTAL']
-    compute_performance(fillNode, 'TOTAL', nodesList, executedTime)
+    fullNode = statistics[str(index)]['records']
+    compute_performance(fullNode, 'TOTAL', nodesList, executedTime)
 
 
 fig2 = plt.figure(2)
