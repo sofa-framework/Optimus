@@ -52,7 +52,9 @@ class cylRestShape_SDA(Sofa.PythonScriptController):
         if not os.path.isdir(self.generalFolderName):
             os.mkdir(self.generalFolderName)
 
-        self.folderName = options['filtering_parameters']['filter_kind'] + options['filtering_parameters']['output_directory_suffix']
+        observationInfix = self.options['system_parameters']['observation_points_file_name']
+        observationInfix = observationInfix[observationInfix.rfind('/') + 1 : observationInfix.rfind('.')]
+        self.folderName = options['filtering_parameters']['filter_kind'] + "_" + observationInfix + options['filtering_parameters']['output_directory_suffix']
         self.fullFolderName = self.generalFolderName + '/' + self.folderName
         folderCreator = FolderHandler()
         folderCreator.createFolder(self.generalFolderName, self.folderName, archiveResults=1)
