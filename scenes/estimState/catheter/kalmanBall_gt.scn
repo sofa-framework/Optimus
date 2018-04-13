@@ -30,7 +30,7 @@
 
     <Node name="WRITEGroundTruthCatheter"> 
         <MechanicalObject template="Vec3" name="MO" position="@../ball/MO.position" showObject="0"/>		
-        <StochasticPositionHandler filename="Reference_ball" />
+        <WriteState filename="Reference_ball" />
     </Node>
 
     

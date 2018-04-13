@@ -2,7 +2,7 @@ clear
 close all
 clc
 
-g= dlmread('g');
+g= dlmread('LMg');
 % n = dlmread('n');
 
 A=[0.0225 0.0225 0.0225  0.0225 0.0225 0.0225];
