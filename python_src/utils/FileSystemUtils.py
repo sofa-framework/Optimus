@@ -13,7 +13,7 @@ class FolderHandler:
 
         if (os.path.isdir(self.folder)):
             if (archiveResults):
-                if not os.path.isdir(generalFolderName + 'archive'):
+                if not os.path.isdir(generalFolderName + '/archive'):
                     os.mkdir(generalFolderName + '/archive')
                 archFolder = generalFolderName + '/archive/' + folderName + datetime.datetime.now().strftime("%Y_%b_%d-%I:%M-%S")
                 print "Archiving existing results to archive: ", archFolder
