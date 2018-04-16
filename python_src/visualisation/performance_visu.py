@@ -29,7 +29,13 @@ def create_tree(node, nodeName, graph, nodesList):
             leafNode = 0
             create_tree(node[item], item, graph, nodesList)
     if only_leaves_performance == 0 or leafNode == 1:
-        nodesList.append(nodeName)
+        foundNode = 0
+        for item in nodesList:
+            if item == nodeName:
+                foundNode = 1
+                break
+        if not foundNode:
+            nodesList.append(nodeName)
 
 
 def compute_performance(node, nodeName, nodesList, executedTime):
