@@ -45,6 +45,17 @@ def compute_performance(node, nodeName, nodesList, executedTime):
                 compute_performance(node[item], item, nodesList, executedTime)
 
 
+def compute_full_performance(node, nodeName, nodesList, executedTime):
+    if not isinstance(node, float) and len(node) > 0:
+        for item in node.keys():
+            if item == "Values":
+                for index in range(0, len(nodesList)):
+                    if nodesList[index] == nodeName:
+                        executedTime[index] = executedTime[index] + float(node['Values']['Total'])
+            else:
+                compute_full_performance(node[item], item, nodesList, executedTime)
+
+
 
 try : 
     sys.argv[0]
@@ -98,22 +109,30 @@ for index in range(1, len(statistics) + 1):
     fullNode = statistics[str(index)]['records']
     compute_performance(fullNode, 'TOTAL', nodesList, executedTime)
 
+totalTime = numpy.zeros(len(nodesList))
+for index in range(1, len(statistics) + 1):
+    fullNode = statistics[str(index)]['TOTAL']
+    compute_full_performance(fullNode, 'TOTAL', nodesList, totalTime)
+
+
 
 fig2 = plt.figure(2)
 spl2 = fig2.add_subplot(111)
 amount = numpy.arange(len(executedTime))
-width = 1
-rects = spl2.bar(amount, executedTime, width, color='r')
+width = 0.5
+rects1 = spl2.bar(amount, executedTime, width, color='r')
+rects2 = spl2.bar(amount + width, totalTime, width, color='b')
 
 # Label the functions below  bars
-for index in range(0, len(rects)):
-    rect = rects[index]
+for index in range(0, len(rects1)):
+    rect = rects1[index]
     height = rect.get_height()
     position = numpy.array((rect.get_x(), -1.05))
     trans_angle = plt.gca().transData.transform_angles(numpy.array((90,)), position.reshape((1, 2)))[0]
-    spl2.text(rect.get_x() + rect.get_width() / 2.0, 0, nodesList[index], rotation=trans_angle, rotation_mode='anchor', ha='center', va='bottom')
+    spl2.text(rect.get_x() + rect.get_width() * 1.3, 0, nodesList[index], rotation=trans_angle, fontsize=25, rotation_mode='anchor', ha='center', va='bottom')
 
 spl2.set_ylabel('general time, ms', fontsize=40)
+spl2.legend((rects1[0], rects2[0]), ('Iteration', 'Total'))
 spl2.set_title('Computational time after ' + str(len(statistics)) + ' iterations')
 
 
