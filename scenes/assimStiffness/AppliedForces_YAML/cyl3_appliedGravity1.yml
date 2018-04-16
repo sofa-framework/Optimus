@@ -34,7 +34,7 @@ io:
     prefix: 'cyl3gravity_'
     suffix: ''
     saveGeo: 0
-    saveObs: 0                  # GO only
+    saveObs: 1                  # GO only
     obsFileName: 'obs'
     saveEst: 1                  # SDA only
     sdaFolderSuffix: '_proj2'         # SDA only
@@ -58,6 +58,6 @@ time:
     time_statistics_file: "computationTime.txt"
     time_profiling: 0
     iterations_interval: 1
-    iteration_amount: 2000
+    iteration_amount: 300
 
 ...

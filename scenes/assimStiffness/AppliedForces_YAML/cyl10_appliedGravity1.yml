@@ -54,6 +54,6 @@ time:
     time_statistics_file: "computationTime.txt"
     time_profiling: 0
     iterations_interval: 1
-    iteration_amount: 2000
+    iteration_amount: 300
 
 ...
