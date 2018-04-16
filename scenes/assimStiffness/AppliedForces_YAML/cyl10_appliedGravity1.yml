@@ -19,7 +19,8 @@ model:
         boxes: '-0.05 -0.05 -0.002   0.05 0.05 0.002   -0.05 -0.05  0.298   0.05 0.05 0.302'
 
     linsol:
-        usePCG: 0
+        usePCG: 1
+        PCGUpdateSteps: 20
         pardisoSym: 1
         pardisoFolder: ''
         

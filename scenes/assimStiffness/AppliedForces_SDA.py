@@ -139,7 +139,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         
         if self.opt['model']['linsol']['usePCG']:
             simuNode.createObject('StepPCGLinearSolver', name='lsolverit', precondOnTimeStep='1', use_precond='1', tolerance='1e-10', iterations='500',
-                verbose='0', listening='1', preconditioners='lsolver')
+                verbose='1', listening='1', update_step=self.opt['model']['linsol']['PCGUpdateSteps'], preconditioners='lsolver')
 
         simuNode.createObject('SparsePARDISOSolver', name='lsolver', verbose='0', pardisoSchurComplement=self.planeCollision, 
             symmetric=self.opt['model']['linsol']['pardisoSym'], exportDataToFolder=self.opt['model']['linsol']['pardisoFolder'])
