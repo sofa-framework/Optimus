@@ -93,7 +93,7 @@ void PreStochasticWrapper::step(const core::ExecParams* _params, const size_t _s
 
     sofa::helper::AdvancedTimer::stepBegin("AnimationStep");
     //std::cout<<"step "<<step++<<std::endl;
-    sofa::helper::AdvancedTimer::begin("Animate");
+    //sofa::helper::AdvancedTimer::begin("Animate");
     //std::cout<<"step "<<step++<<std::endl;
 
 #ifdef SOFA_DUMP_VISITOR_INFO
@@ -105,14 +105,14 @@ void PreStochasticWrapper::step(const core::ExecParams* _params, const size_t _s
 
     //std::cout << "[" << this->getName() << "]: step default begin at time = " << gnode->getTime() << " update time: " << _update_time << std::endl;
 
-    sofa::helper::AdvancedTimer::stepBegin("AnimationStep");
+    //sofa::helper::AdvancedTimer::stepBegin("AnimationStep");
     //std::cout<<"step "<<step++<<std::endl;
-    sofa::helper::AdvancedTimer::begin("Animate");
+    //sofa::helper::AdvancedTimer::begin("Animate");
     //std::cout<<"step "<<step++<<std::endl;
 
-#ifdef SOFA_DUMP_VISITOR_INFO
-    simulation::Visitor::printNode("Step");
-#endif
+//#ifdef SOFA_DUMP_VISITOR_INFO
+//    simulation::Visitor::printNode("Step");
+//#endif
 
     {
         //std::cout<<"step "<<step++<<std::endl;
@@ -167,7 +167,7 @@ void PreStochasticWrapper::step(const core::ExecParams* _params, const size_t _s
 #ifdef SOFA_DUMP_VISITOR_INFO
     simulation::Visitor::printCloseNode("Step");
 #endif
-    sofa::helper::AdvancedTimer::end("Animate");
+    //sofa::helper::AdvancedTimer::end("Animate");
     sofa::helper::AdvancedTimer::stepEnd("AnimationStep");
 
 }
