@@ -7,8 +7,6 @@ import yaml
 
 __file = __file__.replace('\\', '/') # windows
 
-loadGeomagicTrack = 1
-
 def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
     rootNode.createObject('RequiredPlugin', name='Pardiso', pluginName='SofaPardisoSolver')
@@ -72,8 +70,8 @@ class cyl3PartsGeomagic_GenObs (Sofa.PythonScriptController):
         self.dotNode = dotNode
         dotNode.createObject('EulerImplicitSolver', firstOrder='false', vdamping=self.vdamping, rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'])
         dotNode.createObject('CGLinearSolver', iterations='25', tolerance='1e-5', threshold='1e-5')
-        if loadGeomagicTrack:
-            dotNode.createObject('GeomagicEmulator', name='GeomagicDevice', positionFilename='geomagicObservations/geomagic_x.txt', buttonFilename='geomagicObservations/listener.txt')
+        if self.options['geomagic_parameters']['load_track']:
+            dotNode.createObject('GeomagicEmulator', name='GeomagicDevice', positionFilename = self.options['geomagic_parameters']['position_file'], buttonFilename = self.options['geomagic_parameters']['listener_file'])
         else:
             dotNode.createObject('GeomagicDriver', name='GeomagicDevice', deviceName='Default Device', scale='0.02', orientationBase='0 1 -1 -1', positionBase='-0.205 -0.095 0.078', orientationTool='0 0 0 1')
         dotNode.createObject('MechanicalObject', template='Rigid', name='GeomagicMO', position='@GeomagicDevice.positionDevice')

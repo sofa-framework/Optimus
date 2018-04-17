@@ -39,8 +39,24 @@ filtering_parameters:
     save_state: 1
     save_internal_data: 1
 
+precondition_parameters:
+    usePCG: 0
+    PCGUpdateSteps: 100
+
 impact_parameters:
     observation_file_name: "observations/liverimpact"
     position: "0.14 0.18 0.39"
+
+geomagic_parameters:
+    load_track: 1
+    position_file: "geomagicObservations/geomagic_x.txt"
+    listener_file: "geomagicObservations/listener.txt"
+
+time_parameters:
+    timer_name: 'filter_computation_statistics'
+    time_statistics_file: "computationTime.txt"
+    time_profiling: 1
+    iterations_interval: 1
+    iteration_amount: 300
 ...
 

@@ -83,6 +83,10 @@ class liver_geomagicControlPoint_SDA (Sofa.PythonScriptController):
                 return
 
         self.createGraph(rootNode)
+        if self.options['time_parameters']['time_profiling']:
+            self.createTimeProfiler()
+        return None
+
 
 
     def createGraph(self, rootNode):
@@ -109,6 +113,8 @@ class liver_geomagicControlPoint_SDA (Sofa.PythonScriptController):
 
     
     def createGlobalComponents(self, rootNode):
+        self.iterations = 0
+
         # scene global stuff                
         rootNode.findData('gravity').value = self.options['general_parameters']['gravity']
         rootNode.findData('dt').value = self.options['general_parameters']['delta_time']
@@ -158,6 +164,9 @@ class liver_geomagicControlPoint_SDA (Sofa.PythonScriptController):
             node.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")
         else:
             print 'Unknown solver type!'
+        if self.options['precondition_parameters']['usePCG']:
+            node.createObject('StepPCGLinearSolver', name='lsolverit', precondOnTimeStep='1', use_precond='1', tolerance='1e-10', iterations='500',
+                verbose='1', listening='1', update_step=self.options['precondition_parameters']['PCGUpdateSteps'], preconditioners='precond')
         node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
         #node.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
 
@@ -173,7 +182,7 @@ class liver_geomagicControlPoint_SDA (Sofa.PythonScriptController):
 
         node.createObject('BoxROI', name='impactBounds', box='0.14 0.15 0.37 0.18 0.17 0.4', doUpdate='0')
         self.toolSprings = node.createObject('RestShapeSpringsForceField', name="impactSpring", stiffness="10000", angularStiffness='1', external_rest_shape='@../externalImpSimu/state', points='@impactBounds.indices')
-        # node.createObject('GeomagicEmulator', attachSpring='false', filename='observations/listener.txt')
+        # node.createObject('GeomagicEmulator', attachSpring='false', filename = 'observations/listener.txt')
 
         node.createObject('OptimParams', name="paramE", optimize="1", numParams=self.options['filtering_parameters']['optim_params_size'], template="Vector", initValue=self.options['filtering_parameters']['initial_stiffness'], minValue=self.options['filtering_parameters']['minimal_stiffness'], maxValue=self.options['filtering_parameters']['maximal_stiffness'], stdev=self.options['filtering_parameters']['initial_standart_deviation'], transformParams=self.options['filtering_parameters']['transform_parameters'])
         nu=0.45
@@ -225,6 +234,19 @@ class liver_geomagicControlPoint_SDA (Sofa.PythonScriptController):
         return 0
 
 
+
+    def createTimeProfiler(self):
+        print 'Time statistics file: ' + self.fullFolderName + '/' + self.options['time_parameters']['time_statistics_file']
+        Sofa.timerSetInterval(self.options['time_parameters']['timer_name'], self.options['time_parameters']['iterations_interval'])    # Set the number of steps neded to compute the timer
+        Sofa.timerSetOutputType(self.options['time_parameters']['timer_name'], 'json')    # Set output file format
+        with open(self.fullFolderName + '/' + self.options['time_parameters']['time_statistics_file'], "a") as outputFile:
+            outputFile.write('{')
+            outputFile.close()
+
+        return 0
+
+
+
     def initGraph(self,node):
         print 'Init graph called (python side)'
         self.step = 0
@@ -233,7 +255,21 @@ class liver_geomagicControlPoint_SDA (Sofa.PythonScriptController):
         # self.process.initializationObjects(node)
         return 0
 
-    def onEndAnimationStep(self, deltaTime):  
+
+
+    def onBeginAnimationStep(self, deltaTime):
+        if self.options['time_parameters']['time_profiling']:
+            Sofa.timerSetEnabled(self.options['time_parameters']['timer_name'], True)
+            Sofa.timerBegin(self.options['time_parameters']['timer_name'])
+
+        return 0
+
+
+
+    def onEndAnimationStep(self, deltaTime):
+
+        self.iterations = self.iterations + 1
+        self.saveTimeStatistics()
 
         if self.options['filtering_parameters']['save_state']:
             if (self.options['filtering_parameters']['filter_kind'] == 'ROUKF'):
@@ -301,6 +337,28 @@ class liver_geomagicControlPoint_SDA (Sofa.PythonScriptController):
         # print self.basePoints.findData('indices_position').value
 
         return 0
+
+
+
+    def saveTimeStatistics(self):
+        if self.options['time_parameters']['time_profiling']:
+            if self.iterations <= self.options['time_parameters']['iteration_amount']:
+                result = Sofa.timerEnd(self.options['time_parameters']['timer_name'], self.rootNode)
+                if result != None :
+                    with open(self.fullFolderName + '/' + self.options['time_parameters']['time_statistics_file'], "a") as outputFile:
+                        outputFile.write(result + ",")
+                        outputFile.close()
+            # replace last symbol
+            if self.iterations == self.options['time_parameters']['iteration_amount']:
+                with open(self.fullFolderName + '/' + self.options['time_parameters']['time_statistics_file'], "a") as outputFile:
+                    outputFile.seek(-1, os.SEEK_END)
+                    outputFile.truncate()
+                    outputFile.write("\n}")
+                    outputFile.close()
+
+        return 0
+
+
 
     def onScriptEvent(self, senderNode, eventName,data):
         return 0;

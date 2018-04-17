@@ -39,8 +39,19 @@ filtering_parameters:
     save_state: 1
     save_internal_data: 1
 
+precondition_parameters:
+    usePCG: 1
+    PCGUpdateSteps: 100
+
 impact_parameters:
     observation_file_name: "observations/liverCPimpact"
     position: "0.14 0.16 0.39"
+
+time_parameters:
+    timer_name: 'filter_computation_statistics'
+    time_statistics_file: "computationTime.txt"
+    time_profiling: 1
+    iterations_interval: 1
+    iteration_amount: 300
 ...
 
