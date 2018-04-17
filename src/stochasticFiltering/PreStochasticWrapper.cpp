@@ -150,7 +150,7 @@ void PreStochasticWrapper::step(const core::ExecParams* _params, const size_t _s
     //Visual Information update: Ray Pick add a MechanicalMapping used as VisualMapping
     //std::cout << "[" << this->getName() << "]: update mapping" << std::endl;
     this->gnode->execute<  sofa::simulation::UpdateMappingVisitor >(_params);
-    sofa::helper::AdvancedTimer::step("UpdateMappingEndEvent");
+    //sofa::helper::AdvancedTimer::step("UpdateMappingEndEvent");
     {
         //std::cout << "[" << this->getName() << "]: update mapping end" << std::endl;
         sofa::simulation::UpdateMappingEndEvent ev ( dt );
