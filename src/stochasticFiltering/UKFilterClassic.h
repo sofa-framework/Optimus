@@ -80,6 +80,7 @@ protected:
     size_t sigmaPointsNum;
     bool alphaConstant;
     std::vector<int> m_sigmaPointObservationIndexes;
+helper::vector<double> d;
 
     EVectorX vecAlpha, vecAlphaVar;
     EVectorX stateExp, predObsExp;
@@ -87,7 +88,7 @@ protected:
     EVectorX diagStateCov;
 
     EMatrixX matItrans, matI;
-    EMatrixX matXi, matZmodel;
+    EMatrixX matXi, matZmodel, genMatXi;
 
     sofa::core::objectmodel::DataFileName d_exportPrefix;
     std::string exportPrefix;

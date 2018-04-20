@@ -22,7 +22,7 @@ UKFilterClassic<FilterType>::UKFilterClassic()
     , d_state( initData(&d_state, "state", "actual expected value of reduced state (parameters) estimated by the filter" ) )
     , d_variance( initData(&d_variance, "variance", "actual variance  of reduced state (parameters) estimated by the filter" ) )
     , d_covariance( initData(&d_covariance, "covariance", "actual co-variance  of reduced state (parameters) estimated by the filter" ) )
-    , d_innovation( initData(&d_innovation, "innovation", "innovation value computed by the filter" ) ) 
+    , d_innovation( initData(&d_innovation, "innovation", "innovation value computed by the filter" ) )
     , d_draw(initData(&d_draw, false, "draw","Activation of draw"))
     , d_radius_draw( initData(&d_radius_draw, "radiusDraw", "radius of the spheres") )
 
@@ -46,7 +46,8 @@ void UKFilterClassic<FilterType>::computePerturbedStates()
 
 template <class FilterType>
 void UKFilterClassic<FilterType>::computePrediction()
-{    
+{
+    hasObs = observationManager->hasObservation(this->actualTime);
     PRNS("Computing prediction, T= " << this->actualTime  << " ======");
     /// Computes background error variance Cholesky factorization.
     Eigen::LLT<EMatrixX> lltU(stateCovar);
@@ -57,36 +58,60 @@ void UKFilterClassic<FilterType>::computePrediction()
     //    PRNS("X(n): \n" << stateExp.transpose());
     //    PRNS("P(n): \n" << stateCovar);
 
-    /// Computes X_{n}^{(i)-} sigma points
-    for (size_t i = 0; i < sigmaPointsNum; i++) {
-        matXi.col(i) = stateExp + matPsqrt * matI.row(i).transpose();       
-    }
-    /// Compute the state
-    computePerturbedStates();
+    if(hasObs){
+        /// Computes X_{n}^{(i)-} sigma points
+        for (size_t i = 0; i < sigmaPointsNum; i++) {
+            matXi.col(i) = stateExp + matPsqrt * matI.row(i).transpose();
+        }
+        genMatXi=matXi;
+        EVectorX dd = matXi.row(stateSize-1);
+        EVectorX p;
+        p.resize(sigmaPointsNum);
+        p.setZero();
+        for (unsigned i=0; i<sigmaPointsNum; i++) {
+            p(i)= dd(i)+stateExp(stateSize-1)  - 0.7;
+        }
+        d[0]=p(sigmaPointsNum-1);
+        d[1]=p(sigmaPointsNum-2);
+
+        //        PRNS("d :" << d)
+        /// Compute the state
+        //        PRNS("gen Sigma \n"<< matXi <<" \n ");
+        computePerturbedStates();
+        //        PRNS("prop Sigma \n "<< matXi);
+
+        /// compute the expected value
+        stateExp.fill(FilterType(0.0));
+        for (size_t i = 0; i < sigmaPointsNum; i++) {
+            stateExp += matXi.col(i) * vecAlpha(i);
+        }
 
 
-    /// compute the expected value
-    stateExp.fill(FilterType(0.0));
-    for (size_t i = 0; i < sigmaPointsNum; i++) {
-        stateExp += matXi.col(i) * vecAlpha(i);
-    }
+        stateCovar.setZero();
+        EMatrixX matXiTrans= matXi.transpose();
+        EMatrixX centeredPxx = matXiTrans.rowwise() - matXiTrans.colwise().mean();
+        EMatrixX weightedCenteredPxx = centeredPxx.array().colwise() * vecAlphaVar.array();
+        EMatrixX covPxx = (centeredPxx.adjoint() * weightedCenteredPxx);
+        EMatrixX PrintcovPxx =  covPxx;
+        //EMatrixX covPxx = (centeredPxx.adjoint() * centeredPxx) / double(centeredPxx.rows() )
+        stateCovar = covPxx + modelCovar;
+        for (unsigned i = 0; i < stateCovar.rows(); i++) {
+            diagStateCov(i)=stateCovar(i,i);
+            for (unsigned j = 0; j < stateCovar.cols(); j++){
+                if(PrintcovPxx(i,j)*PrintcovPxx(i,j)<=0.00000001)
+                    PrintcovPxx(i,j)=0.0;
 
-    stateCovar.setZero();
-    EMatrixX matXiTrans= matXi.transpose();
-    EMatrixX centeredPxx = matXiTrans.rowwise() - matXiTrans.colwise().mean();
-    EMatrixX weightedCenteredPxx = centeredPxx.array().colwise() * vecAlphaVar.array();
-    EMatrixX covPxx = (centeredPxx.adjoint() * weightedCenteredPxx);
-    //EMatrixX covPxx = (centeredPxx.adjoint() * centeredPxx) / double(centeredPxx.rows() )
-    stateCovar = covPxx + modelCovar;
-    for (size_t i = 0; i < (size_t)stateCovar.rows(); i++) {
-        diagStateCov(i)=stateCovar(i,i);
-    }
-
-
-    if (masterStateWrapper->estimPosition()) {
-        masterStateWrapper->setState(stateExp, mechParams);
+            }
+        }
+//        PRNS("PredCov \n "<< PrintcovPxx);
+        if (masterStateWrapper->estimPosition()) {
+            masterStateWrapper->setState(stateExp, mechParams);
+        }else{
+            masterStateWrapper->lastApplyOperator(stateExp, mechParams);
+        }
     }else{
         masterStateWrapper->lastApplyOperator(stateExp, mechParams);
+
     }
 }
 
@@ -94,7 +119,6 @@ template <class FilterType>
 void UKFilterClassic<FilterType>::computeCorrection()
 {
 
-    hasObs = observationManager->hasObservation(this->actualTime);
     if (hasObs) {
         PRNS("======= Computing correction, T= " << this->actualTime << " ======");
 
@@ -129,7 +153,6 @@ void UKFilterClassic<FilterType>::computeCorrection()
         EMatrixX matK(stateSize, observationSize);
         pseudoInverse(matPz, pinvmatPz);
         matK =matPxz*pinvmatPz;
-
 
         EVectorX innovation(observationSize);
         observationManager->getInnovation(this->actualTime, predObsExp, innovation);
@@ -179,6 +202,7 @@ void UKFilterClassic<FilterType>::computeCorrection()
     }else{
         PRNS("PREDICTED STATE X(n+1)+n: \n" << stateExp.transpose());
         PRNS("PREDICTED COVARIANCE DIAGONAL P(n+1)+n:  \n" << diagStateCov.transpose());
+        modelCovar.setZero();
     }
 
     writeValidationPlot(d_filenameCov.getValue(),diagStateCov);
@@ -285,7 +309,6 @@ void UKFilterClassic<FilterType>::bwdInit() {
         diagStateCov(i)=stateCovar(i,i);
     }
     PRNS(" INIT COVARIANCE DIAGONAL P(n+1)+n:  \n" << diagStateCov.transpose());
-
     modelCovar = masterStateWrapper->getModelErrorVariance();
 
     stateExp = masterStateWrapper->getState();
@@ -303,6 +326,9 @@ void UKFilterClassic<FilterType>::bwdInit() {
     sigmaPointsNum = matI.rows();
     matXi.resize(stateSize, sigmaPointsNum);
     matXi.setZero();
+    genMatXi.resize(stateSize, sigmaPointsNum);
+    genMatXi.setZero();
+    d.resize(2);
 
     /// initialise state observation mapping for sigma points
     m_sigmaPointObservationIndexes.resize(sigmaPointsNum);
@@ -321,7 +347,6 @@ void UKFilterClassic<FilterType>::initializeStep(const core::ExecParams* _params
         obsCovar = observationManager->getErrorVariance();
         initialiseObservationsAtFirstStep.setValue(false);
     }
-
     for (size_t i = 0; i < stateWrappers.size(); i++)
         stateWrappers[i]->initializeStep(stepNumber);
 
@@ -377,15 +402,15 @@ void UKFilterClassic<FilterType>::computeSimplexSigmaPoints(EMatrixX& sigmaMat) 
     beta = Type(p) / Type(p+1);
     sqrt_p = sqrt(Type(p));
     scal = Type(1.0)/sqrt(Type(2) * beta);
-    workingMatrix(0,0) = -scal;
-    workingMatrix(0,1) = scal;
+    workingMatrix(0,0) = scal;
+    workingMatrix(0,1) = -scal;
 
     for (size_t i = 1; i < p; i++) {
         scal = Type(1.0) / sqrt(beta * Type(i+1) * Type(i+2));
 
         for (size_t j = 0; j < i+1; j++)
-            workingMatrix(i,j) = scal;
-        workingMatrix(i,i+1) = -Type(i+1) * scal;
+            workingMatrix(i,j) = -scal;
+        workingMatrix(i,i+1) = Type(i+1) * scal;
     }
 
 
@@ -411,17 +436,19 @@ void UKFilterClassic<FilterType>::computeStarSigmaPoints(EMatrixX& sigmaMat) {
     EMatrixX workingMatrix = EMatrixX::Zero(p, r);
 
     Type lambda, k, sqrt_vec;
-    k = 2.5 - p; // 2 - p;
+    k = 3 - p;
     lambda = this->lambdaScale.getValue() * this->lambdaScale.getValue() * (p + k) - p;
-    //PRNS("lambda: \n" << lambda);
     sqrt_vec = sqrt(p + lambda);
 
     for (size_t j = 0; j < p; j++) {
-        workingMatrix(j,j) = sqrt_vec;
+        for (size_t i = 0; i < p; i++)
+            workingMatrix(i,j) = sqrt_vec;
     }
-    for (size_t j = p; j < 2 * p; j++) {
-        workingMatrix(j - p,j) = -sqrt_vec;
+    for (size_t j = p + 1; j < 2 * p; j++) {
+        for (size_t i = 0; i < p; i++)
+            workingMatrix(i,j) = -sqrt_vec;
     }
+
 
     sigmaMat.resize(r,p);
     for (size_t i = 0; i < r; i++)
@@ -438,39 +465,106 @@ void UKFilterClassic<FilterType>::computeStarSigmaPoints(EMatrixX& sigmaMat) {
     vecAlphaVar.resize(r);
     if (this->useUnbiasedVariance.getValue()) {
         for (size_t i = 0; i < 2 * p; i++) {
-            vecAlphaVar(i) = Type(1.0)/Type(2 * (p + lambda) - 1);
+            vecAlphaVar(i) = Type(1.0)/Type(2 * (p + lambda));
         }
         // double beta = 2.0;
-        vecAlphaVar(2 * p) = Type(lambda)/Type(p + lambda - 1); // + (1 - this->lambdaScale * this->lambdaScale + beta)
+        vecAlphaVar(2 * p) = Type(lambda)/Type(2 * (p + lambda)); // + (1 - this->lambdaScale * this->lambdaScale + beta)
 
         alphaVar = Type(1.0)/Type(r-1);
     } else {
         for (size_t i = 0; i < 2 * p; i++) {
-            vecAlphaVar(i) = Type(1.0)/Type(2 * (p + lambda));
+            vecAlphaVar(i) = Type(1.0)/Type(2 * (p + lambda) + 1);
         }
         // double beta = 2.0;
-        vecAlphaVar(2 * p) = Type(lambda)/Type(p + lambda); // + (1 - this->lambdaScale * this->lambdaScale + beta)
+        vecAlphaVar(2 * p) = Type(lambda)/Type(2 * (p + lambda) + 1); // + (1 - this->lambdaScale * this->lambdaScale + beta)
 
         alphaVar = Type(1.0)/Type(r);
     }
-    //PRNS("sigmaMat: \n" << sigmaMat);
-    //PRNS("vecAlphaVar: \n" << vecAlphaVar);
 }
 
 template <class FilterType>
 void UKFilterClassic<FilterType>::draw(const core::visual::VisualParams* vparams ) {
     if(d_draw.getValue()){
         if (vparams->displayFlags().getShowVisualModels()) {
-            std::vector<sofa::defaulttype::Vec3d> predpoints;
-            predpoints.resize(predObsExp.rows()*(1.0/3));
+            helper::vector<sofa::defaulttype::Vec3d> genSigma;
 
-            for (unsigned i =0;  i < predpoints.size(); i++){
+            genSigma.resize(sigmaPointsNum);
+            for (unsigned i =0;  i < sigmaPointsNum; i++){
                 for(unsigned j =0;  j < 3; j++){
-                    predpoints[i][j]=predObsExp(3*i+j) ;
+                    genSigma[i][j]=genMatXi(j,i) ;
                 }
-                vparams->drawTool()->drawSpheres(predpoints,  d_radius_draw.getValue(), sofa::defaulttype::Vec<4, float>(1.0f,0.0f,1.0f,1.0f));
             }
+            vparams->drawTool()->drawSpheres(genSigma,  d_radius_draw.getValue(), sofa::defaulttype::Vec<4, float>(1.0f,0.0f,0.0f,1.0f));
+
         }
+
+
+        //        float size;
+        //        if (size == 0.0f)
+        //            size = (float)10.0f;
+
+        //        defaulttype::Vec3d normal; normal =defaulttype::Vec3d(0,1,0);
+        //        defaulttype::RGBAColor d_drawColor= defaulttype::RGBAColor(1.0f,.0f,.0f,1.0f);
+        //        defaulttype::RGBAColor d_drawColor2= defaulttype::RGBAColor(0.0f,.0f,1.0f,1.0f);
+
+        //        // find a first vector inside the plane
+        //        defaulttype::Vec3d v1;
+        //        if( 0.0 != normal[0] ) v1 = defaulttype::Vec3d(-normal[1]/normal[0], 1.0, 0.0);
+        //        else if ( 0.0 != normal[1] ) v1 = defaulttype::Vec3d(1.0, -normal[0]/normal[1],0.0);
+        //        else if ( 0.0 != normal[2] ) v1 = defaulttype::Vec3d(1.0, 0.0, -normal[0]/normal[2]);
+        //        v1.normalize();
+
+        //        // find a second vector inside the plane and orthogonal to the first
+        //        defaulttype::Vec3d v2;
+        //        v2 = v1.cross(normal);
+        //        v2.normalize();
+
+        //        defaulttype::Vec3d center = normal*d[0];
+        //        defaulttype::Vec3d corners[4];
+        //        corners[0] = center-v1*size-v2*size;
+        //        corners[1] = center+v1*size-v2*size;
+        //        corners[2] = center+v1*size+v2*size;
+        //        corners[3] = center-v1*size+v2*size;
+
+        //        std::vector< defaulttype::Vector3 > points;
+
+        //        points.push_back(corners[0]);
+        //        points.push_back(corners[1]);
+        //        points.push_back(corners[2]);
+
+        //        points.push_back(corners[0]);
+        //        points.push_back(corners[2]);
+        //        points.push_back(corners[3]);
+
+        //        vparams->drawTool()->setPolygonMode(2,false); //Cull Front face
+
+        //        vparams->drawTool()->drawTriangles(points, defaulttype::Vec<4,float>(d_drawColor[0],d_drawColor[1],d_drawColor[2],0.5));
+        //        vparams->drawTool()->setPolygonMode(0,false); //No Culling
+
+
+        //        defaulttype::Vec3d center2 = normal*d[1];
+        //        defaulttype::Vec3d corners2[4];
+        //        corners2[0] = center2-v1*size-v2*size;
+        //        corners2[1] = center2+v1*size-v2*size;
+        //        corners2[2] = center2+v1*size+v2*size;
+        //        corners2[3] = center2-v1*size+v2*size;
+
+        //        std::vector< defaulttype::Vector3 > points2;
+
+        //        points2.push_back(corners2[0]);
+        //        points2.push_back(corners2[1]);
+        //        points2.push_back(corners2[2]);
+
+        //        points2.push_back(corners2[0]);
+        //        points2.push_back(corners2[2]);
+        //        points2.push_back(corners2[3]);
+
+        //        vparams->drawTool()->setPolygonMode(2,false); //Cull Front face
+
+        //        vparams->drawTool()->drawTriangles(points2, defaulttype::Vec<4,float>(d_drawColor2[0],d_drawColor2[1],d_drawColor2[2],0.5));
+        //        vparams->drawTool()->setPolygonMode(0,false); //No Culling
+
+
     }
 }
 

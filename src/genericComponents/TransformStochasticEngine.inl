@@ -95,6 +95,7 @@ template <class DataTypes>
 void TransformStochasticEngine<DataTypes>::reinit()
 {
     update();
+
 }
 
 //Declare a TransformOperation class able to do an operation on a Coord
@@ -156,6 +157,7 @@ struct RotationSpecialized : public TransformOperation<DataTypes>
         q=helper::Quater<Real>::createQuaterFromEuler( r*(M_PI/180.0));
         if (inverse)
             q = q.inverse();
+
     }
 
     void configure(const defaulttype::Quaternion &qi, bool inverse, sofa::core::objectmodel::Base*)
@@ -239,31 +241,34 @@ template <class DataTypes>
 void TransformStochasticEngine<DataTypes>::update()
 {
         const defaulttype::Vector3 &s=scale.getValue();
-        const defaulttype::Vector3 &t=defaulttype::Vector3(d_optimParams.getValue()[3],d_optimParams.getValue()[4],d_optimParams.getValue()[5]);
-        const defaulttype::Vector3 &r=defaulttype::Vector3(d_optimParams.getValue()[0],d_optimParams.getValue()[1],d_optimParams.getValue()[2]);
+        const defaulttype::Vector3 &t=defaulttype::Vector3(d_optimParams.getValue()[0],d_optimParams.getValue()[1],d_optimParams.getValue()[2]);
+//        const defaulttype::Vector3 &t=defaulttype::Vector3(d_optimParams.getValue()[3],d_optimParams.getValue()[4],d_optimParams.getValue()[5]);
         const defaulttype::Quaternion &q=quaternion.getValue();
 
 
         //Create the object responsible for the transformations
         Transform<DataTypes> transformation;
         const bool inv = inverse.getValue();
-        if (s != defaulttype::Vector3(1,1,1))
-            transformation.add(new Scale<DataTypes>, inv)->configure(s, inv);
+//        if (s != defaulttype::Vector3(1,1,1))
+//            transformation.add(new Scale<DataTypes>, inv)->configure(s, inv);
 
-        if (r != defaulttype::Vector3(0,0,0))
-            transformation.add(new Rotation<DataTypes>, inv)->configure(r, inv);
+//        if (r != defaulttype::Vector3(0,0,0))
+//            transformation.add(new Rotation<DataTypes>, inv)->configure(r, inv);
 
-        if (q != defaulttype::Quaternion(0,0,0,1))
-            transformation.add(new Rotation<DataTypes>, inv)->configure(q, inv, this);
+////        if (q != defaulttype::Quaternion(0,0,0,1))
+//            transformation.add(new Rotation<DataTypes>, inv)->configure(q, inv, this);
 
-        if (t != defaulttype::Vector3(0,0,0))
-            transformation.add(new Translation<DataTypes>, inv)->configure(t, inv);
+//        if (t != defaulttype::Vector3(0,0,0))
+//            transformation.add(new Translation<DataTypes>, inv)->configure(t, inv);
 
 
         ReadAccessor<Data<VecCoord> > inDilate= f_inputX;
         ReadAccessor<Data<SeqTriangles> > triangles = d_triangles;
         ReadAccessor<Data<SeqQuads> > quads = d_quads;
-        const Real distance = d_optimParams.getValue()[6];
+         Real distance = d_optimParams.getValue()[0];
+        if (d_optimParams.getValue()[0]==NULL)
+            distance =  0.0 ;
+
         cleanDirty();
 
         WriteOnlyAccessor<Data<VecCoord> > outDilate = f_outputX;
@@ -303,28 +308,29 @@ void TransformStochasticEngine<DataTypes>::update()
         }
 
         //Get input
-        const VecCoord& in = f_inputX.getValue();
+//        const VecCoord& in = f_inputX.getValue();
 
-        cleanDirty();
+//        cleanDirty();
 
-        VecCoord& out = *(f_outputX.beginWriteOnly());
+//        VecCoord& out = *(f_outputX.beginWriteOnly());
 
-        //Set Output
-        out.resize(in.size());
-        //Set the output to the input
-        std::copy(in.begin(),in.end(), out.begin());
-        //Apply the transformation of the output
-        std::for_each(out.begin(), out.end(), transformation);
+//        //Set Output
+//        out.resize(in.size());
+//        //Set the output to the input
+//        std::copy(in.begin(),in.end(), out.begin());
+//        //Apply the transformation of the output
+//        std::for_each(out.begin(), out.end(), transformation);
 
-        //Deleting operations
-        std::list< TransformOperation<DataTypes>* > operations=transformation.getOperations();
-        while (!operations.empty())
-        {
-            delete operations.back();
-            operations.pop_back();
-        }
+//        //Deleting operations
+//        std::list< TransformOperation<DataTypes>* > operations=transformation.getOperations();
+//        while (!operations.empty())
+//        {
+//            delete operations.back();
+//            operations.pop_back();
+//        }
 
-        f_outputX.endEdit();
+//        f_outputX.endEdit();
+
 }
 
 

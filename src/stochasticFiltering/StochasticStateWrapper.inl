@@ -494,9 +494,11 @@ void StochasticStateWrapper<DataTypes, FilterType>::transformState(EVectorX &_ve
     if ((_stateID == nullptr) || (*_stateID >= 0))
         savedState = this->state;
 
+
     reinitMState(_mparams);
     this->state = _vecX;
-    //PRNS("_vecX " << _vecX);
+//    std::cout <<"SIGMA PT nb:  "<< *_stateID  << " X: "<< _vecX.transpose()<< std::endl;
+
     copyStateFilter2Sofa(_mparams);
 
     if (this->d_langrangeMultipliers.getValue())
@@ -546,8 +548,8 @@ void StochasticStateWrapper<DataTypes, FilterType>::lastApplyOperator(EVectorX &
     if (!this->filterKind == CLASSIC )
         return;
 
-    if (estimatePosition.getValue()==true)
-        return;
+//    if (estimatePosition.getValue()==true)
+//        return;
 
     this->state = _vecX;
     reinitMState(_mparams);
@@ -558,6 +560,8 @@ void StochasticStateWrapper<DataTypes, FilterType>::lastApplyOperator(EVectorX &
         computeSofaStepWithLM(_mparams);
     else
         computeSofaStep(_mparams, false);
+    copyStateSofa2Filter();
+
 }
 
 

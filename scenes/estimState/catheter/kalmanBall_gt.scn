@@ -13,7 +13,7 @@
             <MechanicalObject template="Vec3d" name="MO" position="0 0 0 " velocity="0.05 -0.2 0.01" showObject="0"/>
             <PlaneForceField name="PFF" normal="0 1 0" d="-0.5" draw="true" stiffness="500"/>
             <UniformMass totalmass="0.001" />
-            <ShowSpheres  radius="0.01"  color="0 0 1 1" position="@MO.position"    />
+            <ShowSpheres  radius="0.1"  color="0 0 1 1" position="@MO.position"    />
     </Node>  
 
     <Node name="noisyObs"> 		
