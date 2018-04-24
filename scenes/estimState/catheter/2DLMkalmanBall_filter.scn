@@ -5,22 +5,17 @@
 <RequiredPlugin pluginName="ConstraintGeometryPlugin" />
 <RequiredPlugin pluginName="NeedleConstraintPlugin" />
 <RequiredPlugin pluginName="RegistrationConstraintPlugin" />
+    <RequiredPlugin pluginName="OpenCVPlugin" />
+
 <VisualStyle displayFlags="showVisualModels hideBehaviorModels showCollisionModels hideMappings showForceFields hideWireframe" />	
 <BackgroundSetting color="1 1 1 1" />
 <ViewerSetting resolution="837 600" />
 <FilteringAnimationLoop name="StochAnimLoop" verbose="1"/>
-<UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0"   draw="true" radiusDraw="0.0"/>
-
+<UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0"   draw="true" radiusDraw="0.0"  filenameCov="print/print_cov_0" filenameInn="print/print_inn_0" filenameFinalState="print/print_state_0"/>
+<OpenCVProjectiveCalibrator name="opengl" streamer="video" mode="0" imageSize="816 600" projectionMatrix="[782.416 -244.046 67.3459 145.483,-76.9504 -766.134 -147.227 1697.77,0.481805 -0.280431 -0.830194 3.4741]" listening="false" drawzNear="0.1" drawzFar="10" drawCamera="true"  drawViewPort="true" drawscreenSize="650 500"/>
 
     <Node name="simulation">
         <PreStochasticWrapper />
-<!--            <Node name="Noisyobs"> 
-                <EulerImplicitSolver  />
-                <CGLinearSolver />
-                <MechanicalObject template="Vec3" name="MO" position="0 0 0    " />
-                <ReadState filename="LMnVessel" />
-                <ShowSpheres  radius="0.03"  color="1 0 1 1" position="@MO.position" />
-            </Node>-->
             <Node name="ReferenceModel"> 
                 <EulerImplicitSolver  />
                 <CGLinearSolver />
@@ -35,23 +30,23 @@
                 <MechanicalObject name="DOFs" />
                 <OglModel name="VisualModel" src="@surface"  material="Default Diffuse 1 1 0.93 0.83 0.1 Ambient 0 0 0 0 0 Specular 0 0 0 0 0 Emissive 0 0 0 0 0 Shininess 0 45" />/>
             </Node>
+            
+            
     </Node> 
      
     <Node name="filteredModel">     
-        <StochasticStateWrapper name="StateWrapper" template="Vec3d" verbose="1" estimatePosition="1" estimateVelocity="1" positionStdev="0.10" velocityStdev="0.10" posModelStdev="0.0" velModelStdev="0.09" paramModelStdev="0.01 0.01 0.01 0.01 0.01 0.01 0.001 " langrangeMultipliers="1" draw="true" radiusDraw="0.005"/>  
+        <StochasticStateWrapper name="StateWrapper" template="Vec3d" verbose="1" estimatePosition="1" estimateVelocity="1" positionStdev="0.1" velocityStdev="0.1" posModelStdev="0.0" velModelStdev="0.09" paramModelStdev="0.01 0.01 0.01 0.01 0.01 0.01 0.001  0.001 0.001 0.01" langrangeMultipliers="1" draw="true" radiusDraw="0.000"/>  
         <GenericConstraintSolver name="GenericConstraintSolver"  printLog="0"  maxIterations="1000"  tolerance="1e-10"  allVerified="0" />        
         <Node name="ball" >
             <EulerImplicitSolver  />
             <SparseLUSolver name="BTD"/>
-            <OptimParams name="paramVessel" optimize="1" template ="Vector" initValue="0 0 0 0 0 0 0 "  stdev=" 0.01 0.01 0.01 0.01 0.01 0.01 0.001" transformParams="0" /> 
-<!--             <OptimParams name="paramForces" optimize="1" template ="Vector" initValue="0 0 0  "  stdev=" 0.01 0.01 0.01 " transformParams="0" />  -->
+            <OptimParams name="paramVessel" optimize="1" template ="Vector" initValue="0 0 0 0 0 0 0 "  stdev=" 0.01 0.01 0.01 0.01 0.01 0.01 0.01" transformParams="0" /> 
+            <OptimParams name="paramForces" optimize="1" template ="VecDeriv3d" initValue="0 0 0  "  stdev=" 0.01 0.01 0.01 " transformParams="0" parametricMechanicalObject="@MO"/> 
 
             <MechanicalObject template="Vec3d" name="MO" position="0 0 0    " velocity="0.8 0.5 0.01 "  showObject="0"/>
             <UniformMass totalMass="0.001 " />
-            <ShowSpheres  radius="0.02"  color="0 1 0 1" position="@MO.position" />      
-<!--             <CorrectionForceField forces="@paramForces.value" /> -->
-
-
+            <ShowSpheres  radius="0.02"  color="0.4 1 0 1" position="@MO.position" />            
+            <CorrectionForceField forces="@paramForces.value" />
             <Node name="CollisionBall" >
                 <PointSetTopologyContainer name="Container" position="@../MO.position"  />
                 <MechanicalObject name="ms"  />
@@ -60,24 +55,21 @@
             </Node>
             <LinearSolverConstraintCorrection name="LinearSolverConstraintCorrection" solverName="BTD" />
             <Node name="obsNode" activated="1">        
-                <SimulatedStateObservationSource template="Vec3d" name="observations" monitorPrefix="Obs3D_LMballVessel" asynObs="true"/>                               
-                <SimpleObservationManager name="MOBS" template="Vec3d,Vec3d" listening="1"  stateWrapper="@../../StateWrapper" verbose="1" observationStdev="0.05"/>
+                <SimulatedStateObservationSource template="Vec2d" name="observations" monitorPrefix="Obs2D_LMballVessel" asynObs="true"/>                               
+                <SimpleObservationManager name="MOBS" template="Vec2d,Vec3d" listening="1"  stateWrapper="@../../StateWrapper" use2dObservation="true" projectionMatrix="[782.416 -244.046 67.3459 145.483,-76.9504 -766.134 -147.227 1697.77,0.481805 -0.280431 -0.830194 3.4741]"  verbose="1" observationStdev="0.045"/>
+
             </Node>
 
         </Node>  
         
         <Node name="Vessel">
-            <VisualStyle displayFlags="showWireframe " /> 
+            <VisualStyle displayFlags="showWireframe showCollisionModels " /> 
             <MeshObjLoader name="surface" filename="mesh/vesselINF.obj"  />
             <TransformStochasticEngine name="transform" input_position="@surface.position" optimParams="@../ball/paramVessel.value" triangles="@surface.triangles"  />
             <MeshTopology name="mesh"   position="@transform.output_position" triangles="@transform.triangles"  />
             <TriangleSetTopologyContainer name="Container" src="@mesh" />
             <MechanicalObject name="MS" free_position="@transform.output_position" position="@transform.output_position" template="Vec3d" />
             <TriangleGeometry name="triangle" />
-                <Node >
-<!--                     <VisualStyle displayFlags="" />  -->
-                    <OglModel name="Visual" color="1 1 1 0" src="@../surface" position="@../transform.output_position"/>
-                </Node>
         </Node>
         
         <NeedleContactConstraint needle="ball/CollisionBall/point" surface="Vessel/triangle" friction="0"  /> 

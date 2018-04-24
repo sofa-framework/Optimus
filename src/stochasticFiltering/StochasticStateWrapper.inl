@@ -104,7 +104,7 @@ StochasticStateWrapper<DataTypes, FilterType>::StochasticStateWrapper()
     , estimateVelocity( initData(&estimateVelocity, false, "estimateVelocity", "estimate the velocity (e.g., if initial conditions with uncertainty") )
     , posModelStdev( initData(&posModelStdev, FilterType(0.0), "posModelStdev", "standard deviation in observations") )
     , velModelStdev( initData(&velModelStdev, FilterType(0.0), "velModelStdev", "standard deviation in observations") )
-    , paramModelStdev( initData(&paramModelStdev, FilterType(0.0), "paramModelStdev", "standard deviation in observations") )
+    , paramModelStdev( initData(&paramModelStdev, helper::vector<FilterType>(0.0), "paramModelStdev", "standard deviation in observations") )
     , d_positionStdev( initData(&d_positionStdev, "positionStdev", "estimate standard deviation for positions"))
     , d_velocityStdev( initData(&d_velocityStdev, "velocityStdev", "estimate standard deviation for velocities"))
 //    , d_mappedStatePath(initData(&d_mappedStatePath, "mappedState", "Link to Virtual Mapped Catheter "))
@@ -497,7 +497,6 @@ void StochasticStateWrapper<DataTypes, FilterType>::transformState(EVectorX &_ve
 
     reinitMState(_mparams);
     this->state = _vecX;
-//    std::cout <<"SIGMA PT nb:  "<< *_stateID  << " X: "<< _vecX.transpose()<< std::endl;
 
     copyStateFilter2Sofa(_mparams);
 
@@ -547,9 +546,6 @@ template <class DataTypes, class FilterType>
 void StochasticStateWrapper<DataTypes, FilterType>::lastApplyOperator(EVectorX &_vecX, const core::MechanicalParams *_mparams) {
     if (!this->filterKind == CLASSIC )
         return;
-
-//    if (estimatePosition.getValue()==true)
-//        return;
 
     this->state = _vecX;
     reinitMState(_mparams);

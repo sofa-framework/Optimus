@@ -142,7 +142,8 @@ public:
     Data<bool> d_langrangeMultipliers;    
     Data<bool> estimatePosition;
     Data<bool> estimateVelocity;
-    Data<FilterType>  posModelStdev, velModelStdev, paramModelStdev;
+    Data<FilterType>  posModelStdev, velModelStdev;
+    Data<helper::vector<FilterType>> paramModelStdev;
     Data<double> d_positionStdev;  /// standart deviation for positions
     Data<double> d_velocityStdev;  /// standart deviation for velocities
     Data <std::string> d_mappedStatePath;
@@ -217,7 +218,7 @@ public:
 
             FilterType posModelStDev = posModelStdev.getValue();
             FilterType velModelStDev = velModelStdev.getValue();
-            FilterType paramModelStDev = paramModelStdev.getValue();
+            helper::vector<FilterType> paramModelStDev = paramModelStdev.getValue();
             modelErrorVarianceValue = posModelStDev * posModelStDev;
             modelErrorVariance = EMatrixX::Identity(this->stateSize, this->stateSize)*modelErrorVarianceValue;
             modelErrorVarianceInverse = EMatrixX::Identity(this->stateSize, this->stateSize) / modelErrorVarianceValue;
@@ -226,17 +227,18 @@ public:
                     this->modelErrorVariance(pi,pi) = 0; /// Q is zero for parameters
             }
 
+            std::cout<< "posModelStDev" << paramModelStdev.getValue() <<std::endl;
+            size_t k= 0;
             if (estimatePosition.getValue() && estimateVelocity.getValue()){
                 modelErrorVariance = EMatrixX::Identity(this->stateSize, this->stateSize);
-
                 for (unsigned index = 0; index < this->positionVariance.size(); index++)
                     modelErrorVariance(index,index) = posModelStDev*posModelStDev  ;
 
                 for (size_t index = this->positionVariance.size(); index < this->reducedStateIndex; index++)
                     modelErrorVariance(index,index) = velModelStDev*velModelStDev  ;
 
-                for (size_t pi = this->reducedStateIndex; pi < this->stateSize; pi++)
-                    modelErrorVariance(pi,pi) = paramModelStDev*paramModelStDev;
+                for (size_t pi = this->reducedStateIndex; pi < this->stateSize; pi++,k++)
+                    modelErrorVariance(pi,pi) = paramModelStDev[k]  *paramModelStDev[k];
             }
 
             if (!estimatePosition.getValue() && estimateVelocity.getValue()){
@@ -245,8 +247,8 @@ public:
                 for (size_t index = 0; index < this->reducedStateIndex; index++)
                     modelErrorVariance(index,index) = velModelStDev*velModelStDev  ;
 
-                for (size_t pi = this->reducedStateIndex; pi < this->stateSize; pi++)
-                    modelErrorVariance(pi,pi) = paramModelStDev*paramModelStDev;
+                for (size_t pi = this->reducedStateIndex; pi < this->stateSize; pi++,k++)
+                    modelErrorVariance(pi,pi) = paramModelStDev[k]  *paramModelStDev[k];
             }
         }
         return this->modelErrorVariance;

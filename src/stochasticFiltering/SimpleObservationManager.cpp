@@ -48,12 +48,14 @@ int SimpleObservationManagerClass = core::RegisterObject("SimpleObservationManag
 
 //        .add< SimpleObservationManager<double, Vec2dTypes, Vec3dTypes> >()
         .add< SimpleObservationManager<double, Vec3dTypes, Vec3dTypes> >()
+        .add< SimpleObservationManager<double, Vec2dTypes, Vec3dTypes> >()
         .add< SimpleObservationManager<double, Vec2dTypes, Rigid3dTypes> >()
         .add< SimpleObservationManager<double, Vec3dTypes, Rigid3dTypes> >()
 ;
 
 //template class SOFA_STOCHASTIC_API SimpleObservationManager<double, Vec2dTypes, Vec3dTypes>;
 template class SOFA_STOCHASTIC_API SimpleObservationManager<double, Vec3dTypes, Vec3dTypes>;
+template class SOFA_STOCHASTIC_API SimpleObservationManager<double, Vec2dTypes, Vec3dTypes>;
 template class SOFA_STOCHASTIC_API SimpleObservationManager<double, Vec2dTypes, Rigid3dTypes>;
 template class SOFA_STOCHASTIC_API SimpleObservationManager<double, Vec3dTypes, Rigid3dTypes>;
 
