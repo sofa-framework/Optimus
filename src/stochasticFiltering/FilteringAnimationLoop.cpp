@@ -119,7 +119,7 @@ void FilteringAnimationLoop::step(const core::ExecParams* _params, SReal /*_dt*/
         preStochasticWrappers[i]->step(_params, actualStep);
 
     // add advanced timer to the system
-    //sofa::helper::AdvancedTimer::stepBegin("KalmanFilterStep");
+    sofa::helper::AdvancedTimer::stepBegin("KalmanFilterPrediction");
     m_timeProfiler.SaveStartTime();
 
     filter->initializeStep(_params, actualStep);
@@ -128,9 +128,10 @@ void FilteringAnimationLoop::step(const core::ExecParams* _params, SReal /*_dt*/
     PredictionEndEvent predEvent ( dt );
     sofa::simulation::PropagateEventVisitor predEVisitor ( _params, &predEvent );
     gnode->execute ( predEVisitor );
+    sofa::helper::AdvancedTimer::stepEnd("KalmanFilterPrediction");
     //TOCTIC("== prediction total");    
 
-
+    sofa::helper::AdvancedTimer::stepBegin("KalmanFilterCorrection");
     filter->computeCorrection();
     CorrectionEndEvent corrEvent ( dt );
     sofa::simulation::PropagateEventVisitor corrEVisitor ( _params, &corrEvent );
@@ -138,7 +139,7 @@ void FilteringAnimationLoop::step(const core::ExecParams* _params, SReal /*_dt*/
     //TOC("== correction total");
 
     // compute signle iteration step
-    //sofa::helper::AdvancedTimer::stepEnd("KalmanFilterStep");
+    sofa::helper::AdvancedTimer::stepEnd("KalmanFilterCorrection");
     m_timeProfiler.SaveEndTime();
 
     /// this should be probably removed:

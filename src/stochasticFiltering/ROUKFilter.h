@@ -38,6 +38,8 @@
 #include <sofa/simulation/AnimateEndEvent.h>
 #include <sofa/simulation/AnimateBeginEvent.h>
 
+#include <sofa/helper/AdvancedTimer.h>
+
 #ifdef Success
 #undef Success // dirty workaround to cope with the (dirtier) X11 define. See http://eigen.tuxfamily.org/bz/show_bug.cgi?id=253
 #endif

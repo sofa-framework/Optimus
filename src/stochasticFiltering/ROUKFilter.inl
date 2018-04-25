@@ -104,20 +104,25 @@ template <class FilterType>
 void ROUKFilter<FilterType>::computePrediction()
 {
     //PRNS("Computing prediction, T= " << this->actualTime);
+    sofa::helper::AdvancedTimer::stepBegin("ROUKFPrediction");
 
     EMatrixX tmpStateVarProj(stateSize, reducedStateSize);
     EMatrixX tmpStateVarProj2(stateSize, reducedStateSize);
 
-    TIC
+    //TIC
+    sofa::helper::AdvancedTimer::stepBegin("Cholseky_prediction");
+
     EVectorX vecX = masterStateWrapper->getState();
     //std::cout << "State: " << vecX.transpose() << std::endl;
     Eigen::LLT<EMatrixX> lltU(matUinv);
     matUinv = lltU.matrixL();
     //TOC("== prediction: Cholesky ");
+    sofa::helper::AdvancedTimer::stepEnd("Cholseky_prediction");
 
     tmpStateVarProj = masterStateWrapper->getStateErrorVarianceProjector();
 
     //TIC
+    sofa::helper::AdvancedTimer::stepBegin("prediction_multiplication");
     if (useBlasToMultiply.getValue())
         blasMultAdd(tmpStateVarProj, matUinv, tmpStateVarProj2, 1.0, 0.0);
     else
@@ -134,12 +139,15 @@ void ROUKFilter<FilterType>::computePrediction()
         blasMultAdd(tmpStateVarProj2, matI, matXi, 1.0, 1.0);
     else
         matXi = matXi + tmpStateVarProj2 * matI;
-    //TOC("== prediction multiplication2 == ");   
+    //TOC("== prediction multiplication2 == ");
+    sofa::helper::AdvancedTimer::stepEnd("prediction_multiplication");
 
     //TIC;
+    sofa::helper::AdvancedTimer::stepBegin("transform_state");
     computePerturbedStates(vecX);   
     //asumEVec("summPred",vecX);
     //TOCTIC("== prediction compute perturbations ==");
+    sofa::helper::AdvancedTimer::stepEnd("transform_state");
 
     /// TODO: add resampling!!!
     if (useBlasToMultiply.getValue())
@@ -152,6 +160,8 @@ void ROUKFilter<FilterType>::computePrediction()
     masterStateWrapper->setStateErrorVarianceProjector(tmpStateVarProj2);
     masterStateWrapper->setState(vecX, this->mechParams);
     masterStateWrapper->writeState(this->getTime());
+
+    sofa::helper::AdvancedTimer::stepEnd("ROUKFPrediction");
 }
 
 
@@ -159,6 +169,7 @@ template <class FilterType>
 void ROUKFilter<FilterType>::computeCorrection()
 {
     //PRNS("Computing correction, T= " << this->actualTime);
+    sofa::helper::AdvancedTimer::stepBegin("ROUKFCorrection");
 
     if (!alphaConstant) {
         PRNE("Version for non-constant alpha not implemented!");
@@ -173,6 +184,7 @@ void ROUKFilter<FilterType>::computeCorrection()
         vecZ.setZero();
         //asumEMat("correction input mat",matXi);
 
+        sofa::helper::AdvancedTimer::stepBegin("Innovation");
 
         for (size_t i = 0; i < sigmaPointsNum; i++) {
             vecXCol = matXi.col(i);
@@ -182,6 +194,7 @@ void ROUKFilter<FilterType>::computeCorrection()
             matZItrans.row(i) = vecZCol;
         }
         //TOCTIC("== an1sx == ");
+        sofa::helper::AdvancedTimer::stepEnd("Innovation");
         //asumEVec("correction accumInnov",vecZ);
 
         EMatrixX matHLtrans(reducedStateSize, observationSize);
@@ -287,6 +300,7 @@ void ROUKFilter<FilterType>::computeCorrection()
         asumEVec("############# final state", state);
         std::cout << "Max = " << maxState << " min = " << minState << std::endl;*/
 
+        sofa::helper::AdvancedTimer::stepEnd("ROUKFCorrection");
     }
 }
 
