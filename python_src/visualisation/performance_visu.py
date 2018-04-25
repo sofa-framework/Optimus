@@ -13,13 +13,14 @@ import pygraphviz as PG
 plt.style.use('classic')
 #print(plt.style.available)
 
+
 only_leaves_performance = 0
 
 def create_tree(node, nodeName, graph, nodesList):
     leafNode = 1
-    if not isinstance(node, float) and len(node) > 0:
+    if not isinstance(node, (float, int)) and len(node) > 0:
         for item in node.keys():
-            if item == "end_time" or item == "start_time":
+            if item == "end_time" or item == "start_time" or item == 'iterations':
                 continue
             ##### fix due to empty nodes in result file #####
             if len(item) < 1:
@@ -39,7 +40,7 @@ def create_tree(node, nodeName, graph, nodesList):
 
 
 def compute_performance(node, nodeName, nodesList, executedTime):
-    if not isinstance(node, float) and len(node) > 0:
+    if not isinstance(node, (float, int)) and len(node) > 0:
         for item in node.keys():
             if item == "start_time" or len(item) < 1:
                 continue
@@ -52,7 +53,7 @@ def compute_performance(node, nodeName, nodesList, executedTime):
 
 
 def compute_full_performance(node, nodeName, nodesList, executedTime):
-    if not isinstance(node, float) and len(node) > 0:
+    if not isinstance(node, (float, int)) and len(node) > 0:
         for item in node.keys():
             if item == "Values":
                 for index in range(0, len(nodesList)):
@@ -60,6 +61,20 @@ def compute_full_performance(node, nodeName, nodesList, executedTime):
                         executedTime[index] = executedTime[index] + float(node['Values']['Total'])
             else:
                 compute_full_performance(node[item], item, nodesList, executedTime)
+
+
+def compute_iterations(node, nodeName, nodesList, iterations):
+    if not isinstance(node, (float, int)) and len(node) > 0:
+        for item in node.keys():
+            if len(item) < 1:
+                continue
+            if item == "iterations":
+                for index in range(0, len(nodesList)):
+                    if nodesList[index] == nodeName:
+                        iterations[index] = int(node['iterations'])
+            else:
+                compute_iterations(node[item], item, nodesList, iterations)
+
 
 
 
@@ -121,12 +136,25 @@ for index in range(1, len(statistics) + 1):
     compute_full_performance(fullNode, 'TOTAL', nodesList, totalTime)
 
 
+### estimate average time
+iterations = numpy.zeros(len(nodesList))
+fullNode = statistics['1']['records']
+compute_iterations(fullNode, 'TOTAL', nodesList, iterations)
+for index in range(0, len(nodesList)):
+    if nodesList[index] == 'TOTAL':
+        iterations[index] = 1
+
+averageTime = numpy.zeros(len(nodesList))
+for index in range(0, len(nodesList)):
+    averageTime[index] = totalTime[index] / iterations[index]
+
+
 
 fig2 = plt.figure(2)
 spl2 = fig2.add_subplot(111)
 amount = numpy.arange(len(executedTime))
 width = 0.5
-rects1 = spl2.bar(amount, executedTime, width, color='r')
+rects1 = spl2.bar(amount, averageTime, width, color='r')
 rects2 = spl2.bar(amount + width, totalTime, width, color='b')
 
 # Label the functions below  bars
@@ -136,9 +164,11 @@ for index in range(0, len(rects1)):
     position = numpy.array((rect.get_x(), -1.05))
     trans_angle = plt.gca().transData.transform_angles(numpy.array((90,)), position.reshape((1, 2)))[0]
     spl2.text(rect.get_x() + rect.get_width() * 1.3, 0, nodesList[index], rotation=trans_angle, fontsize=25, rotation_mode='anchor', ha='center', va='bottom')
+    spl2.text(rect.get_x() + rect.get_width() / 2, 1.05 * height, '%d' % iterations[index], ha='center', va='bottom')
 
 spl2.set_ylabel('general time, ms', fontsize=40)
-spl2.legend((rects1[0], rects2[0]), ('Iteration', 'Total'))
+spl2.grid(color='k', linestyle=':', linewidth=1)
+spl2.legend((rects1[0], rects2[0]), ('Average', 'Total'))
 spl2.set_title('Computational time after ' + str(len(statistics)) + ' iterations')
 
 
