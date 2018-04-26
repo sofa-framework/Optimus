@@ -150,7 +150,8 @@ for generalIndex in range (0, len(folder)):
 
     averageTime = numpy.zeros(len(nodesList))
     for index in range(0, len(nodesList)):
-        averageTime[index] = totalTime[index] / iterations[index]
+        if math.fabs(iterations[index]) > 1e-03:
+            averageTime[index] = totalTime[index] / iterations[index]
 
 
 
@@ -168,7 +169,7 @@ for generalIndex in range (0, len(folder)):
         position = numpy.array((rect.get_x(), -1.05))
         trans_angle = plt.gca().transData.transform_angles(numpy.array((90,)), position.reshape((1, 2)))[0]
         spl2.text(rect.get_x() + rect.get_width() * 1.3, 0, nodesList[index], fontsize=25, rotation=trans_angle, rotation_mode='anchor', ha='center', va='bottom')
-        spl2.text(rect.get_x() + rect.get_width() / 2, 1.05 * height, '%d' % iterations[index], ha='center', va='bottom')
+        spl2.text(rect.get_x() + rect.get_width() / 2, 1.05 * height, '%d' % iterations[index], fontsize=20, color='lime', ha='center', va='bottom')
 
     spl2.set_ylabel('general time, ms', fontsize=40)
     spl2.grid(color='k', linestyle=':', linewidth=1)
