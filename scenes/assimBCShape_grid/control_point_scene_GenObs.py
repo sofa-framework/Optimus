@@ -67,9 +67,9 @@ class liver_controlPoint_GenObs (Sofa.PythonScriptController):
 
         # rootNode/externalImpact
         dotNode = rootNode.createChild('dotNode')
-        self.impactPoint = dotNode.createObject('MechanicalObject', template='Vec3d', name='dot', showObject='true', position='0.143369 0.156781 0.395153')
+        self.impactPoint = dotNode.createObject('MechanicalObject', template='Vec3d', name='dot', showObject='true', position=self.options['impact_parameters']['position'])
         if self.options['obs_generating_parameters']['save_observations']:
-            dotNode.createObject('BoxROI', name='dotBounds', box='0.14 0.15 0.37 0.18 0.17 0.4', doUpdate='0')
+            dotNode.createObject('BoxROI', name='dotBounds', box=self.options['impact_parameters']['boxes_coordinates'], doUpdate='0')
             dotNode.createObject('Monitor', name='toolMonitor', template='Vec3d', showPositions='1', indices='@dotBounds.indices', ExportPositions='1', fileName = self.generalFolderName + '/' + self.options['impact_parameters']['observation_file_name'])
         self.index = 0
         	
@@ -127,7 +127,7 @@ class liver_controlPoint_GenObs (Sofa.PythonScriptController):
             simuNode.createObject('Monitor', name='ObservationMonitor', indices='@observationBox.indices', fileName = self.generalFolderName + '/' + self.options['system_parameters']['observation_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0')
 
         # rootNode/simuNode/attached
-        simuNode.createObject('BoxROI', name='impactBounds', box='0.14 0.15 0.37 0.18 0.17 0.4', doUpdate='0')
+        simuNode.createObject('BoxROI', name='impactBounds', box=self.options['impact_parameters']['boxes_coordinates'], doUpdate='0')
         simuNode.createObject('RestShapeSpringsForceField', name='Springs', stiffness='10000', angularStiffness='1', external_rest_shape='@../dotNode/dot', points='@impactBounds.indices')
 
         return 0
@@ -136,9 +136,9 @@ class liver_controlPoint_GenObs (Sofa.PythonScriptController):
 
     def onEndAnimationStep(self, deltaTime):
 
-        if self.index < 10000:
+        if self.index < self.options['control_parameters']['moving_iterations']:
             position = self.impactPoint.findData('position').value
-            position[0][1] = position[0][1] - 0.00002
+            position[0][1] = position[0][1] - self.options['control_parameters']['moving_distance']
             self.impactPoint.findData('position').value = position
             self.index = self.index + 1
 

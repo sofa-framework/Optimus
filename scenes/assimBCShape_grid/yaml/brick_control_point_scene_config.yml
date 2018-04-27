@@ -8,27 +8,28 @@ general_parameters:
     gravity: "0 0 0"
     density: 200 # total_mass: 0.2
     delta_time: 0.01
+    solver_kind: "Euler"   # options are "Euler", "Newton", and "Symplectic"
     rayleigh_mass: 0.1
     rayleigh_stiffness: 0.1
     boundary_conditions_list:
         - condition_type: "elastic"   # options are "fixed" and "elastic"
-          boxes_coordinates: "-0.005 0.07 -0.005 0.005 0.08 0.005  -0.005 0.07 0.135 0.005 0.08 0.145  -0.005 0.07 0.265 0.005 0.08 0.275"
-          spring_stiffness_values: "150 300 200"
+          boxes_coordinates: "-0.005 0.07 -0.005 0.005 0.08 0.005  -0.005 0.07 0.08 0.005 0.08 0.09  -0.005 0.07 0.135 0.005 0.08 0.145  -0.005 0.07 0.19 0.005 0.08 0.2  -0.005 0.07 0.265 0.005 0.08 0.275"
+          spring_stiffness_values: "150 400 300 100 200"
 
 obs_generating_parameters:
-    object_young_moduli: "150 300 200"
+    object_young_moduli: "150 400 300 100 200"
     save_observations: 1
 
 filtering_parameters:
-    output_directory_prefix: "outCyl2_138_"
-    output_directory_suffix: "_brickControlPoint10observationsForScreenshot"
+    common_directory_prefix: "brick_controlPoint_449_"
+    output_directory_suffix: "_withPreconditioning_std500_40sec"
     output_files_suffix: "test" 
-    optim_params_size: 3
+    optim_params_size: 5
     filter_kind: "ROUKF"   # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
     use_unbiased_variance: "0"
-    initial_stiffness: [150, 300, 200]
-    minimal_stiffness: [0.001, 0.001, 0.001]
-    maximal_stiffness: [100000, 100000, 100000]
+    initial_stiffness: [150, 150, 150, 150, 150]
+    minimal_stiffness: [0.001, 0.001, 0.001, 0.001, 0.001]
+    maximal_stiffness: [100000, 100000, 100000, 100000, 100000]
     initial_standart_deviation: 500
     observation_noise_standart_deviation: 1e-3
     positions_standart_deviation: 1e-3
@@ -38,12 +39,24 @@ filtering_parameters:
     save_state: 1
     save_internal_data: 1
 
+precondition_parameters:
+    usePCG: 1
+    PCGUpdateSteps: 1
+
 impact_parameters:
     observation_file_name: "observations/brickCPimpact"
     position: "0.0 -0.075 0.16"
     boxes_coordinates: "-0.005 -0.08 0.155 0.005 -0.065 0.165"
 
 time_parameters:
-    computation_time_file_name: "computationTime.txt"
+    timer_name: 'filter_computation_statistics'
+    time_statistics_file: "computationTime.txt"
+    time_profiling: 0
+    iterations_interval: 1
+    iteration_amount: 500
+
+control_parameters:
+    moving_iterations: 10000
+    moving_distance: 0.00002
 ...
 
