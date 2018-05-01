@@ -89,6 +89,8 @@ void PreStochasticWrapper::init() {
 }
 
 void PreStochasticWrapper::step(const core::ExecParams* _params, const size_t _step) {
+
+    sofa::helper::AdvancedTimer::stepBegin("PreStochasticWrapper");
     PRNS(" calling step in " << _step);
 
     sofa::helper::AdvancedTimer::stepBegin("AnimationStep");
@@ -170,6 +172,7 @@ void PreStochasticWrapper::step(const core::ExecParams* _params, const size_t _s
     //sofa::helper::AdvancedTimer::end("Animate");
     sofa::helper::AdvancedTimer::stepEnd("AnimationStep");
 
+    sofa::helper::AdvancedTimer::stepEnd("PreStochasticWrapper");
 }
 
 } // namespace stochastic

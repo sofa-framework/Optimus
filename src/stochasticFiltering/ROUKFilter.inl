@@ -498,22 +498,21 @@ void ROUKFilter<FilterType>::computeSimplexSigmaPoints(EMatrixX& sigmaMat) {
 
 template <class FilterType>
 void ROUKFilter<FilterType>::computeStarSigmaPoints(EMatrixX& sigmaMat) {
-    size_t p = stateSize;
-    size_t r = 2 * stateSize + 1;
+    size_t p = reducedStateSize;
+    size_t r = 2 * reducedStateSize + 1;
 
     EMatrixX workingMatrix = EMatrixX::Zero(p, r);
 
-    Type lambda, k, sqrt_vec;
-    k = 2.5 - p; // 2 - p;
-    lambda = this->lambdaScale.getValue() * this->lambdaScale.getValue() * (p + k) - p;
-    //PRNS("lambda: \n" << lambda);
+    Type lambda, sqrt_vec;
+    lambda = this->lambdaScale.getValue();
+    PRNS("lambda: \n" << lambda);
     sqrt_vec = sqrt(p + lambda);
 
     for (size_t j = 0; j < p; j++) {
         workingMatrix(j,j) = sqrt_vec;
     }
     for (size_t j = p; j < 2 * p; j++) {
-        workingMatrix(j - p,j) = -sqrt_vec;
+        workingMatrix(2*p-j-1,j) = -sqrt_vec;
     }
 
     sigmaMat.resize(r,p);
@@ -522,27 +521,26 @@ void ROUKFilter<FilterType>::computeStarSigmaPoints(EMatrixX& sigmaMat) {
 
     vecAlpha.resize(r);
     for (size_t i = 0; i < 2 * p; i++) {
-        vecAlpha(i) = Type(1.0)/Type(2 * (p + lambda));
+        vecAlpha(i) = Type(1.0)/Type(r);
     }
-    // double beta = 2.0;
-    vecAlpha(2 * p) = Type(lambda)/Type(2 * (p + lambda)); // + (1 - this->lambdaScale * this->lambdaScale + beta)
-    alphaConstant = false;
+    vecAlpha(2 * p) = Type(1.0)/Type(r);
+    alphaConstant = true;
 
     vecAlphaVar.resize(r);
     if (this->useUnbiasedVariance.getValue()) {
         for (size_t i = 0; i < 2 * p; i++) {
-            vecAlphaVar(i) = Type(1.0)/Type(2 * (p + lambda) - 1);
+            vecAlphaVar(i) = Type(1.0)/Type(r - 1);
         }
         // double beta = 2.0;
-        vecAlphaVar(2 * p) = Type(lambda)/Type(p + lambda - 1); // + (1 - this->lambdaScale * this->lambdaScale + beta)
+        vecAlphaVar(2 * p) = Type(1.0)/Type(r - 1);
 
         alphaVar = Type(1.0)/Type(r-1);
     } else {
         for (size_t i = 0; i < 2 * p; i++) {
-            vecAlphaVar(i) = Type(1.0)/Type(2 * (p + lambda));
+            vecAlphaVar(i) = Type(1.0)/Type(r);
         }
         // double beta = 2.0;
-        vecAlphaVar(2 * p) = Type(lambda)/Type(p + lambda); // + (1 - this->lambdaScale * this->lambdaScale + beta)
+        vecAlphaVar(2 * p) = Type(1.0)/Type(r);
 
         alphaVar = Type(1.0)/Type(r);
     }
