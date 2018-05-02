@@ -123,7 +123,7 @@ class liver_controlPoint_SDA(Sofa.PythonScriptController):
 
         if (self.options['filtering_parameters']['filter_kind'] == 'ROUKF'):
             self.filter = rootNode.createObject('ROUKFilter', name="ROUKF", verbose="1", useUnbiasedVariance=self.options['filtering_parameters']['use_unbiased_variance'], sigmaTopology=self.options['filtering_parameters']['sigma_points_topology'], lambdaScale=self.lambdaScale)
-        elif (self.options['filtering_parameters']['filtering_parameters']['filter_kind'] == 'UKFSimCorr'):
+        elif (self.options['filtering_parameters']['filter_kind'] == 'UKFSimCorr'):
             self.filter = rootNode.createObject('UKFilterSimCorr', name="UKF", verbose="1", useUnbiasedVariance=self.options['filtering_parameters']['use_unbiased_variance'], sigmaTopology=self.options['filtering_parameters']['sigma_points_topology'], lambdaScale=self.lambdaScale)
         elif (self.options['filtering_parameters']['filter_kind'] == 'UKFClassic'):
             self.filter = rootNode.createObject('UKFilterClassic', name="UKFClas", verbose="1", exportPrefix=self.fullFolderName, useUnbiasedVariance=self.options['filtering_parameters']['use_unbiased_variance'], sigmaTopology=self.options['filtering_parameters']['sigma_points_topology'], lambdaScale=self.lambdaScale)

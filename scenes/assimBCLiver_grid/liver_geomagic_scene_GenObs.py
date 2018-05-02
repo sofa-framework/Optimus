@@ -76,7 +76,8 @@ class liver_geomagicControlPoint_GenObs (Sofa.PythonScriptController):
         else:
             dotNode.createObject('GeomagicDriver', name='GeomagicDevice', deviceName='Default Device', scale='0.02', orientationBase='0 1 -1 -1', positionBase='-0.06 0.08 0.37', orientationTool='0 0 0 1')
         dotNode.createObject('MechanicalObject', template='Rigid', name='GeomagicMO', position='@GeomagicDevice.positionDevice')
-        dotNode.createObject('Sphere', color='0.5 0.5 0.5 1', radius='0.014', template='Rigid')
+        dotNode.createObject('Sphere', color='0.5 0.5 0.5 1', radius='0.14', template='Rigid')
+        dotNode.createObject('ShowSpheres', radius="0.02", color="0 1 1 1", position='@GeomagicMO.position')
         if self.options['obs_generating_parameters']['save_observations']:
             dotNode.createObject('BoxROI', name='geomagicBounds', box='-0.05 -0.05 -0.05 0.52 0.3 0.4', doUpdate='0')
             dotNode.createObject('Monitor', name='toolMonitor', template='Rigid', showPositions='1', indices='@geomagicBounds.indices', ExportPositions='1', fileName = self.generalFolderName + '/observations/geomagic')
@@ -146,7 +147,7 @@ class liver_geomagicControlPoint_GenObs (Sofa.PythonScriptController):
             simuNode.createObject('Monitor', name='ObservationMonitor', indices='@observationBox.indices', fileName = self.generalFolderName + '/' + self.options['system_parameters']['observation_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0')
 
         visuNode = simuNode.createChild('visu')
-        visuNode.createObject('OglModel', name='VisualModel', material="texture Ambient 1 0.5 0.5 0.5 1.0 Diffuse 1 1.0 1.0 1.0 1.0", fileMesh='../../data/liver/liver-smooth.obj')
+        visuNode.createObject('OglModel', name='VisualModel', material="texture Ambient 1 0.5 0.04 0.102 1.0 Diffuse 1 0.71 0.0 0.0 1.0", fileMesh='../../data/liver/liver-smooth.obj')
         visuNode.createObject('BarycentricMapping', name='VisualMapping', input='@../Volume', output='@VisualModel')
 
         return 0

@@ -282,7 +282,7 @@ class liver_geomagicControlPoint_SDA (Sofa.PythonScriptController):
             #print reducedState
 
             self.stateExpValFile = self.fullFolderName + '/' + self.stateFileName
-            print 'Storing to',self.stateExpValFile
+            print 'Storing to', self.stateExpValFile
             f1 = open(self.stateExpValFile, "a")
             f1.write(" ".join(map(lambda x: str(x), state)))
             f1.write('\n')
