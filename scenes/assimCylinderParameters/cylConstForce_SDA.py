@@ -89,7 +89,6 @@ class cylConstForce_SDA(Sofa.PythonScriptController):
         self.iterations = 40    
         print "Create graph called (Python side)\n"
 
-        self.lambdaScale = 1.0
         if self.options['filtering_parameters']['filter_kind'] == 'ROUKF':
             self.estimPosition='1'
             self.estimVelocity='0'          
@@ -120,11 +119,11 @@ class cylConstForce_SDA(Sofa.PythonScriptController):
         rootNode.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1", computationTimeFile=self.fullFolderName + '/' + self.options['time_parameters']['computation_time_file_name'])
 
         if (self.options['filtering_parameters']['filter_kind'] == 'ROUKF'):
-            self.filter = rootNode.createObject('ROUKFilter', name="ROUKF", verbose="1", useUnbiasedVariance=self.options['filtering_parameters']['use_unbiased_variance'], sigmaTopology=self.options['filtering_parameters']['sigma_points_topology'], lambdaScale=self.lambdaScale)        
+            self.filter = rootNode.createObject('ROUKFilter', name="ROUKF", verbose="1", useUnbiasedVariance=self.options['filtering_parameters']['use_unbiased_variance'], sigmaTopology=self.options['filtering_parameters']['sigma_points_topology'], lambdaScale=self.options['filtering_parameters']['sigma_points_scale'])
         elif (self.options['filtering_parameters']['filter_kind'] == 'UKFSimCorr'):
-            self.filter = rootNode.createObject('UKFilterSimCorr', name="UKF", verbose="1", useUnbiasedVariance=self.options['filtering_parameters']['use_unbiased_variance'], sigmaTopology=self.options['filtering_parameters']['sigma_points_topology'], lambdaScale=self.lambdaScale) 
+            self.filter = rootNode.createObject('UKFilterSimCorr', name="UKF", verbose="1", useUnbiasedVariance=self.options['filtering_parameters']['use_unbiased_variance'], sigmaTopology=self.options['filtering_parameters']['sigma_points_topology'], lambdaScale=self.options['filtering_parameters']['sigma_points_scale'])
         elif (self.options['filtering_parameters']['filter_kind'] == 'UKFClassic'):
-            self.filter = rootNode.createObject('UKFilterClassic', name="UKFClas", verbose="1", exportPrefix=self.fullFolderName, useUnbiasedVariance=self.options['filtering_parameters']['use_unbiased_variance'], sigmaTopology=self.options['filtering_parameters']['sigma_points_topology'], lambdaScale=self.lambdaScale)
+            self.filter = rootNode.createObject('UKFilterClassic', name="UKFClas", verbose="1", exportPrefix=self.fullFolderName, useUnbiasedVariance=self.options['filtering_parameters']['use_unbiased_variance'], sigmaTopology=self.options['filtering_parameters']['sigma_points_topology'], lambdaScale=self.options['filtering_parameters']['sigma_points_scale'])
         else:
             print 'Unknown filter type!'
             
