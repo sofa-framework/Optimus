@@ -93,9 +93,13 @@ void SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::bwdInit()
 
 template <class FilterType, class DataTypes1, class DataTypes2>
 bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::hasObservation(double _time) {
+bool hasObservation;
+    if(this->actualTime==0){
+        hasObservation=true;
+    } else{
 
-    bool hasObservation = observationSource->getObservation(this->actualTime, realObservations);
-
+    hasObservation= observationSource->getObservation(this->actualTime, realObservations);
+}
     if (!hasObservation) {
         PRNE("No observation for time " << _time);
         return(false);

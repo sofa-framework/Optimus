@@ -241,8 +241,8 @@ template <class DataTypes>
 void TransformStochasticEngine<DataTypes>::update()
 {
     const defaulttype::Vector3 &s=scale.getValue();
-    const defaulttype::Vector3 &r=defaulttype::Vector3(d_optimParams.getValue()[0],d_optimParams.getValue()[1],d_optimParams.getValue()[2]);
-    const defaulttype::Vector3 &t=defaulttype::Vector3(d_optimParams.getValue()[3],d_optimParams.getValue()[4],d_optimParams.getValue()[5]);       const defaulttype::Quaternion &q=quaternion.getValue();
+//    const defaulttype::Vector3 &r=defaulttype::Vector3(d_optimParams.getValue()[0],d_optimParams.getValue()[1],d_optimParams.getValue()[2]);
+//    const defaulttype::Vector3 &t=defaulttype::Vector3(d_optimParams.getValue()[3],d_optimParams.getValue()[4],d_optimParams.getValue()[5]);       const defaulttype::Quaternion &q=quaternion.getValue();
 
 
     //Create the object responsible for the transformations
@@ -252,18 +252,18 @@ void TransformStochasticEngine<DataTypes>::update()
     //            transformation.add(new Scale<DataTypes>, inv)->configure(s, inv);
 
     //        if (r != defaulttype::Vector3(0,0,0))
-    transformation.add(new Rotation<DataTypes>, inv)->configure(r, inv);
+//    transformation.add(new Rotation<DataTypes>, inv)->configure(r, inv);
 
     ////        if (q != defaulttype::Quaternion(0,0,0,1))
     //            transformation.add(new Rotation<DataTypes>, inv)->configure(q, inv, this);
 
     //        if (t != defaulttype::Vector3(0,0,0))
-    transformation.add(new Translation<DataTypes>, inv)->configure(t, inv);
+//    transformation.add(new Translation<DataTypes>, inv)->configure(t, inv);
 
     ReadAccessor<Data<VecCoord> > inDilate= f_inputX;
     ReadAccessor<Data<SeqTriangles> > triangles = d_triangles;
     ReadAccessor<Data<SeqQuads> > quads = d_quads;
-    Real distance = d_optimParams.getValue()[6];
+    Real distance = d_optimParams.getValue()[0];
 
     cleanDirty();
 
@@ -294,15 +294,15 @@ void TransformStochasticEngine<DataTypes>::update()
     for (int i=0; i<nbp; ++i)
         normals[i].normalize();
 
-    std::for_each(outDilate.begin(), outDilate.end(), transformation);
+//    std::for_each(outDilate.begin(), outDilate.end(), transformation);
 
-    //Deleting operations
-    std::list< TransformOperation<DataTypes>* > operations=transformation.getOperations();
-    while (!operations.empty())
-    {
-        delete operations.back();
-        operations.pop_back();
-    }
+//    //Deleting operations
+//    std::list< TransformOperation<DataTypes>* > operations=transformation.getOperations();
+//    while (!operations.empty())
+//    {
+//        delete operations.back();
+//        operations.pop_back();
+//    }
 
     //Set Output
     outDilate.resize(nbp);

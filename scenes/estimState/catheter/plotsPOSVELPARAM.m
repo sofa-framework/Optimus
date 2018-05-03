@@ -9,11 +9,11 @@ A=[0.0225 0.0225 0.0225  0.0225 0.0225 0.0225];
 
 % cov_00 = dlmread('print/print_cov_0');
 % cov_0=cat(1,A,cov_00);
-cov_10 = dlmread('print/print_cov_0');
+cov_10 = dlmread('print/print_cov_1');
 % cov_1=cat(1,A,cov_10);
-f_0= dlmread('print/filterBall_1');
+s_0= dlmread('print/print_state_vec3');
 % f_1= dlmread('print/FilteredBeam_1');
-s_1= dlmread('print/print_state_0');
+s_1= dlmread('print/print_state_1');
 % s_0= dlmread('print/print_state_0');
 ms=size(cov_10,1);
 
@@ -171,13 +171,14 @@ ms=size(cov_10,1);
 %     'EdgeColor','none');
 %% PRINTING DISTANCE FILTER GROUND TRUTH 
 
-% F_0=s_1(:,1:3);
-F_0=f_0(:,2:4)
+F_1=s_1(:,1:3);
+F_0=s_0(:,1:3);
 % F_1=f_1(1:ms,2:4);
 % F_0=s_0(:,1:3);
 % F_5=f_5(:,2:4);
 G=g(1:size(F_0,1),2:4);
-
+% F_1=F_1(1:size(10000,1),:);
+% F_0=F_0(1:size(10000,1),:);
 
 
 figure1=figure('NumberTitle', 'off', 'Name', 'Distance Test 3 ')
@@ -205,9 +206,12 @@ fill3(x, y, z,[0.992156863212585 0.917647063732147 0.796078443527222]);
 plot3(0,0,0, 'ko')
 % plot3(F_1(:,3),F_1(:,1),F_1(:,2), 'Linewidth',2,'MarkerSize',1,'Color',[0.200000002980232 0.200000002980232 1])
 % hold on
-plot3(G(:,3),G(:,1),G(:,2),'-g','LineWidth',1.1)
+plot3(G(:,3),G(:,1),G(:,2),'-g','LineWidth',1.1,'Color',[1 0 0])
 hold on
-plot3(F_0(:,3),F_0(:,1),F_0(:,2), 'Linewidth',1.1, 'MarkerSize',1,'Color',[0.635294139385223 0.0784313753247261 0.184313729405403])
+plot3(F_0(:,3),F_0(:,1),F_0(:,2), 'Linewidth',1.1, 'MarkerSize',1,'Color',[0 1 0])
+hold on
+plot3(F_1(:,3),F_1(:,1),F_1(:,2), 'Linewidth',1.1, 'MarkerSize',1,'Color',[0.0 0.0 1])
+
 xlabel('z') % x-axis label
 ylabel('x') % y-axis label
 zlabel('y')

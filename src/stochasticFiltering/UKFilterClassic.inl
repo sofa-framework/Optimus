@@ -297,10 +297,10 @@ void UKFilterClassic<FilterType>::bwdInit() {
     for (size_t i = 0; i < (size_t)stateCovar.rows(); i++) {
         diagStateCov(i)=stateCovar(i,i);
     }
-    PRNS(" INIT COVARIANCE DIAGONAL P(n+1)+n:  \n" << diagStateCov.transpose());
+//    PRNS(" INIT COVARIANCE DIAGONAL P(n+1)+n:  \n" << diagStateCov.transpose());
 
     modelCovar = masterStateWrapper->getModelErrorVariance();
-    PRNS(" INIT COVARIANCE DIAGONAL P(n+1)+n:  \n" << modelCovar);
+//    PRNS(" INIT COVARIANCE DIAGONAL P(n+1)+n:  \n" << modelCovar);
 
     stateExp = masterStateWrapper->getState();
 
@@ -511,4 +511,3 @@ matPzB = alphaVar * matPzB + obsCovar;*/
     }
     stateCovar=alphaVar*stateCovar;
 }*/
-

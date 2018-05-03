@@ -7,15 +7,15 @@
 <RequiredPlugin pluginName="NeedleConstraintPlugin" />
 <RequiredPlugin pluginName="RegistrationConstraintPlugin" />
 
-    <VisualStyle displayFlags=" showCollisionModels showForceFields" />
+    <VisualStyle displayFlags=" showCollisionModels hideForceFields" />
     <BackgroundSetting color="1 1 1 1" />
     <FreeMotionAnimationLoop />
     <GenericConstraintSolver maxIt="1000" tolerance="1e-10" printLog="false" />
 
-<!--    <OpenCVProjectiveCalibrator name="opengl" streamer="video" mode="5" listening="false" drawzNear="0.001" drawzFar="3" />
+    <OpenCVProjectiveCalibrator name="opengl" streamer="video" mode="5" listening="false" drawzNear="0.001" drawzFar="3" />
     <OpenCVOpenGlStreamer name="video" src="@opengl" />
-    <OpenCVScheduler name="scheduler" frequency="0" />-->
-    <Node name="ball">
+    <OpenCVScheduler name="scheduler" frequency="0" />
+<!--    <Node name="ball">
             <EulerImplicitSolver />s
             <SparseLUSolver />
             <MechanicalObject template="Vec3d" name="MO" position="0 0 0    " velocity="0.05 -0.2 0.01 "  showObject="0"/>
@@ -31,10 +31,40 @@
             <LinearSolverConstraintCorrection />  
             
     </Node>  
+    -->
+    
+   
+    <Node name="ball">
+            <EulerImplicitSolver rayleighMass="0.1" rayleighStiffness="0.1" vdamping="10" />
+            <SparseLUSolver />
+            <EdgeSetTopologyContainer  name="Container"
+            position="   0     0  0     -0.1  0  0   -0.15  0  0   "      
+            edges=  "0 1   1 2 "/>
+            <Transform3dToRigid name="transform"/>
+            <MechanicalObject name="MO" position="@transform.out_position" template="Rigid"  showObject="false" showObjectScale="0.01" />
+            <UniformMass totalmass="0.01" />
+            <BeamFEMForceField name="FEM" radius="0.0005" youngModulus="10e6" poissonRatio="0.3"/>
+<!--              <BoxROI name="box_roi" box="-0.004 -0.012 -0.012 0.006 0.012 0.012" drawBoxes="1" position="@MO.position"/> -->
+<!--             <ConstantForceField indices="@box_roi.indices" forces="0.0001 0 -0.00008 0 0 0" />  -->
+            <ShowSpheres  radius="0.001"  color="0 1 0 1" position="@MO.position" />
+
+            <Node name="CollisionBall">
+                    <EdgeSetTopologyContainer src="@../Container"   position="@../MO.position" />
+                    <MechanicalObject name="ms"   />
+                    <EdgeGeometry name="edge"/>
+                    <PointGeometry name ="point"/>
+                    <Line />
+                    <BoxROI name="boxA" box="-0.02 -0.05 -0.1 0.6 0.13 0.31" drawBoxes="1" drawSize="1" position="@ms.position"/>
+                    <BeamLinearMapping localCoord="false" />
+                
+            </Node>
+
+            <LinearSolverConstraintCorrection />  
+    </Node>   
 
     <Node name="Vessel" >
             <VisualStyle displayFlags="showWireframe" /> 
-            <MeshObjLoader name="surface" filename="mesh/vessel.obj"  />
+            <MeshObjLoader name="surface" filename="mesh/vesselScaled.obj"  />
             <TransformEngine name="transform" input_position="@surface.position" optimParams="0 0 0 0 0 0"  />
             <Mesh src="@surface" />
             <TriangleSetTopologyContainer name="Container" src="@surface" />
@@ -43,20 +73,20 @@
             <OglModel name="Visual" color="1 0 0 1" src="@surface" position="@transform.output_position"/>
     </Node>
         
-    <NeedleContactConstraint needle="ball/CollisionBall/point" surface="Vessel/triangle" friction="0"/>         
-    
-    
+    <NeedleContactConstraint needle="ball/CollisionBall/point" surface="Vessel/triangle" friction="0.1" tipIndex="@ball/CollisionBall/boxA.indices" draw="false" draw_normal_scale="0.01"/>         
+                <EntryConstraint3dof needle="ball/CollisionBall/edge" position="-0.016    -0.001   -0.001" force="-0.001 " draw_normal_scale="0.1"/> 
+
     
     <Node name="noisyObs"> 		
-        <MechanicalObject template="Vec3d" name="MO" position="@../ball/MO.position"  showObject="0"/>	
+        <MechanicalObject template="Vec3d" name="MO" position="@../ball/CollisionBall/ms.position"  showObject="0"/>	
         <AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@MO.position" noiseOrthogonalVariance="1e-4" noisePrincipalVariance="1e-4" noisePrincipalDirection="1 1 1"/>
-        <ShowSpheres  radius="0.01"  color="1 0 0 1" position="@NoiseEngine.outputPositions"    />
+<!--         <ShowSpheres  radius="0.001"  color="1 0 0 1" position="@NoiseEngine.outputPositions"    /> -->
     </Node>
     
     
     <Node name="WRITEnoisy3Dobs"> 		
         <MechanicalObject template="Vec3d" name="MO" position="@../noisyObs/NoiseEngine.outputPositions" />	
-        <StochasticPositionHandler filename="Obs3D_LMballVessel_x.txt" observations="true" indices="0  " />
+        <StochasticPositionHandler filename="Obs3D_LMballVessel_x.txt" observations="true" indices="0 1 2" />
     </Node>
 
     <Node name="WRITEGroundTruthCatheter"> 
@@ -77,10 +107,10 @@
     </Node>
 
     
-<!--        <Node name="ImageProcessor" >
+    <Node name="ImageProcessor" >
         <OpenCVImageProcessor name="processor" streamer="../video" />
         <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObs/NoiseEngine.outputPositions" projectionMatrix="@../opengl.projectionMatrix"/>
         <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
         <StochasticPositionHandler filename="Obs2D_LMballVessel_x.txt" observations="true" indices="0 "/>
-    </Node>-->
+    </Node>
 </Node>

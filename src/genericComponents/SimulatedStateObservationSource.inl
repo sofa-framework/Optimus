@@ -30,11 +30,10 @@
 #include <sofa/core/objectmodel/Event.h>
 #include <sofa/core/objectmodel/BaseObject.h>
 #include <sofa/core/objectmodel/Data.h>
-
-#include <string>
 #include <iterator>
-#include <sstream>
-
+#include <fstream>
+#include <iostream>
+#include <string>
 using namespace sofa::core::objectmodel;
 
 namespace sofa
@@ -73,8 +72,8 @@ void SimulatedStateObservationSource<DataTypes>::init()
 {
     if(d_asynObs.getValue())
         std::cout << "[SimulatedStateObservationSource] Asynchronous Observations Used "<<std::endl;
-     helper::ReadAccessor<Data<VecCoord> > tracObs = m_trackedObservations;
 
+     helper::ReadAccessor<Data<VecCoord> > tracObs = m_trackedObservations;
     /// take observations from another component (tracking)
     if (tracObs.size() > 0) {
         nParticles = tracObs.size();
@@ -88,7 +87,9 @@ void SimulatedStateObservationSource<DataTypes>::init()
         } else {
             parseMonitorFile(posFile);
         }
-        m_actualObservation.setValue(positions[0]);  // OK, since there is at least the dummy observation
+
+        if (positions.empty()) m_actualObservation.setValue(VecCoord());  // OK, since there is at least the dummy observation
+        else m_actualObservation.setValue(positions[0]);  // OK, since there is at least the dummy observation
     }
 
     if (m_controllerMode.getValue())
@@ -106,7 +107,6 @@ void SimulatedStateObservationSource<DataTypes>::parseAsynMonitorFile(std::strin
 #endif
 
     std::ifstream file(_name.c_str());
-
     nParticles = 0;
     nObservations = 0;
     initTime = -1.0;
@@ -267,8 +267,8 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _
             //std::cout << "###### adding position to obsTable at " << lineTime << std::endl;
             observationTable[lineTime] = position;
             nObservations++;
-
             //std::cout << " positions size: " << positions.size() << std::endl;
+
 
             getline(file, line);
             nLine++;
