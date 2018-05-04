@@ -13,8 +13,15 @@ import pygraphviz as PG
 plt.style.use('classic')
 #print(plt.style.available)
 
+
+
+
+######### configuration for visualisation
 inputList = ['cyl3gravity_Euler1/ROUKF_obs33_0_proj2']
 #inputList.append('cyl3gravity_Euler1/ROUKF_obs33_1_proj2')
+######### end of configuration for visualisation
+
+
 
 
 only_leaves_performance = 0

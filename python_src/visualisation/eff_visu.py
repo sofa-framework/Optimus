@@ -11,9 +11,17 @@ from itertools import repeat
 plt.style.use('classic')
 #print(plt.style.available)
 
+
+
+
+######### configuration for visualisation
 inputList = ['outCyl3_770_UKFSimCorr_cyl3ForceField770Verification_init2000']
 inputList.append('outCyl3_770_ROUKF_cyl3ForceField770Verification_init2000')
 #inputList.append('outCyl2_385_UKFClassic_forceField385Verification_init2000')
+######### end of configuration for visualisation
+
+
+
 
 def load_matrix_from_file(f):
     if type(f) == types.StringType:
