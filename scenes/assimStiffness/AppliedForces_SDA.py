@@ -77,6 +77,18 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             os.system('rm '+self.stateVarFile)
             os.system('rm '+self.stateCovarFile)
 
+            # create file with parameters and additional information
+            self.opt['visual_parameters'] = {}
+            self.opt['visual_parameters']['state_file_name'] = self.stateExpFile[self.stateExpFile.rfind('/') + 1:]
+            self.opt['visual_parameters']['variance_file_name'] = self.stateVarFile[self.stateVarFile.rfind('/') + 1:]
+            self.opt['visual_parameters']['covariance_file_name'] = self.stateCovarFile[self.stateCovarFile.rfind('/') + 1:]
+            self.informationFileName = self.estFolder + '/daconfig.yml'
+            with open(self.informationFileName, 'w') as stream:
+                try:
+                    yaml.dump(self.opt, stream, default_flow_style=False)
+                except yaml.YAMLError as exc:
+                    print(exc)
+
         if self.saveGeo:
             self.geoFolder = self.estFolder + '/VTK'
             os.system('mkdir -p '+self.geoFolder)
