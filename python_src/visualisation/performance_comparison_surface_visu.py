@@ -127,19 +127,6 @@ for generalIndex in range (0, len(inputList)):
         fullNode = statistics[str(index)]['TOTAL']
         compute_full_performance(fullNode, 'TOTAL', nodesList, totalTime)
 
-    #### estimate average time
-    #iterations = numpy.zeros(len(nodesList))
-    #fullNode = statistics['1']['records']
-    #compute_iterations(fullNode, 'TOTAL', nodesList, iterations)
-    #for index in range(0, len(nodesList)):
-    #    if nodesList[index] == 'TOTAL':
-    #        iterations[index] = 1
-
-    #averageTime = numpy.zeros(len(nodesList))
-    #for index in range(0, len(nodesList)):
-    #    if math.fabs(iterations[index]) > 1e-03:
-    #        averageTime[index] = totalTime[index] / iterations[index]
-
     for index in range(0, len(nodesList)):
         if nodesList[index] == 'TOTAL':
             surfaceDraw[yIndex][xIndex] = totalTime[index]
