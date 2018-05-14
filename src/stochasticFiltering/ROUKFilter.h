@@ -167,6 +167,8 @@ protected:
     EMatrixX matItrans, matI;
     EMatrixX matDv;
     EMatrixX matXi;
+    EMatrixX M_trans, U, Umod;
+    EMatrixX workingMatrixRR, workingMatrixRN;
 
     Type alpha, alphaVar;
 
@@ -179,6 +181,12 @@ protected:
     void computeSimplexSigmaPoints(EMatrixX& sigmaMat);
     void computeStarSigmaPoints(EMatrixX& sigmaMat);
     void blasMultAdd(EMatrixX& _a, EMatrixX& _b, EMatrixX& _c, Type _alpha, Type _beta);
+    void blasMultAdd(char _trans1, char _trans2, EMatrixX& _a, EMatrixX& _b, EMatrixX& _c, Type _alpha, Type _beta);
+
+    void computeSimplexPrediction();
+    void computeStarPrediction();
+    void computeSimplexCorrection();
+    void computeStarCorrection();
 
 public:
     Data<std::string> observationErrorVarianceType;

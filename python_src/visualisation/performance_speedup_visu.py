@@ -143,6 +143,13 @@ for index in range(0, len(modifiedStateSize)):
     modifiedStateSize[index] = generalStateSize[2 * index]
 
 
+# get filter kind
+filterKind = 'ROUKF'
+if 'filter' in options:
+    if 'kind' in options['filter']:
+        filterKind = options['filter']['kind']
+else:
+    filterKind = options['filtering_parameters']['filter_kind']
 
 
 # draw speedup results
@@ -154,7 +161,7 @@ spl1.scatter(verticesAmount, speedup, color='b', marker='x', s=40)
 spl1.set_xlabel('Amount of object vertices', fontsize=40)
 spl1.set_ylabel('Speedup', fontsize=40)
 spl1.grid(color='k', linestyle=':', linewidth=1)
-spl1.set_title('Speedup dependent on object vertices')
+spl1.set_title('Speedup dependent on object vertices for ' + filterKind + ' filter')
 
 
 
@@ -164,7 +171,7 @@ spl2.scatter(finiteElementsAmount, speedup, color='r', marker='x', s=40)
 spl2.set_xlabel('Amount of finite elements', fontsize=40)
 spl2.set_ylabel('Speedup', fontsize=40)
 spl2.grid(color='k', linestyle=':', linewidth=1)
-spl2.set_title('Speedup dependent on finite elements')
+spl2.set_title('Speedup dependent on finite elements for ' + filterKind + ' filter')
 
 
 
@@ -174,7 +181,7 @@ spl3.scatter(modifiedStateSize, speedup, color='g', marker='x', s=40)
 spl3.set_xlabel('State size', fontsize=40)
 spl3.set_ylabel('Speedup', fontsize=40)
 spl3.grid(color='k', linestyle=':', linewidth=1)
-spl3.set_title('Speedup dependent on system state size')
+spl3.set_title('Speedup dependent on system state size for ' + filterKind + ' filter')
 
 plt.show()
 
