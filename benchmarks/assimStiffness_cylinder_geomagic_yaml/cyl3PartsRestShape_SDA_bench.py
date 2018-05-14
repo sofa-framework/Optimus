@@ -50,9 +50,10 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
         self.cameraReactivated = False
         self.rootNode = rootNode
 
+        self.generalFolderName = '.'
         self.folderName = 'roukf_testing'
         folderCreator = FolderHandler()
-        folderCreator.createFolder(self.folderName, archiveResults=0)
+        folderCreator.createFolder(self.generalFolderName, self.folderName, archiveResults=0)
 
         # create file with parameters and additional information
         self.options['visual_parameters'] = {}
