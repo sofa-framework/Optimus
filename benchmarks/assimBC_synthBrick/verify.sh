@@ -11,11 +11,11 @@ rm -rf roukf_testing
 mkdir -p roukf_testing
 
 echo "Generating observations..."
-runSofa -g batch -n 301 assimBC_synthBrick_GenObs.py &> genObsOut
+$SOFA_EXEC -g batch -n 301 assimBC_synthBrick_GenObs.py &> genObsOut
 echo "... done"
 
 echo "Running data assimilation..."
-runSofa -g batch -n 300 assimBC_synthBrick_ROUKF.py &> sdaOut
+$SOFA_EXEC -g batch -n 300 assimBC_synthBrick_ROUKF.py &> sdaOut
 echo "... done"
 
 echo "Comparing state w.r.t. benchmark:"
