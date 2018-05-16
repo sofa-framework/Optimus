@@ -96,6 +96,7 @@ cd $BUILD_DIRECTORY
 
 
 ### verify benchmark tests
+echo "Execute benchmark tests"
 OPTIMUS_BNECHMARK_TESTS_DIRECTORY=$GENERAL_DIRECTORY/Optimus/benchmarks
 TEST_FOLDERS=$OPTIMUS_BNECHMARK_TESTS_DIRECTORY/*
 for FOLDER in $TEST_FOLDERS
@@ -106,6 +107,7 @@ do
         $FOLDER/verify.sh $BUILD_DIRECTORY/bin/runSofa >> $GENERAL_DIRECTORY/log.txt
     fi
 done
+echo "All tests have been executed"
 
 ### send a notification about the fact that process is finished
 if [ 1 ]
