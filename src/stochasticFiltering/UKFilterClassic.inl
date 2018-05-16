@@ -62,6 +62,10 @@ void UKFilterClassic<FilterType>::computePrediction()
             matXi.col(i) = stateExp + matPsqrt * matI.row(i).transpose();
         }
         /// Compute the state
+
+        genMatXi=matXi.transpose();
+
+//        PRNS("gen\n" << matXi)
         computePerturbedStates();
 
         /// compute the expected value
@@ -267,7 +271,7 @@ void UKFilterClassic<FilterType>::init() {
         }
     }
 
-    m_omega= 1e-5;
+    m_omega= ((double) rand() / (RAND_MAX));
 
 
 }
@@ -297,10 +301,10 @@ void UKFilterClassic<FilterType>::bwdInit() {
     for (size_t i = 0; i < (size_t)stateCovar.rows(); i++) {
         diagStateCov(i)=stateCovar(i,i);
     }
-//    PRNS(" INIT COVARIANCE DIAGONAL P(n+1)+n:  \n" << diagStateCov.transpose());
+//        PRNS(" INIT COVARIANCE DIAGONAL P(n+1)+n:  \n" << stateCovar);
 
     modelCovar = masterStateWrapper->getModelErrorVariance();
-//    PRNS(" INIT COVARIANCE DIAGONAL P(n+1)+n:  \n" << modelCovar);
+    //    PRNS(" INIT COVARIANCE DIAGONAL P(n+1)+n:  \n" << modelCovar);
 
     stateExp = masterStateWrapper->getState();
 
@@ -318,8 +322,15 @@ void UKFilterClassic<FilterType>::bwdInit() {
     matXi.resize(stateSize, sigmaPointsNum);
     matXi.setZero();
 
+    genMatXi.resize( sigmaPointsNum,stateSize);
+    genMatXi.setZero();
+
     /// initialise state observation mapping for sigma points
     m_sigmaPointObservationIndexes.resize(sigmaPointsNum);
+
+
+    collPos.resize(3*stateSize*(1.0/12));
+    collPos.setZero();
 }
 
 template <class FilterType>
@@ -457,17 +468,32 @@ template <class FilterType>
 void UKFilterClassic<FilterType>::draw(const core::visual::VisualParams* vparams ) {
     if(d_draw.getValue()){
         if (vparams->displayFlags().getShowVisualModels()) {
-            std::vector<sofa::defaulttype::Vec3d> predpoints;
-            predpoints.resize(predObsExp.rows()*(1.0/3));
-
-            for (unsigned i =0;  i < predpoints.size(); i++){
-                for(unsigned j =0;  j < 3; j++){
-                    predpoints[i][j]=predObsExp(3*i+j) ;
-                }
-                vparams->drawTool()->drawSpheres(predpoints,  d_radius_draw.getValue(), sofa::defaulttype::Vec<4, float>(1.0f,0.0f,1.0f,1.0f));
+            std::vector<std::vector<sofa::defaulttype::Vec3d>> predpoints;
+            predpoints.resize( sigmaPointsNum );
+            for(  std::vector<std::vector<sofa::defaulttype::Vec3d>>::iterator it = predpoints.begin(); it != predpoints.end(); ++it)
+            {
+                it->resize( collPos.rows()*(1.0/3) );
             }
+
+            for(unsigned i=0; i < sigmaPointsNum; i++){
+                EVectorX coll = genMatXi.row(i);
+
+                for (unsigned j=0; j < collPos.rows()*(1.0/3); j++){
+                    for (unsigned k=0; k < 3; k++){
+
+                        predpoints[i][j][k]=coll(6*j+k);
+                    }
+                }
+
+                vparams->drawTool()->drawSpheres(predpoints[i],  d_radius_draw.getValue(), sofa::defaulttype::Vec<4, float>(m_omega,0.0f,0.0f,1.0f));
+                vparams->drawTool()->drawLineStrip(predpoints[i],  d_radius_draw.getValue(), sofa::defaulttype::Vec<4, float>(m_omega,0.0f,0.0f,1.0f));
+            }
+
         }
     }
+
+
+
 }
 
 } // stochastic

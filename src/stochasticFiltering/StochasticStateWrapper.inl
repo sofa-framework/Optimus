@@ -239,22 +239,22 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
     if (d_positionStdev.getValue().size() != posDim) {
         PRNS("[WARNING] Bad initial value of Position Initial Covariance. Resized to 3 values for Vec3 mstate, or 6 values for Rigid mstate");
         for (size_t i=0 ;i<posDim;i++)
-           posStdev[i]=d_positionStdev.getValue()[0];
+            posStdev[i]=d_positionStdev.getValue()[0];
 
-       }else{
+    }else{
         for (size_t i=0 ;i<posDim;i++)
-           posStdev[i]=d_positionStdev.getValue()[i];
-       }
+            posStdev[i]=d_positionStdev.getValue()[i];
+    }
 
     if( d_velocityStdev.getValue().size() != velDim ){
         PRNS("[WARNING] Bad initial value of Velocity Initial Covariance. Resized 3 values for Vec3 mstate, or 6 values for Rigid mstate");
         for (size_t i=0 ;i<velDim;i++)
-           velStdev[i]=d_velocityStdev.getValue()[0];
+            velStdev[i]=d_velocityStdev.getValue()[0];
 
-       }else{
+    }else{
         for (size_t i=0 ;i<posDim;i++)
-           velStdev[i]=d_velocityStdev.getValue()[i];
-       }
+            velStdev[i]=d_velocityStdev.getValue()[i];
+    }
     if (estimatePosition.getValue()) {
         for (size_t i = 0; i < freeNodes.size(); i++) {
             std::pair<size_t, size_t> pr(freeNodes[i], vsi);
@@ -285,7 +285,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
         this->velocityVariance.resize(velDim * velocityPairs.size());
         for (size_t i = 0; i < velocityPairs.size(); i++ ){
             for (size_t j = 0; j < velDim; j ++)
-            this->velocityVariance[i*velDim+j] = velStdev[j%velDim] * velStdev[j%velDim];
+                this->velocityVariance[i*velDim+j] = velStdev[j%velDim] * velStdev[j%velDim];
         }
     }
 
@@ -309,6 +309,13 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
 
     this->state.resize(this->stateSize);
     copyStateSofa2Filter();
+
+    color.resize(this->stateSize+1); //TRUE IF USING SIMPLEX SIGMA PTS
+    colorB.resize(color.size());
+    for(size_t i =0; i < color.size(); i++){
+        color[i]= ((double) rand() / (RAND_MAX)) ;
+        colorB[i]= ((double) rand() / (RAND_MAX)) ;
+    }
 }
 
 
@@ -376,10 +383,8 @@ void StochasticStateWrapper<Rigid3dTypes, double>::copyStateFilter2Sofa(const co
                 euler_ori[k]=EulerPos[i][j];
             }
 
-            q_ori=defaulttype::Quat::createQuaterFromEuler(euler_ori*(M_PI/180.0));
+            q_ori=defaulttype::Quat::createQuaterFromEuler(euler_ori);
             q_ori.normalize();
-//            std::cout<< " HERE look at quat: "<< q_ori <<std::endl;
-
             pos[i].getOrientation()= q_ori;
             pos[i].getCenter() =eu_pos;
             q_ori.clear();
@@ -426,8 +431,10 @@ void StochasticStateWrapper<Rigid3dTypes, double>::copyStateSofa2Filter() {
     for(size_t i= 0; i < pos.size(); i++)    {
         q_ori.clear();
         q_ori=pos[i].getOrientation();
+//        q_ori.normalize();
         eu_pos=pos[i].getCenter();
-        euler_ori=q_ori.quatToRotationVector();
+        euler_ori=q_ori.toEulerVector();
+//        euler_ori.normalize();
 
         for(size_t j=0; j <3; j++){
             EulerPos[i][j]=eu_pos[j];
@@ -444,8 +451,6 @@ void StochasticStateWrapper<Rigid3dTypes, double>::copyStateSofa2Filter() {
             for (size_t d = 0; d < posDim; d++) {
                 this->state(it->second + d) = EulerPos[it->first][d];
             }
-        //        m_internalCopy.copyStateToFilter(positionPairs,pos.ref());
-
     }
 
     if(estimateVelocity.getValue()){
@@ -469,7 +474,6 @@ void StochasticStateWrapper<DataTypes, FilterType>::copyStateFilter2Sofa(const c
         for (helper::vector<std::pair<size_t, size_t> >::iterator it = positionPairs.begin(); it != positionPairs.end(); it++) {
             for (size_t d = 0; d < posDim; d++) {
                 pos[it->first][d] = this->state(it->second + d);
-                //    m_internalCopy.copyFilterToSofa(positionPairs,pos.wref());
             }
         }
     }
@@ -510,7 +514,6 @@ void StochasticStateWrapper<DataTypes, FilterType>::copyStateSofa2Filter() {
             for (size_t d = 0; d < posDim; d++) {
                 this->state(it->second + d) = pos[it->first][d];
             }
-        //        m_internalCopy.copyStateToFilter(positionPairs,pos.ref());
 
     }
 
@@ -637,13 +640,25 @@ void StochasticStateWrapper<DataTypes, FilterType>::transformState(EVectorX &_ve
 
     reinitMState(_mparams);
     this->state = _vecX;
+//    std::cout<<"\nNEW SIGMA POINT: "<< *_stateID <<"\n"<<std::endl;
 
     copyStateFilter2Sofa(_mparams);
+    typename MechanicalState::ReadVecCoord pos1 = mechanicalState->readPositions();
+    typename MechanicalState::ReadVecDeriv vel1 = mechanicalState->readVelocities();
+
+//    std::cout<<"beforeStep:\n "<< pos1 << std::endl;
+//    std::cout<<"beforeStepVel:\n "<< vel1 << std::endl;
 
     if (this->d_langrangeMultipliers.getValue())
         computeSofaStepWithLM(_mparams);
     else
         computeSofaStep(_mparams, false);
+
+    typename MechanicalState::ReadVecCoord pos2 = mechanicalState->readPositions();
+    typename MechanicalState::ReadVecDeriv vel2 = mechanicalState->readVelocities();
+
+//    std::cout<<"afterStep:\n "<< pos2 << std::endl;
+//    std::cout<<"afterStepVel:\n "<< vel2 << std::endl;
 
     copyStateSofa2Filter();
     _vecX = this->state;
@@ -676,6 +691,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::transformState(EVectorX &_ve
             *_stateID = sigmaStatePos.size() - 1;
         }
     }
+
 
     if ((_stateID == nullptr) || (*_stateID >= 0)) {
         this->state = savedState;
@@ -716,7 +732,10 @@ void StochasticStateWrapper<DataTypes, FilterType>::draw(const core::visual::Vis
                     points[j][1]=pts[j][1];
                     points[j][2]=pts[j][2];
                 }
-                vparams->drawTool()->drawSpheres(points, d_radius_draw.getValue(), sofa::defaulttype::Vec<4, float>(0.0f,0.5f,0.3f,1.0f));
+
+                vparams->drawTool()->drawSpheres(points, d_radius_draw.getValue(), sofa::defaulttype::Vec<4, float>(color[i],0.8f,colorB[i],1.0f));
+                vparams->drawTool()->drawLineStrip(points,d_radius_draw.getValue(),sofa::defaulttype::Vec<4, float>(color[i],0.8f,colorB[i],1.0f));
+
             }
         }
     }

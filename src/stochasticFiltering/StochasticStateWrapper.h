@@ -127,6 +127,7 @@ protected:
     helper::vector<VecCoord> sigmaStatePos;
     helper::vector<VecDeriv> sigmaStateVel;
     helper::vector<VecCoord> sigmaMappedStatePos;
+    helper::vector<double> color,colorB;
 
     bool valid;
     helper::vector<size_t> fixedNodes, freeNodes;

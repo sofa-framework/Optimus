@@ -36,16 +36,16 @@ namespace stochastic
 {
 
 extern "C"{
-    // product C= alphaA.B + betaC
-   void dgemm_(char* TRANSA, char* TRANSB, const int* M,
-               const int* N, const int* K, double* alpha, double* A,
-               const int* LDA, double* B, const int* LDB, double* beta,
-               double* C, const int* LDC);
-    // product Y= alphaA.X + betaY
-   void dgemv_(char* TRANS, const int* M, const int* N,
-               double* alpha, double* A, const int* LDA, double* X,
-               const int* INCX, double* beta, double* C, const int* INCY);
-   }
+// product C= alphaA.B + betaC
+void dgemm_(char* TRANSA, char* TRANSB, const int* M,
+            const int* N, const int* K, double* alpha, double* A,
+            const int* LDA, double* B, const int* LDB, double* beta,
+            double* C, const int* LDC);
+// product Y= alphaA.X + betaY
+void dgemv_(char* TRANS, const int* M, const int* N,
+            double* alpha, double* A, const int* LDA, double* X,
+            const int* INCX, double* beta, double* C, const int* INCY);
+}
 
 
 using namespace defaulttype;
@@ -62,8 +62,8 @@ public:
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, Eigen::Dynamic> EMatrixX;
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, 1> EVectorX;
 
-UKFilterClassic();
-~UKFilterClassic() {}
+    UKFilterClassic();
+    ~UKFilterClassic() {}
 
 protected:
     StochasticStateWrapperBaseT<FilterType>* masterStateWrapper;
@@ -80,7 +80,8 @@ protected:
     size_t sigmaPointsNum;
     bool alphaConstant;
     std::vector<int> m_sigmaPointObservationIndexes;
-helper::vector<double> d;
+    helper::vector<double> d;
+EVectorX collPos;
 
     EVectorX vecAlpha, vecAlphaVar;
     EVectorX stateExp, predObsExp;
@@ -134,7 +135,7 @@ public:
 
     virtual void computePerturbedStates();
 
-    virtual void computePrediction(); // Compute perturbed state included in computeprediction    
+    virtual void computePrediction(); // Compute perturbed state included in computeprediction
     virtual void computeCorrection();
 
     virtual void initializeStep(const core::ExecParams* _params, const size_t _step);
