@@ -135,7 +135,7 @@ class liver_geomagicControlPoint_SDA (Sofa.PythonScriptController):
 
         fileExtension = self.options['system_parameters']['volume_file_name']
         fileExtension = fileExtension[fileExtension.rfind('.') + 1:]
-        if fileExtension == 'vtk':
+        if fileExtension == 'vtk' or fileExtension == 'vtu':
             rootNode.createObject('MeshVTKLoader', name='loader', filename = self.options['system_parameters']['volume_file_name'])
         elif fileExtension == 'msh':
             rootNode.createObject('MeshGmshLoader', name='loader', filename = self.options['system_parameters']['volume_file_name'])
@@ -180,7 +180,7 @@ class liver_geomagicControlPoint_SDA (Sofa.PythonScriptController):
         if 'density' in self.options['general_parameters'].keys():
             node.createObject('MeshMatrixMass', printMass='0', lumping='1', massDensity=self.options['general_parameters']['density'], name='mass')
 
-        node.createObject('BoxROI', name='impactBounds', box='0.14 0.15 0.37 0.18 0.17 0.4', doUpdate='0')
+        node.createObject('BoxROI', name='impactBounds', box=self.options['impact_parameters']['bounds'], doUpdate='0')
         self.toolSprings = node.createObject('RestShapeSpringsForceField', name="impactSpring", stiffness="10000", angularStiffness='1', external_rest_shape='@../externalImpSimu/state', points='@impactBounds.indices')
         # node.createObject('GeomagicEmulator', attachSpring='false', filename = 'observations/listener.txt')
 

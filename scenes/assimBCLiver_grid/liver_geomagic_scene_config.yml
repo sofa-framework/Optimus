@@ -21,8 +21,8 @@ obs_generating_parameters:
     save_observations: 1
 
 filtering_parameters:
-    common_directory_prefix: "outCyl2_138_geomagic_liver_"
-    output_directory_suffix: "_test"
+    common_directory_prefix: "outLiver_138_geomagic_liver_forPresentation_"
+    output_directory_suffix: "_test_oldScene_workable"
     output_files_suffix: "test" 
     optim_params_size: 2
     filter_kind: "ROUKF"   # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
@@ -46,16 +46,18 @@ precondition_parameters:
 impact_parameters:
     observation_file_name: "observations/liverimpact"
     position: "0.14 0.18 0.39"
+    bounds: "0.14 0.15 0.37 0.18 0.17 0.4"
 
 geomagic_parameters:
     load_track: 1
     position_file: "geomagicObservations/geomagic_x.txt"
     listener_file: "geomagicObservations/listener.txt"
+    omni_base: "-0.06 0.08 0.37"
 
 time_parameters:
     timer_name: 'filter_computation_statistics'
     time_statistics_file: "computationTime.txt"
-    time_profiling: 1
+    time_profiling: 0
     iterations_interval: 1
     iteration_amount: 300
 ...

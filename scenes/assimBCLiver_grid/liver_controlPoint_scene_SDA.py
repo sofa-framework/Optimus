@@ -132,7 +132,7 @@ class liver_controlPoint_SDA(Sofa.PythonScriptController):
 
         fileExtension = self.options['system_parameters']['volume_file_name']
         fileExtension = fileExtension[fileExtension.rfind('.') + 1:]
-        if fileExtension == 'vtk':
+        if fileExtension == 'vtk' or fileExtension == 'vtu':
             rootNode.createObject('MeshVTKLoader', name='loader', filename=self.options['system_parameters']['volume_file_name'])
         elif fileExtension == 'msh':
             rootNode.createObject('MeshGmshLoader', name='loader', filename=self.options['system_parameters']['volume_file_name'])

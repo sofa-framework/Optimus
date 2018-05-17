@@ -103,7 +103,7 @@ class liver_geomagicControlPoint_GenObs (Sofa.PythonScriptController):
 
         fileExtension = self.options['system_parameters']['volume_file_name']
         fileExtension = fileExtension[fileExtension.rfind('.') + 1:]
-        if fileExtension == 'vtk':
+        if fileExtension == 'vtk' or fileExtension == 'vtu':
             simuNode.createObject('MeshVTKLoader', name='loader', filename=self.options['system_parameters']['volume_file_name'])
         elif fileExtension == 'msh':
             simuNode.createObject('MeshGmshLoader', name='loader', filename=self.options['system_parameters']['volume_file_name'])

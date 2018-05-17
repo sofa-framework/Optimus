@@ -74,19 +74,19 @@ class liver_geomagicControlPoint_GenObs (Sofa.PythonScriptController):
         if self.options['geomagic_parameters']['load_track']:
             dotNode.createObject('GeomagicEmulator', name='GeomagicDevice', positionFilename = self.options['geomagic_parameters']['position_file'], buttonFilename = self.options['geomagic_parameters']['listener_file'])
         else:
-            dotNode.createObject('GeomagicDriver', name='GeomagicDevice', deviceName='Default Device', scale='0.02', orientationBase='0 1 -1 -1', positionBase='-0.06 0.08 0.37', orientationTool='0 0 0 1')
+            dotNode.createObject('GeomagicDriver', name='GeomagicDevice', deviceName='Default Device', scale='0.02', orientationBase='0 1 -1 -1', positionBase = self.options['geomagic_parameters']['omni_base'], orientationTool='0 0 0 1')
         dotNode.createObject('MechanicalObject', template='Rigid', name='GeomagicMO', position='@GeomagicDevice.positionDevice')
         dotNode.createObject('Sphere', color='0.5 0.5 0.5 1', radius='0.14', template='Rigid')
         dotNode.createObject('ShowSpheres', radius="0.02", color="0 1 1 1", position='@GeomagicMO.position')
         if self.options['obs_generating_parameters']['save_observations']:
-            dotNode.createObject('BoxROI', name='geomagicBounds', box='-0.05 -0.05 -0.05 0.52 0.3 0.4', doUpdate='0')
+            dotNode.createObject('BoxROI', name='geomagicBounds', box='-0.1 -0.1 -0.1 0.52 0.3 0.4', doUpdate='0')
             dotNode.createObject('Monitor', name='toolMonitor', template='Rigid', showPositions='1', indices='@geomagicBounds.indices', ExportPositions='1', fileName = self.generalFolderName + '/observations/geomagic')
 
         mappingNode = dotNode.createChild('mappingNode')
         mappingNode.createObject('MechanicalObject', template='Vec3d', name='dot', showObject='true', position='0.0 0.0 0.0')
         mappingNode.createObject('RigidMapping', name='meshGeomagicMapping', input='@../GeomagicMO', output='@dot')
         if self.options['obs_generating_parameters']['save_observations']:
-            mappingNode.createObject('BoxROI', name='dotBounds', box='-0.05 -0.05 -0.05 0.52 0.3 0.4', doUpdate='0')
+            mappingNode.createObject('BoxROI', name='dotBounds', box='-0.1 -0.1 -0.1 0.52 0.3 0.4', doUpdate='0')
             mappingNode.createObject('Monitor', name='toolMonitor', template='Vec3d', showPositions='1', indices='@dotBounds.indices', ExportPositions='1', fileName = self.generalFolderName + '/' + self.options['impact_parameters']['observation_file_name'])
 	
         # rootNode/simuNode
@@ -104,7 +104,7 @@ class liver_geomagicControlPoint_GenObs (Sofa.PythonScriptController):
 
         fileExtension = self.options['system_parameters']['volume_file_name']
         fileExtension = fileExtension[fileExtension.rfind('.') + 1:]
-        if fileExtension == 'vtk':
+        if fileExtension == 'vtk' or fileExtension == 'vtu':
             simuNode.createObject('MeshVTKLoader', name='loader', filename=self.options['system_parameters']['volume_file_name'])
         elif fileExtension == 'msh':
             simuNode.createObject('MeshGmshLoader', name='loader', filename=self.options['system_parameters']['volume_file_name'])
@@ -112,7 +112,7 @@ class liver_geomagicControlPoint_GenObs (Sofa.PythonScriptController):
             print 'Unknown file type!'
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')
 
-        simuNode.createObject('BoxROI', name='impactBounds', box='0.14 0.15 0.37 0.18 0.17 0.4', doUpdate='0')
+        simuNode.createObject('BoxROI', name='impactBounds', box = self.options['impact_parameters']['bounds'], doUpdate='0')
         simuNode.createObject('RestShapeSpringsForceField', name='Springs', stiffness='10000', angularStiffness='1', external_rest_shape='@../dotNode/mappingNode/dot', points='@impactBounds.indices')
         simuNode.createObject('GeomagicDeviceListener', template='Vec3d', geomagicButtonPressed='@../dotNode/GeomagicDevice.button1', geomagicSecondButtonPressed='@../dotNode/GeomagicDevice.button2', geomagicPosition='@../dotNode/GeomagicDevice.positionDevice', saveAttachmentData='true', filename = self.generalFolderName + '/observations/listener.txt')
 
