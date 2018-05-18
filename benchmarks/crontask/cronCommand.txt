@@ -1,1 +1,0 @@
-00 12 * * 1-5 /home/sergei/Optimus_test/runOptimusTests.sh >> /home/sergei/Optimus_test/log_`/bin/date +"\%d_\%m_\%Y"`.txt
