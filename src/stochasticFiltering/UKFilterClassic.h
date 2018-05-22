@@ -81,7 +81,7 @@ protected:
     bool alphaConstant;
     std::vector<int> m_sigmaPointObservationIndexes;
     helper::vector<double> d;
-EVectorX collPos;
+    EVectorX collPos;
 
     EVectorX vecAlpha, vecAlphaVar;
     EVectorX stateExp, predObsExp;
@@ -114,6 +114,7 @@ public:
     Data<helper::vector<FilterType> > d_innovation;
     Data< bool  > d_draw;
     Data< double  > d_radius_draw;
+    Data< double  > d_MOnodes_draw;
     double m_omega;
     bool hasObs;
     void init();

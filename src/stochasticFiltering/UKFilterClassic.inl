@@ -24,7 +24,9 @@ UKFilterClassic<FilterType>::UKFilterClassic()
     , d_covariance( initData(&d_covariance, "covariance", "actual co-variance  of reduced state (parameters) estimated by the filter" ) )
     , d_innovation( initData(&d_innovation, "innovation", "innovation value computed by the filter" ) )
     , d_draw(initData(&d_draw, false, "draw","Activation of draw"))
-    , d_radius_draw( initData(&d_radius_draw, "radiusDraw", "radius of the spheres") )
+    , d_radius_draw( initData(&d_radius_draw, (double) 0.005,"radiusDraw", "radius of the spheres") )
+    , d_MOnodes_draw( initData(&d_MOnodes_draw,(double) 1.0, "MOnodesDraw", "nodes of the mechanical object") )
+
 
 {
 
@@ -112,7 +114,7 @@ void UKFilterClassic<FilterType>::computePrediction()
         }
 
         masterStateWrapper->lastApplyOperator(stateExp, mechParams);
-        PRNS("PREDICTED STATE X(n+1)+n: \n" << stateExp.transpose());
+//        PRNS("PREDICTED STATE X(n+1)+n: \n" << stateExp.transpose());
     }
 }
 
@@ -166,8 +168,8 @@ void UKFilterClassic<FilterType>::computeCorrection()
             diagStateCov(i)=stateCovar(i,i);
         }
 
-        PRNS("FINAL STATE X(n+1)+n: \n" << stateExp.transpose());
-        PRNS("FINAL COVARIANCE DIAGONAL P(n+1)+n:  \n" << diagStateCov.transpose());
+//        PRNS("FINAL STATE X(n+1)+n: \n" << stateExp.transpose());
+//        PRNS("FINAL COVARIANCE DIAGONAL P(n+1)+n:  \n" << diagStateCov.transpose());
 
         masterStateWrapper->setState(stateExp, mechParams);
 
@@ -273,6 +275,7 @@ void UKFilterClassic<FilterType>::init() {
 
     m_omega= ((double) rand() / (RAND_MAX));
 
+    PRNS("Draw of: " << d_MOnodes_draw.getValue() << " node of the Mechanical Object ");
 
 }
 
@@ -472,13 +475,13 @@ void UKFilterClassic<FilterType>::draw(const core::visual::VisualParams* vparams
             predpoints.resize( sigmaPointsNum );
             for(  std::vector<std::vector<sofa::defaulttype::Vec3d>>::iterator it = predpoints.begin(); it != predpoints.end(); ++it)
             {
-                it->resize( collPos.rows()*(1.0/3) );
+                it->resize( d_MOnodes_draw.getValue() );
             }
 
             for(unsigned i=0; i < sigmaPointsNum; i++){
                 EVectorX coll = genMatXi.row(i);
 
-                for (unsigned j=0; j < collPos.rows()*(1.0/3); j++){
+                for (unsigned j=0; j < d_MOnodes_draw.getValue(); j++){
                     for (unsigned k=0; k < 3; k++){
 
                         predpoints[i][j][k]=coll(6*j+k);
@@ -486,6 +489,7 @@ void UKFilterClassic<FilterType>::draw(const core::visual::VisualParams* vparams
                 }
 
                 vparams->drawTool()->drawSpheres(predpoints[i],  d_radius_draw.getValue(), sofa::defaulttype::Vec<4, float>(m_omega,0.0f,0.0f,1.0f));
+                if (d_MOnodes_draw.getValue()>=2)
                 vparams->drawTool()->drawLineStrip(predpoints[i],  d_radius_draw.getValue(), sofa::defaulttype::Vec<4, float>(m_omega,0.0f,0.0f,1.0f));
             }
 

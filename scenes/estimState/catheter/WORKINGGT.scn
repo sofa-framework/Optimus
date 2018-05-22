@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+<Node    name="root" dt="0.03" gravity="0 0 0" >
+<RequiredPlugin pluginName="Optimus"/>
+<RequiredPlugin pluginName="ImageMeshAux" />
+<RequiredPlugin pluginName="ConstraintGeometryPlugin" />
+<RequiredPlugin pluginName="NeedleConstraintPlugin" />
+<RequiredPlugin pluginName="RegistrationConstraintPlugin" />
+<VisualStyle displayFlags=" showCollisionModels showForceFields" />
+<BackgroundSetting color="1 1 1 1" />
+<ViewerSetting resolution="837 600" />
+
+<FreeMotionAnimationLoop />
+<GenericConstraintSolver name="GenericConstraintSolver"  printLog="0"  maxIterations="1000"  tolerance="1e-10"  allVerified="0" />        
+
+    <Node name="ball">
+            <EulerImplicitSolver />
+            <SparseLUSolver name="BTD"/>
+            <MechanicalObject template="Rigid" name="MO" position="0 0.05 0  0 0 0 1" velocity="0 -5 0 0 0 0" showObject="0"/>
+            <UniformMass totalMass="0.001 " />
+            <ShowSpheres  radius="0.05"  color="0 1 0 1" position="@MO.position" />            
+            <Node name="CollisionBall" >
+                <PointSetTopologyContainer name="Container" position="@../MO.position"  />
+                <MechanicalObject name="ms"  />
+                <PointGeometry name="point"/>
+                <BoxROI name="boxA" box="-10 -10 -10 10 10 10" drawBoxes="1" drawSize="1" position="@ms.position"/>
+                <IdentityMapping input="@../MO" output="@ms"/>
+            </Node>
+            
+            <LinearSolverConstraintCorrection name="LinearSolverConstraintCorrection" solverName="BTD" />
+            
+    </Node>  
+
+    <Node name="Plane" >
+            <VisualStyle displayFlags="showWireframe" /> 
+            <MeshObjLoader name="surface" filename="mesh/realSpring.obj"  />
+            <TransformStochasticEngine name="transform" input_position="@surface.position" optimParams="0 0 0 0 0 0" triangles="@surface.triangles"  />
+            <MeshTopology name="mesh" position="@transform.output_position" triangles="@transform.triangles"  />
+            <TriangleSetTopologyContainer name="Container" src="@mesh" />
+            <MechanicalObject name="MS" free_position="@transform.output_position" position="@transform.output_position" template="Vec3d" />
+            <TriangleGeometry name="triangle"/>     
+    </Node>
+        
+    <NeedleContactConstraint needle="ball/CollisionBall/point" surface="Plane/triangle" tipIndex="@ball/CollisionBall/boxA.indices" friction="0" draw="1" draw_normal_scale="0.01" /> 
+
+    
+    <Node name="noisyObs"> 		
+        <MechanicalObject template="Vec3d" name="MO" position="@../ball/MO.position"  showObject="0"/>	
+        <AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@MO.position" noiseOrthogonalVariance="0.05" noisePrincipalVariance="0.05" noisePrincipalDirection="1 1 1"/>
+        <ShowSpheres  radius="0.05"  color="1 0 0 1" position="@NoiseEngine.outputPositions"    />
+    </Node>
+    
+    
+    <Node name="WRITEnoisy3Dobs"> 		
+        <MechanicalObject template="Vec3d" name="MO" position="@../noisyObs/NoiseEngine.outputPositions" />	
+        <StochasticPositionHandler filename="Obs3D_LMballSpring_0_x.txt" observations="true" indices="0" />
+    </Node>
+
+    <Node name="WRITEGroundTruthCatheter"> 
+        <MechanicalObject template="Vec3" name="MO" position="@../ball/MO.position" showObject="0"/>		
+         <WriteState filename="LMReference_ballPlane_0" /> 
+    </Node>
+
+    
+    <Node name="MatlabPlotGroundTruth"> 
+        <MechanicalObject template="Vec3" name="MO" position="@../ball/MO.position" showObject="0"/>		
+        <StochasticPositionHandler filename="LMgPlane_0" observations="true" groundTruth="true"/>
+    </Node>
+    
+    <Node name="MatlabPlotNoisyObs"> 		
+        <MechanicalObject template="Vec3d" name="MO" position="@../noisyObs/NoiseEngine.outputPositions" />	
+        <WriteState filename="LMnPlane_0" groundTruth="true"/>
+    </Node>
+
+</Node>

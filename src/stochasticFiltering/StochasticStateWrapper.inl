@@ -856,20 +856,27 @@ void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStepWithLM(const 
 
     // Update the BehaviorModels
     // Required to allow the RayPickInteractor interaction
+    sofa::helper::AdvancedTimer::stepBegin("Step1 UpdateBehaviorModels");
 
     this->gnode->execute(&beh);
 
     simulation::MechanicalBeginIntegrationVisitor beginVisitor(params, dt);
     this->gnode->execute(&beginVisitor);
 
+
     // Free Motion
+    sofa::helper::AdvancedTimer::stepBegin("Step2 FreeMotion");
+
     simulation::SolveVisitor freeMotion(params, dt, true);
     this->gnode->execute(&freeMotion);
 
     mop.projectPositionAndVelocity(freePos, freeVel); // apply projective constraints
     mop.propagateXAndV(freePos, freeVel);
 
+
     // Collision detection and response creation
+
+    sofa::helper::AdvancedTimer::stepBegin("Step3 ComputeCollision");
     this->computeCollision(params);
     mop.propagateX(pos); // Why is this done at that point ???
 
@@ -927,6 +934,14 @@ void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStepWithLM(const 
 
     simulation::MechanicalEndIntegrationVisitor endVisitor(params, dt);
     this->gnode->execute(&endVisitor);
+    sofa::helper::AdvancedTimer::stepEnd("Step1 UpdateBehaviorModels");
+
+    sofa::helper::AdvancedTimer::stepEnd("Step2 FreeMotion");
+
+    sofa::helper::AdvancedTimer::stepEnd("Step3 ComputeCollision");
+
+
+    sofa::helper::AdvancedTimer::stepBegin("Step4 UpdateSimulationContextVisitor");
 
     this->gnode->setTime ( startTime + dt );
     this->gnode->template execute<UpdateSimulationContextVisitor>(params);  // propagate time
@@ -936,6 +951,10 @@ void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStepWithLM(const 
         sofa::simulation::PropagateEventVisitor act ( params, &ev );
         this->gnode->execute ( act );
     }
+    sofa::helper::AdvancedTimer::stepEnd("Step4 UpdateSimulationContextVisitor");
+
+
+    sofa::helper::AdvancedTimer::stepBegin("Step5 UpdateMappingVisitor");
 
 
     //Visual Information update: Ray Pick add a MechanicalMapping used as VisualMapping
@@ -946,9 +965,15 @@ void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStepWithLM(const 
         this->gnode->execute ( act );
     }
 
+    sofa::helper::AdvancedTimer::stepEnd("Step5 UpdateMappingVisitor");
+
+
 #ifndef SOFA_NO_UPDATE_BBOX
     this->gnode->template execute<UpdateBoundingBoxVisitor>(params);
 #endif
+
+    sofa::helper::AdvancedTimer::stepEnd("MechanicalVInitVisitor");
+
 }
 
 template <class DataTypes, class FilterType>

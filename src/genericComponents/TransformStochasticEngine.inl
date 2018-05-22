@@ -240,77 +240,90 @@ private:
 template <class DataTypes>
 void TransformStochasticEngine<DataTypes>::update()
 {
-    const defaulttype::Vector3 &s=scale.getValue();
-//    const defaulttype::Vector3 &r=defaulttype::Vector3(d_optimParams.getValue()[0],d_optimParams.getValue()[1],d_optimParams.getValue()[2]);
-//    const defaulttype::Vector3 &t=defaulttype::Vector3(d_optimParams.getValue()[3],d_optimParams.getValue()[4],d_optimParams.getValue()[5]);       const defaulttype::Quaternion &q=quaternion.getValue();
+//    ReadAccessor<Data<VecCoord> > inDilate= f_inputX;
+//    ReadAccessor<Data<SeqTriangles> > triangles = d_triangles;
+//    ReadAccessor<Data<SeqQuads> > quads = d_quads;
+//    Real distance = d_optimParams.getValue()[0];
 
+//    cleanDirty();
+
+//    WriteOnlyAccessor<Data<VecCoord> > outDilate = f_outputX;
+
+//    const int nbp = inDilate.size();
+//    const int nbt = triangles.size();
+//    const int nbq = quads.size();
+
+//    WriteOnlyAccessor<Data<VecCoord> > normals = d_normals;
+//    normals.resize(nbp);
+//    for (int i=0; i<nbp; ++i)
+//        normals[i].clear();
+//    for (int i=0; i<nbt; ++i)
+//    {
+//        Coord n = cross(inDilate[triangles[i][1]] - inDilate[triangles[i][0]], inDilate[triangles[i][2]] - inDilate[triangles[i][0]]);
+//        normals[triangles[i][0]] += n;
+//        normals[triangles[i][1]] += n;
+//        normals[triangles[i][2]] += n;
+//    }
+//    for (int i=0; i<nbq; ++i)
+//    {
+//        normals[quads[i][0]] += cross(inDilate[quads[i][1]] - inDilate[quads[i][0]], inDilate[quads[i][3]] - inDilate[quads[i][0]]);
+//        normals[quads[i][1]] += cross(inDilate[quads[i][2]] - inDilate[quads[i][1]], inDilate[quads[i][0]] - inDilate[quads[i][1]]);
+//        normals[quads[i][2]] += cross(inDilate[quads[i][3]] - inDilate[quads[i][2]], inDilate[quads[i][1]] - inDilate[quads[i][2]]);
+//        normals[quads[i][3]] += cross(inDilate[quads[i][0]] - inDilate[quads[i][3]], inDilate[quads[i][2]] - inDilate[quads[i][3]]);
+//    }
+//    for (int i=0; i<nbp; ++i)
+//        normals[i].normalize();
+
+
+//    //Set Output
+//    outDilate.resize(nbp);
+//    for (int i=0; i<nbp; ++i)
+//    {
+//        Real d = distance;
+//        outDilate[i] = inDilate[i] + normals[i] * d;
+//    }
+
+    ///Apply Rigid transformations
+    ///
+
+    const defaulttype::Vector3 &r=defaulttype::Vector3(d_optimParams.getValue()[0],d_optimParams.getValue()[1],d_optimParams.getValue()[2]);
+    const defaulttype::Vector3 &t=defaulttype::Vector3(d_optimParams.getValue()[3],d_optimParams.getValue()[4],d_optimParams.getValue()[5]);
 
     //Create the object responsible for the transformations
     Transform<DataTypes> transformation;
     const bool inv = inverse.getValue();
-    //        if (s != defaulttype::Vector3(1,1,1))
-    //            transformation.add(new Scale<DataTypes>, inv)->configure(s, inv);
-
-    //        if (r != defaulttype::Vector3(0,0,0))
-//    transformation.add(new Rotation<DataTypes>, inv)->configure(r, inv);
-
-    ////        if (q != defaulttype::Quaternion(0,0,0,1))
-    //            transformation.add(new Rotation<DataTypes>, inv)->configure(q, inv, this);
+    //                if (r != defaulttype::Vector3(0,0,0))
+    transformation.add(new Rotation<DataTypes>, inv)->configure(r, inv);
 
     //        if (t != defaulttype::Vector3(0,0,0))
-//    transformation.add(new Translation<DataTypes>, inv)->configure(t, inv);
+    transformation.add(new Translation<DataTypes>, inv)->configure(t, inv);
 
-    ReadAccessor<Data<VecCoord> > inDilate= f_inputX;
-    ReadAccessor<Data<SeqTriangles> > triangles = d_triangles;
-    ReadAccessor<Data<SeqQuads> > quads = d_quads;
-    Real distance = d_optimParams.getValue()[0];
+
+    //Get input
+    const VecCoord& in = f_inputX.getValue();
 
     cleanDirty();
 
-    WriteOnlyAccessor<Data<VecCoord> > outDilate = f_outputX;
-
-    const int nbp = inDilate.size();
-    const int nbt = triangles.size();
-    const int nbq = quads.size();
-
-    WriteOnlyAccessor<Data<VecCoord> > normals = d_normals;
-    normals.resize(nbp);
-    for (int i=0; i<nbp; ++i)
-        normals[i].clear();
-    for (int i=0; i<nbt; ++i)
-    {
-        Coord n = cross(inDilate[triangles[i][1]] - inDilate[triangles[i][0]], inDilate[triangles[i][2]] - inDilate[triangles[i][0]]);
-        normals[triangles[i][0]] += n;
-        normals[triangles[i][1]] += n;
-        normals[triangles[i][2]] += n;
-    }
-    for (int i=0; i<nbq; ++i)
-    {
-        normals[quads[i][0]] += cross(inDilate[quads[i][1]] - inDilate[quads[i][0]], inDilate[quads[i][3]] - inDilate[quads[i][0]]);
-        normals[quads[i][1]] += cross(inDilate[quads[i][2]] - inDilate[quads[i][1]], inDilate[quads[i][0]] - inDilate[quads[i][1]]);
-        normals[quads[i][2]] += cross(inDilate[quads[i][3]] - inDilate[quads[i][2]], inDilate[quads[i][1]] - inDilate[quads[i][2]]);
-        normals[quads[i][3]] += cross(inDilate[quads[i][0]] - inDilate[quads[i][3]], inDilate[quads[i][2]] - inDilate[quads[i][3]]);
-    }
-    for (int i=0; i<nbp; ++i)
-        normals[i].normalize();
-
-//    std::for_each(outDilate.begin(), outDilate.end(), transformation);
-
-//    //Deleting operations
-//    std::list< TransformOperation<DataTypes>* > operations=transformation.getOperations();
-//    while (!operations.empty())
-//    {
-//        delete operations.back();
-//        operations.pop_back();
-//    }
+    VecCoord& out = *(f_outputX.beginWriteOnly());
 
     //Set Output
-    outDilate.resize(nbp);
-    for (int i=0; i<nbp; ++i)
+    out.resize(in.size());
+    //Set the output to the input
+    std::copy(in.begin(),in.end(), out.begin());
+    //Apply the transformation of the output
+    std::for_each(out.begin(), out.end(), transformation);
+
+    //Deleting operations
+    std::list< TransformOperation<DataTypes>* > operations=transformation.getOperations();
+    while (!operations.empty())
     {
-        Real d = distance;
-        outDilate[i] = inDilate[i] + normals[i] * d;
+        delete operations.back();
+        operations.pop_back();
     }
+
+    f_outputX.endEdit();
+
+
 
 }
 
