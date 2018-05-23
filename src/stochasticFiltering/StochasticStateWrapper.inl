@@ -431,7 +431,7 @@ void StochasticStateWrapper<Rigid3dTypes, double>::copyStateSofa2Filter() {
     for(size_t i= 0; i < pos.size(); i++)    {
         q_ori.clear();
         q_ori=pos[i].getOrientation();
-//        q_ori.normalize();
+        q_ori.normalize();
         eu_pos=pos[i].getCenter();
         euler_ori=q_ori.toEulerVector();
 //        euler_ori.normalize();

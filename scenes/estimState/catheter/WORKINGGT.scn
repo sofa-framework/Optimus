@@ -1,23 +1,28 @@
 <?xml version="1.0"?>
-<Node    name="root" dt="0.03" gravity="0 0 0" >
+<Node    name="root" dt="0.01" gravity="0 0 0" >
 <RequiredPlugin pluginName="Optimus"/>
 <RequiredPlugin pluginName="ImageMeshAux" />
 <RequiredPlugin pluginName="ConstraintGeometryPlugin" />
 <RequiredPlugin pluginName="NeedleConstraintPlugin" />
-<RequiredPlugin pluginName="RegistrationConstraintPlugin" />
+<RequiredPlugin pluginName="OpenCVPlugin" />
+
+<!-- <RequiredPlugin pluginName="RegistrationConstraintPlugin" /> -->
 <VisualStyle displayFlags=" showCollisionModels showForceFields" />
 <BackgroundSetting color="1 1 1 1" />
 <ViewerSetting resolution="837 600" />
 
 <FreeMotionAnimationLoop />
 <GenericConstraintSolver name="GenericConstraintSolver"  printLog="0"  maxIterations="1000"  tolerance="1e-10"  allVerified="0" />        
-
+    <OpenCVProjectiveCalibrator name="opengl" streamer="video" mode="5" listening="false" drawzNear="0.001" drawzFar="3" />
+    <OpenCVOpenGlStreamer name="video" src="@opengl" />
+    <OpenCVScheduler name="scheduler" frequency="0" />
+    
     <Node name="ball">
             <EulerImplicitSolver />
             <SparseLUSolver name="BTD"/>
-            <MechanicalObject template="Rigid" name="MO" position="0 0.05 0  0 0 0 1" velocity="0 -5 0 0 0 0" showObject="0"/>
+            <MechanicalObject template="Rigid" name="MO" position="0 0.05 0  0 0 0 1" velocity="0.0 -5 0.0 0 0 0" showObject="0"/>
             <UniformMass totalMass="0.001 " />
-            <ShowSpheres  radius="0.05"  color="0 1 0 1" position="@MO.position" />            
+            <ShowSpheres  radius="0.005"  color="0 1 0 1" position="@MO.position" />            
             <Node name="CollisionBall" >
                 <PointSetTopologyContainer name="Container" position="@../MO.position"  />
                 <MechanicalObject name="ms"  />
@@ -30,7 +35,7 @@
             
     </Node>  
 
-    <Node name="Plane" >
+    <Node name="Spring" >
             <VisualStyle displayFlags="showWireframe" /> 
             <MeshObjLoader name="surface" filename="mesh/realSpring.obj"  />
             <TransformStochasticEngine name="transform" input_position="@surface.position" optimParams="0 0 0 0 0 0" triangles="@surface.triangles"  />
@@ -40,35 +45,47 @@
             <TriangleGeometry name="triangle"/>     
     </Node>
         
-    <NeedleContactConstraint needle="ball/CollisionBall/point" surface="Plane/triangle" tipIndex="@ball/CollisionBall/boxA.indices" friction="0" draw="1" draw_normal_scale="0.01" /> 
+    <NeedleContactConstraint needle="ball/CollisionBall/point" surface="Spring/triangle" tipIndex="@ball/CollisionBall/boxA.indices" friction="0" draw="1" draw_normal_scale="0.01" /> 
 
     
     <Node name="noisyObs"> 		
         <MechanicalObject template="Vec3d" name="MO" position="@../ball/MO.position"  showObject="0"/>	
-        <AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@MO.position" noiseOrthogonalVariance="0.05" noisePrincipalVariance="0.05" noisePrincipalDirection="1 1 1"/>
+        <AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@MO.position" noiseOrthogonalVariance="0.00001" noisePrincipalVariance="0.00001" noisePrincipalDirection="1 1 1"/>
         <ShowSpheres  radius="0.05"  color="1 0 0 1" position="@NoiseEngine.outputPositions"    />
     </Node>
     
     
     <Node name="WRITEnoisy3Dobs"> 		
         <MechanicalObject template="Vec3d" name="MO" position="@../noisyObs/NoiseEngine.outputPositions" />	
-        <StochasticPositionHandler filename="Obs3D_LMballSpring_0_x.txt" observations="true" indices="0" />
+<!--         <StochasticPositionHandler filename="Obs3D_LMballSpring_0_x.txt" observations="true" indices="0" /> -->
     </Node>
 
     <Node name="WRITEGroundTruthCatheter"> 
         <MechanicalObject template="Vec3" name="MO" position="@../ball/MO.position" showObject="0"/>		
-         <WriteState filename="LMReference_ballPlane_0" /> 
+<!--          <WriteState filename="LMReference_ballSpring_0" groundTruth="true" />  -->
     </Node>
 
     
     <Node name="MatlabPlotGroundTruth"> 
         <MechanicalObject template="Vec3" name="MO" position="@../ball/MO.position" showObject="0"/>		
-        <StochasticPositionHandler filename="LMgPlane_0" observations="true" groundTruth="true"/>
+<!--         <StochasticPositionHandler filename="LMgSpring_0" observations="true" groundTruth="true"/> -->
     </Node>
     
     <Node name="MatlabPlotNoisyObs"> 		
         <MechanicalObject template="Vec3d" name="MO" position="@../noisyObs/NoiseEngine.outputPositions" />	
-        <WriteState filename="LMnPlane_0" groundTruth="true"/>
+<!--         <WriteState filename="LMnSpring_0" groundTruth="true"/> -->
+    </Node>
+    
+        <Node name="MatlabPlotNoisyObs"> 		
+        <MechanicalObject template="Vec3d" name="MO" position="@../noisyObs/NoiseEngine.outputPositions" />	
+<!--         <StochasticPositionHandler filename="noisySpring_0" observations="true" groundTruth="true"/> -->
     </Node>
 
+    <Node name="ImageProcessor" >
+        <OpenCVImageProcessor name="processor" streamer="../video" />
+        <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObs/NoiseEngine.outputPositions" projectionMatrix="@../opengl.projectionMatrix"/>
+        <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
+<!--         <StochasticPositionHandler filename="Obs2D2_LMballSpring_x.txt" observations="true" indices="0 "/> -->
+    </Node>
+    
 </Node>
