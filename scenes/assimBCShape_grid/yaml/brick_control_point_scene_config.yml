@@ -22,7 +22,7 @@ obs_generating_parameters:
 
 filtering_parameters:
     common_directory_prefix: "brick_controlPoint_449_"
-    output_directory_suffix: "_withPreconditioning_std500_40sec"
+    output_directory_suffix: "_withPreconditioning_std500_test"
     output_files_suffix: "test" 
     optim_params_size: 5
     filter_kind: "ROUKF"   # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
@@ -38,6 +38,13 @@ filtering_parameters:
     sigma_points_scale: 1
     save_state: 1
     save_internal_data: 1
+
+boundary_parameters:
+    spring_type: "Polynomial"    # options are "Simple" and "Polynomial"
+    strain_params: [0, 0.07, 0.14, 0.2]
+    stress_params: [0, 1000000, 2000000, 7000000]
+    initial_length: 0.02
+    initial_stiffness: 100000
 
 precondition_parameters:
     usePCG: 1

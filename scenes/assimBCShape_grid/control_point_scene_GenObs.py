@@ -13,6 +13,7 @@ def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', name='Pardiso', pluginName='SofaPardisoSolver')
     rootNode.createObject('RequiredPlugin', name='IMAUX', pluginName='ImageMeshAux')
     # rootNode.createObject('RequiredPlugin', name='MJED', pluginName='SofaMJEDFEM')
+    rootNode.createObject('RequiredPlugin', name='BoundaryConditions', pluginName="BoundaryConditionsPlugin")
     
     try : 
         sys.argv[0]
@@ -103,7 +104,10 @@ class liver_controlPoint_GenObs (Sofa.PythonScriptController):
                 if bcElement['condition_type'] == 'fixed':
                     simuNode.createObject('FixedConstraint', indices='@boundBoxes'+str(index)+'.indices')
                 elif bcElement['condition_type'] == 'elastic':
-                    simuNode.createObject('RestShapeSpringsForceField', stiffness=bcElement['spring_stiffness_values'], angularStiffness="1", points='@boundBoxes'+str(index)+'.indices')
+                    if self.options['boundary_parameters']['spring_type'] == 'Polynomial':
+                        simuNode.createObject('PolynomialRestShapeSpringsForceField', stiffness=bcElement['spring_stiffness_values'], howIndicesScale='0', springThickness="3", listening="1", updateStiffness="1", printLog="0", points='@boundBoxes'+str(index)+'.indices', strainPoints=self.options['boundary_parameters']['strain_params'], stressPoints=self.options['boundary_parameters']['stress_params'], initialLength=self.options['boundary_parameters']['initial_length'], springInitialStiffness=self.options['boundary_parameters']['initial_stiffness'])
+                    else:
+                        simuNode.createObject('RestShapeSpringsForceField', stiffness=bcElement['spring_stiffness_values'], angularStiffness="1", points='@boundBoxes'+str(index)+'.indices')
                 else:
                     print 'Unknown type of boundary conditions'
 

@@ -39,6 +39,9 @@ filtering_parameters:
     save_state: 1
     save_internal_data: 1
 
+boundary_parameters:
+    spring_type: "Polynomial"    # options are "Simple" and "Polynomial"
+
 precondition_parameters:
     usePCG: 0
     PCGUpdateSteps: 100

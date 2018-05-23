@@ -122,7 +122,10 @@ class liver_geomagicControlPoint_GenObs (Sofa.PythonScriptController):
                 if bcElement['condition_type'] == 'fixed':
                     simuNode.createObject('FixedConstraint', indices='@boundBoxes'+str(index)+'.indices')
                 elif bcElement['condition_type'] == 'elastic':
-                    simuNode.createObject('RestShapeSpringsForceField', stiffness=bcElement['spring_stiffness_values'], angularStiffness="1", points='@boundBoxes'+str(index)+'.indices')
+                    if self.options['boundary_parameters']['spring_type'] == 'Polynomial':
+                        simuNode.createObject('PolynomialRestShapeSpringsForceField', stiffness=bcElement['spring_stiffness_values'], howIndicesScale='0', springThickness="3", listening="1", updateStiffness="1", printLog="0", points='@boundBoxes'+str(index)+'.indices')
+                    else:
+                        simuNode.createObject('RestShapeSpringsForceField', stiffness=bcElement['spring_stiffness_values'], angularStiffness="1", points='@boundBoxes'+str(index)+'.indices')
                 else:
                     print 'Unknown type of boundary conditions'
 

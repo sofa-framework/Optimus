@@ -192,7 +192,10 @@ class liver_controlPoint_SDA(Sofa.PythonScriptController):
                 if bcElement['condition_type'] == 'fixed':
                     node.createObject('FixedConstraint', indices='@boundBoxes'+str(index)+'.indices')
                 elif bcElement['condition_type'] == 'elastic':
-                    node.createObject('ExtendedRestShapeSpringForceField', stiffness='@paramE.value', showIndicesScale='0', springThickness="3", listening="1", updateStiffness="1", printLog="0", points='@boundBoxes'+str(index)+'.indices')
+                    if self.options['boundary_parameters']['spring_type'] == 'Polynomial':
+                        node.createObject('PolynomialRestShapeSpringsForceField', stiffness=bcElement['spring_stiffness_values'], howIndicesScale='0', springThickness="3", listening="1", updateStiffness="1", printLog="0", points='@boundBoxes'+str(index)+'.indices')
+                    else:
+                        node.createObject('ExtendedRestShapeSpringForceField', stiffness='@paramE.value', showIndicesScale='0', springThickness="3", listening="1", updateStiffness="1", printLog="0", points='@boundBoxes'+str(index)+'.indices')
                 else:
                     print 'Unknown type of boundary conditions'
 

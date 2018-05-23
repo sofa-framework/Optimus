@@ -2,9 +2,9 @@
 
 while :; do
    currenttime=$(date +%H:%M)
-   if [[ "$currenttime" > "12:01" ]] && [[ "$currenttime" < "12:04" ]]; then
+   if [[ "$currenttime" > "12:01" ]] && [[ "$currenttime" < "12:07" ]]; then
      /bin/bash /home/sergei/Optimus_test/runOptimusTests.sh >> /home/sergei/Optimus_test/log_`/bin/date +"%d_%m_%Y"`.txt
-     sleep 120s
+     sleep 360s
    else
      sleep 50s
    fi
