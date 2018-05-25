@@ -86,8 +86,8 @@ void TransformStochasticEngine<DataTypes>::bwdInit()
     if(f_inputX.getValue().size()==0)
         msg_warning(this) << "No input position";
 
-    if(d_optimParams.getValue().size()!=7)
-        msg_warning(this) << "Wrong Size of Stochastic Params. Needs 3 angles, 3 position and 1 scalar to dilate";
+//    if(d_optimParams.getValue().size()!=7)
+//        msg_warning(this) << "Wrong Size of Stochastic Params. Needs 3 angles, 3 position and 1 scalar to dilate";
 
 }
 

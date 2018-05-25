@@ -1,0 +1,91 @@
+<?xml version="1.0"?>
+<Node    name="root" dt="0.001" gravity="0 -5 0" > 
+<RequiredPlugin pluginName="Optimus"/>
+<RequiredPlugin pluginName="ImageMeshAux" />
+<RequiredPlugin pluginName="ConstraintGeometryPlugin" />
+<RequiredPlugin pluginName="NeedleConstraintPlugin" />
+<RequiredPlugin pluginName="OpenCVPlugin" />
+
+<VisualStyle displayFlags="showVisualModels hideBehaviorModels showCollisionModels hideMappings hideForceFields hideWireframe" />	
+<BackgroundSetting color="1 1 1 1" />
+<ViewerSetting resolution="837 600" />
+<FilteringAnimationLoop name="StochAnimLoop" verbose="1"/>
+<UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0"   draw="true" radiusDraw="0.0002" MOnodesDraw="4" filenameCov="print/print_cov_0" filenameInn="print/print_inn_0" filenameFinalState="print/print_state_0"/>
+
+
+<!--<OpenCVProjectiveCalibrator name="opengl" streamer="video" mode="0" imageSize="816 600" projectionMatrix="[503.691 -316.379 580.708 2854.13,-254.433 -740.98 27.7679 2394.95,0.705081 -0.656978 -0.266911 9.00359]"
+ listening="false" drawzNear="0.1" drawzFar="100" drawCamera="true"  drawViewPort="true" drawscreenSize="650 500"/>
+
+-->
+
+
+    <Node name="simulation">
+        <PreStochasticWrapper />
+            <Node name="ReferenceModel"> 
+                <EulerImplicitSolver  />
+                <CGLinearSolver />
+                <MechanicalObject template="Vec3" name="MO" position="0 0 0 0.01 0 0  0.02 0 0  0.03 0 0  "/>
+                <ReadState filename="LMReference_beamSpring_0" />
+                <ShowSpheres  radius="0.0004"  color="0 1 0 1" position="@MO.position" />
+            </Node>
+<!--            <Node name="OnlyPrediction"> 
+                <MechanicalObject template="Vec3" name="MO" position="0 0 0"/>
+                <ReadState filename="LMReferenceERR_ballSpring_0" />
+                <ShowSpheres  radius="0.03"  color="1 1 0 1" position="@MO.position" />
+            </Node>-->
+            <Node name="VisualRealSurface">
+                <VisualStyle displayFlags="hideWireframe " /> 
+                <MeshObjLoader name="surface" filename="mesh/test.obj"  />
+                <MeshTopology src="@surface" />
+                <MechanicalObject name="DOFs" />
+                <OglModel name="VisualModel" src="@surface"  material="Default Diffuse 1 1 0.93 0.83 0.1 Ambient 0 0 0 0 0 Specular 0 0 0 0 0 Emissive 0 0 0 0 0 Shininess 0 45" />/>
+            </Node>
+        
+    </Node> 
+     
+    <Node name="filteredModel">     
+        <StochasticStateWrapper name="StateWrapper" template="Rigid3d" verbose="1" estimatePosition="1" estimateVelocity="1" positionStdev="0.001 0.001 0.001 0.00001 0.00001 0.00001" velocityStdev="0.0001 0.0001 0.0001 0.00001 0.00001 0.00001" posModelStdev="0 0 0 0 0 0 " velModelStdev="0.001 0.001 0.001 0.0001 0.0001 0.0001" paramModelStdev="0 0 0 0 0 0"  langrangeMultipliers="1" draw="false" radiusDraw="0.0005"/>  
+        <GenericConstraintSolver name="GenericConstraintSolver"  printLog="0"  maxIterations="1000"  tolerance="1e-10"  allVerified="0" /> 
+        <Node name="ball">
+            <EulerImplicitSolver rayleighMass="0.01" rayleighStiffness="0.1" />			
+            <BTDLinearSolver template="BTDMatrix6d" printLog="false" verbose="false" />
+                        <OptimParams name="paramSpring" optimize="1" template ="Vector" initValue="0 0 0 0 0 0"  stdev="0.0001 0.0001 0.0001 0.0001 0.0001 0.0001" transformParams="0" /> 
+            <MechanicalObject template="Rigid" name="MO" position="0 0 0 0 0 0 1    0.01 0 0 0 0 0 1     0.02 0 0 0 0 0 1     0.03 0 0 0 0 0 1 " />
+            <Mesh name="lines" lines="0 1   1 2   2 3  " />
+            <UniformMass totalmass="0.0005 " printLog="false" />
+            <BeamFEMForceField name="FEM" radius="0.0005" youngModulus="1e5" poissonRatio="0.49" useSymmetricAssembly="1"/>
+            <Node name="CollisionBall">
+                <!--                 <EdgeSetTopologyContainer name="Container"  edges=  "0 1   1 2   2 3  "  /> -->
+                <!--                 <MechanicalObject name="ms"   position="0 0 0   1 0 0     2 0 0   3 0 0 "/> -->
+                <CubeTopology nx="4" ny="1" nz="1" min="0 0 0" max="3 0 0" />
+                <MechanicalObject name="ms" />
+                <BeamLinearMapping />
+                <EdgeGeometry name="edge"/> 
+                <PointGeometry name ="point"/>
+                <BoxROI name="boxA" box="-1 -1 -1 1 1 1 " drawBoxes="1" drawSize="1" position="@ms.position"/>
+                <ForceConstraintVisualization draw_scale="0.00"/>     
+            </Node>
+            <LinearSolverConstraintCorrection />  
+            <Node name="obsNode" activated="1">        
+                <SimulatedStateObservationSource template="Vec3d" name="observations" monitorPrefix="Obs3D_LMbeamSpring_0" asynObs="true"/>                               
+                <SimpleObservationManager name="MOBS" template="Vec3d,Rigid3d" listening="1"  stateWrapper="@../../StateWrapper" use2dObservation="false"  verbose="1" observationStdev="0.0001"/>
+            </Node>
+    </Node>  
+
+    
+    <Node name="Spring" >
+        <VisualStyle displayFlags="showWireframe" /> 
+        <MeshObjLoader name="surface" filename="mesh/test3.obj"  />
+        <TransformStochasticEngine name="transform" input_position="@surface.position" optimParams="@../ball/paramSpring.value" triangles="@surface.triangles"  />
+        <MeshTopology name="mesh" position="@transform.output_position" triangles="@transform.triangles"  />
+        <TriangleSetTopologyContainer name="Container" src="@mesh" />
+        <MechanicalObject name="MS" free_position="@transform.output_position" position="@transform.output_position" template="Vec3d" />
+        <TriangleGeometry name="triangle"/> 
+        <AABBDecorator/>
+<!--         <OglModel name="VisualModel" src="@surface"  material="Default Diffuse 1 1 0.93 0.83 0.1 Ambient 0 0 0 0 0 Specular 0 0 0 0 0 Emissive 0 0 0 0 0 Shininess 0 45" /> -->
+    </Node>
+    <NeedleContactConstraint needle="ball/CollisionBall/point" surface="Spring/triangle" tipIndex="@ball/CollisionBall/boxA.indices" friction="0.000" draw="0" draw_normal_scale="0.001" />    
+    </Node>
+    
+    
+</Node>
