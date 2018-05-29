@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<Node    name="root" dt="0.001" gravity="0 -9.81 0" >
+<Node    name="root" dt="0.01" gravity="0 -9.81 0" >
 <RequiredPlugin pluginName="Optimus"/>
 <RequiredPlugin pluginName="ImageMeshAux" />
 <RequiredPlugin pluginName="ConstraintGeometryPlugin" />
@@ -9,7 +9,7 @@
 <BackgroundSetting color="1 1 1 1" />
 <ViewerSetting resolution="837 600" />
 <FreeMotionAnimationLoop />
-<GenericConstraintSolver name="GenericConstraintSolver"  printLog="1"  maxIterations="1000"  tolerance="1e-10"  allVerified="0" />  
+<GenericConstraintSolver name="GenericConstraintSolver"  printLog="0"  maxIterations="1000"  tolerance="1e-10"  allVerified="0" />  
 <OpenCVProjectiveCalibrator name="opengl" streamer="video" mode="5" listening="false" drawzNear="0.001" drawzFar="3" />
 <OpenCVOpenGlStreamer name="video" src="@opengl" />
 <OpenCVScheduler name="scheduler" frequency="0" />
@@ -20,7 +20,7 @@
         <MechanicalObject template="Rigid" name="MO" position="0 0 0 0 0 0 1    0.01 0 0 0 0 0 1     0.02 0 0 0 0 0 1     0.03 0 0 0 0 0 1 " />
         <Mesh name="lines" lines="0 1   1 2   2 3  " />
         <UniformMass totalmass="0.0005 " printLog="false" />
-        <BeamFEMForceField name="FEM" radius="0.0005" youngModulus="1e5" poissonRatio="0.49" useSymmetricAssembly="1"/>
+        <BeamFEMForceField name="FEM" radius="0.0005" youngModulus="1e7" poissonRatio="0.49" useSymmetricAssembly="1"/>
         <Node name="CollisionBall">
     <!--                 <EdgeSetTopologyContainer name="Container"  edges=  "0 1   1 2   2 3  "  /> -->
     <!--                 <MechanicalObject name="ms"   position="0 0 0   1 0 0     2 0 0   3 0 0 "/> -->
@@ -38,7 +38,7 @@
     
     <Node name="Spring" >
         <VisualStyle displayFlags="hideCollisionModels" /> 
-        <MeshObjLoader name="surface" filename="mesh/test.obj"  />
+        <MeshObjLoader name="surface" filename="mesh/test4.obj"  />
         <TransformStochasticEngine name="transform" input_position="@surface.position" optimParams="0 0 0 0 0 0" triangles="@surface.triangles"  />
         <MeshTopology name="mesh" position="@transform.output_position" triangles="@transform.triangles"  />
         <TriangleSetTopologyContainer name="Container" src="@mesh" />
@@ -46,11 +46,11 @@
         <TriangleGeometry name="triangle"/> 
         <OglModel name="VisualModel" src="@surface"  material="Default Diffuse 1 1 0.93 0.83 0.1 Ambient 0 0 0 0 0 Specular 0 0 0 0 0 Emissive 0 0 0 0 0 Shininess 0 45" />
     </Node>
-    <NeedleContactConstraint needle="ball/CollisionBall/point" surface="Spring/triangle" tipIndex="@ball/CollisionBall/boxA.indices" friction="0.000" draw="1" draw_normal_scale="0.001" /> 
+    <NeedleContactConstraint needle="ball/CollisionBall/point" surface="Spring/triangle" tipIndex="@ball/CollisionBall/boxA.indices" friction="0.05" draw="1" draw_normal_scale="0.001" /> 
     
     <Node name="noisyObs"> 		
         <MechanicalObject template="Vec3d" name="MO" position="@../ball/MO.position"  showObject="0"/>	
-        <AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@MO.position" noiseOrthogonalVariance="0.001" noisePrincipalVariance="0.001" noisePrincipalDirection="1 1 1"/>
+        <AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@MO.position" noiseOrthogonalVariance="0.00001" noisePrincipalVariance="0.00001" noisePrincipalDirection="1 1 1"/>
         <ShowSpheres  radius="0.001"  color="1 0 0 1" position="@NoiseEngine.outputPositions"    />
     </Node>
     
@@ -62,7 +62,7 @@
 
     <Node name="WRITEGroundTruthCatheter"> 
         <MechanicalObject template="Vec3" name="MO" position="@../ball/MO.position" showObject="0"/>		
-<!--          <WriteState filename="LMReference_beamSpring_0" groundTruth="true" />  -->
+         <WriteState filename="LMReference_beamSpring_0" groundTruth="true" /> 
     </Node>
 
     
@@ -85,7 +85,7 @@
         <OpenCVImageProcessor name="processor" streamer="../video" />
         <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObs/NoiseEngine.outputPositions" projectionMatrix="@../opengl.projectionMatrix"/>
         <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
-<!--         <StochasticPositionHandler filename="Obs2D2_LMballSpring_x.txt" observations="true" indices="0 "/> -->
+        <StochasticPositionHandler filename="Obs2D2_LMballSpring_x.txt" observations="true" indices="0 1 2 3"/>
     </Node>
     
 </Node>
