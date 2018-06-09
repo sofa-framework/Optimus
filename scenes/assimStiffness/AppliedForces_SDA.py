@@ -114,11 +114,14 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
 
         self.filterKind = self.opt['filter']['kind']
         if self.filterKind == 'ROUKF':
-            self.filter = rootNode.createObject('ROUKFilter', name="ROUKF", verbose="1", useBlasToMultiply='1')
+            self.filter = rootNode.createObject('ROUKFilter', name="ROUKF", verbose="1", useBlasToMultiply='1', sigmaTopology=self.opt['filter']['sigma_points_topology'])
             estimatePosition = 1            
         elif self.filterKind == 'UKFSimCorr':
-            self.filter = rootNode.createObject('UKFilterSimCorr', name="UKFSC", verbose="1")
+            self.filter = rootNode.createObject('UKFilterSimCorr', name="UKFSC", verbose="1", sigmaTopology=self.opt['filter']['sigma_points_topology'])
             estimatePosition = 0
+        elif self.filterKind == 'UKFClassic':
+            self.filter = rootNode.createObject('UKFilterSimCorr', name="UKFClas", verbose="1", sigmaTopology=self.opt['filter']['sigma_points_topology'], exportPrefix=self.estFolder)
+            estimatePosition = 1
             
         rootNode.createObject('MeshVTKLoader', name='loader', filename=self.opt['model']['vol_mesh'])
         rootNode.createObject('MeshSTLLoader', name='sloader', filename=self.opt['model']['surf_mesh'])
