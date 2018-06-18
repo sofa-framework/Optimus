@@ -54,6 +54,7 @@ public:
 
     sofa::core::objectmodel::DataFileName f_filename;
     Data < bool > f_writeX;
+    Data < bool > f_writeV;
     Data < double > f_keperiod;
     Data < bool > d_groundTruth;
     Data < bool > d_observations;

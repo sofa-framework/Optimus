@@ -44,6 +44,7 @@ namespace misc
 StochasticPositionHandler::StochasticPositionHandler()
     : f_filename( initData(&f_filename, "filename", "output file name"))
     , f_writeX( initData(&f_writeX, true, "writeX", "flag enabling output of X vector"))
+    , f_writeV( initData(&f_writeV, false, "writeV", "flag enabling output of V vector"))
     , d_groundTruth( initData(&d_groundTruth, false, "groundTruth", "StochasticPositionHandler for GroundTruth"))
     , d_observations( initData(&d_observations, false, "observations", "write state for observationsr"))
     , d_indices ( initData ( &d_indices, "indices", "MechanicalObject points indices to monitor" ) )
@@ -129,6 +130,11 @@ void StochasticPositionHandler::handleEvent(sofa::core::objectmodel::Event* even
                         if (f_writeX.getValue())
                         {
                             mmodel->writeVec(core::VecId::position(), *outfile);
+                            (*outfile) << "\n";
+                        }
+                        if (f_writeV.getValue())
+                        {
+                            mmodel->writeVec(core::VecId::velocity(), *outfile);
                             (*outfile) << "\n";
                         }
                 } else {
