@@ -30,9 +30,9 @@ echo $SOFA_DIRECTORY
 if [ -d "$SOFA_DIRECTORY" ]; then
     echo "Update sofa repository"
     cd $SOFA_DIRECTORY
-    /usr/bin/git pull --progress https://github.com/mimesis-inria/sofa.git 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%d_%m_%Y"`.txt
+    /usr/bin/git pull --progress https://github.com/mimesis-inria/sofa.git 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
 else
-    /usr/bin/git clone --progress https://github.com/mimesis-inria/sofa.git $SOFA_DIRECTORY 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%d_%m_%Y"`.txt
+    /usr/bin/git clone --progress https://github.com/mimesis-inria/sofa.git $SOFA_DIRECTORY 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
     echo "Clone data from sofa repository"
 fi
 if ! [ -d "$BUILD_DIRECTORY" ]; then
@@ -43,9 +43,9 @@ fi
 if [ -d "$SOFACONFIG_DIRECTORY" ]; then
     echo "Update SofaConfig repository"
     cd $SOFACONFIG_DIRECTORY
-    /usr/bin/git pull --progress https://gitlab.inria.fr/mimesis/sofaconfig.git 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%d_%m_%Y"`.txt
+    /usr/bin/git pull --progress https://gitlab.inria.fr/mimesis/sofaconfig.git 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
 else
-    /usr/bin/git clone --progress https://gitlab.inria.fr/mimesis/sofaconfig.git $SOFACONFIG_DIRECTORY 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%d_%m_%Y"`.txt
+    /usr/bin/git clone --progress https://gitlab.inria.fr/mimesis/sofaconfig.git $SOFACONFIG_DIRECTORY 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
     echo "Clone data from SofaConfig repository"
 fi
 
@@ -53,9 +53,9 @@ fi
 if [ -d "$BOUNDARY_CONDITIONS_DIRECTORY" ]; then
     echo "Update Boundary Conditions repository"
     cd $BOUNDARY_CONDITIONS_DIRECTORY
-    /usr/bin/git pull --progress https://gitlab.inria.fr/mimesis/BoundaryConditions.git 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%d_%m_%Y"`.txt
+    /usr/bin/git pull --progress https://gitlab.inria.fr/mimesis/BoundaryConditions.git 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
 else
-    /usr/bin/git clone --progress https://gitlab.inria.fr/mimesis/BoundaryConditions.git $BOUNDARY_CONDITIONS_DIRECTORY 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%d_%m_%Y"`.txt
+    /usr/bin/git clone --progress https://gitlab.inria.fr/mimesis/BoundaryConditions.git $BOUNDARY_CONDITIONS_DIRECTORY 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
     echo "Clone data from Boundary Conditions repository"
 fi
 
@@ -63,9 +63,9 @@ fi
 if [ -d "$PARDISO_SOLVER_DIRECTORY" ]; then
     echo "Update Pardiso Solver repository"
     cd $PARDISO_SOLVER_DIRECTORY
-    /usr/bin/git pull --progress https://gitlab.inria.fr/mimesis/SofaPardisoSolver.git 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%d_%m_%Y"`.txt
+    /usr/bin/git pull --progress https://gitlab.inria.fr/mimesis/SofaPardisoSolver.git 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
 else
-    /usr/bin/git clone --progress https://gitlab.inria.fr/mimesis/SofaPardisoSolver.git $PARDISO_SOLVER_DIRECTORY 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%d_%m_%Y"`.txt
+    /usr/bin/git clone --progress https://gitlab.inria.fr/mimesis/SofaPardisoSolver.git $PARDISO_SOLVER_DIRECTORY 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
     echo "Clone data from Pardiso Solver repository"
 fi
 
@@ -73,9 +73,9 @@ fi
 if [ -d "$IMAUX_DIRECTORY" ]; then
     echo "Update ImageMeshAux repository"
     cd $IMAUX_DIRECTORY
-    /usr/bin/git pull --progress https://gitlab.inria.fr/mimesis/ImageMeshAux.git 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%d_%m_%Y"`.txt
+    /usr/bin/git pull --progress https://gitlab.inria.fr/mimesis/ImageMeshAux.git 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
 else
-    /usr/bin/git clone --progress https://gitlab.inria.fr/mimesis/ImageMeshAux.git $IMAUX_DIRECTORY 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%d_%m_%Y"`.txt
+    /usr/bin/git clone --progress https://gitlab.inria.fr/mimesis/ImageMeshAux.git $IMAUX_DIRECTORY 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
     echo "Clone data from ImageMeshAux repository"
 fi
 
@@ -83,16 +83,16 @@ fi
 if [ -d "$OPTIMUS_DIRECTORY" ]; then
     echo "Update Optimus repository"
     cd $OPTIMUS_DIRECTORY
-    /usr/bin/git pull --progress https://gitlab.inria.fr/mimesis/Optimus.git 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%d_%m_%Y"`.txt
+    /usr/bin/git pull --progress https://gitlab.inria.fr/mimesis/Optimus.git 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
 else
-    /usr/bin/git clone --progress https://gitlab.inria.fr/mimesis/Optimus.git $OPTIMUS_DIRECTORY 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%d_%m_%Y"`.txt
+    /usr/bin/git clone --progress https://gitlab.inria.fr/mimesis/Optimus.git $OPTIMUS_DIRECTORY 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
     echo "Clone data from Optimus repository"
 fi
 
 ### configure and make the system
 echo "Recompile sources"
 cd $BUILD_DIRECTORY
-/usr/bin/make -B -j 8 2>&1 >> $GENERAL_DIRECTORY/log_`/bin/date +"%d_%m_%Y"`.txt
+/usr/bin/make -B -j 8 2>&1 >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
 
 
 ### verify benchmark tests
@@ -104,7 +104,7 @@ do
     cd $FOLDER
     if [ -f $FOLDER/verify.sh ]; then
         echo "Perform test: $FOLDER"
-        $FOLDER/verify.sh $BUILD_DIRECTORY/bin/runSofa >> $GENERAL_DIRECTORY/log_`/bin/date +"%d_%m_%Y"`.txt
+        $FOLDER/verify.sh $BUILD_DIRECTORY/bin/runSofa >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
     fi
 done
 echo "All tests have been executed"
