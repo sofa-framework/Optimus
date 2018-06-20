@@ -1,8 +1,8 @@
-% clear 
-% close all
-% clc
+clear 
+close all
+clc
 
-g= dlmread('../gPosition');
+% g= dlmread('../gPosition');
 % g= dlmread('../gVelocity');
 
 % n = dlmread('n');
@@ -16,59 +16,210 @@ g= dlmread('../gPosition');
 % s_0= dlmread('print/print_state_vec3');
 % % f_1= dlmread('print/FilteredBeam_1');
 % s_1= dlmread('print/print_state_1');
-% % s_0= dlmread('print/print_state_0');
-% ms=size(cov_10,1);
+s= dlmread('../print/print_state_3');
+c= dlmread('../print/print_cov_3');
 
-%% PRINTING VELOCITY AMPLITUDE 
-p_0=g(:,2:4);
-p_1=g(:,5:7);
-p_2=g(:,8:10);
-p_3=g(:,11:13);
-p_4=g(:,14:16);
-p_5=g(:,17:19);
-p_6=g(:,20:22);
-p_7=g(:,23:25);
-p_8=g(:,25:27);
-p_9=g(:,28:30);
+ms=size(s,1);
+
+e1=s(:,4:6);
+e2=s(:,10:12);
+e3=s(:,16:18);
+e4=s(:,22:24);
+c1=c(:,4:6);
+c2=c(:,10:12);
+c3=c(:,16:18);
+c4=c(:,22:24);
+
+cp1=c(:,1:3);
+cp2=c(:,7:9);
+cp3=c(:,13:15);
+cp4=c(:,19:21);
 
 
-ms=size(g,1);
-n=ones(ms,1);
-n_0=n;
-n_1=n;
-n_2=n;
-n_3=n;
-n_4=n;
-n_5=n;
-n_6=n;
-n_7=n;
-n_8=n;
-n_9=n;
-for i =1:ms
-   n_0(i)=norm(p_0(i,:));
-   n_1(i)=norm(p_1(i,:));
-   n_2(i)=norm(p_2(i,:));
-   n_3(i)=norm(p_3(i,:));
-   n_4(i)=norm(p_4(i,:));
-   n_5(i)=norm(p_5(i,:));
-   n_6(i)=norm(p_6(i,:));
-   n_7(i)=norm(p_7(i,:));
-   n_8(i)=norm(p_8(i,:));
-   n_9(i)=norm(p_9(i,:));
-end
 
-PLOT=cat(2,n_0,n_1,n_2,n_3,n_4,n_5,n_6,n_7,n_8,n_9);
-M=mean(PLOT,2);
-figure2=figure('NumberTitle', 'off', 'Name', 'Average Position Norm - Ground Truth')
+
+
+figure1=figure('NumberTitle', 'off', 'Name', 'Plot Angles2')
+subplot(4,1,1)
+plot(e1(:,1))
+hold on
+plot(e1(:,2))
+hold on
+plot(e1(:,3))
+grid on
+legend('roll','pitch','yaw','Location','NorthEastOutside');
+xlabel('t - [simulation step]') % x-axis label
+ylabel('euler angle first node') % y-axis label
+subplot(4,1,2)
+plot(e2(:,1))
+hold on
+plot(e2(:,2))
+hold on
+plot(e2(:,3))
+grid on
+legend('roll','pitch','yaw','Location','NorthEastOutside');
+xlabel('t - [simulation step]') % x-axis label
+ylabel('euler angle second node') % y-axis label
+subplot(4,1,3)
+plot(e3(:,1))
+hold on
+plot(e3(:,2))
+hold on
+plot(e3(:,3))
+grid on
+legend('roll','pitch','yaw','Location','NorthEastOutside');
+xlabel('t - [simulation step]') % x-axis label
+ylabel('euler angle third node') % y-axis label
+subplot(4,1,4)
+plot(e4(:,1))
+hold on
+plot(e4(:,2))
+hold on
+plot(e4(:,3))
+grid on
+legend('roll','pitch','yaw','Location','NorthEastOutside');
+xlabel('t - [simulation step]') % x-axis label
+ylabel('euler angle fourth node') % y-axis label
+
+
+figure2=figure('NumberTitle', 'off', 'Name', 'Plot Angles Covariance2')
+subplot(4,1,1)
+plot(c1(:,1))
+hold on
+plot(c1(:,2))
+hold on
+plot(c1(:,3))
+grid on
+legend('roll','pitch','yaw','Location','NorthEastOutside');
+xlabel('t - [simulation step]') % x-axis label
+ylabel('euler angle first node') % y-axis label
+subplot(4,1,2)
+plot(c2(:,1))
+hold on
+plot(c2(:,2))
+hold on
+plot(c2(:,3))
+grid on
+legend('roll','pitch','yaw','Location','NorthEastOutside');
+xlabel('t - [simulation step]') % x-axis label
+ylabel('euler angle second node') % y-axis label
+subplot(4,1,3)
+plot(c3(:,1))
+hold on
+plot(c3(:,2))
+hold on
+plot(c3(:,3))
+grid on
+legend('roll','pitch','yaw','Location','NorthEastOutside');
+xlabel('t - [simulation step]') % x-axis label
+ylabel('euler angle third node') % y-axis label
+subplot(4,1,4)
+plot(c4(:,1))
+hold on
+plot(c4(:,2))
+hold on
+plot(c4(:,3))
+grid on
+legend('roll','pitch','yaw','Location','NorthEastOutside');
+xlabel('t - [simulation step]') % x-axis label
+ylabel('euler angle fourth node') % y-axis label
+
+
+figure3=figure('NumberTitle', 'off', 'Name', 'Plot Position Covariance')
+subplot(4,1,1)
+plot(cp1(:,1))
+hold on
+plot(cp1(:,2))
+hold on
+plot(cp1(:,3))
+grid on
+legend('x','y','z','Location','NorthEastOutside');
+xlabel('t - [simulation step]') % x-axis label
+ylabel('euler angle first node') % y-axis label
+subplot(4,1,2)
+plot(cp2(:,1))
+hold on
+plot(cp2(:,2))
+hold on
+plot(cp2(:,3))
+grid on
+legend('x','y','z','Location','NorthEastOutside');
+xlabel('t - [simulation step]') % x-axis label
+ylabel('euler angle second node') % y-axis label
+subplot(4,1,3)
+plot(cp3(:,1))
+hold on
+plot(cp3(:,2))
+hold on
+plot(cp3(:,3))
+grid on
+legend('x','y','z','Location','NorthEastOutside');
+xlabel('t - [simulation step]') % x-axis label
+ylabel('euler angle third node') % y-axis label
+subplot(4,1,4)
+plot(cp4(:,1))
+hold on
+plot(cp4(:,2))
+hold on
+plot(cp4(:,3))
+grid on
+legend('x','y','z','Location','NorthEastOutside');
+xlabel('t - [simulation step]') % x-axis label
+ylabel('euler angle fourth node') % y-axis label
+
+
+
+
+% % PRINTING VELOCITY AMPLITUDE 
+% p_0=g(:,2:4);
+% p_1=g(:,5:7);
+% p_2=g(:,8:10);
+% p_3=g(:,11:13);
+% p_4=g(:,14:16);
+% p_5=g(:,17:19);
+% p_6=g(:,20:22);
+% p_7=g(:,23:25);
+% p_8=g(:,25:27);
+% p_9=g(:,28:30);
+% 
+% 
+% ms=size(g,1);
+% n=ones(ms,1);
+% n_0=n;
+% n_1=n;
+% n_2=n;
+% n_3=n;
+% n_4=n;
+% n_5=n;
+% n_6=n;
+% n_7=n;
+% n_8=n;
+% n_9=n;
+% for i =1:ms
+%    n_0(i)=norm(p_0(i,:));
+%    n_1(i)=norm(p_1(i,:));
+%    n_2(i)=norm(p_2(i,:));
+%    n_3(i)=norm(p_3(i,:));
+%    n_4(i)=norm(p_4(i,:));
+%    n_5(i)=norm(p_5(i,:));
+%    n_6(i)=norm(p_6(i,:));
+%    n_7(i)=norm(p_7(i,:));
+%    n_8(i)=norm(p_8(i,:));
+%    n_9(i)=norm(p_9(i,:));
+% end
+% 
+% PLOT=cat(2,n_0,n_1,n_2,n_3,n_4,n_5,n_6,n_7,n_8,n_9);
+% M=mean(PLOT,2);
+% figure2=figure('NumberTitle', 'off', 'Name', 'Average Position Norm - Ground Truth')
 % for i=1:size(PLOT,2)
 % plot(PLOT(:,i), 'Linewidth',2,'MarkerSize',1)
 % hold on
 % end
-plot(M, 'Linewidth',2,'MarkerSize',1)
-grid on
-xlabel('h - [simulation step]') % x-axis label
-ylabel('norm ') % y-axis label
-title( 'Average Position Norm - Ground Truth' ) ;
+% plot(M, 'Linewidth',2,'MarkerSize',1)
+% grid on
+% xlabel('h - [simulation step]') % x-axis label
+% ylabel('norm ') % y-axis label
+% title( 'Average Position Norm - Ground Truth' ) ;
 %% PRINTING PARAMETER ESTIMATION 
 % 
 % p_0=s_0(1:ms,4);

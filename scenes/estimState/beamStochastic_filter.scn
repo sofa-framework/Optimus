@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<Node    name="root" dt="0.001" gravity="0 -5 0" > 
+<Node    name="root" dt="0.001" gravity="0 0 0" > 
     <RequiredPlugin pluginName="Optimus"/>
     <RequiredPlugin pluginName="ImageMeshAux" />
     <RequiredPlugin pluginName="ConstraintGeometryPlugin" />
@@ -12,20 +12,25 @@
 <BackgroundSetting color="1 1 1 1" />
 <ViewerSetting resolution="837 600" />
 <FilteringAnimationLoop name="StochAnimLoop" verbose="1"/>
-<UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0"   draw="true" radiusDraw="0.0002" MOnodesDraw="10" filenameCov="print/print_cov_0" filenameInn="print/print_inn_0" filenameFinalState="print/print_state_0"/>
+<UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0"   draw="true" radiusDraw="0.0002" MOnodesDraw="10" filenameCov="print/print_cov_3" filenameInn="print/print_inn_3" filenameFinalState="print/print_state_3"/>
 
-<OpenCVProjectiveCalibrator name="opengl" streamer="video" mode="0" imageSize="816 600" projectionMatrix="[721.328 -125.993 385.188 159.224,-103.055 -730.325 265.638 50.0823,0.652577 -0.646565 -0.395092 0.300087]"
+<!--<OpenCVProjectiveCalibrator name="opengl" streamer="video" mode="0" imageSize="816 600" projectionMatrix="[721.328 -125.993 385.188 159.224,-103.055 -730.325 265.638 50.0823,0.652577 -0.646565 -0.395092 0.300087]"
+ listening="false" drawzNear="0.1" drawzFar="100" drawCamera="false"  drawViewPort="false" drawscreenSize="650 500"/>-->
+
+<OpenCVProjectiveCalibrator name="opengl" streamer="video" mode="0" imageSize="816 600" projectionMatrix="[748.999 -13.6403 -351.245 159.224,18.9076 -734.701 -272.791 50.0823,0.0657569 -0.0363914 -0.997172 0.300087]"
  listening="false" drawzNear="0.1" drawzFar="100" drawCamera="false"  drawViewPort="false" drawscreenSize="650 500"/>
+
+
+
 
 <Node name="simulation">
     <PreStochasticWrapper />
         <Node name="ReferenceModel"> 
             <EulerImplicitSolver  />
             <CGLinearSolver />
-            <MechanicalObject template="Vec3" name="MO" position="0 0 0 0 0 0 1    0.01 0 0 0 0 0 1     0.02 0 0 0 0 0 1     0.03 0 0 0 0 0 1    0.04 0 0 0 0 0 1 
-                                    0.05 0 0 0 0 0 1    0.06 0 0 0 0 0 1     0.07 0 0 0 0 0 1     0.08 0 0 0 0 0 1    0.09 0 0 0 0 0 1"/>
+            <MechanicalObject template="Vec3" name="MO" position="0 0 0 0 0 0 1    0.01 0 0 0 0 0 1     0.02 0 0 0 0 0 1     0.03 0 0 0 0 0 1  0.04 0 0 0 0 0 1 0.05 0 0 0 0 0 1    0.06 0 0 0 0 0 1     0.07 0 0 0 0 0 1     0.08 0 0 0 0 0 1    0.09 0 0 0 0 0 1"/>
             <ReadState filename="Reference_beamSpring_0" />
-            <ShowSpheres  radius="0.0005"  color="0 1 0 1" position="@MO.position" />
+            <ShowSpheres  radius="0.0003"  color="0 1 0 1" position="@MO.position" />
         </Node>
 <!--        <Node name="NoisyObs"> 
             <MechanicalObject template="Vec3" name="MO" position="0 0 0 0 0 0 1    0.01 0 0 0 0 0 1     0.02 0 0 0 0 0 1     0.03 0 0 0 0 0 1    0.04 0 0 0 0 0 1 
@@ -33,12 +38,12 @@
             <ReadState filename="NoisyObs_beamSpring_0" />
             <ShowSpheres  radius="0.0009"  color="1 0 0 1" position="@MO.position" />
         </Node>-->
-<!--        <Node name="OnlyPrediction"> 
+        <Node name="OnlyPrediction"> 
             <MechanicalObject template="Vec3" name="MO" position="0 0 0 0 0 0 1    0.01 0 0 0 0 0 1     0.02 0 0 0 0 0 1     0.03 0 0 0 0 0 1    0.04 0 0 0 0 0 1 
                                     0.05 0 0 0 0 0 1    0.06 0 0 0 0 0 1     0.07 0 0 0 0 0 1     0.08 0 0 0 0 0 1    0.09 0 0 0 0 0 1"/>
             <ReadState filename="OnlyPrediction_beamSpring_0" />
-            <ShowSpheres  radius="0.0009"  color="1 1 0 1" position="@MO.position" />
-        </Node>-->
+            <ShowSpheres  radius="0.0003"  color="1 1 0 1" position="@MO.position" />
+        </Node>
     
         <Node name="VisualRealSurface">
             <VisualStyle displayFlags="hideWireframe " /> 
@@ -51,54 +56,56 @@
 </Node> 
      
     <Node name="filteredModel">     
-        <StochasticStateWrapper name="StateWrapper" template="Rigid3d" verbose="1" estimatePosition="1" estimateVelocity="1" positionStdev="0.0001 0.0001 0.0001 0.000001 0.000001 0.000001" velocityStdev="0.001 0.001 0.001 0.0001 0.0001 0.0001" posModelStdev="0.00001 0.00001 0.00001 0.000001 0.000001 0.000001" velModelStdev="0.0001 0.0001 0.0001 0.00001 0.00001 0.00001"       
-        paramModelStdev="0.000001 0.000001 0.000001 0.0000001 0.0000001 0.0000001   
-                         0.000001 0.000001 0.000001 0.0000001 0.0000001 0.0000001 
-                         0.000001 0.000001 0.000001 0.0000001 0.0000001 0.0000001
-                         0.000001 0.000001 0.000001 0.0000001 0.0000001 0.0000001 
-                         0.000001 0.000001 0.000001 0.0000001 0.0000001 0.0000001   
-                         0.000001 0.000001 0.000001 0.0000001 0.0000001 0.0000001 
-                         0.000001 0.000001 0.000001 0.0000001 0.0000001 0.0000001
-                         0.000001 0.000001 0.000001 0.0000001 0.0000001 0.0000001
-                         0.000001 0.000001 0.000001 0.0000001 0.0000001 0.0000001   
-                         0.000001 0.000001 0.000001 0.0000001 0.0000001 0.0000001"  
+        <StochasticStateWrapper name="StateWrapper" template="Rigid3d" verbose="1" estimatePosition="1" estimateVelocity="1" positionStdev="0.001 0.001 0.001 0.00001 0.00001 0.00001" velocityStdev="0.001 0.001 0.001 0.0001 0.0001 0.0001" posModelStdev="0 0 0 0 0 0" velModelStdev=" 0.0001 0.0001 0.0001 0.0 0.0 0.00"       
+        paramModelStdev="0 0 0 0.0 0.0 0.0
+                         0 0 0 0.0 0.0 0.0 
+                         0 0 0 0.0 0.0 0.0  
+                         0 0 0 0.0 0.0 0.0 
+                        0 0 0 0.0 0.0 0.0
+                         0 0 0 0.0 0.0 0.0 
+                         0 0 0 0.0 0.0 0.0  
+                         0 0 0 0.0 0.0 0.0
+                        0 0 0 0.0 0.0 0.0
+                         0 0 0 0.0 0.0 0.0"  
         langrangeMultipliers="1" draw="false" radiusDraw="0.0002"/>  
         <GenericConstraintSolver name="GenericConstraintSolver"  printLog="0"  maxIterations="1000"  tolerance="1e-10"  allVerified="0" /> 
         <Node name="ball">
             <EulerImplicitSolver rayleighMass="0.01" rayleighStiffness="0.1" />	
-            <PCGLinearSolver  preconditioners="BTD" update_step="183"/> 
+<!--             <PCGLinearSolver  preconditioners="BTD" update_step="183"/>  -->
             <SparseLDLSolver name="BTD" template="AsyncCompressedRowSparseMatrix3f" />
 <!--             <BTDLinearSolver template="BTDMatrix6d" printLog="false" verbose="false" /> -->
 <!--             <OptimParams name="paramSpring" optimize="1" template ="Vector" initValue="0 0 0 0 0 0"  stdev="0.0001 0.0001 0.0001 0.0001 0.0001 0.0001" transformParams="0" /> -->
-<!--            <OptimParams name="paramForces" optimize="1" template ="RigidDeriv3d" 
+            <OptimParams name="paramForces" optimize="1" template ="RigidDeriv3d" 
                          initValue="0 0 0 0 0 0
                                     0 0 0 0 0 0 
                                     0 0 0 0 0 0 
-                                    0 0 0 0 0 0 
-                                    0 0 0 0 0 0
-                                    0 0 0 0 0 0 
-                                    0 0 0 0 0 0 
                                     0 0 0 0 0 0
                                     0 0 0 0 0 0
-                                    0 0 0 0 0 0 " 
-                         stdev=" 0.0001 0.0001 0.0001 0.000001 0.000001 0.000001
-                                 0.0001 0.0001 0.0001 0.000001 0.000001 0.000001 
-                                 0.0001 0.0001 0.0001 0.000001 0.000001 0.000001  
-                                 0.0001 0.0001 0.0001 0.000001 0.000001 0.000001 
-                                 0.0001 0.0001 0.0001 0.000001 0.000001 0.000001
-                                 0.0001 0.0001 0.0001 0.000001 0.000001 0.000001 
-                                 0.0001 0.0001 0.0001 0.000001 0.000001 0.000001  
-                                 0.0001 0.0001 0.0001 0.000001 0.000001 0.000001 
-                                 0.0001 0.0001 0.0001 0.000001 0.000001 0.000001
-                                 0.0001 0.0001 0.0001 0.000001 0.000001 0.000001 " transformParams="0" parametricMechanicalObjectRigid="@MO"/>-->
+                                    0 0 0 0 0 0 
+                                    0 0 0 0 0 0 
+                                    0 0 0 0 0 0
+                                    0 0 0 0 0 0
+                                    0 0 0 0 0 0" 
+                         stdev="  0.0001 0.0001 0.0001 0.0000001 0.0000001 0.0000001
+                                  0.0001 0.0001 0.0001 0.0000001 0.0000001 0.0000001 
+                                  0.0001 0.0001 0.0001 0.0000001 0.0000001 0.0000001
+                                  0.0001 0.0001 0.0001 0.0000001 0.0000001 0.0000001 
+                                  0.0001 0.0001 0.0001 0.0000001 0.0000001 0.0000001
+                                  0.0001 0.0001 0.0001 0.0000001 0.0000001 0.0000001 
+                                  0.0001 0.0001 0.0001 0.0000001 0.0000001 0.0000001
+                                  0.0001 0.0001 0.0001 0.0000001 0.0000001 0.0000001 
+                                  0.0001 0.0001 0.0001 0.0000001 0.0000001 0.0000001
+                                  0.0001 0.0001 0.0001 0.0000001 0.0000001 0.0000001 " transformParams="0" parametricMechanicalObjectRigid="@MO"/>
             <MechanicalObject template="Rigid" name="MO" 
                               position="0 0 0 0 0 0 1    0.01 0 0 0 0 0 1     0.02 0 0 0 0 0 1     0.03 0 0 0 0 0 1    0.04 0 0 0 0 0 1 
-                                        0.05 0 0 0 0 0 1    0.06 0 0 0 0 0 1     0.07 0 0 0 0 0 1     0.08 0 0 0 0 0 1    0.09 0 0 0 0 0 1" showObject="1" showObjectScale="0.0005" />
+                                        0.05 0 0 0 0 0 1    0.06 0 0 0 0 0 1     0.07 0 0 0 0 0 1     0.08 0 0 0 0 0 1    0.09 0 0 0 0 0 1" showObject="1" showObjectScale="0.001" />
             <Mesh name="lines" lines="0 1   1 2   2 3  3 4   4 5   5 6   6 7   7 8   8 9" />
+<!--            <MechanicalObject template="Rigid" name="MO" position="0 0 0 0 0 0 1    0.01 0 0 0 0 0 1     0.02 0 0 0 0 0 1     0.03 0 0 0 0 0 1" showObject="1" showObjectScale="0.001" />
+            <Mesh name="lines" lines="0 1   1 2   2 3 " />-->
             <UniformMass totalmass="0.0005 " printLog="false" />
-<!--             <CorrectionForceField forces="@paramForces.value" /> -->
+            <CorrectionForceField forces="@paramForces.value" />
 
-            <BeamFEMForceField name="FEM" radius="0.0005" youngModulus="1e7" poissonRatio="0.49" useSymmetricAssembly="1"/>
+            <BeamFEMForceField name="FEM" radius="0.0005" youngModulus="1e6" poissonRatio="0.49" useSymmetricAssembly="1"/>
             <Node name="CollisionBall">
 <!--                                 <EdgeSetTopologyContainer name="Container"  edges=  "0 1   1 2   2 3  "  /> -->
 <!--                                 <MechanicalObject name="ms"   position="0 0 0   1 0 0     2 0 0   3 0 0 "/> -->
@@ -108,11 +115,13 @@
                 <EdgeGeometry name="edge"/> 
                 <PointGeometry name ="point"/>
                 <BoxROI name="boxA" box="-1 -1 -1 1 1 1 " drawBoxes="1" drawSize="1" position="@ms.position"/>
-                <ForceConstraintVisualization draw_scale="0.00"/>     
+                <ForceConstraintVisualization draw_scale="0.05"/>    
+                <ConstantForceField force="0 -0.0001 0"/>
+
             </Node>
             
-		<Node name="VM">
-			<MechanicalObject name="VisualDOFs"/>
+<!--		<Node name="VM">
+                    <MechanicalObject name="VisualDOFs"/>
                     <QuadSetTopologyContainer name="ContainerCath" />
                     <QuadSetTopologyModifier name="Modifier"/>
                     <QuadSetTopologyAlgorithms name="TopoAlgo" template="Vec3d"/>
@@ -125,7 +134,7 @@
                     color="0.85 0.85 0.85" material="texture Ambient 1 0.2 0.2 0.2 0.0 Diffuse 1 1.0 1.0 1.0 1.0 Specular 1 1.0 1.0 1.0 1.0 Emissive 0 0.15 0.05 0.05 0.0 Shininess 1 20" name="VisualCatheter"/>
                     <IdentityMapping />	
                      </Node>
-		</Node>
+		</Node>-->
                 
                 
             
@@ -136,8 +145,8 @@
                 <SimpleObservationManager name="MOBS" template="Vec3d,Rigid3d" listening="1"  stateWrapper="@../../StateWrapper" use2dObservation="false"  verbose="1" observationStdev="0.0001"/>
             </Node>-->
             <Node name="obsNode" activated="1">        
-                <SimulatedStateObservationSource template="Vec2d" name="observations" monitorPrefix="/home/raffa/work/Optimus/scenes/estimState/Obs2D_LMballSpring_1" asynObs="true"/>                               
-                <SimpleObservationManager name="MOBS" template="Vec2d,Rigid3d" listening="1"  stateWrapper="@../../StateWrapper" use2dObservation="true" projectionMatrix="@../../../opengl.projectionMatrix"  verbose="1" observationStdev="0.01"/>
+                <SimulatedStateObservationSource template="Vec2d" name="observations" monitorPrefix="/home/raffa/work/Optimus/scenes/estimState/Obs2D_LMballSpring_2" asynObs="true"/>                               
+                <SimpleObservationManager name="MOBS" template="Vec2d,Rigid3d" listening="1"  stateWrapper="@../../StateWrapper" use2dObservation="true" projectionMatrix="@../../../opengl.projectionMatrix"  verbose="1" observationStdev="0.005"/>
             </Node>
     </Node> 
 

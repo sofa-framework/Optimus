@@ -383,7 +383,7 @@ void StochasticStateWrapper<Rigid3dTypes, double>::copyStateFilter2Sofa(const co
                 euler_ori[k]=EulerPos[i][j];
             }
 
-            q_ori=defaulttype::Quat::createQuaterFromEuler(euler_ori);
+            q_ori=defaulttype::Quat::createQuaterFromEuler(euler_ori*M_PI/180);
             q_ori.normalize();
             pos[i].getOrientation()= q_ori;
             pos[i].getCenter() =eu_pos;
@@ -441,7 +441,7 @@ void StochasticStateWrapper<Rigid3dTypes, double>::copyStateSofa2Filter() {
         }
         unsigned k=0;
         for(size_t j=3; j <6; j++, k++){
-            EulerPos[i][j]=euler_ori[k];
+            EulerPos[i][j]=euler_ori[k]*180/M_PI;
         }
 
     }

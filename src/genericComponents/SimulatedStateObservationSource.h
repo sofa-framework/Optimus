@@ -113,7 +113,7 @@ public:
         return(getObservation(_time, _state));
     }
 
-#define ROUND 1000000.0
+#define ROUND 10000000.0
 
     bool getObservation(double _time, VecCoord& _observation) {
         if (d_asynObs.getValue()) {
