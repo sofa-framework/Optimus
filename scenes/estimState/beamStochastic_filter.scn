@@ -12,13 +12,12 @@
 <BackgroundSetting color="1 1 1 1" />
 <ViewerSetting resolution="837 600" />
 <FilteringAnimationLoop name="StochAnimLoop" verbose="1"/>
-<UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0"   draw="true" radiusDraw="0.0002" MOnodesDraw="10" filenameCov="print/print_cov_3" filenameInn="print/print_inn_3" filenameFinalState="print/print_state_3"/>
+<UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0"   draw="0" radiusDraw="0.0002" MOnodesDraw="10" filenameCov="journalValid/matlab/print_cov_BIF_OB_2" filenameInn="journalValid/matlab/print_inn_BIF_OB_2" filenameFinalState="journalValid/matlab/print_state_BIF_OB_2"/>
 
-<!--<OpenCVProjectiveCalibrator name="opengl" streamer="video" mode="0" imageSize="816 600" projectionMatrix="[721.328 -125.993 385.188 159.224,-103.055 -730.325 265.638 50.0823,0.652577 -0.646565 -0.395092 0.300087]"
- listening="false" drawzNear="0.1" drawzFar="100" drawCamera="false"  drawViewPort="false" drawscreenSize="650 500"/>-->
+<OpenCVProjectiveCalibrator name="opengl" streamer="video" mode="0" imageSize="816 600"  projectionMatrix="[513.41 148.368 631.63 215.592,-193.229 -585.209 484.511 25.2104,0.760325 -0.628768 0.16296 0.445612]" listening="false" drawzNear="0.1" drawzFar="100" drawCamera="false"  drawViewPort="false" drawscreenSize="650 500"/>
 
-<OpenCVProjectiveCalibrator name="opengl" streamer="video" mode="0" imageSize="816 600" projectionMatrix="[748.999 -13.6403 -351.245 159.224,18.9076 -734.701 -272.791 50.0823,0.0657569 -0.0363914 -0.997172 0.300087]"
- listening="false" drawzNear="0.1" drawzFar="100" drawCamera="false"  drawViewPort="false" drawscreenSize="650 500"/>
+
+
 
 
 
@@ -27,51 +26,44 @@
     <PreStochasticWrapper />
         <Node name="ReferenceModel"> 
             <EulerImplicitSolver  />
-            <CGLinearSolver />
+            <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/>
             <MechanicalObject template="Vec3" name="MO" position="0 0 0 0 0 0 1    0.01 0 0 0 0 0 1     0.02 0 0 0 0 0 1     0.03 0 0 0 0 0 1  0.04 0 0 0 0 0 1 0.05 0 0 0 0 0 1    0.06 0 0 0 0 0 1     0.07 0 0 0 0 0 1     0.08 0 0 0 0 0 1    0.09 0 0 0 0 0 1"/>
-            <ReadState filename="Reference_beamSpring_0" />
+            <ReadState filename="journalValid/Reference_BIF_OB" />
             <ShowSpheres  radius="0.0003"  color="0 1 0 1" position="@MO.position" />
         </Node>
-<!--        <Node name="NoisyObs"> 
+<!--        <Node name="OnlyPrediction"> 
             <MechanicalObject template="Vec3" name="MO" position="0 0 0 0 0 0 1    0.01 0 0 0 0 0 1     0.02 0 0 0 0 0 1     0.03 0 0 0 0 0 1    0.04 0 0 0 0 0 1 
                                     0.05 0 0 0 0 0 1    0.06 0 0 0 0 0 1     0.07 0 0 0 0 0 1     0.08 0 0 0 0 0 1    0.09 0 0 0 0 0 1"/>
-            <ReadState filename="NoisyObs_beamSpring_0" />
-            <ShowSpheres  radius="0.0009"  color="1 0 0 1" position="@MO.position" />
+            <ReadState filename="OnlyPrediction5_beamSpring_2" />
+            <ShowSpheres  radius="0.0003"  color="0 0.5 1 1" position="@MO.position" />
         </Node>-->
-        <Node name="OnlyPrediction"> 
-            <MechanicalObject template="Vec3" name="MO" position="0 0 0 0 0 0 1    0.01 0 0 0 0 0 1     0.02 0 0 0 0 0 1     0.03 0 0 0 0 0 1    0.04 0 0 0 0 0 1 
-                                    0.05 0 0 0 0 0 1    0.06 0 0 0 0 0 1     0.07 0 0 0 0 0 1     0.08 0 0 0 0 0 1    0.09 0 0 0 0 0 1"/>
-            <ReadState filename="OnlyPrediction_beamSpring_0" />
-            <ShowSpheres  radius="0.0003"  color="1 1 0 1" position="@MO.position" />
-        </Node>
     
         <Node name="VisualRealSurface">
             <VisualStyle displayFlags="hideWireframe " /> 
-            <MeshObjLoader name="surface" filename="mesh/test.obj"  />
+            <MeshObjLoader name="surface" filename="mesh/vessel.obj"  />
             <MeshTopology src="@surface" />
             <MechanicalObject name="DOFs" />
-            <OglModel name="VisualModel" src="@surface"  material="Default Diffuse 1 1 0.93 0.83 0.1 Ambient 0 0 0 0 0 Specular 0 0 0 0 0 Emissive 0 0 0 0 0 Shininess 0 45" />/>
+            <OglModel name="VisualModel" src="@surface"  material="Default Diffuse 1 1 0.93 0.83 0.05 Ambient 0 0 0 0 0 Specular 0 0 0 0 0 Emissive 0 0 0 0 0 Shininess 0 45" />/>
         </Node>
-    
 </Node> 
      
     <Node name="filteredModel">     
-        <StochasticStateWrapper name="StateWrapper" template="Rigid3d" verbose="1" estimatePosition="1" estimateVelocity="1" positionStdev="0.001 0.001 0.001 0.00001 0.00001 0.00001" velocityStdev="0.001 0.001 0.001 0.0001 0.0001 0.0001" posModelStdev="0 0 0 0 0 0" velModelStdev=" 0.0001 0.0001 0.0001 0.0 0.0 0.00"       
+        <StochasticStateWrapper name="StateWrapper" template="Rigid3d" verbose="1" estimatePosition="1" estimateVelocity="1" positionStdev="0.001 0.001 0.001 0.00001 0.00001 0.00001" velocityStdev="0.001 0.001 0.001 0.0001 0.0001 0.0001" posModelStdev="0.0 0.0 0.0 0 0 0" velModelStdev=" 0.001 0.001 0.001 0.0 0.0 0.00"       
         paramModelStdev="0 0 0 0.0 0.0 0.0
                          0 0 0 0.0 0.0 0.0 
                          0 0 0 0.0 0.0 0.0  
                          0 0 0 0.0 0.0 0.0 
-                        0 0 0 0.0 0.0 0.0
+                         0 0 0 0.0 0.0 0.0
                          0 0 0 0.0 0.0 0.0 
                          0 0 0 0.0 0.0 0.0  
                          0 0 0 0.0 0.0 0.0
-                        0 0 0 0.0 0.0 0.0
+                         0 0 0 0.0 0.0 0.0
                          0 0 0 0.0 0.0 0.0"  
         langrangeMultipliers="1" draw="false" radiusDraw="0.0002"/>  
         <GenericConstraintSolver name="GenericConstraintSolver"  printLog="0"  maxIterations="1000"  tolerance="1e-10"  allVerified="0" /> 
         <Node name="ball">
             <EulerImplicitSolver rayleighMass="0.01" rayleighStiffness="0.1" />	
-<!--             <PCGLinearSolver  preconditioners="BTD" update_step="183"/>  -->
+            <PCGLinearSolver  preconditioners="BTD" update_step="183"/> 
             <SparseLDLSolver name="BTD" template="AsyncCompressedRowSparseMatrix3f" />
 <!--             <BTDLinearSolver template="BTDMatrix6d" printLog="false" verbose="false" /> -->
 <!--             <OptimParams name="paramSpring" optimize="1" template ="Vector" initValue="0 0 0 0 0 0"  stdev="0.0001 0.0001 0.0001 0.0001 0.0001 0.0001" transformParams="0" /> -->
@@ -86,16 +78,16 @@
                                     0 0 0 0 0 0
                                     0 0 0 0 0 0
                                     0 0 0 0 0 0" 
-                         stdev="  0.0001 0.0001 0.0001 0.0000001 0.0000001 0.0000001
-                                  0.0001 0.0001 0.0001 0.0000001 0.0000001 0.0000001 
-                                  0.0001 0.0001 0.0001 0.0000001 0.0000001 0.0000001
-                                  0.0001 0.0001 0.0001 0.0000001 0.0000001 0.0000001 
-                                  0.0001 0.0001 0.0001 0.0000001 0.0000001 0.0000001
-                                  0.0001 0.0001 0.0001 0.0000001 0.0000001 0.0000001 
-                                  0.0001 0.0001 0.0001 0.0000001 0.0000001 0.0000001
-                                  0.0001 0.0001 0.0001 0.0000001 0.0000001 0.0000001 
-                                  0.0001 0.0001 0.0001 0.0000001 0.0000001 0.0000001
-                                  0.0001 0.0001 0.0001 0.0000001 0.0000001 0.0000001 " transformParams="0" parametricMechanicalObjectRigid="@MO"/>
+                         stdev=" 0.0003 0.0003 0.0003 0.0000003 0.0000003 0.0000003   
+                                 0.0003 0.0003 0.0003 0.0000003 0.0000003 0.0000003    
+                                 0.0003 0.0003 0.0003 0.0000003 0.0000003 0.0000003   
+                                 0.0003 0.0003 0.0003 0.0000003 0.0000003 0.0000003    
+                                 0.0003 0.0003 0.0003 0.0000003 0.0000003 0.0000003   
+                                 0.0003 0.0003 0.0003 0.0000003 0.0000003 0.0000003    
+                                 0.0003 0.0003 0.0003 0.0000003 0.0000003 0.0000003   
+                                 0.0003 0.0003 0.0003 0.0000003 0.0000003 0.0000003    
+                                 0.0003 0.0003 0.0003 0.0000003 0.0000003 0.0000003   
+                                 0.0003 0.0003 0.0003 0.0000003 0.0000003 0.0000003    " transformParams="0" parametricMechanicalObjectRigid="@MO"/>
             <MechanicalObject template="Rigid" name="MO" 
                               position="0 0 0 0 0 0 1    0.01 0 0 0 0 0 1     0.02 0 0 0 0 0 1     0.03 0 0 0 0 0 1    0.04 0 0 0 0 0 1 
                                         0.05 0 0 0 0 0 1    0.06 0 0 0 0 0 1     0.07 0 0 0 0 0 1     0.08 0 0 0 0 0 1    0.09 0 0 0 0 0 1" showObject="1" showObjectScale="0.001" />
@@ -114,9 +106,9 @@
                 <BeamLinearMapping   />
                 <EdgeGeometry name="edge"/> 
                 <PointGeometry name ="point"/>
-                <BoxROI name="boxA" box="-1 -1 -1 1 1 1 " drawBoxes="1" drawSize="1" position="@ms.position"/>
-                <ForceConstraintVisualization draw_scale="0.05"/>    
-                <ConstantForceField force="0 -0.0001 0"/>
+                <BoxROI name="boxA" box="-0.3 -0.3 -0.3 0.01 0.1 0.3 " drawBoxes="1" drawSize="1" position="@ms.position"/>
+                <ForceConstraintVisualization draw_scale="0.00"/>    
+                <ConstantForceField force="-0.0001  -0.00000 0  "/>
 
             </Node>
             
@@ -141,19 +133,19 @@
             <LinearSolverConstraintCorrection solverName="BTD"/>  
             
 <!--            <Node name="obsNode" activated="1">        
-                <SimulatedStateObservationSource template="Vec3d" name="observations" monitorPrefix="/home/raffa/work/Optimus/scenes/estimState/Obs3D_LMbeamSpring_0" asynObs="true"/>                               
+                <SimulatedStateObservationSource template="Vec3d" name="observations" monitorPrefix="/home/raffa/work/Optimus/scenes/estimState/Obs3D_LMbeamSpring_2" asynObs="true"/>                               
                 <SimpleObservationManager name="MOBS" template="Vec3d,Rigid3d" listening="1"  stateWrapper="@../../StateWrapper" use2dObservation="false"  verbose="1" observationStdev="0.0001"/>
             </Node>-->
             <Node name="obsNode" activated="1">        
-                <SimulatedStateObservationSource template="Vec2d" name="observations" monitorPrefix="/home/raffa/work/Optimus/scenes/estimState/Obs2D_LMballSpring_2" asynObs="true"/>                               
-                <SimpleObservationManager name="MOBS" template="Vec2d,Rigid3d" listening="1"  stateWrapper="@../../StateWrapper" use2dObservation="true" projectionMatrix="@../../../opengl.projectionMatrix"  verbose="1" observationStdev="0.005"/>
+                <SimulatedStateObservationSource template="Vec2d" name="observations" monitorPrefix="/home/raffa/work/Optimus/scenes/estimState/journalValid/Obs2D_BIF_OB" asynObs="true"/>                               
+                <SimpleObservationManager name="MOBS" template="Vec2d,Rigid3d" listening="1"  stateWrapper="@../../StateWrapper" use2dObservation="true" projectionMatrix="@../../../opengl.projectionMatrix"  verbose="1" observationStdev="0.01"/>
             </Node>
     </Node> 
 
     
     <Node name="Spring" >
         <VisualStyle displayFlags="hideCollisionModels" /> 
-        <MeshObjLoader name="surface" filename="mesh/test.obj"  />
+        <MeshObjLoader name="surface" filename="mesh/vessel.obj"  />
         <TransformStochasticEngine name="transform" input_position="@surface.position" optimParams="0 0 0 0 0 0" triangles="@surface.triangles"  />
         <MeshTopology name="mesh" position="@transform.output_position" triangles="@transform.triangles"  />
         <TriangleSetTopologyContainer name="Container" src="@mesh" />
