@@ -12,9 +12,9 @@
 <BackgroundSetting color="1 1 1 1" />
 <ViewerSetting resolution="837 600" />
 <FilteringAnimationLoop name="StochAnimLoop" verbose="1"/>
-<UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0"   draw="0" radiusDraw="0.0002" MOnodesDraw="10" filenameCov="journalValid/matlab/print_cov_BIF_OB_2" filenameInn="journalValid/matlab/print_inn_BIF_OB_2" filenameFinalState="journalValid/matlab/print_state_BIF_OB_2"/>
+<UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0"   draw="0" radiusDraw="0.0002" MOnodesDraw="10" filenameCov="journalValid/matlab/print_cov_TEST_SIDE_3" filenameInn="journalValid/matlab/print_inn_TEST_SIDE_3" filenameFinalState="journalValid/matlab/print_state_TEST_SIDE_3"/>
 
-<OpenCVProjectiveCalibrator name="opengl" streamer="video" mode="0" imageSize="816 600"  projectionMatrix="[513.41 148.368 631.63 215.592,-193.229 -585.209 484.511 25.2104,0.760325 -0.628768 0.16296 0.445612]" listening="false" drawzNear="0.1" drawzFar="100" drawCamera="false"  drawViewPort="false" drawscreenSize="650 500"/>
+<OpenCVProjectiveCalibrator name="opengl" streamer="video" mode="0" imageSize="816 600"  projectionMatrix="[2281.11 -2.34947e-13 -400 273.957,-3.07529e-13 -2281.11 -300 -6.35711,-9.39116e-17 1.11022e-16 -1 0.317505]" listening="false" drawzNear="0.1" drawzFar="100" drawCamera="false"  drawViewPort="false" drawscreenSize="650 500"/>
 
 
 
@@ -28,19 +28,19 @@
             <EulerImplicitSolver  />
             <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/>
             <MechanicalObject template="Vec3" name="MO" position="0 0 0 0 0 0 1    0.01 0 0 0 0 0 1     0.02 0 0 0 0 0 1     0.03 0 0 0 0 0 1  0.04 0 0 0 0 0 1 0.05 0 0 0 0 0 1    0.06 0 0 0 0 0 1     0.07 0 0 0 0 0 1     0.08 0 0 0 0 0 1    0.09 0 0 0 0 0 1"/>
-            <ReadState filename="journalValid/Reference_BIF_OB" />
+            <ReadState filename="journalValid/Reference_TEST_SIDE" />
             <ShowSpheres  radius="0.0003"  color="0 1 0 1" position="@MO.position" />
         </Node>
 <!--        <Node name="OnlyPrediction"> 
             <MechanicalObject template="Vec3" name="MO" position="0 0 0 0 0 0 1    0.01 0 0 0 0 0 1     0.02 0 0 0 0 0 1     0.03 0 0 0 0 0 1    0.04 0 0 0 0 0 1 
                                     0.05 0 0 0 0 0 1    0.06 0 0 0 0 0 1     0.07 0 0 0 0 0 1     0.08 0 0 0 0 0 1    0.09 0 0 0 0 0 1"/>
-            <ReadState filename="OnlyPrediction5_beamSpring_2" />
+            <ReadState filename="OnlyPrediction5_beamSpring_3" />
             <ShowSpheres  radius="0.0003"  color="0 0.5 1 1" position="@MO.position" />
         </Node>-->
     
         <Node name="VisualRealSurface">
             <VisualStyle displayFlags="hideWireframe " /> 
-            <MeshObjLoader name="surface" filename="mesh/vessel.obj"  />
+            <MeshObjLoader name="surface" filename="mesh/test.obj"  />
             <MeshTopology src="@surface" />
             <MechanicalObject name="DOFs" />
             <OglModel name="VisualModel" src="@surface"  material="Default Diffuse 1 1 0.93 0.83 0.05 Ambient 0 0 0 0 0 Specular 0 0 0 0 0 Emissive 0 0 0 0 0 Shininess 0 45" />/>
@@ -78,16 +78,16 @@
                                     0 0 0 0 0 0
                                     0 0 0 0 0 0
                                     0 0 0 0 0 0" 
-                         stdev=" 0.0003 0.0003 0.0003 0.0000003 0.0000003 0.0000003   
-                                 0.0003 0.0003 0.0003 0.0000003 0.0000003 0.0000003    
-                                 0.0003 0.0003 0.0003 0.0000003 0.0000003 0.0000003   
-                                 0.0003 0.0003 0.0003 0.0000003 0.0000003 0.0000003    
-                                 0.0003 0.0003 0.0003 0.0000003 0.0000003 0.0000003   
-                                 0.0003 0.0003 0.0003 0.0000003 0.0000003 0.0000003    
-                                 0.0003 0.0003 0.0003 0.0000003 0.0000003 0.0000003   
-                                 0.0003 0.0003 0.0003 0.0000003 0.0000003 0.0000003    
-                                 0.0003 0.0003 0.0003 0.0000003 0.0000003 0.0000003   
-                                 0.0003 0.0003 0.0003 0.0000003 0.0000003 0.0000003    " transformParams="0" parametricMechanicalObjectRigid="@MO"/>
+                         stdev="0.0001 0.0001 0.0001 0.0000001 0.0000001 0.0000001   
+                                0.0001 0.0001 0.0001 0.0000001 0.0000001 0.0000001    
+                                0.0001 0.0001 0.0001 0.0000001 0.0000001 0.0000001   
+                                0.0001 0.0001 0.0001 0.0000001 0.0000001 0.0000001    
+                                0.0001 0.0001 0.0001 0.0000001 0.0000001 0.0000001   
+                                0.0001 0.0001 0.0001 0.0000001 0.0000001 0.0000001    
+                                0.0001 0.0001 0.0001 0.0000001 0.0000001 0.0000001   
+                                0.0001 0.0001 0.0001 0.0000001 0.0000001 0.0000001    
+                                0.0001 0.0001 0.0001 0.0000001 0.0000001 0.0000001   
+                                0.0001 0.0001 0.0001 0.0000001 0.0000001 0.0000001    " transformParams="0" parametricMechanicalObjectRigid="@MO"/>
             <MechanicalObject template="Rigid" name="MO" 
                               position="0 0 0 0 0 0 1    0.01 0 0 0 0 0 1     0.02 0 0 0 0 0 1     0.03 0 0 0 0 0 1    0.04 0 0 0 0 0 1 
                                         0.05 0 0 0 0 0 1    0.06 0 0 0 0 0 1     0.07 0 0 0 0 0 1     0.08 0 0 0 0 0 1    0.09 0 0 0 0 0 1" showObject="1" showObjectScale="0.001" />
@@ -133,19 +133,19 @@
             <LinearSolverConstraintCorrection solverName="BTD"/>  
             
 <!--            <Node name="obsNode" activated="1">        
-                <SimulatedStateObservationSource template="Vec3d" name="observations" monitorPrefix="/home/raffa/work/Optimus/scenes/estimState/Obs3D_LMbeamSpring_2" asynObs="true"/>                               
-                <SimpleObservationManager name="MOBS" template="Vec3d,Rigid3d" listening="1"  stateWrapper="@../../StateWrapper" use2dObservation="false"  verbose="1" observationStdev="0.0001"/>
+                <SimulatedStateObservationSource template="Vec3d" name="observations" monitorPrefix="/home/raffa/work/Optimus/scenes/estimState/Obs3D_LMbeamSpring_3" asynObs="true"/>                               
+                <SimpleObservationManager name="MSIDES" template="Vec3d,Rigid3d" listening="1"  stateWrapper="@../../StateWrapper" use2dObservation="false"  verbose="1" observationStdev="0.0001"/>
             </Node>-->
             <Node name="obsNode" activated="1">        
-                <SimulatedStateObservationSource template="Vec2d" name="observations" monitorPrefix="/home/raffa/work/Optimus/scenes/estimState/journalValid/Obs2D_BIF_OB" asynObs="true"/>                               
-                <SimpleObservationManager name="MOBS" template="Vec2d,Rigid3d" listening="1"  stateWrapper="@../../StateWrapper" use2dObservation="true" projectionMatrix="@../../../opengl.projectionMatrix"  verbose="1" observationStdev="0.01"/>
+                <SimulatedStateObservationSource template="Vec2d" name="observations" monitorPrefix="/home/raffa/work/Optimus/scenes/estimState/journalValid/Obs2D_TEST_SIDE" asynObs="true"/>                               
+                <SimpleObservationManager name="MSIDES" template="Vec2d,Rigid3d" listening="1"  stateWrapper="@../../StateWrapper" use2dObservation="true" projectionMatrix="@../../../opengl.projectionMatrix"  verbose="1" observationStdev="0.01"/>
             </Node>
     </Node> 
 
     
     <Node name="Spring" >
         <VisualStyle displayFlags="hideCollisionModels" /> 
-        <MeshObjLoader name="surface" filename="mesh/vessel.obj"  />
+        <MeshObjLoader name="surface" filename="mesh/test.obj"  />
         <TransformStochasticEngine name="transform" input_position="@surface.position" optimParams="0 0 0 0 0 0" triangles="@surface.triangles"  />
         <MeshTopology name="mesh" position="@transform.output_position" triangles="@transform.triangles"  />
         <TriangleSetTopologyContainer name="Container" src="@mesh" />

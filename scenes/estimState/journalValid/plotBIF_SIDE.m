@@ -24,7 +24,7 @@ load hd2d_1.mat
 load hd2d_2.mat 
 load hd2d_3.mat 
 
-figure(1)
+figure
 plot(RMSE_0*1000)
 hold on
 plot(RMSE_1*1000, 'Color',[1 0 0])
@@ -37,7 +37,7 @@ xlabel('h - [simulation step]') % x-axis label
 ylabel('RMSE [mm] ') % y-axis label
 title( {'Root Mean Square Error'; ' 3D Ground Truth Tip - 3D  Filter Tip' }) ;
 
-figure(2)
+figure
 plot(RMSE2d_0, 'Color',[1 0 0])
 hold on
 plot(RMSE2d_1, 'Color',[1 0 0]) 
@@ -51,7 +51,7 @@ ylabel('RMSE [pixel] ') % y-axis label
 title( {'2D Root Mean Square Error'; ' 2D Ground Truth Tip - 2D  Filter Tip' }) ;
 
 
-figure(3)
+figure
 plot(hd_0*1000)
 hold on
 plot(hd_1*1000, 'Color',[1 0 0])
@@ -64,7 +64,7 @@ xlabel('h - [simulation step]') % x-axis label
 ylabel('Hausdorff [mm] ') % y-axis label
 title( {'Hausdorff Distance'; 'Ground Truth Catheter- Filter Catheter' }) ;
 
-figure(4)
+figure
 plot(hd2d_0)
 hold on
 plot(hd2d_1, 'Color',[1 0 0])
