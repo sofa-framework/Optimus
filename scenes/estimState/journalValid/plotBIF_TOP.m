@@ -1,8 +1,8 @@
 %%PLOT TIP TOP_RMSE 
 % load('TOP_RMSE2d_0.mat','TOP_RMSE2d_0')
-% clear all
-% close all 
-% clc
+clear all
+close all 
+clc
 
 load TOP_RMSE2d_0.mat
 load TOP_RMSE2d_1.mat   
@@ -24,7 +24,7 @@ load TOP_hd2d_1.mat
 load TOP_hd2d_2.mat 
 load TOP_hd2d_3.mat 
 
-figure
+figure(5)
 plot(TOP_RMSE_0*1000)
 hold on
 plot(TOP_RMSE_1*1000, 'Color',[1 0 0])
@@ -34,10 +34,10 @@ hold on
 plot(TOP_RMSE_3*1000, 'Color',[1 0 1])
 grid on
 xlabel('h - [simulation step]') % x-axis label
-ylabel('TOP_RMSE [mm] ') % y-axis label
-title( {'Root Mean Square Error'; ' 3D Ground Truth Tip - 3D  Filter Tip' }) ;
+ylabel('RMSE [mm] ') % y-axis label
+title( {' 3D Ground Truth Tip - 3D  Filter Tip';'Root Mean Square Error'  }) ;
 
-figure
+figure(6)
 plot(TOP_RMSE2d_0)
 hold on
 plot(TOP_RMSE2d_1, 'Color',[1 0 0]) 
@@ -47,11 +47,11 @@ hold on
 plot(TOP_RMSE2d_3, 'Color',[1 0 1])
 grid on
 xlabel('h - [simulation step]') % x-axis label
-ylabel('TOP_RMSE [pixel] ') % y-axis label
-title( {'2D Root Mean Square Error'; ' 2D Ground Truth Tip - 2D  Filter Tip' }) ;
+ylabel('RMSE [pixel] ') % y-axis label
+title( {'2D Ground Truth Tip - 2D  Filter Tip'; ' Root Mean Square Error' }) ;
 
 
-figure
+figure(7)
 plot(TOP_hd_0*1000)
 hold on
 plot(TOP_hd_1*1000, 'Color',[1 0 0])
@@ -62,9 +62,9 @@ plot(TOP_hd_3*1000, 'Color',[1 0 1])
 grid on
 xlabel('h - [simulation step]') % x-axis label
 ylabel('Hausdorff [mm] ') % y-axis label
-title( {'Hausdorff Distance'; 'Ground Truth Catheter- Filter Catheter' }) ;
+title( {'Ground Truth Catheter - Filter Catheter';'Hausdorff Distance'  }) ;
 
-figure
+figure(8)
 plot(TOP_hd2d_0)
 hold on
 plot(TOP_hd2d_1, 'Color',[1 0 0])
@@ -75,4 +75,4 @@ plot(TOP_hd2d_3, 'Color',[1 0 1])
 grid on
 xlabel('h - [simulation step]') % x-axis label
 ylabel('Hausdorff [pixel] ') % y-axis label
-title( {'2D Hausdorff Distance'; '2D  Ground Truth Catheter-  2D Filter Catheter' }) ;
+title( {'2D  Ground Truth Catheter-  2D Filter Catheter';'Hausdorff Distance' }) ;
