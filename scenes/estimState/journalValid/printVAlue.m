@@ -2,35 +2,23 @@ clear
 close all
 clc
 
-gtREAD= dlmread('groundTruth_LOOP_TOP');
-% n2dREAD= dlmread('noisyTOPs_LOOP_TOP');
-% P=[775.552 -206.837 200.739 202.551;43.6739 289.403 727.253
-% 109.588;0.148221 -0.711592 0.68678 0.348575]; %BIF_TOP
+gtREAD= dlmread('groundTruth_TEST_TOP');
+n2dREAD= dlmread('TESTNOISY');
+% P=[775.552 -206.837 200.739 202.551;43.6739 289.403 727.253 109.588;0.148221 -0.711592 0.68678 0.348575]; %BIFTOP
+% P=[770.277 -32.7486 -300.267 225.406;217.307 -715.345 235.834 98.5108;0.194673 -0.612749 -0.765925 0.372637]; %BIFSIDE
+% P=[513.41 148.368 631.63 215.592;-193.229 -585.209 484.511 25.2104;0.760325 -0.628768 0.16296 0.445612]; %BIFOB
 
-% P=[770.277 -32.7486 -300.267 225.406;217.307 -715.345 235.834 98.5108;0.194673 -0.612749 -0.765925 0.372637]; %BIF_TOP
-
-% P=[513.41 148.368 631.63 215.592;-193.229 -585.209 484.511
-% 25.2104;0.760325 -0.628768 0.16296 0.445612]; %BIF_TOP
-
-% P=[2281.11 -2.34947e-13 -400 273.957;-3.07529e-13 -2281.11 -300
-% -6.35711;-9.39116e-17 1.11022e-16 -1 0.317505]; %TEST_TOP
-
-% P=[560.946 -169.854 584.336 149.418;-87.0629 -776.497 63.4844 14.5067;0.827776 -0.499976 -0.25458 0.286322]; %TEST_TOP
-
-% P=[19.8421 -404.504 721.763 143.041;-708.31 -335.931 -2.3288 68.0737;0.0501423 -0.998723 -0.00620961 0.362366]; %TEST_TOP
-
-% P=[1619.87 962.008 -3964 271.119; -1056.1 4214.58 560.977 -10.4216;
-% 0.908264 0.254582 0.332032 0.322867];  %LOOP_OB
+% P=[2281.11 -2.34947e-13 -400 273.957;-3.07529e-13 -2281.11 -300 -6.35711;-9.39116e-17 1.11022e-16 -1 0.317505]; %TESTSIDE
+% P=[560.946 -169.854 584.336 149.418;-87.0629 -776.497 63.4844 14.5067;0.827776 -0.499976 -0.25458 0.286322]; %TESTOB
+P=[19.8421 -404.504 721.763 143.041;-708.31 -335.931 -2.3288 68.0737;0.0501423 -0.998723 -0.00620961 0.362366]; %TESTTOP
 
 
-% P =[2191.92 2.58923e-13 400 301.674;-2.91499e-13 2191.92 300 112.021;-1.08587e-16 -3.90649e-33 1 0.330425]; %LOOP_SIDE
-
-P=[-844.693 3878.91 -5979.47 47.0909;-209.068 6010.34 3908.4 45.3053;0.98246 0.15321 -0.106295 0.258845]; 
 
 
-stateREAD= dlmread('matlab/print_state_LOOP_TOP_0');
+stateREAD= dlmread('matlab/print_state_TEST_TOP_2');
 
 gt=gtREAD(:,2:end);
+n=n2dREAD(:,2:end)
 % n2d=n2dREAD(:,2:end);
 
 pos=cat(2,stateREAD(:,1:3),stateREAD(:,7:9),stateREAD(:,13:15),stateREAD(:,19:21),stateREAD(:,25:27),stateREAD(:,31:33),...
@@ -39,7 +27,7 @@ pos=cat(2,stateREAD(:,1:3),stateREAD(:,7:9),stateREAD(:,13:15),stateREAD(:,19:21
 tip_gt=gt(:,1:3);
 tip_filter=pos(:,1:3);
 
-ms=690;
+ms=1000;
 A=ones(ms,2);
 RMSE=ones(ms,1);
 for i =1:ms
@@ -216,22 +204,52 @@ end
 hd=ones(ms,1);
 hd2d=ones(ms,1);
 d=ones(ms,1);
+hd2dn=ones(ms,1);
+hd2dg=ones(ms,1);
+
+% for i=1:ms
+%     
+% hd2d(i) = HausdorffDist(pos2d(i,1:8),gt2d(i,1:8));
+% hd2dn(i) = HausdorffDist(pos2d(i,1:8),gt2d(i,1:8));
+% hd2dn(i) = HausdorffDist(pos2d(i,1:8),gt2d(i,1:8));
+% 
+% hd(i) = HausdorffDist(gt(i,1:8),pos(i,1:8));
+% 
+% end
 
 for i=1:ms
     
-hd2d(i) = HausdorffDist(pos2d(i,:),gt2d(i,:));
-hd(i) = HausdorffDist(gt(i,:),pos(i,:));
+hd2d(i) = HausdorffDist(pos2d(i,1:8),gt2d(i,1:8));
+hd2dn(i) = HausdorffDist(n(i,1:8),pos2d(i,1:8));
+hd2dg(i) = HausdorffDist(n(i,1:8),gt2d(i,1:8));
+
+hd(i) = HausdorffDist(gt(i,1:8),pos(i,1:8));
 
 end
 
+figure
+plot(hd2d)
+hold on
+plot(hd2dn)
+hold on 
+plot(hd2dg)
 
-LOOP_TOP_RMSE2d_0=RMSE2d;
-LOOP_TOP_RMSE_0=RMSE;
-LOOP_TOP_hd_0=hd;
-LOOP_TOP_hd2d_0=hd2d;
-save('LOOP_TOP_hd_0.mat','LOOP_TOP_hd_0');
-save('LOOP_TOP_RMSE2d_0.mat','LOOP_TOP_RMSE2d_0');
-save('LOOP_TOP_RMSE_0.mat','LOOP_TOP_RMSE_0');
-save('LOOP_TOP_hd2d_0.mat','LOOP_TOP_hd2d_0');
+% 
+% figure
+% plot3(pos2d(:,1),pos2d(:,2),gtREAD(1:1000,1),'*')
+% hold on
+% plot3(n(1:1000,1),n(1:1000,2),gtREAD(1:1000,1),'*')
+% hold on 
+% plot3(gt2d(1:1000,1),gt2d(1:1000,2),gtREAD(1:1000,1),'*')
+
+
+TEST_TOP_RMSE2d_2=RMSE2d;
+TEST_TOP_RMSE_2=RMSE;
+TEST_TOP_hd_2=hd;
+TEST_TOP_hd2d_2=hd2d;
+save('TEST_TOP_hd_2.mat','TEST_TOP_hd_2');
+save('TEST_TOP_RMSE2d_2.mat','TEST_TOP_RMSE2d_2');
+save('TEST_TOP_RMSE_2.mat','TEST_TOP_RMSE_2');
+save('TEST_TOP_hd2d_2.mat','TEST_TOP_hd2d_2');
 
 
