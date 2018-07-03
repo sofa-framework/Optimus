@@ -67,12 +67,12 @@
 
     <Node name="WRITEGroundTruthCatheter"> 
         <MechanicalObject template="Vec3" name="MO" position="@../ball/MO.position" showObject="0"/>		
-<!--          <WriteState filename="/home/raffa/work/Optimus/scenes/estimState/journalValid/OnlyPrediction_BIF_TOP" groundTruth="true" />  -->
+         <WriteState filename="/home/raffa/work/Optimus/scenes/estimState/journalValid/Reference_BIF_SIDE" groundTruth="true" /> 
     </Node>
     
     <Node name="MatlabPlotGroundTruthPosition"> 
         <MechanicalObject template="Vec3" name="MO" position="@../ball/MO.position" showObject="0"/>		
-<!--         <StochasticPositionHandler filename="/home/raffa/work/Optimus/scenes/estimState/journalValid/groundTruth_BIF_TOP"   observations="true" groundTruth="true"/> -->
+        <StochasticPositionHandler filename="/home/raffa/work/Optimus/scenes/estimState/journalValid/groundTruth_BIF_SIDE"   observations="true" groundTruth="true"/>
     </Node>
         <Node name="MatlabPlotGroundTruth"> 
         <MechanicalObject template="Vec3" name="MO" position="@../ball/MO.position" velocity="@../ball/MO.velocity" showObject="0"/>		
@@ -84,7 +84,7 @@
         <OpenCVImageProcessor name="processor" streamer="../video" />
         <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObs/NoiseEngine.outputPositions" projectionMatrix="@../opengl.projectionMatrix"/>
         <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
-<!--         <StochasticPositionHandler filename="/home/raffa/work/Optimus/scenes/estimState/journalValid/Obs2D_BIF_TOP_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9"/> -->
+        <StochasticPositionHandler filename="/home/raffa/work/Optimus/scenes/estimState/journalValid/Obs2D_BIF_SIDE_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9"/>
     </Node>
     
     
@@ -92,7 +92,7 @@
         <OpenCVImageProcessor name="processor" streamer="../video" />
         <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObs/NoiseEngine.outputPositions" projectionMatrix="@../opengl.projectionMatrix"/>
         <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
-        <StochasticPositionHandler filename="journalValid/TESTNOISY"   observations="true" groundTruth="true"/>
+<!--         <StochasticPositionHandler filename="journalValid/TESTNOISY"   observations="true" groundTruth="true"/> -->
     </Node>
     
     

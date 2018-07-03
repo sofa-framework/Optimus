@@ -2,20 +2,20 @@ clear
 close all
 clc
 
-gtREAD= dlmread('groundTruth_TEST_TOP');
+gtREAD= dlmread('groundTruth_BIF_TOP');
 n2dREAD= dlmread('TESTNOISY');
-% P=[775.552 -206.837 200.739 202.551;43.6739 289.403 727.253 109.588;0.148221 -0.711592 0.68678 0.348575]; %BIFTOP
+% P=[775.552 -206.837 200.739 202.551;43.6739 289.403 727.253 109.588;0.148221 -0.711592 0.68678 0.348575]; %BIFSIDE
 % P=[770.277 -32.7486 -300.267 225.406;217.307 -715.345 235.834 98.5108;0.194673 -0.612749 -0.765925 0.372637]; %BIFSIDE
 % P=[513.41 148.368 631.63 215.592;-193.229 -585.209 484.511 25.2104;0.760325 -0.628768 0.16296 0.445612]; %BIFOB
 
-% P=[2281.11 -2.34947e-13 -400 273.957;-3.07529e-13 -2281.11 -300 -6.35711;-9.39116e-17 1.11022e-16 -1 0.317505]; %TESTSIDE
+P=[2281.11 -2.34947e-13 -400 273.957;-3.07529e-13 -2281.11 -300 -6.35711;-9.39116e-17 1.11022e-16 -1 0.317505]; %TESTSIDE
 % P=[560.946 -169.854 584.336 149.418;-87.0629 -776.497 63.4844 14.5067;0.827776 -0.499976 -0.25458 0.286322]; %TESTOB
-P=[19.8421 -404.504 721.763 143.041;-708.31 -335.931 -2.3288 68.0737;0.0501423 -0.998723 -0.00620961 0.362366]; %TESTTOP
+% P=[19.8421 -404.504 721.763 143.041;-708.31 -335.931 -2.3288 68.0737;0.0501423 -0.998723 -0.00620961 0.362366]; %TESTSIDE
 
 
 
 
-stateREAD= dlmread('matlab/print_state_TEST_TOP_2');
+stateREAD= dlmread('matlab/print_state_TEST_SIDE_0');
 
 gt=gtREAD(:,2:end);
 n=n2dREAD(:,2:end)
@@ -27,7 +27,7 @@ pos=cat(2,stateREAD(:,1:3),stateREAD(:,7:9),stateREAD(:,13:15),stateREAD(:,19:21
 tip_gt=gt(:,1:3);
 tip_filter=pos(:,1:3);
 
-ms=1000;
+ms=2445;
 A=ones(ms,2);
 RMSE=ones(ms,1);
 for i =1:ms
@@ -220,21 +220,21 @@ hd2dg=ones(ms,1);
 for i=1:ms
     
 hd2d(i) = HausdorffDist(pos2d(i,1:8),gt2d(i,1:8));
-hd2dn(i) = HausdorffDist(n(i,1:8),pos2d(i,1:8));
-hd2dg(i) = HausdorffDist(n(i,1:8),gt2d(i,1:8));
+% hd2dn(i) = HausdorffDist(n(i,1:8),pos2d(i,1:8));
+% hd2dg(i) = HausdorffDist(n(i,1:8),gt2d(i,1:8));
 
 hd(i) = HausdorffDist(gt(i,1:8),pos(i,1:8));
 
 end
-
-figure
-plot(hd2d)
-hold on
-plot(hd2dn)
-hold on 
-plot(hd2dg)
-
 % 
+% figure
+% plot(hd2d)
+% hold on
+% plot(hd2dn)
+% hold on 
+% plot(hd2dg)
+% 
+% % 
 % figure
 % plot3(pos2d(:,1),pos2d(:,2),gtREAD(1:1000,1),'*')
 % hold on
@@ -243,13 +243,13 @@ plot(hd2dg)
 % plot3(gt2d(1:1000,1),gt2d(1:1000,2),gtREAD(1:1000,1),'*')
 
 
-TEST_TOP_RMSE2d_2=RMSE2d;
-TEST_TOP_RMSE_2=RMSE;
-TEST_TOP_hd_2=hd;
-TEST_TOP_hd2d_2=hd2d;
-save('TEST_TOP_hd_2.mat','TEST_TOP_hd_2');
-save('TEST_TOP_RMSE2d_2.mat','TEST_TOP_RMSE2d_2');
-save('TEST_TOP_RMSE_2.mat','TEST_TOP_RMSE_2');
-save('TEST_TOP_hd2d_2.mat','TEST_TOP_hd2d_2');
+TEST_SIDE_RMSE2d_0=RMSE2d;
+TEST_SIDE_RMSE_0=RMSE;
+TEST_SIDE_hd_0=hd;
+TEST_SIDE_hd2d_0=hd2d;
+save('TEST_SIDE_hd_0.mat','TEST_SIDE_hd_0');
+save('TEST_SIDE_RMSE2d_0.mat','TEST_SIDE_RMSE2d_0');
+save('TEST_SIDE_RMSE_0.mat','TEST_SIDE_RMSE_0');
+save('TEST_SIDE_hd2d_0.mat','TEST_SIDE_hd2d_0');
 
 

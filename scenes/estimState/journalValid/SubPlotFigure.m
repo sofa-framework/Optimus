@@ -2,21 +2,21 @@ clear
 close all
 clc
 
-% openfig saved figures
-simple_ob1=openfig('simple2DHD_OB.fig');
-simple_ob2=openfig('simple3DHD_OB.fig');
-simple_ob3=openfig('simple2DRMSE_OBtip.fig');
-simple_ob4=openfig('simple3DRMSE_OBtip.fig');
+simple_ob1=hgload('simple2DHD_OB.fig');
+simple_ob2=hgload('simple3DHD_OB.fig');
+simple_ob3=hgload('simple2DRMSE_OBtip.fig');
+simple_ob4=hgload('simple3DRMSE_OBtip.fig');
 
-simple_top1=openfig('simple2DHD_TOP.fig');
-simple_top2=openfig('simple3DHD_TOP.fig');
-simple_top3=openfig('simple2DRMSE_TOP.fig');
-simple_top4=openfig('simple3DRMSE_TOP.fig');
+simple_top1=hgload('simple2DHD_TOP.fig');
+simple_top2=hgload('simple3DHD_TOP.fig');
+simple_top3=hgload('simple2DRMSE_TOP.fig');
+simple_top4=hgload('simple3DRMSE_TOP.fig');
 
-simple_SIDE1=openfig('simple2DHD_SIDE.fig');
-simple_SIDE2=openfig('simple3DHD_SIDE.fig');
-simple_SIDE3=openfig('simple2DRMSE_SIDE.fig');
-simple_SIDE4=openfig('simple3DRMSE_SIDE.fig');
+simple_SIDE1=hgload('simple2DHD_SIDE.fig');
+simple_SIDE2=hgload('simple3DHD_SIDE.fig');
+simple_SIDE3=hgload('simple2DRMSE_SIDE.fig');
+simple_SIDE33=hgload('simple3DRMSE_SIDE.fig');
+simple_SIDE4=hgload('simple3DRMSE_SIDE.fig');
 
 
 h(1)=subplot(3,4,1);
@@ -115,13 +115,13 @@ grid on
 grid minor
 
 h(12)=subplot(3,4,12);
+xlabel('h - [simulation step]') % x-axis label
+ylabel('RMSE [mm] ') % y-axis label
+title( {'{\it Simple Vessel Side View}';'RMSE 3D Ground Truth Tip - 3D  Filter Tip'  }) 
+ax = gca;
+ax.TitleFontSizeMultiplier = 1;
 grid on
 grid minor
-% xlabel('h - [simulation step]') % x-axis label
-% ylabel('RMSE [mm] ') % y-axis label
-% title( {'{\it Simple Vessel Side View}';'RMSE 3D Ground Truth Tip - 3D  Filter Tip'  }) 
-% ax = gca;
-% ax.TitleFontSizeMultiplier = 1;
 
 % Paste figures on the subplots
 copyobj(allchild(get(simple_ob1,'CurrentAxes')),h(1));
@@ -137,7 +137,8 @@ copyobj(allchild(get(simple_top4,'CurrentAxes')),h(8));
 copyobj(allchild(get(simple_SIDE1,'CurrentAxes')),h(9));
 copyobj(allchild(get(simple_SIDE2,'CurrentAxes')),h(10));
 copyobj(allchild(get(simple_SIDE3,'CurrentAxes')),h(11));
-copyobj(allchild(get(simple_SIDE4,'CurrentAxes')),h(12));
+copyobj(allchild(get(simple_SIDE33,'CurrentAxes')),h(12));
+
 
 % % Add legends
 % l(1)=legend(h(1),'LegendForFirstFigure')

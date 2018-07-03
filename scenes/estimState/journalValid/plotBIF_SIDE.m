@@ -31,6 +31,7 @@ plot(SIDE_RMSE_2*1000, 'LineWidth',1.5, 'Color',[0 0.600000023841858 0])
 hold on
 plot(SIDE_RMSE_3*1000, 'LineWidth',1.5, 'Color',[0.87058824300766 0.490196079015732 0])
 grid on
+grid minor
 xlabel('h - [simulation step]') % x-axis label
 ylabel('RMSE [mm] ') % y-axis label
 title( {'{\it Bifurcation Side View}';'Root Mean Square Error 3D Ground Truth Tip - 3D  Filter Tip'  }) 
@@ -50,6 +51,8 @@ plot(SIDE_RMSE2d_2, 'LineWidth',1.5, 'Color',[0 0.600000023841858 0])
 hold on
 plot(SIDE_RMSE2d_3, 'LineWidth',1.5, 'Color',[0.87058824300766 0.490196079015732 0])
 grid on
+grid minor
+
 xlabel('h - [simulation step]') % x-axis label
 ylabel('RMSE [pixel] ') % y-axis label
 title( {'{\it Bifurcation Side View}'; ' Root Mean Square Error  2D Ground Truth Tip - 2D  Filter Tip' }) ;
@@ -68,6 +71,8 @@ plot(SIDE_hd_2*1000, 'LineWidth',1.5, 'Color',[0 0.600000023841858 0])
 hold on
 plot(SIDE_hd_3*1000, 'LineWidth',1.5, 'Color',[0.87058824300766 0.490196079015732 0])
 grid on
+grid minor
+
 xlabel('h - [simulation step]') % x-axis label
 ylabel('Hausdorff [mm] ') % y-axis label
 title( {'{\it Bifurcation Side View} ';'Hausdorff Distance Ground Truth Catheter - Filter Catheter'  }) ;
@@ -86,6 +91,8 @@ plot(SIDE_hd2d_2, 'LineWidth',1.5, 'Color',[0 0.600000023841858 0])
 hold on
 plot(SIDE_hd2d_3, 'LineWidth',1.5, 'Color',[0.87058824300766 0.490196079015732 0])
 grid on
+grid minor
+
 xlabel('h - [simulation step]') % x-axis label
 ylabel('Hausdorff [pixel] ') % y-axis label
 title( {'{\it Bifurcation Side View}';'Hausdorff Distance 2D Ground Truth Catheter- 2D Filter Catheter'  }) ;
