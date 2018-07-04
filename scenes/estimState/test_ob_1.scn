@@ -14,7 +14,8 @@
 <FilteringAnimationLoop name="StochAnimLoop" verbose="1"/>
 <UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0"   draw="1" radiusDraw="0.0002" MOnodesDraw="10" filenameFinalState="/home/raffa/work/Optimus/scenes/estimState/journalValid/matlab/print_state_TEST_OB_1"/>
 
-<OpenCVProjectiveCalibrator name="opengl" streamer="video" mode="0" imageSize="816 600" projectionMatrix="[560.946 -169.854 584.336 149.418,-87.0629 -776.497 63.4844 14.5067,0.827776 -0.499976 -0.25458 0.286322]"
+<OpenCVProjectiveCalibrator name="opengl" streamer="video" mode="0" imageSize="816 600" projectionMatrix="[560.532 -169.605 584.463 149.275,-87.0633 -776.497 63.4843 14.5066,0.827775 -0.499977 -0.254581 0.286321]"
+
 
  listening="false" drawzNear="0.1" drawzFar="100" drawCamera="false"  drawViewPort="false" drawscreenSize="650 500"/>
 

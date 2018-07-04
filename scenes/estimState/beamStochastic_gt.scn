@@ -43,7 +43,7 @@
     
     <Node name="Spring" >
         <VisualStyle displayFlags="showWireframe" /> 
-        <MeshObjLoader name="surface" filename="mesh/vessel.obj"  />
+        <MeshObjLoader name="surface" filename="mesh/test.obj"  />
         <TransformStochasticEngine name="transform" input_position="@surface.position" optimParams="0 0 0 0 0 0" triangles="@surface.triangles"  />
         <MeshTopology name="mesh" position="@transform.output_position" triangles="@transform.triangles"  />
         <TriangleSetTopologyContainer name="Container" src="@mesh" />
@@ -67,12 +67,12 @@
 
     <Node name="WRITEGroundTruthCatheter"> 
         <MechanicalObject template="Vec3" name="MO" position="@../ball/MO.position" showObject="0"/>		
-         <WriteState filename="/home/raffa/work/Optimus/scenes/estimState/journalValid/Reference_BIF_SIDE" groundTruth="true" /> 
+<!--          <WriteState filename="/home/raffa/work/Optimus/scenes/estimState/journalValid/Reference_TEST_OB" groundTruth="true" />  -->
     </Node>
     
     <Node name="MatlabPlotGroundTruthPosition"> 
         <MechanicalObject template="Vec3" name="MO" position="@../ball/MO.position" showObject="0"/>		
-        <StochasticPositionHandler filename="/home/raffa/work/Optimus/scenes/estimState/journalValid/groundTruth_BIF_SIDE"   observations="true" groundTruth="true"/>
+<!--         <StochasticPositionHandler filename="/home/raffa/work/Optimus/scenes/estimState/journalValid/groundTruth_TEST_OB"   observations="true" groundTruth="true"/> -->
     </Node>
         <Node name="MatlabPlotGroundTruth"> 
         <MechanicalObject template="Vec3" name="MO" position="@../ball/MO.position" velocity="@../ball/MO.velocity" showObject="0"/>		
@@ -84,7 +84,7 @@
         <OpenCVImageProcessor name="processor" streamer="../video" />
         <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObs/NoiseEngine.outputPositions" projectionMatrix="@../opengl.projectionMatrix"/>
         <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
-        <StochasticPositionHandler filename="/home/raffa/work/Optimus/scenes/estimState/journalValid/Obs2D_BIF_SIDE_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9"/>
+<!--         <StochasticPositionHandler filename="/home/raffa/work/Optimus/scenes/estimState/journalValid/Obs2D_TEST_OB_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9"/> -->
     </Node>
     
     
