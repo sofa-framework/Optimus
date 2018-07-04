@@ -26,13 +26,13 @@
 
 <Node name="simulation">
     <PreStochasticWrapper />
-<!--        <Node name="ReferenceModel"> 
+        <Node name="ReferenceModel"> 
             <EulerImplicitSolver  />
             <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/>
             <MechanicalObject template="Vec3" name="MO" position="0 0 0 0 0 0 1    0.01 0 0 0 0 0 1     0.02 0 0 0 0 0 1     0.03 0 0 0 0 0 1  0.04 0 0 0 0 0 1 0.05 0 0 0 0 0 1    0.06 0 0 0 0 0 1     0.07 0 0 0 0 0 1     0.08 0 0 0 0 0 1    0.09 0 0 0 0 0 1"/>
             <ReadState filename="/home/raffa/work/Optimus/scenes/estimState/journalValid/Reference_TEST_SIDE" />
             <ShowSpheres  radius="0.0003"  color="0 1 0 1" position="@MO.position" />
-        </Node>-->
+        </Node>
 <!--        <Node name="OnlyPrediction"> 
             <MechanicalObject template="Vec3" name="MO" position="0 0 0 0 0 0 1    0.01 0 0 0 0 0 1     0.02 0 0 0 0 0 1     0.03 0 0 0 0 0 1    0.04 0 0 0 0 0 1 
                                     0.05 0 0 0 0 0 1    0.06 0 0 0 0 0 1     0.07 0 0 0 0 0 1     0.08 0 0 0 0 0 1    0.09 0 0 0 0 0 1"/>
@@ -42,7 +42,7 @@
     
         <Node name="VisualRealSurface">
             <VisualStyle displayFlags="showWireframe " /> 
-            <MeshObjLoader name="surface" filename="mesh/vessel.obj"  />
+            <MeshObjLoader name="surface" filename="mesh/test.obj"  />
             <MeshTopology src="@surface" />
             <MechanicalObject name="DOFs" />
             <OglModel name="VisualModel" src="@surface"  material="Default Diffuse 1 1 0.93 0.83 0.05 Ambient 0 0 0 0 0 Specular 0 0 0 0 0 Emissive 0 0 0 0 0 Shininess 0 45" />/>
@@ -147,7 +147,7 @@
     
     <Node name="Spring" >
         <VisualStyle displayFlags="hideCollisionModels" /> 
-        <MeshObjLoader name="surface" filename="mesh/vessel.obj"  />
+        <MeshObjLoader name="surface" filename="mesh/test.obj"  />
         <TransformStochasticEngine name="transform" input_position="@surface.position" optimParams="0 0 0 0 0 0" triangles="@surface.triangles"  />
         <MeshTopology name="mesh" position="@transform.output_position" triangles="@transform.triangles"  />
         <TriangleSetTopologyContainer name="Container" src="@mesh" />
