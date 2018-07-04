@@ -2,98 +2,98 @@ clear
 close all 
 clc
 
-load TEST_TOP_RMSE2d_0.mat
-load TEST_TOP_RMSE2d_1.mat   
-load TEST_TOP_RMSE2d_2.mat
-load TEST_TOP_RMSE2d_3.mat
+load d2d_TEST_TOP_0.mat
+load d2d_TEST_TOP_1.mat   
+load d2d_TEST_TOP_2.mat
+load d2d_TEST_TOP_3.mat
 
-load TEST_TOP_RMSE_0.mat
-load TEST_TOP_RMSE_1.mat
-load TEST_TOP_RMSE_2.mat
-load TEST_TOP_RMSE_3.mat
+load d_TEST_TOP_0.mat
+load d_TEST_TOP_1.mat
+load d_TEST_TOP_2.mat
+load d_TEST_TOP_3.mat
 
-load TEST_TOP_hd_0.mat
-load TEST_TOP_hd_1.mat
-load TEST_TOP_hd_2.mat
-load TEST_TOP_hd_3.mat
+load hd_TEST_TOP_0.mat
+load hd_TEST_TOP_1.mat
+load hd_TEST_TOP_2.mat
+load hd_TEST_TOP_3.mat
 
-load TEST_TOP_hd2d_0.mat 
-load TEST_TOP_hd2d_1.mat 
-load TEST_TOP_hd2d_2.mat 
-load TEST_TOP_hd2d_3.mat 
+load hd2d_TEST_TOP_0.mat 
+load hd2d_TEST_TOP_1.mat 
+load hd2d_TEST_TOP_2.mat 
+load hd2d_TEST_TOP_3.mat 
 
 figure
-plot(TEST_TOP_RMSE_0*1000,'LineWidth',1.5) 
+plot(d_TEST_TOP_0*1000,'LineWidth',1.5) 
 hold on
-plot(TEST_TOP_RMSE_1*1000, 'LineWidth',1.5, 'Color',[0.600000023841858 0 0])
+plot(d_TEST_TOP_1*1000, 'LineWidth',1.5, 'Color',[0.600000023841858 0 0])
 hold on
-plot(TEST_TOP_RMSE_2*1000, 'LineWidth',1.5, 'Color',[0 0.600000023841858 0])
+plot(d_TEST_TOP_2*1000, 'LineWidth',1.5, 'Color',[0 0.600000023841858 0])
 hold on
-plot(TEST_TOP_RMSE_3*1000,'LineWidth',1.5, 'Color',[0.87058824300766 0.490196079015732 0])
+plot(d_TEST_TOP_3*1000,'LineWidth',1.5, 'Color',[0.87058824300766 0.490196079015732 0])
 grid on
 grid minor
 xlabel('h - [simulation step]') % x-axis label
-ylabel('RMSE [mm] ') % y-axis label
-title( {'{\it Simple Vessel Top View}';'Root Mean Square Error 3D Ground Truth Tip - 3D  Filter Tip'  }) 
+ylabel('dist [mm] ') % y-axis label
+title( {'{\it Simple Vessel Top View}';'Distance 3D Ground Truth Tip - 3D  Filter Tip'  }) 
 ax = gca;
 ax.TitleFontSizeMultiplier = 1;
 legend('Parameters Set 1','Parameters Set 2','Parameters Set 3','Parameters Set 4' );
-savefig('simple3DRMSE_TOP.fig')
+savefig('simple3Ddist_TOP.fig')
 
 
 
 
 
 figure
-plot(TEST_TOP_RMSE2d_0,'LineWidth',1.5) 
+plot(d2d_TEST_TOP_0,'LineWidth',1.5) 
 hold on
-plot(TEST_TOP_RMSE2d_1, 'LineWidth',1.5, 'Color',[0.600000023841858 0 0]) 
+plot(d2d_TEST_TOP_1, 'LineWidth',1.5, 'Color',[0.600000023841858 0 0]) 
 hold on
-plot(TEST_TOP_RMSE2d_2, 'LineWidth',1.5, 'Color',[0 0.600000023841858 0])
+plot(d2d_TEST_TOP_2, 'LineWidth',1.5, 'Color',[0 0.600000023841858 0])
 hold on
-plot(TEST_TOP_RMSE2d_3,'LineWidth',1.5, 'Color',[0.87058824300766 0.490196079015732 0])
+plot(d2d_TEST_TOP_3,'LineWidth',1.5, 'Color',[0.87058824300766 0.490196079015732 0])
 grid on
 grid minor
 xlabel('h - [simulation step]') % x-axis label
-ylabel('RMSE [pixel] ') % y-axis label
-title( {'{\it Simple Vessel Top View}';'Root Mean Square Error 2D Ground Truth Tip - 2D  Filter Tip'  }) 
+ylabel('dist [pixel] ') % y-axis label
+title( {'{\it Simple Vessel Top View}';'Distance 2D Ground Truth Tip - 2D  Filter Tip'  }) 
 ax = gca;
 ax.TitleFontSizeMultiplier = 1;
 legend('Parameters Set 1','Parameters Set 2','Parameters Set 3','Parameters Set 4' );
-savefig('simple2DRMSE_TOP.fig')
+savefig('simple2Ddist_TOP.fig')
 
 
 
 figure
-plot(TEST_TOP_hd_0*1000,'LineWidth',1.5) 
+plot(hd_TEST_TOP_0*1000,'LineWidth',1.5) 
 hold on
-plot(TEST_TOP_hd_1*1000, 'LineWidth',1.5, 'Color',[0.600000023841858 0 0])
+plot(hd_TEST_TOP_1*1000, 'LineWidth',1.5, 'Color',[0.600000023841858 0 0])
 hold on
-plot(TEST_TOP_hd_2*1000, 'LineWidth',1.5, 'Color',[0 0.600000023841858 0])
+plot(hd_TEST_TOP_2*1000, 'LineWidth',1.5, 'Color',[0 0.600000023841858 0])
 hold on
-plot(TEST_TOP_hd_3*1000,'LineWidth',1.5, 'Color',[0.87058824300766 0.490196079015732 0])
+plot(hd_TEST_TOP_3*1000,'LineWidth',1.5, 'Color',[0.87058824300766 0.490196079015732 0])
 grid on
 grid minor
 xlabel('h - [simulation step]') % x-axis label
-ylabel('Hausdorff [mm] ') % y-axis label
-title( {'{\it Simple Vessel Top View}';'Hausdorff Distance Ground Truth Catheter - Filter Catheter'  }) 
+ylabel('Haussdorf [mm] ') % y-axis label
+title( {'{\it Simple Vessel Top View}';'Haussdorf Distance Ground Truth Catheter - Filter Catheter'  }) 
 ax = gca;
 ax.TitleFontSizeMultiplier = 1;
 legend('Parameters Set 1','Parameters Set 2','Parameters Set 3','Parameters Set 4' );
 savefig('simple3DHD_TOP.fig')
 
 figure
-plot(TEST_TOP_hd2d_0,'LineWidth',1.5) 
+plot(hd2d_TEST_TOP_0,'LineWidth',1.5) 
 hold on
-plot(TEST_TOP_hd2d_1, 'LineWidth',1.5, 'Color',[0.600000023841858 0 0])
+plot(hd2d_TEST_TOP_1, 'LineWidth',1.5, 'Color',[0.600000023841858 0 0])
 hold on
-plot(TEST_TOP_hd2d_2, 'LineWidth',1.5, 'Color',[0 0.600000023841858 0])
+plot(hd2d_TEST_TOP_2, 'LineWidth',1.5, 'Color',[0 0.600000023841858 0])
 hold on
-plot(TEST_TOP_hd2d_3, 'LineWidth',1.5 , 'Color',[0.87058824300766 0.490196079015732 0])
+plot(hd2d_TEST_TOP_3, 'LineWidth',1.5 , 'Color',[0.87058824300766 0.490196079015732 0])
 grid on
 xlabel('h - [simulation step]') % x-axis label
-ylabel('Hausdorff [pixel] ') % y-axis label
-title( {'{\it Simple Vessel Top View}';'Hausdorff Distance 2D  Ground Truth Catheter -  2D Filter Catheter'  }) 
+ylabel('Haussdorf [pixel] ') % y-axis label
+title( {'{\it Simple Vessel Top View}';'Haussdorf Distance 2D  Ground Truth Catheter -  2D Filter Catheter'  }) 
 ax = gca;
 ax.TitleFontSizeMultiplier = 1;
 legend('Parameters Set 1','Parameters Set 2','Parameters Set 3','Parameters Set 4' );

@@ -67,7 +67,7 @@
 
     <Node name="WRITEGroundTruthCatheter"> 
         <MechanicalObject template="Vec3" name="MO" position="@../ball/MO.position" showObject="0"/>		
-<!--          <WriteState filename="/home/raffa/work/Optimus/scenes/estimState/journalValid/Reference_TEST_OB" groundTruth="true" />  -->
+         <WriteState filename="/home/raffa/work/Optimus/scenes/estimState/journalValid/Reference_TEST_OB2" groundTruth="true" /> 
     </Node>
     
     <Node name="MatlabPlotGroundTruthPosition"> 
@@ -84,7 +84,7 @@
         <OpenCVImageProcessor name="processor" streamer="../video" />
         <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObs/NoiseEngine.outputPositions" projectionMatrix="@../opengl.projectionMatrix"/>
         <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
-<!--         <StochasticPositionHandler filename="/home/raffa/work/Optimus/scenes/estimState/journalValid/Obs2D_TEST_OB_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9"/> -->
+        <StochasticPositionHandler filename="/home/raffa/work/Optimus/scenes/estimState/journalValid/Obs2D_TEST_OB2_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9"/>
     </Node>
     
     

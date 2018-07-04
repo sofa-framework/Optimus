@@ -12,7 +12,7 @@
 <BackgroundSetting color="1 1 1 1" />
 <ViewerSetting resolution="837 600" />
 <FilteringAnimationLoop name="StochAnimLoop" verbose="1"/>
-<UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0"   draw="1" radiusDraw="0.0002" MOnodesDraw="10" filenameFinalState="/home/raffa/work/Optimus/scenes/estimState/journalValid/matlab/print_state_BIF_TOP_2"/>
+<UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0"   draw="1" radiusDraw="0.0002" MOnodesDraw="10" filenameFinalState="/home/raffa/work/Optimus/scenes/estimState/journalValid/matlab/print_state_BIF_OB_2"/>
 
 <OpenCVProjectiveCalibrator name="opengl" streamer="video" mode="0" imageSize="816 600" projectionMatrix="[513.41 148.368 631.63 215.592,-193.229 -585.209 484.511 25.2104,0.760325 -0.628768 0.16296 0.445612]"
 
@@ -140,7 +140,7 @@
                 <SimpleObservationManager name="MSIDES" template="Vec3d,Rigid3d" listening="1"  stateWrapper="@../../StateWrapper" use2dObservation="false"  verbose="1" observationStdev="0.0001"/>
             </Node>-->
             <Node name="obsNode" activated="1">        
-                <SimulatedStateObservationSource template="Vec2d" name="observations" monitorPrefix="/home/raffa/work/Optimus/scenes/estimState/journalValid/Obs2D_BIF_TOP" asynObs="true"/>                               
+                <SimulatedStateObservationSource template="Vec2d" name="observations" monitorPrefix="/home/raffa/work/Optimus/scenes/estimState/journalValid/Obs2D_BIF_OB" asynObs="true"/>                               
                 <SimpleObservationManager name="MSIDES" template="Vec2d,Rigid3d" listening="1"  stateWrapper="@../../StateWrapper" use2dObservation="true" projectionMatrix="@../../../opengl.projectionMatrix"  verbose="1" observationStdev="0.01"/>
             </Node>
     </Node> 

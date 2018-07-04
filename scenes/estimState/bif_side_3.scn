@@ -12,7 +12,7 @@
 <BackgroundSetting color="1 1 1 1" />
 <ViewerSetting resolution="837 600" />
 <FilteringAnimationLoop name="StochAnimLoop" verbose="1"/>
-<UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0"   draw="1" radiusDraw="0.0002" MOnodesDraw="10" filenameFinalState="/home/raffa/work/Optimus/scenes/estimState/journalValid/matlab/print_state_BIF_SIDE_3"/>
+<UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0"   draw="0" radiusDraw="0.0002" MOnodesDraw="10" filenameFinalState="/home/raffa/work/Optimus/scenes/estimState/journalValid/matlab/print_state_BIF_SIDE_3"/>
 
 <OpenCVProjectiveCalibrator name="opengl" streamer="video" mode="0" imageSize="816 600" projectionMatrix="[770.277 -32.7486 -300.267 225.406,217.307 -715.345 235.834 98.5108,0.194673 -0.612749 -0.765925 0.372637]"
  listening="false" drawzNear="0.1" drawzFar="100" drawCamera="false"  drawViewPort="false" drawscreenSize="650 500"/>
@@ -24,14 +24,14 @@
 
 
 <Node name="simulation">
-    <PreStochasticWrapper />
+<!--    <PreStochasticWrapper />
         <Node name="ReferenceModel"> 
             <EulerImplicitSolver  />
             <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/>
             <MechanicalObject template="Vec3" name="MO" position="0 0 0 0 0 0 1    0.01 0 0 0 0 0 1     0.02 0 0 0 0 0 1     0.03 0 0 0 0 0 1  0.04 0 0 0 0 0 1 0.05 0 0 0 0 0 1    0.06 0 0 0 0 0 1     0.07 0 0 0 0 0 1     0.08 0 0 0 0 0 1    0.09 0 0 0 0 0 1"/>
             <ReadState filename="/home/raffa/work/Optimus/scenes/estimState/journalValid/Reference_BIF_SIDE" />
             <ShowSpheres  radius="0.0003"  color="0 1 0 1" position="@MO.position" />
-        </Node>
+        </Node>-->
 <!--        <Node name="OnlyPrediction"> 
             <MechanicalObject template="Vec3" name="MO" position="0 0 0 0 0 0 1    0.01 0 0 0 0 0 1     0.02 0 0 0 0 0 1     0.03 0 0 0 0 0 1    0.04 0 0 0 0 0 1 
                                     0.05 0 0 0 0 0 1    0.06 0 0 0 0 0 1     0.07 0 0 0 0 0 1     0.08 0 0 0 0 0 1    0.09 0 0 0 0 0 1"/>
@@ -113,7 +113,7 @@
 
             </Node>
             
-		<Node name="VM">
+<!--		<Node name="VM">
                     <MechanicalObject name="VisualDOFs"/>
                     <QuadSetTopologyContainer name="ContainerCath" />
                     <QuadSetTopologyModifier name="Modifier"/>
@@ -128,7 +128,7 @@
                     <IdentityMapping />	
                      </Node>
 		</Node>
-                
+                -->
                 
             
             <LinearSolverConstraintCorrection solverName="BTD"/>  

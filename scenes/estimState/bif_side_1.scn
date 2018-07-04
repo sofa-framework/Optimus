@@ -24,14 +24,14 @@
 
 
 <Node name="simulation">
-    <PreStochasticWrapper />
+<!--    <PreStochasticWrapper />
         <Node name="ReferenceModel"> 
             <EulerImplicitSolver  />
             <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/>
             <MechanicalObject template="Vec3" name="MO" position="0 0 0 0 0 0 1    0.01 0 0 0 0 0 1     0.02 0 0 0 0 0 1     0.03 0 0 0 0 0 1  0.04 0 0 0 0 0 1 0.05 0 0 0 0 0 1    0.06 0 0 0 0 0 1     0.07 0 0 0 0 0 1     0.08 0 0 0 0 0 1    0.09 0 0 0 0 0 1"/>
             <ReadState filename="/home/raffa/work/Optimus/scenes/estimState/journalValid/Reference_BIF_SIDE" />
             <ShowSpheres  radius="0.0003"  color="0 1 0 1" position="@MO.position" />
-        </Node>
+        </Node>-->
 <!--        <Node name="OnlyPrediction"> 
             <MechanicalObject template="Vec3" name="MO" position="0 0 0 0 0 0 1    0.01 0 0 0 0 0 1     0.02 0 0 0 0 0 1     0.03 0 0 0 0 0 1    0.04 0 0 0 0 0 1 
                                     0.05 0 0 0 0 0 1    0.06 0 0 0 0 0 1     0.07 0 0 0 0 0 1     0.08 0 0 0 0 0 1    0.09 0 0 0 0 0 1"/>

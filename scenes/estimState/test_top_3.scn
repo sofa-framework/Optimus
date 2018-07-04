@@ -42,7 +42,7 @@
     
         <Node name="VisualRealSurface">
             <VisualStyle displayFlags="showWireframe " /> 
-            <MeshObjLoader name="surface" filename="mesh/vessel.obj"  />
+            <MeshObjLoader name="surface" filename="mesh/test.obj"  />
             <MeshTopology src="@surface" />
             <MechanicalObject name="DOFs" />
             <OglModel name="VisualModel" src="@surface"  material="Default Diffuse 1 1 0.93 0.83 0.05 Ambient 0 0 0 0 0 Specular 0 0 0 0 0 Emissive 0 0 0 0 0 Shininess 0 45" />/>
@@ -147,7 +147,7 @@
     
     <Node name="Spring" >
         <VisualStyle displayFlags="hideCollisionModels" /> 
-        <MeshObjLoader name="surface" filename="mesh/vessel.obj"  />
+        <MeshObjLoader name="surface" filename="mesh/test.obj"  />
         <TransformStochasticEngine name="transform" input_position="@surface.position" optimParams="0 0 0 0 0 0" triangles="@surface.triangles"  />
         <MeshTopology name="mesh" position="@transform.output_position" triangles="@transform.triangles"  />
         <TriangleSetTopologyContainer name="Container" src="@mesh" />
