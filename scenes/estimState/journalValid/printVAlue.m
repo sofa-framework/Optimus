@@ -15,11 +15,10 @@ P=[2281.11 -2.34947e-13 -400 273.957;-3.07529e-13 -2281.11 -300 -6.35711;-9.3911
 
 
 
-stateREAD= dlmread('matlab/print_state_TEST_SIDE_0');
+stateREAD= dlmread('matlab/print_state_TEST_SIDE_1');
 
 gt=gtREAD(:,2:end);
 n=n2dREAD(:,2:end)
-% n2d=n2dREAD(:,2:end);
 
 pos=cat(2,stateREAD(:,1:3),stateREAD(:,7:9),stateREAD(:,13:15),stateREAD(:,19:21),stateREAD(:,25:27),stateREAD(:,31:33),...
     stateREAD(:,37:39),stateREAD(:,43:45),stateREAD(:,49:51),stateREAD(:,55:57));
@@ -219,11 +218,11 @@ hd2dg=ones(ms,1);
 
 for i=1:ms
     
-hd2d(i) = HausdorffDist(pos2d(i,1:8),gt2d(i,1:8));
+hd2d(i) = HausdorffDist(pos2d(i,:),gt2d(i,:));
 % hd2dn(i) = HausdorffDist(n(i,1:8),pos2d(i,1:8));
 % hd2dg(i) = HausdorffDist(n(i,1:8),gt2d(i,1:8));
 
-hd(i) = HausdorffDist(gt(i,1:8),pos(i,1:8));
+hd(i) = HausdorffDist(gt(i,:),pos(i,:));
 
 end
 % 
@@ -243,13 +242,13 @@ end
 % plot3(gt2d(1:1000,1),gt2d(1:1000,2),gtREAD(1:1000,1),'*')
 
 
-TEST_SIDE_RMSE2d_0=RMSE2d;
-TEST_SIDE_RMSE_0=RMSE;
-TEST_SIDE_hd_0=hd;
-TEST_SIDE_hd2d_0=hd2d;
-save('TEST_SIDE_hd_0.mat','TEST_SIDE_hd_0');
-save('TEST_SIDE_RMSE2d_0.mat','TEST_SIDE_RMSE2d_0');
-save('TEST_SIDE_RMSE_0.mat','TEST_SIDE_RMSE_0');
-save('TEST_SIDE_hd2d_0.mat','TEST_SIDE_hd2d_0');
+TEST_SIDE_RMSE2d_1=RMSE2d;
+TEST_SIDE_RMSE_1=RMSE;
+TEST_SIDE_hd_1=hd;
+TEST_SIDE_hd2d_1=hd2d;
+save('TEST_SIDE_hd_1.mat','TEST_SIDE_hd_1');
+save('TEST_SIDE_RMSE2d_1.mat','TEST_SIDE_RMSE2d_1');
+save('TEST_SIDE_RMSE_1.mat','TEST_SIDE_RMSE_1');
+save('TEST_SIDE_hd2d_1.mat','TEST_SIDE_hd2d_1');
 
 
