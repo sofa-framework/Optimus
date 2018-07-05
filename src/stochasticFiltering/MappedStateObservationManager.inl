@@ -94,7 +94,7 @@ void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::init()
     if (noiseStdev.getValue() != 0.0) {
         pRandGen = new boost::mt19937;
         pNormDist = new boost::normal_distribution<>(0.0, noiseStdev.getValue());
-        pVarNorm = new boost::variate_generator<boost::mt19937&, boost::normal_distribution<> >(*pRandGen, *pNormDist);
+        pVarNorm = new boost::variate_generator<boost::mt19937&, boost::normal_distribution<> >(*pRandGen, *pNormDist);        
     }
 }
 
@@ -180,8 +180,9 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::hasObserva
 
         for (size_t i = 0; i < mappedStateSize; i++) {
             for (size_t d = 0; d < 3; d++) {
-                //mappedObsState[i][d] += noise[3*i+d];
-                actualObservation(3*i+d) = mappedObsState[i][d];
+                if (noiseStdev.getValue() != 0.0)
+                    mappedObsState[i][d] += (*pVarNorm)();
+                actualObservation(3*i+d) = mappedObsState[i][d];                
             }
         }
     } else {
@@ -196,7 +197,9 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::hasObserva
 
         for (size_t i = 0; i < mappedObsState.size(); i++) {
             for (size_t d = 0; d < 3; d++) {
-                actualObservation(3*i+d) = mappedObsState[i][d];
+                if (noiseStdev.getValue() != 0.0)
+                    mappedObsState[i][d] += (*pVarNorm)();
+                actualObservation(3*i+d) = mappedObsState[i][d];                
             }
         }
     }
