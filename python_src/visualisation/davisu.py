@@ -59,7 +59,7 @@ fig1 = plt.figure(1)
 spl1 = fig1.add_subplot(111)
 
 nstate=numpy.size(stateVar[1,:])
-nparams=options['filtering_parameters']['optim_params_size']
+nparams=options['filter']['nparams']
 nsteps=numpy.size(stateVar[:,1])
 
 print "Number of steps: ", nsteps
@@ -68,21 +68,20 @@ print "Size of the state: ", nstate
 
 
 rng=xrange(0,nsteps)
-rng=[i*options['general_parameters']['delta_time'] for i in rng]
+rng=[i*options['model']['dt'] for i in rng]
 
 cmap = plt.cm.get_cmap('hsv', nparams+1)
 
-groundTruthStr = options['obs_generating_parameters']['object_young_moduli']
-groundTruthValues = groundTruthStr.split(' ')
+groundTruthValues = options['model']['young_moduli']
 data = numpy.ones(nsteps);
 
 for i in range(0, nparams):
     si = i +nstate - nparams;
     # print i,' ',si
-    if options['filtering_parameters']['transform_parameters'] == 'absolute':
+    if options['filter']['param_transform'] == 'absolute':
         ev = abs(stateExpVal[:,si])
         var = abs(stateVar[:,si])
-    elif options['filtering_parameters']['transform_parameters'] == 'exponential':
+    elif options['filter']['param_transform'] == 'exponential':
         ev = numpy.exp(stateExpVal[:,si])
         var = numpy.exp(stateVar[:,si])        
     else:
@@ -116,27 +115,27 @@ for i in range(0, nparams):
     spl1.set_title('Params '+folder)
 
 # plot innovation values
-if options['filtering_parameters']['save_internal_data'] == 1:
-    innovationVal = load_matrix_from_file(folder+'/'+options['visual_parameters']['innovation_file_name'])
+# if options['filter']['save_internal_data'] == 1:
+#     innovationVal = load_matrix_from_file(folder+'/'+options['visual_parameters']['innovation_file_name'])
 
-    fig2 = plt.figure(2)
-    spl2 = fig2.add_subplot(111)
+#     fig2 = plt.figure(2)
+#     spl2 = fig2.add_subplot(111)
     
-    ninnov=numpy.size(innovationVal[1,:])
-    nsteps=numpy.size(innovationVal[:,1])
+#     ninnov=numpy.size(innovationVal[1,:])
+#     nsteps=numpy.size(innovationVal[:,1])
 
-    print "Innovation size: ",ninnov
+#     print "Innovation size: ",ninnov
 
-    rng=xrange(0,nsteps)
-    rng=[i*options['general_parameters']['delta_time'] for i in rng]
+#     rng=xrange(0,nsteps)
+#     rng=[i*options['general_parameters']['delta_time'] for i in rng]
 
-    cmap = plt.cm.get_cmap('hsv', ninnov+1)
+#     cmap = plt.cm.get_cmap('hsv', ninnov+1)
 
-    for i in range(0,ninnov):
-        innov = innovationVal[:,i]
-        spl2.plot(rng, innov, color=cmap(i),  linestyle='solid')
+#     for i in range(0,ninnov):
+#         innov = innovationVal[:,i]
+#         spl2.plot(rng, innov, color=cmap(i),  linestyle='solid')
 
-    spl2.set_title('Innovation '+folder)
+#     spl2.set_title('Innovation '+folder)
 
     
 plt.show()
