@@ -30,10 +30,10 @@ io:
     prefix: 'cyl10gravity_'
     suffix: ''
     saveGeo: 0
-    saveObs: 1                  # GO only
+    saveObs: 0                  # GO only
     obsFileName: 'obs'
     saveEst: 1                  # SDA only
-    sdaFolderSuffix: '_proj5'         # SDA only
+    sdaFolderSuffix: '_obsnoise05_obsStdev10'         # SDA only
 
 filter:                         # SDA only
     kind: 'ROUKF'               # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
@@ -43,11 +43,12 @@ filter:                         # SDA only
     param_min_val: [100]
     param_max_val: [1e10]
     param_transform: 'project'
-    obs_tag: obs120
-    obs_points: '../../data/cylinder/cyl10_4245_obs120.vtk'
-    observ_stdev: 1e-3
+    obs_tag: obs41
+    obs_points: '../../data/cylinder/cyl10_4245_obs41.vtk'
+    observ_stdev: 0.01
     sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
     sigma_points_scale: 1
+    obs_added_noise_var: 0.0005
 
 time:
     timer_name: 'filter_computation_statistics'

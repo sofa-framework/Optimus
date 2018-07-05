@@ -104,7 +104,7 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
 
         if intType == 'Euler':
             simuNode.createObject('EulerImplicitSolver', rayleighStiffness=rstiff, rayleighMass=rmass)
-        # simuNode.createObject('NewtonStaticSolver', maxIt='1', correctionTolerance='1e-8', residualTolerance='1e-8', convergeOnResidual='1')
+        # simuNode.createObject('NewtonStaticSolver', maxIt='50', correctionTolerance='1e-8', residualTolerance='1e-8', convergeOnResidual='1')
         # simuNode.createObject('StepPCGLinearSolver', name='lsolverit', precondOnTimeStep='0', use_precond='1', tolerance='1e-10', iterations='500',
         #  verbose='0', update_step='10', listening='1', preconditioners='lsolver')
         # simuNode.createObject('ShewchukPCGLinearSolver', name='lsolverit', iterations='500', use_precond='1', tolerance='1e-10', preconditioners='lsolver')
@@ -135,7 +135,7 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
 
         if self.saveGeo:
             simuNode.createObject('VTKExporter', filename=self.geoFolder+'/object.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="1",
-                exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1")
+                exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1", cellsDataFields='FEM.youngModulus')
 
 
         if self.saveObs:

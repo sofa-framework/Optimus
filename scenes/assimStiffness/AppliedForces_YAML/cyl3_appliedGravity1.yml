@@ -52,6 +52,7 @@ filter:                         # SDA only
     observ_stdev: 1e-3     
     sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
     sigma_points_scale: 1
+    obs_added_noise_var: 0.0
 
 time:
     timer_name: 'filter_computation_statistics'
