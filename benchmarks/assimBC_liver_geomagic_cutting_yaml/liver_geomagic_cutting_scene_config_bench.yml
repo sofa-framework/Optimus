@@ -8,6 +8,7 @@ general_parameters:
     gravity: "0 0 0"
     density: 200 # total_mass: 0.2
     delta_time: 0.01
+    solver_kind: "Euler"   # options are "Euler", "Newton", and "Symplectic"
     rayleigh_mass: 0.1
     rayleigh_stiffness: 0.1
     boundary_conditions_list:

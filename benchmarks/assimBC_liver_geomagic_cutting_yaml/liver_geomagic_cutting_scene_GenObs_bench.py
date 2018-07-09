@@ -84,10 +84,24 @@ class liver_geomagicControlPoint_GenObs (Sofa.PythonScriptController):
         # rootNode/simuNode
         simuNode = rootNode.createChild('simuNode')
         self.simuNode = simuNode
-        simuNode.createObject('EulerImplicitSolver', firstOrder='false', vdamping=self.vdamping, rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'])
+        if self.options['general_parameters']['solver_kind'] == 'Euler':
+            simuNode.createObject('EulerImplicitSolver', firstOrder='false', vdamping=self.vdamping, rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'])
+        elif self.options['general_parameters']['solver_kind'] == 'Symplectic':
+            simuNode.createObject('VariationalSymplecticSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'], newtonError='1e-12', steps='1', verbose='0')
+        elif self.options['general_parameters']['solver_kind'] == 'Newton':
+            simuNode.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")
+        else:
+            print 'Unknown solver type!'
         simuNode.createObject('SparsePARDISOSolver', name='LDLsolver', verbose='0', symmetric='1', exportDataToFolder='')
-        # simuNode.createObject('MeshVTKLoader', name='loader', filename=self.options.model.volumeFileName)
-        simuNode.createObject('MeshGmshLoader', name='loader', filename=self.options['system_parameters']['volume_file_name'])
+
+        fileExtension = self.options['system_parameters']['volume_file_name']
+        fileExtension = fileExtension[fileExtension.rfind('.') + 1:]
+        if fileExtension == 'vtk' or fileExtension == 'vtu':
+            simuNode.createObject('MeshVTKLoader', name='loader', filename=self.options['system_parameters']['volume_file_name'])
+        elif fileExtension == 'msh':
+            simuNode.createObject('MeshGmshLoader', name='loader', filename=self.options['system_parameters']['volume_file_name'])
+        else:
+            print 'Unknown file type!'
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')
 
         simuNode.createObject('BoxROI', name='impactBounds', box='0.14 0.15 0.37 0.18 0.17 0.4', doUpdate='0')
