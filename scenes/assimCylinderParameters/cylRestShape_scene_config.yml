@@ -7,7 +7,9 @@ system_parameters:
 general_parameters:
     gravity: "0 0 0"
     density: 200 # total_mass: 0.2
-    delta_time: 0.01
+    delta_time:
+        &time
+        0.01
     solver_kind: "Euler"   # options are "Euler", "Newton", and "Symplectic"
     rayleigh_mass: 0.1
     rayleigh_stiffness: 0.1
@@ -16,14 +18,18 @@ general_parameters:
           boxes_coordinates: "-0.05 -0.05 -0.002 0.05 0.05 0.002   -0.05 -0.05 0.298 0.05 0.05 0.302"
 
 obs_generating_parameters:
-    object_young_moduli: "1500 4000"
+    object_young_moduli:
+        &youngMod
+        [1500, 4000]
     save_observations: 1
 
 filtering_parameters:
     common_directory_prefix: "outCyl2_385_restShape_"
     output_directory_suffix: "_Verification_init500"
     output_files_suffix: "test"
-    optim_params_size: 2
+    optim_params_size:
+        &paramsAmount
+        2
     filter_kind: "ROUKF"   # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
     use_unbiased_variance: "0"
     initial_stiffness: [500, 500]
@@ -32,7 +38,9 @@ filtering_parameters:
     initial_standart_deviation: 500
     observation_noise_standart_deviation: 1e-3
     positions_standart_deviation: 1e-6
-    transform_parameters: project
+    transform_parameters:
+        &transformation
+        project
     sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
     sigma_points_scale: 1
     save_state: 1
@@ -44,5 +52,14 @@ impact_parameters:
 
 time_parameters:
     computation_time_file_name: "computationTime.txt"
+
+# aliases
+filter:
+    nparams: *paramsAmount
+    param_transform: *transformation
+
+model:
+    dt: *time
+    young_moduli: *youngMod
 ...
 

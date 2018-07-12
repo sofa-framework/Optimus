@@ -64,8 +64,14 @@ class cylConstForce_GenObs (Sofa.PythonScriptController):
         # rootNode/simuNode
         simuNode = rootNode.createChild('simuNode')
         self.simuNode = simuNode
-        simuNode.createObject('EulerImplicitSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'])
-        # simuNode.createObject('VariationalSymplecticSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'], newtonError='1e-12', steps='1', verbose='0')
+        if self.options['general_parameters']['solver_kind'] == 'Euler':
+            simuNode.createObject('EulerImplicitSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'])
+        elif self.options['general_parameters']['solver_kind'] == 'Symplectic':
+            simuNode.createObject('VariationalSymplecticSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'], newtonError='1e-12', steps='1', verbose='0')
+        elif self.options['general_parameters']['solver_kind'] == 'Newton':
+            simuNode.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")
+        else:
+            print 'Unknown solver type!'
         simuNode.createObject('SparsePARDISOSolver', name='LDLsolver', verbose='0', symmetric='2', exportDataToFolder='')
         simuNode.createObject('MeshVTKLoader', name='loader', filename=self.options['system_parameters']['volume_file_name'])
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')
