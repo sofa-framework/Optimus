@@ -1,0 +1,73 @@
+---
+model:
+    dt: 0.01
+    # vol_mesh: '../../data/cylinder/cylinder2_418.vtk'
+    # surf_mesh: '../../data/cylinder/cylinder2_418.stl'
+
+    # vol_mesh: '../../data/cylinder/cylinder2_2264.vtk'
+    # surf_mesh: '../../data/cylinder/cylinder2_2264.stl'
+
+
+    vol_mesh: '../../data/cylinder/cylinder2_138.vtk'
+    surf_mesh: '../../data/cylinder/cylinder2_138.stl'
+    gravity: [0, 0, 0]
+    #total_mass: 0.2
+    density: 200
+    young_moduli: [1000, 10000]   #E1
+    fem_method: 'small'
+    #young_moduli: [100000, 50000, 1000]   #E1
+    #young_moduli: [100000, 50000, 100000]   #E2
+    
+    int:   # temporal integrator properties
+        type: 'Euler'
+        rmass: 0.1
+        rstiff: 0.1
+        maxit: 1
+    bc:
+        type: 'fixed'
+        boxes: '-0.021 -0.021 -0.001   0.021 0.021 0.001    -0.021 -0.021 0.149   0.021 0.021 0.151'
+        #boxes: '-0.05 -0.05 -0.002   0.05 0.05 0.002'
+
+    control:
+        type: 'pressure'        
+        deltaPressure: [0, 0, 400]
+        nsteps: 1
+
+    linsol:
+        usePCG: 0
+        PCGUpdateSteps: 100
+        PCGTolerance: 1e-10
+        pardisoSym: 0
+        pardisoFolder: ''        
+
+io:    
+    prefix: 'cyl2compForces_'
+    suffix: ''
+    saveGeo: 0
+    saveObs: 1                  # GO only
+    obsFileName: 'obs'
+    saveEst: 1                  # SDA only
+    sdaFolderSuffix: '_proj_sd1000_fixMiddle'         # SDA only
+
+filter:                         # SDA only
+    kind: 'ROUKF'               # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
+    nparams: 2
+    param_init_exval: [2000 2000]
+    param_init_stdev: [1000, 1000]
+    param_min_val: [200]
+    param_max_val: [1e10]
+    param_transform: 'project'
+    obs_tag: obs7
+    obs_points: '../../data/cylinder/cyl2_138_obs7.vtk'
+    observ_stdev: 1e-3
+    sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
+    sigma_points_scale: 1
+    obs_added_noise_var: 0.0
+
+time:
+    timer_name: 'filter_computation_statistics'
+    time_statistics_file: "computationTime.txt"
+    time_profiling: 0
+    iterations_interval: 1
+    iteration_amount: 300
+...
