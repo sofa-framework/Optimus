@@ -22,6 +22,19 @@ load hd2d_TEST_OB_1.mat
 load hd2d_TEST_OB_2.mat 
 load hd2d_TEST_OB_3.mat 
 
+load RMSE2d_TEST_OB_0.mat 
+load RMSE2d_TEST_OB_1.mat 
+load RMSE2d_TEST_OB_2.mat 
+load RMSE2d_TEST_OB_3.mat 
+
+
+load RMSE_TEST_OB_0.mat 
+load RMSE_TEST_OB_1.mat 
+load RMSE_TEST_OB_2.mat 
+load RMSE_TEST_OB_3.mat 
+
+
+
 figure
 plot(d_TEST_OB_0*1000,'LineWidth',1.5) 
 hold on
@@ -38,7 +51,7 @@ title( {'{\it Simple Vessel Oblique View}';'Distance 3D Ground Truth Tip - 3D  F
 ax = gca;
 ax.TitleFontSizeMultiplier = 1;
 legend('Parameters Set 1','Parameters Set 2','Parameters Set 3','Parameters Set 4' );
-savefig('simple3Ddist_OBtip.fig')
+savefig('d_TEST_OB.fig')
 
 
 
@@ -59,7 +72,7 @@ title( {'{\it Simple Vessel Oblique View}';'Distance 2D Ground Truth Tip - 2D  F
 ax = gca;
 ax.TitleFontSizeMultiplier = 1;
 legend('Parameters Set 1','Parameters Set 2','Parameters Set 3','Parameters Set 4' );
-savefig('simple2Ddist_OBtip.fig')
+savefig('d2d_TEST_OB.fig')
 
 figure
 plot(hd_TEST_OB_0*1000,'LineWidth',1.5) 
@@ -77,7 +90,7 @@ title( {'{\it Simple Vessel Oblique View}';'Haussdorf Distance Ground Truth Cath
 ax = gca;
 ax.TitleFontSizeMultiplier = 1;
 legend('Parameters Set 1','Parameters Set 2','Parameters Set 3','Parameters Set 4' );
-savefig('simple3DHD_OB.fig')
+savefig('hd_TEST_OB.fig')
 
 figure
 plot(hd2d_TEST_OB_0,'LineWidth',1.5) 
@@ -94,4 +107,43 @@ title( {'{\it Simple Vessel Oblique View}';'Haussdorf Distance 2D  Ground Truth 
 ax = gca;
 ax.TitleFontSizeMultiplier = 1;
 legend('Parameters Set 1','Parameters Set 2','Parameters Set 3','Parameters Set 4' );
-savefig('simple2DHD_OB.fig')
+savefig('hd2d_TEST_OB.fig')
+
+
+
+figure
+plot(RMSE_TEST_OB_0*1000,'LineWidth',1.5) 
+hold on
+plot(RMSE_TEST_OB_1*1000, 'LineWidth',1.5, 'Color',[0.600000023841858 0 0])
+hold on
+plot(RMSE_TEST_OB_2*1000, 'LineWidth',1.5, 'Color',[0 0.600000023841858 0])
+hold on
+plot(RMSE_TEST_OB_3*1000,'LineWidth',1.5, 'Color',[0.87058824300766 0.490196079015732 0])
+grid on
+grid minor
+xlabel('h - [simulation step]') % x-axis label
+ylabel('RMSE [mm] ') % y-axis label
+title( {'{\it Simple Vessel Oblique View}';'RMSE Ground Truth Tip - Filter Tip'  }) 
+ax = gca;
+ax.TitleFontSizeMultiplier = 1;
+legend('Parameters Set 1','Parameters Set 2','Parameters Set 3','Parameters Set 4' );
+savefig('RMSE_TEST_OB.fig')
+
+figure
+plot(RMSE2d_TEST_OB_0,'LineWidth',1.5) 
+hold on
+plot(RMSE2d_TEST_OB_1, 'LineWidth',1.5, 'Color',[0.600000023841858 0 0])
+hold on
+plot(RMSE2d_TEST_OB_2, 'LineWidth',1.5, 'Color',[0 0.600000023841858 0])
+hold on
+plot(RMSE2d_TEST_OB_3, 'LineWidth',1.5 , 'Color',[0.87058824300766 0.490196079015732 0])
+grid on
+xlabel('h - [simulation step]') % x-axis label
+ylabel('RMSE [pixel] ') % y-axis label
+title( {'{\it Simple Vessel Oblique View}';'RMSE 2D  Ground Truth Tip -  2D Filter Tip'  }) 
+ax = gca;
+ax.TitleFontSizeMultiplier = 1;
+legend('Parameters Set 1','Parameters Set 2','Parameters Set 3','Parameters Set 4' );
+savefig('RMSE2d_TEST_OB.fig')
+
+

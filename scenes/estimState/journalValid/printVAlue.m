@@ -24,7 +24,7 @@ P_BIF_OB=[513.41 148.368 631.63 215.592;-193.229 -585.209 484.511 25.2104;0.7603
 P_TEST_TOP=[19.8421 -404.504 721.763 143.041;-708.31 -335.931 -2.3288 68.0737;0.0501423 -0.998723 -0.00620961 0.362366]; %TESTSIDE
 P_TEST_OB=[560.532 -169.605 584.463 149.275;-87.0633 -776.497 63.4843 14.5066;0.827775 -0.499977 -0.254581 0.286321]; %TESTOB
 
-P_TEST_OB_0=[560.946 -169.854 584.336 149.418;-87.0629 -776.497 63.4844 14.5067;0.827776 -0.499976 -0.25458 0.286322] %TESTOB_0
+P_TEST_OB_0=[560.946 -169.854 584.336 149.418;-87.0629 -776.497 63.4844 14.5067;0.827776 -0.499976 -0.25458 0.286322] ;%TESTOB_0
 P_TEST_SIDE=[2281.11 -2.34947e-13 -400 273.957;-3.07529e-13 -2281.11 -300 -6.35711;-9.39116e-17 1.11022e-16 -1 0.317505]; %TESTSIDE
 
 
@@ -369,11 +369,11 @@ for i=1:msBIF
 end
 %% RMSE2d TIP 3D %%
 
-RMSE_BIF_TOP_0=ones(msBIF,1);
+RMSE_BIF_TOP_0=ones(1230,1);
 RMSE_BIF_TOP_1=ones(msBIF,1);
 RMSE_BIF_TOP_2=ones(msBIF,1);
 RMSE_BIF_TOP_3=ones(msBIF,1);
-RMSE_BIF_SIDE_0=ones(msBIF,1);
+RMSE_BIF_SIDE_0=ones(1230,1);
 RMSE_BIF_SIDE_1=ones(msBIF,1);
 RMSE_BIF_SIDE_2=ones(msBIF,1);
 RMSE_BIF_SIDE_3=ones(msBIF,1);
@@ -382,7 +382,7 @@ RMSE_BIF_OB_1=ones(msBIF,1);
 RMSE_BIF_OB_2=ones(msBIF,1);
 RMSE_BIF_OB_3=ones(msBIF,1);
 
-RMSE_TEST_TOP_0=ones(msTEST,1);
+RMSE_TEST_TOP_0=ones(2900,1);
 RMSE_TEST_TOP_1=ones(msTEST,1);
 RMSE_TEST_TOP_2=ones(msTEST,1);
 RMSE_TEST_TOP_3=ones(msTEST,1);
@@ -393,21 +393,25 @@ RMSE_TEST_SIDE_3=ones(msTEST,1);
 RMSE_TEST_OB_0=ones(msTEST,1);
 RMSE_TEST_OB_1=ones(msTEST,1);
 RMSE_TEST_OB_2=ones(msTEST,1);
-RMSE_TEST_OB_3=ones(msTEST,1);
+RMSE_TEST_OB_3=ones(2900,1);
 
 
-for i =1:msBIF
+for i =1:1230
  RMSE_BIF_TOP_0(i)= sqrt(mean((norm(gt_BIF_TOP(i,1:3)) - norm(pos_BIF_TOP_0(i,1:3))).^2));
     RMSE_BIF_TOP_1(i)= sqrt(mean((norm(gt_BIF_TOP(i,1:3)) - norm(pos_BIF_TOP_1(i,1:3))).^2));
        RMSE_BIF_TOP_2(i)= sqrt(mean((norm(gt_BIF_TOP(i,1:3)) - norm(pos_BIF_TOP_2(i,1:3))).^2));
-       
+              RMSE_BIF_TOP_3(i)= sqrt(mean((norm(gt_BIF_TOP(i,1:3)) - norm(pos_BIF_TOP_3(i,1:3))).^2));
+
  RMSE_BIF_OB_0(i)= sqrt(mean((norm(gt_BIF_OB(i,1:3)) - norm(pos_BIF_OB_0(i,1:3))).^2));
     RMSE_BIF_OB_1(i)= sqrt(mean((norm(gt_BIF_OB(i,1:3)) - norm(pos_BIF_OB_1(i,1:3))).^2));
        RMSE_BIF_OB_2(i)= sqrt(mean((norm(gt_BIF_OB(i,1:3)) - norm(pos_BIF_OB_2(i,1:3))).^2));
-       
+              RMSE_BIF_OB_3(i)= sqrt(mean((norm(gt_BIF_OB(i,1:3)) - norm(pos_BIF_OB_3(i,1:3))).^2));
+
  RMSE_BIF_SIDE_0(i)= sqrt(mean((norm(gt_BIF_SIDE(i,1:3)) - norm(pos_BIF_SIDE_0(i,1:3))).^2));
     RMSE_BIF_SIDE_1(i)= sqrt(mean((norm(gt_BIF_SIDE(i,1:3)) - norm(pos_BIF_SIDE_1(i,1:3))).^2));
        RMSE_BIF_SIDE_2(i)= sqrt(mean((norm(gt_BIF_SIDE(i,1:3)) - norm(pos_BIF_SIDE_2(i,1:3))).^2));
+              RMSE_BIF_SIDE_3(i)= sqrt(mean((norm(gt_BIF_SIDE(i,1:3)) - norm(pos_BIF_SIDE_3(i,1:3))).^2));
+
 end
 
 
@@ -415,14 +419,18 @@ for i =1:msTEST
  RMSE_TEST_TOP_0(i)= sqrt(mean((norm(gt_TEST_TOP(i,1:3)) - norm(pos_TEST_TOP_0(i,1:3))).^2));
     RMSE_TEST_TOP_1(i)= sqrt(mean((norm(gt_TEST_TOP(i,1:3)) - norm(pos_TEST_TOP_1(i,1:3))).^2));
        RMSE_TEST_TOP_2(i)= sqrt(mean((norm(gt_TEST_TOP(i,1:3)) - norm(pos_TEST_TOP_2(i,1:3))).^2));
-       
+              RMSE_TEST_TOP_3(i)= sqrt(mean((norm(gt_TEST_TOP(i,1:3)) - norm(pos_TEST_TOP_3(i,1:3))).^2));
+
  RMSE_TEST_OB_0(i)= sqrt(mean((norm(gt_TEST_OB(i,1:3)) - norm(pos_TEST_OB_0(i,1:3))).^2));
     RMSE_TEST_OB_1(i)= sqrt(mean((norm(gt_TEST_OB(i,1:3)) - norm(pos_TEST_OB_1(i,1:3))).^2));
        RMSE_TEST_OB_2(i)= sqrt(mean((norm(gt_TEST_OB(i,1:3)) - norm(pos_TEST_OB_2(i,1:3))).^2));
-       
+              RMSE_TEST_OB_3(i)= sqrt(mean((norm(gt_TEST_OB(i,1:3)) - norm(pos_TEST_OB_3(i,1:3))).^2));
+
  RMSE_TEST_SIDE_0(i)= sqrt(mean((norm(gt_TEST_SIDE(i,1:3)) - norm(pos_TEST_SIDE_0(i,1:3))).^2));
     RMSE_TEST_SIDE_1(i)= sqrt(mean((norm(gt_TEST_SIDE(i,1:3)) - norm(pos_TEST_SIDE_1(i,1:3))).^2));
        RMSE_TEST_SIDE_2(i)= sqrt(mean((norm(gt_TEST_SIDE(i,1:3)) - norm(pos_TEST_SIDE_2(i,1:3))).^2));
+              RMSE_TEST_SIDE_3(i)= sqrt(mean((norm(gt_TEST_SIDE(i,1:3)) - norm(pos_TEST_SIDE_3(i,1:3))).^2));
+
 end
 
 %% RMSE TIP 2D %%
@@ -458,14 +466,18 @@ for i =1:msBIF
  RMSE2d_BIF_TOP_0(i)= sqrt(mean((norm(gt2d_BIF_TOP(i,1:3)) - norm(pos2d_BIF_TOP_0(i,1:3))).^2));
     RMSE2d_BIF_TOP_1(i)= sqrt(mean((norm(gt2d_BIF_TOP(i,1:3)) - norm(pos2d_BIF_TOP_1(i,1:3))).^2));
        RMSE2d_BIF_TOP_2(i)= sqrt(mean((norm(gt2d_BIF_TOP(i,1:3)) - norm(pos2d_BIF_TOP_2(i,1:3))).^2));
-       
+              RMSE2d_BIF_TOP_3(i)= sqrt(mean((norm(gt2d_BIF_TOP(i,1:3)) - norm(pos2d_BIF_TOP_3(i,1:3))).^2));
+
  RMSE2d_BIF_OB_0(i)= sqrt(mean((norm(gt2d_BIF_OB(i,1:3)) - norm(pos2d_BIF_OB_0(i,1:3))).^2));
     RMSE2d_BIF_OB_1(i)= sqrt(mean((norm(gt2d_BIF_OB(i,1:3)) - norm(pos2d_BIF_OB_1(i,1:3))).^2));
        RMSE2d_BIF_OB_2(i)= sqrt(mean((norm(gt2d_BIF_OB(i,1:3)) - norm(pos2d_BIF_OB_2(i,1:3))).^2));
-       
+              RMSE2d_BIF_OB_3(i)= sqrt(mean((norm(gt2d_BIF_OB(i,1:3)) - norm(pos2d_BIF_OB_3(i,1:3))).^2));
+
  RMSE2d_BIF_SIDE_0(i)= sqrt(mean((norm(gt2d_BIF_SIDE(i,1:3)) - norm(pos2d_BIF_SIDE_0(i,1:3))).^2));
     RMSE2d_BIF_SIDE_1(i)= sqrt(mean((norm(gt2d_BIF_SIDE(i,1:3)) - norm(pos2d_BIF_SIDE_1(i,1:3))).^2));
        RMSE2d_BIF_SIDE_2(i)= sqrt(mean((norm(gt2d_BIF_SIDE(i,1:3)) - norm(pos2d_BIF_SIDE_2(i,1:3))).^2));
+              RMSE2d_BIF_SIDE_3(i)= sqrt(mean((norm(gt2d_BIF_SIDE(i,1:3)) - norm(pos2d_BIF_SIDE_3(i,1:3))).^2));
+
 end
 
 
@@ -473,14 +485,18 @@ for i =1:msTEST
  RMSE2d_TEST_TOP_0(i)= sqrt(mean((norm(gt2d_TEST_TOP(i,1:3)) - norm(pos2d_TEST_TOP_0(i,1:3))).^2));
     RMSE2d_TEST_TOP_1(i)= sqrt(mean((norm(gt2d_TEST_TOP(i,1:3)) - norm(pos2d_TEST_TOP_1(i,1:3))).^2));
        RMSE2d_TEST_TOP_2(i)= sqrt(mean((norm(gt2d_TEST_TOP(i,1:3)) - norm(pos2d_TEST_TOP_2(i,1:3))).^2));
-       
+              RMSE2d_TEST_TOP_3(i)= sqrt(mean((norm(gt2d_TEST_TOP(i,1:3)) - norm(pos2d_TEST_TOP_3(i,1:3))).^2));
+
  RMSE2d_TEST_OB_0(i)= sqrt(mean((norm(gt2d_TEST_OB(i,1:3)) - norm(pos2d_TEST_OB_0(i,1:3))).^2));
     RMSE2d_TEST_OB_1(i)= sqrt(mean((norm(gt2d_TEST_OB(i,1:3)) - norm(pos2d_TEST_OB_1(i,1:3))).^2));
        RMSE2d_TEST_OB_2(i)= sqrt(mean((norm(gt2d_TEST_OB(i,1:3)) - norm(pos2d_TEST_OB_2(i,1:3))).^2));
-       
+              RMSE2d_TEST_OB_3(i)= sqrt(mean((norm(gt2d_TEST_OB(i,1:3)) - norm(pos2d_TEST_OB_3(i,1:3))).^2));
+
  RMSE2d_TEST_SIDE_0(i)= sqrt(mean((norm(gt2d_TEST_SIDE(i,1:3)) - norm(pos2d_TEST_SIDE_0(i,1:3))).^2));
     RMSE2d_TEST_SIDE_1(i)= sqrt(mean((norm(gt2d_TEST_SIDE(i,1:3)) - norm(pos2d_TEST_SIDE_1(i,1:3))).^2));
        RMSE2d_TEST_SIDE_2(i)= sqrt(mean((norm(gt2d_TEST_SIDE(i,1:3)) - norm(pos2d_TEST_SIDE_2(i,1:3))).^2));
+              RMSE2d_TEST_SIDE_3(i)= sqrt(mean((norm(gt2d_TEST_SIDE(i,1:3)) - norm(pos2d_TEST_SIDE_3(i,1:3))).^2));
+
 end
 
 
@@ -525,5 +541,14 @@ save('RMSE2d_TEST_OB_0.mat','RMSE2d_TEST_OB_0'); save('RMSE2d_TEST_OB_1.mat','RM
 save('RMSE_TEST_SIDE_0.mat','RMSE_TEST_SIDE_0'); save('RMSE_TEST_SIDE_1.mat','RMSE_TEST_SIDE_1'); save('RMSE_TEST_SIDE_2.mat','RMSE_TEST_SIDE_2'); save('RMSE_TEST_SIDE_3.mat','RMSE_TEST_SIDE_3');
 save('RMSE_TEST_TOP_0.mat','RMSE_TEST_TOP_0'); save('RMSE_TEST_TOP_1.mat','RMSE_TEST_TOP_1'); save('RMSE_TEST_TOP_2.mat','RMSE_TEST_TOP_2'); save('RMSE_TEST_TOP_3.mat','RMSE_TEST_TOP_3');
 save('RMSE_TEST_OB_0.mat','RMSE_TEST_OB_0'); save('RMSE_TEST_OB_1.mat','RMSE_TEST_OB_1'); save('RMSE_TEST_OB_2.mat','RMSE_TEST_OB_2'); save('RMSE_TEST_OB_3.mat','RMSE_TEST_OB_3');
+
+save('RMSE2d_BIF_SIDE_0.mat','RMSE2d_BIF_SIDE_0'); save('RMSE2d_BIF_SIDE_1.mat','RMSE2d_BIF_SIDE_1'); save('RMSE2d_BIF_SIDE_2.mat','RMSE2d_BIF_SIDE_2'); save('RMSE2d_BIF_SIDE_3.mat','RMSE2d_BIF_SIDE_3');
+save('RMSE2d_BIF_TOP_0.mat','RMSE2d_BIF_TOP_0'); save('RMSE2d_BIF_TOP_1.mat','RMSE2d_BIF_TOP_1'); save('RMSE2d_BIF_TOP_2.mat','RMSE2d_BIF_TOP_2'); save('RMSE2d_BIF_TOP_3.mat','RMSE2d_BIF_TOP_3');
+save('RMSE2d_BIF_OB_0.mat','RMSE2d_BIF_OB_0'); save('RMSE2d_BIF_OB_1.mat','RMSE2d_BIF_OB_1'); save('RMSE2d_BIF_OB_2.mat','RMSE2d_BIF_OB_2'); save('RMSE2d_BIF_OB_3.mat','RMSE2d_BIF_OB_3');
+
+save('RMSE_BIF_SIDE_0.mat','RMSE_BIF_SIDE_0'); save('RMSE_BIF_SIDE_1.mat','RMSE_BIF_SIDE_1'); save('RMSE_BIF_SIDE_2.mat','RMSE_BIF_SIDE_2'); save('RMSE_BIF_SIDE_3.mat','RMSE_BIF_SIDE_3');
+save('RMSE_BIF_TOP_0.mat','RMSE_BIF_TOP_0'); save('RMSE_BIF_TOP_1.mat','RMSE_BIF_TOP_1'); save('RMSE_BIF_TOP_2.mat','RMSE_BIF_TOP_2'); save('RMSE_BIF_TOP_3.mat','RMSE_BIF_TOP_3');
+save('RMSE_BIF_OB_0.mat','RMSE_BIF_OB_0'); save('RMSE_BIF_OB_1.mat','RMSE_BIF_OB_1'); save('RMSE_BIF_OB_2.mat','RMSE_BIF_OB_2'); save('RMSE_BIF_OB_3.mat','RMSE_BIF_OB_3');
+
 
 

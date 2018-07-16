@@ -4,8 +4,8 @@ clc
 
 simple_ob1=hgload('simple2DHD_OB.fig');
 simple_ob2=hgload('simple3DHD_OB.fig');
-simple_ob3=hgload('simple2DRMSE_OBtip.fig');
-simple_ob4=hgload('simple3DRMSE_OBtip.fig');
+simple_ob3=hgload('simple2DRMSE_OB.fig');
+simple_ob4=hgload('simple3DRMSE_OB.fig');
 
 simple_top1=hgload('simple2DHD_TOP.fig');
 simple_top2=hgload('simple3DHD_TOP.fig');
@@ -93,7 +93,7 @@ grid on
 grid minor
 xlabel('h - [simulation step]') % x-axis label
 ylabel('Haussdorf [pixel] ') % y-axis label
-title( {'{\it Simple Vessel Side View}';'2D Haussdorf Distance '  }) 
+title( {'{\it Simple Vessel Side View}';' Haussdorf Distance '  }) 
 ax = gca;
 ax.TitleFontSizeMultiplier = 1;
 h(10)=subplot(3,4,10);

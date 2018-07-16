@@ -6,6 +6,8 @@ load d2d_BIF_TOP_0.mat; load d2d_BIF_TOP_1.mat; load d2d_BIF_TOP_2.mat ; load d2
 load d_BIF_TOP_0.mat; load d_BIF_TOP_1.mat;load d_BIF_TOP_2.mat;load d_BIF_TOP_3.mat
 load hd_BIF_TOP_0.mat; load hd_BIF_TOP_1.mat; load hd_BIF_TOP_2.mat; load hd_BIF_TOP_3.mat
 load hd2d_BIF_TOP_0.mat; load hd2d_BIF_TOP_1.mat; load hd2d_BIF_TOP_2.mat ; load hd2d_BIF_TOP_3.mat 
+load RMSE2d_BIF_TOP_0.mat;load RMSE2d_BIF_TOP_1.mat;load RMSE2d_BIF_TOP_2.mat;load RMSE2d_BIF_TOP_3.mat 
+load RMSE_BIF_TOP_0.mat; load RMSE_BIF_TOP_1.mat;load RMSE_BIF_TOP_2.mat; load RMSE_BIF_TOP_3.mat 
 
 figure
 plot(d_BIF_TOP_0*1000,'LineWidth',1.5) %blu
@@ -23,9 +25,9 @@ title( {'{\it Bifurcation Top View}';'Distance 3D Ground Truth Tip - 3D  Filter 
 ax = gca;
 ax.TitleFontSizeMultiplier = 1;
 legend('Parameters Set 1','Parameters Set 2','Parameters Set 3','Parameters Set 4' );
-savefig('bif3DRMSE_TOP.fig')
+savefig('d_BIF_TOP.fig')
 
-figure(6)
+figure
 plot(d2d_BIF_TOP_0,'LineWidth',1.5)
 hold on
 plot(d2d_BIF_TOP_1, 'LineWidth',1.5, 'Color',[0.600000023841858 0 0]) %rosso 
@@ -41,7 +43,7 @@ title( {'{\it Bifurcation Top View}'; 'Distance  2D Ground Truth Tip - 2D  Filte
 ax = gca;
 ax.TitleFontSizeMultiplier = 1;
 legend('Parameters Set 1','Parameters Set 2','Parameters Set 3','Parameters Set 4' );
-savefig('bif2DRMSE_TOP.fig')
+savefig('d2d_BIF_TOP.fig')
 
 figure
 plot(hd_BIF_TOP_0*1000,'LineWidth',1.5)
@@ -59,7 +61,7 @@ title( {'{\it Bifurcation Top View} ';'Haussdorf Distance Ground Truth Catheter 
 ax = gca;
 ax.TitleFontSizeMultiplier = 1;
 legend('Parameters Set 1','Parameters Set 2','Parameters Set 3','Parameters Set 4' );
-savefig('bif3DHd_BIF_TOP.fig')
+savefig('hd_BIF_TOP.fig')
 
 
 figure
@@ -78,4 +80,43 @@ title( {'{\it Bifurcation Top View}';'Haussdorf Distance 2D Ground Truth Cathete
 ax = gca;
 ax.TitleFontSizeMultiplier = 1;
 legend('Parameters Set 1','Parameters Set 2','Parameters Set 3','Parameters Set 4' );
-savefig('bif2DHd_BIF_TOP.fig')
+savefig('hd2d_BIF_TOP.fig')
+
+
+figure
+plot(RMSE2d_BIF_TOP_0,'LineWidth',1.5)
+hold on
+plot(RMSE2d_BIF_TOP_1, 'LineWidth',1.5, 'Color',[0.600000023841858 0 0])
+hold on
+plot(RMSE2d_BIF_TOP_2, 'LineWidth',1.5, 'Color',[0 0.600000023841858 0])
+hold on
+plot(RMSE2d_BIF_TOP_3, 'LineWidth',1.5, 'Color',[0.87058824300766 0.490196079015732 0])
+grid on
+grid minor
+xlabel('h - [simulation step]') % x-axis label
+ylabel('RMSE [pixel] ') % y-axis label
+title( {'{\it Bifurcation Top View}';'RMSE 2D Ground Truth Tip- 2D Filter Tip'  }) ;
+ax = gca;
+ax.TitleFontSizeMultiplier = 1;
+legend('Parameters Set 1','Parameters Set 2','Parameters Set 3','Parameters Set 4' );
+savefig('RMSE2d_BIF_TOP.fig')
+
+
+figure
+plot(RMSE_BIF_TOP_0,'LineWidth',1.5)
+hold on
+plot(RMSE_BIF_TOP_1, 'LineWidth',1.5, 'Color',[0.600000023841858 0 0])
+hold on
+plot(RMSE_BIF_TOP_2, 'LineWidth',1.5, 'Color',[0 0.600000023841858 0])
+hold on
+plot(RMSE_BIF_TOP_3, 'LineWidth',1.5, 'Color',[0.87058824300766 0.490196079015732 0])
+grid on
+grid minor
+xlabel('h - [simulation step]') % x-axis label
+ylabel('RMSE [mm] ') % y-axis label
+title( {'{\it Bifurcation Top View}';'RMSE 3D Ground Truth Tip - 3D Filter Tip'  }) ;
+ax = gca;
+ax.TitleFontSizeMultiplier = 1;
+legend('Parameters Set 1','Parameters Set 2','Parameters Set 3','Parameters Set 4' );
+savefig('RMSE_BIF_TOP.fig')
+
