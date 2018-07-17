@@ -73,7 +73,7 @@ class liver_constForce_SDA(Sofa.PythonScriptController):
 
         with open(self.informationFileName, 'w') as stream:
             try:
-                yaml.dump(self.options, stream, default_flow_style=False)
+                yaml.dump(self.options, stream, default_flow_style=None)
 
             except yaml.YAMLError as exc:
                 print(exc)

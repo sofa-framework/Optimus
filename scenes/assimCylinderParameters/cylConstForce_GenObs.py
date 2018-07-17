@@ -109,11 +109,9 @@ class cylConstForce_GenObs (Sofa.PythonScriptController):
         # add constant force field
         self.forceIndex = 1
         simuNode.createObject('BoxROI', name='forceBounds', box=self.options['impact_parameters']['external_force_bound'], doUpdate='0')
-        self.constantForce = simuNode.createObject('ConstantForceField', name='appliedForce', 
-            indices='@forceBounds.indices', totalForce='0.0 0.0 0.0')
+        self.constantForce = simuNode.createObject('ConstantForceField', name='appliedForce', indices='@forceBounds.indices', totalForce='0.0 0.0 0.0')
         simuNode.createObject('BoxROI', name='oppForceBounds', box=self.options['impact_parameters']['reverse_force_bound'], doUpdate='0')
-        self.oppositeConstantForce = simuNode.createObject('ConstantForceField', name='oppAppliedForce', 
-            indices='@oppForceBounds.indices', totalForce='0.0 1.0 0.0')
+        self.oppositeConstantForce = simuNode.createObject('ConstantForceField', name='oppAppliedForce', indices='@oppForceBounds.indices', totalForce='0.0 1.0 0.0')
         
 
         return 0;
