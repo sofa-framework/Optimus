@@ -47,7 +47,7 @@ stateREAD_BIF_OB_2= dlmread('matlab/print_state_BIF_OB_2');
 stateREAD_BIF_OB_3= dlmread('matlab/print_state_BIF_OB_3');
 
 %%simple scene
-stateREAD_TEST_TOP_0= dlmread('matlab/print_state_TEST_TOP_0');
+stateREAD_TEST_TOP_0= dlmread('matlab/print_state_TEST_TOP_1');
 stateREAD_TEST_TOP_1= dlmread('matlab/print_state_TEST_TOP_1');
 stateREAD_TEST_TOP_2= dlmread('matlab/print_state_TEST_TOP_2');
 stateREAD_TEST_TOP_3= dlmread('matlab/print_state_TEST_TOP_3');
@@ -57,7 +57,7 @@ stateREAD_TEST_SIDE_1= dlmread('matlab/print_state_TEST_SIDE_1');
 stateREAD_TEST_SIDE_2= dlmread('matlab/print_state_TEST_SIDE_2');
 stateREAD_TEST_SIDE_3= dlmread('matlab/print_state_TEST_SIDE_3');
 
-stateREAD_TEST_OB_0= dlmread('matlab/print_state_TEST_OB_0');
+stateREAD_TEST_OB_0= dlmread('matlab/print_state_TEST_OB_1');
 stateREAD_TEST_OB_1= dlmread('matlab/print_state_TEST_OB_1');
 stateREAD_TEST_OB_2= dlmread('matlab/print_state_TEST_OB_2');
 stateREAD_TEST_OB_3= dlmread('matlab/print_state_TEST_OB_3');
@@ -147,42 +147,42 @@ msBIF=1230;
 msTEST=2900;
 
 %% Project Bifurcation Scene
-gt2d_BIF_TOP=proj(gt_BIF_TOP,P_BIF_TOP,msBIF);
-pos2d_BIF_TOP_0=proj(pos_BIF_TOP_0, P_BIF_TOP, msBIF);
-pos2d_BIF_TOP_1=proj(pos_BIF_TOP_1, P_BIF_TOP, msBIF);
-pos2d_BIF_TOP_2=proj(pos_BIF_TOP_2, P_BIF_TOP, msBIF);
-pos2d_BIF_TOP_3=proj(pos_BIF_TOP_3, P_BIF_TOP, msBIF);
-
-gt2d_BIF_OB=proj(gt_BIF_OB,P_BIF_OB,msBIF);
-pos2d_BIF_OB_0=proj(pos_BIF_OB_0, P_BIF_OB, msBIF);
-pos2d_BIF_OB_1=proj(pos_BIF_OB_1, P_BIF_OB, msBIF);
-pos2d_BIF_OB_2=proj(pos_BIF_OB_2, P_BIF_OB, msBIF);
-pos2d_BIF_OB_3=proj(pos_BIF_OB_3, P_BIF_OB, msBIF);
-
-gt2d_BIF_SIDE=proj(gt_BIF_SIDE,P_BIF_SIDE,msBIF);
-pos2d_BIF_SIDE_0=proj(pos_BIF_SIDE_0, P_BIF_SIDE, msBIF);
-pos2d_BIF_SIDE_1=proj(pos_BIF_SIDE_1, P_BIF_SIDE, msBIF);
-pos2d_BIF_SIDE_2=proj(pos_BIF_SIDE_2, P_BIF_SIDE, msBIF);
-pos2d_BIF_SIDE_3=proj(pos_BIF_SIDE_3, P_BIF_SIDE, msBIF);
-
-%% Project Simple Scene
-gt2d_TEST_TOP=proj(gt_TEST_TOP,P_TEST_TOP,msTEST);
-pos2d_TEST_TOP_0=proj(pos_TEST_TOP_0, P_TEST_TOP, msTEST);
-pos2d_TEST_TOP_1=proj(pos_TEST_TOP_1, P_TEST_TOP, msTEST);
-pos2d_TEST_TOP_2=proj(pos_TEST_TOP_2, P_TEST_TOP, msTEST);
-pos2d_TEST_TOP_3=proj(pos_TEST_TOP_3, P_TEST_TOP, msTEST);
-
-gt2d_TEST_OB=proj(gt_TEST_OB,P_TEST_OB,msTEST);
-pos2d_TEST_OB_0=proj(pos_TEST_OB_0, P_TEST_OB_0, msTEST);
-pos2d_TEST_OB_1=proj(pos_TEST_OB_1, P_TEST_OB, msTEST);
-pos2d_TEST_OB_2=proj(pos_TEST_OB_2, P_TEST_OB, msTEST);
-pos2d_TEST_OB_3=proj(pos_TEST_OB_3, P_TEST_OB, msTEST);
-
-gt2d_TEST_SIDE=proj(gt_TEST_SIDE,P_TEST_SIDE,msTEST);
-pos2d_TEST_SIDE_0=proj(pos_TEST_SIDE_0, P_TEST_SIDE, msTEST);
-pos2d_TEST_SIDE_1=proj(pos_TEST_SIDE_1, P_TEST_SIDE, msTEST);
-pos2d_TEST_SIDE_2=proj(pos_TEST_SIDE_2, P_TEST_SIDE, msTEST);
-pos2d_TEST_SIDE_3=proj(pos_TEST_SIDE_3, P_TEST_SIDE, msTEST);
+% gt2d_BIF_TOP=proj(gt_BIF_TOP,P_BIF_TOP,msBIF);
+% pos2d_BIF_TOP_0=proj(pos_BIF_TOP_0, P_BIF_TOP, msBIF);
+% pos2d_BIF_TOP_1=proj(pos_BIF_TOP_1, P_BIF_TOP, msBIF);
+% pos2d_BIF_TOP_2=proj(pos_BIF_TOP_2, P_BIF_TOP, msBIF);
+% pos2d_BIF_TOP_3=proj(pos_BIF_TOP_3, P_BIF_TOP, msBIF);
+% 
+% gt2d_BIF_OB=proj(gt_BIF_OB,P_BIF_OB,msBIF);
+% pos2d_BIF_OB_0=proj(pos_BIF_OB_0, P_BIF_OB, msBIF);
+% pos2d_BIF_OB_1=proj(pos_BIF_OB_1, P_BIF_OB, msBIF);
+% pos2d_BIF_OB_2=proj(pos_BIF_OB_2, P_BIF_OB, msBIF);
+% pos2d_BIF_OB_3=proj(pos_BIF_OB_3, P_BIF_OB, msBIF);
+% 
+% gt2d_BIF_SIDE=proj(gt_BIF_SIDE,P_BIF_SIDE,msBIF);
+% pos2d_BIF_SIDE_0=proj(pos_BIF_SIDE_0, P_BIF_SIDE, msBIF);
+% pos2d_BIF_SIDE_1=proj(pos_BIF_SIDE_1, P_BIF_SIDE, msBIF);
+% pos2d_BIF_SIDE_2=proj(pos_BIF_SIDE_2, P_BIF_SIDE, msBIF);
+% pos2d_BIF_SIDE_3=proj(pos_BIF_SIDE_3, P_BIF_SIDE, msBIF);
+% 
+% %% Project Simple Scene
+% gt2d_TEST_TOP=proj(gt_TEST_TOP,P_TEST_TOP,msTEST);
+% pos2d_TEST_TOP_0=proj(pos_TEST_TOP_0, P_TEST_TOP, msTEST);
+% pos2d_TEST_TOP_1=proj(pos_TEST_TOP_1, P_TEST_TOP, msTEST);
+% pos2d_TEST_TOP_2=proj(pos_TEST_TOP_2, P_TEST_TOP, msTEST);
+% pos2d_TEST_TOP_3=proj(pos_TEST_TOP_3, P_TEST_TOP, msTEST);
+% 
+% gt2d_TEST_OB=proj(gt_TEST_OB,P_TEST_OB,msTEST);
+% pos2d_TEST_OB_0=proj(pos_TEST_OB_0, P_TEST_OB_0, msTEST);
+% pos2d_TEST_OB_1=proj(pos_TEST_OB_1, P_TEST_OB, msTEST);
+% pos2d_TEST_OB_2=proj(pos_TEST_OB_2, P_TEST_OB, msTEST);
+% pos2d_TEST_OB_3=proj(pos_TEST_OB_3, P_TEST_OB, msTEST);
+% 
+% gt2d_TEST_SIDE=proj(gt_TEST_SIDE,P_TEST_SIDE,msTEST);
+% pos2d_TEST_SIDE_0=proj(pos_TEST_SIDE_0, P_TEST_SIDE, msTEST);
+% pos2d_TEST_SIDE_1=proj(pos_TEST_SIDE_1, P_TEST_SIDE, msTEST);
+% pos2d_TEST_SIDE_2=proj(pos_TEST_SIDE_2, P_TEST_SIDE, msTEST);
+% pos2d_TEST_SIDE_3=proj(pos_TEST_SIDE_3, P_TEST_SIDE, msTEST);
 
 
 % ALL3D=cat(3,pos_BIF_TOP_0,pos_BIF_TOP_1,pos_BIF_TOP_2,pos_BIF_TOP_3,...
@@ -502,53 +502,53 @@ end
 
 %% SAVE DATA 
 
-save('hd2d_BIF_SIDE_0.mat','hd2d_BIF_SIDE_0'); save('hd2d_BIF_SIDE_1.mat','hd2d_BIF_SIDE_1'); save('hd2d_BIF_SIDE_2.mat','hd2d_BIF_SIDE_2'); save('hd2d_BIF_SIDE_3.mat','hd2d_BIF_SIDE_3');  
-save('hd2d_BIF_TOP_0.mat','hd2d_BIF_TOP_0'); save('hd2d_BIF_TOP_1.mat','hd2d_BIF_TOP_1'); save('hd2d_BIF_TOP_2.mat','hd2d_BIF_TOP_2'); save('hd2d_BIF_TOP_3.mat','hd2d_BIF_TOP_3');  
-save('hd2d_BIF_OB_0.mat','hd2d_BIF_OB_0'); save('hd2d_BIF_OB_1.mat','hd2d_BIF_OB_1'); save('hd2d_BIF_OB_2.mat','hd2d_BIF_OB_2'); save('hd2d_BIF_OB_3.mat','hd2d_BIF_OB_3');  
-
-save('hd_BIF_SIDE_0.mat','hd_BIF_SIDE_0'); save('hd_BIF_SIDE_1.mat','hd_BIF_SIDE_1'); save('hd_BIF_SIDE_2.mat','hd_BIF_SIDE_2'); save('hd_BIF_SIDE_3.mat','hd_BIF_SIDE_3');
-save('hd_BIF_TOP_0.mat','hd_BIF_TOP_0'); save('hd_BIF_TOP_1.mat','hd_BIF_TOP_1'); save('hd_BIF_TOP_2.mat','hd_BIF_TOP_2'); save('hd_BIF_TOP_3.mat','hd_BIF_TOP_3');
-save('hd_BIF_OB_0.mat','hd_BIF_OB_0'); save('hd_BIF_OB_1.mat','hd_BIF_OB_1'); save('hd_BIF_OB_2.mat','hd_BIF_OB_2'); save('hd_BIF_OB_3.mat','hd_BIF_OB_3');
-
-save('d_BIF_SIDE_0.mat','d_BIF_SIDE_0'); save('d_BIF_SIDE_1.mat','d_BIF_SIDE_1'); save('d_BIF_SIDE_2.mat','d_BIF_SIDE_2'); save('d_BIF_SIDE_3.mat','d_BIF_SIDE_3');
-save('d_BIF_TOP_0.mat','d_BIF_TOP_0'); save('d_BIF_TOP_1.mat','d_BIF_TOP_1'); save('d_BIF_TOP_2.mat','d_BIF_TOP_2'); save('d_BIF_TOP_3.mat','d_BIF_TOP_3');
-save('d_BIF_OB_0.mat','d_BIF_OB_0'); save('d_BIF_OB_1.mat','d_BIF_OB_1'); save('d_BIF_OB_2.mat','d_BIF_OB_2'); save('d_BIF_OB_3.mat','d_BIF_OB_3');
-
-save('d2d_BIF_SIDE_0.mat','d2d_BIF_SIDE_0'); save('d2d_BIF_SIDE_1.mat','d2d_BIF_SIDE_1'); save('d2d_BIF_SIDE_2.mat','d2d_BIF_SIDE_2'); save('d2d_BIF_SIDE_3.mat','d2d_BIF_SIDE_3');
-save('d2d_BIF_TOP_0.mat','d2d_BIF_TOP_0'); save('d2d_BIF_TOP_1.mat','d2d_BIF_TOP_1'); save('d2d_BIF_TOP_2.mat','d2d_BIF_TOP_2'); save('d2d_BIF_TOP_3.mat','d2d_BIF_TOP_3');
-save('d2d_BIF_OB_0.mat','d2d_BIF_OB_0'); save('d2d_BIF_OB_1.mat','d2d_BIF_OB_1'); save('d2d_BIF_OB_2.mat','d2d_BIF_OB_2'); save('d2d_BIF_OB_3.mat','d2d_BIF_OB_3');
-
-save('hd2d_TEST_SIDE_0.mat','hd2d_TEST_SIDE_0'); save('hd2d_TEST_SIDE_1.mat','hd2d_TEST_SIDE_1'); save('hd2d_TEST_SIDE_2.mat','hd2d_TEST_SIDE_2'); save('hd2d_TEST_SIDE_3.mat','hd2d_TEST_SIDE_3');
-save('hd2d_TEST_TOP_0.mat','hd2d_TEST_TOP_0'); save('hd2d_TEST_TOP_1.mat','hd2d_TEST_TOP_1'); save('hd2d_TEST_TOP_2.mat','hd2d_TEST_TOP_2'); save('hd2d_TEST_TOP_3.mat','hd2d_TEST_TOP_3');
-save('hd2d_TEST_OB_0.mat','hd2d_TEST_OB_0'); save('hd2d_TEST_OB_1.mat','hd2d_TEST_OB_1'); save('hd2d_TEST_OB_2.mat','hd2d_TEST_OB_2'); save('hd2d_TEST_OB_3.mat','hd2d_TEST_OB_3');
-
-save('hd_TEST_SIDE_0.mat','hd_TEST_SIDE_0'); save('hd_TEST_SIDE_1.mat','hd_TEST_SIDE_1'); save('hd_TEST_SIDE_2.mat','hd_TEST_SIDE_2'); save('hd_TEST_SIDE_3.mat','hd_TEST_SIDE_3');
-save('hd_TEST_TOP_0.mat','hd_TEST_TOP_0'); save('hd_TEST_TOP_1.mat','hd_TEST_TOP_1'); save('hd_TEST_TOP_2.mat','hd_TEST_TOP_2'); save('hd_TEST_TOP_3.mat','hd_TEST_TOP_3');
-save('hd_TEST_OB_0.mat','hd_TEST_OB_0'); save('hd_TEST_OB_1.mat','hd_TEST_OB_1'); save('hd_TEST_OB_2.mat','hd_TEST_OB_2'); save('hd_TEST_OB_3.mat','hd_TEST_OB_3');
-
-save('d_TEST_SIDE_0.mat','d_TEST_SIDE_0'); save('d_TEST_SIDE_1.mat','d_TEST_SIDE_1'); save('d_TEST_SIDE_2.mat','d_TEST_SIDE_2'); save('d_TEST_SIDE_3.mat','d_TEST_SIDE_3');
-save('d_TEST_TOP_0.mat','d_TEST_TOP_0'); save('d_TEST_TOP_1.mat','d_TEST_TOP_1'); save('d_TEST_TOP_2.mat','d_TEST_TOP_2'); save('d_TEST_TOP_3.mat','d_TEST_TOP_3');
-save('d_TEST_OB_0.mat','d_TEST_OB_0'); save('d_TEST_OB_1.mat','d_TEST_OB_1'); save('d_TEST_OB_2.mat','d_TEST_OB_2'); save('d_TEST_OB_3.mat','d_TEST_OB_3');
-
-save('d2d_TEST_SIDE_0.mat','d2d_TEST_SIDE_0'); save('d2d_TEST_SIDE_1.mat','d2d_TEST_SIDE_1'); save('d2d_TEST_SIDE_2.mat','d2d_TEST_SIDE_2'); save('d2d_TEST_SIDE_3.mat','d2d_TEST_SIDE_3');
-save('d2d_TEST_TOP_0.mat','d2d_TEST_TOP_0'); save('d2d_TEST_TOP_1.mat','d2d_TEST_TOP_1'); save('d2d_TEST_TOP_2.mat','d2d_TEST_TOP_2'); save('d2d_TEST_TOP_3.mat','d2d_TEST_TOP_3');
-save('d2d_TEST_OB_0.mat','d2d_TEST_OB_0'); save('d2d_TEST_OB_1.mat','d2d_TEST_OB_1'); save('d2d_TEST_OB_2.mat','d2d_TEST_OB_2'); save('d2d_TEST_OB_3.mat','d2d_TEST_OB_3');
-
-save('RMSE2d_TEST_SIDE_0.mat','RMSE2d_TEST_SIDE_0'); save('RMSE2d_TEST_SIDE_1.mat','RMSE2d_TEST_SIDE_1'); save('RMSE2d_TEST_SIDE_2.mat','RMSE2d_TEST_SIDE_2'); save('RMSE2d_TEST_SIDE_3.mat','RMSE2d_TEST_SIDE_3');
-save('RMSE2d_TEST_TOP_0.mat','RMSE2d_TEST_TOP_0'); save('RMSE2d_TEST_TOP_1.mat','RMSE2d_TEST_TOP_1'); save('RMSE2d_TEST_TOP_2.mat','RMSE2d_TEST_TOP_2'); save('RMSE2d_TEST_TOP_3.mat','RMSE2d_TEST_TOP_3');
-save('RMSE2d_TEST_OB_0.mat','RMSE2d_TEST_OB_0'); save('RMSE2d_TEST_OB_1.mat','RMSE2d_TEST_OB_1'); save('RMSE2d_TEST_OB_2.mat','RMSE2d_TEST_OB_2'); save('RMSE2d_TEST_OB_3.mat','RMSE2d_TEST_OB_3');
-
-save('RMSE_TEST_SIDE_0.mat','RMSE_TEST_SIDE_0'); save('RMSE_TEST_SIDE_1.mat','RMSE_TEST_SIDE_1'); save('RMSE_TEST_SIDE_2.mat','RMSE_TEST_SIDE_2'); save('RMSE_TEST_SIDE_3.mat','RMSE_TEST_SIDE_3');
-save('RMSE_TEST_TOP_0.mat','RMSE_TEST_TOP_0'); save('RMSE_TEST_TOP_1.mat','RMSE_TEST_TOP_1'); save('RMSE_TEST_TOP_2.mat','RMSE_TEST_TOP_2'); save('RMSE_TEST_TOP_3.mat','RMSE_TEST_TOP_3');
-save('RMSE_TEST_OB_0.mat','RMSE_TEST_OB_0'); save('RMSE_TEST_OB_1.mat','RMSE_TEST_OB_1'); save('RMSE_TEST_OB_2.mat','RMSE_TEST_OB_2'); save('RMSE_TEST_OB_3.mat','RMSE_TEST_OB_3');
-
-save('RMSE2d_BIF_SIDE_0.mat','RMSE2d_BIF_SIDE_0'); save('RMSE2d_BIF_SIDE_1.mat','RMSE2d_BIF_SIDE_1'); save('RMSE2d_BIF_SIDE_2.mat','RMSE2d_BIF_SIDE_2'); save('RMSE2d_BIF_SIDE_3.mat','RMSE2d_BIF_SIDE_3');
-save('RMSE2d_BIF_TOP_0.mat','RMSE2d_BIF_TOP_0'); save('RMSE2d_BIF_TOP_1.mat','RMSE2d_BIF_TOP_1'); save('RMSE2d_BIF_TOP_2.mat','RMSE2d_BIF_TOP_2'); save('RMSE2d_BIF_TOP_3.mat','RMSE2d_BIF_TOP_3');
-save('RMSE2d_BIF_OB_0.mat','RMSE2d_BIF_OB_0'); save('RMSE2d_BIF_OB_1.mat','RMSE2d_BIF_OB_1'); save('RMSE2d_BIF_OB_2.mat','RMSE2d_BIF_OB_2'); save('RMSE2d_BIF_OB_3.mat','RMSE2d_BIF_OB_3');
-
-save('RMSE_BIF_SIDE_0.mat','RMSE_BIF_SIDE_0'); save('RMSE_BIF_SIDE_1.mat','RMSE_BIF_SIDE_1'); save('RMSE_BIF_SIDE_2.mat','RMSE_BIF_SIDE_2'); save('RMSE_BIF_SIDE_3.mat','RMSE_BIF_SIDE_3');
-save('RMSE_BIF_TOP_0.mat','RMSE_BIF_TOP_0'); save('RMSE_BIF_TOP_1.mat','RMSE_BIF_TOP_1'); save('RMSE_BIF_TOP_2.mat','RMSE_BIF_TOP_2'); save('RMSE_BIF_TOP_3.mat','RMSE_BIF_TOP_3');
-save('RMSE_BIF_OB_0.mat','RMSE_BIF_OB_0'); save('RMSE_BIF_OB_1.mat','RMSE_BIF_OB_1'); save('RMSE_BIF_OB_2.mat','RMSE_BIF_OB_2'); save('RMSE_BIF_OB_3.mat','RMSE_BIF_OB_3');
-
-
-
+% save('hd2d_BIF_SIDE_0.mat','hd2d_BIF_SIDE_0'); save('hd2d_BIF_SIDE_1.mat','hd2d_BIF_SIDE_1'); save('hd2d_BIF_SIDE_2.mat','hd2d_BIF_SIDE_2'); save('hd2d_BIF_SIDE_3.mat','hd2d_BIF_SIDE_3');  
+% save('hd2d_BIF_TOP_0.mat','hd2d_BIF_TOP_0'); save('hd2d_BIF_TOP_1.mat','hd2d_BIF_TOP_1'); save('hd2d_BIF_TOP_2.mat','hd2d_BIF_TOP_2'); save('hd2d_BIF_TOP_3.mat','hd2d_BIF_TOP_3');  
+% save('hd2d_BIF_OB_0.mat','hd2d_BIF_OB_0'); save('hd2d_BIF_OB_1.mat','hd2d_BIF_OB_1'); save('hd2d_BIF_OB_2.mat','hd2d_BIF_OB_2'); save('hd2d_BIF_OB_3.mat','hd2d_BIF_OB_3');  
+% 
+% save('hd_BIF_SIDE_0.mat','hd_BIF_SIDE_0'); save('hd_BIF_SIDE_1.mat','hd_BIF_SIDE_1'); save('hd_BIF_SIDE_2.mat','hd_BIF_SIDE_2'); save('hd_BIF_SIDE_3.mat','hd_BIF_SIDE_3');
+% save('hd_BIF_TOP_0.mat','hd_BIF_TOP_0'); save('hd_BIF_TOP_1.mat','hd_BIF_TOP_1'); save('hd_BIF_TOP_2.mat','hd_BIF_TOP_2'); save('hd_BIF_TOP_3.mat','hd_BIF_TOP_3');
+% save('hd_BIF_OB_0.mat','hd_BIF_OB_0'); save('hd_BIF_OB_1.mat','hd_BIF_OB_1'); save('hd_BIF_OB_2.mat','hd_BIF_OB_2'); save('hd_BIF_OB_3.mat','hd_BIF_OB_3');
+% 
+% save('d_BIF_SIDE_0.mat','d_BIF_SIDE_0'); save('d_BIF_SIDE_1.mat','d_BIF_SIDE_1'); save('d_BIF_SIDE_2.mat','d_BIF_SIDE_2'); save('d_BIF_SIDE_3.mat','d_BIF_SIDE_3');
+% save('d_BIF_TOP_0.mat','d_BIF_TOP_0'); save('d_BIF_TOP_1.mat','d_BIF_TOP_1'); save('d_BIF_TOP_2.mat','d_BIF_TOP_2'); save('d_BIF_TOP_3.mat','d_BIF_TOP_3');
+% save('d_BIF_OB_0.mat','d_BIF_OB_0'); save('d_BIF_OB_1.mat','d_BIF_OB_1'); save('d_BIF_OB_2.mat','d_BIF_OB_2'); save('d_BIF_OB_3.mat','d_BIF_OB_3');
+% 
+% save('d2d_BIF_SIDE_0.mat','d2d_BIF_SIDE_0'); save('d2d_BIF_SIDE_1.mat','d2d_BIF_SIDE_1'); save('d2d_BIF_SIDE_2.mat','d2d_BIF_SIDE_2'); save('d2d_BIF_SIDE_3.mat','d2d_BIF_SIDE_3');
+% save('d2d_BIF_TOP_0.mat','d2d_BIF_TOP_0'); save('d2d_BIF_TOP_1.mat','d2d_BIF_TOP_1'); save('d2d_BIF_TOP_2.mat','d2d_BIF_TOP_2'); save('d2d_BIF_TOP_3.mat','d2d_BIF_TOP_3');
+% save('d2d_BIF_OB_0.mat','d2d_BIF_OB_0'); save('d2d_BIF_OB_1.mat','d2d_BIF_OB_1'); save('d2d_BIF_OB_2.mat','d2d_BIF_OB_2'); save('d2d_BIF_OB_3.mat','d2d_BIF_OB_3');
+% 
+% save('hd2d_TEST_SIDE_0.mat','hd2d_TEST_SIDE_0'); save('hd2d_TEST_SIDE_1.mat','hd2d_TEST_SIDE_1'); save('hd2d_TEST_SIDE_2.mat','hd2d_TEST_SIDE_2'); save('hd2d_TEST_SIDE_3.mat','hd2d_TEST_SIDE_3');
+% save('hd2d_TEST_TOP_0.mat','hd2d_TEST_TOP_0'); save('hd2d_TEST_TOP_1.mat','hd2d_TEST_TOP_1'); save('hd2d_TEST_TOP_2.mat','hd2d_TEST_TOP_2'); save('hd2d_TEST_TOP_3.mat','hd2d_TEST_TOP_3');
+% save('hd2d_TEST_OB_0.mat','hd2d_TEST_OB_0'); save('hd2d_TEST_OB_1.mat','hd2d_TEST_OB_1'); save('hd2d_TEST_OB_2.mat','hd2d_TEST_OB_2'); save('hd2d_TEST_OB_3.mat','hd2d_TEST_OB_3');
+% 
+% save('hd_TEST_SIDE_0.mat','hd_TEST_SIDE_0'); save('hd_TEST_SIDE_1.mat','hd_TEST_SIDE_1'); save('hd_TEST_SIDE_2.mat','hd_TEST_SIDE_2'); save('hd_TEST_SIDE_3.mat','hd_TEST_SIDE_3');
+% save('hd_TEST_TOP_0.mat','hd_TEST_TOP_0'); save('hd_TEST_TOP_1.mat','hd_TEST_TOP_1'); save('hd_TEST_TOP_2.mat','hd_TEST_TOP_2'); save('hd_TEST_TOP_3.mat','hd_TEST_TOP_3');
+% save('hd_TEST_OB_0.mat','hd_TEST_OB_0'); save('hd_TEST_OB_1.mat','hd_TEST_OB_1'); save('hd_TEST_OB_2.mat','hd_TEST_OB_2'); save('hd_TEST_OB_3.mat','hd_TEST_OB_3');
+% 
+% save('d_TEST_SIDE_0.mat','d_TEST_SIDE_0'); save('d_TEST_SIDE_1.mat','d_TEST_SIDE_1'); save('d_TEST_SIDE_2.mat','d_TEST_SIDE_2'); save('d_TEST_SIDE_3.mat','d_TEST_SIDE_3');
+% save('d_TEST_TOP_0.mat','d_TEST_TOP_0'); save('d_TEST_TOP_1.mat','d_TEST_TOP_1'); save('d_TEST_TOP_2.mat','d_TEST_TOP_2'); save('d_TEST_TOP_3.mat','d_TEST_TOP_3');
+% save('d_TEST_OB_0.mat','d_TEST_OB_0'); save('d_TEST_OB_1.mat','d_TEST_OB_1'); save('d_TEST_OB_2.mat','d_TEST_OB_2'); save('d_TEST_OB_3.mat','d_TEST_OB_3');
+% 
+% save('d2d_TEST_SIDE_0.mat','d2d_TEST_SIDE_0'); save('d2d_TEST_SIDE_1.mat','d2d_TEST_SIDE_1'); save('d2d_TEST_SIDE_2.mat','d2d_TEST_SIDE_2'); save('d2d_TEST_SIDE_3.mat','d2d_TEST_SIDE_3');
+% save('d2d_TEST_TOP_0.mat','d2d_TEST_TOP_0'); save('d2d_TEST_TOP_1.mat','d2d_TEST_TOP_1'); save('d2d_TEST_TOP_2.mat','d2d_TEST_TOP_2'); save('d2d_TEST_TOP_3.mat','d2d_TEST_TOP_3');
+% save('d2d_TEST_OB_0.mat','d2d_TEST_OB_0'); save('d2d_TEST_OB_1.mat','d2d_TEST_OB_1'); save('d2d_TEST_OB_2.mat','d2d_TEST_OB_2'); save('d2d_TEST_OB_3.mat','d2d_TEST_OB_3');
+% 
+% save('RMSE2d_TEST_SIDE_0.mat','RMSE2d_TEST_SIDE_0'); save('RMSE2d_TEST_SIDE_1.mat','RMSE2d_TEST_SIDE_1'); save('RMSE2d_TEST_SIDE_2.mat','RMSE2d_TEST_SIDE_2'); save('RMSE2d_TEST_SIDE_3.mat','RMSE2d_TEST_SIDE_3');
+% save('RMSE2d_TEST_TOP_0.mat','RMSE2d_TEST_TOP_0'); save('RMSE2d_TEST_TOP_1.mat','RMSE2d_TEST_TOP_1'); save('RMSE2d_TEST_TOP_2.mat','RMSE2d_TEST_TOP_2'); save('RMSE2d_TEST_TOP_3.mat','RMSE2d_TEST_TOP_3');
+% save('RMSE2d_TEST_OB_0.mat','RMSE2d_TEST_OB_0'); save('RMSE2d_TEST_OB_1.mat','RMSE2d_TEST_OB_1'); save('RMSE2d_TEST_OB_2.mat','RMSE2d_TEST_OB_2'); save('RMSE2d_TEST_OB_3.mat','RMSE2d_TEST_OB_3');
+% 
+% save('RMSE_TEST_SIDE_0.mat','RMSE_TEST_SIDE_0'); save('RMSE_TEST_SIDE_1.mat','RMSE_TEST_SIDE_1'); save('RMSE_TEST_SIDE_2.mat','RMSE_TEST_SIDE_2'); save('RMSE_TEST_SIDE_3.mat','RMSE_TEST_SIDE_3');
+% save('RMSE_TEST_TOP_0.mat','RMSE_TEST_TOP_0'); save('RMSE_TEST_TOP_1.mat','RMSE_TEST_TOP_1'); save('RMSE_TEST_TOP_2.mat','RMSE_TEST_TOP_2'); save('RMSE_TEST_TOP_3.mat','RMSE_TEST_TOP_3');
+% save('RMSE_TEST_OB_0.mat','RMSE_TEST_OB_0'); save('RMSE_TEST_OB_1.mat','RMSE_TEST_OB_1'); save('RMSE_TEST_OB_2.mat','RMSE_TEST_OB_2'); save('RMSE_TEST_OB_3.mat','RMSE_TEST_OB_3');
+% 
+% save('RMSE2d_BIF_SIDE_0.mat','RMSE2d_BIF_SIDE_0'); save('RMSE2d_BIF_SIDE_1.mat','RMSE2d_BIF_SIDE_1'); save('RMSE2d_BIF_SIDE_2.mat','RMSE2d_BIF_SIDE_2'); save('RMSE2d_BIF_SIDE_3.mat','RMSE2d_BIF_SIDE_3');
+% save('RMSE2d_BIF_TOP_0.mat','RMSE2d_BIF_TOP_0'); save('RMSE2d_BIF_TOP_1.mat','RMSE2d_BIF_TOP_1'); save('RMSE2d_BIF_TOP_2.mat','RMSE2d_BIF_TOP_2'); save('RMSE2d_BIF_TOP_3.mat','RMSE2d_BIF_TOP_3');
+% save('RMSE2d_BIF_OB_0.mat','RMSE2d_BIF_OB_0'); save('RMSE2d_BIF_OB_1.mat','RMSE2d_BIF_OB_1'); save('RMSE2d_BIF_OB_2.mat','RMSE2d_BIF_OB_2'); save('RMSE2d_BIF_OB_3.mat','RMSE2d_BIF_OB_3');
+% 
+% save('RMSE_BIF_SIDE_0.mat','RMSE_BIF_SIDE_0'); save('RMSE_BIF_SIDE_1.mat','RMSE_BIF_SIDE_1'); save('RMSE_BIF_SIDE_2.mat','RMSE_BIF_SIDE_2'); save('RMSE_BIF_SIDE_3.mat','RMSE_BIF_SIDE_3');
+% save('RMSE_BIF_TOP_0.mat','RMSE_BIF_TOP_0'); save('RMSE_BIF_TOP_1.mat','RMSE_BIF_TOP_1'); save('RMSE_BIF_TOP_2.mat','RMSE_BIF_TOP_2'); save('RMSE_BIF_TOP_3.mat','RMSE_BIF_TOP_3');
+% save('RMSE_BIF_OB_0.mat','RMSE_BIF_OB_0'); save('RMSE_BIF_OB_1.mat','RMSE_BIF_OB_1'); save('RMSE_BIF_OB_2.mat','RMSE_BIF_OB_2'); save('RMSE_BIF_OB_3.mat','RMSE_BIF_OB_3');
+% 
+% 
+% 

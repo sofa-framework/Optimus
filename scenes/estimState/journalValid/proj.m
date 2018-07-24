@@ -61,45 +61,45 @@ function [ pos2d ] = proj( pos, P, ms)
        end
   
             
-%       for i =1:ms
-%       rx = P(1,1) * pos(i,19) + P(1,2) * pos(i,20) + P(1,3) * pos(i,21) + P(1,4);
-%       ry = P(2,1) * pos(i,19) + P(2,2) * pos(i,20) + P(2,3) * pos(i,21) + P(2,4);
-%       rz = P(3,1) * pos(i,19) + P(3,2) * pos(i,20) + P(3,3) * pos(i,21) + P(3,4);
-%       pos2d(i,13)=rx* (1.0/rz);
-%       pos2d(i,14)=ry* (1.0/rz);  
-%             
-%       end
-%   
-%   
-%               
-%  for i =1:ms
-%       rx = P(1,1) * pos(i,22) + P(1,2) * pos(i,23) + P(1,3) * pos(i,24) + P(1,4);
-%       ry = P(2,1) * pos(i,22) + P(2,2) * pos(i,23) + P(2,3) * pos(i,24) + P(2,4);
-%       rz = P(3,1) * pos(i,22) + P(3,2) * pos(i,23) + P(3,3) * pos(i,24) + P(3,4);
-%       pos2d(i,15)=rx* (1.0/rz);
-%       pos2d(i,16)=ry* (1.0/rz);       
-%             
-%  end
-%   
-%   for i =1:ms
-%       rx = P(1,1) * pos(i,25) + P(1,2) * pos(i,26) + P(1,3) * pos(i,27) + P(1,4);
-%       ry = P(2,1) * pos(i,25) + P(2,2) * pos(i,26) + P(2,3) * pos(i,27) + P(2,4);
-%       rz = P(3,1) * pos(i,25) + P(3,2) * pos(i,26) + P(3,3) * pos(i,27) + P(3,4);
-%       pos2d(i,17)=rx* (1.0/rz);
-%       pos2d(i,18)=ry* (1.0/rz);  
-%              
-%   end 
-%   
-%   
-%     for i =1:ms
-% 
-%       rx = P(1,1) * pos(i,28) + P(1,2) * pos(i,29) + P(1,3) * pos(i,30) + P(1,4);
-%       ry = P(2,1) * pos(i,28) + P(2,2) * pos(i,29) + P(2,3) * pos(i,30) + P(2,4);
-%       rz = P(3,1) * pos(i,28) + P(3,2) * pos(i,29) + P(3,3) * pos(i,30) + P(3,4);
-%       pos2d(i,19)=rx* (1.0/rz);
-%       pos2d(i,20)=ry* (1.0/rz);    
-%                
-%   end 
+      for i =1:ms
+      rx = P(1,1) * pos(i,19) + P(1,2) * pos(i,20) + P(1,3) * pos(i,21) + P(1,4);
+      ry = P(2,1) * pos(i,19) + P(2,2) * pos(i,20) + P(2,3) * pos(i,21) + P(2,4);
+      rz = P(3,1) * pos(i,19) + P(3,2) * pos(i,20) + P(3,3) * pos(i,21) + P(3,4);
+      pos2d(i,13)=rx* (1.0/rz);
+      pos2d(i,14)=ry* (1.0/rz);  
+            
+      end
+  
+  
+              
+ for i =1:ms
+      rx = P(1,1) * pos(i,22) + P(1,2) * pos(i,23) + P(1,3) * pos(i,24) + P(1,4);
+      ry = P(2,1) * pos(i,22) + P(2,2) * pos(i,23) + P(2,3) * pos(i,24) + P(2,4);
+      rz = P(3,1) * pos(i,22) + P(3,2) * pos(i,23) + P(3,3) * pos(i,24) + P(3,4);
+      pos2d(i,15)=rx* (1.0/rz);
+      pos2d(i,16)=ry* (1.0/rz);       
+            
+ end
+  
+  for i =1:ms
+      rx = P(1,1) * pos(i,25) + P(1,2) * pos(i,26) + P(1,3) * pos(i,27) + P(1,4);
+      ry = P(2,1) * pos(i,25) + P(2,2) * pos(i,26) + P(2,3) * pos(i,27) + P(2,4);
+      rz = P(3,1) * pos(i,25) + P(3,2) * pos(i,26) + P(3,3) * pos(i,27) + P(3,4);
+      pos2d(i,17)=rx* (1.0/rz);
+      pos2d(i,18)=ry* (1.0/rz);  
+             
+  end 
+  
+  
+    for i =1:ms
+
+      rx = P(1,1) * pos(i,28) + P(1,2) * pos(i,29) + P(1,3) * pos(i,30) + P(1,4);
+      ry = P(2,1) * pos(i,28) + P(2,2) * pos(i,29) + P(2,3) * pos(i,30) + P(2,4);
+      rz = P(3,1) * pos(i,28) + P(3,2) * pos(i,29) + P(3,3) * pos(i,30) + P(3,4);
+      pos2d(i,19)=rx* (1.0/rz);
+      pos2d(i,20)=ry* (1.0/rz);    
+               
+  end 
 
 
 end

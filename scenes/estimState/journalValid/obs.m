@@ -3,7 +3,7 @@ close all
 clc
 
 
-o3d = dlmread('/home/raffa/Documents/Raffa/sample/new/mod/all');
+o3d = dlmread('/home/raffa/Documents/Raffa/p3d/sample5/all5.p3d');
 
 
 for i=1:2781
