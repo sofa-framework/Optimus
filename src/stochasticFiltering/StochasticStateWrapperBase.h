@@ -124,7 +124,7 @@ protected:
     size_t stateSize;
     EVectorX state;
     bool EstimatePOSITION;
-
+    bool declaredMappedState;
     EMatrixX stateErrorVariance;
     EVectorX positionVariance;
     EVectorX velocityVariance;
@@ -178,6 +178,10 @@ public:
     }
     virtual bool& estimPosition() {
         return EstimatePOSITION ;
+    }
+
+    virtual bool& declaredMapState() {
+        return declaredMappedState;
     }
 
     virtual EMatrixX& getModelErrorVariance() {

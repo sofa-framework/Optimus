@@ -81,7 +81,6 @@ void UKFilterClassic<FilterType>::computePrediction()
         EMatrixX centeredPxx = matXiTrans.rowwise() - matXiTrans.colwise().mean();
         EMatrixX weightedCenteredPxx = centeredPxx.array().colwise() * vecAlphaVar.array();
         EMatrixX covPxx = (centeredPxx.adjoint() * weightedCenteredPxx);
-        //EMatrixX covPxx = (centeredPxx.adjoint() * centeredPxx) / double(centeredPxx.rows() )
         stateCovar = covPxx + modelCovar;
         for (size_t i = 0; i < (size_t)stateCovar.rows(); i++) {
             diagStateCov(i)=stateCovar(i,i);
@@ -92,29 +91,7 @@ void UKFilterClassic<FilterType>::computePrediction()
     }else{
         stateExp.fill(FilterType(0.0));
         stateExp = masterStateWrapper->getState();
-        Eigen::LLT<EMatrixX> lltU(stateCovar);
-        EMatrixX matPsqrt = lltU.matrixL();
-
-
-        /// Computes X_{n}^{(i)-} sigma points
-        for (size_t i = 0; i < sigmaPointsNum; i++) {
-            matXi.col(i) = stateExp + matPsqrt * matI.row(i).transpose();
-        }
-        /// Compute the state just to compute covariance
-        computePerturbedStates();
-
-        stateCovar.setZero();
-        EMatrixX matXiTrans= matXi.transpose();
-        EMatrixX centeredPxx = matXiTrans.rowwise() - matXiTrans.colwise().mean();
-        EMatrixX weightedCenteredPxx = centeredPxx.array().colwise() * vecAlphaVar.array();
-        EMatrixX covPxx = (centeredPxx.adjoint() * weightedCenteredPxx);
-        stateCovar = covPxx;
-        for (size_t i = 0; i < (size_t)stateCovar.rows(); i++) {
-            diagStateCov(i)=stateCovar(i,i);
-        }
-
         masterStateWrapper->lastApplyOperator(stateExp, mechParams);
-//        PRNS("PREDICTED STATE X(n+1)+n: \n" << stateExp.transpose());
     }
 }
 

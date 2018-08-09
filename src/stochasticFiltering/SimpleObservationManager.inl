@@ -63,7 +63,7 @@ void SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::init()
     if (observationSource) {
         PRNS("Found observation source: " << observationSource->getName());
     } else {
-        PRNE("No observation source found!");
+        serr <<"No observation source found!"<<sendl;
     }
 
     stateWrapper = stateWrapperLink.get();
