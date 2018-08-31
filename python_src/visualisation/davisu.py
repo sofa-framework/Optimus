@@ -135,6 +135,8 @@ for i in range(0, nparams):
 #         innov = innovationVal[:,i]
 #         spl2.plot(rng, innov, color=cmap(i),  linestyle='solid')
 
+#     spl2.set_xlabel('iterations')
+#     spl2.set_ylabel('innovation values')
 #     spl2.set_title('Innovation '+folder)
 
     

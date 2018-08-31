@@ -155,7 +155,7 @@ void SimulatedStateObservationSource<DataTypes>::parseAsynMonitorFile(std::strin
 
         } while (getline(file, line));
     } else {
-        PRNE("Cannot open " << name);
+         serr <<"Cannot open " << name<<sendl;
         return;
     }
 

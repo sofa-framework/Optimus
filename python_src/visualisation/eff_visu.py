@@ -142,9 +142,9 @@ for generalIndex in range (0, len(folder)):
         vll = numpy.squeeze([x - y for x,y in zip(ev, stdev)])
         vlu = numpy.squeeze([x + y for x,y in zip(ev, stdev)])
 
-        spl1.plot(rng, ev, color=cmap(i),  linestyle='solid', linewidth=4)
-        spl1.plot(rng, vll, color=cmap(i),  linestyle='dashed', linewidth=4)
-        spl1.plot(rng, vlu, color=cmap(i),  linestyle='dashed', linewidth=4)
+        spl1.plot(rng, ev, color=cmap(i), linestyle='solid', linewidth=4)
+        spl1.plot(rng, vll, color=cmap(i), linestyle='dashed', linewidth=4)
+        spl1.plot(rng, vlu, color=cmap(i), linestyle='dashed', linewidth=4)
 
 
         # print options['scene_parameters']['obs_generating_parameters']['object_young_moduli']

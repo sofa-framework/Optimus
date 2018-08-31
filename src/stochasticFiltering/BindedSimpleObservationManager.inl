@@ -54,7 +54,9 @@ BindedSimpleObservationManager<FilterType,DataTypes1,DataTypes2>::BindedSimpleOb
 template <class FilterType, class DataTypes1, class DataTypes2>
 void BindedSimpleObservationManager<FilterType,DataTypes1,DataTypes2>::init()
 {
+
     Inherit::init();
+    bindId3D=bindId;
 
     this->gnode->get(observationSource);
     if (observationSource) {
@@ -69,6 +71,10 @@ void BindedSimpleObservationManager<FilterType,DataTypes1,DataTypes2>::init()
     } else {
         PRNE("Link to state wrapper not initialized!");
     }
+    if(!stateWrapper->declaredMapState()){
+        return;
+        serr<<"No mapped state declared in the StochasticStateWrapper  "<<sendl;
+    }
 
     this->gnode->get(masterState);
     if (masterState != NULL) {
@@ -79,7 +85,16 @@ void BindedSimpleObservationManager<FilterType,DataTypes1,DataTypes2>::init()
     }
 
     this->getContext()->get(mappedState, d_mappedStatePath.getValue());
-    if (mappedState == NULL) serr << "Error: Cannot find the Mapped State Component" <<sendl;
+    if ( mappedState != NULL)  {
+        PRNS("Found mapped mechanical state: " << mappedState->getName());
+    }
+    else {
+        PRNE("No mapped state state found");
+        return;
+
+    }
+
+
 
 }
 
@@ -89,13 +104,18 @@ void BindedSimpleObservationManager<FilterType,DataTypes1,DataTypes2>::bwdInit()
     this->observationSize = observationSource->getStateSize() * DataTypes1::spatial_dimensions;
     Inherit::bwdInit();
 
+
 }
 
 template <class FilterType, class DataTypes1, class DataTypes2>
 bool BindedSimpleObservationManager<FilterType,DataTypes1,DataTypes2>::hasObservation(double _time) {
+    bool hasObservation;
+    if(this->actualTime==0){
+        hasObservation=true;
+    } else{
 
-    bool hasObservation = observationSource->getObservation(this->actualTime, realObservations);
-
+        hasObservation= observationSource->getObservation(this->actualTime, realObservations);
+    }
     if (!hasObservation) {
         PRNE("No observation for time " << _time);
         return(false);
@@ -104,85 +124,6 @@ bool BindedSimpleObservationManager<FilterType,DataTypes1,DataTypes2>::hasObserv
     return(true);
 }
 
-template <class FilterType, class DataTypes1, class DataTypes2>
-bool BindedSimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getPredictedObservation(int _id, EVectorX& _predictedObservation)
-{
-    const Mat3x4d & P = d_projectionMatrix.getValue();
-
-    _predictedObservation.resize(this->observationSize);
-
-    Data<typename DataTypes1::VecCoord> real2DObservations;
-    Data<typename DataTypes1::VecCoord> allPredicted2DState;
-    Data<typename DataTypes1::VecCoord> bindedPredicted2DState;
-    Data<typename DataTypes2::VecCoord> allPredicted3DState;
-
-    typename DataTypes1::VecCoord& allPredicted2DStateEdit = *allPredicted2DState.beginEdit();
-    typename DataTypes2::VecCoord& allPredicted3DStateEdit = *allPredicted3DState.beginEdit();
-    typename DataTypes1::VecCoord& real2DObservationsEdit = *real2DObservations.beginEdit();
-    typename DataTypes1::VecCoord& bindedPredicted2DStateEdit = *bindedPredicted2DState.beginEdit();
-
-
-    allPredicted3DStateEdit.resize(mappedState->getSize());
-    real2DObservationsEdit.resize((this->observationSize)*0.5);
-    bindedPredicted2DStateEdit.resize((this->observationSize)*0.5);
-
-//    stateWrapper->getActualMappedPosition(_id, allPredicted3DStateEdit);
-    allPredicted2DStateEdit.resize(allPredicted3DStateEdit.size());
-
-    for (unsigned i = 0; i < allPredicted3DStateEdit.size(); i++){
-        double rx = P[0][0] * allPredicted3DStateEdit[i][0] + P[0][1] * allPredicted3DStateEdit[i][1] + P[0][2] * allPredicted3DStateEdit[i][2] + P[0][3];
-        double ry = P[1][0] * allPredicted3DStateEdit[i][0] + P[1][1] * allPredicted3DStateEdit[i][1] + P[1][2] * allPredicted3DStateEdit[i][2] + P[1][3];
-        double rz = P[2][0] * allPredicted3DStateEdit[i][0] + P[2][1] * allPredicted3DStateEdit[i][1] + P[2][2] * allPredicted3DStateEdit[i][2] + P[2][3];
-        allPredicted2DStateEdit[i][0]=rx* (1.0/rz);
-        allPredicted2DStateEdit[i][1]=ry* (1.0/rz);
-    }
-
-
-    for (size_t i = 0; i < real2DObservationsEdit.size(); i++){
-        for (size_t d = 0; d < 2; d++){
-            real2DObservationsEdit[i][d] = realObservations[0](2*i+d);
-        }
-    }
-//    PRNS("real2DObservationsEdit "  << real2DObservationsEdit);
-    PRNS("allPredicted2DStateEdit "  << allPredicted2DStateEdit);
-
-    bindId.clear();
-    for (unsigned t=0;t < real2DObservationsEdit.size();t++) {
-        Vector2 real(real2DObservationsEdit[t][0],real2DObservationsEdit[t][1]);
-
-        int bind = -1;
-        double minDist =  0;
-
-        for (unsigned i=0;i < allPredicted2DStateEdit.size();i++) {
-             Vector2 proj (allPredicted2DStateEdit[i][0],allPredicted2DStateEdit[i][1]);
-
-            double dist=(real-proj).norm();
-
-            if (dist< d_proj_dist.getValue() && ((bind == -1) || (dist< minDist))) {
-                minDist = dist;
-                bind = i;
-            }
-        }
-        bindId.push_back(bind);
-    }
-
-    PRNS("BindId  " << bindId)
-
-//    for (size_t i = 0; i < real2DObservationsEdit.size(); i++){
-//        for (size_t d = 0; d < 2; d++)
-//            bindedPredicted2DStateEdit[i][d]= allPredicted2DStateEdit[bindId[i]][d];
-//    }
-
-    for (size_t i = 0; i < real2DObservationsEdit.size(); i++){
-        for (size_t d = 0; d < 2; d++){
-            _predictedObservation(2*i+d) = allPredicted2DStateEdit[bindId[i]][d];
-        PRNS("_predictedObservation " << allPredicted2DStateEdit[i][d]  );}
-    }
-
-
-    return true;
-
-}
 template <class FilterType, class DataTypes1, class DataTypes2>
 bool BindedSimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovation(double _time, EVectorX& _state, EVectorX& _innovation)
 {
@@ -200,11 +141,98 @@ bool BindedSimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getInnova
         for (size_t i = 0; i < this->observationSize; i++)
             _innovation(i) = realObservations[0](i) - _state(i);
     }
-//    PRNS("realObservations  " << realObservations);
-//    PRNS("_predictedObs     " << _state.transpose());
+
 
     return true;
 
+
+}
+template <class FilterType, class DataTypes1, class DataTypes2>
+bool BindedSimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getPredictedObservation(int _id, EVectorX& _predictedObservation)
+{
+    const Mat3x4d & P = d_projectionMatrix.getValue();
+    _predictedObservation.resize(this->observationSize);
+
+    Data<typename DataTypes1::VecCoord> real2DObs;
+    Data<typename DataTypes1::VecCoord> allPred2DObs;
+    Data<typename DataTypes1::VecCoord> bindPred2DObs;
+    //    typename MappState::ReadVecCoord mappPred3DStateEdit = mappedState->readPositions();
+    //    typename MasterState::ReadVecCoord masterStateEdit = masterState->readPositions();
+
+    //    Data<typename Vec3dTypes::VecCoord> mappPred3DState;
+
+    typename DataTypes1::VecCoord& real2DObsEdit = *real2DObs.beginEdit();
+    typename DataTypes1::VecCoord& allPred2DObsEdit = *allPred2DObs.beginEdit();
+    typename DataTypes1::VecCoord& bindPred2DObsEdit = *bindPred2DObs.beginEdit();
+    //    typename Vec3dTypes::VecCoord& mappPred3DStateEdit = *mappPred3DState.beginEdit();
+    Data<typename Vec3dTypes::VecCoord> mappPred3DState;
+
+    typename Vec3dTypes::VecCoord& mappPred3DStateEdit = *mappPred3DState.beginEdit();
+
+    mappPred3DStateEdit.resize(mappedState->getSize());
+
+
+    stateWrapper->getActualMappedPosition(_id, mappPred3DStateEdit);
+
+
+    allPred2DObsEdit.resize(mappedState->getSize());
+    real2DObsEdit.resize((this->observationSize)*0.5);
+    bindPred2DObsEdit.resize((this->observationSize)*0.5);
+    for (unsigned i=0;i < mappPred3DStateEdit.size();i++) {
+        Vector3 diff(mappPred3DStateEdit[i][0],mappPred3DStateEdit[i][1],mappPred3DStateEdit[i][2]);
+    }
+
+    bindId.clear();
+    for (size_t i = 0; i < real2DObsEdit.size(); i++){
+        for (size_t d = 0; d < 2; d++){
+            real2DObsEdit[i][d] = realObservations[0](2*i+d);
+        }
+    }
+
+
+
+    for (unsigned i = 0; i < mappPred3DStateEdit.size(); i++){
+        double rx = P[0][0] * mappPred3DStateEdit[i][0] + P[0][1] * mappPred3DStateEdit[i][1] + P[0][2] * mappPred3DStateEdit[i][2] + P[0][3];
+        double ry = P[1][0] * mappPred3DStateEdit[i][0] + P[1][1] * mappPred3DStateEdit[i][1] + P[1][2] * mappPred3DStateEdit[i][2] + P[1][3];
+        double rz = P[2][0] * mappPred3DStateEdit[i][0] + P[2][1] * mappPred3DStateEdit[i][1] + P[2][2] * mappPred3DStateEdit[i][2] + P[2][3];
+        allPred2DObsEdit[i][0]=rx* (1.0/rz);
+        allPred2DObsEdit[i][1]=ry* (1.0/rz);
+    }
+
+
+    double dist;
+    Vector2 trans;
+    for (unsigned t=0;t < real2DObsEdit.size();t++) {
+        Vector2 real(real2DObsEdit[t][0],real2DObsEdit[t][1]);
+
+        Vector2 proj0 (allPred2DObsEdit[0][0],allPred2DObsEdit[0][1]);
+        Vector2 real0(real2DObsEdit[0][0],real2DObsEdit[0][1]);
+        trans=(real0-proj0);
+
+
+        int bind = -1;
+        double minDist =  0;
+
+        for (unsigned i=0;i < allPred2DObsEdit.size();i++) {
+            Vector2 proj ((allPred2DObsEdit[i][0]+trans[0]),(allPred2DObsEdit[i][1]+trans[1]));
+            dist=(real-proj).norm();
+
+            if (dist< d_proj_dist.getValue() && ((bind == -1) || (dist< minDist))) {
+                minDist = dist;
+                bind = i;
+            }
+        }
+        bindId.push_back(bind);
+    }
+
+    PRNS("bind:  "<< bindId);
+    for (size_t i = 0; i < real2DObsEdit.size(); i++){
+        for (size_t d = 0; d < 2; d++){
+            _predictedObservation(2*i+d) = allPred2DObsEdit[bindId[i]][d];
+        }
+    }
+
+    return true;
 
 }
 

@@ -75,8 +75,9 @@ public:
     Data<double> d_proj_dist;
 
     SingleLink<BindedSimpleObservationManager<FilterType, DataTypes1, DataTypes2>, StateWrapper, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> stateWrapperLink;
-    typedef core::behavior::MechanicalState<DataTypes2> MechState;
+    typedef core::behavior::MechanicalState<defaulttype::Vec3dTypes> MappState;
     Data <std::string> d_mappedStatePath;
+
 
 
     BindedSimpleObservationManager();
@@ -91,7 +92,9 @@ protected:
     double actualObservationTime;
 
     helper::vector<int> bindId;
-    MechState* mappedState;
+    helper::vector<int> bindId3D;
+
+    MappState* mappedState;
 
     public:
     void init();

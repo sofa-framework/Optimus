@@ -46,17 +46,17 @@ SOFA_DECL_CLASS(BindedSimpleObservationManager)
 // Register in the Factory
 int BindedSimpleObservationManagerClass = core::RegisterObject("BindedSimpleObservationManager")
         #ifndef SOFA_FLOAT
-        .add< BindedSimpleObservationManager<double, Vec2dTypes, Vec3dTypes> >()
-        .add< BindedSimpleObservationManager<double, Vec3dTypes, Vec3dTypes> >(true)
-        #endif
-        #ifndef SOFA_DOUBLE
-        //.add< BindedSimpleObservationManager<double, Vec3fTypes, Vec3fTypes> >()
-        //.add< BindedSimpleObservationManager<float, Vec3fTypes, Vec3fTypes> >(true)
-        #endif
-        ;
+        .add< BindedSimpleObservationManager<double, Vec2dTypes, Rigid3dTypes> >()
+.add< BindedSimpleObservationManager<double, Vec3dTypes, Vec3dTypes> >(true)
+#endif
+#ifndef SOFA_DOUBLE
+//.add< BindedSimpleObservationManager<double, Vec3fTypes, Vec3fTypes> >()
+//.add< BindedSimpleObservationManager<float, Vec3fTypes, Vec3fTypes> >(true)
+#endif
+;
 
 #ifndef SOFA_FLOAT
-template class SOFA_STOCHASTIC_API BindedSimpleObservationManager<double, Vec2dTypes, Vec3dTypes>;
+template class SOFA_STOCHASTIC_API BindedSimpleObservationManager<double, Vec2dTypes, Rigid3dTypes>;
 template class SOFA_STOCHASTIC_API BindedSimpleObservationManager<double, Vec3dTypes, Vec3dTypes>;
 //template class SOFA_STOCHASTIC_API BindedSimpleObservationManager<double, Rigid3dTypes, Rigid3dTypes>;
 
