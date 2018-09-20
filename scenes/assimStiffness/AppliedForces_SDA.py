@@ -65,6 +65,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         self.obsFile = self.mainFolder + '/' + opt['io']['obsFileName']
 
         self.estFolder = self.mainFolder + '/' + opt['filter']['kind'] + '_' + opt['filter']['obs_tag'] + '_' + str(opt['model']['linsol']['usePCG']) + opt['io']['sdaFolderSuffix']
+        print '@@@@@@@@@',self.estFolder
 
         if self.saveEst:                        
             os.system('mv '+self.estFolder+' '+self.estFolder+'_arch')
@@ -101,6 +102,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         return
 
     def createGraph(self,rootNode):
+        self.step = 0
         self.rootNode=rootNode
         self.iterations = 0
         
@@ -142,14 +144,14 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         simuNode=modelNode.createChild('cylinder')  
 
         intType = self.opt['model']['int']['type']
-        intMaxit = self.opt['model']['int']['maxit']
-        rmass = self.opt['model']['int']['rmass']
-        rstiff = self.opt['model']['int']['rstiff']
-
         if intType == 'Euler':
-            simuNode.createObject('EulerImplicitSolver', rayleighStiffness=rstiff, rayleighMass=rmass)
+            firstOrder = self.opt['model']['int']['first_order']
+            rmass = self.opt['model']['int']['rmass']
+            rstiff = self.opt['model']['int']['rstiff']        
+            simuNode.createObject('EulerImplicitSolver', firstOrder=firstOrder, rayleighStiffness=rstiff, rayleighMass=rmass)
         elif intType == 'Newton':
-            simuNode.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")           
+            maxIt = self.opt['model']['int']['maxit']
+            simuNode.createObject('NewtonStaticSolver', maxIt=maxIt, correctionTolerance='1e-8', residualTolerance='1e-8', convergeOnResidual='1')            
 
         
         if self.opt['model']['linsol']['usePCG']:
@@ -182,7 +184,12 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         indices = range(1, len(youngModuli)+1)
         simuNode.createObject('Indices2ValuesMapper', indices=indices, values='@paramE.value', name='youngMapper', inputValues='@/loader.dataset')
 
-        simuNode.createObject('TetrahedronFEMForceField', name='FEM', updateStiffness='1', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
+        femMethod = self.opt['model']['fem']['method']
+        simuNode.createObject('TetrahedronFEMForceField', name='FEM', updateStiffness='1', listening='true', drawHeterogeneousTetra='1', method=femMethod, poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
+
+        if 'applied_force' in self.opt['model'].keys():
+            simuNode.createObject('BoxROI', name='forceBox', box=self.opt['model']['applied_force']['boxes'])
+            self.appliedForce = simuNode.createObject('ConstantForceField', force=self.opt['model']['applied_force']['initial_force'], indices='@forceBox.indices')
 
         if self.saveGeo:
             simuNode.createObject('VTKExporterDA', filename=self.geoFolder+'/object.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="1",
@@ -253,10 +260,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         return 0
 
 
-    def initGraph(self,node):
-        print 'Init graph called (python side)'
-        self.step    =     0
-        self.total_time =     0            
+    def initGraph(self,node):        
         return 0
 
     def bwdInitGraph(self, node):
@@ -264,9 +268,18 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
     	return 0
 
     def onBeginAnimationStep(self, deltaTime):
+        self.step += 1
         if self.opt['time']['time_profiling']:
             Sofa.timerSetEnabled(self.opt['time']['timer_name'], True)
             Sofa.timerBegin(self.opt['time']['timer_name'])
+
+        if 'applied_force' in self.opt['model'].keys():
+            maxTS = self.opt['model']['applied_force']['num_inc_steps']
+            delta = np.array(self.opt['model']['applied_force']['delta'])
+            if self.step < maxTS:
+                fc = np.array(self.appliedForce.findData('force').value)
+                fc[0] += delta
+                self.appliedForce.findData('force').value = fc.tolist()            
 
         return 0
 

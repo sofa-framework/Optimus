@@ -11,9 +11,10 @@ model:
         
     int:   # temporal integrator properties
         type: 'Euler'
+        first_order: 0
         rmass: 0.1
-        rstiff: 3
-        maxit: 1
+        rstiff: 3        
+
     bc:
         type: 'fixed'
         boxes: '-0.05 -0.05 -0.002   0.05 0.05 0.002   -0.05 -0.05  0.298   0.05 0.05 0.302'
@@ -23,6 +24,9 @@ model:
         PCGUpdateSteps: 20
         pardisoSym: 1
         pardisoFolder: ''
+
+    fem:
+        method: 'large'
         
     plane_collision: 0
 

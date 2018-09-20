@@ -5,6 +5,7 @@ import sys
 import csv
 import yaml
 import pprint
+import numpy as np
 
 __file = __file__.replace('\\', '/') # windows
 
@@ -77,7 +78,8 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
 
         return None;
 
-    def createGraph(self,rootNode):        
+    def createGraph(self,rootNode):
+        self.step = 0        
         rootNode.findData('dt').value = self.opt['model']['dt']
         rootNode.findData('gravity').value = self.opt['model']['gravity']
 
@@ -98,13 +100,15 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
         simuNode.createObject('MeshVTKLoader', name='loader', filename=self.opt['model']['vol_mesh'])
 
         intType = self.opt['model']['int']['type']
-        intMaxit = self.opt['model']['int']['maxit']
-        rmass = self.opt['model']['int']['rmass']
-        rstiff = self.opt['model']['int']['rstiff']
-
         if intType == 'Euler':
-            simuNode.createObject('EulerImplicitSolver', rayleighStiffness=rstiff, rayleighMass=rmass)
-        # simuNode.createObject('NewtonStaticSolver', maxIt='50', correctionTolerance='1e-8', residualTolerance='1e-8', convergeOnResidual='1')
+            firstOrder = self.opt['model']['int']['first_order']
+            rmass = self.opt['model']['int']['rmass']
+            rstiff = self.opt['model']['int']['rstiff']        
+            simuNode.createObject('EulerImplicitSolver', firstOrder = firstOrder, rayleighStiffness=rstiff, rayleighMass=rmass)
+        elif intType == 'Newton':
+            maxIt = self.opt['model']['int']['maxit']
+            simuNode.createObject('NewtonStaticSolver', maxIt=maxIt, correctionTolerance='1e-8', residualTolerance='1e-8', convergeOnResidual='1')
+
         # simuNode.createObject('StepPCGLinearSolver', name='lsolverit', precondOnTimeStep='0', use_precond='1', tolerance='1e-10', iterations='500',
         #  verbose='0', update_step='10', listening='1', preconditioners='lsolver')
         # simuNode.createObject('ShewchukPCGLinearSolver', name='lsolverit', iterations='500', use_precond='1', tolerance='1e-10', preconditioners='lsolver')
@@ -131,7 +135,12 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
         simuNode.createObject('Indices2ValuesMapper', indices=indices, values=youngModuli, 
             name='youngMapper', inputValues='@loader.dataset')
 
-        simuNode.createObject('TetrahedronFEMForceField', updateStiffness='1', name='FEM', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
+        femMethod = self.opt['model']['fem']['method']
+        simuNode.createObject('TetrahedronFEMForceField', name='FEM', method=femMethod, listening='true', drawHeterogeneousTetra='1', poissonRatio='0.45', youngModulus='@youngMapper.outputValues', updateStiffness='1')
+
+        if 'applied_force' in self.opt['model'].keys():
+            simuNode.createObject('BoxROI', name='forceBox', box=self.opt['model']['applied_force']['boxes'])
+            self.appliedForce = simuNode.createObject('ConstantForceField', force=self.opt['model']['applied_force']['initial_force'], indices='@forceBox.indices')
 
         if self.saveGeo:
             simuNode.createObject('VTKExporter', filename=self.geoFolder+'/object.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="1",
@@ -174,6 +183,19 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
             floor.createObject('Point', simulated="false", bothSide="true", contactFriction="0.0")
 
         return 0;
+
+    def onBeginAnimationStep(self, deltaTime):
+        self.step += 1
+        if 'applied_force' in self.opt['model'].keys():
+            maxTS = self.opt['model']['applied_force']['num_inc_steps']
+            delta = np.array(self.opt['model']['applied_force']['delta'])
+            if self.step < maxTS:
+                fc = np.array(self.appliedForce.findData('force').value)
+                fc[0] += delta
+                self.appliedForce.findData('force').value = fc.tolist()
+        
+        return 0
+
     
 
     def initGraph(self, node):
@@ -209,8 +231,5 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
         
         return 0;
 
-    def onBeginAnimationStep(self, deltaTime):
-        
-        return 0;
-
+    
 
