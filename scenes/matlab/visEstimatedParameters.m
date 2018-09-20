@@ -2,26 +2,24 @@ addpath '~/AncillaIP/Matlab';
 %groundTruth=[1500 6000 2000];   %P1
 %groundTruth=[3500 4000 1000 6000 2000 7000 2500 8000 3000 1500];
 %groundTruth=[1000 4000 2000];   %P1
+groundTruth=[3000, 5000]
 %$groundTruth=zeros(1,10);   %P2
-groundTruth = zeros(1,16);
+%groundTruth = zeros(1,16);
 showStdev = 1;
-nsteps=50;
+nsteps=500;
 
-%integ='Euler1'
-integ='Newton3'
-%integ='VarSym3'
-
-%filterType='UKFSimCorr';
-%filterType='UKFClassic';
+prefix='cyl2_xforceInc'
+integ='Newton1';
 filterType='ROUKF';
+transform = 'project_40_40';
+usePCG = '1';
+obsID = 'obs1end';
+%obsID = 'obs2middleEnd';
 
-%trans = 'abs';
-%trans = 'exp';
-trans = 'proj';
-
-inputDir=['../assimBC/brickD_Newton3_fp1_tr1_ogrid4/ROUKFproj_OSD-3']
+%inputDir=['../assimBC/brickD_Newton3_fp1_tr1_ogrid4/ROUKFproj_OSD-3']
 %inputDir=['../assimStiffness/cyl3gravity_Euler1/ROUKF_obs33_' trans '2'];
 %inputDir='../assimStiffness/cyl10gravity_Euler1/ROUKF_obs120_proj5';
+inputDir = ['../assimStiffness/' prefix integ '/' filterType '_' obsID '_' usePCG '_' transform ]
 
 
 %inputDir='../assimStiffness/cyl3gravity_Euler1/UKFSimCorr_obs33_proj0'
@@ -83,7 +81,7 @@ for i=1:nparams
     end
     
 end
-title(sprintf('State  %s', [filterType ' ' integ]));
+title(sprintf('State  %s', [filterType ' ' integ ' ' obsID]));
 
 return
 
