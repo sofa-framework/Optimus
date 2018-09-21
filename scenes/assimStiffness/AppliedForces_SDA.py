@@ -61,11 +61,10 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         if self.planeCollision:
             prefix = prefix + 'plane_'
 
-        self.mainFolder = prefix + opt['model']['int']['type'] + str(opt['model']['int']['maxit']) + suffix    
+        self.mainFolder = prefix + opt['model']['fem']['method'] + '_' +  opt['model']['int']['type'] + str(opt['model']['int']['maxit']) + suffix
         self.obsFile = self.mainFolder + '/' + opt['io']['obsFileName']
 
-        self.estFolder = self.mainFolder + '/' + opt['filter']['kind'] + '_' + opt['filter']['obs_tag'] + '_' + str(opt['model']['linsol']['usePCG']) + opt['io']['sdaFolderSuffix']
-        print '@@@@@@@@@',self.estFolder
+        self.estFolder = self.mainFolder + '/' + opt['filter']['kind'] + '_' + opt['filter']['obs_tag'] + '_' + str(opt['model']['linsol']['usePCG']) + opt['io']['sdaFolderSuffix']        
 
         if self.saveEst:                        
             os.system('mv '+self.estFolder+' '+self.estFolder+'_arch')
@@ -184,8 +183,18 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         indices = range(1, len(youngModuli)+1)
         simuNode.createObject('Indices2ValuesMapper', indices=indices, values='@paramE.value', name='youngMapper', inputValues='@/loader.dataset')
 
-        femMethod = self.opt['model']['fem']['method']
-        simuNode.createObject('TetrahedronFEMForceField', name='FEM', updateStiffness='1', listening='true', drawHeterogeneousTetra='1', method=femMethod, poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
+        if self.opt['model']['fem']['method'] == 'CorLarge':        
+            simuNode.createObject('TetrahedronFEMForceField', name='FEM', method='large', listening='true', drawHeterogeneousTetra='1', poissonRatio='0.45', youngModulus='@youngMapper.outputValues', updateStiffness='1')
+        elif self.opt['model']['fem']['method'] == 'CorSmall':
+            simuNode.createObject('TetrahedronFEMForceField', name='FEM', method='small', listening='true', drawHeterogeneousTetra='1', poissonRatio='0.45', youngModulus='@youngMapper.outputValues', updateStiffness='1')
+        elif self.opt['model']['fem']['method'] == 'StVenant':
+            nu = 0.45
+            E = 4000
+            lamb=(E*nu)/((1+nu)*(1-2*nu))
+            mu=E/(2+2*nu)
+            materialParams='{} {}'.format(mu,lamb)
+            simuNode.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=materialParams)
+
 
         if 'applied_force' in self.opt['model'].keys():
             simuNode.createObject('BoxROI', name='forceBox', box=self.opt['model']['applied_force']['boxes'])
@@ -340,8 +349,11 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
 
             rcv=self.filter.findData(covarName).value
             covariance = [val for sublist in rcv for val in sublist]
-            #print 'Reduced Covariance:'
-            #print reducedCovariance
+            #print 'Covariance:'
+            #print covariance
+            estStd = np.sqrt(variance)            
+            print 'Correlation: ',covariance[0]/(np.prod(estStd))            
+
 
             f3 = open(self.stateCovarFile, "a")
             f3.write(" ".join(map(lambda x: str(x), covariance)))
