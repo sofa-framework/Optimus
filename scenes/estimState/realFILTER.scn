@@ -1,0 +1,165 @@
+<?xml version="1.0"?>
+<Node    name="root" dt="0.001" gravity="0 0 0" > 
+    <RequiredPlugin pluginName="Optimus"/>
+    <RequiredPlugin pluginName="ImageMeshAux" />
+    <RequiredPlugin pluginName="ConstraintGeometryPlugin" />
+    <RequiredPlugin pluginName="NeedleConstraintPlugin" />
+    <RequiredPlugin pluginName="OpenCVPlugin" />
+    <RequiredPlugin pluginName="SofaAsyncSolvers" />
+
+
+<VisualStyle displayFlags="showVisualModels hideBehaviorModels hideCollisionModels hideMappings hideForceFields hideWireframe" />	
+<BackgroundSetting color="1 1 1 1" />
+<ViewerSetting resolution="837 600" />
+<FilteringAnimationLoop name="StochAnimLoop" verbose="1"/>
+    <UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0"   draw="0" radiusDraw="0.0002" MOnodesDraw="6" filenameFinalState="/home/raffa/work/Optimus/scenes/estimState/journalValid/matlab/print_state_real_21"/>
+    <OpenCVPngStreamer name="streamer" filename="/home/raffa/Desktop/realFILTER_00000170.png"    />
+    <OpenCVProjectiveCalibrator listening="1" name="calibrator" streamer="streamer" mode="0"             
+                            projectionMatrix="[-3320.65	174.572	-514.441	193.451
+                                                134.409	3340.13	44.4847	-64.7090
+                                                0.0480279	0.103531	-0.993466	0.400192]"
+        drawCamera="1" depth="0.7" drawzNear="0.0000001" drawViewPort="false" drawzFar="10000000" drawscreenPosition="0 0" drawswapMainView="0" />                 
+    <OpenCVViewer name="viewer" streamer="streamer" drawcolor="1 1 1 1" /> 
+    <OpenCVScheduler name="scheduler" frequency="0"  />
+
+    <Node name="simulation">
+        <PreStochasticWrapper />
+        <Node name="init"> 
+            <EulerImplicitSolver  />
+            <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/>
+            <MechanicalObject template="Vec3" name="MO" position="0.0394433097839356	0.0484600067138672	-0.0578153991699219
+            0.0366725886467393	0.0548799667420753	-0.0508427628275531
+            0.0295245876792396	0.0605971983635609	-0.0487229173486630
+            0.0210858688190383	0.0606265413785004	-0.0534963533884147
+            0.0140316058132121	0.0563767350309354	-0.0589325983597519
+            0.00522747431517928	0.0526978640367743	-0.0609153917719377"/>
+            <ReadState filename="/home/raffa/work/Optimus/scenes/estimState/journalValid/referenceReal" />
+<!--             <ShowSpheres  radius="0.0005"  color="1 0 0  1" position="@MO.position" />             -->
+        </Node>
+        <Node name="VisualRealSurface">
+            <VisualStyle displayFlags="showWireframe " /> 
+            <MeshSTLLoader name="surface" filename="/home/raffa/Documents/Raffa/phantomScaled.stl"  />
+            <MeshTopology src="@surface" />
+            <MechanicalObject name="DOFs" />
+            <OglModel name="VisualModel" src="@surface"  material="Default Diffuse 1 1 0.93 0.83 0.05 Ambient 0 0 0 0 0 Specular 0 0 0 0 0 Emissive 0 0 0 0 0 Shininess 0 45" />
+        </Node>
+    </Node> 
+     
+    <Node name="filteredModel">     
+        <StochasticStateWrapper name="StateWrapper" template="Rigid3d" verbose="1" estimatePosition="1" estimateVelocity="1" 
+positionStdev="0.001  0.001   0.001  0.00000000001 0.00000000001 0.00000000001" 
+velocityStdev="0.01  0.01   0.01  0.01 0.01 0.01" 
+posModelStdev="0.001  0.001   0.001  0.00000000001 0.00000000001 0.00000000001" 
+velModelStdev="0.0  0.00   0.0  0.0000 0.00000 0.00000"    mappedState="ball/CollisionBall/ms"
+        paramModelStdev="
+                        0 0 0 0 0 0
+                        0 0 0 0 0 0 
+                        0 0 0 0 0 0 
+                        0 0 0 0 0 0
+                        0 0 0 0 0 0
+                        0 0 0 0 0 0"  
+        langrangeMultipliers="1" draw="0" radiusDraw="0.0002"/>  
+        <GenericConstraintSolver name="GenericConstraintSolver"  printLog="0"  maxIterations="1000"  tolerance="1e-10"  allVerified="0" /> 
+        <Node name="ball">
+            <EulerImplicitSolver rayleighMass="0.01" rayleighStiffness="0.1" />	
+<!--             <PCGLinearSolver  preconditioners="BTD" update_step="108"/>  -->
+            <SparseLDLSolver name="BTD" template="AsyncCompressedRowSparseMatrix3f" />
+<!--             <BTDLinearSolver template="BTDMatrix6d" printLog="false" verbose="false" /> -->
+<!--             <OptimParams name="paramMass" optimize="1" template ="Vector" initValue="0.0007"  stdev="0.0001" transformParams="0" /> -->
+<!--             <OptimParams name="paramRadius" optimize="1" template ="Vector" initValue="0.0005"  stdev="0.0001" transformParams="0" />  -->
+<!--             <OptimParams name="paramYoung" optimize="1" template ="Vector" initValue="1e6"  stdev="1e4" transformParams="1" />  -->
+<!--             <OptimParams name="paramFriction" optimize="1" template ="Vector" initValue="0.0"  stdev="0.1" transformParams="0" />  -->
+
+            <OptimParams name="paramForces" optimize="1" template ="RigidDeriv3d" 
+            initValue=" 0 0 0 0 0 0
+                        0 0 0 0 0 0 
+                        0 0 0 0 0 0 
+                        0 0 0 0 0 0
+                        0 0 0 0 0 0
+                        0 0 0 0 0 0" 
+            stdev="0.001 0.001 0.001 0.00001 0.00001 0.00001   
+        0.001 0.001 0.001 0.00001 0.00001 0.00001    
+        0.001 0.001 0.001 0.00001 0.00001 0.00001   
+        0.001 0.001 0.001 0.00001 0.00001 0.00001    
+        0.001 0.001 0.001 0.00001 0.00001 0.00001   
+        0.001 0.001 0.001 0.00001 0.00001 0.00001 "
+            transformParams="0" parametricMechanicalObjectRigid="@MO"/>          
+            <MechanicalObject template="Rigid" name="MO" 
+                    position="0.0394433 0.04846 -0.0578154 -0.166916 0.516252 -0.305271 0.782581
+                        0.0366726 0.05488 -0.0508428 -0.166916 0.516252 -0.305271 0.782581 
+                        0.0295246 0.0605972 -0.0487229 -0.306985 0.219705 -0.267082 0.886655 
+                        0.0210859 0.0606265 -0.0534964 -0.414802 -0.229281 -0.110602 0.873577 
+                        0.0140316 0.0563767 -0.0589326 -0.430489 -0.37148 0.0675949 0.819825 
+                        0.00522747 0.0526979 -0.0609154 -0.500084 -0.188712 0.112666 0.837622"                 
+ 
+                showObject="1" showObjectScale="0.000"/>
+         <!--    position="0.05522747 0.0526979 -0.0609154 0 0 0 1
+                        0.04522747 0.0526979 -0.0609154 0 0 0 1
+                        0.03522747 0.0526979 -0.0609154 0 0 0 1
+                        0.02522747 0.0526979 -0.0609154 0 0 0 1
+                        0.01522747 0.0526979 -0.0609154 0 0 0 1
+                        0.00522747 0.0526979 -0.0609154 0 0 0 1" -->
+            <Mesh name="lines" lines="0 1   1 2   2 3  3 4   4 5 " />
+            
+<!--                         <UniformMass totalmass="@paramMass.value" printLog="false" /> -->
+            <UniformMass totalmass="0.0007" printLog="false" />
+            <CorrectionForceField forces="@paramForces.value" />
+<!--             <BeamFEMForceField name="FEM" radius="@paramRadius.value" youngModulus="1e6" poissonRatio="0.49" useSymmetricAssembly="1"/> -->
+            <BeamFEMForceField name="FEM" radius="0.0005" youngModulus="1e6" poissonRatio="0.49" useSymmetricAssembly="1"/>
+<!--             <ShowSpheres  radius="0.0002"  color="0 1 0 1" position="@MO.position" />       -->
+<!--             <BoxROI name="boxA" box="0 0 -0.1 0.1 0.1 0" drawBoxes="0" drawSize="1" position="@MO.position"/> -->
+            <ConstantForceField force="0.00005 0.00001 -0.00005  0 0 0" />
+
+            <Node name="CollisionBall">
+                <CubeTopology nx="6" ny="1" nz="1" min="0 0 0" max="5 0 0" />
+                <MechanicalObject name="ms" />
+<!--                 <EdgeSetTopologyContainer name="Container"  edges=  "0 1   1 2   2 3  3 4 4 5 "  /> -->
+<!--                 <MechanicalObject name="ms"   position="0 0 0   1 0 0     2 0 0   3 0 0 4 0 0 5 0 0  "/> -->
+                <BeamLinearMapping />
+                <EdgeGeometry name="edge"/> 
+                <PointGeometry name ="point"/>
+                <BoxROI name="boxA" box="0 0 -0.1 0.1 0.1 0" drawBoxes="0" drawSize="1" position="@ms.position"/>
+            </Node> 
+            
+<!--            <Node name="VM">
+                <MechanicalObject name="VisualDOFs"/>
+                <QuadSetTopologyContainer name="ContainerCath" />
+                <QuadSetTopologyModifier name="Modifier"/>
+                <QuadSetTopologyAlgorithms name="TopoAlgo" template="Vec3d"/>
+                <QuadSetGeometryAlgorithms name="GeomAlgo" template="Vec3d"/>
+                <Edge2QuadTopologicalMapping nbPointsOnEachCircle="10" radius="0.5" input="@../lines" output="@ContainerCath"/>
+                <TubularMapping nbPointsOnEachCircle="10" radius="0.0003" input="@../MO" output="@VisualDOFs" />
+                <Node name="VisuOgl">
+                    <OglModel position="@../ContainerCath.position" vertices="@../ContainerCath.position" quads="@../ContainerCath.quads" 
+                    color="0.85 0.85 0.85" material="texture Diffuse 1 0.85 0.85 0.85 1 Ambient 1 0.17 0.17 0.17 1 Specular 1 0.85 0.85 0.85 1 Emissive 0 0.85 0.85 0.85 1 Shininess 1 20 "   name="VisualCatheter"/>
+                    <IdentityMapping />	
+                </Node>
+            </Node> -->
+            
+                
+            
+            <LinearSolverConstraintCorrection solverName="BTD"/>  
+            
+            <Node name="obsNode" activated="1">        
+                <SimulatedStateObservationSource template="Vec2d" name="observations" monitorPrefix="/home/raffa/work/Optimus/scenes/estimState/journalValid/Obs2D_REAL2" asynObs="true"/>                               
+                <SimpleObservationManager name="MSIDES" template="Vec2d,Rigid3d" listening="1"  stateWrapper="@../../StateWrapper" use2dObservation="true" projectionMatrix="@../../../calibrator.projectionMatrix"  verbose="1" observationStdev="0.00001"/>
+            </Node>
+    </Node> 
+
+    
+    <Node name="Spring" >
+        <VisualStyle displayFlags="showWireframe" /> 
+        <MeshSTLLoader name="surface" filename="/home/raffa/Documents/Raffa/phantomScaled.stl"  />
+        <TransformStochasticEngine name="transform" input_position="@surface.position" optimParams="0 0 0 0 0 0" triangles="@surface.triangles"  />
+        <MeshTopology name="mesh" position="@transform.output_position" triangles="@transform.triangles"  />
+        <TriangleSetTopologyContainer name="Container" src="@mesh" />
+        <MechanicalObject name="MS" free_position="@transform.output_position" position="@transform.output_position" template="Vec3d" />
+        <TriangleGeometry name="triangle"/> 
+        <AABBDecorator/>
+    </Node>
+    
+    <NeedleContactConstraint needle="ball/CollisionBall/point" surface="Spring/triangle" tipIndex="@ball/CollisionBall/boxA.indices" friction="0" draw="0" draw_normal_scale="0.001" />    
+    </Node>
+    
+    
+</Node>

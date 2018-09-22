@@ -11,9 +11,17 @@ from itertools import repeat
 plt.style.use('classic')
 #print(plt.style.available)
 
+
+
+
+######### configuration for visualisation
 inputList = ['outCyl3_770_UKFSimCorr_cyl3ForceField770Verification_init2000']
 inputList.append('outCyl3_770_ROUKF_cyl3ForceField770Verification_init2000')
 #inputList.append('outCyl2_385_UKFClassic_forceField385Verification_init2000')
+######### end of configuration for visualisation
+
+
+
 
 def load_matrix_from_file(f):
     if type(f) == types.StringType:
@@ -59,7 +67,7 @@ except :
 else :
     commandLineArguments = sys.argv
 if (len(commandLineArguments) > 1):
-    folder=commandLineArguments[1]
+    folder = commandLineArguments[1]
 else:
     folder = inputList
 
@@ -94,7 +102,7 @@ for generalIndex in range (0, len(folder)):
     spl1 = fig1.add_subplot(111)
 
     nstate=numpy.size(stateVar[1,:])
-    nparams=options['scene_parameters']['filtering_parameters']['optim_params_size']
+    nparams=options['filtering_parameters']['optim_params_size']
     nsteps=numpy.size(stateVar[:,1])
 
     print "Number of steps: ", nsteps
@@ -103,11 +111,11 @@ for generalIndex in range (0, len(folder)):
 
 
     rng=xrange(0,nsteps)
-    rng=[i*options['scene_parameters']['general_parameters']['delta_time'] for i in rng]
+    rng=[i*options['general_parameters']['delta_time'] for i in rng]
 
     cmap = plt.cm.get_cmap('hsv', nparams+1)
 
-    groundTruthStr = options['scene_parameters']['obs_generating_parameters']['object_young_moduli']
+    groundTruthStr = options['obs_generating_parameters']['object_young_moduli']
     groundTruthValues = groundTruthStr.split(' ')
     data = numpy.ones(nsteps)
 
@@ -117,10 +125,10 @@ for generalIndex in range (0, len(folder)):
     for i in range(0, nparams):
         si = i +nstate - nparams;
         # print i,' ',si
-        if options['scene_parameters']['filtering_parameters']['transform_parameters'] == 'absolute':        
+        if options['filtering_parameters']['transform_parameters'] == 'absolute':
             ev = abs(stateExpVal[:,si])
             var = abs(stateVar[:,si])
-        elif options['scene_parameters']['filtering_parameters']['transform_parameters'] == 'exponential':
+        elif options['filtering_parameters']['transform_parameters'] == 'exponential':
             ev = numpy.exp(stateExpVal[:,si])
             var = numpy.exp(stateVar[:,si])        
         else:
@@ -134,9 +142,9 @@ for generalIndex in range (0, len(folder)):
         vll = numpy.squeeze([x - y for x,y in zip(ev, stdev)])
         vlu = numpy.squeeze([x + y for x,y in zip(ev, stdev)])
 
-        spl1.plot(rng, ev, color=cmap(i),  linestyle='solid', linewidth=4)
-        spl1.plot(rng, vll, color=cmap(i),  linestyle='dashed', linewidth=4)
-        spl1.plot(rng, vlu, color=cmap(i),  linestyle='dashed', linewidth=4)
+        spl1.plot(rng, ev, color=cmap(i), linestyle='solid', linewidth=4)
+        spl1.plot(rng, vll, color=cmap(i), linestyle='dashed', linewidth=4)
+        spl1.plot(rng, vlu, color=cmap(i), linestyle='dashed', linewidth=4)
 
 
         # print options['scene_parameters']['obs_generating_parameters']['object_young_moduli']
@@ -163,7 +171,7 @@ for generalIndex in range (0, len(folder)):
     averageVariance = [x / nparams for x in averageVariance]
 
     # extract time result data
-    timeVal = load_time_data(folder[generalIndex]+'/'+options['scene_parameters']['time_parameters']['computation_time_file_name'])
+    timeVal = load_time_data(folder[generalIndex]+'/'+options['time_parameters']['computation_time_file_name'])
     timeShift = []
     timeShift.append(timeVal[0])
     for index in range(1, len(timeVal)):
@@ -175,13 +183,13 @@ for generalIndex in range (0, len(folder)):
     cmap = plt.cm.get_cmap('hsv', len(folder) + 1)
 
     # print averageDiff
-    spl2.plot(timeShift, averageDiff, color=cmap(generalIndex),  linestyle='solid', label=options['scene_parameters']['filtering_parameters']['filter_kind'])
+    spl2.plot(timeShift, averageDiff, color=cmap(generalIndex),  linestyle='solid', label=options['filtering_parameters']['filter_kind'])
     spl2.set_xlabel('time in milliseconds')
     spl2.set_ylabel('average difference between estimation and groundtruth')
     spl2.set_title('General computation time:')
 
     # print averageDiff
-    spl3.plot(timeShift, averageVariance, color=cmap(generalIndex),  linestyle='solid', label=options['scene_parameters']['filtering_parameters']['filter_kind'])
+    spl3.plot(timeShift, averageVariance, color=cmap(generalIndex),  linestyle='solid', label=options['filtering_parameters']['filter_kind'])
     spl3.set_xlabel('time in milliseconds')
     spl3.set_ylabel('average standart deviation')
     spl3.set_title('Standart deviation values:')

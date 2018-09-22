@@ -10,13 +10,14 @@ find_package(SofaBase REQUIRED)
 find_package(SofaGeneral REQUIRED)
 #find_package(SofaPardisoSolver QUIET)
 
-set(LINKER_DEPENDENCIES SofaComponentBase SofaComponentGeneral SofaBaseTopology SofaExporter blas)
+set(LINKER_DEPENDENCIES SofaComponentBase SofaComponentGeneral SofaBaseTopology SofaExporter blas pthread)
 set(COMPILATION_FLAGS "-DSOFA_BUILD_OPTIMUS -Wno-unused-local-typedef -Wno-deprecated")
 
 set ( STOCHASTIC_FILTERING "0" CACHE BOOL "Set to activate the compilation the new filtering module replacing Verdandi" )
 
 set(HEADER_FILES
     src/initOptimusPlugin.h
+    src/genericComponents/TimeProfiling.h
     src/genericComponents/OptimParams.h
     src/genericComponents/OptimParams.inl
     src/genericComponents/PointProjection.h
@@ -32,6 +33,11 @@ set(HEADER_FILES
     src/genericComponents/Transform3dToRigid.h
     src/genericComponents/CorrectionForceField.h
     src/genericComponents/CorrectionForceField.inl
+    src/genericComponents/TransformStochasticEngine.h
+    src/genericComponents/TransformStochasticEngine.inl
+    src/genericComponents/StochasticPositionHandler.h
+    src/genericComponents/StochasticPositionHandler.inl
+    src/genericComponents/FilterEvents.h
     src/genericComponents/VTKExporterDA.h
     )
 
@@ -44,6 +50,9 @@ set(SOURCE_FILES
     src/genericComponents/AddNoiseEngine.cpp
     src/genericComponents/Transform3dToRigid.cpp
     src/genericComponents/CorrectionForceField.cpp
+    src/genericComponents/TransformStochasticEngine.cpp
+    src/genericComponents/StochasticPositionHandler.cpp
+    src/genericComponents/FilterEvents.cpp
     src/genericComponents/VTKExporterDA.cpp
     )
 
@@ -58,28 +67,20 @@ if ( ${STOCHASTIC_FILTERING} )
 		src/stochasticFiltering/StochasticFilterBase.h
 		src/stochasticFiltering/ROUKFilter.h
 		src/stochasticFiltering/ROUKFilter.inl
-		src/stochasticFiltering/UKFilter.h
-		src/stochasticFiltering/UKFilter.inl
 		src/stochasticFiltering/UKFilterSimCorr.h
 		src/stochasticFiltering/UKFilterSimCorr.inl
                 src/stochasticFiltering/UKFilterClassic.h
 		src/stochasticFiltering/UKFilterClassic.inl
 		src/stochasticFiltering/StochasticStateWrapperBase.h
-		#src/stochasticFiltering/EKFilter.h
-		#src/stochasticFiltering/EKFilter.inl
-		#src/stochasticFiltering/KFilter.h
-		#src/stochasticFiltering/KFilter.inl
 		src/stochasticFiltering/StochasticStateWrapper.h
 		src/stochasticFiltering/StochasticStateWrapper.inl
-                #src/stochasticFiltering/StochasticStateObservationWrapper.h
-		#src/stochasticFiltering/StochasticStateObservationWrapper.inl
-		src/stochasticFiltering/ObservationManagerBase.h
+                src/stochasticFiltering/ObservationManagerBase.h
 		src/stochasticFiltering/MappedStateObservationManager.h
 		src/stochasticFiltering/MappedStateObservationManager.inl
-                #src/stochasticFiltering/UKMappedStateObservationManager.h
-		src/stochasticFiltering/UKMappedStateObservationManager.inl
-		src/stochasticFiltering/SimpleObservationManager.h
+                src/stochasticFiltering/SimpleObservationManager.h
 		src/stochasticFiltering/SimpleObservationManager.inl
+                src/stochasticFiltering/BindedSimpleObservationManager.h
+                src/stochasticFiltering/BindedSimpleObservationManager.inl
 		src/stochasticFiltering/PreStochasticWrapper.h
 		src/stochasticFiltering/ForceFieldSensitivity.h
 	)
@@ -87,16 +88,12 @@ if ( ${STOCHASTIC_FILTERING} )
 	list(APPEND SOURCE_FILES
 		src/stochasticFiltering/FilteringAnimationLoop.cpp
 		src/stochasticFiltering/ROUKFilter.cpp
-		src/stochasticFiltering/UKFilter.cpp
 		src/stochasticFiltering/UKFilterSimCorr.cpp
                 src/stochasticFiltering/UKFilterClassic.cpp
-		#src/stochasticFiltering/EKFilter.cpp
-		#src/stochasticFiltering/KFilter.cpp
 		src/stochasticFiltering/StochasticStateWrapper.cpp
-                #src/stochasticFiltering/StochasticStateObservationWrapper.cpp
-		src/stochasticFiltering/MappedStateObservationManager.cpp
-                #src/stochasticFiltering/UKMappedStateObservationManager.cpp
-		src/stochasticFiltering/SimpleObservationManager.cpp
+                src/stochasticFiltering/MappedStateObservationManager.cpp
+                src/stochasticFiltering/SimpleObservationManager.cpp
+                src/stochasticFiltering/BindedSimpleObservationManager.cpp
 		src/stochasticFiltering/PreStochasticWrapper.cpp
 	)
 

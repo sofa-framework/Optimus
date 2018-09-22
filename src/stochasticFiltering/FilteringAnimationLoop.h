@@ -46,12 +46,14 @@
 #include "initOptimusPlugin.h"
 #include "StochasticFilterBase.h"
 #include "PreStochasticWrapper.h"
+#include "../genericComponents/FilterEvents.h"
+#include "../genericComponents/TimeProfiling.h"
 
 namespace sofa
 {
 namespace component
 {
-namespace simulation
+namespace stochastic
 {
 
 using namespace defaulttype;
@@ -71,42 +73,6 @@ public:
 protected:
     sofa::core::objectmodel::Event* m_event;
     sofa::simulation::Node* m_node;
-};
-
-
-class  SOFA_SIMULATION_CORE_API DAPredictionEndEvent : public sofa::core::objectmodel::Event
-{
-public:
-
-    SOFA_EVENT_H( DAPredictionEndEvent )
-
-    DAPredictionEndEvent( SReal dt );
-
-    ~DAPredictionEndEvent();
-
-    SReal getDt() const { return dt; }
-
-    virtual const char* getClassName() const { return "AssimilationEndEvent"; }
-protected:
-    SReal dt;
-};
-
-
-class SOFA_SIMULATION_CORE_API DACorrectionEndEvent : public sofa::core::objectmodel::Event
-{
-public:
-
-    SOFA_EVENT_H( DACorrectionEndEvent )
-
-    DACorrectionEndEvent( SReal dt );
-
-    ~DACorrectionEndEvent();
-
-    SReal getDt() const { return dt; }
-
-    virtual const char* getClassName() const { return "AssimilationEndEvent"; }
-protected:
-    SReal dt;
 };
 
 
@@ -138,6 +104,7 @@ public:
     int numStep;
     Data<bool> verbose;
     core::objectmodel::DataFileName d_timeDataFile;
+    sofa::component::stochastic::TimeProfiling m_timeProfiler;
 
     void init();
     void bwdInit();
@@ -148,7 +115,7 @@ public:
 }; /// class
 
 
-} // simulation
+} // stochastic
 } // component
 } // sofa
 

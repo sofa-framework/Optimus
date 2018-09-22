@@ -77,8 +77,8 @@ void AddNoiseEngine<DataTypes>::init() {
 //    std::cout << "O1 = " << orth1 << std::endl;
 //    std::cout << "O2 = " << orth2 << std::endl;
 
-    helper::ReadAccessor< Data< VecCoord > > inputPos = _inputPositions;
-    helper::WriteAccessor< Data< VecCoord > > outputPos = _outputPositionsWithNoise;
+    //helper::ReadAccessor< Data< VecCoord > > inputPos = _inputPositions;
+    //helper::WriteAccessor< Data< VecCoord > > outputPos = _outputPositionsWithNoise;
 
 
 
@@ -124,7 +124,7 @@ double  AddNoiseEngine<DataTypes>::getRandomGauss(const double mean, const doubl
 
 template <class DataTypes>
 void AddNoiseEngine<DataTypes>::handleEvent(core::objectmodel::Event *event) {
-    if (dynamic_cast<sofa::simulation::AnimateBeginEvent *>(event))
+    if (dynamic_cast<sofa::simulation::AnimateEndEvent *>(event))
     {
         update();
     }

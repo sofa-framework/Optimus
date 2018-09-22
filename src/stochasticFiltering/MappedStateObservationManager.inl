@@ -94,8 +94,8 @@ void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::init()
     if (noiseStdev.getValue() != 0.0) {
         pRandGen = new boost::mt19937;
         pNormDist = new boost::normal_distribution<>(0.0, noiseStdev.getValue());
-        pVarNorm = new boost::variate_generator<boost::mt19937&, boost::normal_distribution<> >(*pRandGen, *pNormDist);
-    }    
+        pVarNorm = new boost::variate_generator<boost::mt19937&, boost::normal_distribution<> >(*pRandGen, *pNormDist);        
+    }
 }
 
 template <class FilterType, class DataTypes1, class DataTypes2>
@@ -172,16 +172,17 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::hasObserva
     /// put the observation imported from a file via mapping  (yields actualObservation)
     actualObservation.setZero();
     if (!this->doNotMapObservations.getValue()) {
-       sofa::core::MechanicalParams mp;
-       //std::cout << "Input observation: " << inputObsState << std::endl;
-       mapping->apply(&mp, mappedObservationData, inputObservationData);
-       sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > mappedObsState = mappedObservationData;
-       //std::cout << "Mapped observation: " << mappedObsState << std::endl;
+        sofa::core::MechanicalParams mp;
+        //std::cout << "Input observation: " << inputObsState << std::endl;
+        mapping->apply(&mp, mappedObservationData, inputObservationData);
+        sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > mappedObsState = mappedObservationData;
+        //std::cout << "Mapped observation: " << mappedObsState << std::endl;
 
         for (size_t i = 0; i < mappedStateSize; i++) {
             for (size_t d = 0; d < 3; d++) {
-                //mappedObsState[i][d] += noise[3*i+d];
-                actualObservation(3*i+d) = mappedObsState[i][d];
+                if (noiseStdev.getValue() != 0.0)
+                    mappedObsState[i][d] += (*pVarNorm)();
+                actualObservation(3*i+d) = mappedObsState[i][d];                
             }
         }
     } else {
@@ -196,7 +197,9 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::hasObserva
 
         for (size_t i = 0; i < mappedObsState.size(); i++) {
             for (size_t d = 0; d < 3; d++) {
-                actualObservation(3*i+d) = mappedObsState[i][d];
+                if (noiseStdev.getValue() != 0.0)
+                    mappedObsState[i][d] += (*pVarNorm)();
+                actualObservation(3*i+d) = mappedObsState[i][d];                
             }
         }
     }
@@ -204,7 +207,7 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::hasObserva
 }
 
 template <class FilterType, class DataTypes1, class DataTypes2>
-bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getPredictedObservation(double _time, int _id, EVectorX& _predictedObservation) {
+bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getPredictedObservation(int _id, EVectorX& _predictedObservation) {
 
 
     Data<typename DataTypes1::VecCoord> predictedMasterState;
@@ -268,8 +271,8 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovat
 
     /// TEMPORARY: _state here is the predicted observation computed before
     if ((stateWrapper->getFilterKind() == SIMCORR) || (stateWrapper->getFilterKind() == CLASSIC)) {
-        for (size_t i = 0; i < this->observationSize; i++)
-            _innovation(i) = actualObservation(i) - _state(i);
+            for (size_t i = 0; i < this->observationSize; i++)
+                _innovation(i) = actualObservation(i) - _state(i);
     }
 
     return(true);

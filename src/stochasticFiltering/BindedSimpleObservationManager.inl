@@ -1,0 +1,246 @@
+/******************************************************************************
+*       SOFA, Simulation Open-Framework Architecture, version 1.0 RC 1        *
+*                (c) 2006-2011 MGH, INRIA, USTL, UJF, CNRS                    *
+*                                                                             *
+* This library is free software; you can redistribute it and/or modify it     *
+* under the terms of the GNU Lesser General Public License as published by    *
+* the Free Software Foundation; either version 2.1 of the License, or (at     *
+* your option) any later version.                                             *
+*                                                                             *
+* This library is distributed in the hope that it will be useful, but WITHOUT *
+* ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or       *
+* FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License *
+* for more details.                                                           *
+*                                                                             *
+* You should have received a copy of the GNU Lesser General Public License    *
+* along with this library; if not, write to the Free Software Foundation,     *
+* Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA.          *
+*******************************************************************************
+*                               SOFA :: Modules                               *
+*                                                                             *
+* Authors: The SOFA Team and external contributors (see Authors.txt)          *
+*                                                                             *
+* Contact information: contact@sofa-framework.org                             *
+******************************************************************************/
+#ifndef BindedSimpleObservationManager_INL_
+#define BindedSimpleObservationManager_INL_
+
+#include <sofa/simulation/Node.h>
+
+#include "BindedSimpleObservationManager.h"
+
+
+namespace sofa
+{
+namespace component
+{
+namespace stochastic
+{
+
+template <class FilterType, class DataTypes1, class DataTypes2>
+BindedSimpleObservationManager<FilterType,DataTypes1,DataTypes2>::BindedSimpleObservationManager()
+    : Inherit()
+    , d_use2dObservations(initData(&d_use2dObservations, false, "use2dObservation", "Set to True if using 2D observations"))
+    , d_projectionMatrix( initData(&d_projectionMatrix, Mat3x4d(defaulttype::Vec<4,float>(1.0,0.0,0.0,0.0),
+                                                                defaulttype::Vec<4,float>(0.0,1.0,0.0,0.0),
+                                                                defaulttype::Vec<4,float>(0.0,0.0,1.0,0.0)), "projectionMatrix","Projection matrix"))
+    , d_proj_dist(initData(&d_proj_dist, (double) 0.0, "projDist", "Projection Distance"))
+    , stateWrapperLink(initLink("stateWrapper", "link to the state wrapper needed to perform apply (perhaps to be changed)"))
+    , d_mappedStatePath(initData(&d_mappedStatePath, "mappedState", "Link to Virtual Mapped Catheter "))
+
+{
+}
+
+template <class FilterType, class DataTypes1, class DataTypes2>
+void BindedSimpleObservationManager<FilterType,DataTypes1,DataTypes2>::init()
+{
+
+    Inherit::init();
+    bindId3D=bindId;
+
+    this->gnode->get(observationSource);
+    if (observationSource) {
+        PRNS("Found observation source: " << observationSource->getName());
+    } else {
+        PRNE("No observation source found!");
+    }
+
+    stateWrapper = stateWrapperLink.get();
+    if (stateWrapper) {
+        PRNS("Link to state wrapper: " << stateWrapper->getName());
+    } else {
+        PRNE("Link to state wrapper not initialized!");
+    }
+    if(!stateWrapper->declaredMapState()){
+        return;
+        serr<<"No mapped state declared in the StochasticStateWrapper  "<<sendl;
+    }
+
+    this->gnode->get(masterState);
+    if (masterState != NULL) {
+        PRNS("Found master mechanical state: " << masterState->getName());
+    }
+    else {
+        PRNE("No master mechanical state found!");
+    }
+
+    this->getContext()->get(mappedState, d_mappedStatePath.getValue());
+    if ( mappedState != NULL)  {
+        PRNS("Found mapped mechanical state: " << mappedState->getName());
+    }
+    else {
+        PRNE("No mapped state state found");
+        return;
+
+    }
+
+
+
+}
+
+template <class FilterType, class DataTypes1, class DataTypes2>
+void BindedSimpleObservationManager<FilterType,DataTypes1,DataTypes2>::bwdInit()
+{
+    this->observationSize = observationSource->getStateSize() * DataTypes1::spatial_dimensions;
+    Inherit::bwdInit();
+
+
+}
+
+template <class FilterType, class DataTypes1, class DataTypes2>
+bool BindedSimpleObservationManager<FilterType,DataTypes1,DataTypes2>::hasObservation(double _time) {
+    bool hasObservation;
+    if(this->actualTime==0){
+        hasObservation=true;
+    } else{
+
+        hasObservation= observationSource->getObservation(this->actualTime, realObservations);
+    }
+    if (!hasObservation) {
+        PRNE("No observation for time " << _time);
+        return(false);
+    }
+
+    return(true);
+}
+
+template <class FilterType, class DataTypes1, class DataTypes2>
+bool BindedSimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovation(double _time, EVectorX& _state, EVectorX& _innovation)
+{
+    if (_time != this->actualTime) {
+        PRNE("Observation for time " << this->actualTime << " not prepared, call hasObservation first!");
+        return(false);
+    }
+
+    if (_innovation.rows() != long(this->observationSize)) {
+        PRNE("Wrong innovation size: " << _innovation.rows() << " should be " << this->observationSize);
+        return(false);
+    }
+
+    if ((stateWrapper->getFilterKind() == SIMCORR) || (stateWrapper->getFilterKind() == CLASSIC)) {
+        for (size_t i = 0; i < this->observationSize; i++)
+            _innovation(i) = realObservations[0](i) - _state(i);
+    }
+
+
+    return true;
+
+
+}
+template <class FilterType, class DataTypes1, class DataTypes2>
+bool BindedSimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getPredictedObservation(int _id, EVectorX& _predictedObservation)
+{
+    const Mat3x4d & P = d_projectionMatrix.getValue();
+    _predictedObservation.resize(this->observationSize);
+
+    Data<typename DataTypes1::VecCoord> real2DObs;
+    Data<typename DataTypes1::VecCoord> allPred2DObs;
+    Data<typename DataTypes1::VecCoord> bindPred2DObs;
+    //    typename MappState::ReadVecCoord mappPred3DStateEdit = mappedState->readPositions();
+    //    typename MasterState::ReadVecCoord masterStateEdit = masterState->readPositions();
+
+    //    Data<typename Vec3dTypes::VecCoord> mappPred3DState;
+
+    typename DataTypes1::VecCoord& real2DObsEdit = *real2DObs.beginEdit();
+    typename DataTypes1::VecCoord& allPred2DObsEdit = *allPred2DObs.beginEdit();
+    typename DataTypes1::VecCoord& bindPred2DObsEdit = *bindPred2DObs.beginEdit();
+    //    typename Vec3dTypes::VecCoord& mappPred3DStateEdit = *mappPred3DState.beginEdit();
+    Data<typename Vec3dTypes::VecCoord> mappPred3DState;
+
+    typename Vec3dTypes::VecCoord& mappPred3DStateEdit = *mappPred3DState.beginEdit();
+
+    mappPred3DStateEdit.resize(mappedState->getSize());
+
+
+    stateWrapper->getActualMappedPosition(_id, mappPred3DStateEdit);
+
+
+    allPred2DObsEdit.resize(mappedState->getSize());
+    real2DObsEdit.resize((this->observationSize)*0.5);
+    bindPred2DObsEdit.resize((this->observationSize)*0.5);
+    for (unsigned i=0;i < mappPred3DStateEdit.size();i++) {
+        Vector3 diff(mappPred3DStateEdit[i][0],mappPred3DStateEdit[i][1],mappPred3DStateEdit[i][2]);
+    }
+
+    bindId.clear();
+    for (size_t i = 0; i < real2DObsEdit.size(); i++){
+        for (size_t d = 0; d < 2; d++){
+            real2DObsEdit[i][d] = realObservations[0](2*i+d);
+        }
+    }
+
+
+
+    for (unsigned i = 0; i < mappPred3DStateEdit.size(); i++){
+        double rx = P[0][0] * mappPred3DStateEdit[i][0] + P[0][1] * mappPred3DStateEdit[i][1] + P[0][2] * mappPred3DStateEdit[i][2] + P[0][3];
+        double ry = P[1][0] * mappPred3DStateEdit[i][0] + P[1][1] * mappPred3DStateEdit[i][1] + P[1][2] * mappPred3DStateEdit[i][2] + P[1][3];
+        double rz = P[2][0] * mappPred3DStateEdit[i][0] + P[2][1] * mappPred3DStateEdit[i][1] + P[2][2] * mappPred3DStateEdit[i][2] + P[2][3];
+        allPred2DObsEdit[i][0]=rx* (1.0/rz);
+        allPred2DObsEdit[i][1]=ry* (1.0/rz);
+    }
+
+
+    double dist;
+    Vector2 trans;
+    for (unsigned t=0;t < real2DObsEdit.size();t++) {
+        Vector2 real(real2DObsEdit[t][0],real2DObsEdit[t][1]);
+
+        Vector2 proj0 (allPred2DObsEdit[0][0],allPred2DObsEdit[0][1]);
+        Vector2 real0(real2DObsEdit[0][0],real2DObsEdit[0][1]);
+        trans=(real0-proj0);
+
+
+        int bind = -1;
+        double minDist =  0;
+
+        for (unsigned i=0;i < allPred2DObsEdit.size();i++) {
+            Vector2 proj ((allPred2DObsEdit[i][0]+trans[0]),(allPred2DObsEdit[i][1]+trans[1]));
+            dist=(real-proj).norm();
+
+            if (dist< d_proj_dist.getValue() && ((bind == -1) || (dist< minDist))) {
+                minDist = dist;
+                bind = i;
+            }
+        }
+        bindId.push_back(bind);
+    }
+
+    PRNS("bind:  "<< bindId);
+    for (size_t i = 0; i < real2DObsEdit.size(); i++){
+        for (size_t d = 0; d < 2; d++){
+            _predictedObservation(2*i+d) = allPred2DObsEdit[bindId[i]][d];
+        }
+    }
+
+    return true;
+
+}
+
+
+
+
+} // stochastic
+} // component
+} // sofa
+
+#endif // BindedSimpleObservationManager

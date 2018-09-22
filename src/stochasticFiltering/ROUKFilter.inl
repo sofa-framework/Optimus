@@ -46,6 +46,20 @@ void ROUKFilter<FilterType>::blasMultAdd(EMatrixX& _a, EMatrixX& _b, EMatrixX& _
     Type* _cdata = _c.data();
     dgemm_(&trans,&trans, &m, &n, &k, &_alpha, _adata, &m, _bdata, &k, &_beta, _cdata, &m);
 }
+template <class FilterType>
+void ROUKFilter<FilterType>::blasMultAdd(char _trans1, char _trans2, EMatrixX& _a, EMatrixX& _b, EMatrixX& _c, Type _alpha, Type _beta) {
+    int m = (_trans1 == 'N' ? _a.rows() : _a.cols());
+    int n = (_trans2 == 'N' ? _b.cols() : _b.rows());
+    int k = (_trans2 == 'N' ? _b.rows() : _b.cols());
+    int m1 = _a.rows();
+    int k1 = _b.rows();
+    Type* _adata = _a.data();
+    Type* _bdata = _b.data();
+    Type* _cdata = _c.data();
+    PRNS("Trans: " << _trans1 << "  " << _trans2);
+    PRNS("Values: " << m << "  " << n << " " << k);
+    dgemm_(&_trans1,&_trans2, &m, &n, &k, &_alpha, _adata, &m1, _bdata, &k1, &_beta, _cdata, &m);
+}
 
 template <class FilterType>
 ROUKFilter<FilterType>::ROUKFilter()
@@ -100,24 +114,43 @@ void ROUKFilter<FilterType>::computePerturbedStates(EVectorX& _meanState) {
     }
 }
 
+
 template <class FilterType>
 void ROUKFilter<FilterType>::computePrediction()
 {
+    switch (this->m_sigmaTopology) {
+    case STAR:
+        computeStarPrediction();
+        break;
+    case SIMPLEX:
+    default:
+        computeSimplexPrediction();
+    }
+}
+
+template <class FilterType>
+void ROUKFilter<FilterType>::computeSimplexPrediction()
+{
     //PRNS("Computing prediction, T= " << this->actualTime);
+    sofa::helper::AdvancedTimer::stepBegin("ROUKFSimplexPrediction");
 
     EMatrixX tmpStateVarProj(stateSize, reducedStateSize);
     EMatrixX tmpStateVarProj2(stateSize, reducedStateSize);
 
-    TIC
+    //TIC
+    sofa::helper::AdvancedTimer::stepBegin("Cholseky_prediction");
+
     EVectorX vecX = masterStateWrapper->getState();
     //std::cout << "State: " << vecX.transpose() << std::endl;
     Eigen::LLT<EMatrixX> lltU(matUinv);
     matUinv = lltU.matrixL();
     //TOC("== prediction: Cholesky ");
+    sofa::helper::AdvancedTimer::stepEnd("Cholseky_prediction");
 
     tmpStateVarProj = masterStateWrapper->getStateErrorVarianceProjector();
 
     //TIC
+    sofa::helper::AdvancedTimer::stepBegin("prediction_multiplication");
     if (useBlasToMultiply.getValue())
         blasMultAdd(tmpStateVarProj, matUinv, tmpStateVarProj2, 1.0, 0.0);
     else
@@ -134,12 +167,15 @@ void ROUKFilter<FilterType>::computePrediction()
         blasMultAdd(tmpStateVarProj2, matI, matXi, 1.0, 1.0);
     else
         matXi = matXi + tmpStateVarProj2 * matI;
-    //TOC("== prediction multiplication2 == ");   
+    //TOC("== prediction multiplication2 == ");
+    sofa::helper::AdvancedTimer::stepEnd("prediction_multiplication");
 
     //TIC;
+    sofa::helper::AdvancedTimer::stepBegin("transform_state");
     computePerturbedStates(vecX);   
     //asumEVec("summPred",vecX);
     //TOCTIC("== prediction compute perturbations ==");
+    sofa::helper::AdvancedTimer::stepEnd("transform_state");
 
     /// TODO: add resampling!!!
     if (useBlasToMultiply.getValue())
@@ -152,13 +188,133 @@ void ROUKFilter<FilterType>::computePrediction()
     masterStateWrapper->setStateErrorVarianceProjector(tmpStateVarProj2);
     masterStateWrapper->setState(vecX, this->mechParams);
     masterStateWrapper->writeState(this->getTime());
+
+    sofa::helper::AdvancedTimer::stepEnd("ROUKFSimplexPrediction");
+}
+
+template <class FilterType>
+void ROUKFilter<FilterType>::computeStarPrediction()
+{
+    //PRNS("Computing prediction, T= " << this->actualTime);
+    sofa::helper::AdvancedTimer::stepBegin("ROUKFStarPrediction");
+
+    /*
+    EMatrixX tmpStateVarProj(stateSize, reducedStateSize);
+    EMatrixX tmpStateVarProj2(stateSize, reducedStateSize);
+
+    //TIC
+    sofa::helper::AdvancedTimer::stepBegin("Cholseky_prediction");
+
+    EVectorX vecX = masterStateWrapper->getState();
+    //std::cout << "State: " << vecX.transpose() << std::endl;
+    Eigen::LLT<EMatrixX> lltU(matUinv);
+    matUinv = lltU.matrixL();
+    //TOC("== prediction: Cholesky ");
+    sofa::helper::AdvancedTimer::stepEnd("Cholseky_prediction");
+
+    tmpStateVarProj = masterStateWrapper->getStateErrorVarianceProjector();
+
+    //TIC
+    sofa::helper::AdvancedTimer::stepBegin("prediction_multiplication");
+    if (useBlasToMultiply.getValue())
+        blasMultAdd(tmpStateVarProj, matUinv, tmpStateVarProj2, 1.0, 0.0);
+    else
+        tmpStateVarProj2.noalias() = tmpStateVarProj * matUinv;
+    //TOC("== prediction multiplication1 == ");
+
+    masterStateWrapper->setStateErrorVarianceProjector(tmpStateVarProj2);
+    //PRNS("\n vecX\n " << vecX.transpose());
+    for (size_t i = 0; i < sigmaPointsNum; i++)
+        matXi.col(i) = vecX;
+
+    //TIC
+    if (useBlasToMultiply.getValue())
+        blasMultAdd(tmpStateVarProj2, matI, matXi, 1.0, 1.0);
+    else
+        matXi = matXi + tmpStateVarProj2 * matI;
+    //TOC("== prediction multiplication2 == ");
+    sofa::helper::AdvancedTimer::stepEnd("prediction_multiplication");
+
+    //TIC;
+    sofa::helper::AdvancedTimer::stepBegin("transform_state");
+    computePerturbedStates(vecX);
+    //asumEVec("summPred",vecX);
+    //TOCTIC("== prediction compute perturbations ==");
+    sofa::helper::AdvancedTimer::stepEnd("transform_state");
+
+    masterStateWrapper->setState(vecX, this->mechParams);
+    masterStateWrapper->writeState(this->getTime());
+
+    sofa::helper::AdvancedTimer::stepBegin("SVD resampling");
+    M_trans.resize(sigmaPointsNum, stateSize);
+    for (size_t i = 0; i < sigmaPointsNum; i++)
+        M_trans.col(i) = vecX;
+
+    if (useBlasToMultiply.getValue()) {
+        EMatrixX iden = EMatrixX::Identity(sigmaPointsNum, sigmaPointsNum);
+        blasMultAdd('N', 'T', iden, matXi, M_trans, 1.0, -1.0);
+    } else {
+        M_trans = Type(-1.0) * M_trans + matXi.transpose();
+    }
+
+    if (!alphaConstant) {
+        PRNE("Version for non-constant alpha not implemented!");
+        return;
+    }
+    M_trans = Type(sqrt(alpha)) * M_trans;
+    workingMatrixRR.resize(sigmaPointsNum, sigmaPointsNum);
+    if (useBlasToMultiply.getValue())
+        blasMultAdd('N', 'T', M_trans, M_trans, workingMatrixRR, 1.0, 0.0);
+    else
+        workingMatrixRR = M_trans * M_trans.transpose();
+
+    // Get SVD decomposition
+    Eigen::JacobiSVD<EMatrixX> svdDecomposition(workingMatrixRR, Eigen::ComputeThinU);
+    Umod.resize(sigmaPointsNum, reducedStateSize);
+    U = svdDecomposition.matrixU();
+    for (size_t i = 0; i < sigmaPointsNum; i++)
+        Umod.col(i) = U.col(i);
+
+    workingMatrixRN = matXi.transpose();
+    for (size_t i = 0; i < sigmaPointsNum; i++)
+        matXi.col(i) = vecX;
+    workingMatrixRN = workingMatrixRN - matXi.transpose();
+    if (useBlasToMultiply.getValue()) {
+        blasMultAdd('N', 'T', Umod, matItrans, workingMatrixRR, sqrt(alpha), 0.0);
+        blasMultAdd('T', 'N', workingMatrixRN, workingMatrixRR, matXi, 1.0, 1.0);
+        blasMultAdd(matXi, matItrans, tmpStateVarProj2, alpha, 0.0);
+    } else {
+        workingMatrixRR = Type(sqrt(alpha)) * Umod.transpose() * matItrans;
+        matXi = matXi + workingMatrixRN.transpose() * workingMatrixRR;
+        tmpStateVarProj2 = alpha*matXi * matItrans;
+    }
+    sofa::helper::AdvancedTimer::stepEnd("SVD resampling");
+
+    masterStateWrapper->setStateErrorVarianceProjector(tmpStateVarProj2);
+    */
+
+    sofa::helper::AdvancedTimer::stepEnd("ROUKFStarPrediction");
 }
 
 
 template <class FilterType>
 void ROUKFilter<FilterType>::computeCorrection()
 {
+    switch (this->m_sigmaTopology) {
+    case STAR:
+        computeStarCorrection();
+        break;
+    case SIMPLEX:
+    default:
+        computeSimplexCorrection();
+    }
+}
+
+template <class FilterType>
+void ROUKFilter<FilterType>::computeSimplexCorrection()
+{
     //PRNS("Computing correction, T= " << this->actualTime);
+    sofa::helper::AdvancedTimer::stepBegin("ROUKFSimplexCorrection");
 
     if (!alphaConstant) {
         PRNE("Version for non-constant alpha not implemented!");
@@ -173,6 +329,7 @@ void ROUKFilter<FilterType>::computeCorrection()
         vecZ.setZero();
         //asumEMat("correction input mat",matXi);
 
+        sofa::helper::AdvancedTimer::stepBegin("Innovation");
 
         for (size_t i = 0; i < sigmaPointsNum; i++) {
             vecXCol = matXi.col(i);
@@ -182,6 +339,7 @@ void ROUKFilter<FilterType>::computeCorrection()
             matZItrans.row(i) = vecZCol;
         }
         //TOCTIC("== an1sx == ");
+        sofa::helper::AdvancedTimer::stepEnd("Innovation");
         //asumEVec("correction accumInnov",vecZ);
 
         EMatrixX matHLtrans(reducedStateSize, observationSize);
@@ -286,8 +444,181 @@ void ROUKFilter<FilterType>::computeCorrection()
 
         asumEVec("############# final state", state);
         std::cout << "Max = " << maxState << " min = " << minState << std::endl;*/
-
     }
+
+    sofa::helper::AdvancedTimer::stepEnd("ROUKFSimplexCorrection");
+}
+
+template <class FilterType>
+void ROUKFilter<FilterType>::computeStarCorrection()
+{
+    //PRNS("Computing correction, T= " << this->actualTime);
+    sofa::helper::AdvancedTimer::stepBegin("ROUKFStarCorrection");
+
+    /*
+    if (!alphaConstant) {
+        PRNE("Version for non-constant alpha not implemented!");
+        return;
+    }
+
+    if (observationManager->hasObservation(this->actualTime)) {
+        //TIC
+        EVectorX vecXCol;
+        EVectorX vecZCol(observationSize), vecZ(observationSize);
+        EMatrixX matZItrans(sigmaPointsNum, observationSize);
+        vecZ.setZero();
+        //asumEMat("correction input mat",matXi);
+
+        sofa::helper::AdvancedTimer::stepBegin("Innovation");
+
+        for (size_t i = 0; i < sigmaPointsNum; i++) {
+            vecXCol = matXi.col(i);
+            vecZCol.setZero();
+            observationManager->getInnovation(this->actualTime, vecXCol, vecZCol);
+            vecZ = vecZ + alpha * vecZCol;
+            matZItrans.row(i) = vecZCol;
+        }
+        //TOCTIC("== an1sx == ");
+        sofa::helper::AdvancedTimer::stepEnd("Innovation");
+        //asumEVec("correction accumInnov",vecZ);
+
+        // Computes [Z] - [HX_{n+1}^{*} - E(HX_{n+1}^{*})]
+        for (size_t i = 0; i < sigmaPointsNum; i++) {
+            matZItrans.row(i) = matZItrans.row(i) - vecZ;
+        }
+
+        EMatrixX workingMatrixRO(sigmaPointsNum, observationSize);
+        EMatrixX D_m(sigmaPointsNum, sigmaPointsNum);
+        EMatrixX matHLtrans(reducedStateSize, observationSize);
+        if (observationErrorVarianceType.getValue() == "inverse") {
+            workingMatrixRO = matZItrans * observationManager->getErrorVarianceInverse();
+        } else {
+            EMatrixX matR;
+            matR = observationManager->getErrorVariance();
+            workingMatrixRO = matZItrans * matR.inverse();
+        }
+
+        // Compute D_m
+        D_m = workingMatrixRO * matZItrans.transpose();
+
+        // Compute U_{n+1}
+        EMatrixX workingMatrixRP(sigmaPointsNum, reducedStateSize), matTemp;
+        EMatrixX workingMatrixRR(sigmaPointsNum, sigmaPointsNum);
+        EMatrixX workingMatrixRR2(sigmaPointsNum, sigmaPointsNum);
+        workingMatrixRR = Type(-1.0) * matDv;
+
+        if (!alphaConstant) {
+            PRNE("Version for non-constant alpha not implemented!");
+            return;
+        }
+
+        for (size_t i = 0; i < sigmaPointsNum; i++) {
+            workingMatrixRR(i, i) += alpha;
+        }
+        workingMatrixRR2 = D_m * workingMatrixRR;
+        for (size_t i = 0; i < sigmaPointsNum; i++) {
+            workingMatrixRR2(i, i) += Type(1.0);
+        }
+        workingMatrixRR = workingMatrixRR2.inverse() * D_m;
+        workingMatrixRP = alphaVar * workingMatrixRR * matItrans;
+
+        matTemp = EMatrixX::Identity(matUinv.rows(), matUinv.cols()) + alphaVar * matItrans.transpose() * workingMatrixRP;
+        //TOCTIC("== an3sx == ");
+        matUinv = matTemp.inverse();
+        //TOCTIC("== an4sx == (inv) ");
+
+        // Compute {HL}_{n+1}
+        workingMatrixRR2 = EMatrixX::Identity(workingMatrixRR2.rows(), workingMatrixRR2.cols()) + matDv * workingMatrixRR;
+        workingMatrixRR = EMatrixX::Identity(workingMatrixRR.rows(), workingMatrixRR.cols()) + alphaVar * D_m;
+        workingMatrixRP = alphaVar * workingMatrixRR.inverse();
+        workingMatrixRP = workingMatrixRP * workingMatrixRR2 * matItrans;
+        matHLtrans = workingMatrixRP.transpose() * matZItrans;
+
+        // Compute K
+        EMatrixX K(stateSize, observationSize);
+        EMatrixX working_matrix_PO(reducedStateSize, observationSize);
+        if (observationErrorVarianceType.getValue() == "inverse") {
+            working_matrix_PO = matHLtrans * observationManager->getErrorVarianceInverse();
+        } else {
+            EMatrixX matR;
+            matR = observationManager->getErrorVariance();
+            working_matrix_PO = matHLtrans * matR.inverse();
+        }
+        EMatrixX errorVarProj = masterStateWrapper->getStateErrorVarianceProjector();
+        K = errorVarProj * matUinv * working_matrix_PO;
+
+        // Update state
+        EVectorX state = masterStateWrapper->getState();
+        //PRNS("state\n " << state.transpose());
+        state = state + K * vecZ;
+        //PRNS("\n errorVarProj \n " << errorVarProj.transpose());
+        //PRNS("\n reducedInnovation \n " << reducedInnovation);
+        masterStateWrapper->setState(state,mechParams);
+        //PRNS("\n state+ \n" << state.transpose());
+
+        //std::cout << "FST " << this->stepNumber << " " << this->actualTime << std::endl;
+        size_t reducedStateIndex = stateSize - reducedStateSize;
+        EMatrixX parErrorVarProj(reducedStateSize,reducedStateSize);
+
+        for (size_t i = 0; i < reducedStateSize; i++)
+            for (size_t j = 0; j < reducedStateSize; j++)
+                parErrorVarProj(i,j) = errorVarProj(reducedStateIndex+i,j);
+
+        EMatrixX covarianceMatrix(reducedStateSize, reducedStateSize);
+        covarianceMatrix = parErrorVarProj * matUinv * parErrorVarProj.transpose();
+
+        helper::WriteAccessor<Data <helper::vector<FilterType> > > redState = reducedState;
+        helper::WriteAccessor<Data <helper::vector<FilterType> > > redVar = reducedVariance;
+        helper::WriteAccessor<Data <helper::vector<FilterType> > > redCovar = reducedCovariance;
+        helper::WriteAccessor<Data <helper::vector<FilterType> > > innov = d_reducedInnovation;
+
+        redState.resize(reducedStateSize);
+        redVar.resize(reducedStateSize);
+        size_t numCovariances = (reducedStateSize*(reducedStateSize-1))/2;
+        redCovar.resize(numCovariances);
+        innov.resize(observationSize);
+
+        size_t gli = 0;
+        for (size_t i = 0; i < reducedStateSize; i++) {
+            redState[i] = state[reducedStateIndex+i];
+            redVar[i] = covarianceMatrix(i,i);
+            for (size_t j = i+1; j < reducedStateSize; j++) {
+                redCovar[gli++] = covarianceMatrix(i,j);
+            }
+        }
+        for (size_t index = 0; index < observationSize; index++) {
+            innov[index] = vecZ[index];
+        }
+
+        //char fileName[100];
+        //sprintf(fileName, "outVar/parL_%03d.txt", this->stepNumber);
+        //std::ofstream cvmFile;
+        //cvmFile.open(fileName);
+        //cvmFile << parErrorVarProj << std::endl;
+        //cvmFile.close();
+
+        //sprintf(fileName, "outVar/invU_%03d.txt", this->stepNumber);
+        //cvmFile.open(fileName);
+        //cvmFile << matUinv << std::endl;
+        //cvmFile.close();
+
+        //sprintf(fileName, "outVar/covar_%03d.txt", this->stepNumber);
+        //cvmFile.open(fileName);
+        //cvmFile << covarianceMatrix << std::endl;
+        //cvmFile.close();
+
+        //TOC("== an5sx == ");
+        //Type maxState = 0.0, minState = 1e10;
+        //for (size_t i = stateSize - reducedStateSize; i < stateSize; i++) {
+        //    maxState = (state(i) > maxState) ? state(i) : maxState;
+        //    minState = (state(i) < minState) ? state(i) : minState;
+        //}
+
+        //asumEVec("############# final state", state);
+        //std::cout << "Max = " << maxState << " min = " << minState << std::endl;
+    } */
+
+    sofa::helper::AdvancedTimer::stepEnd("ROUKFStarCorrection");
 }
 
 template <class FilterType>
@@ -484,25 +815,22 @@ void ROUKFilter<FilterType>::computeSimplexSigmaPoints(EMatrixX& sigmaMat) {
 
 template <class FilterType>
 void ROUKFilter<FilterType>::computeStarSigmaPoints(EMatrixX& sigmaMat) {
-    size_t p = stateSize;
-    size_t r = 2 * stateSize + 1;
+    size_t p = reducedStateSize;
+    size_t r = 2 * reducedStateSize + 1;
 
     EMatrixX workingMatrix = EMatrixX::Zero(p, r);
 
-    Type lambda, k, sqrt_vec;
-    k = 3 - p;
-    lambda = this->lambdaScale.getValue() * this->lambdaScale.getValue() * (p + k) - p;
+    Type lambda, sqrt_vec;
+    lambda = this->lambdaScale.getValue();
+    PRNS("lambda: \n" << lambda);
     sqrt_vec = sqrt(p + lambda);
 
     for (size_t j = 0; j < p; j++) {
-        for (size_t i = 0; i < p; i++)
-            workingMatrix(i,j) = sqrt_vec;
+        workingMatrix(j,j) = sqrt_vec;
     }
-    for (size_t j = p + 1; j < 2 * p; j++) {
-        for (size_t i = 0; i < p; i++)
-            workingMatrix(i,j) = -sqrt_vec;
+    for (size_t j = p; j < 2 * p; j++) {
+        workingMatrix(2*p-j-1,j) = -sqrt_vec;
     }
-
 
     sigmaMat.resize(r,p);
     for (size_t i = 0; i < r; i++)
@@ -510,13 +838,31 @@ void ROUKFilter<FilterType>::computeStarSigmaPoints(EMatrixX& sigmaMat) {
 
     vecAlpha.resize(r);
     for (size_t i = 0; i < 2 * p; i++) {
-        vecAlpha(i) = Type(1.0)/Type(2 * (p + lambda));
+        vecAlpha(i) = Type(1.0)/Type(r);
     }
-    // double beta = 2.0;
-    vecAlpha(2 * p) = Type(lambda)/Type(2 * (p + lambda)); // + (1 - this->lambdaScale * this->lambdaScale + beta)
-    alphaConstant = false;
+    vecAlpha(2 * p) = Type(1.0)/Type(r);
+    alphaConstant = true;
 
-    alphaVar = (this->useUnbiasedVariance.getValue()) ? Type(1.0)/Type(r-1) : Type(1.0)/Type(r);
+    vecAlphaVar.resize(r);
+    if (this->useUnbiasedVariance.getValue()) {
+        for (size_t i = 0; i < 2 * p; i++) {
+            vecAlphaVar(i) = Type(1.0)/Type(r - 1);
+        }
+        // double beta = 2.0;
+        vecAlphaVar(2 * p) = Type(1.0)/Type(r - 1);
+
+        alphaVar = Type(1.0)/Type(r-1);
+    } else {
+        for (size_t i = 0; i < 2 * p; i++) {
+            vecAlphaVar(i) = Type(1.0)/Type(r);
+        }
+        // double beta = 2.0;
+        vecAlphaVar(2 * p) = Type(1.0)/Type(r);
+
+        alphaVar = Type(1.0)/Type(r);
+    }
+    //PRNS("sigmaMat: \n" << sigmaMat);
+    //PRNS("vecAlphaVar: \n" << vecAlphaVar);
 }
 
 

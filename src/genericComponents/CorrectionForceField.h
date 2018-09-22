@@ -74,12 +74,12 @@ public:
     void bwdInit();
 
     /// Add the forces.
-        virtual void addForce(const core::MechanicalParams* mparams, DataVecDeriv& f, const DataVecCoord& x, const DataVecDeriv& v);
+        virtual void addForce(const core::MechanicalParams* /* mparams */, DataVecDeriv& f, const DataVecCoord& /* x */, const DataVecDeriv& /* v */);
 
-        virtual void addDForce(const core::MechanicalParams* mparams, DataVecDeriv& df, const DataVecDeriv& dx);
+        virtual void addDForce(const core::MechanicalParams* /* mparams */, DataVecDeriv& /* df */, const DataVecDeriv& /* dx */);
 
         /// Brings ForceField contribution to the global system stiffness matrix.
-        virtual void addKToMatrix(const core::MechanicalParams* mparams, const sofa::core::behavior::MultiMatrixAccessor* matrix );
+        virtual void addKToMatrix(const core::MechanicalParams* /* mparams */, const sofa::core::behavior::MultiMatrixAccessor* /* matrix */);
 
         virtual SReal getPotentialEnergy(const core::MechanicalParams* /*mparams*/, const DataVecCoord&  /* x */) const
         {
@@ -88,7 +88,7 @@ public:
         }
 
 
-        virtual void draw(const core::visual::VisualParams* vparams);
+        virtual void draw(const core::visual::VisualParams* /* vparams */);
 
         helper::vector<bool> m_active;
 

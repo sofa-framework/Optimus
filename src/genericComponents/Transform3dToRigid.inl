@@ -32,7 +32,7 @@ using namespace sofa::defaulttype;
 
 Transform3dToRigid::Transform3dToRigid()
 
-: d_out_pos(initData(&d_out_pos, "out_position", "out position"))
+    : d_out_pos(initData(&d_out_pos, "out_position", "out position"))
 {
     this->f_listening.setValue(true);
 }
@@ -47,74 +47,83 @@ void Transform3dToRigid::init() {
 
 
     helper::vector<Rigid> res;
-//    std::cout<< "TOTO" <<std::endl;
     int m = m_container->getNbPoints();
-    for  (int i=0; i<m-1; i++) {
+    {
+        Rigid R;
 
-           Rigid R;
+        Vector3 P0(m_container->getPX(0),m_container->getPY(0),m_container->getPZ(0));
+        Vector3 P1(m_container->getPX(1),m_container->getPY(1),m_container->getPZ(1));
 
-           Vector3 P0(m_container->getPX(i),m_container->getPY(i),m_container->getPZ(i));
-           Vector3 P1(m_container->getPX(i+1),m_container->getPY(i+1),m_container->getPZ(i+1));
+        Vector3 X = P1-P0;
+        X.normalize();
+        Vector3 Y,Z;
 
-           Vector3 X = P1-P0;
-           X.normalize();
-           Vector3 Y,Z;
+        if (fabs(dot(X,Vector3(1,0,0))) >= 0.999999999999999) {
+            Y = cross(X,Vector3(0,1,0));
+        }else {
+            Y = cross(X,Vector3(1,0,0));
+        }
+        Y.normalize();
+        Z = cross(X,Y);
+        Z.normalize();
 
-           if (fabs(dot(X,Vector3(1,0,0))) >= 0.99) {
-               Y = cross(X,Vector3(0,1,0));
-           }else {
-               Y = cross(X,Vector3(1,0,0));
-           }
-           Y.normalize();
-           Z = cross(X,Y);
-           Z.normalize();
+        R.getCenter()=P0;
+        R.getOrientation().fromFrame(X,Y,Z);
 
-           Quat q;
-           defaulttype::Matrix3 M(X,Y,Z);
-           defaulttype::Matrix3 N = M;
-           M.transpose();
-           q.fromMatrix(M);
-//           q.fromFrame(X,Y,Z);
-           defaulttype::Matrix3 T= M*N;
+        res.push_back(R);
+    }
 
-//           std::cout << "T=" << T << std::endl;
+    for  (int i=1; i<m-1; i++) {
 
+        Rigid R;
 
-           R.getCenter()=P0;
-           R.getOrientation()=q;
-           res.push_back(R);
+        Vector3 P0(m_container->getPX(i),m_container->getPY(i),m_container->getPZ(i));
+        Vector3 P1(m_container->getPX(i+1),m_container->getPY(i+1),m_container->getPZ(i+1));
+
+        Vector3 X = P1-P0;
+        X.normalize();
+
+        Vector3 Yprec = res[i-1].getOrientation().rotate(Vector3(0,1,0));
+
+        Vector3 Z = cross(X,Yprec);
+        Z.normalize();
+
+        Vector3 Y = cross(Z,X);
+        Y.normalize();
+
+        R.getCenter()=P0;
+        R.getOrientation().fromFrame(X,Y,Z);
+
+        res.push_back(R);
 
     }
 
-      int i = m-1;
-      Rigid R;
-
-      Vector3 pos(m_container->getPX(i),m_container->getPY(i),m_container->getPZ(i));
-      Vector3 pos_prev(m_container->getPX(i-1),m_container->getPY(i-1),m_container->getPZ(i-1));
-
-      R.getCenter()=pos;
-
-      Vector3 X = pos-pos_prev;
-      X.normalize();
-      Vector3 Y,Z;
+    int i = m-1;{
+    Rigid R;
 
 
-      if (fabs(dot(X,Vector3(1,0,0))) >= 0.99) {
-          Y = cross(X,Vector3(0,1,0));
-      }else {
-          Y = cross(X,Vector3(1,0,0));
-      }
-      Z = cross(X,Y);
-
-      Quat q;
-      q.fromFrame(X,Y,Z);
+    Vector3 pos(m_container->getPX(i),m_container->getPY(i),m_container->getPZ(i));
+    Vector3 pos_prev(m_container->getPX(i-1),m_container->getPY(i-1),m_container->getPZ(i-1));
 
 
-      R.getOrientation()=q;
-      res.push_back(R);
+    Vector3 X = pos-pos_prev;
+    X.normalize();
+    Vector3 Yprec = res[i-1].getOrientation().rotate(Vector3(0,1,0));
 
+    Vector3 Z = cross(X,Yprec);
+    Z.normalize();
 
+    Vector3 Y = cross(Z,X);
+    Y.normalize();
+
+    R.getCenter()=pos;
+    R.getOrientation().fromFrame(X,Y,Z);
+
+    res.push_back(R);
+
+    }
     d_out_pos.setValue(res);
+    std::cout << d_out_pos.getValue()<< std::endl;
 }
 
 

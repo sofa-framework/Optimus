@@ -24,7 +24,7 @@
 ******************************************************************************/
 
 #include "VTKExporterDA.h"
-#include "stochasticFiltering/FilteringAnimationLoop.h"
+#include "FilterEvents.h"
 
 namespace sofa
 {
@@ -43,7 +43,7 @@ int VTKExporterClassDA = core::RegisterObject("Save geometries in VTK, compatibl
 
 void VTKExporterDA::handleEvent(sofa::core::objectmodel::Event *event)
 {
-    if (sofa::component::simulation::DACorrectionEndEvent::checkEventType(event)) {
+    if (sofa::component::stochastic::CorrectionEndEvent::checkEventType(event)) {
         unsigned int maxStep = this->exportEveryNbSteps.getValue();
         if (maxStep == 0) return;
 

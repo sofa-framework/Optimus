@@ -66,24 +66,51 @@ namespace component
 {
 namespace stochastic
 {
+template<>
+class InternalCopy<Rigid3dTypes> {
+public :
+
+    typedef typename Rigid3dTypes::VecCoord VecCoord;
+
+    void copyStateToFilter(helper::vector<std::pair<size_t, size_t> > & positionPairs, const VecCoord & pos) {
+        m_ori.clear();
+
+        for (helper::vector<std::pair<size_t, size_t> >::iterator it = positionPairs.begin(); it != positionPairs.end(); it++){
+            //for (unsigned i=0;i<pos.size();i++) {
+            m_ori.push_back(pos[it->first].getOrientation());
+        }
+        std::cout << "[internal stockedQUAT] " << m_ori <<std::endl;
+    }
+
+    void copyFilterToSofa(helper::vector<std::pair<size_t, size_t> > & positionPairs, VecCoord & pos) {
+        for (helper::vector<std::pair<size_t, size_t> >::iterator it = positionPairs.begin(); it != positionPairs.end(); it++){
+            //for (unsigned i=0;i<pos.size();i++) {
+            pos[it->first].getOrientation() = m_ori[it->first];
+            std::cout << "[internal injectedQUAT] " << pos[it->first].getOrientation() << std::endl;
+        }
+    }
+
+    helper::vector<defaulttype::Quat> m_ori;
+
+};
 
 using namespace sofa::simulation;
 
 template <class DataTypes, class FilterType>
 StochasticStateWrapper<DataTypes, FilterType>::StochasticStateWrapper()
     :Inherit()
-    , d_langrangeMultipliers( initData(&d_langrangeMultipliers, false, "langrangeMultipliers", "perform collision detection and response with Lagrange multipliers (requires constraint solver)") )    
+    , d_langrangeMultipliers( initData(&d_langrangeMultipliers, false, "langrangeMultipliers", "perform collision detection and response with Lagrange multipliers (requires constraint solver)") )
     , estimatePosition( initData(&estimatePosition, false, "estimatePosition", "estimate the position (e.g., if initial conditions with uncertainty") )
     , estimateVelocity( initData(&estimateVelocity, false, "estimateVelocity", "estimate the velocity (e.g., if initial conditions with uncertainty") )
-    , estimateExternalForces( initData(&estimateExternalForces, false, "estimateExternalForces", "estimate the external forces(e.g., if initial conditions with uncertainty") )
-    , posModelStdev( initData(&posModelStdev, FilterType(0.0), "posModelStdev", "standard deviation in observations") )
-    , velModelStdev( initData(&velModelStdev, FilterType(0.0), "velModelStdev", "standard deviation in observations") )
-    , paramModelStdev( initData(&paramModelStdev, FilterType(0.0), "paramModelStdev", "standard deviation in observations") )
-    , d_positionStdev( initData(&d_positionStdev, "positionStdev", "estimate standard deviation for positions"))
-    , d_velocityStdev( initData(&d_velocityStdev, "velocityStdev", "estimate standard deviation for velocities"))
-    , d_projectionMatrix( initData(&d_projectionMatrix, Mat3x4d(defaulttype::Vec<4,float>(1.0,0.0,0.0,0.0),
-                                                                defaulttype::Vec<4,float>(0.0,1.0,0.0,0.0),
-                                                                defaulttype::Vec<4,float>(0.0,0.0,1.0,0.0)), "projectionMatrix","Projection matrix"))
+    , posModelStdev( initData(&posModelStdev, helper::vector<FilterType>(0.0), "posModelStdev", "standard deviation in observations") )
+    , velModelStdev( initData(&velModelStdev, helper::vector<FilterType>(0.0), "velModelStdev", "standard deviation in observations") )
+    , paramModelStdev( initData(&paramModelStdev, helper::vector<FilterType>(0.0), "paramModelStdev", "standard deviation in observations") )
+    , d_positionStdev( initData(&d_positionStdev, helper::vector<FilterType>(1, 0.0), "positionStdev", "estimate standard deviation for positions"))
+    , d_velocityStdev( initData(&d_velocityStdev, helper::vector<FilterType>(1, 0.0), "velocityStdev", "estimate standard deviation for velocities"))
+    , d_mappedStatePath(initData(&d_mappedStatePath, "mappedState", "Link to Virtual Mapped Catheter "))
+    , d_draw(initData(&d_draw, false, "draw","Activation of draw"))
+    , d_radius_draw( initData(&d_radius_draw, "radiusDraw", "radius of the spheres") )
+    , d_fullMatrix( initData(&d_fullMatrix, "fullMatrix", "testing the full matrix" ) )
 {
 }
 
@@ -92,6 +119,17 @@ StochasticStateWrapper<DataTypes, FilterType>::~StochasticStateWrapper()
 {
 }
 
+template <>
+void StochasticStateWrapper<Rigid3dTypes, double>::stateDim(){
+    posDim = 6;
+    velDim = 6;
+}
+
+template <>
+void StochasticStateWrapper<Vec3dTypes, double>::stateDim(){
+    posDim = 3;
+    velDim = 3;
+}
 template <class DataTypes, class FilterType>
 void StochasticStateWrapper<DataTypes, FilterType>::init()
 {
@@ -102,9 +140,12 @@ void StochasticStateWrapper<DataTypes, FilterType>::init()
     if (!mechanicalState) {
         PRNE("No mechanical state found");
         valid=false;
-    } else {                
+    } else {
         PRNS("Mechanical state found: " << mechanicalState->getName());
     }
+
+    /// initialize Dimensions
+    stateDim();
 
     /// get optim params (multiple per node, at least one)
     vecOptimParams.clear();
@@ -151,14 +192,25 @@ void StochasticStateWrapper<DataTypes, FilterType>::init()
             defaultSolver.reset();
         }
     }
+    this->getContext()->get(mappedState, d_mappedStatePath.getValue());
+    if ( mappedState != NULL)  {
+        PRNS("Found mapped mechanical state: " << mappedState->getName());
+        }
+    else {
+        PRNS("[WARNING] No mapped state state found! Necessary for BindedSimpleObservationManager");
+        this->declaredMappedState=0;
+    }
+    this->EstimatePOSITION = estimatePosition.getValue();
 }
 
 template <class DataTypes, class FilterType>
 void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
     if (!valid)
         return;
-
     this->mStateSize = mechanicalState->getSize();
+    if ( mappedState != NULL)  {
+        this->mappedMStateSize = mappedState->getSize();
+    }
 
     /// extract free and fixed nodes (fixed nodes cannot be included in the stochastic state)
     fixedNodes.clear();
@@ -182,22 +234,47 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
 
     positionPairs.clear();
     velocityPairs.clear();
-    externalForcesPairs.clear();
 
     size_t vsi = 0;
     size_t vpi = 0;
 
+    posStdev.resize(posDim);
+    velStdev.resize(velDim);
+
+
+    if (d_positionStdev.getValue().size() != posDim) {
+        PRNS("[WARNING] Bad initial value of Position Initial Covariance. Resized to 3 values for Vec3 mstate, or 6 values for Rigid mstate");
+        for (size_t i=0 ;i<posDim;i++)
+            posStdev[i]=d_positionStdev.getValue()[0];
+
+    }else{
+        for (size_t i=0 ;i<posDim;i++)
+            posStdev[i]=d_positionStdev.getValue()[i];
+    }
+
+    if( d_velocityStdev.getValue().size() != velDim ){
+        PRNS("[WARNING] Bad initial value of Velocity Initial Covariance. Resized 3 values for Vec3 mstate, or 6 values for Rigid mstate");
+        for (size_t i=0 ;i<velDim;i++)
+            velStdev[i]=d_velocityStdev.getValue()[0];
+
+    }else{
+        for (size_t i=0 ;i<posDim;i++)
+            velStdev[i]=d_velocityStdev.getValue()[i];
+    }
     if (estimatePosition.getValue()) {
         for (size_t i = 0; i < freeNodes.size(); i++) {
-            std::pair<size_t, size_t> pr(freeNodes[i], vsi++);
+            std::pair<size_t, size_t> pr(freeNodes[i], vsi);
+            vsi+=posDim;
             positionPairs.push_back(pr);
         }
         /// add standart deviation for positions
-        this->positionVariance.resize(Dim * positionPairs.size());
-        for (size_t index = 0; index < Dim * positionPairs.size(); index++) {
-            this->positionVariance[index] = d_positionStdev.getValue() * d_positionStdev.getValue();
+        this->positionVariance.resize(posDim * positionPairs.size());
+        for (size_t i = 0; i < positionPairs.size(); i++){
+            for (size_t j = 0; j < posDim; j ++)
+                this->positionVariance[i*posDim+j] = posStdev[j%posDim] * posStdev[j%posDim];
         }
     }
+
 
     /*PRNS("Mapping stochastic -> mechanical");
     for (size_t i = 0; i < positionPairs.size(); i++) {
@@ -206,17 +283,21 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
 
     if (estimateVelocity.getValue()) {
         for (size_t i = 0; i < freeNodes.size(); i++) {
-            std::pair<size_t, size_t> pr(freeNodes[i], vsi++);
+            std::pair<size_t, size_t> pr(freeNodes[i], vsi);
+            vsi+=velDim;
             velocityPairs.push_back(pr);
         }
         /// add standart deviation for velocities
-        this->velocityVariance.resize(Dim * velocityPairs.size());
-        for (size_t index = 0; index < Dim * velocityPairs.size(); index++) {
-            this->velocityVariance[index] = d_velocityStdev.getValue() * d_velocityStdev.getValue();
+        this->velocityVariance.resize(velDim * velocityPairs.size());
+        for (size_t i = 0; i < velocityPairs.size(); i++ ){
+            for (size_t j = 0; j < velDim; j ++)
+                this->velocityVariance[i*velDim+j] = velStdev[j%velDim] * velStdev[j%velDim];
         }
     }
 
-    this->reducedStateIndex = Dim * vsi;
+
+
+    this->reducedStateIndex = vsi;
     for (size_t pi = 0; pi < vecOptimParams.size(); pi++) {
         helper::vector<size_t> opv;
         for (size_t i = 0; i < vecOptimParams[pi]->size(); i++, vpi++) {
@@ -225,11 +306,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
         vecOptimParams[pi]->setVStateParamIndices(opv);
     }
 
-    if (estimateExternalForces.getValue())  {
-        this->stateSize = DimForces * vsi + vpi;
-    }else{
-        this->stateSize = Dim * vsi + vpi;
-    }
+    this->stateSize = vsi + vpi;
 
     this->reducedStateSize = vpi;
 
@@ -238,6 +315,13 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
 
     this->state.resize(this->stateSize);
     copyStateSofa2Filter();
+
+    color.resize(this->stateSize+1); //TRUE IF USING SIMPLEX SIGMA PTS
+    colorB.resize(color.size());
+    for(size_t i =0; i < color.size(); i++){
+        color[i]= ((double) rand() / (RAND_MAX)) ;
+        colorB[i]= ((double) rand() / (RAND_MAX)) ;
+    }
 }
 
 
@@ -262,16 +346,127 @@ void StochasticStateWrapper<DataTypes, FilterType>::setSofaVectorFromFilterVecto
             return;
         }
 
-        if ((Dim*it->second + Dim) >= (size_t)_state.rows()) {
-            PRNE("Accessing DA vector out of bounds: " << Dim*it->second + Dim <<  " vs. " << _state.rows());
+        if ((it->second + posDim) >= (size_t)_state.rows()) {
+            PRNE("Accessing DA vector out of bounds: " << it->second + posDim <<  " vs. " << _state.rows());
             return;
         }
 
-        for (size_t d = 0; d < Dim; d++) {
-            _vec[it->first][d] = _state(Dim*it->second + d);
+        for (size_t d = 0; d < posDim; d++) {
+            _vec[it->first][d] = _state(it->second + d);
         }
         //PRNS("Setting free[" << it->first << "] = " << _vec[it->first]);
     }
+}
+
+
+/// function that sets SOFA state (position, velocity, parameters) from this->state (stochastic state, Eigen vector)
+template <>
+void StochasticStateWrapper<Rigid3dTypes, double>::copyStateFilter2Sofa(const core::MechanicalParams* _mechParams, bool _setVelocityFromPosition) {
+    typename MechanicalState::WriteVecCoord pos = mechanicalState->writePositions();
+    typename MechanicalState::WriteVecDeriv vel = mechanicalState->writeVelocities();
+
+    helper::vector<Vector6> EulerPos;
+    EulerPos.resize(pos.size());
+    defaulttype::Quat q_ori;
+    q_ori.normalize();
+    Vector3 euler_ori;
+    Vector3 eu_pos;
+
+    if(estimatePosition.getValue()){
+        for (helper::vector<std::pair<size_t, size_t> >::iterator it = positionPairs.begin(); it != positionPairs.end(); it++) {
+            for (size_t d = 0; d < posDim; d++) {
+                EulerPos[it->first][d] = this->state(it->second + d);
+                //    m_internalCopy.copyFilterToSofa(positionPairs,pos.wref());
+            }
+        }
+
+        for(size_t i= 0; i < pos.size(); i++)    {
+            for(size_t j=0; j <3; j++){
+                eu_pos[j]=EulerPos[i][j];
+            }
+            unsigned k=0;
+            for(size_t j=3; j <6; j++, k++){
+                euler_ori[k]=EulerPos[i][j];
+            }
+
+            q_ori=defaulttype::Quat::createQuaterFromEuler(euler_ori*M_PI/180);
+            q_ori.normalize();
+            pos[i].getOrientation()= q_ori;
+            pos[i].getCenter() =eu_pos;
+            q_ori.clear();
+        }
+    }
+    if(estimateVelocity.getValue()){
+        for (helper::vector<std::pair<size_t, size_t> >::iterator it = velocityPairs.begin(); it != velocityPairs.end(); it++) {
+            for (size_t d = 0; d < velDim; d++) {
+                vel[it->first][d] = this->state(it->second + d);
+            }
+        }
+    }
+    /// if velocity is not estimated, it must be computed from the positions at the beginning and at the end of the time step
+    if (_setVelocityFromPosition) {
+        if (velocityPairs.empty() && beginTimeStepPos.size() == pos.size()) {
+            for (helper::vector<std::pair<size_t, size_t> >::iterator it = positionPairs.begin(); it != positionPairs.end(); it++) {
+                for (size_t d = 0; d < velDim; d++) {
+                    vel[it->first][d] = (pos[it->first][d] - beginTimeStepPos[it->first][d])/this->getContext()->getDt();
+                }
+            }
+        }
+    }
+
+    sofa::simulation::MechanicalPropagateOnlyPositionAndVelocityVisitor(_mechParams).execute( this->gnode );
+
+    /// let the OptimParams to extract the actual values of parameters from the verdandi state
+    for (size_t opi = 0; opi < vecOptimParams.size(); opi++)
+        vecOptimParams[opi]->vectorToParams(this->state);
+}
+
+/// function that compies SOFA state (position, velocity, parameters) to this->state (stochastic state, Eigen vector)
+template <>
+void StochasticStateWrapper<Rigid3dTypes, double>::copyStateSofa2Filter() {
+    typename MechanicalState::ReadVecCoord pos = mechanicalState->readPositions();
+    typename MechanicalState::ReadVecDeriv vel = mechanicalState->readVelocities();
+
+    helper::vector<Vector6> EulerPos;
+    EulerPos.resize(pos.size());
+    defaulttype::Quat q_ori;
+    q_ori.normalize();
+    Vector3 euler_ori;
+    Vector3 eu_pos;
+
+    for(size_t i= 0; i < pos.size(); i++)    {
+        q_ori.clear();
+        q_ori=pos[i].getOrientation();
+        q_ori.normalize();
+        eu_pos=pos[i].getCenter();
+        euler_ori=q_ori.toEulerVector();
+        //        euler_ori.normalize();
+
+        for(size_t j=0; j <3; j++){
+            EulerPos[i][j]=eu_pos[j];
+        }
+        unsigned k=0;
+        for(size_t j=3; j <6; j++, k++){
+            EulerPos[i][j]=euler_ori[k]*180/M_PI;
+        }
+
+    }
+
+    if(estimatePosition.getValue()){
+        for (helper::vector<std::pair<size_t, size_t> >::iterator it = positionPairs.begin(); it != positionPairs.end(); it++)
+            for (size_t d = 0; d < posDim; d++) {
+                this->state(it->second + d) = EulerPos[it->first][d];
+            }
+    }
+
+    if(estimateVelocity.getValue()){
+        for (helper::vector<std::pair<size_t, size_t> >::iterator it = velocityPairs.begin(); it != velocityPairs.end(); it++)
+            for (size_t d = 0; d < velDim; d++)
+                this->state(it->second + d) = vel[it->first][d];
+    }
+    for (size_t opi = 0; opi < vecOptimParams.size(); opi++)
+        vecOptimParams[opi]->paramsToVector(this->state);
+
 }
 
 
@@ -281,23 +476,26 @@ void StochasticStateWrapper<DataTypes, FilterType>::copyStateFilter2Sofa(const c
     typename MechanicalState::WriteVecCoord pos = mechanicalState->writePositions();
     typename MechanicalState::WriteVecDeriv vel = mechanicalState->writeVelocities();
 
-    for (helper::vector<std::pair<size_t, size_t> >::iterator it = positionPairs.begin(); it != positionPairs.end(); it++) {
-        for (size_t d = 0; d < Dim; d++) {
-            pos[it->first][d] = this->state(Dim*it->second + d);
+    if(estimatePosition.getValue()){
+        for (helper::vector<std::pair<size_t, size_t> >::iterator it = positionPairs.begin(); it != positionPairs.end(); it++) {
+            for (size_t d = 0; d < posDim; d++) {
+                pos[it->first][d] = this->state(it->second + d);
+            }
         }
     }
 
-    for (helper::vector<std::pair<size_t, size_t> >::iterator it = velocityPairs.begin(); it != velocityPairs.end(); it++) {
-        for (size_t d = 0; d < Dim; d++) {
-            vel[it->first][d] = this->state(Dim*it->second + d);
+    if(estimateVelocity.getValue()){
+        for (helper::vector<std::pair<size_t, size_t> >::iterator it = velocityPairs.begin(); it != velocityPairs.end(); it++) {
+            for (size_t d = 0; d < velDim; d++) {
+                vel[it->first][d] = this->state(it->second + d);
+            }
         }
     }
-
     /// if velocity is not estimated, it must be computed from the positions at the beginning and at the end of the time step
     if (_setVelocityFromPosition) {
         if (velocityPairs.empty() && beginTimeStepPos.size() == pos.size()) {
             for (helper::vector<std::pair<size_t, size_t> >::iterator it = positionPairs.begin(); it != positionPairs.end(); it++) {
-                for (size_t d = 0; d < Dim; d++) {
+                for (size_t d = 0; d < velDim; d++) {
                     vel[it->first][d] = (pos[it->first][d] - beginTimeStepPos[it->first][d])/this->getContext()->getDt();
                 }
             }
@@ -315,17 +513,21 @@ void StochasticStateWrapper<DataTypes, FilterType>::copyStateFilter2Sofa(const c
 template <class DataTypes, class FilterType>
 void StochasticStateWrapper<DataTypes, FilterType>::copyStateSofa2Filter() {
     typename MechanicalState::ReadVecCoord pos = mechanicalState->readPositions();
-    typename MechanicalState::ReadVecDeriv vel = mechanicalState->readVelocities();    
+    typename MechanicalState::ReadVecDeriv vel = mechanicalState->readVelocities();
 
-    for (helper::vector<std::pair<size_t, size_t> >::iterator it = positionPairs.begin(); it != positionPairs.end(); it++)
-        for (size_t d = 0; d < Dim; d++) {
-            this->state(Dim*it->second + d) = pos[it->first][d];
-        }
+    if(estimatePosition.getValue()){
+        for (helper::vector<std::pair<size_t, size_t> >::iterator it = positionPairs.begin(); it != positionPairs.end(); it++)
+            for (size_t d = 0; d < posDim; d++) {
+                this->state(it->second + d) = pos[it->first][d];
+            }
 
-    for (helper::vector<std::pair<size_t, size_t> >::iterator it = velocityPairs.begin(); it != velocityPairs.end(); it++)
-        for (size_t d = 0; d < Dim; d++)
-            this->state(Dim*it->second + d) = vel[it->first][d];
+    }
 
+    if(estimateVelocity.getValue()){
+        for (helper::vector<std::pair<size_t, size_t> >::iterator it = velocityPairs.begin(); it != velocityPairs.end(); it++)
+            for (size_t d = 0; d < velDim; d++)
+                this->state(it->second + d) = vel[it->first][d];
+    }
     for (size_t opi = 0; opi < vecOptimParams.size(); opi++)
         vecOptimParams[opi]->paramsToVector(this->state);
 
@@ -345,6 +547,13 @@ void StochasticStateWrapper<DataTypes, FilterType>::storeMState() {
         beginTimeStepPos[i] = pos[i];
         beginTimeStepVel[i] = vel[i];
     }
+    if ( mappedState != NULL)  {
+        beginTimeStepMappedPos.resize(this->mappedMStateSize);
+        typename MappedMechanicalState::ReadVecCoord mapPos = mappedState->readPositions();
+        for (size_t i = 0; i < this->mappedMStateSize; i++) {
+            beginTimeStepMappedPos[i] = mapPos[i];
+        }
+    }
 }
 
 /// re-initialize SOFA state (positions and velocities) from back-up create by storeMState
@@ -352,10 +561,14 @@ template <class DataTypes, class FilterType>
 void StochasticStateWrapper<DataTypes, FilterType>::reinitMState(const core::MechanicalParams* _mechParams) {
     typename MechanicalState::WriteVecCoord pos = mechanicalState->writePositions();
     typename MechanicalState::WriteVecDeriv vel = mechanicalState->writeVelocities();
-
     for (size_t i = 0; i < this->mStateSize; i++) {
         pos[i] = beginTimeStepPos[i];
         vel[i] = beginTimeStepVel[i];
+    }
+    if ( mappedState != NULL)  {
+        typename MappedMechanicalState::WriteVecCoord mapPos = mappedState->writePositions();
+        for (size_t i = 0; i < this->mappedMStateSize; i++)
+            mapPos[i] = beginTimeStepMappedPos[i] ;
     }
 
     sofa::simulation::MechanicalPropagateOnlyPositionAndVelocityVisitor(_mechParams).execute( this->gnode );
@@ -368,20 +581,25 @@ void StochasticStateWrapper<DataTypes, FilterType>::getActualPosition(int _id, V
     _pos = sigmaStatePos[_id];
 }
 
+template <class DataTypes, class FilterType>
+void StochasticStateWrapper<DataTypes, FilterType>::getActualMappedPosition(int _id, Vec3dTypes::VecCoord& _mapPos) {
+    if ( mappedState != NULL)
+        _mapPos = sigmaMappedStatePos[_id];
+}
 
 template <class DataTypes, class FilterType>
 void StochasticStateWrapper<DataTypes, FilterType>::initializeStep(size_t _stepNumber) {
     PRNS("Initialize time step" << _stepNumber);
     Inherit::initializeStep(_stepNumber);
-    //if (this->filterKind == SIMCORR) {
     /// storing the initial state does not hurt for any type of the filter
-        PRNS("Store mstate");
-        storeMState();
+    PRNS("Store mstate");
+    storeMState();
 
-        /// reinitialize the computed states
-        sigmaStatePos.clear();
-        sigmaStateVel.clear();
-    //}
+    /// reinitialize the computed states
+    sigmaStatePos.clear();
+    sigmaStateVel.clear();
+    sigmaMappedStatePos.clear();
+
 }
 
 template <class DataTypes, class FilterType>
@@ -395,7 +613,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::computeSimulationStep(EVecto
         copyStateFilter2Sofa(_mparams);
 
         if (this->d_langrangeMultipliers.getValue())
-            computeSofaStepWithLM(_mparams, false);
+            computeSofaStepWithLM(_mparams);
         else
             computeSofaStep(_mparams, false);
 
@@ -430,26 +648,25 @@ void StochasticStateWrapper<DataTypes, FilterType>::transformState(EVectorX &_ve
 
     reinitMState(_mparams);
     this->state = _vecX;
-    //PRNS("_vecX " << _vecX);
+
     copyStateFilter2Sofa(_mparams);
 
     if (this->d_langrangeMultipliers.getValue())
-        computeSofaStepWithLM(_mparams, false);
+        computeSofaStepWithLM(_mparams);
     else
         computeSofaStep(_mparams, false);
 
     copyStateSofa2Filter();
     _vecX = this->state;
 
-
     if (this->filterKind == CLASSIC) {
         /// store the result of the simulation as a vector
         VecCoord actualPos(this->mStateSize);
         VecDeriv actualVel(this->mStateSize);
 
+
         typename MechanicalState::ReadVecCoord pos = mechanicalState->readPositions();
         typename MechanicalState::ReadVecDeriv vel = mechanicalState->readVelocities();
-
         for (size_t i = 0; i < this->mStateSize; i++) {
             actualPos[i] = pos[i];
             actualVel[i] = vel[i];
@@ -457,17 +674,70 @@ void StochasticStateWrapper<DataTypes, FilterType>::transformState(EVectorX &_ve
         sigmaStatePos.push_back(actualPos);
         sigmaStateVel.push_back(actualVel);
 
+        if ( mappedState != NULL)  {
+            Vec3dTypes::VecCoord actualMappedPos(this->mappedMStateSize);
+            typename MappedMechanicalState::ReadVecCoord mapPos = mappedState->readPositions();
+
+            for (size_t i = 0; i < this->mappedMStateSize; i++) {
+                actualMappedPos[i] = mapPos[i];
+            }
+            sigmaMappedStatePos.push_back(actualMappedPos);
+        }
+
         if (_stateID != nullptr) {
             *_stateID = sigmaStatePos.size() - 1;
         }
     }
+
 
     if ((_stateID == nullptr) || (*_stateID >= 0)) {
         this->state = savedState;
         copyStateFilter2Sofa(_mparams);
     }
 }
+template <class DataTypes, class FilterType>
+void StochasticStateWrapper<DataTypes, FilterType>::lastApplyOperator(EVectorX &_vecX, const core::MechanicalParams *_mparams) {
+    if (!this->filterKind == CLASSIC )
+        return;
 
+    this->state = _vecX;
+    reinitMState(_mparams);
+
+    copyStateFilter2Sofa(_mparams);
+
+    if (this->d_langrangeMultipliers.getValue())
+        computeSofaStepWithLM(_mparams);
+    else
+        computeSofaStep(_mparams, false);
+    copyStateSofa2Filter();
+
+}
+
+
+template <class DataTypes, class FilterType>
+void StochasticStateWrapper<DataTypes, FilterType>::draw(const core::visual::VisualParams* vparams ) {
+    if (d_draw.getValue()){
+        if (vparams->displayFlags().getShowVisualModels()) {
+            std::vector<sofa::defaulttype::Vec3d> points;
+
+            for (unsigned i =0;  i < sigmaStatePos.size(); i++){
+                VecCoord &pts = sigmaStatePos[i];
+                points.resize(pts.size());
+
+                for(unsigned j =0;  j < pts.size(); j++){
+                    points[j][0]=pts[j][0];
+                    points[j][1]=pts[j][1];
+                    points[j][2]=pts[j][2];
+                }
+
+                vparams->drawTool()->drawSpheres(points, d_radius_draw.getValue(), sofa::defaulttype::Vec<4, float>(color[i],0.8f,colorB[i],1.0f));
+                vparams->drawTool()->drawLineStrip(points,d_radius_draw.getValue(),sofa::defaulttype::Vec<4, float>(color[i],0.8f,colorB[i],1.0f));
+
+            }
+        }
+    }
+
+}
 /// perform a simulation step, code taken from DefaultAnimationLoop
 
 template <class DataTypes, class FilterType>
@@ -475,11 +745,11 @@ void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStep(const core::
     double    dt = this->gnode->getDt();
     //core::ExecParams* execParams = sofa::core::ExecParams::defaultInstance();
 
-    //std::cout << "[" << this->getName() << "]: step default begin at time = " << gnode->getTime() << " update time: " << _update_time << std::endl;
+    //std::cout << "[" << this->getName()   << "]: step default begin at time = " << gnode->getTime() << " update time: " << _update_time << std::endl;
 
     sofa::helper::AdvancedTimer::stepBegin("AnimationStep");
     //std::cout<<"step "<<step++<<std::endl;
-    sofa::helper::AdvancedTimer::begin("Animate");
+    //sofa::helper::AdvancedTimer::begin("Animate");
     //std::cout<<"step "<<step++<<std::endl;
 
 #ifdef SOFA_DUMP_VISITOR_INFO
@@ -539,7 +809,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStep(const core::
 #ifdef SOFA_DUMP_VISITOR_INFO
     simulation::Visitor::printCloseNode("Step");
 #endif
-    sofa::helper::AdvancedTimer::end("Animate");
+    //sofa::helper::AdvancedTimer::end("Animate");
     sofa::helper::AdvancedTimer::stepEnd("AnimationStep");
 
 }
@@ -547,7 +817,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStep(const core::
 /// perform a simulation step with collisions, code taken from FreeMotionAnimationLoop
 
 template <class DataTypes, class FilterType>
-void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStepWithLM(const core::ExecParams* params, bool _updateTime) {
+void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStepWithLM(const core::ExecParams* params) {
     //if (dt == 0)
     SReal dt = this->gnode->getDt();
 
@@ -583,20 +853,27 @@ void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStepWithLM(const 
 
     // Update the BehaviorModels
     // Required to allow the RayPickInteractor interaction
+    sofa::helper::AdvancedTimer::stepBegin("Step1 UpdateBehaviorModels");
 
     this->gnode->execute(&beh);
 
     simulation::MechanicalBeginIntegrationVisitor beginVisitor(params, dt);
     this->gnode->execute(&beginVisitor);
 
+
     // Free Motion
+    sofa::helper::AdvancedTimer::stepBegin("Step2 FreeMotion");
+
     simulation::SolveVisitor freeMotion(params, dt, true);
     this->gnode->execute(&freeMotion);
 
     mop.projectPositionAndVelocity(freePos, freeVel); // apply projective constraints
     mop.propagateXAndV(freePos, freeVel);
 
+
     // Collision detection and response creation
+
+    sofa::helper::AdvancedTimer::stepBegin("Step3 ComputeCollision");
     this->computeCollision(params);
     mop.propagateX(pos); // Why is this done at that point ???
 
@@ -654,6 +931,14 @@ void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStepWithLM(const 
 
     simulation::MechanicalEndIntegrationVisitor endVisitor(params, dt);
     this->gnode->execute(&endVisitor);
+    sofa::helper::AdvancedTimer::stepEnd("Step1 UpdateBehaviorModels");
+
+    sofa::helper::AdvancedTimer::stepEnd("Step2 FreeMotion");
+
+    sofa::helper::AdvancedTimer::stepEnd("Step3 ComputeCollision");
+
+
+    sofa::helper::AdvancedTimer::stepBegin("Step4 UpdateSimulationContextVisitor");
 
     this->gnode->setTime ( startTime + dt );
     this->gnode->template execute<UpdateSimulationContextVisitor>(params);  // propagate time
@@ -663,6 +948,10 @@ void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStepWithLM(const 
         sofa::simulation::PropagateEventVisitor act ( params, &ev );
         this->gnode->execute ( act );
     }
+    sofa::helper::AdvancedTimer::stepEnd("Step4 UpdateSimulationContextVisitor");
+
+
+    sofa::helper::AdvancedTimer::stepBegin("Step5 UpdateMappingVisitor");
 
 
     //Visual Information update: Ray Pick add a MechanicalMapping used as VisualMapping
@@ -673,9 +962,15 @@ void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStepWithLM(const 
         this->gnode->execute ( act );
     }
 
+    sofa::helper::AdvancedTimer::stepEnd("Step5 UpdateMappingVisitor");
+
+
 #ifndef SOFA_NO_UPDATE_BBOX
     this->gnode->template execute<UpdateBoundingBoxVisitor>(params);
 #endif
+
+    sofa::helper::AdvancedTimer::stepEnd("MechanicalVInitVisitor");
+
 }
 
 template <class DataTypes, class FilterType>

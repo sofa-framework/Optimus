@@ -40,35 +40,8 @@ namespace sofa
 namespace component
 {
 
-namespace simulation
+namespace stochastic
 {
-
-SOFA_EVENT_CPP( DAPredictionEndEvent )
-
-DAPredictionEndEvent::DAPredictionEndEvent(SReal dt)
-    : sofa::core::objectmodel::Event()
-    , dt(dt)
-{
-}
-
-
-DAPredictionEndEvent::~DAPredictionEndEvent()
-{
-}
-
-SOFA_EVENT_CPP( DACorrectionEndEvent )
-
-DACorrectionEndEvent::DACorrectionEndEvent(SReal dt)
-    : sofa::core::objectmodel::Event()
-    , dt(dt)
-{
-}
-
-
-DACorrectionEndEvent::~DACorrectionEndEvent()
-{
-}
-
 
 SOFA_DECL_CLASS(FilteringAnimationLoop)
 
@@ -119,13 +92,7 @@ void FilteringAnimationLoop::init() {
 
     actualStep = 0;
 
-    if (d_timeDataFile.getValue().size() > 0) {
-        std::ofstream outputFile;
-        outputFile.open(d_timeDataFile.getFullPath(), std::fstream::app);
-        outputFile << "This file contains data about computation time:";
-        outputFile << std::endl;
-        outputFile.close();
-    }
+    m_timeProfiler.init(d_timeDataFile);
 }
 
 void FilteringAnimationLoop::bwdInit() {
@@ -152,44 +119,28 @@ void FilteringAnimationLoop::step(const core::ExecParams* _params, SReal /*_dt*/
         preStochasticWrappers[i]->step(_params, actualStep);
 
     // add advanced timer to the system
-    //sofa::helper::AdvancedTimer::stepBegin("KalmanFilterStep");
-    boost::posix_time::time_duration currentMomentMicroseconds;
-    boost::posix_time::ptime time_t_epoch(boost::gregorian::date(1970,1,1));
-
-    if (d_timeDataFile.getValue().size() > 0) {
-        currentMomentMicroseconds = boost::posix_time::microsec_clock::local_time() - time_t_epoch;
-        std::ofstream outputFile;
-        outputFile.open(d_timeDataFile.getFullPath(), std::fstream::app);
-        outputFile << "Iteration step: " << actualStep << std::endl;
-        outputFile << "Start time: " << currentMomentMicroseconds.total_microseconds() << std::endl;
-        outputFile.close();
-    }
+    sofa::helper::AdvancedTimer::stepBegin("KalmanFilterPrediction");
+    m_timeProfiler.SaveStartTime();
 
     filter->initializeStep(_params, actualStep);
     //TIC
     filter->computePrediction();
-    DAPredictionEndEvent predEvent ( dt );
+    PredictionEndEvent predEvent ( dt );
     sofa::simulation::PropagateEventVisitor predEVisitor ( _params, &predEvent );
     gnode->execute ( predEVisitor );
+    sofa::helper::AdvancedTimer::stepEnd("KalmanFilterPrediction");
     //TOCTIC("== prediction total");    
 
-
+    sofa::helper::AdvancedTimer::stepBegin("KalmanFilterCorrection");
     filter->computeCorrection();
-    DACorrectionEndEvent corrEvent ( dt );
+    CorrectionEndEvent corrEvent ( dt );
     sofa::simulation::PropagateEventVisitor corrEVisitor ( _params, &corrEvent );
     gnode->execute ( corrEVisitor );
     //TOC("== correction total");
 
     // compute signle iteration step
-    //sofa::helper::AdvancedTimer::stepEnd("KalmanFilterStep");
-
-    if (d_timeDataFile.getValue().size() > 0) {
-        currentMomentMicroseconds = boost::posix_time::microsec_clock::local_time() - time_t_epoch;
-        std::ofstream outputFile;
-        outputFile.open(d_timeDataFile.getFullPath(), std::fstream::app);
-        outputFile << "End time: " << currentMomentMicroseconds.total_microseconds() << std::endl;
-        outputFile.close();
-    }
+    sofa::helper::AdvancedTimer::stepEnd("KalmanFilterCorrection");
+    m_timeProfiler.SaveEndTime();
 
     /// this should be probably removed:
     sofa::simulation::AnimateEndEvent ev2(dt);
@@ -227,7 +178,7 @@ void SingleLevelEventVisitor::processObject(sofa::simulation::Node*, core::objec
         obj->handleEvent( m_event );
 }
 
-} // namespace simulation
+} // namespace stochastic
 } // namespace component
 } // namespace sofa
 

@@ -89,11 +89,13 @@ void PreStochasticWrapper::init() {
 }
 
 void PreStochasticWrapper::step(const core::ExecParams* _params, const size_t _step) {
+
+    sofa::helper::AdvancedTimer::stepBegin("PreStochasticWrapper");
     PRNS(" calling step in " << _step);
 
     sofa::helper::AdvancedTimer::stepBegin("AnimationStep");
     //std::cout<<"step "<<step++<<std::endl;
-    sofa::helper::AdvancedTimer::begin("Animate");
+    //sofa::helper::AdvancedTimer::begin("Animate");
     //std::cout<<"step "<<step++<<std::endl;
 
 #ifdef SOFA_DUMP_VISITOR_INFO
@@ -105,14 +107,14 @@ void PreStochasticWrapper::step(const core::ExecParams* _params, const size_t _s
 
     //std::cout << "[" << this->getName() << "]: step default begin at time = " << gnode->getTime() << " update time: " << _update_time << std::endl;
 
-    sofa::helper::AdvancedTimer::stepBegin("AnimationStep");
+    //sofa::helper::AdvancedTimer::stepBegin("AnimationStep");
     //std::cout<<"step "<<step++<<std::endl;
-    sofa::helper::AdvancedTimer::begin("Animate");
+    //sofa::helper::AdvancedTimer::begin("Animate");
     //std::cout<<"step "<<step++<<std::endl;
 
-#ifdef SOFA_DUMP_VISITOR_INFO
-    simulation::Visitor::printNode("Step");
-#endif
+//#ifdef SOFA_DUMP_VISITOR_INFO
+//    simulation::Visitor::printNode("Step");
+//#endif
 
     {
         //std::cout<<"step "<<step++<<std::endl;
@@ -150,7 +152,7 @@ void PreStochasticWrapper::step(const core::ExecParams* _params, const size_t _s
     //Visual Information update: Ray Pick add a MechanicalMapping used as VisualMapping
     //std::cout << "[" << this->getName() << "]: update mapping" << std::endl;
     this->gnode->execute<  sofa::simulation::UpdateMappingVisitor >(_params);
-    sofa::helper::AdvancedTimer::step("UpdateMappingEndEvent");
+    //sofa::helper::AdvancedTimer::step("UpdateMappingEndEvent");
     {
         //std::cout << "[" << this->getName() << "]: update mapping end" << std::endl;
         sofa::simulation::UpdateMappingEndEvent ev ( dt );
@@ -167,9 +169,10 @@ void PreStochasticWrapper::step(const core::ExecParams* _params, const size_t _s
 #ifdef SOFA_DUMP_VISITOR_INFO
     simulation::Visitor::printCloseNode("Step");
 #endif
-    sofa::helper::AdvancedTimer::end("Animate");
+    //sofa::helper::AdvancedTimer::end("Animate");
     sofa::helper::AdvancedTimer::stepEnd("AnimationStep");
 
+    sofa::helper::AdvancedTimer::stepEnd("PreStochasticWrapper");
 }
 
 } // namespace stochastic

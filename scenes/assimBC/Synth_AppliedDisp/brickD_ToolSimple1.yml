@@ -34,10 +34,10 @@ model:
 io:    
     prefix: 'brickD_'
     suffix: ''
-    saveGeo: 0
+    saveGeo: 1
     saveObs: 1                  # GO only    
     saveEst: 1                  # SDA only
-    sdaFolderSuffix: 'absPCG'         # SDA only
+    sdaFolderSuffix: 'proj_OSD-3'         # SDA only
     obs_id:  'ogrid4'
     save_existing_folder: 0
 
@@ -45,11 +45,11 @@ filter:                         # SDA only
     kind: 'ROUKF'               # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
     #nparams: 3
     estim_bc_box: [-0.001, -0.001, -0.011, 0.101, 0.001, 0.001]
-    param_init_exval: [0]
-    param_init_stdev: [5]
-    param_min_val: [200]
+    param_init_exval: [100]
+    param_init_stdev: [10]
+    param_min_val: [0]
     param_max_val: [1e10]
-    param_transform: 'absolute'
+    param_transform: 'project'
     observ_stdev: 1e-4
     sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
     sigma_points_scale: 1    

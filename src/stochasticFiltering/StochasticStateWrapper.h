@@ -45,6 +45,8 @@
 
 #include <SofaConstraint/LCPConstraintSolver.h>
 
+#include <SofaBaseLinearSolver/FullMatrix.h>
+
 #include <sofa/core/ObjectFactory.h>
 #include <sofa/core/VecId.h>
 
@@ -63,6 +65,19 @@ namespace component
 {
 namespace stochastic
 {
+template<class DataTypes>
+class InternalCopy {
+public :
+
+    typedef typename DataTypes::VecCoord VecCoord;
+
+    void copyStateToFilter(helper::vector<std::pair<size_t, size_t> > & pairs, const VecCoord & ) {}
+
+    void copyFilterToSofa(helper::vector<std::pair<size_t, size_t> > & pairs, VecCoord & ) {}
+
+    void stateDim() {}
+
+};
 
 using namespace defaulttype;
 
@@ -79,10 +94,13 @@ public:
     typedef typename DataTypes::Coord Deriv;
     typedef FilterType Type;
 
-    enum { Dim = Coord::spatial_dimensions, DimForces = 6};
+    typedef typename sofa::component::linearsolver::FullMatrix<FilterType> FullMatrix;
+
+    enum { Dim = Coord::spatial_dimensions};
 
 
     typedef typename core::behavior::MechanicalState<DataTypes> MechanicalState;
+    typedef typename core::behavior::MechanicalState<Vec3dTypes> MappedMechanicalState;
     typedef typename component::projectiveconstraintset::FixedConstraint<DataTypes> FixedConstraint;
     typedef sofa::component::container::OptimParamsBase OptimParamsBase;
 
@@ -94,64 +112,67 @@ public:
 
 protected:
     MechanicalState *mechanicalState;
+    MappedMechanicalState *mappedState;
     FixedConstraint* fixedConstraint;
     helper::vector<OptimParamsBase*> vecOptimParams;
+    InternalCopy<DataTypes> m_internalCopy;
+    size_t posDim;
+    size_t velDim;
+
 
     VecCoord beginTimeStepPos;
     VecDeriv beginTimeStepVel;
+    Vec3dTypes::VecCoord beginTimeStepMappedPos;
 
     helper::vector<VecCoord> sigmaStatePos;
     helper::vector<VecDeriv> sigmaStateVel;
+    helper::vector<Vec3dTypes::VecCoord> sigmaMappedStatePos;
+    helper::vector<double> color,colorB;
 
     bool valid;
     helper::vector<size_t> fixedNodes, freeNodes;
     helper::vector<std::pair<size_t, size_t> > positionPairs;
     helper::vector<std::pair<size_t, size_t> > velocityPairs;
-    helper::vector<std::pair<size_t, size_t> > externalForcesPairs;
 
     void copyStateFilter2Sofa(const core::MechanicalParams *_mechParams, bool _setVelocityFromPosition = false);  // copy actual DA state to SOFA state and propagate to mappings
     void copyStateSofa2Filter();  // copy the actual SOFA state to DA state
     void computeSofaStep(const core::ExecParams* execParams, bool _updateTime);
-    void computeSofaStepWithLM(const core::ExecParams* params, bool _updateTime);
+    void computeSofaStepWithLM(const core::ExecParams* params);
 
 public:
-    Data<bool> d_langrangeMultipliers;    
+    Data<bool> d_langrangeMultipliers;
     Data<bool> estimatePosition;
     Data<bool> estimateVelocity;
-    Data<bool> estimateExternalForces;
-    Data<bool> optimForces;
-    Data<FilterType> velModelStdev, posModelStdev, paramModelStdev;
+    Data<helper::vector<FilterType>>  posModelStdev, velModelStdev;
+    Data<helper::vector<FilterType>> paramModelStdev;
+    Data<helper::vector<double>> d_positionStdev;  /// standart deviation for positions
+    Data<helper::vector<double>> d_velocityStdev;  /// standart deviation for velocities
+    Data <std::string> d_mappedStatePath;
+    Data< bool  > d_draw;
+    Data< double  > d_radius_draw;
+    Data<FullMatrix> d_fullMatrix;
+
     EMatrixX modelErrorVariance;
     EMatrixX modelErrorVarianceInverse;
     FilterType modelErrorVarianceValue;
-    Data<Mat3x4d> d_projectionMatrix;
+    helper::vector<double> posStdev, velStdev;
 
-
-    Data<double> d_positionStdev;  /// standart deviation for positions
-    Data<double> d_velocityStdev;  /// standart deviation for velocities
-
-    bool estimatingPosition() {
-        return this->estimatePosition.getValue();
-    }
-
-    bool estimatingVelocity() {
-        return this->estimateVelocity.getValue();
-    }
-
-    bool estimatingExternalForces() {
-        return this->estimateExternalForces.getValue();
-    }    
+    void stateDim();
 
     void init();
     void bwdInit();
 
     void transformState(EVectorX& _vecX, const core::MechanicalParams* _mparams, int* _stateID);
+    void lastApplyOperator(EVectorX& _vecX, const core::MechanicalParams* _mparams);
+
     //void setSofaTime(const core::ExecParams* _execParams);
     void computeSimulationStep(EVectorX& _state, const core::MechanicalParams* mparams,  int& _stateID);
     void initializeStep(size_t _stepNumber);
     void storeMState();
     void reinitMState(const core::MechanicalParams* _mechParams);
     void getActualPosition(int _id, VecCoord& _pos);
+    void getActualMappedPosition(int _id, Vec3dTypes::VecCoord& _mapPos);
+    void draw(const core::visual::VisualParams* vparams);
 
     void setState(EVectorX& _state, const core::MechanicalParams* _mparams) {
         this->state = _state;
@@ -164,7 +185,7 @@ public:
     virtual EMatrixX& getStateErrorVariance() {
         if (this->stateErrorVariance.rows() == 0) {
             PRNS("Constructing state co-variance matrix")
-            this->stateErrorVariance.resize(this->stateSize, this->stateSize);
+                    this->stateErrorVariance.resize(this->stateSize, this->stateSize);
             this->stateErrorVariance.setZero();
 
             size_t vpi = 0;
@@ -188,42 +209,79 @@ public:
 
                 for (size_t pi = 0; pi < this->vecOptimParams[opi]->size(); pi++, vpi++)
                     this->stateErrorVariance(vpi,vpi) = variance[pi];
-                    //this->stateErrorVariance(vpi,vpi) = Type(Type(1.0) / (stdev[pi] * stdev[pi]));
             }
         }
         return this->stateErrorVariance;
-    } 
+    }
 
 
     virtual EMatrixX& getModelErrorVariance() {
         if (this->modelErrorVariance.rows() == 0) {
 
-            FilterType posModelStDev = posModelStdev.getValue();
-            FilterType velModelStDev = velModelStdev.getValue();
-            FilterType paramModelStDev = paramModelStdev.getValue();
-            modelErrorVarianceValue = posModelStDev * posModelStDev;
-            modelErrorVariance = EMatrixX::Identity(this->stateSize, this->stateSize)*modelErrorVarianceValue;
-            modelErrorVarianceInverse = EMatrixX::Identity(this->stateSize, this->stateSize) / modelErrorVarianceValue;
-
-            size_t vpi = 0;
-            for (size_t pi = this->reducedStateIndex; pi < this->stateSize; pi++){
-                    this->modelErrorVariance(pi,pi) = 0; /// Q is zero for parameters
+            helper::vector<FilterType> posModStDev;
+            posModStDev.resize(posDim);
+            for (size_t i=0 ;i<posDim;i++) {
+                if (posModelStdev.getValue().size() != posDim) {
+                    posModStDev[i]=posModelStdev.getValue()[0];
+                }else{
+                    posModStDev[i]=posModelStdev.getValue()[i];
+                }
             }
+            helper::vector<FilterType> velModStDev;
+            velModStDev.resize(velDim);
+            for (size_t i=0 ;i<velDim;i++) {
+                if (velModelStdev.getValue().size() != velDim) {
+                    velModStDev[i]=velModelStdev.getValue()[0];
+                }else{
+                    velModStDev[i]=velModelStdev.getValue()[i];
+                }
+            }
+            helper::vector<FilterType> paramModelStDev = paramModelStdev.getValue();
+            //            modelErrorVarianceValue = posModelStDev(0) * posModelStDev(0);
+            modelErrorVariance = EMatrixX::Identity(this->stateSize, this->stateSize);
+            modelErrorVarianceInverse = EMatrixX::Identity(this->stateSize, this->stateSize) ;
 
+            size_t kp= 0;
+            size_t kv= 0;
+            size_t k= 0;
+            const size_t N =freeNodes.size();
+            const size_t M =posDim;
+            const size_t V =velDim;
+
+            EVectorX diagPosModelStDev;
+            diagPosModelStDev.resize(N*M);
+            for (size_t i = 0; i < N; i++ ){
+                for (size_t j = 0; j < M; j ++)
+                    diagPosModelStDev(i*M+j)=posModStDev[j%M]*posModStDev[j%M];
+            }
+            EVectorX diagVelModelStDev;
+            diagVelModelStDev.resize(N*V);
+            for (size_t i = 0; i < N; i++){
+                for (size_t j = 0; j < V; j ++)
+                    diagVelModelStDev(i*V+j)=velModStDev[j%V]*velModStDev[j%V];
+            }
             if (estimatePosition.getValue() && estimateVelocity.getValue()){
                 modelErrorVariance = EMatrixX::Identity(this->stateSize, this->stateSize);
-
-                for (size_t index = 0; index < this->positionVariance.size(); index++)
-                    modelErrorVariance(index,index) = posModelStDev*posModelStDev  ;
-
-                for (size_t index = this->positionVariance.size(); index < this->reducedStateIndex; index++)
-                    modelErrorVariance(index,index) = velModelStDev*velModelStDev  ;
-
-                for (size_t pi = this->reducedStateIndex; pi < this->stateSize; pi++)
-                    modelErrorVariance(pi,pi) = paramModelStDev*paramModelStDev;
+                for (unsigned index = 0; index < this->positionVariance.size(); index++, kp++)
+                    modelErrorVariance(index,index) = diagPosModelStDev(kp)  ;
+                for (size_t index = this->positionVariance.size(); index < this->reducedStateIndex; index++,kv++)
+                    modelErrorVariance(index,index) = diagVelModelStDev[kv]  ;
+                for (size_t pi = this->reducedStateIndex; pi < this->stateSize; pi++,k++)
+                    modelErrorVariance(pi,pi) = paramModelStDev[k]  *paramModelStDev[k];
             }
+
+            //NORMALLY IS THE CASE OF DATA ASSIMILATION where Parameters have no Q
+            if (estimatePosition.getValue() && !estimateVelocity.getValue()){
+                modelErrorVariance = EMatrixX::Identity(this->stateSize, this->stateSize);
+                for (unsigned index = 0; index < this->positionVariance.size(); index++, kp++)
+                    modelErrorVariance(index,index) = diagPosModelStDev(kp)  ;
+                for (size_t pi = this->reducedStateIndex; pi < this->stateSize; pi++,k++)
+                    modelErrorVariance(pi,pi) = 0;
+            }
+
         }
         return this->modelErrorVariance;
+
     }
 
     /// get the state error variant for the reduced order filters (stdev^2 of the parameters being estimated)
@@ -253,9 +311,25 @@ public:
                 this->stateErrorVarianceProjector(i+this->reducedStateIndex,i) = Type(1.0);
         }
         return this->stateErrorVarianceProjector;
-    }   
+    }
 
     Data<bool> m_solveVelocityConstraintFirst;
+
+    template<class T>
+    static bool canCreate(T*& obj, core::objectmodel::BaseContext* context, core::objectmodel::BaseObjectDescription* arg)
+    {
+        //        if (dynamic_cast<MState *>(context->getMechanicalState()) == NULL) return false;
+        return sofa::core::objectmodel::BaseObject::canCreate(obj, context, arg);
+    }
+    virtual std::string getTemplateName() const
+    {
+        return templateName(this);
+    }
+
+    static std::string templateName(const StochasticStateWrapper<DataTypes, FilterType>* = NULL)
+    {
+        return DataTypes::Name();
+    }
 
 protected :
 
@@ -263,7 +337,7 @@ protected :
     component::constraintset::LCPConstraintSolver::SPtr defaultSolver;
 
 
-/****** ADDED FOR COLLISIONS  *****/
+    /****** ADDED FOR COLLISIONS  *****/
     /// Activate collision pipeline
     virtual void computeCollision(const core::ExecParams* params = core::ExecParams::defaultInstance());
 
@@ -278,7 +352,7 @@ protected :
     // the parent Node of CollisionAnimationLoop its self (usually, this parent node is the root node of the simulation graph)
     // This pointer is initialized one time at the construction, avoiding dynamic_cast<Node*>(context) every time step
     //simulation::Node* gnode;
-/****** ADDED FOR COLLISIONS  *****/
+    /****** ADDED FOR COLLISIONS  *****/
 
 }; /// class
 

@@ -90,7 +90,7 @@ public:
 
     virtual bool hasObservation(double _time); /// TODO
     virtual bool getInnovation(double _time, EVectorX& _state, EVectorX& _innovation);
-    virtual bool getPredictedObservation(double _time, int _id, EVectorX& _predictedObservation);
+    virtual bool getPredictedObservation(int _id, EVectorX& _predictedObservation);
 
     typename DataTypes1::VecCoord realObservations;
     typename helper::vector< VecCoord > modelObservations;
@@ -116,9 +116,8 @@ public:
 
     static std::string templateName(const SimpleObservationManager< FilterType, DataTypes1,  DataTypes2>* = NULL)
     {
-        return DataTypes1::Name();
+        return DataTypes1::Name()+ std::string(",") + DataTypes2::Name();
     }
-
 
 
 }; /// class

@@ -50,8 +50,8 @@ int StochasticStateWrapperClass = core::RegisterObject("StochasticStateWrapper")
 
         #endif
         #ifndef SOFA_DOUBLE
-        .add< StochasticStateWrapper<Vec3fTypes, float> >()
-        .add< StochasticStateWrapper<Rigid3fTypes, float> >()
+//        .add< StochasticStateWrapper<Vec3fTypes, float> >()
+//        .add< StochasticStateWrapper<Rigid3fTypes, float> >()
 
         #endif
         ;
@@ -62,8 +62,8 @@ template class SOFA_SIMULATION_COMMON_API StochasticStateWrapper<Rigid3dTypes, d
 
 #endif
 #ifndef SOFA_DOUBLE
-template class SOFA_SIMULATION_COMMON_API StochasticStateWrapper<Vec3fTypes, float>;
-template class SOFA_SIMULATION_COMMON_API StochasticStateWrapper<Rigid3dTypes, float>;
+//template class SOFA_SIMULATION_COMMON_API StochasticStateWrapper<Vec3fTypes, float>;
+//template class SOFA_SIMULATION_COMMON_API StochasticStateWrapper<Rigid3dTypes, float>;
 
 #endif
 

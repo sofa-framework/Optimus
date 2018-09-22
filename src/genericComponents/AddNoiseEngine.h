@@ -74,11 +74,11 @@ public:
     
     Data<VecCoord> _inputPositions;
     Data<VecCoord> _outputPositionsWithNoise;
+    Data<Coord> _noisePrincipalDirection;
     Data<std::string> _noiseType;
     Data<double>  _noiseMean;
     Data<double>  _noisePrincipalVariance;
     Data<double>  _noiseOrthogonalVariance;
-    Data<Coord> _noisePrincipalDirection;
 
     Coord dir, orth1, orth2;
     

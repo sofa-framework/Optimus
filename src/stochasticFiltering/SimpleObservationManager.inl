@@ -48,6 +48,12 @@ SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::SimpleObservationMan
 {
 }
 
+
+
+
+
+
+
 template <class FilterType, class DataTypes1, class DataTypes2>
 void SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::init()
 {
@@ -57,7 +63,7 @@ void SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::init()
     if (observationSource) {
         PRNS("Found observation source: " << observationSource->getName());
     } else {
-        PRNE("No observation source found!");
+        serr <<"No observation source found!"<<sendl;
     }
 
     stateWrapper = stateWrapperLink.get();
@@ -87,9 +93,13 @@ void SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::bwdInit()
 
 template <class FilterType, class DataTypes1, class DataTypes2>
 bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::hasObservation(double _time) {
+bool hasObservation;
+    if(this->actualTime==0){
+        hasObservation=true;
+    } else{
 
-    bool hasObservation = observationSource->getObservation(this->actualTime, realObservations);
-
+    hasObservation= observationSource->getObservation(this->actualTime, realObservations);
+}
     if (!hasObservation) {
         PRNE("No observation for time " << _time);
         return(false);
@@ -101,6 +111,7 @@ bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::hasObservation(
 template <class FilterType, class DataTypes1, class DataTypes2>
 bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovation(double _time, EVectorX& _state, EVectorX& _innovation)
 {
+
     if (_time != this->actualTime) {
         PRNE("Observation for time " << this->actualTime << " not prepared, call hasObservation first!");
         return(false);
@@ -112,8 +123,8 @@ bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovation(d
     }
 
     if ((stateWrapper->getFilterKind() == SIMCORR) || (stateWrapper->getFilterKind() == CLASSIC)) {
-        for (size_t i = 0; i < this->observationSize; i++)
-            _innovation(i) = realObservations[0](i) - _state(i);
+            for (size_t i = 0; i < this->observationSize; i++)
+                _innovation(i) = realObservations[0](i) - _state(i);
     }
 
     return true;
@@ -122,14 +133,14 @@ bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovation(d
 }
 
 template <class FilterType, class DataTypes1, class DataTypes2>
-bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getPredictedObservation(double _time, int _id, EVectorX& _predictedObservation)
+bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getPredictedObservation(int _id, EVectorX& _predictedObservation)
 {
     const Mat3x4d & P = d_projectionMatrix.getValue();
-
     _predictedObservation.resize(this->observationSize);
 
     Data<typename DataTypes1::VecCoord> predicted2DState;
     Data<typename DataTypes2::VecCoord> predicted3DState;
+
 
     typename DataTypes1::VecCoord& predicted2DStateEdit = *predicted2DState.beginEdit();
     typename DataTypes2::VecCoord& predicted3DStateEdit = *predicted3DState.beginEdit();
@@ -140,7 +151,7 @@ bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getPredictedObs
     predicted2DStateEdit.resize(predicted3DStateEdit.size());
 
     if(d_use2dObservations.getValue()){
-        for (int i = 0; i < predicted3DStateEdit.size(); i++){
+        for (unsigned i = 0; i < predicted3DStateEdit.size(); i++){
             double rx = P[0][0] * predicted3DStateEdit[i][0] + P[0][1] * predicted3DStateEdit[i][1] + P[0][2] * predicted3DStateEdit[i][2] + P[0][3];
             double ry = P[1][0] * predicted3DStateEdit[i][0] + P[1][1] * predicted3DStateEdit[i][1] + P[1][2] * predicted3DStateEdit[i][2] + P[1][3];
             double rz = P[2][0] * predicted3DStateEdit[i][0] + P[2][1] * predicted3DStateEdit[i][1] + P[2][2] * predicted3DStateEdit[i][2] + P[2][3];
@@ -150,8 +161,9 @@ bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getPredictedObs
         for (size_t i = 0; i < predicted3DStateEdit.size(); i++){
             for (size_t d = 0; d < 2; d++){
                 _predictedObservation(2*i+d) = predicted2DStateEdit[i][d];
-}
+            }
         }
+
     }else{
         for (size_t i = 0; i < predicted3DStateEdit.size(); i++)
             for (size_t d = 0; d < 3; d++)
@@ -159,6 +171,7 @@ bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getPredictedObs
 
     }
     return true;
+
 
 }
 

@@ -102,7 +102,7 @@ void UKFilterSimCorr<FilterType>::computeCorrection()
             xCol = matXi.col(i);
             //PRNS("X: " << xCol.transpose());
             stateWrappers[0]->computeSimulationStep(xCol, mechParams, id);
-            observationManager->getPredictedObservation(this->actualTime, id,  zCol);
+            observationManager->getPredictedObservation(id,  zCol);
             matZmodel.col(i) = zCol;
             predObsExp = predObsExp + zCol * vecAlpha(i);
             stateExp = stateExp + xCol * vecAlpha(i);
@@ -332,51 +332,33 @@ void UKFilterSimCorr<FilterType>::computeStarSigmaPoints(EMatrixX& sigmaMat) {
 
     EMatrixX workingMatrix = EMatrixX::Zero(p, r);
 
-    Type lambda, k, sqrt_vec;
-    k = 3 - p;
-    lambda = this->lambdaScale.getValue() * this->lambdaScale.getValue() * (p + k) - p;
+    Type lambda, sqrt_vec;
+    lambda = this->lambdaScale.getValue();
+    PRNS("lambda scale equals: " << lambda);
     sqrt_vec = sqrt(p + lambda);
 
     for (size_t j = 0; j < p; j++) {
-        for (size_t i = 0; i < p; i++)
-            workingMatrix(i,j) = sqrt_vec;
+        workingMatrix(j,j) = sqrt_vec;
     }
-    for (size_t j = p + 1; j < 2 * p; j++) {
-        for (size_t i = 0; i < p; i++)
-            workingMatrix(i,j) = -sqrt_vec;
+    for (size_t j = p; j < 2 * p; j++) {
+        workingMatrix(2*p-j-1,j) = -sqrt_vec;
     }
-
 
     sigmaMat.resize(r,p);
     for (size_t i = 0; i < r; i++)
         sigmaMat.row(i) = workingMatrix.col(i);
 
     vecAlpha.resize(r);
-    for (size_t i = 0; i < 2 * p; i++) {
-        vecAlpha(i) = Type(1.0)/Type(2 * (p + lambda));
-    }
-    // double beta = 2.0;
-    vecAlpha(2 * p) = Type(lambda)/Type(2 * (p + lambda)); // + (1 - this->lambdaScale * this->lambdaScale + beta)
+    vecAlpha.fill(Type(1.0)/Type(r));
+    vecAlpha(2 * p) = Type(lambda) / Type(p + lambda);
     alphaConstant = false;
 
+    alphaVar = (this->useUnbiasedVariance.getValue()) ? Type(1.0)/Type(2 * (p + lambda) - 1) : Type(1.0)/Type(2 * (p + lambda));
     vecAlphaVar.resize(r);
-    if (this->useUnbiasedVariance.getValue()) {
-        for (size_t i = 0; i < 2 * p; i++) {
-            vecAlphaVar(i) = Type(1.0)/Type(2 * (p + lambda));
-        }
-        // double beta = 2.0;
-        vecAlphaVar(2 * p) = Type(lambda)/Type(2 * (p + lambda)); // + (1 - this->lambdaScale * this->lambdaScale + beta)
-
-        alphaVar = Type(1.0)/Type(r-1);
-    } else {
-        for (size_t i = 0; i < 2 * p; i++) {
-            vecAlphaVar(i) = Type(1.0)/Type(2 * (p + lambda) + 1);
-        }
-        // double beta = 2.0;
-        vecAlphaVar(2 * p) = Type(lambda)/Type(2 * (p + lambda) + 1); // + (1 - this->lambdaScale * this->lambdaScale + beta)
-
-        alphaVar = Type(1.0)/Type(r);
-    }
+    vecAlphaVar.fill(alphaVar);
+    vecAlphaVar(2 * p) = Type(lambda) / Type(p + lambda);
+    //PRNS("sigmaMat: \n" << sigmaMat);
+    //PRNS("vecAlphaVar: \n" << vecAlphaVar);
 }
 
 

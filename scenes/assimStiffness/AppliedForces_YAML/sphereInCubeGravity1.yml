@@ -1,0 +1,64 @@
+# some of the parameters are only for GenObs scene (GO), some for assimilation scene (SDA)
+
+---
+model:
+    dt: 0.01
+    vol_mesh: '../../data/sphereInCube/sphereInCube_3899.vtk'
+    surf_mesh: '../../data/sphereInCube/sphereInCube_3899.stl'
+    gravity: [0, -9.81, 0]
+    total_mass: 1
+    young_moduli: [2000, 10000]
+        
+    int:   # temporal integrator properties
+        type: 'Euler'
+        rmass: 0.1
+        rstiff: 0.1
+        maxit: 1
+    bc:
+        type: 'fixed'
+        boxes: '-0.051 -0.051 -0.051  0.051  -0.049 0.051     -0.051  0.04  -0.051   -0.049  -0.051   0.051    0.051  0.04  -0.051   0.049  -0.051   0.051'
+
+    linsol:
+        usePCG: 0
+        PCGUpdateSteps: 20
+        pardisoSym: 1
+        pardisoFolder: ''
+        
+    plane_collision: 0
+
+    fem_method: 'large'
+
+    control:
+        type: 'pressure'
+
+io:    
+    prefix: 'sphereInCube_'
+    suffix: 'm3899_E_2_10_BC_bot2sidesUp4'
+    saveGeo: 1
+    saveObs: 1                  # GO only
+    obsFileName: 'obs'
+    saveEst: 1                  # SDA only
+    sdaFolderSuffix: '_test'         # SDA only
+
+filter:                         # SDA only
+    kind: 'ROUKF'               # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
+    nparams: 10
+    param_init_exval: [4000]
+    param_init_stdev: [1000]
+    param_min_val: [100]
+    param_max_val: [1e10]
+    param_transform: 'project'
+    obs_tag: obs120
+    obs_points: '../../data/cylinder/cyl10_4245_obs120.vtk'
+    observ_stdev: 1e-3
+    sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
+    sigma_points_scale: 1
+
+time:
+    timer_name: 'filter_computation_statistics'
+    time_statistics_file: "computationTime.txt"
+    time_profiling: 0
+    iterations_interval: 1
+    iteration_amount: 300
+
+...

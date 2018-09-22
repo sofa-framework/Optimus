@@ -63,7 +63,7 @@ public:
         , reducedOrder( initData(&reducedOrder, false, "reducedOrder", "reduced order type of the filter") )
         , useUnbiasedVariance( initData(&useUnbiasedVariance, false, "useUnbiasedVariance", "if true, the unbiased variance is computed (normalization by 1/(n-1) [not activated for UKFClassic!") )
         //, useModelIncertitude( initData(&useModelIncertitude, false, "useModelIncertitude", "if true, the state covariance is computed by adding Q") )
-        , lambdaScale( initData(&lambdaScale, 1.0, "lambdaScale", "scaling for sigma points") )
+        , lambdaScale( initData(&lambdaScale, 0.5, "lambdaScale", "scaling for sigma points") )
         , m_sigmaTopologyType( initData(&m_sigmaTopologyType, "sigmaTopology", "sigma topology type") )
         , initialiseObservationsAtFirstStep( initData(&initialiseObservationsAtFirstStep, false, "initialiseObservationsAtFirstStep", "if true initialise component during first iteration") )
     {

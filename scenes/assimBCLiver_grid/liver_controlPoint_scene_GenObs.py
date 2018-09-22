@@ -3,19 +3,16 @@ import math
 import os
 import sys
 import csv
-sys.path.append(os.getcwd() + '/../../python_src/configuration')
-import DAOptions
+import yaml
 
 __file = __file__.replace('\\', '/') # windows
 
 
 def createScene(rootNode):
-    rootNode.createObject('RequiredPlugin', pluginName='SofaPython')   
     rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
     rootNode.createObject('RequiredPlugin', name='Pardiso', pluginName='SofaPardisoSolver')
     rootNode.createObject('RequiredPlugin', name='IMAUX', pluginName='ImageMeshAux')
     # rootNode.createObject('RequiredPlugin', name='MJED', pluginName='SofaMJEDFEM')
-    rootNode.createObject('RequiredPlugin', pluginName='Geomagic')
     
     try : 
         sys.argv[0]
@@ -23,69 +20,101 @@ def createScene(rootNode):
         commandLineArguments = []
     else :
         commandLineArguments = sys.argv
-    mycylGravity_GenObs = cylGravity_GenObs(rootNode, commandLineArguments)
-    return 0;
+
+    if len(commandLineArguments) > 1:
+        configFileName = commandLineArguments[1]
+    else:
+        print 'ERROR: Must supply a yaml config file as an argument!'
+        return
+    print "Command line arguments for python : " + str(commandLineArguments)
+
+    with open(configFileName, 'r') as stream:
+        try:
+            options = yaml.load(stream)
+
+        except yaml.YAMLError as exc:
+            print(exc)
+            return
+
+    liver_controlPoint_GenObs(rootNode, options)
+    return 0
 
 
-class cylGravity_GenObs (Sofa.PythonScriptController):
+class liver_controlPoint_GenObs (Sofa.PythonScriptController):
 
-    options = DAOptions.DAOptions()
-
-    def __init__(self, rootNode, commandLineArguments) :         
-
-        # load configuration from yaml file
-        if len(commandLineArguments) > 1:
-            self.configFileName = commandLineArguments[1]
-        else:
-            self.configFileName = "cyl_scene_config.yml"
-
-        self.options.parseYaml(self.configFileName)
+    def __init__(self, rootNode, options):
+        self.options = options
         self.vdamping = 5.0
+        self.generalFolderName = self.options['filtering_parameters']['common_directory_prefix'] + self.options['general_parameters']['solver_kind']
+        if not os.path.isdir(self.generalFolderName):
+            os.mkdir(self.generalFolderName)
+        if not os.path.isdir(self.generalFolderName + '/observations'):
+            os.mkdir(self.generalFolderName + '/observations')
 
-        rootNode.findData('dt').value = self.options.model.dt
-        rootNode.findData('gravity').value = self.options.model.gravity
-
-        print "Command line arguments for python : "+str(commandLineArguments)
+        rootNode.findData('dt').value = options['general_parameters']['delta_time']
+        rootNode.findData('gravity').value = options['general_parameters']['gravity']
         self.createGraph(rootNode)
+        return None
 
-        return None;
 
-    def createGraph(self,rootNode):
+
+    def createGraph(self, rootNode):
         nu=0.45
         E=5000
-        
+
+        # rootNode
         rootNode.createObject('VisualStyle', displayFlags='showVisualModels hideBehaviorModels hideCollisionModels hideMappings showForceFields')
 
         # rootNode/externalImpact
         dotNode = rootNode.createChild('dotNode')
         self.impactPoint = dotNode.createObject('MechanicalObject', template='Vec3d', name='dot', showObject='true', position='0.143369 0.156781 0.395153')
-        if self.options.observations.save:
-            dotNode.createObject('BoxROI', name='dotBounds', box='0.14 0.15 0.37 0.18 0.17 0.4')
-            dotNode.createObject('Monitor', name='toolMonitor', template='Vec3d', showPositions='1', indices='@dotBounds.indices', ExportPositions='1', fileName=self.options.impact.positionFileName)
+        if self.options['obs_generating_parameters']['save_observations']:
+            dotNode.createObject('BoxROI', name='dotBounds', box='0.14 0.15 0.37 0.18 0.17 0.4', doUpdate='0')
+            dotNode.createObject('Monitor', name='toolMonitor', template='Vec3d', showPositions='1', indices='@dotBounds.indices', ExportPositions='1', fileName = self.generalFolderName + '/' + self.options['impact_parameters']['observation_file_name'])
         self.index = 0
         	
         # rootNode/simuNode
         simuNode = rootNode.createChild('simuNode')
         self.simuNode = simuNode
-        simuNode.createObject('EulerImplicitSolver', firstOrder='false', vdamping=self.vdamping, rayleighStiffness=self.options.model.rayleighStiffness, rayleighMass=self.options.model.rayleighMass)
+        if self.options['general_parameters']['solver_kind'] == 'Euler':
+            simuNode.createObject('EulerImplicitSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'])
+        elif self.options['general_parameters']['solver_kind'] == 'Symplectic':
+            simuNode.createObject('VariationalSymplecticSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'], newtonError='1e-12', steps='1', verbose='0')
+        elif self.options['general_parameters']['solver_kind'] == 'Newton':
+            simuNode.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")
+        else:
+            print 'Unknown solver type!'
         simuNode.createObject('SparsePARDISOSolver', name='LDLsolver', verbose='0', symmetric='1', exportDataToFolder='')
-        # simuNode.createObject('MeshVTKLoader', name='loader', filename=self.options.model.volumeFileName)
-        simuNode.createObject('MeshGmshLoader', name='loader', filename=self.options.model.volumeFileName)
+
+        fileExtension = self.options['system_parameters']['volume_file_name']
+        fileExtension = fileExtension[fileExtension.rfind('.') + 1:]
+        if fileExtension == 'vtk' or fileExtension == 'vtu':
+            simuNode.createObject('MeshVTKLoader', name='loader', filename=self.options['system_parameters']['volume_file_name'])
+        elif fileExtension == 'msh':
+            simuNode.createObject('MeshGmshLoader', name='loader', filename=self.options['system_parameters']['volume_file_name'])
+        else:
+            print 'Unknown file type!'
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')
-        for index in range(0, len(self.options.model.bcList)):
-            bcElement = self.options.model.bcList[index]
-            simuNode.createObject('BoxROI', box=bcElement.boundBoxes, name='boundBoxes'+str(index), drawBoxes='0')
-            if (bcElement.bcType == 'fixed'):
-                simuNode.createObject('FixedConstraint', indices='@boundBoxes'+str(index)+'.indices')
-            elif (bcElement.bcType == 'elastic'):
-                simuNode.createObject('RestShapeSpringsForceField', stiffness=bcElement.boundaryStiffness, angularStiffness="1", points='@boundBoxes'+str(index)+'.indices')
-            else:
-                print 'Unknown type of boundary conditions'
+
+        if 'boundary_conditions_list' in self.options['general_parameters'].keys():
+            for index in range(0, len(self.options['general_parameters']['boundary_conditions_list'])):
+                bcElement = self.options['general_parameters']['boundary_conditions_list'][index]
+                simuNode.createObject('BoxROI', box=bcElement['boxes_coordinates'], name='boundBoxes'+str(index), drawBoxes='0', doUpdate='0')
+                if bcElement['condition_type'] == 'fixed':
+                    simuNode.createObject('FixedConstraint', indices='@boundBoxes'+str(index)+'.indices')
+                elif bcElement['condition_type'] == 'elastic':
+                    simuNode.createObject('RestShapeSpringsForceField', stiffness=bcElement['spring_stiffness_values'], angularStiffness="1", points='@boundBoxes'+str(index)+'.indices')
+                else:
+                    print 'Unknown type of boundary conditions'
+
         simuNode.createObject('TetrahedronSetTopologyContainer', name="Container", src="@loader", tags=" ")
         simuNode.createObject('TetrahedronSetTopologyModifier', name="Modifier")        
         simuNode.createObject('TetrahedronSetTopologyAlgorithms', name="TopoAlgo")
         simuNode.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
-        simuNode.createObject('UniformMass', totalMass=self.options.model.totalMass)
+        if 'total_mass' in self.options['general_parameters'].keys():
+            simuNode.createObject('UniformMass', totalMass=self.options['general_parameters']['total_mass'])
+        if 'density' in self.options['general_parameters'].keys():
+            simuNode.createObject('MeshMatrixMass', printMass='0', lumping='1', massDensity=self.options['general_parameters']['density'], name='mass')
 
         lamb=(E*nu)/((1+nu)*(1-2*nu))
         mu=E/(2+2*nu)
@@ -93,22 +122,15 @@ class cylGravity_GenObs (Sofa.PythonScriptController):
         #simuNode.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=materialParams)
         simuNode.createObject('TetrahedronFEMForceField', updateStiffness='1', name='FEM', listening='true', drawHeterogeneousTetra='1', method='large', youngModulus='5000', poissonRatio='0.45')
 
-        if self.options.observations.save:
-            simuNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1')
-            simuNode.createObject('Monitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.options.observations.valueFileName, ExportPositions='1', ExportVelocities='0', ExportForces='0')
+        if self.options['obs_generating_parameters']['save_observations']:
+            simuNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1', doUpdate='0')
+            simuNode.createObject('Monitor', name='ObservationMonitor', indices='@observationBox.indices', fileName = self.generalFolderName + '/' + self.options['system_parameters']['observation_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0')
 
         # rootNode/simuNode/attached
-        ##attachedNode = simuNode.createChild('Attached')
-        ##self.attachedNode = attachedNode
-        ##attachedNode.createObject('MechanicalObject', template='Vec3d', name='dofs', showObject='true', position=self.options.impact.position)
-        ##attachedNode.createObject('RestShapeSpringsForceField', name='Springs', stiffness='25', angularStiffness='1', external_rest_shape='@../../dotNode/dot')
-        ##attachedNode.createObject('BarycentricMapping')
-        ##attachedNode.createObject('BoxROI', name='impactBounds', box='0.08 0.1 0.31 0.22 0.27 0.46')
-        ##attachedNode.createObject('Monitor', name='toolMonitor', template='Vec3d', showPositions='1', indices='@impactBounds.indices', ExportPositions='1', fileName=self.options.impact.positionFileName)
-        simuNode.createObject('BoxROI', name='impactBounds', box='0.14 0.15 0.37 0.18 0.17 0.4')
+        simuNode.createObject('BoxROI', name='impactBounds', box='0.14 0.15 0.37 0.18 0.17 0.4', doUpdate='0')
         simuNode.createObject('RestShapeSpringsForceField', name='Springs', stiffness='10000', angularStiffness='1', external_rest_shape='@../dotNode/dot', points='@impactBounds.indices')
 
-        return 0;
+        return 0
 
 
 
