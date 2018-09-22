@@ -107,7 +107,7 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
             simuNode.createObject('EulerImplicitSolver', firstOrder = firstOrder, rayleighStiffness=rstiff, rayleighMass=rmass)
         elif intType == 'Newton':
             maxIt = self.opt['model']['int']['maxit']
-            simuNode.createObject('NewtonStaticSolver', maxIt=maxIt, correctionTolerance='1e-8', residualTolerance='1e-8', convergeOnResidual='1')
+            simuNode.createObject('NewtonStaticSolver', maxIt=maxIt, correctionTolerance='1e-8', residualTolerance='1e-8', convergeOnResidual='1', printLog=self.opt['model']['int']['verbose'])
 
         # simuNode.createObject('StepPCGLinearSolver', name='lsolverit', precondOnTimeStep='0', use_precond='1', tolerance='1e-10', iterations='500',
         #  verbose='0', update_step='10', listening='1', preconditioners='lsolver')
@@ -135,7 +135,7 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
         simuNode.createObject('Indices2ValuesMapper', indices=indices, values=youngModuli, 
             name='youngMapper', inputValues='@loader.dataset')
 
-        if self.opt['model']['fem']['method'] == 'CorLarge':        
+        if self.opt['model']['fem']['method'] == 'CorLarge':
             simuNode.createObject('TetrahedronFEMForceField', name='FEM', method='large', listening='true', drawHeterogeneousTetra='1', poissonRatio='0.45', youngModulus='@youngMapper.outputValues', updateStiffness='1')
         elif self.opt['model']['fem']['method'] == 'CorSmall':
             simuNode.createObject('TetrahedronFEMForceField', name='FEM', method='small', listening='true', drawHeterogeneousTetra='1', poissonRatio='0.45', youngModulus='@youngMapper.outputValues', updateStiffness='1')
@@ -163,13 +163,17 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
 
 
         if self.saveGeo:
+            if self.opt['model']['fem']['method'] == 'StVenant':
+                expField=''
+            else:
+                expField = 'FEM.youngModulus'
             simuNode.createObject('VTKExporter', filename=self.geoFolder+'/object.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="1",
-                exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1", cellsDataFields='FEM.youngModulus')
+                exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1", cellsDataFields=expField)
 
 
         if self.saveObs:
             simuNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1')
-            simuNode.createObject('Monitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.obsFile, ExportPositions='1', ExportVelocities='0', ExportForces='0')
+            simuNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.obsFile, ExportPositions='1', ExportVelocities='0', ExportForces='0')
 
 
         if self.planeCollision:
