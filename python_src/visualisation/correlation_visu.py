@@ -106,8 +106,10 @@ for i in range(0, covarSize):
 
     spl1.plot(rng, corr, color=cmap(i),  linestyle='solid', linewidth=4, label='Correlation between elements ' + str(firstVarInd) + ' and ' + str(secondVarInd))
 
-    spl1.set_xlabel('iterations')
-    spl1.set_ylabel('Correlation')
+    spl1.set_xlabel('iterations', fontsize=50)
+    spl1.set_ylabel('Correlation', fontsize=50)
+    spl1.tick_params(axis = 'both', which = 'major', labelsize=40)
+    spl1.grid(color='k', linestyle=':', linewidth=1)
     spl1.set_title('Correlation ' + folder)
 
 legendForSpl1 = spl1.legend(loc='upper center', shadow=True, fontsize='x-large')
