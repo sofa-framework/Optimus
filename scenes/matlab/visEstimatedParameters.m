@@ -6,20 +6,20 @@ groundTruth=[3000, 5000]
 %$groundTruth=zeros(1,10);   %P2
 %groundTruth = zeros(1,16);
 showStdev = 1;
-nsteps=500;
+nsteps=100;
 
 prefix='cyl2_xforceInc'
-integ='Newton1';
-filterType='ROUKF';
-transform = 'project_40_40';
-usePCG = '1';
-obsID = 'obs1end';
+integ='Euler1';
+filterType='UKFSimCorr';
+transform = 'project_40_40_ns-5_compareFilters';
+usePCG = '0';
+obsID = 'obs1middle';
 %obsID = 'obs2middleEnd';
 
 %inputDir=['../assimBC/brickD_Newton3_fp1_tr1_ogrid4/ROUKFproj_OSD-3']
 %inputDir=['../assimStiffness/cyl3gravity_Euler1/ROUKF_obs33_' trans '2'];
 %inputDir='../assimStiffness/cyl10gravity_Euler1/ROUKF_obs120_proj5';
-inputDir = ['../assimStiffness/' prefix integ '/' filterType '_' obsID '_' usePCG '_' transform ]
+inputDir = ['../assimStiffness/' prefix '_' integ '/' filterType '_' obsID '_' usePCG '_' transform ]
 
 
 %inputDir='../assimStiffness/cyl3gravity_Euler1/UKFSimCorr_obs33_proj0'
@@ -81,7 +81,7 @@ for i=1:nparams
     end
     
 end
-title(sprintf('State  %s', [filterType ' ' integ ' ' obsID]));
+title(sprintf('State  %s', [filterType ' ' integ ' ' obsID ' ' transform]));
 
 return
 
