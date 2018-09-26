@@ -8,9 +8,10 @@ model:
     gravity: [0, -9.81, 0]
     #total_mass: 0.2
     density: 200
-    young_moduli: [1000, 4000, 2000]   #E1
+    young_modulus: [1000, 4000, 2000]   #E1
     #young_moduli: [100000, 50000, 1000]   #E1
     #young_moduli: [100000, 50000, 100000]   #E2
+    poisson_ratio: 0.45
     
     int:   # temporal integrator properties
         type: 'Euler'

@@ -130,23 +130,22 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
         if 'density' in self.opt['model'].keys():
             simuNode.createObject('MeshMatrixMass', printMass='0', lumping='1', massDensity=self.opt['model']['density'], name='mass')
 
-        youngModuli=self.opt['model']['young_moduli']
+        # physics forcefield
+        youngModuli=self.opt['model']['young_modulus']
+        poissonRatio = self.opt['model']['poisson_ratio']
         indices = range(1, len(youngModuli)+1)
-        simuNode.createObject('Indices2ValuesMapper', indices=indices, values=youngModuli, 
-            name='youngMapper', inputValues='@loader.dataset')
+        method = self.opt['model']['fem']['method']
+        if  method[0:3] == 'Cor':
+            simuNode.createObject('Indices2ValuesMapper', indices=indices, values=youngModuli, name='youngMapper', inputValues='@loader.dataset')
+            simuNode.createObject('TetrahedronFEMForceField', name='FEM', method=method[3:].lower(), listening='true', drawHeterogeneousTetra='1', 
+                poissonRatio=poissonRatio, youngModulus='@youngMapper.outputValues', updateStiffness='1')        
+        elif method == 'StVenant':
+            poissonRatii = poissonRatio * np.ones([1,len(youngModuli)])
+            simuNode.createObject('Indices2ValuesTransformer', name='paramMapper', indices=indices,
+                values1=youngModuli, values2=poissonRatii, inputValues='@loader.dataset', transformation='ENu2MuLambda')
+            simuNode.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet='@paramMapper.outputValues', drawHeterogeneousTetra='1')
 
-        if self.opt['model']['fem']['method'] == 'CorLarge':
-            simuNode.createObject('TetrahedronFEMForceField', name='FEM', method='large', listening='true', drawHeterogeneousTetra='1', poissonRatio='0.45', youngModulus='@youngMapper.outputValues', updateStiffness='1')
-        elif self.opt['model']['fem']['method'] == 'CorSmall':
-            simuNode.createObject('TetrahedronFEMForceField', name='FEM', method='small', listening='true', drawHeterogeneousTetra='1', poissonRatio='0.45', youngModulus='@youngMapper.outputValues', updateStiffness='1')
-        elif self.opt['model']['fem']['method'] == 'StVenant':
-            nu = 0.45
-            E = 4000
-            lamb=(E*nu)/((1+nu)*(1-2*nu))
-            mu=E/(2+2*nu)
-            materialParams='{} {}'.format(mu,lamb)
-            simuNode.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=materialParams)
-
+        # excitations
         if 'applied_force' in self.opt['model'].keys():
             simuNode.createObject('BoxROI', name='forceBox', box=self.opt['model']['applied_force']['boxes'])
             self.appliedForce = simuNode.createObject('ConstantForceField', force=self.opt['model']['applied_force']['initial_force'], indices='@forceBox.indices')
@@ -161,7 +160,7 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
                                                      name='forceField', normal='0 0 1', showForces='1', dmin=0.299, dmax=0.301)
             surface.createObject('BarycentricMapping', name='bpmapping')            
 
-
+        # export
         if self.saveGeo:
             if self.opt['model']['fem']['method'] == 'StVenant':
                 expField=''

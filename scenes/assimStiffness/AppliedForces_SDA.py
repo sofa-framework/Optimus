@@ -174,32 +174,30 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         if 'density' in self.opt['model'].keys():
             simuNode.createObject('MeshMatrixMass', printMass='0', lumping='1', massDensity=self.opt['model']['density'], name='mass')    
         
+        # physics forcefield
         simuNode.createObject('OptimParams', name="paramE", optimize="1", template="Vector", 
             numParams=self.opt['filter']['nparams'], transformParams=self.opt['filter']['param_transform'],
             initValue=self.opt['filter']['param_init_exval'], stdev=self.opt['filter']['param_init_stdev'],
             minValue=self.opt['filter']['param_min_val'], maxValue=self.opt['filter']['param_max_val'])
-
-        youngModuli=self.opt['model']['young_moduli']
+                
+        youngModuli=self.opt['model']['young_modulus']
+        poissonRatio = self.opt['model']['poisson_ratio']
         indices = range(1, len(youngModuli)+1)
-        simuNode.createObject('Indices2ValuesMapper', indices=indices, values='@paramE.value', name='youngMapper', inputValues='@/loader.dataset')
+        method = self.opt['model']['fem']['method']
+        if  method[0:3] == 'Cor':
+            simuNode.createObject('Indices2ValuesMapper', indices=indices, values='@paramE.value', name='youngMapper', inputValues='@loader.dataset')
+            simuNode.createObject('TetrahedronFEMForceField', name='FEM', method=method[3:].lower(), listening='true', drawHeterogeneousTetra='1', 
+                poissonRatio=poissonRatio, youngModulus='@youngMapper.outputValues', updateStiffness='1')
+        elif method == 'StVenant':
+            poissonRatii = poissonRatio * np.ones([1,len(youngModuli)])
+            simuNode.createObject('Indices2ValuesTransformer', name='paramMapper', indices=indices,
+                values1='@paramE.value', values2=poissonRatii, inputValues='@loader.dataset', transformation='ENu2MuLambda')
+            simuNode.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet='@paramMapper.outputValues', drawHeterogeneousTetra='1')
 
-        if self.opt['model']['fem']['method'] == 'CorLarge':        
-            simuNode.createObject('TetrahedronFEMForceField', name='FEM', method='large', listening='true', drawHeterogeneousTetra='1', poissonRatio='0.45', youngModulus='@youngMapper.outputValues', updateStiffness='1')
-        elif self.opt['model']['fem']['method'] == 'CorSmall':
-            simuNode.createObject('TetrahedronFEMForceField', name='FEM', method='small', listening='true', drawHeterogeneousTetra='1', poissonRatio='0.45', youngModulus='@youngMapper.outputValues', updateStiffness='1')
-        elif self.opt['model']['fem']['method'] == 'StVenant':
-            nu = 0.45
-            E = 4000
-            lamb=(E*nu)/((1+nu)*(1-2*nu))
-            mu=E/(2+2*nu)
-            materialParams='{} {}'.format(mu,lamb)
-            simuNode.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=materialParams)
-
-
+        # excitations
         if 'applied_force' in self.opt['model'].keys():
             simuNode.createObject('BoxROI', name='forceBox', box=self.opt['model']['applied_force']['boxes'])
             self.appliedForce = simuNode.createObject('ConstantForceField', force=self.opt['model']['applied_force']['initial_force'], indices='@forceBox.indices')
-
 
         if 'applied_pressure' in self.opt['model'].keys():
             surface=simuNode.createChild('pressure')
@@ -212,6 +210,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             surface.createObject('BarycentricMapping', name='bpmapping')            
 
 
+        # export
         if self.saveGeo:
             simuNode.createObject('VTKExporterDA', filename=self.geoFolder+'/object.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="1",
                 exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1")
@@ -369,8 +368,8 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
 
             rcv=self.filter.findData(covarName).value
             covariance = [val for sublist in rcv for val in sublist]
-            #print 'Covariance:'
-            #print covariance
+            print 'Covariance:'
+            print covariance
             estStd = np.sqrt(variance)            
             print 'Correlation: ',covariance[0]/(np.prod(estStd))            
 
