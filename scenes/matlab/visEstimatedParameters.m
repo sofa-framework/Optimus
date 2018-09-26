@@ -6,37 +6,41 @@ groundTruth=[3000, 5000]
 %$groundTruth=zeros(1,10);   %P2
 %groundTruth = zeros(1,16);
 showStdev = 1;
-nsteps=100;
+nsteps=4300;
 
 prefix='cyl2-2k';
-excit='pressureInc';
-fem='CorLarge';
-integ='Euler1';
+excit='pressure';
+fem='StVenant';
+integ='Euler10';
 filterType='ROUKF';
-obsID = 'obs1middle';
+obsID = 'obs2middleEnd';
 usePCG = '0';
 transform = 'project';
 sdaParams='40_40_ns-5';
 
 mainDir = [ '../assimStiffness/' prefix '_' excit '_' fem '_' integ '/' ];
-inputDir = [ mainDir filterType '_' obsID '_' usePCG '_' transform '_' sdaParams ];
+inputDir = [ mainDir filterType '_' obsID '_' usePCG '_' transform '_' sdaParams ]
 
 
 %inputDir='../assimStiffness/cyl3gravity_Euler1/UKFSimCorr_obs33_proj0'
 
 estStateFile=[inputDir '/state.txt'];
 estVarFile=[inputDir '/variance.txt'];
+estCovarFile=[inputDir '/covariance.txt'];
 
 %===================================================================
 nparams=size(groundTruth,2);
 estState=load(estStateFile);
 estVar=load(estVarFile);
+estCovar = load(estCovarFile);
 
 if nsteps < 0
     nsteps=size(estState,1);
 end
 
 nstate=nparams;
+
+ncovar=nparams*(nparams-1)/2;
 
 if strcmp(transform,'abs')
     estState=abs(estState(1:nsteps,nstate-nparams+1:nstate));
@@ -57,7 +61,17 @@ if strcmp(transform,'project')
     estStd=sqrt(estVar);
 end
 
+correl = zeros(size(estCovar));
 
+for ns = 1:nsteps
+    gli = 0;
+    for i=1:nparams
+        for j = i+1:nparams
+            gli = gli+1;
+            correl(ns,gli) = estCovar(ns,gli)/(estStd(ns,i)* estStd(ns,j));
+        end
+    end
+end
 
 
 minval=0;
@@ -82,6 +96,13 @@ for i=1:nparams
     
 end
 title(sprintf('State  %s', [filterType ' ' integ ' ' obsID ' ' transform]));
+
+figure; 
+%axes('XLim', [1,nsteps], 'YLim', [0, 1.2*maxval]);
+hold on
+plot(1:nsteps, correl(1:nsteps,:));
+title(sprintf('Correlation %s', [filterType ' ' integ ' ' obsID ' ' transform]));
+
 
 return
 
