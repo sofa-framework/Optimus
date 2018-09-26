@@ -178,7 +178,8 @@ for generalIndex in range (0, len(folder)):
         spl2.text(rect.get_x() + rect.get_width() * 1.3, 0, nodesList[index], fontsize=25, rotation=trans_angle, rotation_mode='anchor', ha='center', va='bottom')
         spl2.text(rect.get_x() + rect.get_width() / 2, 1.05 * height, '%d' % iterations[index], fontsize=20, color='lime', ha='center', va='bottom')
 
-    spl2.set_ylabel('general time, ms', fontsize=40)
+    spl2.set_ylabel('general time, ms', fontsize=50)
+    spl2.tick_params(axis = 'both', which = 'major', labelsize=40)
     spl2.grid(color='k', linestyle=':', linewidth=1)
     spl2.legend((rects1[0], rects2[0]), ('Average', 'Total'))
     spl2.set_title('Computational time after ' + str(len(statistics)) + ' iterations')

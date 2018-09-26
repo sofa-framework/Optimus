@@ -200,6 +200,18 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             simuNode.createObject('BoxROI', name='forceBox', box=self.opt['model']['applied_force']['boxes'])
             self.appliedForce = simuNode.createObject('ConstantForceField', force=self.opt['model']['applied_force']['initial_force'], indices='@forceBox.indices')
 
+
+        if 'applied_pressure' in self.opt['model'].keys():
+            surface=simuNode.createChild('pressure')
+            surface.createObject('MeshSTLLoader', name='sloader', filename=self.opt['model']['surf_mesh'])
+            surface.createObject('TriangleSetTopologyContainer', position='@sloader.position', name='TriangleContainer', triangles='@sloader.triangles')
+            surface.createObject('TriangleSetTopologyModifier', name='Modifier')
+            surface.createObject('MechanicalObject', showIndices='false', name='mstate')            
+            self.appliedPressure = surface.createObject('TrianglePressureForceField', pressure=self.opt['model']['applied_pressure']['initial_pressure'],
+                                                     name='forceField', normal='0 0 1', showForces='1', dmin=0.299, dmax=0.301)
+            surface.createObject('BarycentricMapping', name='bpmapping')            
+
+
         if self.saveGeo:
             simuNode.createObject('VTKExporterDA', filename=self.geoFolder+'/object.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="1",
                 exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1")
@@ -288,7 +300,15 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             if self.step < maxTS:
                 fc = np.array(self.appliedForce.findData('force').value)
                 fc[0] += delta
-                self.appliedForce.findData('force').value = fc.tolist()            
+                self.appliedForce.findData('force').value = fc.tolist()  
+
+        if 'applied_pressure' in self.opt['model'].keys():
+            maxTS = self.opt['model']['applied_pressure']['num_inc_steps']
+            delta = np.array(self.opt['model']['applied_pressure']['delta'])
+            if self.step < maxTS:
+                press = np.array(self.appliedPressure.findData('pressure').value)
+                press[0] += delta
+                self.appliedPressure.findData('pressure').value = press.tolist()          
 
         return 0
 

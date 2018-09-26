@@ -8,18 +8,18 @@ groundTruth=[3000, 5000]
 showStdev = 1;
 nsteps=100;
 
-prefix='cyl2_xforceInc'
+prefix='cyl2-2k';
+excit='pressureInc';
+fem='CorLarge';
 integ='Euler1';
-filterType='UKFSimCorr';
-transform = 'project_40_40_ns-5_compareFilters';
-usePCG = '0';
+filterType='ROUKF';
 obsID = 'obs1middle';
-%obsID = 'obs2middleEnd';
+usePCG = '0';
+transform = 'project';
+sdaParams='40_40_ns-5';
 
-%inputDir=['../assimBC/brickD_Newton3_fp1_tr1_ogrid4/ROUKFproj_OSD-3']
-%inputDir=['../assimStiffness/cyl3gravity_Euler1/ROUKF_obs33_' trans '2'];
-%inputDir='../assimStiffness/cyl10gravity_Euler1/ROUKF_obs120_proj5';
-inputDir = ['../assimStiffness/' prefix '_' integ '/' filterType '_' obsID '_' usePCG '_' transform ]
+mainDir = [ '../assimStiffness/' prefix '_' excit '_' fem '_' integ '/' ];
+inputDir = [ mainDir filterType '_' obsID '_' usePCG '_' transform '_' sdaParams ];
 
 
 %inputDir='../assimStiffness/cyl3gravity_Euler1/UKFSimCorr_obs33_proj0'
@@ -38,20 +38,20 @@ end
 
 nstate=nparams;
 
-if strcmp(trans,'abs')
+if strcmp(transform,'abs')
     estState=abs(estState(1:nsteps,nstate-nparams+1:nstate));
     estVar=abs(estVar(1:nsteps,nstate-nparams+1:nstate));
     estStd=sqrt(estVar);
 end
 
 
-if strcmp(trans,'exp')
+if strcmp(transform,'exp')
     estState=exp(estState(1:nsteps,nstate-nparams+1:nstate));
     estVar=estVar(1:nsteps,nstate-nparams+1:nstate);
     estStd=exp(sqrt(estVar));
 end
 
-if strcmp(trans,'proj')
+if strcmp(transform,'project')
     estState=estState(1:nsteps,nstate-nparams+1:nstate);
     estVar=estVar(1:nsteps,nstate-nparams+1:nstate);
     estStd=sqrt(estVar);
