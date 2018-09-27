@@ -43,7 +43,7 @@ class synth1_GenObs (Sofa.PythonScriptController):
         if saveObservations:
             tool.createObject('VTKExporter', position="@MO.position", edges="0", listening="0" , XMLformat='0', exportAtBegin='1', exportEveryNumberOfSteps="0", filename=outputDir+'/tool.vtk')
             tool.createObject('BoxROI', name='toolDOFs', box='-1 -1 -1 1 1 1')        
-            tool.createObject('OptimMonitor', name='toolMonitor', fileName=outputDir+'/tool', showPositions='1', indices="@toolDOFs.indices", ExportPositions="1", ExportVelocities="1", ExportForces="1")
+            tool.createObject('Monitor', name='toolMonitor', fileName=outputDir+'/tool', showPositions='1', indices="@toolDOFs.indices", ExportPositions="1", ExportVelocities="1", ExportForces="1")
 
         # rootNode/grid
         # gridNode = rootNode.createChild('grid')
@@ -128,7 +128,7 @@ class synth1_GenObs (Sofa.PythonScriptController):
         if saveObservations:
             obsGrid.createObject('VTKExporter', filename=monitorFile+'.vtk', position="@MO.position", listening="0" , XMLformat='0', exportAtBegin='1', exportEveryNumberOfSteps="0")
             obsGrid.createObject('BoxROI', name='gridDOFs', box='-1 -1 -1 1 1 1')                
-            obsGrid.createObject('OptimMonitor', name='observationMonitor', fileName=monitorFile, indices="@gridDOFs.indices", ExportPositions="1", ExportVelocities="0", ExportForces="0")
+            obsGrid.createObject('Monitor', name='observationMonitor', fileName=monitorFile, indices="@gridDOFs.indices", ExportPositions="1", ExportVelocities="0", ExportForces="0")
             
         visNode = simuNode.createChild('ObjectVisualization1')
         visNode.createObject('MeshSTLLoader', name='objectSLoader', filename=surfaceSTL)
