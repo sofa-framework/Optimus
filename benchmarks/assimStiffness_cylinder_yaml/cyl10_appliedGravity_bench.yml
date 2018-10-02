@@ -42,7 +42,7 @@ filter:                         # SDA only
     param_transform: 'absolute'
     obs_tag: obs33
     obs_points: '../../data/cylinder/cyl10_4245_obs33.vtk'
-    observ_stdev: 2e-3    
+    observ_stdev: 1e-5
     sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
     sigma_points_scale: 1
     bound_filter_state: 1
