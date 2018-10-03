@@ -24,7 +24,7 @@ rm -rf roukf_testing
 mkdir -p roukf_testing
 
 echo "Generating observations..."
-$SOFA_EXEC -g batch -n $numItObs $goScene --argv $yamlConfig  &> genObsOut
+$SOFA_EXEC -g batch -n $numItObs $goScene --argv $yamlConfig &> genObsOut
 echo "... done"
 
 echo "Running data assimilation..."
