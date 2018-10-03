@@ -57,10 +57,15 @@ typedef struct
 #define SOFA_STOCHASTIC_API  SOFA_IMPORT_DYNAMIC_LIBRARY
 #endif
 
-#define PRNW(ARG) std::cout << "[" << this->getName() << "] WARNING: " << ARG << std::endl;
-#define PRNE(ARG) std::cerr << "[" << this->getName() << "] ERROR: " << ARG << std::endl;
-#define PRNS(ARG) if (this->verbose.getValue()) { std::cout << "[" << this->getName() << "]: " << ARG << std::endl; }
-#define PRNSC(ARG) if (this->verbose.getValue()) { std::cout << "[" << this->getName() << "]: " << ARG; }
+#define PRNW(ARG) msg_warning(this) << ARG;
+#define PRNE(ARG) msg_error(this) << ARG;
+#define PRNS(ARG) msg_info(this) << ARG;
+#define PRNSC(ARG) msg_info(this) << ARG;
+
+//#define PRNW(ARG) std::cout << "[" << this->getName() << "] WARNING: " << ARG << std::endl;
+//#define PRNE(ARG) std::cerr << "[" << this->getName() << "] ERROR: " << ARG << std::endl;
+//#define PRNS(ARG) if (this->verbose.getValue()) { std::cout << "[" << this->getName() << "]: " << ARG << std::endl; }
+//#define PRNSC(ARG) if (this->verbose.getValue()) { std::cout << "[" << this->getName() << "]: " << ARG; }
 
 #define TIC this->startTime = double(this->timer->getTime());
 #define TOC(arg) this->stopTime = double(this->timer->getTime()); \
