@@ -2,24 +2,25 @@ addpath '~/AncillaIP/Matlab';
 %groundTruth=[1500 6000 2000];   %P1
 %groundTruth=[3500 4000 1000 6000 2000 7000 2500 8000 3000 1500];
 %groundTruth=[1000 4000 2000];   %P1
-groundTruth=[3000, 5000]
+groundTruth=[3000, 7000]
 %$groundTruth=zeros(1,10);   %P2
 %groundTruth = zeros(1,16);
 showStdev = 1;
 nsteps=100;
 
-prefix='cyl2-2k';
-excit='displ';
+object='cylinder2';
+numEl='2264';
+excit='displ';   % force, displ
+obsID = 'mid-end';
 fem='StVenant';
-integ='Newton10';
-filterType='ROUKF';
-obsID = 'obs1middle';
-usePCG = '0';
+integ='Newton3';
+suffix='test1_0.0nu';
+filterType='ROUKF';  % "ROUKF", "UKFSimCorr", and "UKFClassic"
 transform = 'project';
 sdaParams='45_45_ns-5';
 
-mainDir = [ '../assimStiffness/' prefix '_' excit '_' fem '_' integ '/' ];
-inputDir = [ mainDir filterType '_' obsID '_' usePCG '_' transform '_' sdaParams ]
+mainDir = [ '../assimStiffness/' object '_' numEl  '_' excit '_' obsID '_' fem '_' integ '_' suffix '/' ]
+inputDir = [ mainDir filterType '_' transform '_' sdaParams ]
 
 
 %inputDir='../assimStiffness/cyl3gravity_Euler1/UKFSimCorr_obs33_proj0'
@@ -72,6 +73,11 @@ for ns = 1:nsteps
         end
     end
 end
+
+format short g
+disp(estState(nsteps,:))
+disp(estStd(nsteps,:))
+disp(correl(nsteps,:))
 
 
 minval=0;

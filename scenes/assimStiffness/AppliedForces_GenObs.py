@@ -45,7 +45,7 @@ def createScene(rootNode):
 
 class AppliedForces_GenObs (Sofa.PythonScriptController):
 
-    def __init__(self, rootNode, opt):
+    def __init__(self, rootNode, opt):       
         self.opt = opt
 
         pp = pprint.PrettyPrinter(indent=4)
@@ -54,24 +54,33 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
         self.saveObs = opt['io']['saveObs']
         self.saveGeo = opt["io"]["saveGeo"]
         self.planeCollision = opt['model']['plane_collision']
-                        
-        if self.saveObs or self.saveGeo:
-            prefix = opt['io']['prefix']
-            suffix = opt['io']['suffix']
+        self.meshFile = opt['model']['mesh_path'] + opt['model']['object'] + '_' + str(opt['model']['num_el'])
 
+        self.excitation = ''
+        if 'applied_force' in self.opt['model'].keys():
+            self.excitation = 'force'
+        elif 'applied_pressure' in self.opt['model'].keys():
+            self.excitation = 'press'
+        elif 'prescribed_displacement' in self.opt['model'].keys():
+            self.excitation = 'displ'
+
+        if self.saveObs or self.saveGeo:
+            object = opt['model']['object']
             if self.planeCollision:
-                prefix = prefix + 'plane_'
+                object = object + 'plane_'
             
-            self.mainFolder = prefix + opt['model']['fem']['method'] + '_' +  opt['model']['int']['type'] + str(opt['model']['int']['maxit']) + suffix
+            self.mainFolder = object + '_' + str(opt['model']['num_el']) + '_' + self.excitation + '_' + opt['model']['obs_id'] + '_' + opt['model']['fem']['method'] + '_' +  opt['model']['int']['type'] + str(opt['model']['int']['maxit']) + '_' + str(opt['io']['suffix'])
 
             os.system('mv '+self.mainFolder+' '+self.mainFolder+'_arch')
             os.system('mkdir '+self.mainFolder)
 
+
         if self.saveObs:
-            self.obsFile = self.mainFolder + '/' + opt['io']['obsFileName']
+            self.obsPoints = opt['model']['mesh_path'] + opt['model']['object'] + '_' + opt['model']['obs_id'] + '.vtk'
+            self.obsFile = self.mainFolder + '/obs'
 
         if self.saveGeo:
-            self.geoFolder = self.mainFolder + '/' + opt['io']['obsFileName']+'VTK'
+            self.geoFolder = self.mainFolder + '/obsVTK'
             os.system('mkdir -p '+self.geoFolder)
 
         self.createGraph(rootNode)
@@ -96,7 +105,7 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
 
         if 'prescribed_displacement' in self.opt['model'].keys():
             phant = rootNode.createChild('phant')
-            phant.createObject('MeshVTKLoader', name='loader', filename=self.opt['model']['vol_mesh'])
+            phant.createObject('MeshVTKLoader', name='loader', filename=self.meshFile+'.vtk')
             phant.createObject('MechanicalObject', name='MO', src='@loader')
             phant.createObject('Mesh', src='@loader')            
             phant.createObject('LinearMotionStateController', keyTimes=self.opt['model']['prescribed_displacement']['times'], keyDisplacements=self.opt['model']['prescribed_displacement']['displ'])
@@ -106,7 +115,7 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
         # rootNode/simuNode
         simuNode = rootNode.createChild('simuNode')
         self.simuNode = simuNode
-        simuNode.createObject('MeshVTKLoader', name='loader', filename=self.opt['model']['vol_mesh'])
+        simuNode.createObject('MeshVTKLoader', name='loader', filename=self.meshFile+'.vtk')
 
         
 
@@ -146,12 +155,13 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
         youngModuli=self.opt['model']['young_modulus']
         poissonRatio = self.opt['model']['poisson_ratio']
         indices = range(1, len(youngModuli)+1)
-        method = self.opt['model']['fem']['method']
-        if  method[0:3] == 'Cor':
-            simuNode.createObject('Indices2ValuesMapper', indices=indices, values=youngModuli, name='youngMapper', inputValues='@loader.dataset')
+        simuNode.createObject('Indices2ValuesMapper', indices=indices, values=youngModuli, name='youngMapper', inputValues='@loader.dataset')
+
+        method = self.opt['model']['fem']['method']    
+        if  method[0:3] == 'Cor':            
             simuNode.createObject('TetrahedronFEMForceField', name='FEM', method=method[3:].lower(), listening='true', drawHeterogeneousTetra='1', 
                 poissonRatio=poissonRatio, youngModulus='@youngMapper.outputValues', updateStiffness='1')        
-        elif method == 'StVenant':
+        elif method == 'StVenant':            
             poissonRatii = poissonRatio * np.ones([1,len(youngModuli)])
             simuNode.createObject('Indices2ValuesTransformer', name='paramMapper', indices=indices,
                 values1=youngModuli, values2=poissonRatii, inputValues='@loader.dataset', transformation='ENu2MuLambda')
@@ -164,7 +174,7 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
 
         if 'applied_pressure' in self.opt['model'].keys():
             surface=simuNode.createChild('pressure')
-            surface.createObject('MeshSTLLoader', name='sloader', filename=self.opt['model']['surf_mesh'])
+            surface.createObject('MeshSTLLoader', name='sloader', filename=self.meshFile+'.stl')
             surface.createObject('TriangleSetTopologyContainer', position='@sloader.position', name='TriangleContainer', triangles='@sloader.triangles')
             surface.createObject('TriangleSetTopologyModifier', name='Modifier')
             surface.createObject('MechanicalObject', showIndices='false', name='mstate')            
@@ -180,18 +190,20 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
 
 
         # export
-        if self.saveGeo:
-            if self.opt['model']['fem']['method'] == 'StVenant':
-                expField=''
-            else:
-                expField = 'FEM.youngModulus'
+        if self.saveGeo:            
+            expField='youngMapper.outputValues'            
             simuNode.createObject('VTKExporter', filename=self.geoFolder+'/object.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="1",
-                exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1", cellsDataFields=expField)
+                exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1", cellsDataFields=expField, printLog='0')
 
 
         if self.saveObs:
-            simuNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1')
-            simuNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.obsFile, ExportPositions='1', ExportVelocities='0', ExportForces='0')
+            obsNode = simuNode.createChild('obsNode')
+            obsNode.createObject('MeshVTKLoader', name='obsloader', filename=self.obsPoints)
+            obsNode.createObject('MechanicalObject', src='@obsloader', name='MO')
+            obsNode.createObject('BarycentricMapping')
+            obsNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1')
+            obsNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.obsFile, ExportPositions='1', ExportVelocities='0', ExportForces='0')
+            obsNode.createObject('ShowSpheres', radius="0.002", color="1 0 0 1", position='@MO.position')
 
 
         if self.planeCollision:

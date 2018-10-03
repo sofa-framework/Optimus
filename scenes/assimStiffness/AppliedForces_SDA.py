@@ -54,17 +54,25 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         self.planeCollision = opt['model']['plane_collision']
         self.saveEst = opt['io']['saveEst']
         self.saveGeo = opt["io"]["saveGeo"]
-                            
-        prefix = opt['io']['prefix']
-        suffix = opt['io']['suffix']
-
+        self.meshFile = opt['model']['mesh_path'] + opt['model']['object'] + '_' + str(opt['model']['num_el'])
+        self.obsPoints = opt['model']['mesh_path'] + opt['model']['object'] + '_' + opt['model']['obs_id'] + '.vtk'                        
+        
+        object = opt['model']['object']
         if self.planeCollision:
-            prefix = prefix + 'plane_'
+            object = object + 'plane_'
 
-        self.mainFolder = prefix + opt['model']['fem']['method'] + '_' +  opt['model']['int']['type'] + str(opt['model']['int']['maxit']) + suffix
-        self.obsFile = self.mainFolder + '/' + opt['io']['obsFileName']
+        self.excitation = ''
+        if 'applied_force' in self.opt['model'].keys():
+            self.excitation = 'force'
+        elif 'applied_pressure' in self.opt['model'].keys():
+            self.excitation = 'press'
+        elif 'prescribed_displacement' in self.opt['model'].keys():
+            self.excitation = 'displ'
 
-        self.estFolder = self.mainFolder + '/' + opt['filter']['kind'] + '_' + opt['filter']['obs_tag'] + '_' + str(opt['model']['linsol']['usePCG']) + opt['io']['sdaFolderSuffix']        
+            
+        self.mainFolder = object + '_' + str(opt['model']['num_el']) + '_' + self.excitation + '_' + opt['model']['obs_id'] + '_' + opt['model']['fem']['method'] + '_' +  opt['model']['int']['type'] + str(opt['model']['int']['maxit']) + '_' + str(opt['io']['suffix'])
+        self.obsFile = self.mainFolder + '/obs'
+        self.estFolder = self.mainFolder + '/' + opt['filter']['kind'] + '_' + opt['io']['sdaFolderSuffix']
 
         if self.saveEst:                        
             os.system('mv '+self.estFolder+' '+self.estFolder+'_arch')
@@ -111,7 +119,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         #rootNode.createObject('ViewerSetting', cameraMode='Perspective', resolution='1000 700', objectPickingMethod='Ray casting')
         rootNode.createObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels hideVisualModels')
 
-        rootNode.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")
+        rootNode.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1", printLog='1')
 
         self.filterKind = self.opt['filter']['kind']
         if self.filterKind == 'ROUKF':
@@ -124,8 +132,8 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             self.filter = rootNode.createObject('UKFilterSimCorr', name="UKFClas", verbose="1", sigmaTopology=self.opt['filter']['sigma_points_topology'], exportPrefix=self.estFolder)
             estimatePosition = 1
             
-        rootNode.createObject('MeshVTKLoader', name='loader', filename=self.opt['model']['vol_mesh'])
-        rootNode.createObject('MeshSTLLoader', name='sloader', filename=self.opt['model']['surf_mesh'])
+        rootNode.createObject('MeshVTKLoader', name='loader', filename=self.meshFile+'.vtk')
+        rootNode.createObject('MeshSTLLoader', name='sloader', filename=self.meshFile+'.stl')
     
         # /ModelNode
         modelNode=rootNode.createChild('ModelNode')
@@ -142,11 +150,11 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         if 'prescribed_displacement' in self.opt['model'].keys():
             phant = modelNode.createChild('phant')
             phant.createObject('PreStochasticWrapper')
-            phant.createObject('MeshVTKLoader', name='loader', filename=self.opt['model']['vol_mesh'])
+            phant.createObject('MeshVTKLoader', name='loader', filename=self.meshFile+'.vtk')
             phant.createObject('MechanicalObject', name='MO', src='@loader')
             phant.createObject('Mesh', src='@loader')            
             phant.createObject('LinearMotionStateController', keyTimes=self.opt['model']['prescribed_displacement']['times'], keyDisplacements=self.opt['model']['prescribed_displacement']['displ'])
-            phant.createObject('ShowSpheres', position='@MO.position', color='0 0 1 1', radius='0.0014')        
+            # phant.createObject('ShowSpheres', position='@MO.position', color='0 0 1 1', radius='0.0014')        
     
 
         # /ModelNode/cylinder
@@ -211,7 +219,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
 
         if 'applied_pressure' in self.opt['model'].keys():
             surface=simuNode.createChild('pressure')
-            surface.createObject('MeshSTLLoader', name='sloader', filename=self.opt['model']['surf_mesh'])
+            surface.createObject('MeshSTLLoader', name='sloader', filename=self.meshFile+'.stl')
             surface.createObject('TriangleSetTopologyContainer', position='@sloader.position', name='TriangleContainer', triangles='@sloader.triangles')
             surface.createObject('TriangleSetTopologyModifier', name='Modifier')
             surface.createObject('MechanicalObject', showIndices='false', name='mstate')            
@@ -224,13 +232,11 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             simuNode.createObject('ExtendedRestShapeSpringForceField', numStepsSpringOn='10000', stiffness='1e12', name='toolSpring', 
                 springColor='0 1 0 1', drawSpring='1', updateStiffness='1', printLog='0', listening='1', angularStiffness='0', startTimeSpringOn='0',
                 external_rest_shape='../phant/MO', points='@prescDispBox.indices', external_points='@prescDispBox.indices')
-         
-
 
         # export
         if self.saveGeo:
             simuNode.createObject('VTKExporterDA', filename=self.geoFolder+'/object.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="1",
-                exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1")
+                exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1", printLog='0')
 
         
         if self.planeCollision == 1:
@@ -250,7 +256,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
 
         # /ModelNode/cylinder/observations
         obsNode = simuNode.createChild('observations')
-        obsNode.createObject('MeshVTKLoader', name='obsloader', filename=self.opt['filter']['obs_points'])
+        obsNode.createObject('MeshVTKLoader', name='obsloader', filename=self.obsPoints)
         obsNode.createObject('MechanicalObject', name='SourceMO', position='@obsloader.position')
         # obsNode.createObject('MechanicalObject', name='SourceMO', position='0.02 0 0.08 0.02 0 0.16    0.0141 0.0141 0.08    0.0141 -0.0141 0.08    0.0141 0.0141 0.16    0.0141 -0.0141 0.16    0.02 0 0.0533    0.02 0 0.107   \
         #     0.02 0 0.133    0.02 0 0.187    0.02 0 0.213    0.0175 0.00961 0.0649    0.00925 0.0177 0.0647    0.0139 0.0144 0.0398    0.00961 -0.0175 0.0649    0.0177 -0.00925 0.0647  \
@@ -263,7 +269,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         
         obsNode.createObject('BarycentricMapping')
         obsNode.createObject('MappedStateObservationManager', name="MOBS", listening="1", stateWrapper="@../../StateWrapper", verbose="1",
-                    observationStdev=self.opt['filter']['observ_stdev'], noiseStdev=self.opt['filter']['obs_added_noise_var'])
+                    observationStdev=self.opt['filter']['observ_stdev'], noiseStdev=self.opt['filter']['obs_added_noise_var'], doNotMapObservations='1')
         obsNode.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix=self.obsFile)
         obsNode.createObject('ShowSpheres', radius="0.002", color="1 0 0 1", position='@SourceMO.position')
         obsNode.createObject('ShowSpheres', radius="0.0015", color="1 1 0 1", position='@MOBS.mappedObservations')
@@ -385,8 +391,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
 
             rcv=self.filter.findData(covarName).value
             covariance = [val for sublist in rcv for val in sublist]
-            print 'Covariance:'
-            print covariance
+            #print 'Covariance:', covariance            
             estStd = np.sqrt(variance)            
             print 'Correlation: ',covariance[0]/(np.prod(estStd))            
 
