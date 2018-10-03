@@ -6,17 +6,17 @@ groundTruth=[3000, 5000]
 %$groundTruth=zeros(1,10);   %P2
 %groundTruth = zeros(1,16);
 showStdev = 1;
-nsteps=4300;
+nsteps=100;
 
 prefix='cyl2-2k';
-excit='pressure';
+excit='displ';
 fem='StVenant';
-integ='Euler10';
+integ='Newton10';
 filterType='ROUKF';
-obsID = 'obs2middleEnd';
+obsID = 'obs1middle';
 usePCG = '0';
 transform = 'project';
-sdaParams='40_40_ns-5';
+sdaParams='45_45_ns-5';
 
 mainDir = [ '../assimStiffness/' prefix '_' excit '_' fem '_' integ '/' ];
 inputDir = [ mainDir filterType '_' obsID '_' usePCG '_' transform '_' sdaParams ]

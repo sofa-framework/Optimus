@@ -3,8 +3,8 @@
 ---
 model:
     dt: 0.01
-    vol_mesh: '../../data/cylinder/cylinder2_93738.vtk'    # 2264 13266 56360 12699 93738
-    surf_mesh: '../../data/cylinder/cylinder2_93738.stl'
+    vol_mesh: '../../data/cylinder/cylinder2_2264.vtk'    # 2264 13266 56360 12699 93738
+    surf_mesh: '../../data/cylinder/cylinder2_2264.stl'
     gravity: [0, 0, 0]
     #total_mass: 0.2
     # density: 2000
@@ -16,7 +16,7 @@ model:
     
     int:   # temporal integrator properties
         type: 'Euler'    # Newton or Euler
-        maxit: 10        #only for Newton
+        maxit: 1         #only for Newton
         verbose: 1       #only for Newton
         first_order: 0   #only for Euler
         rmass: 1         #only for Euler
@@ -32,10 +32,15 @@ model:
     #     num_inc_steps: 200
     #     delta: [0., 0., 0.0001]
 
-    applied_pressure:
-        initial_pressure: [0., 0., 0.]
-        num_inc_steps: 200
-        delta: [0., 0., 2]
+    # applied_pressure:
+    #     initial_pressure: [0., 0., 0.]
+    #     num_inc_steps: 200
+    #     delta: [0., 0., 2]
+
+    prescribed_displacement:        
+        times: [0, 2]
+        displ: [.0, .0, .0,    .0, .0, .1]
+        boxes: [-0.05, -0.05, 0.299,   0.05, 0.05, 0.301]
 
 
     linsol:
@@ -45,29 +50,29 @@ model:
         pardisoFolder: ''
 
     fem:
-        method: 'CorLarge' #CorLarge  StVenant CorSmall
+        method: 'StVenant' #CorLarge  StVenant CorSmall
         
     plane_collision: 0
 
 io:    
-    prefix: 'cyl2-93k_pressure_'
+    prefix: 'cyl2-2k_displ_'
     suffix: ''
     saveGeo: 1
     saveObs: 1                  # GO only
     obsFileName: 'obs'
     saveEst: 1                  # SDA only
-    sdaFolderSuffix: '_project_40_40_ns-5'         # SDA only
+    sdaFolderSuffix: '_project_45_45_ns-5'         # SDA only
 
 filter:                         # SDA only
     kind: 'ROUKF'               # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
     nparams: 2
-    param_init_exval: [4000, 4000]
+    param_init_exval: [4500, 4500]
     param_init_stdev: [1000, 1000]
     param_min_val: [200]
     param_max_val: [1e10]
     param_transform: 'project'
-    obs_tag: 'obs2middleEnd'
-    obs_points: '../../data/cylinder/cyl2_138_obs2middleEnd.vtk'
+    obs_tag: 'obs1end'
+    obs_points: '../../data/cylinder/cyl2_138_obs1end.vtk'
     observ_stdev: 1e-5
     sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
     sigma_points_scale: 1

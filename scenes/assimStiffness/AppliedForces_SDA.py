@@ -139,6 +139,16 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             modelNode.createObject('LocalMinDistance', name="Proximity",  alarmDistance='0.002', contactDistance='0.001',  angleCone='90.0', filterIntersection='0')
             modelNode.createObject('DefaultContactManager', name="Response", response="FrictionContact", responseParams='mu=0')
 
+        if 'prescribed_displacement' in self.opt['model'].keys():
+            phant = modelNode.createChild('phant')
+            phant.createObject('PreStochasticWrapper')
+            phant.createObject('MeshVTKLoader', name='loader', filename=self.opt['model']['vol_mesh'])
+            phant.createObject('MechanicalObject', name='MO', src='@loader')
+            phant.createObject('Mesh', src='@loader')            
+            phant.createObject('LinearMotionStateController', keyTimes=self.opt['model']['prescribed_displacement']['times'], keyDisplacements=self.opt['model']['prescribed_displacement']['displ'])
+            phant.createObject('ShowSpheres', position='@MO.position', color='0 0 1 1', radius='0.0014')        
+    
+
         # /ModelNode/cylinder
         simuNode=modelNode.createChild('cylinder')  
 
@@ -207,7 +217,14 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             surface.createObject('MechanicalObject', showIndices='false', name='mstate')            
             self.appliedPressure = surface.createObject('TrianglePressureForceField', pressure=self.opt['model']['applied_pressure']['initial_pressure'],
                                                      name='forceField', normal='0 0 1', showForces='1', dmin=0.299, dmax=0.301)
-            surface.createObject('BarycentricMapping', name='bpmapping')            
+            surface.createObject('BarycentricMapping', name='bpmapping')   
+
+        if 'prescribed_displacement' in self.opt['model'].keys():
+            simuNode.createObject('BoxROI', name='prescDispBox', box=self.opt['model']['prescribed_displacement']['boxes'])
+            simuNode.createObject('ExtendedRestShapeSpringForceField', numStepsSpringOn='10000', stiffness='1e12', name='toolSpring', 
+                springColor='0 1 0 1', drawSpring='1', updateStiffness='1', printLog='0', listening='1', angularStiffness='0', startTimeSpringOn='0',
+                external_rest_shape='../phant/MO', points='@prescDispBox.indices', external_points='@prescDispBox.indices')
+         
 
 
         # export
