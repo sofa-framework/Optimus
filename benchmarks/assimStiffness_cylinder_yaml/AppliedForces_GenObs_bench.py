@@ -140,7 +140,7 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
 
         if self.saveObs:
             simuNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1')
-            simuNode.createObject('Monitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.obsFile, ExportPositions='1', ExportVelocities='0', ExportForces='0')
+            simuNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.obsFile, ExportPositions='1', ExportVelocities='0', ExportForces='0')
 
 
         if self.planeCollision:
