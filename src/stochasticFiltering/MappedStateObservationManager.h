@@ -85,6 +85,7 @@ protected:
     double actualObservationTime;
     EVectorX actualObservation;
 
+
 public:
     void init();
     void bwdInit();
@@ -99,6 +100,9 @@ public:
     Data<double> noiseStdev;
     Data<int> abberantIndex;
     Data<bool> doNotMapObservations;
+    Data<helper::vector<int> > d_observationIndices;
+    helper::vector<int> observationIndices;
+
 
     SingleLink<MappedStateObservationManager<FilterType, DataTypes1, DataTypes2>, StateWrapper, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> stateWrapperLink;
 

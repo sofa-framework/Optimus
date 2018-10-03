@@ -45,6 +45,7 @@ MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::MappedStateObse
     , noiseStdev( initData(&noiseStdev, double(0.0), "noiseStdev", "standard deviation of generated noise") )
     , abberantIndex( initData(&abberantIndex, int(-1), "abberantIndex", "index of an aberrant point") )
     , doNotMapObservations( initData(&doNotMapObservations, false, "doNotMapObservations", "if real observations are read from a file (not the mechanical object)") )
+    , d_observationIndices( initData(&d_observationIndices, "observationIndices", "take these indices from vector of observations (implies not using mapping)") )
     , stateWrapperLink(initLink("stateWrapper", "link to the state wrapper needed to perform apply (perhaps to be changed)"))
 {    
 }
@@ -96,6 +97,13 @@ void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::init()
         pNormDist = new boost::normal_distribution<>(0.0, noiseStdev.getValue());
         pVarNorm = new boost::variate_generator<boost::mt19937&, boost::normal_distribution<> >(*pRandGen, *pNormDist);        
     }
+
+    observationIndices = d_observationIndices.getValue();
+    if (observationIndices.size() > 0) {
+        PRNS("Found indices which will be taken as observations: " << observationIndices);
+        doNotMapObservations.setValue(true);
+    }
+
 }
 
 template <class FilterType, class DataTypes1, class DataTypes2>
@@ -110,11 +118,17 @@ void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::bwdInit()
 
 template <class FilterType, class DataTypes1, class DataTypes2>
 void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::initializeObservationData()
-{
-    inputStateSize = observationSource->getStateSize();
+{   
     masterStateSize = masterState->getSize();
     mappedStateSize = mappedState->getSize();
 
+    if (doNotMapObservations.getValue() && observationIndices.size() == 0) {
+        observationIndices.resize(mappedStateSize);
+        for (size_t i = 0; i < mappedStateSize; i++)
+            observationIndices[i] = i;
+    }
+
+    inputStateSize = observationIndices.size();
     inputVectorSize = inputStateSize*DataTypes1::spatial_dimensions;
     masterVectorSize = masterStateSize*DataTypes1::spatial_dimensions;
     mappedVectorSize = mappedStateSize*DataTypes1::spatial_dimensions;
@@ -133,7 +147,7 @@ void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::initialize
         mappedObsState.resize(mappedStateSize);
         this->observationSize = mappedVectorSize;
         for (size_t i = 0; i < mappedStateSize; i++)
-            mappedObsState[i] = inputObsState[i];
+            mappedObsState[i] = inputObsState[observationIndices[i]];
 
     } else {
         if (inputStateSize != masterStateSize) {
@@ -193,7 +207,7 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::hasObserva
         }
 
         for (size_t i = 0; i < mappedObsState.size(); i++)
-            mappedObsState[i] = inputObsState[i];
+            mappedObsState[i] = inputObsState[observationIndices[i]];
 
         for (size_t i = 0; i < mappedObsState.size(); i++) {
             for (size_t d = 0; d < 3; d++) {
