@@ -54,7 +54,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         self.planeCollision = opt['model']['plane_collision']
         self.saveEst = opt['io']['saveEst']
         self.saveGeo = opt["io"]["saveGeo"]
-        self.meshFile = opt['model']['mesh_path'] + opt['model']['object'] + '_' + str(opt['model']['num_el'])
+        self.meshFile = opt['model']['mesh_path'] + opt['model']['object'] + '_' + str(opt['model']['num_el_sda'])
         self.obsPoints = opt['model']['mesh_path'] + opt['model']['object'] + '_' + opt['model']['obs_id'] + '.vtk'                        
         
         object = opt['model']['object']
@@ -72,7 +72,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             
         self.mainFolder = object + '_' + str(opt['model']['num_el']) + '_' + self.excitation + '_' + opt['model']['obs_id'] + '_' + opt['model']['fem']['method'] + '_' +  opt['model']['int']['type'] + str(opt['model']['int']['maxit']) + '_' + str(opt['io']['suffix'])
         self.obsFile = self.mainFolder + '/obs'
-        self.estFolder = self.mainFolder + '/' + opt['filter']['kind'] + '_' + opt['io']['sdaFolderSuffix']
+        self.estFolder = self.mainFolder + '/' + opt['filter']['kind'] + '_' + str(opt['model']['num_el_sda']) + '_' + opt['io']['sdaFolderSuffix']
 
         if self.saveEst:                        
             os.system('mv '+self.estFolder+' '+self.estFolder+'_arch')
@@ -154,7 +154,9 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             phant.createObject('MechanicalObject', name='MO', src='@loader')
             phant.createObject('Mesh', src='@loader')            
             phant.createObject('LinearMotionStateController', keyTimes=self.opt['model']['prescribed_displacement']['times'], keyDisplacements=self.opt['model']['prescribed_displacement']['displ'])
-            # phant.createObject('ShowSpheres', position='@MO.position', color='0 0 1 1', radius='0.0014')        
+            phant.createObject('ShowSpheres', position='@MO.position', color='0 0 1 1', radius='0.001')        
+            phant.createObject('VTKExporterDA', filename=self.geoFolder+'/objectPhant.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="1",
+                exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1", printLog='0')
     
 
         # /ModelNode/cylinder
@@ -185,6 +187,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         simuNode.createObject('TetrahedronSetTopologyModifier', name="Modifier")        
         simuNode.createObject('TetrahedronSetTopologyAlgorithms', name="TopoAlgo")
         simuNode.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
+        simuNode.createObject('ShowSpheres', position='@Volume.position', color='0 1 0 1', radius='0.001')
 
         if 'total_mass' in self.opt['model'].keys():
             simuNode.createObject('UniformMass', totalMass=self.opt['model']['total_mass'])
