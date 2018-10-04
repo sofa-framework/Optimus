@@ -6,21 +6,22 @@ groundTruth=[3000, 7000]
 %$groundTruth=zeros(1,10);   %P2
 %groundTruth = zeros(1,16);
 showStdev = 1;
-nsteps=100;
+nsteps=1000;
 
 object='cylinder2';
-numEl='2264';
-excit='displ';   % force, displ
-obsID = 'mid-end';
+numEl='13266';
+numElSda='2264'
+excit='press';   % force, displ
+obsID = 'mid';
 fem='StVenant';
-integ='Newton3';
-suffix='test1_0.0nu';
+integ='Newton5';
+suffix='test2_0.499nu';
 filterType='ROUKF';  % "ROUKF", "UKFSimCorr", and "UKFClassic"
 transform = 'project';
-sdaParams='45_45_ns-5';
+sdaParams='45_45_200_ns2-3';
 
 mainDir = [ '../assimStiffness/' object '_' numEl  '_' excit '_' obsID '_' fem '_' integ '_' suffix '/' ]
-inputDir = [ mainDir filterType '_' transform '_' sdaParams ]
+inputDir = [ mainDir filterType '_' numElSda  '_' transform '_' sdaParams ]
 
 
 %inputDir='../assimStiffness/cyl3gravity_Euler1/UKFSimCorr_obs33_proj0'
@@ -101,13 +102,13 @@ for i=1:nparams
     end
     
 end
-title(sprintf('State  %s', [filterType ' ' integ ' ' obsID ' ' transform]));
+title(sprintf('%s', [filterType ' ' integ ' ' obsID ' ' transform ' ' strrep(suffix, '_', ' '), ' ' strrep(sdaParams,'_',' ')]));
 
-figure; 
-%axes('XLim', [1,nsteps], 'YLim', [0, 1.2*maxval]);
-hold on
-plot(1:nsteps, correl(1:nsteps,:));
-title(sprintf('Correlation %s', [filterType ' ' integ ' ' obsID ' ' transform]));
+% figure; 
+% axes('XLim', [1,nsteps], 'YLim', [0, 1.2*maxval]);
+% hold on
+% plot(1:nsteps, correl(1:nsteps,:));
+% title(sprintf('Correlation %s', [filterType ' ' integ ' ' obsID ' ' transform]));
 
 
 return
