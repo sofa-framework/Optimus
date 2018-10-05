@@ -155,8 +155,8 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             phant.createObject('Mesh', src='@loader')            
             phant.createObject('LinearMotionStateController', keyTimes=self.opt['model']['prescribed_displacement']['times'], keyDisplacements=self.opt['model']['prescribed_displacement']['displ'])
             phant.createObject('ShowSpheres', position='@MO.position', color='0 0 1 1', radius='0.001')        
-            phant.createObject('VTKExporterDA', filename=self.geoFolder+'/objectPhant.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="1",
-                exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1", printLog='0')
+            # phant.createObject('VTKExporterDA', filename=self.geoFolder+'/objectPhant.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="1",
+            #     exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1", printLog='0')
     
 
         # /ModelNode/cylinder
@@ -170,7 +170,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             simuNode.createObject('EulerImplicitSolver', firstOrder=firstOrder, rayleighStiffness=rstiff, rayleighMass=rmass)
         elif intType == 'Newton':
             maxIt = self.opt['model']['int']['maxit']
-            simuNode.createObject('NewtonStaticSolver', maxIt=maxIt, correctionTolerance='1e-8', residualTolerance='1e-8', convergeOnResidual='1')            
+            simuNode.createObject('NewtonStaticSolver', maxIt=10, correctionTolerance='1e-8', residualTolerance='1e-8', convergeOnResidual='1', printLog='1')            
 
         
         if self.opt['model']['linsol']['usePCG']:
@@ -187,7 +187,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         simuNode.createObject('TetrahedronSetTopologyModifier', name="Modifier")        
         simuNode.createObject('TetrahedronSetTopologyAlgorithms', name="TopoAlgo")
         simuNode.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
-        simuNode.createObject('ShowSpheres', position='@Volume.position', color='0 1 0 1', radius='0.001')
+        # simuNode.createObject('ShowSpheres', position='@Volume.position', color='0 1 0 1', radius='0.001')
 
         if 'total_mass' in self.opt['model'].keys():
             simuNode.createObject('UniformMass', totalMass=self.opt['model']['total_mass'])
@@ -234,7 +234,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             simuNode.createObject('BoxROI', name='prescDispBox', box=self.opt['model']['prescribed_displacement']['boxes'])
             simuNode.createObject('ExtendedRestShapeSpringForceField', numStepsSpringOn='10000', stiffness='1e12', name='toolSpring', 
                 springColor='0 1 0 1', drawSpring='1', updateStiffness='1', printLog='0', listening='1', angularStiffness='0', startTimeSpringOn='0',
-                external_rest_shape='../phant/MO', points='@prescDispBox.indices', external_points='@prescDispBox.indices')
+                external_rest_shape='../phant/MO', points='@prescDispBox.indices', external_points='@prescDispBox.indices', springThickness=4, showIndicesScale=0.0)
 
         # export
         if self.saveGeo:

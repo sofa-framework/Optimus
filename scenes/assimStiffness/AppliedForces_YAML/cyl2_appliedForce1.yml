@@ -5,9 +5,9 @@ model:
     dt: 0.01
     mesh_path: '../../data/cylinder/'
     object: 'cylinder2'
-    num_el: 13266  # 2264 13266 56360 12699 93738
+    num_el: 2264  # 2264 13266 56360 12699 93738
     num_el_sda: 2264
-    obs_id: 'mid'
+    obs_id: 'end'
     gravity: [0, 0, 0]
     #total_mass: 0.2
     # density: 2000
@@ -21,7 +21,7 @@ model:
     
     int:   # temporal integrator properties
         type: 'Newton'    # Newton or Euler
-        maxit: 5         #only for Newton
+        maxit: 3         #only for Newton
         verbose: 1       #only for Newton
         first_order: 0   #only for Euler
         rmass: 1         #only for Euler
@@ -37,15 +37,15 @@ model:
     #     num_inc_steps: 200
     #     delta: [0., 0., 0.0001]
 
-    applied_pressure:
-        initial_pressure: [0., 0., 0.]
-        num_inc_steps: 400
-        delta: [0., 0., 1]
+    # applied_pressure:
+    #     initial_pressure: [0., 0., 0.]
+    #     num_inc_steps: 400
+    #     delta: [0., 0., 1]
 
-    # prescribed_displacement:
-    #     times: [0, 2]
-    #     displ: [.0, .0, .0,    .0, .0, .1]
-    #     boxes: [-0.05, -0.05, 0.299,   0.05, 0.05, 0.301]
+    prescribed_displacement:
+        times: [0, 2]
+        displ: [.0, .0, .0,    .0, .0, .1]
+        boxes: [-0.05, -0.05, 0.299,   0.05, 0.05, 0.301]
 
 
     linsol:
@@ -60,11 +60,11 @@ model:
     plane_collision: 0
 
 io:        
-    suffix: 'test2_0.499nu'
-    saveGeo: 1
+    suffix: 'testXX_0.499nu'
+    saveGeo: 0
     saveObs: 1                  # GO only    
-    saveEst: 1                  # SDA only
-    sdaFolderSuffix: 'project_45_45_200_ns2-3'         # SDA only
+    saveEst: 0                  # SDA only
+    sdaFolderSuffix: 'project_45_45_200_ns1-5'         # SDA only
 
 filter:                         # SDA only
     kind: 'ROUKF'               # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
@@ -74,7 +74,7 @@ filter:                         # SDA only
     param_min_val: [200]
     param_max_val: [1e10]
     param_transform: 'project'    
-    observ_stdev: 2e-3
+    observ_stdev: 1e-5
     sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
     sigma_points_scale: 1
     obs_added_noise_var: 0

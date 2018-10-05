@@ -111,8 +111,8 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
             phant.createObject('LinearMotionStateController', keyTimes=self.opt['model']['prescribed_displacement']['times'], keyDisplacements=self.opt['model']['prescribed_displacement']['displ'])
             phant.createObject('ShowSpheres', position='@MO.position', color='0 0 1 1', radius='0.001')
             phant.createObject('Mesh', src='@loader')
-            phant.createObject('VTKExporter', filename=self.geoFolder+'/objectPhant.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="1",
-                exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1", printLog='0')
+            # phant.createObject('VTKExporter', filename=self.geoFolder+'/objectPhant.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="1",
+                # exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1", printLog='0')
     
 
         # rootNode/simuNode
