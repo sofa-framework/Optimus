@@ -10,18 +10,21 @@ nsteps=1000;
 
 object='cylinder2';
 numEl='13266';
-numElSda='2264'
+numElSda='2264';
 excit='press';   % force, displ
-obsID = 'mid';
+obsID = 'end';
 fem='StVenant';
-integ='Newton5';
+integ='Newton3';
 suffix='test2_0.499nu';
 filterType='ROUKF';  % "ROUKF", "UKFSimCorr", and "UKFClassic"
 transform = 'project';
-sdaParams='45_45_200_ns2-3';
+sdaParams='45_45_200_ns1-5';
 
 mainDir = [ '../assimStiffness/' object '_' numEl  '_' excit '_' obsID '_' fem '_' integ '_' suffix '/' ]
+
 inputDir = [ mainDir filterType '_' numElSda  '_' transform '_' sdaParams ]
+%old naming convention:
+%inputDir = [ mainDir filterType '_' transform '_' sdaParams ]
 
 
 %inputDir='../assimStiffness/cyl3gravity_Euler1/UKFSimCorr_obs33_proj0'
@@ -84,7 +87,7 @@ disp(correl(nsteps,:))
 minval=0;
 maxval=max(max(estState)) + max(max(estStd));
 
-figure; 
+figure('InvertHardcopy','off','Color',[1 1 1],'Position', [0 0 1000 800]);
 %axes('XLim', [1,nsteps], 'YLim', [0, 1.2*maxval]);
 hold on
 gtState=ones(size(estState));
@@ -102,7 +105,15 @@ for i=1:nparams
     end
     
 end
-title(sprintf('%s', [filterType ' ' integ ' ' obsID ' ' transform ' ' strrep(suffix, '_', ' '), ' ' strrep(sdaParams,'_',' ')]));
+
+mytitle=sprintf('%s', [filterType ' ' integ ' ' obsID ' ' transform ' ' strrep(suffix, '_', ' '), ' ' strrep(sdaParams,'_',' ')])
+title(mytitle);
+box on
+grid on
+
+fileName = strrep(mytitle,' ','_');
+saveas(gcf, [fileName '.png'], 'png')
+
 
 % figure; 
 % axes('XLim', [1,nsteps], 'YLim', [0, 1.2*maxval]);
