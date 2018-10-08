@@ -122,13 +122,17 @@ void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::initialize
     masterStateSize = masterState->getSize();
     mappedStateSize = mappedState->getSize();
 
-    if (doNotMapObservations.getValue() && observationIndices.size() == 0) {
-        observationIndices.resize(mappedStateSize);
-        for (size_t i = 0; i < mappedStateSize; i++)
-            observationIndices[i] = i;
+    if (doNotMapObservations.getValue()) {
+        if (observationIndices.size() == 0) {
+            observationIndices.resize(mappedStateSize);
+            for (size_t i = 0; i < mappedStateSize; i++)
+                observationIndices[i] = i;
+        }
+        inputStateSize = observationIndices.size();
+    } else {
+        inputStateSize = observationSource->getStateSize();
     }
 
-    inputStateSize = observationIndices.size();
     inputVectorSize = inputStateSize*DataTypes1::spatial_dimensions;
     masterVectorSize = masterStateSize*DataTypes1::spatial_dimensions;
     mappedVectorSize = mappedStateSize*DataTypes1::spatial_dimensions;
