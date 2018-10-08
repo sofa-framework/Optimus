@@ -1,0 +1,271 @@
+    <?xml version="1.0"?>
+    <Node    name="root" dt="0.001" gravity="0 0 0" >
+    <RequiredPlugin pluginName="Optimus"/>
+    <RequiredPlugin pluginName="ImageMeshAux" />
+    <RequiredPlugin pluginName="ConstraintGeometryPlugin" />
+    <RequiredPlugin pluginName="NeedleConstraintPlugin" />
+    <RequiredPlugin pluginName="OpenCVPlugin" />
+    <VisualStyle displayFlags=" hideCollisionModels hideForceFields" />
+    <BackgroundSetting color="1 1 1 1" />
+    <ViewerSetting resolution="837 600" />
+    <FreeMotionAnimationLoop />
+    <GenericConstraintSolver name="GenericConstraintSolver"  printLog="0"  maxIterations="1000"  tolerance="1e-10"  allVerified="0" />  
+    <OpenCVProjectiveCalibrator name="opengl" streamer="video" mode="5" listening="false" drawzNear="0.001" drawzFar="3" />
+    <OpenCVOpenGlStreamer name="video" src="@opengl" />
+    <OpenCVScheduler name="scheduler" frequency="0" />
+        
+        <Node name="all">
+
+            
+            <Node name="ball0">
+                <EulerImplicitSolver rayleighMass="0.01" rayleighStiffness="0.1" />	
+                <SparseLDLSolver name="BTD"/>
+                <MechanicalObject template="Rigid" name="MO" position="0 0 0 0 0 0 1    0.01 0 0 0 0 0 1     0.02 0 0 0 0 0 1     0.03 0 0 0 0 0 1    0.04 0 0 0 0 0 1 0.05 0 0 0 0 0 1    0.06 0 0 0 0 0 1     0.07 0 0 0 0 0 1     0.08 0 0 0 0 0 1    0.09 0 0 0 0 0 1" />
+                <Mesh name="lines" lines="0 1   1 2   2 3  3 4   4 5   5 6   6 7   7 8   8 9" />
+                <UniformMass totalmass="0.0005 " printLog="false" />
+                <BeamFEMForceField name="FEM" radius="0.0005" youngModulus="1e6" poissonRatio="0.49" useSymmetricAssembly="1"/>
+                <Node name="CollisionBall_f-50_mu-100">
+                    <CubeTopology nx="10" ny="1" nz="1" min="0 0 0" max="9 0 0" />
+                    <MechanicalObject name="ms" />
+                    <BeamLinearMapping />
+                    <EdgeGeometry name="edge"/> 
+                    <PointGeometry name ="point"/>
+                    <BoxROI name="boxA" box="-0.1-0.05 -0.1 0.1 0.1 0.1 " drawBoxes="1" drawSize="1" position="@ms.position"/>
+                    <ConstantForceField force="-0.00025 0.0 0  "/>
+                    <ShowSpheres  radius="0.000001"  color="1 0 0 1" position="@ms.position" />
+                    <ValuesFromIndices name="indexValue" template="Vec3" in="@ms.position" indices="0 1 2 3 4 5 6 7 8 9" />
+                    <WriteState filename="/home/raffa/work/data/journalValid/modelSens/ref_f-50_mu-100" groundTruth="true" /> 
+                </Node>
+            <LinearSolverConstraintCorrection solverName="BTD"/>  
+            </Node>
+            
+            <Node name="ball1">
+                <EulerImplicitSolver rayleighMass="0.01" rayleighStiffness="0.1" />	
+                <SparseLDLSolver name="BTD"/>
+                <MechanicalObject template="Rigid" name="MO" position="0 0 0 0 0 0 1    0.01 0 0 0 0 0 1     0.02 0 0 0 0 0 1     0.03 0 0 0 0 0 1    0.04 0 0 0 0 0 1 0.05 0 0 0 0 0 1    0.06 0 0 0 0 0 1     0.07 0 0 0 0 0 1     0.08 0 0 0 0 0 1    0.09 0 0 0 0 0 1" />
+                <Mesh name="lines" lines="0 1   1 2   2 3  3 4   4 5   5 6   6 7   7 8   8 9" />
+                <UniformMass totalmass="0.0005 " printLog="false" />
+                <BeamFEMForceField name="FEM" radius="0.0005" youngModulus="1e6" poissonRatio="0.49" useSymmetricAssembly="1"/>
+                <Node name="CollisionBall_f-50_mu-50">
+                    <CubeTopology nx="10" ny="1" nz="1" min="0 0 0" max="9 0 0" />
+                    <MechanicalObject name="ms" />
+                    <BeamLinearMapping />
+                    <EdgeGeometry name="edge"/> 
+                    <PointGeometry name ="point"/>
+                    <BoxROI name="boxA" box="-0.1-0.05 -0.1 0.1 0.1 0.1 " drawBoxes="1" drawSize="1" position="@ms.position"/>
+                    <ConstantForceField force="-0.00025 0.0 0  "/>
+                    <ValuesFromIndices name="indexValue" template="Vec3" in="@ms.position" indices="0 1 2 3 4 5 6 7 8 9" />
+                    <ShowSpheres  radius="0.000001"  color="0 1 0 1" position="@ms.position" />
+                    <WriteState filename="/home/raffa/work/data/journalValid/modelSens/ref_f-50_mu-50" groundTruth="true" /> 
+                </Node>
+            <LinearSolverConstraintCorrection solverName="BTD"/>  
+            </Node>
+                
+            <Node name="ball2">
+                <EulerImplicitSolver rayleighMass="0.01" rayleighStiffness="0.1" />	
+                <SparseLDLSolver name="BTD"/>
+                <MechanicalObject template="Rigid" name="MO" position="0 0 0 0 0 0 1    0.01 0 0 0 0 0 1     0.02 0 0 0 0 0 1     0.03 0 0 0 0 0 1    0.04 0 0 0 0 0 1 0.05 0 0 0 0 0 1    0.06 0 0 0 0 0 1     0.07 0 0 0 0 0 1     0.08 0 0 0 0 0 1    0.09 0 0 0 0 0 1" />
+                <Mesh name="lines" lines="0 1   1 2   2 3  3 4   4 5   5 6   6 7   7 8   8 9" />
+                <UniformMass totalmass="0.0005 " printLog="false" />
+                <BeamFEMForceField name="FEM" radius="0.0005" youngModulus="1e6" poissonRatio="0.49" useSymmetricAssembly="1"/>           
+                <Node name="CollisionBall_f-50_mu-20">
+                    <CubeTopology nx="10" ny="1" nz="1" min="0 0 0" max="9 0 0" />
+                    <MechanicalObject name="ms" />
+                    <BeamLinearMapping />
+                    <EdgeGeometry name="edge"/> 
+                    <PointGeometry name ="point"/>
+                    <BoxROI name="boxA" box="-0.1-0.05 -0.1 0.1 0.1 0.1 " drawBoxes="1" drawSize="1" position="@ms.position"/>
+                    <ConstantForceField force="-0.00025 0.0 0  "/>
+                    <ValuesFromIndices name="indexValue" template="Vec3" in="@ms.position" indices="0 1 2 3 4 5 6 7 8 9" />
+                    <ShowSpheres  radius="0.000001"  color="0 0 1 1" position="@ms.position" />
+                    <WriteState filename="/home/raffa/work/data/journalValid/modelSens/ref_f-50_mu-20" groundTruth="true" /> 
+                </Node>
+            <LinearSolverConstraintCorrection solverName="BTD"/>  
+            </Node>
+            
+            <Node name="ball3">
+                <EulerImplicitSolver rayleighMass="0.01" rayleighStiffness="0.1" />	
+                <SparseLDLSolver name="BTD"/>
+                <MechanicalObject template="Rigid" name="MO" position="0 0 0 0 0 0 1    0.01 0 0 0 0 0 1     0.02 0 0 0 0 0 1     0.03 0 0 0 0 0 1    0.04 0 0 0 0 0 1 0.05 0 0 0 0 0 1    0.06 0 0 0 0 0 1     0.07 0 0 0 0 0 1     0.08 0 0 0 0 0 1    0.09 0 0 0 0 0 1" />
+                <Mesh name="lines" lines="0 1   1 2   2 3  3 4   4 5   5 6   6 7   7 8   8 9" />
+                <UniformMass totalmass="0.0005 " printLog="false" />
+                <BeamFEMForceField name="FEM" radius="0.0005" youngModulus="1e6" poissonRatio="0.49" useSymmetricAssembly="1"/>       
+                <Node name="CollisionBall_f-50_mu-10">
+                    <CubeTopology nx="10" ny="1" nz="1" min="0 0 0" max="9 0 0" />
+                    <MechanicalObject name="ms" />
+                    <BeamLinearMapping />
+                    <EdgeGeometry name="edge"/> 
+                    <PointGeometry name ="point"/>
+                    <BoxROI name="boxA" box="-0.1-0.05 -0.1 0.1 0.1 0.1 " drawBoxes="1" drawSize="1" position="@ms.position"/>
+                    <ConstantForceField force="-0.00025 0.0 0  "/>
+                    <ValuesFromIndices name="indexValue" template="Vec3" in="@ms.position" indices="0 1 2 3 4 5 6 7 8 9" />
+                    <ShowSpheres  radius="0.000001"  color="0 0.5 1 1" position="@ms.position" />
+                    <WriteState filename="/home/raffa/work/data/journalValid/modelSens/ref_f-50_mu-10" groundTruth="true" /> 
+                </Node>
+            <LinearSolverConstraintCorrection solverName="BTD"/>  
+            </Node>
+            
+            <Node name="ball4">
+                <EulerImplicitSolver rayleighMass="0.01" rayleighStiffness="0.1" />	
+                <SparseLDLSolver name="BTD"/>
+                <MechanicalObject template="Rigid" name="MO" position="0 0 0 0 0 0 1    0.01 0 0 0 0 0 1     0.02 0 0 0 0 0 1     0.03 0 0 0 0 0 1    0.04 0 0 0 0 0 1 0.05 0 0 0 0 0 1    0.06 0 0 0 0 0 1     0.07 0 0 0 0 0 1     0.08 0 0 0 0 0 1    0.09 0 0 0 0 0 1" />
+                <Mesh name="lines" lines="0 1   1 2   2 3  3 4   4 5   5 6   6 7   7 8   8 9" />
+                <UniformMass totalmass="0.0005 " printLog="false" />
+                <BeamFEMForceField name="FEM" radius="0.0005" youngModulus="1e6" poissonRatio="0.49" useSymmetricAssembly="1"/>       
+                <Node name="CollisionBall_f-50_mu">
+                    <CubeTopology nx="10" ny="1" nz="1" min="0 0 0" max="9 0 0" />
+                    <MechanicalObject name="ms" />
+                    <BeamLinearMapping />
+                    <EdgeGeometry name="edge"/> 
+                    <PointGeometry name ="point"/>
+                    <BoxROI name="boxA" box="-0.1-0.05 -0.1 0.1 0.1 0.1 " drawBoxes="1" drawSize="1" position="@ms.position"/>
+                    <ConstantForceField force="-0.00025 0.0 0  "/>
+                    <ValuesFromIndices name="indexValue" template="Vec3" in="@ms.position" indices="0 1 2 3 4 5 6 7 8 9" />
+                    <ShowSpheres  radius="0.000001"  color="0.5 0 0 1" position="@ms.position" />
+                    <WriteState filename="/home/raffa/work/data/journalValid/modelSens/ref_f-50_mu" groundTruth="true" /> 
+                </Node>
+                            <LinearSolverConstraintCorrection solverName="BTD"/>  
+
+            </Node>
+            
+            <Node name="ball5">
+                <EulerImplicitSolver rayleighMass="0.01" rayleighStiffness="0.1" />	
+                <SparseLDLSolver name="BTD"/>
+                <MechanicalObject template="Rigid" name="MO" position="0 0 0 0 0 0 1    0.01 0 0 0 0 0 1     0.02 0 0 0 0 0 1     0.03 0 0 0 0 0 1    0.04 0 0 0 0 0 1 0.05 0 0 0 0 0 1    0.06 0 0 0 0 0 1     0.07 0 0 0 0 0 1     0.08 0 0 0 0 0 1    0.09 0 0 0 0 0 1" />
+                <Mesh name="lines" lines="0 1   1 2   2 3  3 4   4 5   5 6   6 7   7 8   8 9" />
+                <UniformMass totalmass="0.0005 " printLog="false" />
+                <BeamFEMForceField name="FEM" radius="0.0005" youngModulus="1e6" poissonRatio="0.49" useSymmetricAssembly="1"/>       
+                <Node name="CollisionBall_f-50_mu+10">
+                    <CubeTopology nx="10" ny="1" nz="1" min="0 0 0" max="9 0 0" />
+                    <MechanicalObject name="ms" />
+                    <BeamLinearMapping />
+                    <EdgeGeometry name="edge"/> 
+                    <PointGeometry name ="point"/>
+                    <BoxROI name="boxA" box="-0.1-0.05 -0.1 0.1 0.1 0.1 " drawBoxes="1" drawSize="1" position="@ms.position"/>
+                    <ConstantForceField force="-0.00025 0.0 0  "/>
+                    <ValuesFromIndices name="indexValue" template="Vec3" in="@ms.position" indices="0 1 2 3 4 5 6 7 8 9" />
+                    <ShowSpheres  radius="0.000001"  color="0.5 1 0 1" position="@ms.position" />
+                    <WriteState filename="/home/raffa/work/data/journalValid/modelSens/ref_f-50_mu+10" groundTruth="true" /> 
+                </Node>
+            <LinearSolverConstraintCorrection solverName="BTD"/>  
+            </Node>
+            
+            <Node name="ball6">
+                <EulerImplicitSolver rayleighMass="0.01" rayleighStiffness="0.1" />	
+                <SparseLDLSolver name="BTD"/>
+                <MechanicalObject template="Rigid" name="MO" position="0 0 0 0 0 0 1    0.01 0 0 0 0 0 1     0.02 0 0 0 0 0 1     0.03 0 0 0 0 0 1    0.04 0 0 0 0 0 1 0.05 0 0 0 0 0 1    0.06 0 0 0 0 0 1     0.07 0 0 0 0 0 1     0.08 0 0 0 0 0 1    0.09 0 0 0 0 0 1" />
+                <Mesh name="lines" lines="0 1   1 2   2 3  3 4   4 5   5 6   6 7   7 8   8 9" />
+                <UniformMass totalmass="0.0005 " printLog="false" />
+                <BeamFEMForceField name="FEM" radius="0.0005" youngModulus="1e6" poissonRatio="0.49" useSymmetricAssembly="1"/>                
+                <Node name="CollisionBall_f-50_mu+20">
+                    <CubeTopology nx="10" ny="1" nz="1" min="0 0 0" max="9 0 0" />
+                    <MechanicalObject name="ms" />
+                    <BeamLinearMapping />
+                    <EdgeGeometry name="edge"/> 
+                    <PointGeometry name ="point"/>
+                    <BoxROI name="boxA" box="-0.1-0.05 -0.1 0.1 0.1 0.1 " drawBoxes="1" drawSize="1" position="@ms.position"/>
+                    <ConstantForceField force="-0.00025 0.0 0  "/>
+                    <ValuesFromIndices name="indexValue" template="Vec3" in="@ms.position" indices="0 1 2 3 4 5 6 7 8 9" />
+                    <ShowSpheres  radius="0.000001"  color="0 1 0.5 1" position="@ms.position" />
+                    <WriteState filename="/home/raffa/work/data/journalValid/modelSens/ref_f-50_mu+20" groundTruth="true" /> 
+                </Node>
+            <LinearSolverConstraintCorrection solverName="BTD"/>  
+            </Node>
+            
+            <Node name="ball7">
+                <EulerImplicitSolver rayleighMass="0.01" rayleighStiffness="0.1" />	
+                <SparseLDLSolver name="BTD"/>
+                <MechanicalObject template="Rigid" name="MO" position="0 0 0 0 0 0 1    0.01 0 0 0 0 0 1     0.02 0 0 0 0 0 1     0.03 0 0 0 0 0 1    0.04 0 0 0 0 0 1 0.05 0 0 0 0 0 1    0.06 0 0 0 0 0 1     0.07 0 0 0 0 0 1     0.08 0 0 0 0 0 1    0.09 0 0 0 0 0 1" />
+                <Mesh name="lines" lines="0 1   1 2   2 3  3 4   4 5   5 6   6 7   7 8   8 9" />
+                <UniformMass totalmass="0.0005 " printLog="false" />
+                <BeamFEMForceField name="FEM" radius="0.0005" youngModulus="1e6" poissonRatio="0.49" useSymmetricAssembly="1"/>               
+                <Node name="CollisionBall_f-50_mu+50">
+                    <CubeTopology nx="10" ny="1" nz="1" min="0 0 0" max="9 0 0" />
+                    <MechanicalObject name="ms" />
+                    <BeamLinearMapping />
+                    <EdgeGeometry name="edge"/> 
+                    <PointGeometry name ="point"/>
+                    <BoxROI name="boxA" box="-0.1-0.05 -0.1 0.1 0.1 0.1 " drawBoxes="1" drawSize="1" position="@ms.position"/>
+                    <ConstantForceField force="-0.00025 0.0 0  "/>
+                    <ValuesFromIndices name="indexValue" template="Vec3" in="@ms.position" indices="0 1 2 3 4 5 6 7 8 9" />
+                    <ShowSpheres  radius="0.000001"  color="1 0.5 0 1" position="@ms.position" />
+                    <WriteState filename="/home/raffa/work/data/journalValid/modelSens/ref_f-50_mu+50" groundTruth="true" /> 
+                </Node>
+            <LinearSolverConstraintCorrection solverName="BTD"/>  
+            </Node>
+            
+            <Node name="ball8">
+                <EulerImplicitSolver rayleighMass="0.01" rayleighStiffness="0.1" />	
+                <SparseLDLSolver name="BTD"/>
+                <MechanicalObject template="Rigid" name="MO" position="0 0 0 0 0 0 1    0.01 0 0 0 0 0 1     0.02 0 0 0 0 0 1     0.03 0 0 0 0 0 1    0.04 0 0 0 0 0 1 0.05 0 0 0 0 0 1    0.06 0 0 0 0 0 1     0.07 0 0 0 0 0 1     0.08 0 0 0 0 0 1    0.09 0 0 0 0 0 1" />
+                <Mesh name="lines" lines="0 1   1 2   2 3  3 4   4 5   5 6   6 7   7 8   8 9" />
+                <UniformMass totalmass="0.0005 " printLog="false" />
+                <BeamFEMForceField name="FEM" radius="0.0005" youngModulus="1e6" poissonRatio="0.49" useSymmetricAssembly="1"/>
+                <Node name="CollisionBall_f-50_mu+100">
+                    <CubeTopology nx="10" ny="1" nz="1" min="0 0 0" max="9 0 0" />
+                    <MechanicalObject name="ms" />
+                    <BeamLinearMapping />
+                    <EdgeGeometry name="edge"/> 
+                    <PointGeometry name ="point"/>
+                    <BoxROI name="boxA" box="-0.1-0.05 -0.1 0.1 0.1 0.1 " drawBoxes="1" drawSize="1" position="@ms.position"/>
+                    <ConstantForceField force="-0.00025 0.0 0  "/>
+                    <ValuesFromIndices name="indexValue" template="Vec3" in="@ms.position" indices="0 1 2 3 4 5 6 7 8 9" />
+                    <ShowSpheres  radius="0.000001"  color="0 0.5 0 1" position="@ms.position" />
+                    <WriteState filename="/home/raffa/work/data/journalValid/modelSens/ref_f-50_mu+100" groundTruth="true" /> 
+                </Node>           
+            <LinearSolverConstraintCorrection solverName="BTD"/>  
+            </Node>
+
+        </Node>  
+        
+        <Node name="Spring" >
+            <VisualStyle displayFlags="showWireframe" /> 
+            <MeshObjLoader name="surface" filename="mesh/y.obj"  />
+            <TransformStochasticEngine name="transform" input_position="@surface.position" optimParams="0 0 0 0 0 0" triangles="@surface.triangles"  />
+            <MeshTopology name="mesh" position="@transform.output_position" triangles="@transform.triangles"  />
+            <TriangleSetTopologyContainer name="Container" src="@mesh" />
+            <MechanicalObject name="MS" free_position="@transform.output_position" position="@transform.output_position" template="Vec3d" />
+            <TriangleGeometry name="triangle"/> 
+            <OglModel name="VisualModel" src="@surface"  material="Default Diffuse 1 1 0.93 0.83 0.1 Ambient 0 0 0 0 0 Specular 0 0 0 0 0 Emissive 0 0 0 0 0 Shininess 0 45" />
+        </Node>
+        
+        
+        <NeedleContactConstraint needle="all/ball0/CollisionBall_f-50_mu-100/point" surface="Spring/triangle" tipIndex="@all/ball0/CollisionBall_f-50_mu-100/boxA.indices" friction="0.00" draw="0" draw_normal_scale="0.005" /> 
+        <NeedleContactConstraint needle="all/ball1/CollisionBall_f-50_mu-50/point" surface="Spring/triangle" tipIndex="@all/ball1/CollisionBall_f-50_mu-50/boxA.indices" friction="0.02" draw="0" draw_normal_scale="0.005" /> 
+        <NeedleContactConstraint needle="all/ball2/CollisionBall_f-50_mu-20/point" surface="Spring/triangle" tipIndex="@all/ball2/CollisionBall_f-50_mu-20/boxA.indices" friction="0.032" draw="0" draw_normal_scale="0.005" /> 
+        <NeedleContactConstraint needle="all/ball3/CollisionBall_f-50_mu-10/point" surface="Spring/triangle" tipIndex="@all/ball3/CollisionBall_f-50_mu-10/boxA.indices" friction="0.036" draw="0" draw_normal_scale="0.005" /> 
+        <NeedleContactConstraint needle="all/ball4/CollisionBall_f-50_mu/point" surface="Spring/triangle" tipIndex="@all/ball4/CollisionBall_f-50_mu/boxA.indices" friction="0.04" draw="0" draw_normal_scale="0.005" /> 
+        <NeedleContactConstraint needle="all/ball5/CollisionBall_f-50_mu+10/point" surface="Spring/triangle" tipIndex="@all/ball5/CollisionBall_f-50_mu+10/boxA.indices" friction="0.044" draw="0" draw_normal_scale="0.005" /> 
+        <NeedleContactConstraint needle="all/ball6/CollisionBall_f-50_mu+20/point" surface="Spring/triangle" tipIndex="@all/ball6/CollisionBall_f-50_mu+20/boxA.indices" friction="0.048" draw="0" draw_normal_scale="0.005" /> 
+        <NeedleContactConstraint needle="all/ball7/CollisionBall_f-50_mu+50/point" surface="Spring/triangle" tipIndex="@all/ball7/CollisionBall_f-50_mu+50/boxA.indices" friction="0.06" draw="0" draw_normal_scale="0.005" /> 
+        <NeedleContactConstraint needle="all/ball8/CollisionBall_f-50_mu+100/point" surface="Spring/triangle" tipIndex="@all/ball8/CollisionBall_f-50_mu+100/boxA.indices" friction="0.08" draw="0" draw_normal_scale="0.005" /> 
+        
+<!--        <Node name="noisyObs"> 		
+            <MechanicalObject template="Vec3d" name="MO" position="@../ball/CollisionBall/indexValue.out"  showObject="0"/>	
+            <AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@MO.position" noiseOrthogonalVariance="1e-5" noisePrincipalVariance="1e-5" noisePrincipalDirection="1 1 1"/>
+            <ShowSpheres  radius="0.0009"  color="1 0 0 1" position="@NoiseEngine.outputPositions"    />
+        </Node>-->
+        
+
+<!--        <Node name="WRITEnoisy3Dobs"> 		
+            <MechanicalObject template="Vec3d" name="MO" position="@../noisyObs/NoiseEngine.outputPositions" />	
+            <StochasticPositionHandler filename="Obs3D_Y_0_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9" />
+        </Node>-->
+
+<!--        
+        <Node name="MatlabPlotGroundTruthPosition"> 
+            <MechanicalObject template="Vec3" name="MO" position="@../ball/MO.position" showObject="0"/>		
+            <StochasticPositionHandler filename="/home/raffa/work/data/journalValid/modelSens/y_gt_matlab"   observations="true" groundTruth="true"/>
+        </Node>-->
+
+<!--        <Node name="ImageProcessor" >
+            <OpenCVImageProcessor name="processor" streamer="../video" />
+            <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObs/NoiseEngine.outputPositions" projectionMatrix="@../opengl.projectionMatrix"/>
+            <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
+            <StochasticPositionHandler filename="/home/raffa/work/data/journalValid/modelSens/Obs2D_y_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9 "/>
+        </Node>-->
+        
+    </Node>
+
+
+
