@@ -188,7 +188,7 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
 
         if 'prescribed_displacement' in self.opt['model'].keys():
             simuNode.createObject('BoxROI', name='prescDispBox', box=self.opt['model']['prescribed_displacement']['boxes'])
-            simuNode.createObject('ExtendedRestShapeSpringForceField', numStepsSpringOn='10000', stiffness='1e10', name='toolSpring', 
+            simuNode.createObject('ExtendedRestShapeSpringForceField', numStepsSpringOn='10000', stiffness=self.opt['model']['prescribed_displacement']['spring_stiffness'], name='toolSpring', 
                 springColor='0 1 0 1', drawSpring='1', updateStiffness='1', printLog='0', listening='1', angularStiffness='0', startTimeSpringOn='0',
                 external_rest_shape='/phant/MO', points='@prescDispBox.indices', external_points='@prescDispBox.indices')
 

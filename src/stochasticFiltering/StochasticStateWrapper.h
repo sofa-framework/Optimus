@@ -107,6 +107,8 @@ public:
     typedef typename Inherit::EMatrixX EMatrixX;
     typedef typename Inherit::EVectorX EVectorX;
 
+    typedef defaulttype::Vec<4,float> Vec4f;
+
     StochasticStateWrapper();
     ~StochasticStateWrapper();
 

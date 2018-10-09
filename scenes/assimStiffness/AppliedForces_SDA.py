@@ -71,6 +71,8 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
 
             
         self.mainFolder = object + '_' + str(opt['model']['num_el']) + '_' + self.excitation + '_' + opt['model']['obs_id'] + '_' + opt['model']['fem']['method'] + '_' +  opt['model']['int']['type'] + str(opt['model']['int']['maxit']) + '_' + str(opt['io']['suffix'])
+
+        print 'Reading observations from ',self.mainFolder
         self.obsFile = self.mainFolder + '/obs'
         self.estFolder = self.mainFolder + '/' + opt['filter']['kind'] + '_' + str(opt['model']['num_el_sda']) + '_' + opt['io']['sdaFolderSuffix']
 
@@ -138,7 +140,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         # /ModelNode
         modelNode=rootNode.createChild('ModelNode')
         modelNode.createObject('StochasticStateWrapper',name="StateWrapper",verbose='1', 
-            langrangeMultipliers=self.planeCollision, estimatePosition=estimatePosition, estimateVelocity='0')
+            langrangeMultipliers=self.planeCollision, estimatePosition=estimatePosition, estimateVelocity='0', draw='1', radiusDraw='0.0002')
 
         if self.planeCollision == 1:
             modelNode.createObject('GenericConstraintSolver', maxIterations='1000', tolerance='1e-6', printLog='0', allVerified='0')
@@ -154,7 +156,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             phant.createObject('MechanicalObject', name='MO', src='@loader')
             phant.createObject('Mesh', src='@loader')            
             phant.createObject('LinearMotionStateController', keyTimes=self.opt['model']['prescribed_displacement']['times'], keyDisplacements=self.opt['model']['prescribed_displacement']['displ'])
-            phant.createObject('ShowSpheres', position='@MO.position', color='0 0 1 1', radius='0.001')        
+            # phant.createObject('ShowSpheres', position='@MO.position', color='0 0 1 1', radius='0.001')        
             # phant.createObject('VTKExporterDA', filename=self.geoFolder+'/objectPhant.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="1",
             #     exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1", printLog='0')
     
@@ -170,7 +172,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             simuNode.createObject('EulerImplicitSolver', firstOrder=firstOrder, rayleighStiffness=rstiff, rayleighMass=rmass)
         elif intType == 'Newton':
             maxIt = self.opt['model']['int']['maxit']
-            simuNode.createObject('NewtonStaticSolver', maxIt=10, correctionTolerance='1e-8', residualTolerance='1e-8', convergeOnResidual='1', printLog='1')            
+            simuNode.createObject('NewtonStaticSolver', maxIt=maxIt, correctionTolerance='1e-8', residualTolerance='1e-8', convergeOnResidual='1', printLog='1')            
 
         
         if self.opt['model']['linsol']['usePCG']:
@@ -232,7 +234,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
 
         if 'prescribed_displacement' in self.opt['model'].keys():
             simuNode.createObject('BoxROI', name='prescDispBox', box=self.opt['model']['prescribed_displacement']['boxes'])
-            simuNode.createObject('ExtendedRestShapeSpringForceField', numStepsSpringOn='10000', stiffness='1e12', name='toolSpring', 
+            simuNode.createObject('ExtendedRestShapeSpringForceField', numStepsSpringOn='10000', stiffness=self.opt['model']['prescribed_displacement']['spring_stiffness'], name='toolSpring', 
                 springColor='0 1 0 1', drawSpring='1', updateStiffness='1', printLog='0', listening='1', angularStiffness='0', startTimeSpringOn='0',
                 external_rest_shape='../phant/MO', points='@prescDispBox.indices', external_points='@prescDispBox.indices', springThickness=4, showIndicesScale=0.0)
 
@@ -281,8 +283,8 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         # /ModelNode/cylinder/visualization
         oglNode = simuNode.createChild('visualization')
         self.oglNode = oglNode
-        oglNode.createObject('OglModel', color='1 0 0 1')
-        oglNode.createObject('BarycentricMapping')        
+        # oglNode.createObject('OglModel', color='1 0 0 1')
+        # oglNode.createObject('BarycentricMapping')        
 
         # /ModelNode/floor
         if self.planeCollision == 1:

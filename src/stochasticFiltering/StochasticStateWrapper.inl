@@ -687,6 +687,20 @@ void StochasticStateWrapper<DataTypes, FilterType>::transformState(EVectorX &_ve
         if (_stateID != nullptr) {
             *_stateID = sigmaStatePos.size() - 1;
         }
+    } else if (this->filterKind == REDORD) {
+        /// only for visualization purposes, save the results of simulation step
+        VecCoord actualPos(this->mStateSize);
+        VecDeriv actualVel(this->mStateSize);
+
+
+        typename MechanicalState::ReadVecCoord pos = mechanicalState->readPositions();
+        typename MechanicalState::ReadVecDeriv vel = mechanicalState->readVelocities();
+        for (size_t i = 0; i < this->mStateSize; i++) {
+            actualPos[i] = pos[i];
+            actualVel[i] = vel[i];
+        }
+        sigmaStatePos.push_back(actualPos);
+        sigmaStateVel.push_back(actualVel);
     }
 
 
@@ -715,14 +729,14 @@ void StochasticStateWrapper<DataTypes, FilterType>::lastApplyOperator(EVectorX &
 
 
 template <class DataTypes, class FilterType>
-void StochasticStateWrapper<DataTypes, FilterType>::draw(const core::visual::VisualParams* vparams ) {
+void StochasticStateWrapper<DataTypes, FilterType>::draw(const core::visual::VisualParams* vparams ) {    
     if (d_draw.getValue()){
         if (vparams->displayFlags().getShowVisualModels()) {
             std::vector<sofa::defaulttype::Vec3d> points;
-
+            std::cout << "Pts size: " << sigmaStatePos.size() << std::endl;
             for (unsigned i =0;  i < sigmaStatePos.size(); i++){
                 VecCoord &pts = sigmaStatePos[i];
-                points.resize(pts.size());
+                points.resize(pts.size());                
 
                 for(unsigned j =0;  j < pts.size(); j++){
                     points[j][0]=pts[j][0];
@@ -730,8 +744,22 @@ void StochasticStateWrapper<DataTypes, FilterType>::draw(const core::visual::Vis
                     points[j][2]=pts[j][2];
                 }
 
-                vparams->drawTool()->drawSpheres(points, d_radius_draw.getValue(), sofa::defaulttype::Vec<4, float>(color[i],0.8f,colorB[i],1.0f));
-                vparams->drawTool()->drawLineStrip(points,d_radius_draw.getValue(),sofa::defaulttype::Vec<4, float>(color[i],0.8f,colorB[i],1.0f));
+                Vec4f color;
+                //std::cout << "Colors " << i << " : " << color[i] << " " << colorB[i] << std::endl;
+                std::cout << "Position: " << i << " : " << points[8] << std::endl;
+
+                switch (i) {
+                case 0: color = Vec4f(1.0,0.0,0.0,1.0); break;
+                case 1: color = Vec4f(0.0,1.0,0.0,1.0); break;
+                case 2: color = Vec4f(0.0,0.0,1.0,1.0); break;
+                default: color = Vec4f(0.5, 0.5, 0.5, 0.5);
+                }
+
+                vparams->drawTool()->setPolygonMode(0,vparams->displayFlags().getShowWireFrame());
+                vparams->drawTool()->setLightingEnabled(true); //Enable lightning
+                vparams->drawTool()->drawSpheres(points, d_radius_draw.getValue(), color); // sofa::defaulttype::Vec<4, float>(color[i],0.8f,colorB[i],1.0f));
+                vparams->drawTool()->setPolygonMode(0,false);
+                //vparams->drawTool()->drawLineStrip(points,d_radius_draw.getValue(),sofa::defaulttype::Vec<4, float>(color[i],0.8f,colorB[i],1.0f));
 
             }
         }
