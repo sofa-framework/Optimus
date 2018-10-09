@@ -12,10 +12,9 @@
 <BackgroundSetting color="1 1 1 1" />
 <ViewerSetting resolution="837 600" />
 <FilteringAnimationLoop name="StochAnimLoop" verbose="1"/>
-<UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0"   draw="0" radiusDraw="0.0002" MOnodesDraw="10" />
+<UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0"   draw="1" radiusDraw="0.0002" MOnodesDraw="10" />
 
-<OpenCVProjectiveCalibrator name="opengl" streamer="video" mode="0" imageSize="816 600" projectionMatrix="[820.641 -104.481 -13.8123 99.3873,46.175 -782.047 -28.8007 54.4175,0.431621 -0.327166 -0.840634 0.186767]"
-
+<OpenCVProjectiveCalibrator name="opengl" streamer="video" mode="0" imageSize="816 600" projectionMatrix="[399.041 -22.0329 724.458 90.1947,256.525 -740.777 1.81426 85.7524,0.99824 -0.0592959 0.000489503 0.225592]"
  listening="false" drawzNear="0.1" drawzFar="100" drawCamera="false"  drawViewPort="false" drawscreenSize="650 500"/>
 
 
@@ -25,9 +24,19 @@
             <EulerImplicitSolver  />
             <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/>
             <MechanicalObject template="Vec3" name="MO" position="0 0 0 0 0 0 1    0.01 0 0 0 0 0 1     0.02 0 0 0 0 0 1     0.03 0 0 0 0 0 1  0.04 0 0 0 0 0 1 0.05 0 0 0 0 0 1    0.06 0 0 0 0 0 1     0.07 0 0 0 0 0 1     0.08 0 0 0 0 0 1    0.09 0 0 0 0 0 1"/>
-            <ReadState filename="/home/raffa/work/data/journalValid/modelSens/y_gt" />
+            <ReadState filename="/home/raffa/work/data/journalValid/modelSens/sens/GROUNDTRUTH" />
             <ShowSpheres  radius="0.0003"  color="0 1 0 1" position="@MO.position" />
+            <Node name="ref_f+100_mu"> 
+                <MechanicalObject template="Vec3" name="MO"   position="0 0 0     0.01 0 0      0.02 0 0      0.03 0 0     0.04 0 0  0.05 0 0     0.06 0 0      0.07 0 0      0.08 0 0     0.09 0 0 " />
+                <BoxROI name="boxA" box="-0.1-0.05 -0.1 0.1 0.1 0.1 " drawBoxes="1" drawSize="1"/>
+                <ReadState filename="/home/raffa/work/data/journalValid/modelSens/sens/ref_f+100_mu" />
+                <ShowSpheres  radius="0.000001"  color="0 0 1 1" position="@MO.position" />
+                <StochasticPositionHandler filename="/home/raffa/work/data/journalValid/modelSens/matlabGT/gt_ref_f-100_mu"   observations="true" groundTruth="true"/>
+            </Node>
+            
+            
         </Node>
+        
         <Node name="VisualRealSurface">
             <VisualStyle displayFlags="showWireframe " /> 
             <MeshObjLoader name="surface" filename="mesh/y.obj"  />
@@ -38,7 +47,7 @@
 </Node> 
      
     <Node name="filteredModel">     
-        <StochasticStateWrapper name="StateWrapper" template="Rigid3d" verbose="1" estimatePosition="1" estimateVelocity="1" positionStdev="0.001 0.001 0.001 0.00001 0.00001 0.00001" velocityStdev="0.001 0.001 0.001  0.0001 0.0001 0.0001" posModelStdev="0.0 0.0 0.0 0 0 0" velModelStdev=" 0.001 0.001 0.001 0.0 0.0 0.00"       
+        <StochasticStateWrapper name="StateWrapper" template="Rigid3d" verbose="1" estimatePosition="1" estimateVelocity="1" positionStdev="0.001 0.001 0.001 0.00001 0.00001 0.00001" velocityStdev="0.01 0.01 0.01  0.0001 0.0001 0.0001" posModelStdev="0.001 0.001 0.001 0 0 0" velModelStdev=" 0.01 0.01 0.01 0.0 0.0 0.00"       
         paramModelStdev="0 0 0 0.0 0.0 0.0
                          0 0 0 0.0 0.0 0.0 
                          0 0 0 0.0 0.0 0.0  
@@ -90,9 +99,9 @@
                 <BeamLinearMapping   />
                 <EdgeGeometry name="edge"/> 
                 <PointGeometry name ="point"/>
-                <BoxROI name="boxA" box="-0.1-0.05 -0.1 0.01 0.1 0.1 " drawBoxes="1" drawSize="1" position="@ms.position"/>
+                <BoxROI name="boxA" box="-0.1-0.05 -0.1 0.1 0.1 0.1 " drawBoxes="1" drawSize="1" position="@ms.position"/>
                 <ForceConstraintVisualization draw_scale="0.00"/>    
-                <ConstantForceField force="-0.0001 -0.00000 0  "/>
+                <ConstantForceField force="-0.001 0 0  "/>
 
             </Node>
             
@@ -114,7 +123,7 @@
             <LinearSolverConstraintCorrection solverName="BTD"/>  
             
             <Node name="obsNode" activated="1">        
-                <SimulatedStateObservationSource template="Vec2d" name="observations" monitorPrefix="/home/raffa/work/data/journalValid/modelSens/Obs2D_y" asynObs="true"/>                               
+                <SimulatedStateObservationSource template="Vec2d" name="observations" monitorPrefix="/home/raffa/work/data/journalValid/modelSens/obs/f/pAx/pAx_Obs2D" asynObs="true"/>                               
                 <SimpleObservationManager name="MSIDES" template="Vec2d,Rigid3d" listening="1"  stateWrapper="@../../StateWrapper" use2dObservation="true" projectionMatrix="@../../../opengl.projectionMatrix"  verbose="1" observationStdev="0.01"/>
             </Node>
     </Node> 
@@ -130,7 +139,7 @@
         <TriangleGeometry name="triangle"/> 
         <AABBDecorator/>
     </Node>
-    <NeedleContactConstraint needle="ball/CollisionBall/point" surface="Spring/triangle" tipIndex="@ball/CollisionBall/boxA.indices" friction="0.0" draw="0" draw_normal_scale="0.001" />    
+    <NeedleContactConstraint needle="ball/CollisionBall/point" surface="Spring/triangle" tipIndex="@ball/CollisionBall/boxA.indices" friction="0.04" draw="0" draw_normal_scale="0.001" />    
     </Node>
     
     

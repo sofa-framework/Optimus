@@ -22,17 +22,17 @@
                 <Mesh name="lines" lines="0 1   1 2   2 3  3 4   4 5   5 6   6 7   7 8   8 9" />
                 <UniformMass totalmass="0.0005 " printLog="false" />
                 <BeamFEMForceField name="FEM" radius="0.0005" youngModulus="1e6" poissonRatio="0.49" useSymmetricAssembly="1"/>
-                <Node name="CollisionBall_f-20_mu-100">
+                <Node name="CollisionBall_f-100_mu-100">
                     <CubeTopology nx="10" ny="1" nz="1" min="0 0 0" max="9 0 0" />
                     <MechanicalObject name="ms" />
                     <BeamLinearMapping />
                     <EdgeGeometry name="edge"/> 
                     <PointGeometry name ="point"/>
                     <BoxROI name="boxA" box="-0.1-0.05 -0.1 0.1 0.1 0.1 " drawBoxes="1" drawSize="1" position="@ms.position"/>
-                    <ConstantForceField force="-0.0004 0.0 0  "/>
+                    <ConstantForceField force="-0.00005 0.0 0  "/>
                     <ShowSpheres  radius="0.000001"  color="1 0 0 1" position="@ms.position" />
                     <ValuesFromIndices name="indexValue" template="Vec3" in="@ms.position" indices="0 1 2 3 4 5 6 7 8 9" />
-                    <WriteState filename="/home/raffa/work/data/journalValid/modelSens/ref_f-20_mu-100" groundTruth="true" /> 
+                    <WriteState filename="/home/raffa/work/data/journalValid/modelSens/ref_f-100_mu-100" groundTruth="true" /> 
                 </Node>
             <LinearSolverConstraintCorrection solverName="BTD"/>  
             </Node>
@@ -44,17 +44,17 @@
                 <Mesh name="lines" lines="0 1   1 2   2 3  3 4   4 5   5 6   6 7   7 8   8 9" />
                 <UniformMass totalmass="0.0005 " printLog="false" />
                 <BeamFEMForceField name="FEM" radius="0.0005" youngModulus="1e6" poissonRatio="0.49" useSymmetricAssembly="1"/>
-                <Node name="CollisionBall_f-20_mu-50">
+                <Node name="CollisionBall_f-100_mu-50">
                     <CubeTopology nx="10" ny="1" nz="1" min="0 0 0" max="9 0 0" />
                     <MechanicalObject name="ms" />
                     <BeamLinearMapping />
                     <EdgeGeometry name="edge"/> 
                     <PointGeometry name ="point"/>
                     <BoxROI name="boxA" box="-0.1-0.05 -0.1 0.1 0.1 0.1 " drawBoxes="1" drawSize="1" position="@ms.position"/>
-                    <ConstantForceField force="-0.0004 0.0 0  "/>
+                    <ConstantForceField force="-0.00005 0.0 0  "/>
                     <ValuesFromIndices name="indexValue" template="Vec3" in="@ms.position" indices="0 1 2 3 4 5 6 7 8 9" />
                     <ShowSpheres  radius="0.000001"  color="0 1 0 1" position="@ms.position" />
-                    <WriteState filename="/home/raffa/work/data/journalValid/modelSens/ref_f-20_mu-50" groundTruth="true" /> 
+                    <WriteState filename="/home/raffa/work/data/journalValid/modelSens/ref_f-100_mu-50" groundTruth="true" /> 
                 </Node>
             <LinearSolverConstraintCorrection solverName="BTD"/>  
             </Node>
@@ -66,17 +66,17 @@
                 <Mesh name="lines" lines="0 1   1 2   2 3  3 4   4 5   5 6   6 7   7 8   8 9" />
                 <UniformMass totalmass="0.0005 " printLog="false" />
                 <BeamFEMForceField name="FEM" radius="0.0005" youngModulus="1e6" poissonRatio="0.49" useSymmetricAssembly="1"/>           
-                <Node name="CollisionBall_f-20_mu-20">
+                <Node name="CollisionBall_f-100_mu-20">
                     <CubeTopology nx="10" ny="1" nz="1" min="0 0 0" max="9 0 0" />
                     <MechanicalObject name="ms" />
                     <BeamLinearMapping />
                     <EdgeGeometry name="edge"/> 
                     <PointGeometry name ="point"/>
                     <BoxROI name="boxA" box="-0.1-0.05 -0.1 0.1 0.1 0.1 " drawBoxes="1" drawSize="1" position="@ms.position"/>
-                    <ConstantForceField force="-0.0004 0.0 0  "/>
+                    <ConstantForceField force="-0.00005 0.0 0  "/>
                     <ValuesFromIndices name="indexValue" template="Vec3" in="@ms.position" indices="0 1 2 3 4 5 6 7 8 9" />
                     <ShowSpheres  radius="0.000001"  color="0 0 1 1" position="@ms.position" />
-                    <WriteState filename="/home/raffa/work/data/journalValid/modelSens/ref_f-20_mu-20" groundTruth="true" /> 
+                    <WriteState filename="/home/raffa/work/data/journalValid/modelSens/ref_f-100_mu-20" groundTruth="true" /> 
                 </Node>
             <LinearSolverConstraintCorrection solverName="BTD"/>  
             </Node>
@@ -88,17 +88,17 @@
                 <Mesh name="lines" lines="0 1   1 2   2 3  3 4   4 5   5 6   6 7   7 8   8 9" />
                 <UniformMass totalmass="0.0005 " printLog="false" />
                 <BeamFEMForceField name="FEM" radius="0.0005" youngModulus="1e6" poissonRatio="0.49" useSymmetricAssembly="1"/>       
-                <Node name="CollisionBall_f-20_mu-10">
+                <Node name="CollisionBall_f-100_mu-10">
                     <CubeTopology nx="10" ny="1" nz="1" min="0 0 0" max="9 0 0" />
                     <MechanicalObject name="ms" />
                     <BeamLinearMapping />
                     <EdgeGeometry name="edge"/> 
                     <PointGeometry name ="point"/>
                     <BoxROI name="boxA" box="-0.1-0.05 -0.1 0.1 0.1 0.1 " drawBoxes="1" drawSize="1" position="@ms.position"/>
-                    <ConstantForceField force="-0.0004 0.0 0  "/>
+                    <ConstantForceField force="-0.00005 0.0 0  "/>
                     <ValuesFromIndices name="indexValue" template="Vec3" in="@ms.position" indices="0 1 2 3 4 5 6 7 8 9" />
                     <ShowSpheres  radius="0.000001"  color="0 0.5 1 1" position="@ms.position" />
-                    <WriteState filename="/home/raffa/work/data/journalValid/modelSens/ref_f-20_mu-10" groundTruth="true" /> 
+                    <WriteState filename="/home/raffa/work/data/journalValid/modelSens/ref_f-100_mu-10" groundTruth="true" /> 
                 </Node>
             <LinearSolverConstraintCorrection solverName="BTD"/>  
             </Node>
@@ -110,17 +110,17 @@
                 <Mesh name="lines" lines="0 1   1 2   2 3  3 4   4 5   5 6   6 7   7 8   8 9" />
                 <UniformMass totalmass="0.0005 " printLog="false" />
                 <BeamFEMForceField name="FEM" radius="0.0005" youngModulus="1e6" poissonRatio="0.49" useSymmetricAssembly="1"/>       
-                <Node name="CollisionBall_f-20_mu">
+                <Node name="CollisionBall_f-100_mu">
                     <CubeTopology nx="10" ny="1" nz="1" min="0 0 0" max="9 0 0" />
                     <MechanicalObject name="ms" />
                     <BeamLinearMapping />
                     <EdgeGeometry name="edge"/> 
                     <PointGeometry name ="point"/>
                     <BoxROI name="boxA" box="-0.1-0.05 -0.1 0.1 0.1 0.1 " drawBoxes="1" drawSize="1" position="@ms.position"/>
-                    <ConstantForceField force="-0.0004 0.0 0  "/>
+                    <ConstantForceField force="-0.00005 0.0 0  "/>
                     <ValuesFromIndices name="indexValue" template="Vec3" in="@ms.position" indices="0 1 2 3 4 5 6 7 8 9" />
                     <ShowSpheres  radius="0.000001"  color="0.5 0 0 1" position="@ms.position" />
-                    <WriteState filename="/home/raffa/work/data/journalValid/modelSens/ref_f-20_mu" groundTruth="true" /> 
+                    <WriteState filename="/home/raffa/work/data/journalValid/modelSens/ref_f-100_mu" groundTruth="true" /> 
                 </Node>
                             <LinearSolverConstraintCorrection solverName="BTD"/>  
 
@@ -133,17 +133,17 @@
                 <Mesh name="lines" lines="0 1   1 2   2 3  3 4   4 5   5 6   6 7   7 8   8 9" />
                 <UniformMass totalmass="0.0005 " printLog="false" />
                 <BeamFEMForceField name="FEM" radius="0.0005" youngModulus="1e6" poissonRatio="0.49" useSymmetricAssembly="1"/>       
-                <Node name="CollisionBall_f-20_mu+10">
+                <Node name="CollisionBall_f-100_mu+10">
                     <CubeTopology nx="10" ny="1" nz="1" min="0 0 0" max="9 0 0" />
                     <MechanicalObject name="ms" />
                     <BeamLinearMapping />
                     <EdgeGeometry name="edge"/> 
                     <PointGeometry name ="point"/>
                     <BoxROI name="boxA" box="-0.1-0.05 -0.1 0.1 0.1 0.1 " drawBoxes="1" drawSize="1" position="@ms.position"/>
-                    <ConstantForceField force="-0.0004 0.0 0  "/>
+                    <ConstantForceField force="-0.00005 0.0 0  "/>
                     <ValuesFromIndices name="indexValue" template="Vec3" in="@ms.position" indices="0 1 2 3 4 5 6 7 8 9" />
                     <ShowSpheres  radius="0.000001"  color="0.5 1 0 1" position="@ms.position" />
-                    <WriteState filename="/home/raffa/work/data/journalValid/modelSens/ref_f-20_mu+10" groundTruth="true" /> 
+                    <WriteState filename="/home/raffa/work/data/journalValid/modelSens/ref_f-100_mu+10" groundTruth="true" /> 
                 </Node>
             <LinearSolverConstraintCorrection solverName="BTD"/>  
             </Node>
@@ -155,17 +155,17 @@
                 <Mesh name="lines" lines="0 1   1 2   2 3  3 4   4 5   5 6   6 7   7 8   8 9" />
                 <UniformMass totalmass="0.0005 " printLog="false" />
                 <BeamFEMForceField name="FEM" radius="0.0005" youngModulus="1e6" poissonRatio="0.49" useSymmetricAssembly="1"/>                
-                <Node name="CollisionBall_f-20_mu+20">
+                <Node name="CollisionBall_f-100_mu+20">
                     <CubeTopology nx="10" ny="1" nz="1" min="0 0 0" max="9 0 0" />
                     <MechanicalObject name="ms" />
                     <BeamLinearMapping />
                     <EdgeGeometry name="edge"/> 
                     <PointGeometry name ="point"/>
                     <BoxROI name="boxA" box="-0.1-0.05 -0.1 0.1 0.1 0.1 " drawBoxes="1" drawSize="1" position="@ms.position"/>
-                    <ConstantForceField force="-0.0004 0.0 0  "/>
+                    <ConstantForceField force="-0.00005 0.0 0  "/>
                     <ValuesFromIndices name="indexValue" template="Vec3" in="@ms.position" indices="0 1 2 3 4 5 6 7 8 9" />
                     <ShowSpheres  radius="0.000001"  color="0 1 0.5 1" position="@ms.position" />
-                    <WriteState filename="/home/raffa/work/data/journalValid/modelSens/ref_f-20_mu+20" groundTruth="true" /> 
+                    <WriteState filename="/home/raffa/work/data/journalValid/modelSens/ref_f-100_mu+20" groundTruth="true" /> 
                 </Node>
             <LinearSolverConstraintCorrection solverName="BTD"/>  
             </Node>
@@ -177,17 +177,17 @@
                 <Mesh name="lines" lines="0 1   1 2   2 3  3 4   4 5   5 6   6 7   7 8   8 9" />
                 <UniformMass totalmass="0.0005 " printLog="false" />
                 <BeamFEMForceField name="FEM" radius="0.0005" youngModulus="1e6" poissonRatio="0.49" useSymmetricAssembly="1"/>               
-                <Node name="CollisionBall_f-20_mu+50">
+                <Node name="CollisionBall_f-100_mu+50">
                     <CubeTopology nx="10" ny="1" nz="1" min="0 0 0" max="9 0 0" />
                     <MechanicalObject name="ms" />
                     <BeamLinearMapping />
                     <EdgeGeometry name="edge"/> 
                     <PointGeometry name ="point"/>
                     <BoxROI name="boxA" box="-0.1-0.05 -0.1 0.1 0.1 0.1 " drawBoxes="1" drawSize="1" position="@ms.position"/>
-                    <ConstantForceField force="-0.0004 0.0 0  "/>
+                    <ConstantForceField force="-0.00005 0.0 0  "/>
                     <ValuesFromIndices name="indexValue" template="Vec3" in="@ms.position" indices="0 1 2 3 4 5 6 7 8 9" />
                     <ShowSpheres  radius="0.000001"  color="1 0.5 0 1" position="@ms.position" />
-                    <WriteState filename="/home/raffa/work/data/journalValid/modelSens/ref_f-20_mu+50" groundTruth="true" /> 
+                    <WriteState filename="/home/raffa/work/data/journalValid/modelSens/ref_f-100_mu+50" groundTruth="true" /> 
                 </Node>
             <LinearSolverConstraintCorrection solverName="BTD"/>  
             </Node>
@@ -199,17 +199,17 @@
                 <Mesh name="lines" lines="0 1   1 2   2 3  3 4   4 5   5 6   6 7   7 8   8 9" />
                 <UniformMass totalmass="0.0005 " printLog="false" />
                 <BeamFEMForceField name="FEM" radius="0.0005" youngModulus="1e6" poissonRatio="0.49" useSymmetricAssembly="1"/>
-                <Node name="CollisionBall_f-20_mu+100">
+                <Node name="CollisionBall_f-100_mu+100">
                     <CubeTopology nx="10" ny="1" nz="1" min="0 0 0" max="9 0 0" />
                     <MechanicalObject name="ms" />
                     <BeamLinearMapping />
                     <EdgeGeometry name="edge"/> 
                     <PointGeometry name ="point"/>
                     <BoxROI name="boxA" box="-0.1-0.05 -0.1 0.1 0.1 0.1 " drawBoxes="1" drawSize="1" position="@ms.position"/>
-                    <ConstantForceField force="-0.0004 0.0 0  "/>
+                    <ConstantForceField force="-0.00005 0.0 0  "/>
                     <ValuesFromIndices name="indexValue" template="Vec3" in="@ms.position" indices="0 1 2 3 4 5 6 7 8 9" />
                     <ShowSpheres  radius="0.000001"  color="0 0.5 0 1" position="@ms.position" />
-                    <WriteState filename="/home/raffa/work/data/journalValid/modelSens/ref_f-20_mu+100" groundTruth="true" /> 
+                    <WriteState filename="/home/raffa/work/data/journalValid/modelSens/ref_f-100_mu+100" groundTruth="true" /> 
                 </Node>           
             <LinearSolverConstraintCorrection solverName="BTD"/>  
             </Node>
@@ -218,7 +218,7 @@
         
         <Node name="Spring" >
             <VisualStyle displayFlags="showWireframe" /> 
-            <MeshObjLoader name="surface" filename="mesh/y.obj"  />
+            <MeshObjLoader name="surface" filename="../mesh/y.obj"  />
             <TransformStochasticEngine name="transform" input_position="@surface.position" optimParams="0 0 0 0 0 0" triangles="@surface.triangles"  />
             <MeshTopology name="mesh" position="@transform.output_position" triangles="@transform.triangles"  />
             <TriangleSetTopologyContainer name="Container" src="@mesh" />
@@ -228,40 +228,244 @@
         </Node>
         
         
-        <NeedleContactConstraint needle="all/ball0/CollisionBall_f-20_mu-100/point" surface="Spring/triangle" tipIndex="@all/ball0/CollisionBall_f-20_mu-100/boxA.indices" friction="0.00" draw="0" draw_normal_scale="0.005" /> 
-        <NeedleContactConstraint needle="all/ball1/CollisionBall_f-20_mu-50/point" surface="Spring/triangle" tipIndex="@all/ball1/CollisionBall_f-20_mu-50/boxA.indices" friction="0.02" draw="0" draw_normal_scale="0.005" /> 
-        <NeedleContactConstraint needle="all/ball2/CollisionBall_f-20_mu-20/point" surface="Spring/triangle" tipIndex="@all/ball2/CollisionBall_f-20_mu-20/boxA.indices" friction="0.032" draw="0" draw_normal_scale="0.005" /> 
-        <NeedleContactConstraint needle="all/ball3/CollisionBall_f-20_mu-10/point" surface="Spring/triangle" tipIndex="@all/ball3/CollisionBall_f-20_mu-10/boxA.indices" friction="0.036" draw="0" draw_normal_scale="0.005" /> 
-        <NeedleContactConstraint needle="all/ball4/CollisionBall_f-20_mu/point" surface="Spring/triangle" tipIndex="@all/ball4/CollisionBall_f-20_mu/boxA.indices" friction="0.04" draw="0" draw_normal_scale="0.005" /> 
-        <NeedleContactConstraint needle="all/ball5/CollisionBall_f-20_mu+10/point" surface="Spring/triangle" tipIndex="@all/ball5/CollisionBall_f-20_mu+10/boxA.indices" friction="0.044" draw="0" draw_normal_scale="0.005" /> 
-        <NeedleContactConstraint needle="all/ball6/CollisionBall_f-20_mu+20/point" surface="Spring/triangle" tipIndex="@all/ball6/CollisionBall_f-20_mu+20/boxA.indices" friction="0.048" draw="0" draw_normal_scale="0.005" /> 
-        <NeedleContactConstraint needle="all/ball7/CollisionBall_f-20_mu+50/point" surface="Spring/triangle" tipIndex="@all/ball7/CollisionBall_f-20_mu+50/boxA.indices" friction="0.06" draw="0" draw_normal_scale="0.005" /> 
-        <NeedleContactConstraint needle="all/ball8/CollisionBall_f-20_mu+100/point" surface="Spring/triangle" tipIndex="@all/ball8/CollisionBall_f-20_mu+100/boxA.indices" friction="0.08" draw="0" draw_normal_scale="0.005" /> 
+        <NeedleContactConstraint needle="all/ball0/CollisionBall_f-100_mu-100/point" surface="Spring/triangle" tipIndex="@all/ball0/CollisionBall_f-100_mu-100/boxA.indices" friction="0.00" draw="0" draw_normal_scale="0.005" /> 
+        <NeedleContactConstraint needle="all/ball1/CollisionBall_f-100_mu-50/point" surface="Spring/triangle" tipIndex="@all/ball1/CollisionBall_f-100_mu-50/boxA.indices" friction="0.02" draw="0" draw_normal_scale="0.005" /> 
+        <NeedleContactConstraint needle="all/ball2/CollisionBall_f-100_mu-20/point" surface="Spring/triangle" tipIndex="@all/ball2/CollisionBall_f-100_mu-20/boxA.indices" friction="0.032" draw="0" draw_normal_scale="0.005" /> 
+        <NeedleContactConstraint needle="all/ball3/CollisionBall_f-100_mu-10/point" surface="Spring/triangle" tipIndex="@all/ball3/CollisionBall_f-100_mu-10/boxA.indices" friction="0.036" draw="0" draw_normal_scale="0.005" /> 
+        <NeedleContactConstraint needle="all/ball4/CollisionBall_f-100_mu/point" surface="Spring/triangle" tipIndex="@all/ball4/CollisionBall_f-100_mu/boxA.indices" friction="0.04" draw="0" draw_normal_scale="0.005" /> 
+        <NeedleContactConstraint needle="all/ball5/CollisionBall_f-100_mu+10/point" surface="Spring/triangle" tipIndex="@all/ball5/CollisionBall_f-100_mu+10/boxA.indices" friction="0.044" draw="0" draw_normal_scale="0.005" /> 
+        <NeedleContactConstraint needle="all/ball6/CollisionBall_f-100_mu+20/point" surface="Spring/triangle" tipIndex="@all/ball6/CollisionBall_f-100_mu+20/boxA.indices" friction="0.048" draw="0" draw_normal_scale="0.005" /> 
+        <NeedleContactConstraint needle="all/ball7/CollisionBall_f-100_mu+50/point" surface="Spring/triangle" tipIndex="@all/ball7/CollisionBall_f-100_mu+50/boxA.indices" friction="0.06" draw="0" draw_normal_scale="0.005" /> 
+        <NeedleContactConstraint needle="all/ball8/CollisionBall_f-100_mu+100/point" surface="Spring/triangle" tipIndex="@all/ball8/CollisionBall_f-100_mu+100/boxA.indices" friction="0.08" draw="0" draw_normal_scale="0.005" />        
         
-<!--        <Node name="noisyObs"> 		
-            <MechanicalObject template="Vec3d" name="MO" position="@../ball/CollisionBall/indexValue.out"  showObject="0"/>	
-            <AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@MO.position" noiseOrthogonalVariance="1e-5" noisePrincipalVariance="1e-5" noisePrincipalDirection="1 1 1"/>
-            <ShowSpheres  radius="0.0009"  color="1 0 0 1" position="@NoiseEngine.outputPositions"    />
-        </Node>-->
         
-
-<!--        <Node name="WRITEnoisy3Dobs"> 		
-            <MechanicalObject template="Vec3d" name="MO" position="@../noisyObs/NoiseEngine.outputPositions" />	
-            <StochasticPositionHandler filename="Obs3D_Y_0_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9" />
-        </Node>-->
-
-<!--        
-        <Node name="MatlabPlotGroundTruthPosition"> 
-            <MechanicalObject template="Vec3" name="MO" position="@../ball/MO.position" showObject="0"/>		
+        
+<!--        <Node name="MatlabPlotGroundTruthPosition"> 
+            <MechanicalObject template="Vec3" name="MO" position="@../all/ball/MO.position" showObject="0"/>		
             <StochasticPositionHandler filename="/home/raffa/work/data/journalValid/modelSens/y_gt_matlab"   observations="true" groundTruth="true"/>
         </Node>-->
+        
+        
+        <Node name="noisyObsf_mu-100"> 		
+            <MechanicalObject template="Vec3d" name="MO" position="@../all/ball0/CollisionBall_f-100_mu-100/indexValue.out"  showObject="0"/>	
+            <AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@MO.position" noiseOrthogonalVariance="1e-5" noisePrincipalVariance="1e-5" noisePrincipalDirection="1 1 1"/>
+            <ShowSpheres  radius="0.0009"  color="1 0 0 1" position="@NoiseEngine.outputPositions"    />
+        </Node>
+        <Node name="noisyObsf_mu-50"> 		
+            <MechanicalObject template="Vec3d" name="MO" position="@../all/ball1/CollisionBall_f-100_mu-50/indexValue.out"  showObject="0"/>	
+            <AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@MO.position" noiseOrthogonalVariance="1e-5" noisePrincipalVariance="1e-5" noisePrincipalDirection="1 1 1"/>
+            <ShowSpheres  radius="0.0009"  color="1 0 0 1" position="@NoiseEngine.outputPositions"    />
+        </Node>
+        <Node name="noisyObsf_mu-20"> 		
+            <MechanicalObject template="Vec3d" name="MO" position="@../all/ball2/CollisionBall_f-100_mu-20/indexValue.out"  showObject="0"/>	
+            <AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@MO.position" noiseOrthogonalVariance="1e-5" noisePrincipalVariance="1e-5" noisePrincipalDirection="1 1 1"/>
+            <ShowSpheres  radius="0.0009"  color="1 0 0 1" position="@NoiseEngine.outputPositions"    />
+        </Node>
+        <Node name="noisyObsf_mu-10"> 		
+            <MechanicalObject template="Vec3d" name="MO" position="@../all/ball3/CollisionBall_f-100_mu-10/indexValue.out"  showObject="0"/>	
+            <AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@MO.position" noiseOrthogonalVariance="1e-5" noisePrincipalVariance="1e-5" noisePrincipalDirection="1 1 1"/>
+            <ShowSpheres  radius="0.0009"  color="1 0 0 1" position="@NoiseEngine.outputPositions"    />
+        </Node>
+        <Node name="noisyObsf_mu"> 		
+            <MechanicalObject template="Vec3d" name="MO" position="@../all/ball4/CollisionBall_f-100_mu/indexValue.out"  showObject="0"/>	
+            <AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@MO.position" noiseOrthogonalVariance="1e-5" noisePrincipalVariance="1e-5" noisePrincipalDirection="1 1 1"/>
+            <ShowSpheres  radius="0.0009"  color="1 0 0 1" position="@NoiseEngine.outputPositions"    />
+        </Node>
+        <Node name="noisyObsf_mu+10"> 		
+            <MechanicalObject template="Vec3d" name="MO" position="@../all/ball5/CollisionBall_f-100_mu+10/indexValue.out"  showObject="0"/>	
+            <AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@MO.position" noiseOrthogonalVariance="1e-5" noisePrincipalVariance="1e-5" noisePrincipalDirection="1 1 1"/>
+            <ShowSpheres  radius="0.0009"  color="1 0 0 1" position="@NoiseEngine.outputPositions"    />
+        </Node>
+        <Node name="noisyObsf_mu+20"> 		
+            <MechanicalObject template="Vec3d" name="MO" position="@../all/ball6/CollisionBall_f-100_mu+20/indexValue.out"  showObject="0"/>	
+            <AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@MO.position" noiseOrthogonalVariance="1e-5" noisePrincipalVariance="1e-5" noisePrincipalDirection="1 1 1"/>
+            <ShowSpheres  radius="0.0009"  color="1 0 0 1" position="@NoiseEngine.outputPositions"    />
+        </Node>
+        <Node name="noisyObsf_mu+50"> 		
+            <MechanicalObject template="Vec3d" name="MO" position="@../all/ball7/CollisionBall_f-100_mu+50/indexValue.out"  showObject="0"/>	
+            <AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@MO.position" noiseOrthogonalVariance="1e-5" noisePrincipalVariance="1e-5" noisePrincipalDirection="1 1 1"/>
+            <ShowSpheres  radius="0.0009"  color="1 0 0 1" position="@NoiseEngine.outputPositions"    />
+        </Node>
+        <Node name="noisyObsf_mu+100"> 		
+            <MechanicalObject template="Vec3d" name="MO" position="@../all/ball8/CollisionBall_f-100_mu+100/indexValue.out"  showObject="0"/>	
+            <AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@MO.position" noiseOrthogonalVariance="1e-5" noisePrincipalVariance="1e-5" noisePrincipalDirection="1 1 1"/>
+            <ShowSpheres  radius="0.0009"  color="1 0 0 1" position="@NoiseEngine.outputPositions"    />
+        </Node>
+        
 
-<!--        <Node name="ImageProcessor" >
+
+        <Node name="pOri_ImageProcessor_f-100_mu-100" >
             <OpenCVImageProcessor name="processor" streamer="../video" />
-            <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObs/NoiseEngine.outputPositions" projectionMatrix="@../opengl.projectionMatrix"/>
+            <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObsf_mu-100/NoiseEngine.outputPositions" projectionMatrix="[2592.57 -3.61907e-13 -400 111.744,-3.53695e-13 -2592.57 -300 148.623,-1.20654e-16 -1.11022e-16 -1 0.279361]"/>
             <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
-            <StochasticPositionHandler filename="/home/raffa/work/data/journalValid/modelSens/Obs2D_y_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9 "/>
-        </Node>-->
+            <StochasticPositionHandler filename="/home/raffa/work/data/journalValid/modelSens/obs/f-100/pOri/pOri_Obs2D_f-100_mu-100_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9 "/>
+        </Node>
+        <Node name="pOri_ImageProcessor_f-100_mu-50" >
+            <OpenCVImageProcessor name="processor" streamer="../video" />
+            <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObsf_mu-50/NoiseEngine.outputPositions" projectionMatrix="[2592.57 -3.61907e-13 -400 111.744,-3.53695e-13 -2592.57 -300 148.623,-1.20654e-16 -1.11022e-16 -1 0.279361]"/>
+            <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
+            <StochasticPositionHandler filename="/home/raffa/work/data/journalValid/modelSens/obs/f-100/pOri/pOri_Obs2D_f-100_mu-50_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9 "/>
+        </Node>
+        <Node name="pOri_ImageProcessor_f-100_mu-20" >
+            <OpenCVImageProcessor name="processor" streamer="../video" />
+            <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObsf_mu-20/NoiseEngine.outputPositions" projectionMatrix="[2592.57 -3.61907e-13 -400 111.744,-3.53695e-13 -2592.57 -300 148.623,-1.20654e-16 -1.11022e-16 -1 0.279361]"/>
+            <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
+            <StochasticPositionHandler filename="/home/raffa/work/data/journalValid/modelSens/obs/f-100/pOri/pOri_Obs2D_f-100_mu-20_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9 "/>
+        </Node>
+        <Node name="pOri_ImageProcessor_f-100_mu-10" >
+            <OpenCVImageProcessor name="processor" streamer="../video" />
+            <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObsf_mu-10/NoiseEngine.outputPositions" projectionMatrix="[2592.57 -3.61907e-13 -400 111.744,-3.53695e-13 -2592.57 -300 148.623,-1.20654e-16 -1.11022e-16 -1 0.279361]"/>
+            <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
+            <StochasticPositionHandler filename="/home/raffa/work/data/journalValid/modelSens/obs/f-100/pOri/pOri_Obs2D_f-100_mu-10_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9 "/>
+        </Node>
+        <Node name="pOri_ImageProcessor_f-100_mu" >
+            <OpenCVImageProcessor name="processor" streamer="../video" />
+            <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObsf_mu/NoiseEngine.outputPositions" projectionMatrix="[2592.57 -3.61907e-13 -400 111.744,-3.53695e-13 -2592.57 -300 148.623,-1.20654e-16 -1.11022e-16 -1 0.279361]"/>
+            <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
+            <StochasticPositionHandler filename="/home/raffa/work/data/journalValid/modelSens/obs/f-100/pOri/pOri_Obs2D_f-100_mu_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9 "/>
+        </Node>
+        <Node name="pOri_ImageProcessor_f-100_mu+10" >
+            <OpenCVImageProcessor name="processor" streamer="../video" />
+            <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObsf_mu+10/NoiseEngine.outputPositions" projectionMatrix="[2592.57 -3.61907e-13 -400 111.744,-3.53695e-13 -2592.57 -300 148.623,-1.20654e-16 -1.11022e-16 -1 0.279361]"/>
+            <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
+            <StochasticPositionHandler filename="/home/raffa/work/data/journalValid/modelSens/obs/f-100/pOri/pOri_Obs2D_f-100_mu+10_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9 "/>
+        </Node>
+        <Node name="pOri_ImageProcessor_f-100_mu+20" >
+            <OpenCVImageProcessor name="processor" streamer="../video" />
+            <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObsf_mu+20/NoiseEngine.outputPositions" projectionMatrix="[2592.57 -3.61907e-13 -400 111.744,-3.53695e-13 -2592.57 -300 148.623,-1.20654e-16 -1.11022e-16 -1 0.279361]"/>
+            <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
+            <StochasticPositionHandler filename="/home/raffa/work/data/journalValid/modelSens/obs/f-100/pOri/pOri_Obs2D_f-100_mu+20_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9 "/>
+        </Node>
+        <Node name="pOri_ImageProcessor_f-100_mu+50" >
+            <OpenCVImageProcessor name="processor" streamer="../video" />
+            <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObsf_mu+50/NoiseEngine.outputPositions" projectionMatrix="[2592.57 -3.61907e-13 -400 111.744,-3.53695e-13 -2592.57 -300 148.623,-1.20654e-16 -1.11022e-16 -1 0.279361]"/>
+            <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
+            <StochasticPositionHandler filename="/home/raffa/work/data/journalValid/modelSens/obs/f-100/pOri/pOri_Obs2D_f-100_mu+50_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9 "/>
+        </Node>
+        <Node name="pOri_ImageProcessor_f-100_mu+100" >
+            <OpenCVImageProcessor name="processor" streamer="../video" />
+            <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObsf_mu+100/NoiseEngine.outputPositions" projectionMatrix="[2592.57 -3.61907e-13 -400 111.744,-3.53695e-13 -2592.57 -300 148.623,-1.20654e-16 -1.11022e-16 -1 0.279361]"/>
+            <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
+            <StochasticPositionHandler filename="/home/raffa/work/data/journalValid/modelSens/obs/f-100/pOri/pOri_Obs2D_f-100_mu+100_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9 "/>
+        </Node>  
+        
+        
+        
+        <Node name="pAx_ImageProcessor_f-100_mu-100" >
+            <OpenCVImageProcessor name="processor" streamer="../video" />
+            <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObsf_mu-100/NoiseEngine.outputPositions" projectionMatrix="[399.041 -22.0329 724.458 90.1947,256.525 -740.777 1.81426 85.7524,0.99824 -0.0592959 0.000489503 0.225592]"/>
+            <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
+            <StochasticPositionHandler filename="/home/raffa/work/data/journalValid/modelSens/obs/f-100/pAx/pAx_Obs2D_f-100_mu-100_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9 "/>
+        </Node>
+        <Node name="pAx_ImageProcessor_f-100_mu-50" >
+            <OpenCVImageProcessor name="processor" streamer="../video" />
+            <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObsf_mu-50/NoiseEngine.outputPositions" projectionMatrix="[399.041 -22.0329 724.458 90.1947,256.525 -740.777 1.81426 85.7524,0.99824 -0.0592959 0.000489503 0.225592]"/>
+            <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
+            <StochasticPositionHandler filename="/home/raffa/work/data/journalValid/modelSens/obs/f-100/pAx/pAx_Obs2D_f-100_mu-50_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9 "/>
+        </Node>
+        <Node name="pAx_ImageProcessor_f-100_mu-20" >
+            <OpenCVImageProcessor name="processor" streamer="../video" />
+            <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObsf_mu-20/NoiseEngine.outputPositions" projectionMatrix="[399.041 -22.0329 724.458 90.1947,256.525 -740.777 1.81426 85.7524,0.99824 -0.0592959 0.000489503 0.225592]"/>
+            <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
+            <StochasticPositionHandler filename="/home/raffa/work/data/journalValid/modelSens/obs/f-100/pAx/pAx_Obs2D_f-100_mu-20_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9 "/>
+        </Node>
+        <Node name="pAx_ImageProcessor_f-100_mu-10" >
+            <OpenCVImageProcessor name="processor" streamer="../video" />
+            <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObsf_mu-10/NoiseEngine.outputPositions" projectionMatrix="[399.041 -22.0329 724.458 90.1947,256.525 -740.777 1.81426 85.7524,0.99824 -0.0592959 0.000489503 0.225592]"/>
+            <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
+            <StochasticPositionHandler filename="/home/raffa/work/data/journalValid/modelSens/obs/f-100/pAx/pAx_Obs2D_f-100_mu-10_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9 "/>
+        </Node>
+        <Node name="pAx_ImageProcessor_f-100_mu" >
+            <OpenCVImageProcessor name="processor" streamer="../video" />
+            <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObsf_mu/NoiseEngine.outputPositions" projectionMatrix="[399.041 -22.0329 724.458 90.1947,256.525 -740.777 1.81426 85.7524,0.99824 -0.0592959 0.000489503 0.225592]"/>
+            <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
+            <StochasticPositionHandler filename="/home/raffa/work/data/journalValid/modelSens/obs/f-100/pAx/pAx_Obs2D_f-100_mu_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9 "/>
+        </Node>
+        <Node name="pAx_ImageProcessor_f-100_mu+10" >
+            <OpenCVImageProcessor name="processor" streamer="../video" />
+            <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObsf_mu+10/NoiseEngine.outputPositions" projectionMatrix="[399.041 -22.0329 724.458 90.1947,256.525 -740.777 1.81426 85.7524,0.99824 -0.0592959 0.000489503 0.225592]"/>
+            <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
+            <StochasticPositionHandler filename="/home/raffa/work/data/journalValid/modelSens/obs/f-100/pAx/pAx_Obs2D_f-100_mu+10_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9 "/>
+        </Node>
+        <Node name="pAx_ImageProcessor_f-100_mu+20" >
+            <OpenCVImageProcessor name="processor" streamer="../video" />
+            <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObsf_mu+20/NoiseEngine.outputPositions" projectionMatrix="[399.041 -22.0329 724.458 90.1947,256.525 -740.777 1.81426 85.7524,0.99824 -0.0592959 0.000489503 0.225592]"/>
+            <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
+            <StochasticPositionHandler filename="/home/raffa/work/data/journalValid/modelSens/obs/f-100/pAx/pAx_Obs2D_f-100_mu+20_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9 "/>
+        </Node>
+        <Node name="pAx_ImageProcessor_f-100_mu+50" >
+            <OpenCVImageProcessor name="processor" streamer="../video" />
+            <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObsf_mu+50/NoiseEngine.outputPositions" projectionMatrix="[399.041 -22.0329 724.458 90.1947,256.525 -740.777 1.81426 85.7524,0.99824 -0.0592959 0.000489503 0.225592]"/>
+            <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
+            <StochasticPositionHandler filename="/home/raffa/work/data/journalValid/modelSens/obs/f-100/pAx/pAx_Obs2D_f-100_mu+50_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9 "/>
+        </Node>
+        <Node name="pAx_ImageProcessor_f-100_mu+100" >
+            <OpenCVImageProcessor name="processor" streamer="../video" />
+            <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObsf_mu+100/NoiseEngine.outputPositions" projectionMatrix="[399.041 -22.0329 724.458 90.1947,256.525 -740.777 1.81426 85.7524,0.99824 -0.0592959 0.000489503 0.225592]"/>
+            <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
+            <StochasticPositionHandler filename="/home/raffa/work/data/journalValid/modelSens/obs/f-100/pAx/pAx_Obs2D_f-100_mu+100_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9 "/>
+        </Node>
+        
+        
+        <Node name="pObl_ImageProcessor_f-100_mu-100" >
+            <OpenCVImageProcessor name="processor" streamer="../video" />
+            <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObsf_mu-100/NoiseEngine.outputPositions" projectionMatrix="[794.719 -200.651 112.78 94.478,-39.4086 -781.439 -48.5703 48.9289,0.521511 -0.362189 -0.772557 0.192201]"/>
+            <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
+            <StochasticPositionHandler filename="/home/raffa/work/data/journalValid/modelSens/obs/f-100/pObl/pObl_Obs2D_f-100_mu-100_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9 "/>
+        </Node>
+        <Node name="pObl_ImageProcessor_f-100_mu-50" >
+            <OpenCVImageProcessor name="processor" streamer="../video" />
+            <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObsf_mu-50/NoiseEngine.outputPositions" projectionMatrix="[794.719 -200.651 112.78 94.478,-39.4086 -781.439 -48.5703 48.9289,0.521511 -0.362189 -0.772557 0.192201]"/>
+            <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
+            <StochasticPositionHandler filename="/home/raffa/work/data/journalValid/modelSens/obs/f-100/pObl/pObl_Obs2D_f-100_mu-50_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9 "/>
+        </Node>
+        <Node name="pObl_ImageProcessor_f-100_mu-20" >
+            <OpenCVImageProcessor name="processor" streamer="../video" />
+            <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObsf_mu-20/NoiseEngine.outputPositions" projectionMatrix="[794.719 -200.651 112.78 94.478,-39.4086 -781.439 -48.5703 48.9289,0.521511 -0.362189 -0.772557 0.192201]"/>
+            <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
+            <StochasticPositionHandler filename="/home/raffa/work/data/journalValid/modelSens/obs/f-100/pObl/pObl_Obs2D_f-100_mu-20_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9 "/>
+        </Node>
+        <Node name="pObl_ImageProcessor_f-100_mu-10" >
+            <OpenCVImageProcessor name="processor" streamer="../video" />
+            <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObsf_mu-10/NoiseEngine.outputPositions" projectionMatrix="[794.719 -200.651 112.78 94.478,-39.4086 -781.439 -48.5703 48.9289,0.521511 -0.362189 -0.772557 0.192201]"/>
+            <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
+            <StochasticPositionHandler filename="/home/raffa/work/data/journalValid/modelSens/obs/f-100/pObl/pObl_Obs2D_f-100_mu-10_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9 "/>
+        </Node>
+        <Node name="pObl_ImageProcessor_f-100_mu" >
+            <OpenCVImageProcessor name="processor" streamer="../video" />
+            <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObsf_mu/NoiseEngine.outputPositions" projectionMatrix="[794.719 -200.651 112.78 94.478,-39.4086 -781.439 -48.5703 48.9289,0.521511 -0.362189 -0.772557 0.192201]"/>
+            <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
+            <StochasticPositionHandler filename="/home/raffa/work/data/journalValid/modelSens/obs/f-100/pObl/pObl_Obs2D_f-100_mu_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9 "/>
+        </Node>
+        <Node name="pObl_ImageProcessor_f-100_mu+10" >
+            <OpenCVImageProcessor name="processor" streamer="../video" />
+            <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObsf_mu+10/NoiseEngine.outputPositions" projectionMatrix="[794.719 -200.651 112.78 94.478,-39.4086 -781.439 -48.5703 48.9289,0.521511 -0.362189 -0.772557 0.192201]"/>
+            <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
+            <StochasticPositionHandler filename="/home/raffa/work/data/journalValid/modelSens/obs/f-100/pObl/pObl_Obs2D_f-100_mu+10_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9 "/>
+        </Node>
+        <Node name="pObl_ImageProcessor_f-100_mu+20" >
+            <OpenCVImageProcessor name="processor" streamer="../video" />
+            <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObsf_mu+20/NoiseEngine.outputPositions" projectionMatrix="[794.719 -200.651 112.78 94.478,-39.4086 -781.439 -48.5703 48.9289,0.521511 -0.362189 -0.772557 0.192201]"/>
+            <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
+            <StochasticPositionHandler filename="/home/raffa/work/data/journalValid/modelSens/obs/f-100/pObl/pObl_Obs2D_f-100_mu+20_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9 "/>
+        </Node>
+        <Node name="pObl_ImageProcessor_f-100_mu+50" >
+            <OpenCVImageProcessor name="processor" streamer="../video" />
+            <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObsf_mu+50/NoiseEngine.outputPositions" projectionMatrix="[794.719 -200.651 112.78 94.478,-39.4086 -781.439 -48.5703 48.9289,0.521511 -0.362189 -0.772557 0.192201]"/>
+            <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
+            <StochasticPositionHandler filename="/home/raffa/work/data/journalValid/modelSens/obs/f-100/pObl/pObl_Obs2D_f-100_mu+50_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9 "/>
+        </Node>
+        <Node name="pObl_ImageProcessor_f-100_mu+100" >
+            <OpenCVImageProcessor name="processor" streamer="../video" />
+            <OpenCV3Dto2DTracker name="detector2D" in="@../noisyObsf_mu+100/NoiseEngine.outputPositions" projectionMatrix="[794.719 -200.651 112.78 94.478,-39.4086 -781.439 -48.5703 48.9289,0.521511 -0.362189 -0.772557 0.192201]"/>
+            <MechanicalObject template="Vec2d" name="MO" position="@detector2D.out"/>        
+            <StochasticPositionHandler filename="/home/raffa/work/data/journalValid/modelSens/obs/f-100/pObl/pObl_Obs2D_f-100_mu+100_x.txt" observations="true" indices="0 1 2 3 4 5 6 7 8 9 "/>
+        </Node>
+        
+        
+        
+        
+        
         
     </Node>
 
