@@ -5,23 +5,16 @@ model:
     dt: 0.01
     mesh_path: '../../data/cylinder/'
     object: 'cylinder2'
-    num_el: 2264  # 2264 13266 56360 12699 93738
-    num_el_sda: 2264
-    obs_id: 'end'
+    num_el: 138  # 128 138 2264 13266 56360 12699 93738
+    num_el_sda: 138
+    obs_id: 'mid'
     gravity: [0, 0, 0]
     #total_mass: 0.2
     # density: 2000
     density: 10000
      
-    #young_modulus: [3000, 7000]   
-    #young_modulus: [3275.26, 5207.11]  #S1
-    #young_modulus: [5724.74, 5207.11]  #S2
-    young_modulus: [4500, 3085.79] #S3   
-
-    #[3000, 7000] # [4500, 3085.79] # [5724.74, 5207.11]  #[3275.26, 5207.11] # [3000, 7000]    
-    #young_modulus: [5000, 3620.689655]   #E1
-    #young_moduli: [100000, 50000, 1000]   #E1
-    #young_moduli: [100000, 50000, 100000]   #E2
+    young_modulus: [3000, 7000]   
+    
     poisson_ratio: 0.499
     
     int:   # temporal integrator properties
@@ -42,16 +35,16 @@ model:
     #     num_inc_steps: 200
     #     delta: [0., 0., 0.0001]
 
-    # applied_pressure:
-    #     initial_pressure: [0., 0., 0.]
-    #     num_inc_steps: 100
-    #     delta: [0., 0., 4]
+    applied_pressure:
+        initial_pressure: [0., 0., 0.]
+        num_inc_steps: 200
+        delta: [0., 0., 1]
 
-    prescribed_displacement:
-        times: [0, 2]
-        displ: [.0, .0, .0,    .0, .0, .1]
-        boxes: [-0.05, -0.05, 0.299,   0.05, 0.05, 0.301]
-        spring_stiffness: 1e10
+    # prescribed_displacement:
+    #     times: [0, 2]
+    #     displ: [.0, .0, .0,    .0, .0, .1]
+    #     boxes: [-0.05, -0.05, 0.299,   0.05, 0.05, 0.301]
+    #     spring_stiffness: 1e10
 
 
     linsol:
@@ -66,17 +59,17 @@ model:
     plane_collision: 0
 
 io:        
-    suffix: 'testSigmaX_0.499nu'
+    suffix: 'test_0.499nu'
     saveGeo: 0
     saveObs: 1                  # GO only    
     saveEst: 1                  # SDA only
-    sdaFolderSuffix: 'project_45_45_200_ns1-5'         # SDA only
+    sdaFolderSuffix: 'project_45_45_200_ns1-5_debugUKF'         # SDA only
 
 filter:                         # SDA only
-    kind: 'ROUKF'               # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
+    kind: 'UKFClassic'               # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
     nparams: 2
     param_init_exval: [4500, 4500]
-    param_init_stdev: [1000, 1000]
+    param_init_stdev: [200, 200]
     param_min_val: [200]
     param_max_val: [1e10]
     param_transform: 'project'    
@@ -84,6 +77,9 @@ filter:                         # SDA only
     sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
     sigma_points_scale: 1
     obs_added_noise_var: 0
+    posQ: [0.0, 0.0, 0.0]
+    posP0: [0.0, 0.0, 0.0]
+    paramQ: [0.0, 0.0]
 
 time:
     timer_name: 'filter_computation_statistics'
@@ -93,3 +89,13 @@ time:
     iteration_amount: 300
 
 ...
+
+
+#young_modulus: [3275.26, 5207.11]  #S1
+    #young_modulus: [5724.74, 5207.11]  #S2
+    #young_modulus: [4500, 3085.79] #S3   
+
+    #[3000, 7000] # [4500, 3085.79] # [5724.74, 5207.11]  #[3275.26, 5207.11] # [3000, 7000]    
+    #young_modulus: [5000, 3620.689655]   #E1
+    #young_moduli: [100000, 50000, 1000]   #E1
+    #young_moduli: [100000, 50000, 100000]   #E2
