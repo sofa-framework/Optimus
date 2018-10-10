@@ -131,7 +131,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             self.filter = rootNode.createObject('UKFilterSimCorr', name="UKFSC", verbose="1", sigmaTopology=self.opt['filter']['sigma_points_topology'])
             estimatePosition = 0
         elif self.filterKind == 'UKFClassic':
-            self.filter = rootNode.createObject('UKFilterSimCorr', name="UKFClas", verbose="1", sigmaTopology=self.opt['filter']['sigma_points_topology'], exportPrefix=self.estFolder)
+            self.filter = rootNode.createObject('UKFilterClassic', name="UKFClas", verbose="1", sigmaTopology=self.opt['filter']['sigma_points_topology'], exportPrefix=self.estFolder)
             estimatePosition = 1
             
         rootNode.createObject('MeshVTKLoader', name='loader', filename=self.meshFile+'.vtk')
@@ -154,7 +154,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             phant.createObject('MechanicalObject', name='MO', src='@loader')
             phant.createObject('Mesh', src='@loader')            
             phant.createObject('LinearMotionStateController', keyTimes=self.opt['model']['prescribed_displacement']['times'], keyDisplacements=self.opt['model']['prescribed_displacement']['displ'])
-            # phant.createObject('ShowSpheres', position='@MO.position', color='0 0 1 1', radius='0.001')        
+            phant.createObject('ShowSpheres', position='@MO.position', color='0 0 1 1', radius='0.001')        
             # phant.createObject('VTKExporterDA', filename=self.geoFolder+'/objectPhant.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="1",
             #     exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1", printLog='0')
     
@@ -162,8 +162,16 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         # /ModelNode/cylinder
         simuNode=modelNode.createChild('cylinder')  
 
-        simuNode.createObject('StochasticStateWrapper',name="StateWrapper",verbose='1', printLog='1', 
-            langrangeMultipliers=self.planeCollision, estimatePosition=estimatePosition, estimateVelocity='0', draw='1', radiusDraw='0.0002')
+        if self.filterKind == 'UKFClassic':
+        	posP0=self.opt['filter']['posP0']
+        	posQ=self.opt['filter']['posQ']
+        	paramQ=self.opt['filter']['paramQ']
+        	simuNode.createObject('StochasticStateWrapper',name="StateWrapper",verbose='1', printLog='1', 
+        		langrangeMultipliers=self.planeCollision, estimatePosition=estimatePosition, estimateVelocity='0', draw='1', radiusDraw='0.0002',
+        		posModelStdev=posQ, paramModelStdev=paramQ, positionStdev=posP0)
+        else:
+        	simuNode.createObject('StochasticStateWrapper',name="StateWrapper",verbose='1', printLog='1', 
+        		langrangeMultipliers=self.planeCollision, estimatePosition=estimatePosition, estimateVelocity='0', draw='1', radiusDraw='0.0002', )
 
         intType = self.opt['model']['int']['type']
         if intType == 'Euler':
