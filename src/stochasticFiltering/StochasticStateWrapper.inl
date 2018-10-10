@@ -240,7 +240,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
         helper::vector<double> posStdev;
         posStdev.resize(posDim);
         if (d_positionStdev.getValue().size() != posDim) {
-            PRNS("[WARNING] Bad initial value of Position Initial Covariance. Resized to 3 values for Vec3 mstate, or 6 values for Rigid mstate");
+            PRNW("Bad initial value of Position Initial Covariance. Resized to 3 values for Vec3 mstate, or 6 values for Rigid mstate");
             for (size_t i=0 ;i<posDim;i++)
                 posStdev[i]=d_positionStdev.getValue()[0];
 
@@ -273,7 +273,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
         velStdev.resize(velDim);
 
         if( d_velocityStdev.getValue().size() != velDim ){
-            PRNS("[WARNING] Bad initial value of Velocity Initial Covariance. Resized 3 values for Vec3 mstate, or 6 values for Rigid mstate");
+            PRNW("Bad initial value of Velocity Initial Covariance. Resized 3 values for Vec3 mstate, or 6 values for Rigid mstate");
             for (size_t i=0 ;i<velDim;i++)
                 velStdev[i]=d_velocityStdev.getValue()[0];
 
