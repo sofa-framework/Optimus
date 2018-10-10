@@ -2,27 +2,29 @@ addpath '~/AncillaIP/Matlab';
 %groundTruth=[1500 6000 2000];   %P1
 %groundTruth=[3500 4000 1000 6000 2000 7000 2500 8000 3000 1500];
 %groundTruth=[1000 4000 2000];   %P1
-groundTruth=[3000, 7000]
+groundTruth=[3000, 7000];
 %$groundTruth=zeros(1,10);   %P2
 %groundTruth = zeros(1,16);
 showStdev = 1;
-nsteps=1000;
+nsteps=500;
 
 object='cylinder2';
-numEl='13266';
-numElSda='2264';
+numEl='138';  %2264 128
+numElSda='138';
 excit='press';   % force, displ
-obsID = 'end';
+obsID = 'mid';
 fem='StVenant';
 integ='Newton3';
-suffix='test2_0.499nu';
-filterType='ROUKF';  % "ROUKF", "UKFSimCorr", and "UKFClassic"
+suffix='test_0.499nu';
+filterType='UKFSimCorr';  % "ROUKF", "UKFSimCorr", and "UKFClassic"
 transform = 'project';
 sdaParams='45_45_200_ns1-5';
+saveImage=0;
 
-mainDir = [ '../assimStiffness/' object '_' numEl  '_' excit '_' obsID '_' fem '_' integ '_' suffix '/' ]
+mainDir = [ '../assimStiffness/' object '_' numEl  '_' excit '_' obsID '_' fem '_' integ '_' suffix '/' ];
 
-inputDir = [ mainDir filterType '_' numElSda  '_' transform '_' sdaParams ]
+inputDir = [ mainDir filterType '_' numElSda  '_' transform '_' sdaParams ];
+disp(inputDir)
 %old naming convention:
 %inputDir = [ mainDir filterType '_' transform '_' sdaParams ]
 
@@ -79,9 +81,26 @@ for ns = 1:nsteps
 end
 
 format short g
-disp(estState(nsteps,:))
-disp(estStd(nsteps,:))
-disp(correl(nsteps,:))
+estimParams=estState(nsteps,:);
+disp(groundTruth);
+disp(estimParams);
+disp(estStd(nsteps,:));
+disp(correl(nsteps,:));
+
+if length(estimParams) == 2
+    k1=estimParams(1);
+    k2=estimParams(2);
+    keff = (k1 * k2)/(k1 + k2);
+    keff2 = k2 / (k1+k2);
+    k1=groundTruth(1);
+    k2=groundTruth(2);
+    keff_gt=(k1 * k2) / (k1 + k2);
+    keff2_gt = k2 / (k1+k2);
+    fprintf('Effective: GT: %f  estimated: %f\n', keff_gt, keff);
+    fprintf('Effective2: GT: %f  estimated: %f\n', keff2_gt, keff2);
+end
+
+
 
 
 minval=0;
@@ -106,13 +125,16 @@ for i=1:nparams
     
 end
 
-mytitle=sprintf('%s', [filterType ' ' integ ' ' obsID ' ' transform ' ' strrep(suffix, '_', ' '), ' ' strrep(sdaParams,'_',' ')])
+mytitle=sprintf('%s', [filterType ' ' numEl ' ' numElSda ' ' integ ' ' obsID ' ' transform ' ' strrep(suffix, '_', ' '), ' ' strrep(sdaParams,'_',' ')]);
 title(mytitle);
+disp(mytitle);
 box on
 grid on
 
-fileName = strrep(mytitle,' ','_');
-saveas(gcf, [fileName '.png'], 'png')
+if saveImage
+    fileName = strrep(mytitle,' ','_');
+    saveas(gcf, [fileName '.png'], 'png')
+end
 
 
 % figure; 
