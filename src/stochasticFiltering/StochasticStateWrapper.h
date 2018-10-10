@@ -157,7 +157,7 @@ public:
     EMatrixX modelErrorVariance;
     EMatrixX modelErrorVarianceInverse;
     FilterType modelErrorVarianceValue;
-    helper::vector<double> posStdev, velStdev;
+
 
     void stateDim();
 
@@ -190,17 +190,17 @@ public:
                     this->stateErrorVariance.resize(this->stateSize, this->stateSize);
             this->stateErrorVariance.setZero();
 
-            size_t vpi = 0;
+            size_t vsi = 0;
             if (estimatePosition.getValue()) {
-                for (size_t index = 0; index < (size_t)this->positionVariance.size(); index++, vpi++) {
-                    this->stateErrorVariance(vpi,vpi) = this->positionVariance[index];
+                for (size_t index = 0; index < (size_t)this->positionVariance.size(); index++, vsi++) {
+                    this->stateErrorVariance(vsi,vsi) = this->positionVariance[index];
                 }
             }
 
-            /// vpi continues to increase since velocity is always after position
+            /// vsi continues to increase since velocity is always after position
             if (estimateVelocity.getValue()) {
-                for (size_t index = 0; index < (size_t)this->velocityVariance.size(); index++, vpi++) {
-                    this->stateErrorVariance(vpi,vpi) = this->velocityVariance[index];
+                for (size_t index = 0; index < (size_t)this->velocityVariance.size(); index++, vsi++) {
+                    this->stateErrorVariance(vsi,vsi) = this->velocityVariance[index];
                 }
             }
 
@@ -209,8 +209,8 @@ public:
                 helper::vector<double> variance;
                 this->vecOptimParams[opi]->getInitVariance(variance);
 
-                for (size_t pi = 0; pi < this->vecOptimParams[opi]->size(); pi++, vpi++)
-                    this->stateErrorVariance(vpi,vpi) = variance[pi];
+                for (size_t pi = 0; pi < this->vecOptimParams[opi]->size(); pi++, vsi++)
+                    this->stateErrorVariance(vsi,vsi) = variance[pi];
             }
         }
         return this->stateErrorVariance;
