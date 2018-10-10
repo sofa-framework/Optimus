@@ -235,33 +235,20 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
     positionPairs.clear();
     velocityPairs.clear();
 
-    size_t vsi = 0;
-    size_t vpi = 0;
-
-    posStdev.resize(posDim);
-    velStdev.resize(velDim);
-
-
-    if (d_positionStdev.getValue().size() != posDim) {
-        PRNS("[WARNING] Bad initial value of Position Initial Covariance. Resized to 3 values for Vec3 mstate, or 6 values for Rigid mstate");
-        for (size_t i=0 ;i<posDim;i++)
-            posStdev[i]=d_positionStdev.getValue()[0];
-
-    }else{
-        for (size_t i=0 ;i<posDim;i++)
-            posStdev[i]=d_positionStdev.getValue()[i];
-    }
-
-    if( d_velocityStdev.getValue().size() != velDim ){
-        PRNS("[WARNING] Bad initial value of Velocity Initial Covariance. Resized 3 values for Vec3 mstate, or 6 values for Rigid mstate");
-        for (size_t i=0 ;i<velDim;i++)
-            velStdev[i]=d_velocityStdev.getValue()[0];
-
-    }else{
-        for (size_t i=0 ;i<posDim;i++)
-            velStdev[i]=d_velocityStdev.getValue()[i];
-    }
+    size_t vsi = 0;            
     if (estimatePosition.getValue()) {
+        helper::vector<double> posStdev;
+        posStdev.resize(posDim);
+        if (d_positionStdev.getValue().size() != posDim) {
+            PRNS("[WARNING] Bad initial value of Position Initial Covariance. Resized to 3 values for Vec3 mstate, or 6 values for Rigid mstate");
+            for (size_t i=0 ;i<posDim;i++)
+                posStdev[i]=d_positionStdev.getValue()[0];
+
+        } else{
+            for (size_t i=0 ;i<posDim;i++)
+                posStdev[i]=d_positionStdev.getValue()[i];
+        }
+
         for (size_t i = 0; i < freeNodes.size(); i++) {
             std::pair<size_t, size_t> pr(freeNodes[i], vsi);
             vsi+=posDim;
@@ -282,6 +269,19 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
     }*/
 
     if (estimateVelocity.getValue()) {
+        helper::vector<double> velStdev;
+        velStdev.resize(velDim);
+
+        if( d_velocityStdev.getValue().size() != velDim ){
+            PRNS("[WARNING] Bad initial value of Velocity Initial Covariance. Resized 3 values for Vec3 mstate, or 6 values for Rigid mstate");
+            for (size_t i=0 ;i<velDim;i++)
+                velStdev[i]=d_velocityStdev.getValue()[0];
+
+        } else{
+            for (size_t i=0 ;i<posDim;i++)
+                velStdev[i]=d_velocityStdev.getValue()[i];
+        }
+
         for (size_t i = 0; i < freeNodes.size(); i++) {
             std::pair<size_t, size_t> pr(freeNodes[i], vsi);
             vsi+=velDim;
@@ -296,7 +296,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
     }
 
 
-
+    size_t vpi = 0;
     this->reducedStateIndex = vsi;
     for (size_t pi = 0; pi < vecOptimParams.size(); pi++) {
         helper::vector<size_t> opv;
