@@ -213,33 +213,41 @@ public:
                     this->stateErrorVariance(vsi,vsi) = variance[pi];
             }
         }
+        //std::cout << "P0: " << this->stateErrorVariance << std::endl;
         return this->stateErrorVariance;
     }
 
 
     virtual EMatrixX& getModelErrorVariance() {
-        if (this->modelErrorVariance.rows() == 0) {
+        if (this->modelErrorVariance.rows() == 0) {           
+            helper::vector<FilterType> velModStDev, posModStDev;
 
-            helper::vector<FilterType> posModStDev;
-            posModStDev.resize(posDim);
-            for (size_t i=0 ;i<posDim;i++) {
-                if (posModelStdev.getValue().size() != posDim) {
-                    posModStDev[i]=posModelStdev.getValue()[0];
-                }else{
-                    posModStDev[i]=posModelStdev.getValue()[i];
+            if (estimatePosition.getValue()) {
+                posModStDev.resize(posDim);
+                for (size_t i=0 ;i<posDim;i++) {
+                    if (posModelStdev.getValue().size() != posDim) {
+                        posModStDev[i]=posModelStdev.getValue()[0];
+                    }else{
+                        posModStDev[i]=posModelStdev.getValue()[i];
+                    }
                 }
             }
-            helper::vector<FilterType> velModStDev;
-            velModStDev.resize(velDim);
-            for (size_t i=0 ;i<velDim;i++) {
-                if (velModelStdev.getValue().size() != velDim) {
-                    velModStDev[i]=velModelStdev.getValue()[0];
-                }else{
-                    velModStDev[i]=velModelStdev.getValue()[i];
+
+
+            if (estimateVelocity.getValue()) {
+                velModStDev.resize(velDim);
+                for (size_t i=0 ;i<velDim;i++) {
+                    if (velModelStdev.getValue().size() != velDim) {
+                        velModStDev[i]=velModelStdev.getValue()[0];
+                    }else{
+                        velModStDev[i]=velModelStdev.getValue()[i];
+                    }
                 }
             }
+
             helper::vector<FilterType> paramModelStDev = paramModelStdev.getValue();
             //            modelErrorVarianceValue = posModelStDev(0) * posModelStDev(0);
+
             modelErrorVariance = EMatrixX::Identity(this->stateSize, this->stateSize);
             modelErrorVarianceInverse = EMatrixX::Identity(this->stateSize, this->stateSize) ;
 
@@ -251,17 +259,23 @@ public:
             const size_t V =velDim;
 
             EVectorX diagPosModelStDev;
-            diagPosModelStDev.resize(N*M);
-            for (size_t i = 0; i < N; i++ ){
-                for (size_t j = 0; j < M; j ++)
-                    diagPosModelStDev(i*M+j)=posModStDev[j%M]*posModStDev[j%M];
+            if (estimatePosition.getValue()) {
+                diagPosModelStDev.resize(N*M);
+                for (size_t i = 0; i < N; i++ ){
+                    for (size_t j = 0; j < M; j ++)
+                        diagPosModelStDev(i*M+j)=posModStDev[j%M]*posModStDev[j%M];
+                }
             }
+
             EVectorX diagVelModelStDev;
-            diagVelModelStDev.resize(N*V);
-            for (size_t i = 0; i < N; i++){
-                for (size_t j = 0; j < V; j ++)
-                    diagVelModelStDev(i*V+j)=velModStDev[j%V]*velModStDev[j%V];
+            if (estimateVelocity.getValue()) {
+                diagVelModelStDev.resize(N*V);
+                for (size_t i = 0; i < N; i++){
+                    for (size_t j = 0; j < V; j ++)
+                        diagVelModelStDev(i*V+j)=velModStDev[j%V]*velModStDev[j%V];
+                }
             }
+
             if (estimatePosition.getValue() && estimateVelocity.getValue()){
                 modelErrorVariance = EMatrixX::Identity(this->stateSize, this->stateSize);
                 for (unsigned index = 0; index < this->positionVariance.size(); index++, kp++)
@@ -269,7 +283,7 @@ public:
                 for (size_t index = this->positionVariance.size(); index < this->reducedStateIndex; index++,kv++)
                     modelErrorVariance(index,index) = diagVelModelStDev[kv]  ;
                 for (size_t pi = this->reducedStateIndex; pi < this->stateSize; pi++,k++)
-                    modelErrorVariance(pi,pi) = paramModelStDev[k]  *paramModelStDev[k];
+                    modelErrorVariance(pi,pi) = paramModelStDev[k]  *paramModelStDev[k];    /// why here the parameter variance is non-zero???
             }
 
             //NORMALLY IS THE CASE OF DATA ASSIMILATION where Parameters have no Q
@@ -281,7 +295,7 @@ public:
                     modelErrorVariance(pi,pi) = 0;
             }
 
-        }
+        }        
         return this->modelErrorVariance;
 
     }
