@@ -138,9 +138,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         rootNode.createObject('MeshSTLLoader', name='sloader', filename=self.meshFile+'.stl')
     
         # /ModelNode
-        modelNode=rootNode.createChild('ModelNode')
-        modelNode.createObject('StochasticStateWrapper',name="StateWrapper",verbose='1', 
-            langrangeMultipliers=self.planeCollision, estimatePosition=estimatePosition, estimateVelocity='0', draw='1', radiusDraw='0.0002')
+        modelNode=rootNode.createChild('ModelNode')        
 
         if self.planeCollision == 1:
             modelNode.createObject('GenericConstraintSolver', maxIterations='1000', tolerance='1e-6', printLog='0', allVerified='0')
@@ -163,6 +161,9 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
 
         # /ModelNode/cylinder
         simuNode=modelNode.createChild('cylinder')  
+
+        simuNode.createObject('StochasticStateWrapper',name="StateWrapper",verbose='1', printLog='1', 
+            langrangeMultipliers=self.planeCollision, estimatePosition=estimatePosition, estimateVelocity='0', draw='1', radiusDraw='0.0002')
 
         intType = self.opt['model']['int']['type']
         if intType == 'Euler':
@@ -189,7 +190,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         simuNode.createObject('TetrahedronSetTopologyModifier', name="Modifier")        
         simuNode.createObject('TetrahedronSetTopologyAlgorithms', name="TopoAlgo")
         simuNode.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
-        # simuNode.createObject('ShowSpheres', position='@Volume.position', color='0 1 0 1', radius='0.001')
+        simuNode.createObject('ShowSpheres', position='@Volume.position', color='0 1 0 1', radius='0.001')
 
         if 'total_mass' in self.opt['model'].keys():
             simuNode.createObject('UniformMass', totalMass=self.opt['model']['total_mass'])
@@ -273,7 +274,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
                 exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="0", position='@SourceMO.position')
         
         obsNode.createObject('BarycentricMapping')
-        obsNode.createObject('MappedStateObservationManager', name="MOBS", listening="1", stateWrapper="@../../StateWrapper", verbose="1",
+        obsNode.createObject('MappedStateObservationManager', name="MOBS", listening="1", stateWrapper="@../StateWrapper", verbose="1",
                     observationStdev=self.opt['filter']['observ_stdev'], noiseStdev=self.opt['filter']['obs_added_noise_var'], doNotMapObservations='1')
         obsNode.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix=self.obsFile)
         obsNode.createObject('ShowSpheres', radius="0.002", color="1 0 0 1", position='@SourceMO.position')
