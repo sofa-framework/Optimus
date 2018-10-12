@@ -131,7 +131,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             self.filter = rootNode.createObject('UKFilterSimCorr', name="UKFSC", verbose="1", sigmaTopology=self.opt['filter']['sigma_points_topology'])
             estimatePosition = 0
         elif self.filterKind == 'UKFClassic':
-            self.filter = rootNode.createObject('UKFilterClassic', name="UKFClas", verbose="1", sigmaTopology=self.opt['filter']['sigma_points_topology'], exportPrefix=self.estFolder)
+            self.filter = rootNode.createObject('UKFilterClassic', name="UKFClas", printLog='1', verbose="1", sigmaTopology=self.opt['filter']['sigma_points_topology'], exportPrefix=self.estFolder)
             estimatePosition = 1
             
         rootNode.createObject('MeshVTKLoader', name='loader', filename=self.meshFile+'.vtk')
