@@ -6,19 +6,19 @@ groundTruth=[3000, 7000];
 %$groundTruth=zeros(1,10);   %P2
 %groundTruth = zeros(1,16);
 showStdev = 1;
-nsteps=500;
+nsteps=1000;
 
 object='cylinder2';
-numEl='138';  %2264 128
-numElSda='138';
+numEl='385';  %2264 128
+numElSda='385';
 excit='press';   % force, displ
 obsID = 'mid';
 fem='StVenant';
-integ='Newton3';
+integ='Euler3';
 suffix='test_0.499nu';
-filterType='UKFSimCorr';  % "ROUKF", "UKFSimCorr", and "UKFClassic"
+filterType='ROUKF';  % "ROUKF", "UKFSimCorr", and "UKFClassic"
 transform = 'project';
-sdaParams='45_45_200_ns1-5';
+sdaParams='45_45_200_ns1-5_debugUKF';
 saveImage=0;
 
 mainDir = [ '../assimStiffness/' object '_' numEl  '_' excit '_' obsID '_' fem '_' integ '_' suffix '/' ];
