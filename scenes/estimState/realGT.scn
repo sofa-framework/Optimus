@@ -11,25 +11,31 @@
 <FreeMotionAnimationLoop />
 <GenericConstraintSolver name="GenericConstraintSolver"  printLog="0"  maxIterations="1000"  tolerance="1e-10"  allVerified="0" />  
 
-<!--<OpenCVPngStreamer name="streamer" filename="/home/raffa/Documents/Raffa/cat1/test_004014.png" />
+<OpenCVPngStreamer name="streamer" filename="/home/raffa/work/data_optimus/Raffa/cat1/test_002782.png"/>
 <OpenCVProjectiveCalibrator listening="1" name="calibrator" streamer="streamer" mode="0"             
-                        projectionMatrix="[-3320.65	174.572	-514.441	193.451
-                                            134.409	3340.13	44.4847	-64.7090
-                                            0.0480279	0.103531	-0.993466	0.400192]"
-    drawCamera="1" depth="1" drawzNear="0.0000001" drawViewPort="false" drawzFar="10000000" drawscreenPosition="0 0" drawswapMainView="0" />                 
+                        projectionMatrix="[-3320.65000000000	174.572000000000	-514.441000000000	193.451000000000
+134.409000000000	3340.13000000000	44.4847000000000	-64.7090000000000
+0.0480279000000001	0.103531000000000	-0.993466000000000	0.400192000000000]"
+                            drawCamera="0" depth="1" drawzNear="0.0000001" drawViewPort="false" drawzFar="10000000" drawscreenPosition="0 0" drawswapMainView="0" />                 
 <OpenCVViewer name="viewer" streamer="streamer" drawcolor="1 1 1 1" /> 
-<OpenCVScheduler name="scheduler" frequency="0" sequence="0 004014" />-->
+<OpenCVScheduler name="scheduler" frequency="0" sequence="0 004014" />
 
         <Node name="init"> 
             <EulerImplicitSolver  />
             <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/>
-            <MechanicalObject template="Vec3" name="MO" position="0.0394433097839356	0.0484600067138672	-0.0578153991699219
-            0.0366725886467393	0.0548799667420753	-0.0508427628275531
-            0.0295245876792396	0.0605971983635609	-0.0487229173486630
-            0.0210858688190383	0.0606265413785004	-0.0534963533884147
-            0.0140316058132121	0.0563767350309354	-0.0589325983597519
-            0.00522747431517928	0.0526978640367743	-0.0609153917719377"/>
-            <ReadState filename="/home/raffa/work/Optimus/scenes/estimState/journalValid/referenceReal" />
+            <MechanicalObject template="Vec3" name="MO" position="
+                              0.0399815177917481	0.0470830192565918	-0.0591924743652344
+                              0.0387004903601701	0.0502808424229297	-0.0558877550317120
+                              0.0373124962254078	0.0531628697036067	-0.0520939956935181
+                              0.0347206010265873	0.0566249684046634	-0.0497124508126726
+                              0.0306765703045530	0.0593074040990687	-0.0492192150647461
+                              0.0261916876554606	0.0605749266105995	-0.0508138010942712
+                              0.0221002029178198	0.0602407885064604	-0.0534210121791548
+                              0.0183645681079652	0.0586497751235438	-0.0562515190530539
+                              0.0146900982525913	0.0563388709290302	-0.0587305575344653
+                              0.0105783575756686	0.0540727831446566	-0.0603204716860637
+                              0.00588602472858839	0.0526482041097770	-0.0607431658635906"/>
+<!--             <ReadState filename="/home/raffa/work/work/Optimus/scenes/estimState/journalValid/referenceReal" /> -->
             <ShowSpheres  radius="0.0002"  color="1 0 0  1" position="@MO.position" />
         </Node>
     
@@ -37,24 +43,22 @@
         <EulerImplicitSolver rayleighMass="0.01" rayleighStiffness="0.1" />	
          <SparseLDLSolver name="BTD"/>
             <MechanicalObject template="Rigid" name="MO" 
-                position="0.0394433 0.04846 -0.0578154 -0.166916 0.516252 -0.305271 0.782581
-                        0.0366726 0.05488 -0.0508428 -0.166916 0.516252 -0.305271 0.782581 
-                        0.0295246 0.0605972 -0.0487229 -0.306985 0.219705 -0.267082 0.886655 
-                        0.0210859 0.0606265 -0.0534964 -0.414802 -0.229281 -0.110602 0.873577 
-                        0.0140316 0.0563767 -0.0589326 -0.430489 -0.37148 0.0675949 0.819825 
-                        0.00522747 0.0526979 -0.0609154 -0.500084 -0.188712 0.112666 0.837622
-                        "                                
-                velocity=" 0.0944734391847772	-0.108031485290983	-0.150574483144444 0 0 0  
-                        0.0528970981796789	-0.127447346411935	-0.156167164146431 0 0 0	
-                        0.0941147803879743	-0.104108116036108	-0.0948517221006342	 0 0 0
-                        0.0873085477162351	-0.0167877214650240	-16.3397748007254e-04 0 0 0
-                        0.0439726978460816	0.0266170383892851	0.044005671018743 0 0 0
-                        0.0332108764388558	0.0382312750000662	0.0702953135438577 0 0 0"
+                position="0.0059    0.0526   -0.0607 0 0 0 1
+                          0.0009    0.0526   -0.0607 0 0 0 1
+                              -0.0041    0.0526   -0.0607 0 0 0 1
+                              -0.0091    0.0526   -0.0607 0 0 0 1
+                              -0.0141    0.0526   -0.0607 0 0 0 1
+                              -0.0191    0.0526   -0.0607 0 0 0 1
+                               -0.0241    0.0526   -0.0607 0 0 0 1
+                               -0.0291    0.0526   -0.0607 0 0 0 1 
+                              -0.0341    0.0526   -0.0607 0 0 0 1
+                              -0.0391    0.0526   -0.0607 0 0 0 1
+                              -0.0441    0.0526   -0.0607 0 0 0 1 "                                
                 showObject="1" showObjectScale="0.002"/>
         <Mesh name="lines" lines="0 1   1 2   2 3  3 4   4 5 " />
             <UniformMass totalmass="0.0007" printLog="false" />
             <BeamFEMForceField name="FEM" radius="0.0005" youngModulus="1e6" poissonRatio="0.49" useSymmetricAssembly="1"/>
-            <ShowSpheres  radius="0.0002"  color="0 1 0 1" position="@MO.position" />
+<!--             <ShowSpheres  radius="0.0002"  color="0 1 0 1" position="@MO.position" /> -->
         <Node name="CollisionBall">
     <!--                 <EdgeSetTopologyContainer name="Container"  edges=  "0 1   1 2   2 3  "  /> -->
     <!--                 <MechanicalObject name="ms"   position="0 0 0   1 0 0     2 0 0   3 0 0 "/> -->
@@ -71,7 +75,7 @@
     
     <Node name="Spring" >
 <!--         <VisualStyle displayFlags="showWireframe" />  -->
-        <MeshSTLLoader name="surface" filename="/home/raffa/Documents/Raffa/phantomScaled.stl"  />
+        <MeshSTLLoader name="surface" filename="/home/raffa/work/data_optimus/Raffa/phantomScaled.stl"  />
         <TransformStochasticEngine name="transform" input_position="@surface.position" optimParams="0 0 0 0 0 0" triangles="@surface.triangles"  />
         <MeshTopology name="mesh" position="@transform.output_position" triangles="@transform.triangles"  />
         <TriangleSetTopologyContainer name="Container" src="@mesh" />
