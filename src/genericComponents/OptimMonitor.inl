@@ -53,21 +53,22 @@ OptimMonitor<DataTypes>::OptimMonitor()
     , d_saveXToGnuplot ( initData ( &d_saveXToGnuplot, false, "ExportPositions", "export OptimMonitored positions as gnuplot file" ) )
     , d_saveVToGnuplot ( initData ( &d_saveVToGnuplot, false, "ExportVelocities", "export OptimMonitored velocities as gnuplot file" ) )
     , d_saveFToGnuplot ( initData ( &d_saveFToGnuplot, false, "ExportForces", "export OptimMonitored forces as gnuplot file" ) )
-    ,d_showPositions (initData (&d_showPositions, false, "showPositions", "see the OptimMonitored positions"))
-    ,d_positionsColor (initData (&d_positionsColor, "PositionsColor", "define the color of positions"))
-    ,d_showVelocities (initData (&d_showVelocities, false, "showVelocities", "see the OptimMonitored velocities"))
-    ,d_velocitiesColor(initData (&d_velocitiesColor, "VelocitiesColor", "define the color of velocities"))
-    ,d_showForces (initData (&d_showForces, false, "showForces", "see the OptimMonitored forces"))
-    ,d_forcesColor (initData (&d_forcesColor, "ForcesColor", "define the color of forces"))
-    ,d_showMinThreshold (initData (&d_showMinThreshold, 0.01 ,"showMinThreshold", "under this value, vectors are not represented"))
-    ,d_showTrajectories (initData (&d_showTrajectories, false ,"showTrajectories", "print the trajectory of OptimMonitored particles"))
-    ,d_trajectoriesPrecision (initData (&d_trajectoriesPrecision, 0.1,"TrajectoriesPrecision", "set the dt between to save of positions"))
-    ,d_trajectoriesColor(initData (&d_trajectoriesColor, "TrajectoriesColor", "define the color of the trajectories"))
-    ,d_showSizeFactor(initData (&d_showSizeFactor, 1.0, "sizeFactor", "factor to multiply to arrows"))
-    ,d_fileName(initData (&d_fileName, "fileName", "name of the plot files to be generated"))
-    ,m_saveGnuplotX ( NULL ), m_saveGnuplotV ( NULL ), m_saveGnuplotF ( NULL )
-    ,m_X (NULL), m_V(NULL), m_F(NULL)
-    ,m_internalDt(0.0)
+    , d_showPositions (initData (&d_showPositions, false, "showPositions", "see the OptimMonitored positions"))
+    , d_positionsColor (initData (&d_positionsColor, "PositionsColor", "define the color of positions"))
+    , d_showVelocities (initData (&d_showVelocities, false, "showVelocities", "see the OptimMonitored velocities"))
+    , d_velocitiesColor(initData (&d_velocitiesColor, "VelocitiesColor", "define the color of velocities"))
+    , d_showForces (initData (&d_showForces, false, "showForces", "see the OptimMonitored forces"))
+    , d_forcesColor (initData (&d_forcesColor, "ForcesColor", "define the color of forces"))
+    , d_showMinThreshold (initData (&d_showMinThreshold, 0.01 ,"showMinThreshold", "under this value, vectors are not represented"))
+    , d_showTrajectories (initData (&d_showTrajectories, false ,"showTrajectories", "print the trajectory of OptimMonitored particles"))
+    , d_trajectoriesPrecision (initData (&d_trajectoriesPrecision, 0.1,"TrajectoriesPrecision", "set the dt between to save of positions"))
+    , d_trajectoriesColor(initData (&d_trajectoriesColor, "TrajectoriesColor", "define the color of the trajectories"))
+    , d_showSizeFactor(initData (&d_showSizeFactor, 1.0, "sizeFactor", "factor to multiply to arrows"))
+    , d_fileName(initData (&d_fileName, "fileName", "name of the plot files to be generated"))
+    , d_saveZeroStep(initData (&d_saveZeroStep, true, "saveZeroStep", "save positions for zero time step"))
+    , m_saveGnuplotX ( NULL ), m_saveGnuplotV ( NULL ), m_saveGnuplotF ( NULL )
+    , m_X (NULL), m_V(NULL), m_F(NULL)
+    , m_internalDt(0.0)
 {
     if (!f_listening.isSet()) f_listening.setValue(true);
 
@@ -118,19 +119,21 @@ void OptimMonitor<DataTypes>::init()
     m_savedPos.resize(d_indices.getValue().size());
 
     ///  initial export of the data
-    if ( d_saveXToGnuplot.getValue() || d_saveVToGnuplot.getValue() || d_saveFToGnuplot.getValue() )
-        exportGnuplot ( (Real) this ->getTime() );
+    if (d_saveZeroStep.getValue()) {
+        if ( d_saveXToGnuplot.getValue() || d_saveVToGnuplot.getValue() || d_saveFToGnuplot.getValue() )
+            exportGnuplot ( (Real) this ->getTime() );
 
-    if (d_showTrajectories.getValue())
-    {
-        m_internalDt += this->getContext()->getDt();
-
-        if (d_trajectoriesPrecision.getValue() <= m_internalDt)
+        if (d_showTrajectories.getValue())
         {
-            m_internalDt = 0.0;
-            for (unsigned int i=0; i < d_indices.getValue().size(); ++i)
+            m_internalDt += this->getContext()->getDt();
+
+            if (d_trajectoriesPrecision.getValue() <= m_internalDt)
             {
-                m_savedPos[i].push_back( (*m_X)[d_indices.getValue()[i]] );
+                m_internalDt = 0.0;
+                for (unsigned int i=0; i < d_indices.getValue().size(); ++i)
+                {
+                    m_savedPos[i].push_back( (*m_X)[d_indices.getValue()[i]] );
+                }
             }
         }
     }
