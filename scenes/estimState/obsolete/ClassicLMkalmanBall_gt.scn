@@ -1,40 +1,51 @@
 <?xml version="1.0"?>
-<Node    name="root" dt="0.01" gravity="0 0 0" >
+<Node    name="root" dt="0.001" gravity="0 0 0" >
 <RequiredPlugin pluginName="Optimus"/>
 <RequiredPlugin pluginName="ImageMeshAux" />
-<RequiredPlugin pluginName="ConstraintGeometryPlugin" />
-<RequiredPlugin pluginName="NeedleConstraintPlugin" />
-<RequiredPlugin pluginName="RegistrationConstraintPlugin" />
 
-    <VisualStyle displayFlags=" showCollisionModels showForceFields" />
+    <VisualStyle displayFlags=" showCollisionModels " />
     <BackgroundSetting color="1 1 1 1" />
-    <FreeMotionAnimationLoop />
-    <GenericConstraintSolver maxIt="1000" tolerance="1e-10" printLog="false" />
-    <CollisionPipeline depth="6" verbose="0" draw="0"/>
-    <BruteForceDetection name="N2" />
-    <LocalMinDistance name="Proximity" alarmDistance="0.01" contactDistance="0.001"  angleCone="90.0" filterIntersection="0"/>
-    <DefaultContactManager name="Response" response="FrictionContact" responseParams="mu=0"/>
+<!--     <FreeMotionAnimationLoop /> -->
+<!--     <GenericConstraintSolver maxIt="1000" tolerance="1e-10" printLog="false" /> -->
+<!--     <CollisionPipeline depth="6" verbose="0" draw="0"/> -->
+<!--     <BruteForceDetection name="N2" /> -->
+<!--     <LocalMinDistance name="Proximity" alarmDistance="0.001" contactDistance="0.0001"  angleCone="90.0" filterIntersection="0"/> -->
+<!--     <DefaultContactManager name="Response" response="FrictionContact" responseParams="mu=0"/> -->
 
 
-    <Node name="ball">
-            <EulerImplicitSolver />s
-            <SparseLUSolver />
-            <MechanicalObject template="Vec3d" name="MO" position="0 0 0    " velocity="0.05 -0.2 0.01 "  showObject="0"/>
-             <UniformMass totalMass="0.001 " />
-            <ShowSpheres  radius="0.01"  color="0 1 0 1" position="@MO.position" />
+    <Node name="ball">            
+            <StaticSolver  />	
+<!--             <PCGLinearSolver  preconditioners="BTD" update_step="1"/>  -->
+            <SparseLUSolver name="BTD" template="AsyncCompressedRowSparseMatrix3f" />
+            <MechanicalObject template="Rigid" name="MO"     
+                              position="0.0051 0.053 -0.0564594 -0.00631881 -0.00511366 -0.00437732 0.999957 -7.60054e-05 0.0528448 -0.0577388 -0.00269041 -0.0024449 -0.00226113 0.999991 -0.00499763 0.0529091 -0.057685 -0.00170987 -0.00160717 -0.00152543 0.999996 -0.00996757 0.0529357 -0.0576613 -0.00125322 -0.00119711 -0.00115111 0.999998 -0.0149517 0.0529503 -0.0576479 -0.000989085 -0.000953783 -0.000924329 0.999999 -0.0199418 0.0529595 -0.0576393 -0.000816915 -0.000792674 -0.000772212 0.999999 -0.0249351 0.0529658 -0.0576333 -0.000695798 -0.00067813 -0.000663094 0.999999
+
+
+
+  " showObject="1" showObjectScale="0.001"/>
+            <Mesh name="lines" lines="0 1 1 2 2 3 3 4 4 5 5 6 6 7 7 8 8 9 9 10 10 11 11 12" />
+<!--             <UniformMass totalmass="0.0005" printLog="false" /> -->
+            <BeamFEMForceField name="FEM" radius="0.001" youngModulus="1e9" poissonRatio="0.49" useSymmetricAssembly="1"/>
+<!--             <ConstantForceField force="10 0 0 -0.0001  0.0001 0"  indices="6"/> -->
+<!--             <ShowSpheres  radius="0.0002"  color="0 1 0  1" position="@MO.position" /> -->
+                    <FixedConstraint name="FixedConstraint" indices="0" />
+
             <Node name="CollisionBall" >
-                <MechanicalObject name="ms" position="@MO.position"   />
-                <Point/>
-                <IdentityMapping />
+                <CubeTopology nx="13" ny="1" nz="1" min="0 0 0" max="6 0 0" />
+                <MechanicalObject   />
+<!--                 <Point/> -->
+<!--                 <Line  /> -->
+                <BeamLinearMapping isMechanical="true"/>
+
             </Node>
             
-            <LinearSolverConstraintCorrection />  
+<!--             <LinearSolverConstraintCorrection solverName="BTD"/>   -->
             
-    </Node>  
-
-    <Node name="Plane" >
-            <VisualStyle displayFlags="showWireframe" /> 
-            <MeshObjLoader name="surface" filename="mesh/realPlane.obj"  />
+    </Node>   
+    
+    
+<!--    <Node name="Plane" >
+            <MeshSTLLoader name="surface" filename="/home/raffa/work/data_optimus/Raffa/phantomScaled.stl"  />
             <TransformEngine name="transform" input_position="@surface.position" optimParams="0 0 0 0 0 0"  />
             <Mesh src="@surface" />
             <MechanicalObject position="@transform.output_position" template="Vec3d" />
@@ -42,9 +53,9 @@
             <Line  />
             <Point />
             <OglModel name="Visual" color="1 0 0 1" src="@surface" position="@transform.output_position"/>
-        </Node>
+        </Node>-->
     
-    
+    <!--
     <Node name="noisyObs"> 		
         <MechanicalObject template="Vec3d" name="MO" position="@../ball/MO.position"  showObject="0"/>	
         <AddNoiseEngine name="NoiseEngine" listening="1" inputPositions="@MO.position" noiseOrthogonalVariance="1e-4" noisePrincipalVariance="1e-4" noisePrincipalDirection="1 1 1"/>
@@ -71,6 +82,6 @@
     <Node name="MatlabPlotNoisyObs"> 		
         <MechanicalObject template="Vec3d" name="MO" position="@../noisyObs/NoiseEngine.outputPositions" />	
         <WriteState filename="LMnPlane" />
-    </Node>
+    </Node>-->
 
 </Node>

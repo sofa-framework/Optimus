@@ -101,6 +101,7 @@ StochasticStateWrapper<DataTypes, FilterType>::StochasticStateWrapper()
     :Inherit()
     , d_langrangeMultipliers( initData(&d_langrangeMultipliers, false, "langrangeMultipliers", "perform collision detection and response with Lagrange multipliers (requires constraint solver)") )
     , estimatePosition( initData(&estimatePosition, false, "estimatePosition", "estimate the position (e.g., if initial conditions with uncertainty") )
+    , estimateOnlyXYZ( initData(&estimateOnlyXYZ, false, "estimateOnlyXYZ", "estimate only the X Y Z for a Rigid Body") )
     , estimateVelocity( initData(&estimateVelocity, false, "estimateVelocity", "estimate the velocity (e.g., if initial conditions with uncertainty") )
     , posModelStdev( initData(&posModelStdev, helper::vector<FilterType>(0.0), "posModelStdev", "standard deviation in observations") )
     , velModelStdev( initData(&velModelStdev, helper::vector<FilterType>(0.0), "velModelStdev", "standard deviation in observations") )
@@ -121,7 +122,14 @@ StochasticStateWrapper<DataTypes, FilterType>::~StochasticStateWrapper()
 
 template <>
 void StochasticStateWrapper<Rigid3dTypes, double>::stateDim(){
-    posDim = 6;
+    if(!estimateOnlyXYZ.getValue()){
+        std::cout<<"[StochasticStateWrapper] Estimate 6DoF Position"<<std::endl;
+        posDim = 6;
+    }
+    else {
+        std::cout<<"[StochasticStateWrapper] Estimate 3Dof Position"<<std::endl;
+        posDim=3;
+    }
     velDim = 6;
 }
 
@@ -151,7 +159,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::init()
     vecOptimParams.clear();
     this->gnode->template get<OptimParamsBase>(&vecOptimParams, core::objectmodel::BaseContext::SearchDown );
     if (vecOptimParams.empty()) {
-        PRNW("No OptimParams found");
+//        PRNW("No OptimParams found");
         //valid=false;
     } else {
         PRNSC("OptimParams found " << vecOptimParams.size() << "x: ");
@@ -192,10 +200,11 @@ void StochasticStateWrapper<DataTypes, FilterType>::init()
             defaultSolver.reset();
         }
     }
-    this->getContext()->get(mappedState, d_mappedStatePath.getValue());
+    this->gnode->get(mappedState, d_mappedStatePath.getValue());
     if ( mappedState != NULL)  {
         PRNS("Found mapped mechanical state: " << mappedState->getName());
-        }
+        this->declaredMappedState=1;
+    }
     else {
         PRNS("[WARNING] No mapped state state found! Necessary for BindedSimpleObservationManager");
         this->declaredMappedState=0;
@@ -235,12 +244,12 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
     positionPairs.clear();
     velocityPairs.clear();
 
-    size_t vsi = 0;            
+    size_t vsi = 0;
     if (estimatePosition.getValue()) {
         helper::vector<double> posStdev;
         posStdev.resize(posDim);
         if (d_positionStdev.getValue().size() != posDim) {
-            PRNW("Bad initial value of Position Initial Covariance. Resized to 3 values for Vec3 mstate, or 6 values for Rigid mstate");
+            PRNW("Bad initial value of Position Initial Covariance. Resize according to Position DoFs");
             for (size_t i=0 ;i<posDim;i++)
                 posStdev[i]=d_positionStdev.getValue()[0];
 
@@ -273,7 +282,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
         velStdev.resize(velDim);
 
         if( d_velocityStdev.getValue().size() != velDim ){
-            PRNW("Bad initial value of Velocity Initial Covariance. Resized 3 values for Vec3 mstate, or 6 values for Rigid mstate");
+            PRNW("Bad initial value of Velocity Initial Covariance.  Resize according to Velocity DoFs");
             for (size_t i=0 ;i<velDim;i++)
                 velStdev[i]=d_velocityStdev.getValue()[0];
 
@@ -365,14 +374,14 @@ void StochasticStateWrapper<Rigid3dTypes, double>::copyStateFilter2Sofa(const co
     typename MechanicalState::WriteVecCoord pos = mechanicalState->writePositions();
     typename MechanicalState::WriteVecDeriv vel = mechanicalState->writeVelocities();
 
-    helper::vector<Vector6> EulerPos;
-    EulerPos.resize(pos.size());
-    defaulttype::Quat q_ori;
-    q_ori.normalize();
-    Vector3 euler_ori;
-    Vector3 eu_pos;
-
-    if(estimatePosition.getValue()){
+    /// Position and Orientation
+    if(estimatePosition.getValue() && !estimateOnlyXYZ.getValue()){
+        helper::vector<Vector6> EulerPos;
+        EulerPos.resize(pos.size());
+        defaulttype::Quat q_ori;
+        q_ori.normalize();
+        Vector3 euler_ori;
+        Vector3 eu_pos;
         for (helper::vector<std::pair<size_t, size_t> >::iterator it = positionPairs.begin(); it != positionPairs.end(); it++) {
             for (size_t d = 0; d < posDim; d++) {
                 EulerPos[it->first][d] = this->state(it->second + d);
@@ -396,6 +405,88 @@ void StochasticStateWrapper<Rigid3dTypes, double>::copyStateFilter2Sofa(const co
             q_ori.clear();
         }
     }
+
+
+    /// Only Position in State Vector
+    if(estimatePosition.getValue() && estimateOnlyXYZ.getValue()){
+
+        helper::vector<Vector3> EulerPos;
+        EulerPos.resize(pos.size());
+        Vector3 eu_pos;
+
+        for (helper::vector<std::pair<size_t, size_t> >::iterator it = positionPairs.begin(); it != positionPairs.end(); it++) {
+            for (size_t d = 0; d < 3; d++) {
+                EulerPos[it->first][d] = this->state(it->second + d);
+            }
+        }
+
+        for(size_t i= 0; i < pos.size(); i++)    {
+            for(size_t j=0; j <3; j++){
+                eu_pos[j]=EulerPos[i][j];
+            }
+            pos[i].getCenter() =eu_pos;
+        }
+
+
+        //Compute Quaternion for First Node
+        {
+            Vector3 P0(EulerPos[0][0],EulerPos[0][1],EulerPos[0][2]);
+            Vector3 P1(EulerPos[1][0],EulerPos[1][1],EulerPos[1][2]);
+
+            Vector3 X0 = P1-P0;
+            X0.normalize();
+            Vector3 Y0,Z0;
+
+            if (fabs(dot(X0,Vector3(1,0,0))) >= 0.999999999999999) {
+                Y0 = cross(X0,Vector3(0,1,0));
+            }else {
+                Y0 = cross(X0,Vector3(1,0,0));
+            }
+            Y0.normalize();
+            Z0 = cross(X0,Y0);
+            Z0.normalize();
+            pos[0].getOrientation().fromFrame(X0,Y0,Z0);
+        }
+
+        //Compute Quaternion for Beam Shaft
+        for(size_t i= 1; i < pos.size()-1; i++)    {
+            Vector3 P0(EulerPos[i][0],EulerPos[i][1],EulerPos[i][2]);
+            Vector3 P1(EulerPos[i+1][0],EulerPos[i+1][1],EulerPos[i+1][2]);
+
+            Vector3 X = P1-P0;
+            X.normalize();
+            Vector3 Yprec = pos[i-1].getOrientation().rotate(Vector3(0,1,0));
+            Vector3 Z = cross(X,Yprec);
+            Z.normalize();
+
+            Vector3 Y = cross(Z,X);
+            Y.normalize();
+
+            pos[i].getOrientation().fromFrame(X,Y,Z);
+        }
+
+
+        // Compute quaternion for last node
+        int end =pos.size()-1;{
+
+            Vector3 P0(EulerPos[end-1][0],EulerPos[end-1][1],EulerPos[end-1][2]);
+            Vector3 P1(EulerPos[end][0],EulerPos[end][1],EulerPos[end][2]);
+
+            Vector3 X = P1-P0;
+            X.normalize();
+            Vector3 Yprec = pos[end-1].getOrientation().rotate(Vector3(0,1,0));
+
+            Vector3 Z = cross(X,Yprec);
+            Z.normalize();
+
+            Vector3 Y = cross(Z,X);
+            Y.normalize();
+
+            pos[end].getOrientation().fromFrame(X,Y,Z);
+        }
+    }
+
+
     if(estimateVelocity.getValue()){
         for (helper::vector<std::pair<size_t, size_t> >::iterator it = velocityPairs.begin(); it != velocityPairs.end(); it++) {
             for (size_t d = 0; d < velDim; d++) {
@@ -407,8 +498,11 @@ void StochasticStateWrapper<Rigid3dTypes, double>::copyStateFilter2Sofa(const co
     if (_setVelocityFromPosition) {
         if (velocityPairs.empty() && beginTimeStepPos.size() == pos.size()) {
             for (helper::vector<std::pair<size_t, size_t> >::iterator it = positionPairs.begin(); it != positionPairs.end(); it++) {
-                for (size_t d = 0; d < velDim; d++) {
+                for (size_t d = 0; d < 3; d++) {
                     vel[it->first][d] = (pos[it->first][d] - beginTimeStepPos[it->first][d])/this->getContext()->getDt();
+                }
+                for (size_t d = 3; d < velDim; d++) {
+                    vel[it->first][d] = 0;
                 }
             }
         }
@@ -427,34 +521,55 @@ void StochasticStateWrapper<Rigid3dTypes, double>::copyStateSofa2Filter() {
     typename MechanicalState::ReadVecCoord pos = mechanicalState->readPositions();
     typename MechanicalState::ReadVecDeriv vel = mechanicalState->readVelocities();
 
-    helper::vector<Vector6> EulerPos;
-    EulerPos.resize(pos.size());
-    defaulttype::Quat q_ori;
-    q_ori.normalize();
-    Vector3 euler_ori;
-    Vector3 eu_pos;
 
-    for(size_t i= 0; i < pos.size(); i++)    {
-        q_ori.clear();
-        q_ori=pos[i].getOrientation();
+
+    if(estimatePosition.getValue()&& !estimateOnlyXYZ.getValue()){
+
+        helper::vector<Vector6> EulerPos;
+        EulerPos.resize(pos.size());
+        defaulttype::Quat q_ori;
         q_ori.normalize();
-        eu_pos=pos[i].getCenter();
-        euler_ori=q_ori.toEulerVector();
-        //        euler_ori.normalize();
+        Vector3 euler_ori;
+        Vector3 eu_pos;
 
-        for(size_t j=0; j <3; j++){
-            EulerPos[i][j]=eu_pos[j];
+        for(size_t i= 0; i < pos.size(); i++)    {
+            q_ori.clear();
+            q_ori=pos[i].getOrientation();
+            q_ori.normalize();
+            eu_pos=pos[i].getCenter();
+            euler_ori=q_ori.toEulerVector();
+            //        euler_ori.normalize();
+
+            for(size_t j=0; j <3; j++){
+                EulerPos[i][j]=eu_pos[j];
+            }
+            unsigned k=0;
+            for(size_t j=3; j <6; j++, k++){
+                EulerPos[i][j]=euler_ori[k]*180/M_PI;
+            }
+
         }
-        unsigned k=0;
-        for(size_t j=3; j <6; j++, k++){
-            EulerPos[i][j]=euler_ori[k]*180/M_PI;
-        }
-
-    }
-
-    if(estimatePosition.getValue()){
         for (helper::vector<std::pair<size_t, size_t> >::iterator it = positionPairs.begin(); it != positionPairs.end(); it++)
             for (size_t d = 0; d < posDim; d++) {
+                this->state(it->second + d) = EulerPos[it->first][d];
+            }
+    }
+
+
+    if(estimatePosition.getValue()&&estimateOnlyXYZ.getValue()){
+        helper::vector<Vector3> EulerPos;
+        EulerPos.resize(pos.size());
+        Vector3 eu_pos;
+
+        for(size_t i= 0; i < pos.size(); i++)    {
+            eu_pos=pos[i].getCenter();
+            for(size_t j=0; j <3; j++){
+                EulerPos[i][j]=eu_pos[j];
+            }
+
+        }
+        for (helper::vector<std::pair<size_t, size_t> >::iterator it = positionPairs.begin(); it != positionPairs.end(); it++)
+            for (size_t d = 0; d < 3; d++) {
                 this->state(it->second + d) = EulerPos[it->first][d];
             }
     }
@@ -729,14 +844,13 @@ void StochasticStateWrapper<DataTypes, FilterType>::lastApplyOperator(EVectorX &
 
 
 template <class DataTypes, class FilterType>
-void StochasticStateWrapper<DataTypes, FilterType>::draw(const core::visual::VisualParams* vparams ) {    
+void StochasticStateWrapper<DataTypes, FilterType>::draw(const core::visual::VisualParams* vparams ) {
     if (d_draw.getValue()){
         if (vparams->displayFlags().getShowVisualModels()) {
             std::vector<sofa::defaulttype::Vec3d> points;
-            std::cout << "Pts size: " << sigmaStatePos.size() << std::endl;
             for (unsigned i =0;  i < sigmaStatePos.size(); i++){
                 VecCoord &pts = sigmaStatePos[i];
-                points.resize(pts.size());                
+                points.resize(pts.size());
 
                 for(unsigned j =0;  j < pts.size(); j++){
                     points[j][0]=pts[j][0];
@@ -745,8 +859,6 @@ void StochasticStateWrapper<DataTypes, FilterType>::draw(const core::visual::Vis
                 }
 
                 Vec4f color;
-                //std::cout << "Colors " << i << " : " << color[i] << " " << colorB[i] << std::endl;
-                std::cout << "Position: " << i << " : " << points[8] << std::endl;
 
                 switch (i) {
                 case 0: color = Vec4f(1.0,0.0,0.0,1.0); break;
@@ -759,7 +871,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::draw(const core::visual::Vis
                 vparams->drawTool()->setLightingEnabled(true); //Enable lightning
                 vparams->drawTool()->drawSpheres(points, d_radius_draw.getValue(), color); // sofa::defaulttype::Vec<4, float>(color[i],0.8f,colorB[i],1.0f));
                 vparams->drawTool()->setPolygonMode(0,false);
-                //vparams->drawTool()->drawLineStrip(points,d_radius_draw.getValue(),sofa::defaulttype::Vec<4, float>(color[i],0.8f,colorB[i],1.0f));
+                vparams->drawTool()->drawLineStrip(points,5.0,sofa::defaulttype::Vec<4, float>(color[i],0.8f,colorB[i],1.0f));
 
             }
         }

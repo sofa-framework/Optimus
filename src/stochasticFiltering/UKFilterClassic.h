@@ -81,20 +81,18 @@ protected:
     bool alphaConstant;
     std::vector<int> m_sigmaPointObservationIndexes;
     helper::vector<double> d;
-    EVectorX collPos;
 
     EVectorX vecAlpha, vecAlphaVar;
     EVectorX stateExp, predObsExp;
     EMatrixX stateCovar, obsCovar, modelCovar;
-    EVectorX diagStateCov;
 
     EMatrixX matItrans, matI;
     EMatrixX matXi, matZmodel, genMatXi;
 
     sofa::core::objectmodel::DataFileName d_exportPrefix;
     std::string exportPrefix;
-    std::string filenameCov, filenameInn, filenameFinalState;
-    Data< std::string > d_filenameCov, d_filenameInn, d_filenameFinalState;
+    std::string  filenameFinalState;
+    Data< std::string >  d_filenameFinalState;
     bool saveParam;
     Type alpha, alphaVar;
 
@@ -132,8 +130,7 @@ public:
     void stabilizeMatrix (EMatrixX& _initial, EMatrixX& _stabilized);
     void pseudoInverse (EMatrixX& M,EMatrixX& pinvM );
     void writeValidationPlot (std::string filename ,EVectorX& state );
-
-
+void sqrtMat(EMatrixX& A, EMatrixX& sqrtA);
     virtual void computePerturbedStates();
 
     virtual void computePrediction(); // Compute perturbed state included in computeprediction

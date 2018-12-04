@@ -68,9 +68,10 @@ void SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::init()
 
     stateWrapper = stateWrapperLink.get();
     if (stateWrapper) {
-        PRNS("Link to state wrapper: " << stateWrapper->getName());
+        std::cout<<" [SimpleObservationManager] Link to state wrapper: " << stateWrapper->getName()<<std::endl;
     } else {
-        PRNE("Link to state wrapper not initialized!");
+        std::cout<<" [SimpleObservationManager] Link to state wrapper not initialized!"<<std::endl;
+        return;
     }
 
     this->gnode->get(masterState);

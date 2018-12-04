@@ -42,6 +42,10 @@
 #include <sofa/simulation/UpdateMappingVisitor.h>
 #include <sofa/simulation/UpdateMappingEndEvent.h>
 #include <sofa/simulation/UpdateBoundingBoxVisitor.h>
+#include <SofaBaseTopology/EdgeSetTopologyContainer.h>
+#include <sofa/helper/AdvancedTimer.h>
+#include <sofa/simulation/IntegrateBeginEvent.h>
+#include <sofa/simulation/IntegrateEndEvent.h>
 
 #include <SofaConstraint/LCPConstraintSolver.h>
 
@@ -120,6 +124,7 @@ protected:
     InternalCopy<DataTypes> m_internalCopy;
     size_t posDim;
     size_t velDim;
+    sofa::component::topology::EdgeSetTopologyContainer* m_container;
 
 
     VecCoord beginTimeStepPos;
@@ -144,6 +149,8 @@ protected:
 public:
     Data<bool> d_langrangeMultipliers;
     Data<bool> estimatePosition;
+    Data<bool> estimateOnlyXYZ;
+
     Data<bool> estimateVelocity;
     Data<helper::vector<FilterType>>  posModelStdev, velModelStdev;
     Data<helper::vector<FilterType>> paramModelStdev;
@@ -173,12 +180,30 @@ public:
     void storeMState();
     void reinitMState(const core::MechanicalParams* _mechParams);
     void getActualPosition(int _id, VecCoord& _pos);
+    void getActualVelocity(int _id, VecDeriv& _vel);
+
     void getActualMappedPosition(int _id, Vec3dTypes::VecCoord& _mapPos);
     void draw(const core::visual::VisualParams* vparams);
 
     void setState(EVectorX& _state, const core::MechanicalParams* _mparams) {
+        double    dt = this->gnode->getDt();
         this->state = _state;
+
         copyStateFilter2Sofa(_mparams, true);
+        sofa::helper::AdvancedTimer::stepBegin("UpdateMapping");
+        //Visual Information update: Ray Pick add a MechanicalMapping used as VisualMapping
+        //std::cout << "[" << this->getName() << "]: update mapping" << std::endl;
+        this->gnode->template execute<  sofa::simulation::UpdateMappingVisitor >(_mparams);
+        sofa::helper::AdvancedTimer::step("UpdateMappingEndEvent");
+        {
+            //std::cout << "[" << this->getName() << "]: update mapping end" << std::endl;
+            sofa::simulation::UpdateMappingEndEvent ev ( dt );
+            sofa::simulation::PropagateEventVisitor act ( _mparams , &ev );
+            this->gnode->execute ( act );
+        }
+        sofa::helper::AdvancedTimer::stepEnd("UpdateMapping");
+        sofa::simulation::AnimateEndEvent ev ( dt );
+
     }
 
     void setSofaVectorFromFilterVector(EVectorX& _state, typename DataTypes::VecCoord& _vec);
@@ -283,7 +308,7 @@ public:
                 for (size_t index = this->positionVariance.size(); index < this->reducedStateIndex; index++,kv++)
                     modelErrorVariance(index,index) = diagVelModelStDev[kv]  ;
                 for (size_t pi = this->reducedStateIndex; pi < this->stateSize; pi++,k++)
-                    modelErrorVariance(pi,pi) = paramModelStDev[k]  *paramModelStDev[k];    /// why here the parameter variance is non-zero???
+                    modelErrorVariance(pi,pi) = 0;    /// why here the parameter variance is non-zero???
             }
 
             //NORMALLY IS THE CASE OF DATA ASSIMILATION where Parameters have no Q

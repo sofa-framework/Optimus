@@ -16,8 +16,6 @@ template <class FilterType>
 UKFilterClassic<FilterType>::UKFilterClassic()
     : Inherit()
     , d_exportPrefix( initData(&d_exportPrefix, "exportPrefix", "prefix for storing various quantities into files"))
-    , d_filenameCov( initData(&d_filenameCov, "filenameCov", "output file name"))
-    , d_filenameInn( initData(&d_filenameInn, "filenameInn", "output file name"))
     , d_filenameFinalState( initData(&d_filenameFinalState, "filenameFinalState", "output file name"))
     , d_state( initData(&d_state, "state", "actual expected value of reduced state (parameters) estimated by the filter" ) )
     , d_variance( initData(&d_variance, "variance", "actual variance  of reduced state (parameters) estimated by the filter" ) )
@@ -52,9 +50,16 @@ void UKFilterClassic<FilterType>::computePrediction()
     hasObs = observationManager->hasObservation(this->actualTime);
     if (hasObs) {
         PRNS("Computing prediction, T= " << this->actualTime  << " ======");
-        /// Computes background error variance Cholesky factorization.
-        Eigen::LLT<EMatrixX> lltU(stateCovar);
-        EMatrixX matPsqrt = lltU.matrixL();
+
+        //        /// Computes background error variance Cholesky factorization.
+//        Eigen::LLT<EMatrixX> lltU(stateCovar);
+//        EMatrixX matPsqrt = lltU.matrixL();
+
+        /// Computes Square Root with SVD
+        EMatrixX matPsqrt(stateSize,stateSize);
+        sqrtMat(stateCovar, matPsqrt);
+
+
 
         stateExp.fill(FilterType(0.0));
         stateExp = masterStateWrapper->getState();
@@ -63,28 +68,23 @@ void UKFilterClassic<FilterType>::computePrediction()
         for (size_t i = 0; i < sigmaPointsNum; i++) {
             matXi.col(i) = stateExp + matPsqrt * matI.row(i).transpose();
         }
-        /// Compute the state
 
+        /// Propagate sigma points
         genMatXi=matXi.transpose();
-
-//        PRNS("gen\n" << matXi)
         computePerturbedStates();
 
-        /// compute the expected value
+        /// Compute Predicted Mean
         stateExp.fill(FilterType(0.0));
         for (size_t i = 0; i < sigmaPointsNum; i++) {
             stateExp += matXi.col(i) * vecAlpha(i);
         }
 
-        stateCovar.setZero();
+        /// Compute Predicted Covariance
         EMatrixX matXiTrans= matXi.transpose();
         EMatrixX centeredPxx = matXiTrans.rowwise() - matXiTrans.colwise().mean();
         EMatrixX weightedCenteredPxx = centeredPxx.array().colwise() * vecAlphaVar.array();
         EMatrixX covPxx = (centeredPxx.adjoint() * weightedCenteredPxx);
         stateCovar = covPxx + modelCovar;
-        for (size_t i = 0; i < (size_t)stateCovar.rows(); i++) {
-            diagStateCov(i)=stateCovar(i,i);
-        }
 
         masterStateWrapper->setState(stateExp, mechParams);
 
@@ -101,19 +101,19 @@ void UKFilterClassic<FilterType>::computeCorrection()
 
     if (hasObs) {
         PRNS("======= Computing correction, T= " << this->actualTime << " ======");
-
         EVectorX zCol(observationSize);
         matZmodel.resize(observationSize, sigmaPointsNum);
         predObsExp.resize(observationSize);
         predObsExp.fill(FilterType(0.0));
 
-        /// compute predicted observations
+        /// Compute Predicted Observation
         for (size_t i = 0; i < sigmaPointsNum; i++) {
             observationManager->getPredictedObservation(m_sigmaPointObservationIndexes[i],  zCol);
             matZmodel.col(i) = zCol;
             predObsExp = predObsExp + zCol * vecAlpha(i);
         }
 
+         /// Compute State-Observation Cross-Covariance
         EMatrixX matPxz(stateSize, observationSize);
         EMatrixX matPz(observationSize, observationSize);
         EMatrixX pinvmatPz(observationSize, observationSize);
@@ -123,61 +123,46 @@ void UKFilterClassic<FilterType>::computeCorrection()
         EMatrixX matZItrans = matZmodel.transpose();
         EMatrixX centeredCx = matXiTrans.rowwise() - matXiTrans.colwise().mean();
         EMatrixX centeredCz = matZItrans.rowwise() - matZItrans.colwise().mean();
-        //EMatrixX covPxz = (centeredCx.adjoint() * centeredCz) / double(centeredCx.rows() );
         EMatrixX weightedCenteredCz = centeredCz.array().colwise() * vecAlphaVar.array();
         EMatrixX covPxz = (centeredCx.adjoint() * weightedCenteredCz);
+
+        /// Compute Observation Covariance
         matPxz=covPxz;
-        //EMatrixX covPzz = (centeredCz.adjoint() * centeredCz) / double(centeredCz.rows() );
         EMatrixX covPzz = (centeredCz.adjoint() * weightedCenteredCz);
         matPz = obsCovar + covPzz;
+
+        /// Compute Kalman Gain
         EMatrixX matK(stateSize, observationSize);
         pseudoInverse(matPz, pinvmatPz);
         matK =matPxz*pinvmatPz;
 
-
+        /// Compute Innovation
         EVectorX innovation(observationSize);
         observationManager->getInnovation(this->actualTime, predObsExp, innovation);
+
+        /// Compute Final State and Final Covariance
         stateExp = stateExp + matK * innovation;
-
         stateCovar = stateCovar - matK*matPxz.transpose();
-
-        for (size_t i = 0; i < (size_t)stateCovar.rows(); i++) {
-            diagStateCov(i)=stateCovar(i,i);
-        }
-
-//        PRNS("FINAL STATE X(n+1)+n: \n" << stateExp.transpose());
-//        PRNS("FINAL COVARIANCE DIAGONAL P(n+1)+n:  \n" << diagStateCov.transpose());
 
         masterStateWrapper->setState(stateExp, mechParams);
 
+
+         /// Write Some File for Validation
         helper::WriteAccessor<Data <helper::vector<FilterType> > > stat = d_state;
-        helper::WriteAccessor<Data <helper::vector<FilterType> > > var = d_variance;
-        helper::WriteAccessor<Data <helper::vector<FilterType> > > innov = d_innovation;
-
         stat.resize(stateSize);
-        var.resize(stateSize);
-        innov.resize(observationSize);
-
-        for (size_t i = 0; i < stateSize; i++) {
+        for (size_t i = 0; i < stateSize; i++)
             stat[i] = stateExp[i];
-            var[i] = stateCovar(i,i);
-        }
-        for (size_t index = 0; index < observationSize; index++) {
-            innov[index] = innovation[index];
-        }
 
         char nstepc[100];
         sprintf(nstepc, "%04lu", stepNumber);
         if (! exportPrefix.empty()) {
-            std::string fileName = exportPrefix + "/covar_" + nstepc + ".txt";
+            std::string fileName = exportPrefix + "/cov_" + nstepc + ".txt";
             std::ofstream ofs;
             ofs.open(fileName.c_str(), std::ofstream::out);
             ofs << stateCovar << std::endl;
         }
 
-        writeValidationPlot(d_filenameInn.getValue(),innovation);
     }
-    writeValidationPlot(d_filenameCov.getValue(),diagStateCov);
     writeValidationPlot(d_filenameFinalState.getValue() ,stateExp);
 
 }
@@ -224,24 +209,11 @@ void UKFilterClassic<FilterType>::init() {
     } else
         PRNE("no observation manager found!");
 
-    exportPrefix  = d_exportPrefix.getFullPath();
-    PRNS("export prefix: " << exportPrefix)
 
-            this->saveParam = false;
-    if (!d_filenameCov.getValue().empty()) {
-        std::ofstream paramFile(d_filenameCov.getValue().c_str());
-        if (paramFile.is_open()) {
-            this->saveParam = true;
-            paramFile.close();
-        }
-    }
-    if (!d_filenameInn.getValue().empty()) {
-        std::ofstream paramFileInn(d_filenameInn.getValue().c_str());
-        if (paramFileInn .is_open()) {
-            this->saveParam = true;
-            paramFileInn.close();
-        }
-    }
+    /// Init for Write Function
+    exportPrefix  = d_exportPrefix.getFullPath();
+
+    this->saveParam = false;
     if (!d_filenameFinalState.getValue().empty()) {
         std::ofstream paramFileFinalState(d_filenameFinalState.getValue().c_str());
         if (paramFileFinalState .is_open()) {
@@ -249,10 +221,8 @@ void UKFilterClassic<FilterType>::init() {
             paramFileFinalState.close();
         }
     }
-
     m_omega= ((double) rand() / (RAND_MAX));
 
-    PRNS("Draw of: " << d_MOnodes_draw.getValue() << " node of the Mechanical Object ");
 
 }
 
@@ -261,7 +231,8 @@ void UKFilterClassic<FilterType>::bwdInit() {
     assert(masterStateWrapper);
 
     stateSize = masterStateWrapper->getStateSize();
-    PRNS("StateSize " << stateSize);
+    std::cout<< "[UKF] stateSize " << stateSize << std::endl;
+
 
     /// Initialize Observation's data
     if (!initialiseObservationsAtFirstStep.getValue()) {
@@ -276,19 +247,10 @@ void UKFilterClassic<FilterType>::bwdInit() {
 
     /// Initialize Model's Error Covariance
     stateCovar = masterStateWrapper->getStateErrorVariance();
-
-    diagStateCov.resize(stateCovar.rows());
-    for (size_t i = 0; i < (size_t)stateCovar.rows(); i++) {
-        diagStateCov(i)=stateCovar(i,i);
-    }
-//        PRNS(" INIT COVARIANCE DIAGONAL P(n+1)+n:  \n" << stateCovar);
-
     modelCovar = masterStateWrapper->getModelErrorVariance();
-    //    PRNS(" INIT COVARIANCE DIAGONAL P(n+1)+n:  \n" << modelCovar);
-
     stateExp = masterStateWrapper->getState();
 
-    /// compute sigma points
+    /// Compute Sigma Points
     switch (this->m_sigmaTopology) {
     case STAR:
         computeStarSigmaPoints(matI);
@@ -300,17 +262,11 @@ void UKFilterClassic<FilterType>::bwdInit() {
 
     sigmaPointsNum = matI.rows();
     matXi.resize(stateSize, sigmaPointsNum);
-    matXi.setZero();
-
     genMatXi.resize( sigmaPointsNum,stateSize);
-    genMatXi.setZero();
 
-    /// initialise state observation mapping for sigma points
+    /// Init State Observation Mapping for Sigma Points
     m_sigmaPointObservationIndexes.resize(sigmaPointsNum);
 
-
-    collPos.resize(3*stateSize*(1.0/12));
-    collPos.setZero();
 }
 
 template <class FilterType>
@@ -358,6 +314,25 @@ void UKFilterClassic<FilterType>::pseudoInverse( EMatrixX& M,EMatrixX& pinvM) {
     Eigen::MatrixXd S_inv = invSingVals.asDiagonal();
     pinvM = svd.matrixV()*S_inv* svd.matrixU().transpose();
 }
+
+
+
+
+template <class FilterType>
+void UKFilterClassic<FilterType>::sqrtMat(EMatrixX& A, EMatrixX& sqrtA){
+    double epsilon= 1e-15;
+    Eigen::JacobiSVD<Eigen::MatrixXd> svd(A, Eigen::ComputeThinU | Eigen::ComputeThinV);
+    const Eigen::JacobiSVD<Eigen::MatrixXd>::SingularValuesType singVals = svd.singularValues();
+    Eigen::JacobiSVD<Eigen::MatrixXd>::SingularValuesType sqrtSingVals = singVals;
+    for(int i=0; i<singVals.rows(); i++) {
+        if(singVals(i)*singVals(i) <= epsilon*epsilon) sqrtSingVals(i) = 0.0;
+        else sqrtSingVals(i) = sqrt(sqrtSingVals(i));
+    }
+    Eigen::MatrixXd S_inv = sqrtSingVals.asDiagonal();
+    sqrtA = svd.matrixV()*S_inv* svd.matrixU().transpose();
+
+}
+
 
 template <class FilterType>
 void UKFilterClassic<FilterType>::writeValidationPlot (std::string filename ,EVectorX& state ){
@@ -440,8 +415,6 @@ void UKFilterClassic<FilterType>::computeStarSigmaPoints(EMatrixX& sigmaMat) {
     vecAlphaVar.resize(r);
     vecAlphaVar.fill(alphaVar);
     vecAlphaVar(2 * p) = Type(lambda) / Type(p + lambda);
-    //PRNS("sigmaMat: \n" << sigmaMat);
-    //PRNS("vecAlphaVar: \n" << vecAlphaVar);
 }
 
 template <class FilterType>
@@ -465,9 +438,12 @@ void UKFilterClassic<FilterType>::draw(const core::visual::VisualParams* vparams
                     }
                 }
 
+
+
+
                 vparams->drawTool()->drawSpheres(predpoints[i],  d_radius_draw.getValue(), sofa::defaulttype::Vec<4, float>(m_omega,0.0f,0.0f,1.0f));
                 if (d_MOnodes_draw.getValue()>=2)
-                vparams->drawTool()->drawLineStrip(predpoints[i],  d_radius_draw.getValue(), sofa::defaulttype::Vec<4, float>(m_omega,0.0f,0.0f,1.0f));
+                vparams->drawTool()->drawLineStrip(predpoints[i], 5.0, sofa::defaulttype::Vec<4, float>(m_omega,0.0f,0.0f,1.0f));
             }
 
         }
