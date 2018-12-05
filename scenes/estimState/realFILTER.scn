@@ -4,28 +4,28 @@
     <RequiredPlugin pluginName="ImageMeshAux" />
     <RequiredPlugin pluginName="ConstraintGeometryPlugin" />
     <RequiredPlugin pluginName="NeedleConstraintPlugin" />
-    <RequiredPlugin pluginName="OpenCVPlugin" />
-    <RequiredPlugin pluginName="SofaAsyncSolvers" />
+<!--     <RequiredPlugin pluginName="OpenCVPlugin" /> -->
+<!--     <RequiredPlugin pluginName="SofaAsyncSolvers" /> -->
 
 
     <VisualStyle displayFlags="showVisualModels hideBehaviorModels hideCollisionModels hideMappings hideForceFields hideWireframe" />	
     <BackgroundSetting color="1 1 1 1" />
     <ViewerSetting resolution="837 600" />
 
-    <!-- <FreeMotionAnimationLoop /> -->
-    <!-- <GenericConstraintSolver name="GenericConstraintSolver"  printLog="0"  maxIterations="1000"  tolerance="1e-10"  allVerified="0" />   -->
+<!--     <FreeMotionAnimationLoop /> -->
+<!--     <GenericConstraintSolver name="GenericConstraintSolver"  printLog="0"  maxIterations="1000"  tolerance="1e-10"  allVerified="0" />   -->
 
     <FilteringAnimationLoop name="StochAnimLoop" verbose="1"/>
     <UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0"   draw="0" radiusDraw="0.0002" MOnodesDraw="7" filenameFinalState="realDataSet/quaternion2" exportPrefix="cov_" />
 
     
 
-    <Node name="validationView"/>    
+<!--    <Node name="validationView"/>    
         <OpenCVPngStreamer name="streamer" filename="realDataSet/cat0/cat0__??????.png" imageId="001448"/>
         <OpenCVProjectiveCalibrator listening="1" name="calibrator" streamer="streamer" mode="0" projectionMatrix="[-3452.3 219.165 -50.3532 251.620 -24.5691 647.057 3388.13 271.587 -0.00217632 0.993 -0.118096	0.474452]" drawCamera="0" depth="0.7" drawzNear="0.0000001" drawViewPort="0" drawscreenSize="640 480" drawzFar="10000000" drawscreenPosition="0 0" drawswapMainView="1" />    
         <OpenCVViewer name="viewer" streamer="streamer" drawcolor="1 1 1 1" /> 
         <OpenCVScheduler name="scheduler" frequency="0"  />
-    <Node />
+    <Node />-->
     
 <!--    <Node name="aquisitionView" />
         <OpenCVPngStreamer name="streamer" filename="realDataSet/cat1/test_004014.png" imageId="001448"/>
@@ -66,12 +66,12 @@
        
         <Node name="ball">
             <EulerImplicitSolver rayleighMass="0.00" rayleighStiffness="0.0" />	
-            <PCGLinearSolver  preconditioners="BTD" update_step="1"/> 
+<!--             <PCGLinearSolver  preconditioners="BTD" update_step="1"/>  -->
             <BTDLinearSolver name="BTD"/>
             <MechanicalObject template="Rigid" name="MO"     
                               position=" 0.015043 0.053987 -0.058037 -5.84121e-12 -0.707107 0.707107 -3.31838e-10 0.010226 0.054093 -0.058009 -7.7867e-12 -0.707107 0.707107 -3.29785e-10 0.00531889 0.054576 -0.057995 -1.94831e-12 -0.707107 0.707107 2.06597e-12 0.000318715 0.054576 -0.057995 6.338e-06 -0.707107 0.707107 -3.9493e-05 -0.00468152 0.0545756 -0.0579953 7.922e-06 -0.707107 0.707107 -4.9364e-05 -0.00968158 0.0545752 -0.0579956 2.255e-05 -0.707107 0.707107 -7.74e-05 -0.0146817 0.0545746 -0.057996 3.7177e-05 -0.707107 0.707107 -0.000105436 -0.0196818 0.0545736 -0.0579964 3.0473e-05 -0.707107 0.707107 -0.000126767 -0.0246819 0.0545724 -0.057997 4.3515e-05 -0.707107 0.707107 -0.000144928 -0.0296819 0.0545711 -0.0579977 5.8143e-05 -0.707107 0.707107 -0.000172964 -0.0346819 0.0545694 -0.0579987 5.3023e-05 -0.707107 0.707107 -0.00020417 -0.039682 0.0545677 -0.0579997 5.3023e-05 -0.707107 0.707107 -0.00020417" showObject="1" showObjectScale="0.001"/>
             <Mesh name="lines" lines="0 1  1 2 2 3 3 4 4 5 5 6 6 7 7 8 8 9 9 10 10 11  " />
-            <UniformMass totalmass="0.0001" printLog="false" />
+            <UniformMass totalMass="0.0001" printLog="false" />
             <BeamFEMForceField name="FEM" radius="0.0005" youngModulus="1e6" poissonRatio="0.49" useSymmetricAssembly="1"/>
             <ConstantForceField force="0.0008 0 -0.0008  0.0 0.0  0.0 "  indices=" 11"/>
             <Node name="CollisionBall">
@@ -102,7 +102,7 @@
             <LinearSolverConstraintCorrection solverName="BTD" />  
             
             <Node name="obsNode" activated="1">        
-                <SimulatedStateObservationSource template="Vec2d" name="observations" monitorPrefix="realDataSet/rszeall3" asynObs="true"/>    
+                <SimulatedStateObservationSource template="Vec2d" name="observations" monitorPrefix="/home/raffa/work/Optimus/scenes/estimState/realDataSet/rszeall3" asynObs="true"/>    
                 <BindedSimpleObservationManager name="MSIDES" template="Vec2d,Rigid3d" listening="1"  stateWrapper="@../../StateWrapper" use2dObservation="true"   mappedState="../CollisionBall/ms"
                                           projectionMatrix="[-3320.65	174.572	-514.441	193.451
                                                             134.409	3340.13	44.4847	-64.7090
@@ -122,7 +122,7 @@
     
     <Node name="Spring" >
         <VisualStyle displayFlags="showWireframe hideCollisionModels"  /> 
-        <MeshSTLLoader name="surface" filename="realDataSet/phantomScaled.stl"  />
+        <MeshSTLLoader name="surface" filename="/home/raffa/work/Optimus/scenes/estimState/realDataSet/phantomScaled.stl"  />
         <TransformStochasticEngine name="transform" input_position="@surface.position" optimParams="0 0 0 0 0 0 "  triangles="@surface.triangles"  />
         <MeshTopology name="mesh" position="@transform.output_position" triangles="@transform.triangles"  />
         <TriangleSetTopologyContainer name="Container" src="@mesh" />

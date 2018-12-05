@@ -16,7 +16,7 @@
 #include <Eigen/Core>
 #include <Eigen/SVD>
 #include <sofa/helper/AdvancedTimer.h>
-
+#include <iomanip>      // std::setprecision
 namespace sofa
 {
 
@@ -123,7 +123,7 @@ void Transform3dToRigid::init() {
 
     }
     d_out_pos.setValue(res);
-    std::cout << d_out_pos.getValue()<< std::endl;
+    std::cout << std::setprecision(std::numeric_limits<long double>::digits10 + 1)<<d_out_pos.getValue()<< std::endl;
 }
 
 
