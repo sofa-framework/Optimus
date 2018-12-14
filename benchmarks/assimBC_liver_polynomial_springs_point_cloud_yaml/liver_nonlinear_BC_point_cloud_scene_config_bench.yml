@@ -1,0 +1,94 @@
+---
+system_parameters:
+    volume_file_name: "../../../Optimus/data/liver/liver.msh"
+    observation_file_name: "obs_testing/liverControlPoint"
+    observation_points_file_name: "../../../Optimus/data/liver/liverGen_obs_pointcloud.vtk"
+
+general_parameters:
+    scenario_type: "Generate_data"    # options are "Generate_data" and "Validate_estimations"
+    gravity: "0 0 0"
+    density: 200    # total_mass: 0.2
+    delta_time:
+        &time
+        0.001
+    solver_kind: "Euler"   # options are "Euler", "Newton", and "Symplectic"
+    rayleigh_mass: 0.1
+    rayleigh_stiffness: 0.1
+
+obs_generating_parameters:
+    object_young_moduli: "150 300"
+    save_observations: 1
+    use_point_cloud: 1
+
+filtering_parameters:
+    common_directory_prefix: "out_Liver_gen_controlPoint_2params_init30_500_3000_pointCloud_for_visualisation_"
+    output_directory_suffix: "_test_init1000_1000_1500_visu_stdev1000"
+    output_files_suffix: "test"
+    optim_params_size: 6
+    filter_kind: "ROUKF"   # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
+    use_unbiased_variance: '0'
+    initial_stiffness: [1000.0, 1000.0, 1500.0, 1000.0, 1000.0, 1500.0]
+    minimal_stiffness: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    maximal_stiffness: [1000000.0, 1000000.0, 1000000.0, 1000000.0, 1000000.0, 1000000.0]
+    initial_standart_deviation: [1000.0394, 1000.0394, 1000.0394, 1000.0394, 1000.0394, 1000.0394]
+    observation_noise_standart_deviation: 1e-3
+    positions_standart_deviation: 1e-3
+    transform_parameters:
+        &transformation
+        project
+    sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
+    sigma_points_scale: 1
+    save_state: 1
+    save_internal_data: 1  
+
+boundary_parameters:
+    spring_type: "PolynomialLen"    # options are "Simple", "Exponential", "Polynomial", "PolynomialLen", and "LagrangePolynomial"
+    strain_params: [0, 0.08, 0.15, 0.2]
+    stress_params: [0, 8000, 15000, 20000]
+    initial_length: 0.02
+    initial_stiffness: 100000.0
+    direction_scale: 10.0
+    force_file_name: "obs_testing/forceData.txt"
+    external_indices: "0 1"
+    external_points: "0.298659 0.282936 0.345117 0.116817 0.272874 0.36075"
+    boundary_conditions_list:
+        - condition_type: "elastic"
+          boxes_coordinates: "0.11 0.245 0.355 0.12 0.255 0.365 0.295 0.26 0.34 0.305 0.27 0.35"
+          polynomial_stiffness_values: [30.0, 500.0, 3000.0, 30.0, 500.0, 3000.0]
+          polynomial_degrees: [3, 3]
+          spring_stiffness_values: "150 300"
+
+precondition_parameters:
+    usePCG: 0
+    PCGUpdateSteps: 100
+
+impact_parameters:
+    observation_file_name: "obs_testing/liverCPimpact"
+    position: "0.14 0.16 0.39"
+    bounds_coordinates: "0.13 0.15 0.39 0.135 0.155 0.395"
+
+geomagic_parameters:
+    load_track: 0
+    position_file: "geomagicObservations2Params/geomagic_x.txt"
+    listener_file: "geomagicObservations2Params/listener.txt"
+
+point_cloud_parameters:
+    mesh_file: "../../../Optimus/data/liver/liver-smooth-frontHalf.obj"
+
+time_parameters:
+    timer_name: "filter_computation_statistics"
+    time_statistics_file: "computationTime.txt"
+    time_profiling: 0
+    iterations_interval: 1
+    iteration_amount: 300
+
+# aliases
+filter:
+    nparams: 6
+    param_transform: *transformation
+
+model:
+  dt: *time
+  young_moduli: [30.0, 500.0, 3000.0, 30.0, 500.0, 3000.0]
+...
+
