@@ -49,13 +49,6 @@ class liver_controlPoint_GenObs (Sofa.PythonScriptController):
         if 'scenario_type' in self.options['general_parameters'].keys() and self.options['general_parameters']['scenario_type'] == 'Validate_estimations':
             self.scenario_type = 'Validate_estimations'
         self.vdamping = 5.0
-        self.generalFolderName = self.options['filtering_parameters']['common_directory_prefix'] + self.options['general_parameters']['solver_kind']
-        if not os.path.isdir(self.generalFolderName):
-            os.mkdir(self.generalFolderName)
-        if not os.path.isdir(self.generalFolderName + '/observations'):
-            os.mkdir(self.generalFolderName + '/observations')
-        if not os.path.isdir(self.generalFolderName + '/gridData'):
-            os.mkdir(self.generalFolderName + '/gridData')
 
         rootNode.findData('dt').value = options['general_parameters']['delta_time']
         rootNode.findData('gravity').value = options['general_parameters']['gravity']
@@ -82,7 +75,7 @@ class liver_controlPoint_GenObs (Sofa.PythonScriptController):
         dotNode.createObject('ShowSpheres', position='@dot.position', color='1.0 0.0 1.0 1', radius="0.01", showIndicesScale='0.0')
         if self.options['obs_generating_parameters']['save_observations'] and self.scenario_type == 'Generate_data':
             dotNode.createObject('BoxROI', name='dotBounds', box='0.14 0.15 0.37 0.18 0.17 0.4', doUpdate='0')
-            dotNode.createObject('OptimMonitor', name='toolMonitor', template='Vec3d', showPositions='1', indices='@dotBounds.indices', ExportPositions='1', fileName = self.generalFolderName + '/' + self.options['impact_parameters']['observation_file_name'])
+            dotNode.createObject('OptimMonitor', name='toolMonitor', template='Vec3d', showPositions='1', indices='@dotBounds.indices', ExportPositions='1', fileName = self.options['impact_parameters']['observation_file_name'])
         self.index = 0
         	
         # rootNode/simuNode
@@ -155,10 +148,10 @@ class liver_controlPoint_GenObs (Sofa.PythonScriptController):
         if self.options['obs_generating_parameters']['save_observations'] and self.scenario_type == 'Generate_data':
             if 'use_point_cloud' in self.options['obs_generating_parameters'] and self.options['obs_generating_parameters']['save_observations']:
                 pointCloudNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1', doUpdate='0')
-                pointCloudNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName = self.generalFolderName + '/' + self.options['system_parameters']['observation_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0')
+                pointCloudNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName = self.options['system_parameters']['observation_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0')
             else:
                 simuNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1', doUpdate='0')
-                simuNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName = self.generalFolderName + '/' + self.options['system_parameters']['observation_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0', saveZeroStep='0')
+                simuNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName = self.options['system_parameters']['observation_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0', saveZeroStep='0')
 
         if self.scenario_type == 'Validate_estimations':
             if 'validation_grid_parameters' in self.options.keys():
@@ -171,7 +164,7 @@ class liver_controlPoint_GenObs (Sofa.PythonScriptController):
                     obsGrid.createObject('ShowSpheres', position='@MO'+str(index)+'.position', color='0.0 0.5 0.0 1', radius="0.0054", showIndicesScale='0.0')
                     if self.options['obs_generating_parameters']['save_observations']:
                         obsGrid.createObject('BoxROI', name='gridBox'+str(index), box='-1 -1 -1 1 1 1', doUpdate='0')
-                        obsGrid.createObject('OptimMonitor', name='GridMonitor'+str(index), indices='@gridBox'+str(index)+'.indices', fileName = self.generalFolderName + '/' + gridElement['grid_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0')
+                        obsGrid.createObject('OptimMonitor', name='GridMonitor'+str(index), indices='@gridBox'+str(index)+'.indices', fileName = gridElement['grid_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0')
 
         return 0
 
