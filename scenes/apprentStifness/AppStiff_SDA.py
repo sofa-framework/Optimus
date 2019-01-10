@@ -183,7 +183,7 @@ class AppStiff_SDA(Sofa.PythonScriptController):
             simuNode.createObject('EulerImplicitSolver', firstOrder=firstOrder, rayleighStiffness=rstiff, rayleighMass=rmass)
         elif intType == 'Newton':
             maxIt = self.opt['model']['int']['maxit']
-            simuNode.createObject('NewtonStaticSolver', maxIt=maxIt, correctionTolerance='1e-8', residualTolerance='1e-8', convergeOnResidual='1', printLog=printLog=self.opt['model']['int']['verbose'])
+            simuNode.createObject('NewtonStaticSolver', maxIt=maxIt, correctionTolerance='1e-8', residualTolerance='1e-8', convergeOnResidual='1', printLog=self.opt['model']['int']['verbose'])
 
         
         if self.opt['model']['linsol']['usePCG']:
