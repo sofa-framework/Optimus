@@ -281,6 +281,11 @@ class AppStiff_GenObs(Sofa.PythonScriptController):
                 self.appliedPressure.findData('pressure').value = press.tolist()
                 self.waitStep = maxWS
                 self.incStep += 1
+
+            if self.incStep == maxTS:
+                print "Maximum pressure achieved!"
+            else:
+                print "Current incremental step: ",self.incStep," (", self.waitStep,")"
         
         return 0
 

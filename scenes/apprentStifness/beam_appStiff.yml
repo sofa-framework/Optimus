@@ -3,10 +3,10 @@
 ---
 model:
     dt: 0.01
-    mesh_path: '../../data/beam4/'
+    mesh_path: '../../data/beam1/'
     object: 'beam1'
-    num_el: '10k'  
-    num_el_sda: '4k'
+    num_el: '10k'   # 10k 25k 1430
+    num_el_sda: '1430'    
     obs_id: 'obs2'
     err_id: 'err4'
     gravity: [0, 0, 0]
@@ -14,7 +14,7 @@ model:
     # density: 2000
     density: 10000
      
-    young_modulus: [5000, 5000, 5000, 5000]
+    young_modulus: [5000]
     # young_modulus: [5000, 5000, 5000, 5000]
     
     poisson_ratio: 0.49
@@ -22,7 +22,7 @@ model:
     int:   # temporal integrator properties
         type: 'Newton'    # Newton or Euler
         maxit: 10        #only for Newton
-        verbose: 1       #only for Newton
+        verbose: 0       #only for Newton
         #first_order: 0   #only for Euler
         #rmass: 1         #only for Euler
         #rstiff: 1        #only for Euler
@@ -40,8 +40,8 @@ model:
     applied_pressure:
         initial_pressure: [0., 0., 0.]
         num_inc_steps: 50
-        num_wait_steps: 10
-        delta: [0., 0., 4.]
+        num_wait_steps: 100
+        delta: [0., 1.0, 5.0]
 
     # prescribed_displacement:
     #     times: [0, 2]
@@ -62,18 +62,18 @@ model:
     plane_collision: 0
 
 io:        
-    suffix: 'test-nu_0.49-E_5k_50step4right'
+    suffix: 'p-1.0_5.0-50-100'
     saveGeo: 1
     saveErr: 1
     saveObs: 1                  # GO only    
     saveEst: 1                  # SDA only
-    sdaFolderSuffix: '_E05k0.1_R-5'         # SDA only
+    sdaFolderSuffix: 'E5000_v10_test'         # SDA only
 
 filter:                         # SDA only
     kind: 'ROUKF'               # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
     nparams: 1
     param_init_exval: [5000] #, 5000, 5000, 5000]
-    param_init_stdev: [100] #, 100, 100, 100]
+    param_init_stdev: [10] #, 100, 100, 100]
     param_min_val: [10]
     param_max_val: [1e10]
     param_transform: 'project'    

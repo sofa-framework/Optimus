@@ -112,6 +112,8 @@ class AppStiff_SDA(Sofa.PythonScriptController):
 
     def createGraph(self,rootNode):
         self.step = 0
+        self.waitStep = 0
+        self.incStep = 0
         self.rootNode=rootNode
         self.iterations = 0
         
@@ -181,7 +183,7 @@ class AppStiff_SDA(Sofa.PythonScriptController):
             simuNode.createObject('EulerImplicitSolver', firstOrder=firstOrder, rayleighStiffness=rstiff, rayleighMass=rmass)
         elif intType == 'Newton':
             maxIt = self.opt['model']['int']['maxit']
-            simuNode.createObject('NewtonStaticSolver', maxIt=maxIt, correctionTolerance='1e-8', residualTolerance='1e-8', convergeOnResidual='1', printLog='1')            
+            simuNode.createObject('NewtonStaticSolver', maxIt=maxIt, correctionTolerance='1e-8', residualTolerance='1e-8', convergeOnResidual='1', printLog=printLog=self.opt['model']['int']['verbose'])
 
         
         if self.opt['model']['linsol']['usePCG']:
@@ -345,6 +347,11 @@ class AppStiff_SDA(Sofa.PythonScriptController):
                 self.appliedPressure.findData('pressure').value = press.tolist()
                 self.waitStep = maxWS
                 self.incStep += 1
+
+            if self.incStep == maxTS:
+                print "Maximum pressure achieved!"
+            else:
+                print "Current incremental step: ",self.incStep," (", self.waitStep,")"
         
         return 0
     
