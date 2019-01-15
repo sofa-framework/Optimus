@@ -45,7 +45,7 @@ BindedSimpleObservationManager<FilterType,DataTypes1,DataTypes2>::BindedSimpleOb
                                                                 defaulttype::Vec<4,float>(0.0,1.0,0.0,0.0),
                                                                 defaulttype::Vec<4,float>(0.0,0.0,1.0,0.0)), "projectionMatrix","Projection matrix"))
     , d_proj_dist(initData(&d_proj_dist, (double) 0.0, "projDist", "Projection Distance"))
-    , d_bindId(initData(&d_bindId, "bindId", "Projection Distance"))
+    , d_bindId(initData(&d_bindId, "bindId", "Vector of 2D 3D correspondences"))
     , stateWrapperLink(initLink("stateWrapper", "link to the state wrapper needed to perform apply (perhaps to be changed)"))
     , d_mappedStatePath(initData(&d_mappedStatePath, "mappedState", "Link to Virtual Mapped Catheter "))
 
