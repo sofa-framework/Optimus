@@ -871,7 +871,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::draw(const core::visual::Vis
                 vparams->drawTool()->setLightingEnabled(true); //Enable lightning
                 vparams->drawTool()->drawSpheres(points, d_radius_draw.getValue(), color); // sofa::defaulttype::Vec<4, float>(color[i],0.8f,colorB[i],1.0f));
                 vparams->drawTool()->setPolygonMode(0,false);
-                vparams->drawTool()->drawLineStrip(points,5.0,sofa::defaulttype::Vec<4, float>(color[i],0.8f,colorB[i],1.0f));
+                vparams->drawTool()->drawLineStrip(points,3.0,sofa::defaulttype::Vec<4, float>(color[i],0.8f,colorB[i],1.0f));
 
             }
         }

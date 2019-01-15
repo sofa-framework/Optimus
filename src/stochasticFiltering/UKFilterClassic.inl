@@ -434,17 +434,29 @@ void UKFilterClassic<FilterType>::draw(const core::visual::VisualParams* vparams
                 for (unsigned j=0; j < d_MOnodes_draw.getValue(); j++){
                     for (unsigned k=0; k < 3; k++){
 
-                        predpoints[i][j][k]=coll(6*j+k);
+                        predpoints[i][j][k]=coll(3*j+k);
                     }
                 }
 
 
+                Vec4f color;
 
+                switch (i) {
+                case 0: color = Vec4f(1.0,0.0,0.0,1.0); break;
+                case 1: color = Vec4f(0.0,1.0,0.0,1.0); break;
+                case 2: color = Vec4f(0.0,0.0,1.0,1.0); break;
+                default: color = Vec4f(0.5, 0.5, 0.5, 0.5);
+                }
+                helper::vector<double>  colorB;
+                colorB.resize(this->stateSize);
+                for(size_t i =0; i < colorB.size(); i++){
+
+                    colorB[i]= ((double) rand() / (RAND_MAX)) ;
+                }
 
                 vparams->drawTool()->drawSpheres(predpoints[i],  d_radius_draw.getValue(), sofa::defaulttype::Vec<4, float>(m_omega,0.0f,0.0f,1.0f));
                 if (d_MOnodes_draw.getValue()>=2)
-                vparams->drawTool()->drawLineStrip(predpoints[i], 5.0, sofa::defaulttype::Vec<4, float>(m_omega,0.0f,0.0f,1.0f));
-            }
+                    vparams->drawTool()->drawLineStrip(predpoints[i],3.0,sofa::defaulttype::Vec<4, float>(color[i],0.5f,colorB[i],1.0f));            }
 
         }
     }
