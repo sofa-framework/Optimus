@@ -977,9 +977,16 @@ void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStepWithLM(const 
     core::behavior::MultiVecCoord freePos(&vop, core::VecCoordId::freePosition() );
     core::behavior::MultiVecDeriv freeVel(&vop, core::VecDerivId::freeVelocity() );
 
+    core::ConstraintParams cparams(*params);
+    cparams.setX(freePos);
+    cparams.setV(freeVel);
+    cparams.setDx(constraintSolver->getDx());
+    cparams.setLambda(constraintSolver->getLambda());
+    cparams.setOrder(m_solveVelocityConstraintFirst.getValue() ? core::ConstraintParams::VEL : core::ConstraintParams::POS_AND_VEL);
+
     {
-        core::behavior::MultiVecDeriv dx(&vop, core::VecDerivId::dx() ); dx.realloc( &vop, true, true );
-        core::behavior::MultiVecDeriv df(&vop, core::VecDerivId::dforce() ); df.realloc( &vop, true, true );
+        core::behavior::MultiVecDeriv dx(&vop, core::VecDerivId::dx()); dx.realloc(&vop, true, true);
+        core::behavior::MultiVecDeriv df(&vop, core::VecDerivId::dforce()); df.realloc(&vop, true, true);
     }
 
 
@@ -988,121 +995,128 @@ void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStepWithLM(const 
     sofa::helper::AdvancedTimer::stepBegin("MechanicalVInitVisitor");
     simulation::MechanicalVInitVisitor< core::V_COORD >(params, core::VecCoordId::freePosition(), core::ConstVecCoordId::position(), true).execute(this->gnode);
     simulation::MechanicalVInitVisitor< core::V_DERIV >(params, core::VecDerivId::freeVelocity(), core::ConstVecDerivId::velocity(), true).execute(this->gnode);
+    sofa::helper::AdvancedTimer::stepEnd("MechanicalVInitVisitor");
 
-    sofa::simulation::BehaviorUpdatePositionVisitor beh(params , dt);
+    {
+        sofa::helper::AdvancedTimer::stepBegin("AnimateBeginEvent");
+        AnimateBeginEvent ev ( dt );
+        PropagateEventVisitor act ( params, &ev );
+        this->gnode->execute ( act );
+        sofa::helper::AdvancedTimer::stepEnd("AnimateBeginEvent");
+    }
+
+    BehaviorUpdatePositionVisitor beh(params , dt);
+
+    using helper::system::thread::CTime;
+    using sofa::helper::AdvancedTimer;
+
+    double time = 0.0;
+    //double timeTotal = 0.0;
+    double timeScale = 1000.0 / (double)CTime::getTicksPerSec();
 
     // Update the BehaviorModels
     // Required to allow the RayPickInteractor interaction
-    sofa::helper::AdvancedTimer::stepBegin("Step1 UpdateBehaviorModels");
+    dmsg_info() << "updatePos called" ;
 
+    AdvancedTimer::stepBegin("UpdatePosition");
     this->gnode->execute(&beh);
+    AdvancedTimer::stepEnd("UpdatePosition");
+
+    dmsg_info() << "updatePos performed - beginVisitor called" ;
 
     simulation::MechanicalBeginIntegrationVisitor beginVisitor(params, dt);
     this->gnode->execute(&beginVisitor);
 
+    dmsg_info() << "beginVisitor performed - SolveVisitor for freeMotion is called" ;
+
+
+    // Mapping geometric stiffness coming from previous lambda.
+    {
+        simulation::MechanicalVOpVisitor lambdaMultInvDt(params, cparams.lambda(), sofa::core::ConstMultiVecId::null(), cparams.lambda(), 1.0 / dt);
+        lambdaMultInvDt.setMapped(true);
+        this->getContext()->executeVisitor(&lambdaMultInvDt);
+        simulation::MechanicalComputeGeometricStiffness geometricStiffnessVisitor(&mop.mparams, cparams.lambda());
+        this->getContext()->executeVisitor(&geometricStiffnessVisitor);
+    }
 
     // Free Motion
     sofa::helper::AdvancedTimer::stepBegin("Step2 FreeMotion");
-
     simulation::SolveVisitor freeMotion(params, dt, true);
     this->gnode->execute(&freeMotion);
+    sofa::helper::AdvancedTimer::stepEnd("Step2 FreeMotion");
 
-    mop.projectPositionAndVelocity(freePos, freeVel); // apply projective constraints
-    mop.propagateXAndV(freePos, freeVel);
 
+    mop.projectResponse(freeVel);
+    mop.propagateDx(freeVel, true);
+
+    if (cparams.constOrder() == core::ConstraintParams::POS ||
+        cparams.constOrder() == core::ConstraintParams::POS_AND_VEL)
+    {
+        // xfree = x + vfree*dt
+        simulation::MechanicalVOpVisitor freePosEqPosPlusFreeVelDt(params, freePos, pos, freeVel, dt);
+        freePosEqPosPlusFreeVelDt.setMapped(true);
+        this->getContext()->executeVisitor(&freePosEqPosPlusFreeVelDt);
+    }
+    dmsg_info() << " SolveVisitor for freeMotion performed" ;
 
     // Collision detection and response creation
 
     sofa::helper::AdvancedTimer::stepBegin("Step3 ComputeCollision");
     this->computeCollision(params);
-    mop.propagateX(pos); // Why is this done at that point ???
+    sofa::helper::AdvancedTimer::stepEnd("Step3 ComputeCollision");
 
     // Solve constraints
     if (constraintSolver)
     {
-        if (m_solveVelocityConstraintFirst.getValue())
-        {
-            core::ConstraintParams cparams(*params);
-            cparams.setX(freePos);
-            cparams.setV(freeVel);
+        sofa::helper::AdvancedTimer::stepBegin("ConstraintSolver");
 
-            cparams.setOrder(core::ConstraintParams::VEL);
+        if (cparams.constOrder() == core::ConstraintParams::VEL )
+        {
             constraintSolver->solveConstraint(&cparams, vel);
 
-            core::behavior::MultiVecDeriv dv(&vop, constraintSolver->getDx());
-            mop.projectResponse(dv);
-            mop.propagateDx(dv);
-
-            // xfree += dv * dt
-            freePos.eq(freePos, dv, dt);
-            mop.propagateX(freePos);
-
-            cparams.setOrder(core::ConstraintParams::POS);
-            constraintSolver->solveConstraint(&cparams, pos);
-
-            core::behavior::MultiVecDeriv dx(&vop, constraintSolver->getDx());
-
-            mop.projectVelocity(vel); // apply projective constraints
-            mop.propagateV(vel);
-            mop.projectResponse(dx);
-            mop.propagateDx(dx, true);
-
-            // "mapped" x = xfree + dx
-            simulation::MechanicalVOpVisitor(params, pos, freePos, dx, 1.0 ).setOnlyMapped(true).execute(this->gnode);
+            // x_t+1 = x_t + ( vfree + dv ) * dt
+            pos.eq(pos, vel, dt);
         }
         else
         {
-            core::ConstraintParams cparams(*params);
-            cparams.setX(freePos);
-            cparams.setV(freeVel);
-
             constraintSolver->solveConstraint(&cparams, pos, vel);
-            mop.projectVelocity(vel); // apply projective constraints
-            mop.propagateV(vel);
-
-            core::behavior::MultiVecDeriv dx(&vop, constraintSolver->getDx());
-            mop.projectResponse(dx);
-            mop.propagateDx(dx, true);
-
-            // "mapped" x = xfree + dx
-            simulation::MechanicalVOpVisitor(params, pos, freePos, dx, 1.0 ).setOnlyMapped(true).execute(this->gnode);
         }
+
+        core::behavior::MultiVecDeriv dx(&vop, constraintSolver->getDx());
+        mop.projectResponse(dx);
+        mop.propagateDx(dx, true);
+
+        sofa::helper::AdvancedTimer::stepEnd("ConstraintSolver");
+
     }
 
     simulation::MechanicalEndIntegrationVisitor endVisitor(params, dt);
     this->gnode->execute(&endVisitor);
-    sofa::helper::AdvancedTimer::stepEnd("Step1 UpdateBehaviorModels");
 
-    sofa::helper::AdvancedTimer::stepEnd("Step2 FreeMotion");
-
-    sofa::helper::AdvancedTimer::stepEnd("Step3 ComputeCollision");
-
-
-    sofa::helper::AdvancedTimer::stepBegin("Step4 UpdateSimulationContextVisitor");
+    mop.projectPositionAndVelocity(pos, vel);
+    mop.propagateXAndV(pos, vel);
 
     this->gnode->setTime ( startTime + dt );
-    this->gnode->template execute<UpdateSimulationContextVisitor>(params);  // propagate time
+    this->gnode-> template execute<UpdateSimulationContextVisitor>(params);  // propagate time
 
     {
-        sofa::simulation::AnimateEndEvent ev ( dt );
-        sofa::simulation::PropagateEventVisitor act ( params, &ev );
+        AnimateEndEvent ev ( dt );
+        PropagateEventVisitor act ( params, &ev );
         this->gnode->execute ( act );
     }
-    sofa::helper::AdvancedTimer::stepEnd("Step4 UpdateSimulationContextVisitor");
 
 
-    sofa::helper::AdvancedTimer::stepBegin("Step5 UpdateMappingVisitor");
-
-
+    sofa::helper::AdvancedTimer::stepBegin("UpdateMapping");
     //Visual Information update: Ray Pick add a MechanicalMapping used as VisualMapping
     this->gnode->template execute<UpdateMappingVisitor>(params);
+//	sofa::helper::AdvancedTimer::step("UpdateMappingEndEvent");
     {
-        sofa::simulation::UpdateMappingEndEvent ev ( dt );
-        sofa::simulation::PropagateEventVisitor act ( params , &ev );
+        UpdateMappingEndEvent ev ( dt );
+        PropagateEventVisitor act ( params , &ev );
         this->gnode->execute ( act );
     }
+    sofa::helper::AdvancedTimer::stepEnd("UpdateMapping");
 
-    sofa::helper::AdvancedTimer::stepEnd("Step5 UpdateMappingVisitor");
 
 
 #ifndef SOFA_NO_UPDATE_BBOX

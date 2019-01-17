@@ -75,20 +75,20 @@ void StochasticPositionHandler::init()
     const std::string& filename = f_filename.getFullPath();
     if (!filename.empty()) {
         outfile = new std::ofstream(filename.c_str());
-        if (d_observations.getValue() && !d_groundTruth.getValue()){
-            ( *outfile ) << "# Gnuplot File : positions of "
-                         << d_indices.getValue().size() << " particle(s) Monitored"
-                         <<  std::endl;
-            ( *outfile ) << "# 1st Column : time, others : particle(s) number ";
+//        if (d_observations.getValue() && !d_groundTruth.getValue()){
+//            ( *outfile ) << "# Gnuplot File : positions of "
+//                         << d_indices.getValue().size() << " particle(s) Monitored"
+//                         <<  std::endl;
+//            ( *outfile ) << "# 1st Column : time, others : particle(s) number ";
 
-            for (unsigned int i = 0; i < d_indices.getValue().size(); i++)
-                ( *outfile ) << d_indices.getValue()[i] << " ";
-            ( *outfile ) << std::endl;
+//            for (unsigned int i = 0; i < d_indices.getValue().size(); i++)
+//                ( *outfile ) << d_indices.getValue()[i] << " ";
+//            ( *outfile ) << std::endl;
 
-            ( *outfile ) << "# nParticles : "
-                         << d_indices.getValue().size() << std::endl;
+//            ( *outfile ) << "# nParticles : "
+//                         << d_indices.getValue().size() << std::endl;
 
-        }
+//        }
         if( !outfile->is_open() )
         {
             serr << "Error creating file "<<filename<<sendl;
