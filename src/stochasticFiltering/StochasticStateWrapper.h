@@ -336,8 +336,9 @@ public:
                 helper::vector<double> variance;
                 this->vecOptimParams[opi]->getInitVariance(variance);
 
-                for (size_t pi = 0; pi < this->vecOptimParams[opi]->size(); pi++, vpi++)
+                for (size_t pi = 0; pi < this->vecOptimParams[opi]->size(); pi++, vpi++) {
                     this->stateErrorVarianceReduced(vpi,vpi) = Type(Type(1.0) / variance[pi]);
+                }
             }
         }
         return this->stateErrorVarianceReduced;

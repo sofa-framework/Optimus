@@ -400,6 +400,7 @@ void OptimParams<sofa::helper::vector<double> >::handleEvent(core::objectmodel::
 template<>
 void OptimParams<Vec3dTypes::VecDeriv>::init() {
     Inherit::init();
+    this->m_dim = 3;
 
     size_t numParams = m_numParams.getValue();
     if ( numParams == 0 ) {
@@ -434,7 +435,7 @@ void OptimParams<Vec3dTypes::VecDeriv>::init() {
         if (stdev.size() != numParams) {
             PRNE("Size of standard deviation vector different from number of parameters!");
         }
-    }
+    }    
 }
 
 
@@ -442,31 +443,33 @@ template<>
 void OptimParams<Vec3dTypes::VecDeriv>::vectorToParams(VectorXd& _vector) {
     helper::WriteAccessor<Data<Vec3dTypes::VecDeriv> > waVal = m_val;
 
-    size_t numParams =  mstate_dim ;
+    size_t numParams =  m_numParams.getValue();
     size_t k = 0;
     for (size_t i = 0; i < numParams; i++)
-        for (size_t j = 0; k < this->paramIndices.size() ; j++, k++)
-            waVal[i][j] = _vector[paramIndices[k]];
+        for (size_t j = 0; j < this->m_dim ; j++, k++)
+            waVal[i][j] = _vector[paramIndices[i*m_dim+j]];
 }
 
 template<>
 void OptimParams<Vec3dTypes::VecDeriv>::paramsToVector(VectorXd& _vector) {
     helper::ReadAccessor<Data<Vec3dTypes::VecCoord> > raVal = m_val;
     size_t k = 0;
+    size_t numParams = this->m_numParams.getValue();
 
-    for (size_t i = 0; i <  mstate_dim ; i++)
-        for (size_t j = 0; k < this->paramIndices.size() ; j++, k++)
-            _vector[paramIndices[k]]=raVal[i][j];
+    for (size_t i = 0; i <  numParams ; i++)
+        for (size_t j = 0; j < m_dim ; j++, k++)
+            _vector[paramIndices[i*m_dim+j]]=raVal[i][j];
 }
 
 template<>
 void OptimParams<Vec3dTypes::VecDeriv>::getInitVariance(DVec& _variance) {
     size_t numParams = this->m_numParams.getValue();
-    _variance.resize(numParams);
+    _variance.resize(numParams*m_dim);
     size_t ij = 0;
-    for (size_t i = 0; i <  mstate_dim ; i++)
-        for (size_t j = 0; j < 3; j++, ij++)
-            _variance[ij] = helper::SQR(m_stdev.getValue()[i][j]);
+    for (size_t i = 0; i <  numParams ; i++)
+        for (size_t j = 0; j < m_dim; j++, ij++) {
+            _variance[ij] = helper::SQR(m_stdev.getValue()[i][j]);            
+        }
 
 }
 
