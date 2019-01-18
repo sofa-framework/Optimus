@@ -45,7 +45,7 @@ BindedSimpleObservationManager<FilterType,DataTypes1,DataTypes2>::BindedSimpleOb
                                                                 defaulttype::Vec<4,float>(0.0,1.0,0.0,0.0),
                                                                 defaulttype::Vec<4,float>(0.0,0.0,1.0,0.0)), "projectionMatrix","Projection matrix"))
     , d_proj_dist(initData(&d_proj_dist, (double) 0.0, "projDist", "Projection Distance"))
-//    , d_bindId(initData(&d_bindId, "bindId", "Projection Distance"))
+    , d_bindId(initData(&d_bindId, "bindId", "Vector of 2D 3D correspondences"))
     , stateWrapperLink(initLink("stateWrapper", "link to the state wrapper needed to perform apply (perhaps to be changed)"))
     , d_mappedStatePath(initData(&d_mappedStatePath, "mappedState", "Link to Virtual Mapped Catheter "))
 
@@ -57,7 +57,7 @@ void BindedSimpleObservationManager<FilterType,DataTypes1,DataTypes2>::init()
 {
 
     Inherit::init();
-    bindId3D=bindId;
+    bindId=d_bindId.getValue();
     this->gnode->get(observationSource);
     if (observationSource) {
         PRNS("Found observation source: " << observationSource->getName());
@@ -217,9 +217,9 @@ bool BindedSimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getPredic
 //        bindId.push_back(bind);
 //    }
 
-    for (size_t i = 0; i < allPred2DObsEdit.size(); i++){
+    for (size_t i = 0; i <(this->observationSize)*0.5; i++){
         for (size_t d = 0; d < 2; d++){
-            _predictedObservation(2*i+d) = allPred2DObsEdit[i][d];
+            _predictedObservation(2*i+d) = allPred2DObsEdit[bindId[i]][d];
 
         }
     }

@@ -93,7 +93,6 @@ protected:
     double actualObservationTime;
 
     helper::vector<int> bindId;
-    helper::vector<int> bindId3D;
 
     MappState* mappedState;
 

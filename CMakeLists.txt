@@ -41,6 +41,9 @@ set(HEADER_FILES
     src/genericComponents/VTKExporterDA.h
     src/genericComponents/OptimMonitor.h
     src/genericComponents/OptimMonitor.inl
+    src/genericComponents/ShowCatheter.h
+    src/genericComponents/ShowCatheter.inl
+    
     )
 
 set(SOURCE_FILES
@@ -57,6 +60,7 @@ set(SOURCE_FILES
     src/genericComponents/FilterEvents.cpp
     src/genericComponents/VTKExporterDA.cpp
     src/genericComponents/OptimMonitor.cpp
+    src/genericComponents/ShowCatheter.cpp
     )
 
 set(README_FILES 
