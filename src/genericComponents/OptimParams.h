@@ -211,6 +211,7 @@ public:
     }
 
     void setVStateParamIndices(IVec& _vector) {
+        std::cout << "SETTING VECTOR TO PARAMS: " << _vector << std::endl;
         paramIndices = _vector;
     }
 
@@ -242,9 +243,9 @@ public:
     typedef core::behavior::MechanicalState<defaulttype::Vec3dTypes> MechStateVec3d;
     typedef core::behavior::MechanicalState<defaulttype::Rigid3dTypes> MechStateRigid3d;
 
-    SingleLink<OptimParams<DataTypes>, MechStateVec3d, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> m_paramMOLink;
+    //SingleLink<OptimParams<DataTypes>, MechStateVec3d, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> m_paramMOLink;
     SingleLink<OptimParams<DataTypes>, MechStateRigid3d, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> m_paramMOLinkrigid;
-    MechStateVec3d* paramMO;
+    //MechStateVec3d* paramMO;
     MechStateRigid3d* paramMOrigid;
     void getInitVariance(DVec& /*_variance*/)  {}    
 

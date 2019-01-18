@@ -42,7 +42,7 @@ namespace container
 template <class DataTypes>
 OptimParams<DataTypes>::OptimParams(loader_t* mm)
     : OptimParamsBase()
-    , m_paramMOLink(initLink("parametricMechanicalObject", "link to a mechanical object which is considered as parameter (only for VecCoord3D)"))
+    //, m_paramMOLink(initLink("parametricMechanicalObject", "link to a mechanical object which is considered as parameter (only for VecCoord3D)"))
     , m_paramMOLinkrigid(initLink("parametricMechanicalObjectRigid", "link to a mechanical object which is considered as parameter (only for Rigid)"))
     , m_val( initData(&m_val, "value", "parameter value") )
     , m_initVal( initData(&m_initVal, "initValue", "initial parameter value") )
