@@ -37,7 +37,13 @@ def createScene(rootNode):
         except yaml.YAMLError as exc:
             print(exc)
             return
-    
+
+
+    if len(commandLineArguments) > 4:
+        delta = [0.,float(commandLineArguments[2]),float(commandLineArguments[3])]
+        options['model']['applied_pressure']['delta'] = delta
+        options['model']['applied_pressure']['num_wait_steps'] = int(commandLineArguments[4])
+        options['io']['suffix'] = 'p-'+commandLineArguments[2]+'_'+commandLineArguments[3]+'-50-'+commandLineArguments[4]
 
     AppStiff_GenObs(rootNode, options)
 
