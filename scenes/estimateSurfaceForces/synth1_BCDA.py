@@ -65,13 +65,13 @@ class synth1_BCDA(Sofa.PythonScriptController):
         self.saveToolForces=0
         self.saveAssess=0
 
-        self.filterKind = 'ROUKF' 
-        #self.filterKind = 'UKFSimCorr'    
+        # self.filterKind = 'ROUKF' 
+        self.filterKind = 'UKFSimCorr'    
 
         self.estimQuantity = 'forces'
         self.sdaSuffix = 'ForcesN4'
         self.paramInitExp = [0.0, 0.0, 0.0]
-        self.paramInitSD = [0.01, 0.01, 0.01]
+        self.paramInitSD = [0.0001, 0.002, 0.0001]
         self.obsInitSD= 1e-4
         self.transformParams='none'
 
@@ -81,7 +81,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         # self.paramInitExp = [0.0]
         # self.paramInitSD = [1.0]
         # self.obsInitSD= 1e-4
-        # self.transformParams='none'
+        # self.transformParams='absolute'
 
                 
 

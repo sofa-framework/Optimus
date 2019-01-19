@@ -39,7 +39,7 @@ class synth1_GenObs (Sofa.PythonScriptController):
         self.toolTrajectory = 1
 
         outputDir=self.geometry+'_FP'+str(self.fixedPoints)+'_OP'+self.obsPoints+'_INT'+self.integration+str(self.numIter)+'_TR'+str(self.toolTrajectory)+'/observations'
-        saveObservations=0
+        saveObservations=1
 
         if saveObservations:
         	os.system('mv '+outputDir+' arch')
