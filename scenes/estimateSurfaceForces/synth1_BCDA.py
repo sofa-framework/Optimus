@@ -3,6 +3,7 @@ import math
 import os
 import sys
 import csv
+import time
 
 __file = __file__.replace('\\', '/') # windows
 
@@ -33,8 +34,10 @@ class synth1_BCDA(Sofa.PythonScriptController):
         self.materialParams='{} {}'.format(mu,lamb)
                
         self.geometry = 'brickD'
-        self.fixedPoints = 1
-        self.obsPoints = 'ogrid4'
+        self.fixedPoints = 'L4'
+        self.obsPoints = 'GT3x10'    # observations in a grid 3x10 top part of the object
+        # self.obsPoints = 'GC2x2'    # observations in a grid 2x2, corners
+        # self.obsPoints = 'PLB'
 
         # self.integration = 'Euler'
         # self.numIter = 1
@@ -46,8 +49,8 @@ class synth1_BCDA(Sofa.PythonScriptController):
         self.toolTrajectory = 1
 
         #self.filterKind = 'ROUKF'        
-		
-        self.simulationDir = self.geometry+'_FP'+str(self.fixedPoints)+'_OP'+self.obsPoints+'_INT'+self.integration+str(self.numIter)+'_TR'+str(self.toolTrajectory)
+
+        self.simulationDir=self.geometry+'_fix-'+self.fixedPoints+'_obs-'+self.obsPoints+'_int-'+self.integration+str(self.numIter)+'_TR'+str(self.toolTrajectory)
         self.inputDir=self.simulationDir+'/observations'
         self.volumeVTK=self.inputDir+'/object_0.vtk'
         self.surfaceSTL='../../data/brickD/brickD_536.stl'
@@ -62,32 +65,30 @@ class synth1_BCDA(Sofa.PythonScriptController):
         self.m_slaveScenesCreated = 0 # auxiliary, circumvents attribute of instance method
 
         self.saveState = 1
-        self.saveToolForces=0
+        self.saveToolForces=1
         self.saveAssess=0
 
-        # self.filterKind = 'ROUKF' 
-        self.filterKind = 'UKFSimCorr'    
+        self.filterKind = 'ROUKF' 
+        # self.filterKind = 'UKFSimCorr'    
 
-        self.estimQuantity = 'forces'
-        self.sdaSuffix = 'ForcesN4'
-        self.paramInitExp = [0.0, 0.0, 0.0]
-        self.paramInitSD = [0.0001, 0.002, 0.0001]
-        self.obsInitSD= 1e-4
-        self.transformParams='none'
-
-                
-        # self.estimQuantity = 'springs'
-        # self.sdaSuffix = 'SpringsN4'
-        # self.paramInitExp = [0.0]
-        # self.paramInitSD = [1.0]
+        # self.estimQuantity = 'forces'
+        # self.sdaSuffix = 'ForcesN4'
+        # self.paramInitExp = [0.0, 0.0, 0.0]
+        # self.paramInitSD = [0.0001, 0.002, 0.0001]
         # self.obsInitSD= 1e-4
-        # self.transformParams='absolute'
-
+        # self.transformParams='none'
                 
+        self.estimQuantity = 'springs'
+        self.sdaSuffix = 'SpringsN4'
+        self.paramInitExp = [0.0]
+        self.paramInitSD = [0.1]
+        self.obsInitSD= 1e-5
+        self.transformParams='absolute'                
 
         self.outDir=self.simulationDir+'/'+self.filterKind +'_Ep' + str(self.paramInitExp[0]) + '_SDp' + str(self.paramInitSD[0]) + '_SDon' + str(self.obsInitSD) + '_' + self.sdaSuffix
-        os.system('mkdir -p '+self.simulationDir+'/arch')
-        os.system('mv '+self.outDir+' '+self.simulationDir+'/arch')
+        os.system('mkdir -p '+self.simulationDir+'/arch')        
+        stamp='_'+str(int(time.time()))
+        os.system('mv --backup -S '+stamp+' '+self.outDir+' '+self.simulationDir+'/arch')
         os.system('mkdir -p '+self.outDir)
         self.suffix=''
 
@@ -96,20 +97,14 @@ class synth1_BCDA(Sofa.PythonScriptController):
             self.stateVarFile=self.outDir+'/variance'+self.suffix+'.txt'
             self.stateCovarFile=self.outDir+'/covariance'+self.suffix+'.txt'
             self.innovationFile=self.outDir+'/innovation_test.txt'
-            self.computationTimeFile=self.outDir+'/computationTime.txt'
-            os.system('rm '+self.stateExpFile)
-            os.system('rm '+self.stateVarFile)
-            os.system('rm '+self.stateCovarFile)
-            os.system('rm '+self.innovationFile)
-            os.system('rm '+self.computationTimeFile)
+            self.computationTimeFile=self.outDir+'/computationTime.txt'            
       
         if self.saveToolForces:
-            self.toolForceFile=self.outDir+'/toolForce_'+self.suffix+'.txt'
-            os.system('rm '+self.toolForceFile);
+            self.toolForceFile=self.outDir+'/toolForce.txt'
 
 
         if self.saveAssess:
-            self.assessFile=self.outDir+'/assess_'+self.suffix+'.txt'
+            self.assessFile=self.outDir+'/assess.txt'
             os.system('rm '+self.assessFile);            
 
         self.createScene(node)
@@ -168,7 +163,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         node.createObject('UniformMass', totalMass="0.2513")
 
         # node.createObject('BoxROI', name='fixedBox1', box='-0.001 -0.001 -0.011 0.011 0.001 0.001', drawBoxes='1')
-        if self.fixedPoints  == 1:
+        if self.fixedPoints  == 'L4':
             # entire bottom face:  (N16)
         	# node.createObject('BoxROI', name='fixedBox1', box='-0.001 -0.001 -0.011 0.101 0.001 0.001', drawBoxes='1', doUpdate='0')
             # only four points on the left (N4)
@@ -252,7 +247,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         obsNode.createObject('BarycentricMapping')                   
         obsNode.createObject('MappedStateObservationManager', name="MOBS", observationStdev=self.obsInitSD, listening="1", stateWrapper="@../StateWrapper",doNotMapObservations="1",verbose="1")
         obsNode.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix=self.obsMonitorPrefix, drawSize="0.000")
-        obsNode.createObject('ShowSpheres', position='@MOBS.observations',color='1.0 0.0 1.0 1', radius="0.0012")
+        obsNode.createObject('ShowSpheres', position='@MOBS.observations',color='1 1 0 1', radius="0.0012")
     
         visNode = node.createChild('ObjectVisualization')
         visNode.createObject('VisualStyle', displayFlags='showVisual showBehavior showCollision hideMapping showWireframe hideNormals')

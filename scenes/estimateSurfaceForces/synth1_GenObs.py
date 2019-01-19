@@ -1,5 +1,6 @@
 import Sofa
 import os
+import time
 
 __file = __file__.replace('\\', '/') # windows
 
@@ -24,8 +25,10 @@ class synth1_GenObs (Sofa.PythonScriptController):
         volumeFileName='../../data/brickD/brickD_536.vtk'
         surfaceSTL='../../data/brickD/brickD_536.stl'
         self.geometry = 'brickD'
-        self.fixedPoints = 1
-        self.obsPoints = 'ogrid4'
+        self.fixedPoints = 'L4'
+        self.obsPoints = 'GT3x10'    # observations in a grid 3x10 top part of the object
+        # self.obsPoints = 'GC2x2'    # observations in a grid 2x2, corners
+        # self.obsPoints = 'PLB'  	# single point of observation, left bottom
 
         #self.integration = 'Euler'
         #self.numIter = 1
@@ -37,15 +40,20 @@ class synth1_GenObs (Sofa.PythonScriptController):
         # self.numIter = 3
 
         self.toolTrajectory = 1
-
-        outputDir=self.geometry+'_FP'+str(self.fixedPoints)+'_OP'+self.obsPoints+'_INT'+self.integration+str(self.numIter)+'_TR'+str(self.toolTrajectory)+'/observations'
+        self.saveToolForces = 1
         saveObservations=1
 
-        if saveObservations:
-        	os.system('mv '+outputDir+' arch')
-        	os.system('mkdir -p '+outputDir)
+        rootDir=self.geometry+'_fix-'+self.fixedPoints+'_obs-'+self.obsPoints+'_int-'+self.integration+str(self.numIter)+'_TR'+str(self.toolTrajectory)
+        outputDir = rootDir+'/observations'        
 
-        #self.toolForceFile = open("toolForce.txt", "w")        
+        if saveObservations:
+            os.system('mkdir -p arch')
+            stamp='_'+str(int(time.time()))
+            os.system('mv --backup=t -S '+stamp+' '+rootDir+' arch')
+            os.system('mkdir -p '+outputDir)
+
+        if self.saveToolForces:
+            self.toolForceFile=outputDir+'/toolForce.txt'            
 
         # rootNode
         rootNode.createObject('VisualStyle', displayFlags='showVisual showBehavior showCollision hideMapping showWireframe hideNormals')        
@@ -107,7 +115,7 @@ class synth1_GenObs (Sofa.PythonScriptController):
 
         # simuNode.createObject('Sphere', radius="0.0003")
 
-        if self.fixedPoints == 1:
+        if self.fixedPoints == 'L4':
             simuNode.createObject('BoxROI', box='-0.001 -0.001 -0.011 0.025 0.001 0.001', drawBoxes='0', name='FROI1')
         # simuNode.createObject('BoxROI', box='0.075 -0.001 -0.011 0.101 0.001 0.001', drawBoxes='1', name='FROI2')
         # simuNode.createObject('BoxROI', box='-0.001 -0.001 -0.011 0.101 0.001 0.001', drawBoxes='1', name='FROI')
@@ -146,13 +154,19 @@ class synth1_GenObs (Sofa.PythonScriptController):
         # obsGrid.createObject('RegularGrid', name="grid", min='0.0 0.01 0.0', max='0.1 0.1 -0.0', n='10 10 1')  # obs. grid2
         # obsGrid.createObject('RegularGrid', name="grid", min='0.0 0.01 0.0', max='0.1 0.03 -0.0', n='10 3 1')  # obs. grid3
 
-        if self.obsPoints == 'ogrid4':
-            obsGrid.createObject('RegularGrid', name="grid", min='0.0 0.08 0.0', max='0.1 0.1 -0.0', n='10 3 1')  # obs. ogrid4
+        if self.obsPoints == 'GT3x10':
+            obsGrid.createObject('RegularGrid', name="grid", min='0.0 0.08 0.0', max='0.1 0.1 -0.0', n='10 3 1') 
+        elif self.obsPoints == 'GC2x2':
+        	obsGrid.createObject('RegularGrid', name="grid", min='0.01 0.01 0.0', max='0.09 0.09 0.0', n='2 2 1') 
+        elif self.obsPoints == 'PLB':
+        	obsGrid.createObject('RegularGrid', name="grid", min='0.01 0.01 0.0', max='0.01 0.01 0.0', n='1 1 1') 
+
 
         obsGrid.createObject('MechanicalObject', src='@grid', showIndicesScale='0.00025', name='MO', template='Vec3d', showIndices='1')        
         obsGrid.createObject('BarycentricMapping')
         # obsGrid.createObject('Sphere', radius="0.0006", color="1 0 1 1")
-        obsGrid.createObject('Sphere', color='0.0 0.5 0.0 1', radius="0.0014", template='Vec3d')
+        # obsGrid.createObject('Sphere', color='0.0 0.5 0.0 1', radius="0.0014", template='Vec3d')
+        obsGrid.createObject('ShowSpheres', position='@MO.position', color='1 1 0 1', radius='0.0014')
 
         if saveObservations:
             obsGrid.createObject('VTKExporter', filename=monitorFile+'.vtk', position="@MO.position", listening="0" , XMLformat='0', exportAtBegin='1', exportEveryNumberOfSteps="0")
@@ -205,7 +219,14 @@ class synth1_GenObs (Sofa.PythonScriptController):
 
         #asPos = self.asMO.findData('position').value
         #print 'AsPos ', asPos        
-        #print len(asPos)        
+        #print len(asPos)
+
+        if self.saveToolForces:
+            tsp=self.toolSprings.findData('totalForce').value
+            f4 = open(self.toolForceFile, "a")
+            f4.write(" ".join(map(lambda x: str(x), tsp[0])))
+            f4.write('\n')
+            f4.close()            
 
         return 0;
 
