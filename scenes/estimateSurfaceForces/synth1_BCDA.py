@@ -34,10 +34,13 @@ class synth1_BCDA(Sofa.PythonScriptController):
         self.materialParams='{} {}'.format(mu,lamb)
                
         self.geometry = 'brickD'
-        self.fixedPoints = 'L4'
-        self.obsPoints = 'GT3x10'    # observations in a grid 3x10 top part of the object
+        
+        self.fixedPoints = 'L1'
+        #self.fixedPoints = 'L4'
+
+        # self.obsPoints = 'GT3x10'    # observations in a grid 3x10 top part of the object
         # self.obsPoints = 'GC2x2'    # observations in a grid 2x2, corners
-        # self.obsPoints = 'PLB'
+        self.obsPoints = 'PLB'
 
         # self.integration = 'Euler'
         # self.numIter = 1
@@ -47,8 +50,9 @@ class synth1_BCDA(Sofa.PythonScriptController):
         # self.numIter = 3
 
         self.toolTrajectory = 1
-
-        #self.filterKind = 'ROUKF'        
+        
+        # self.filterKind = 'ROUKF' 
+        self.filterKind = 'UKFSimCorr'
 
         self.simulationDir=self.geometry+'_fix-'+self.fixedPoints+'_obs-'+self.obsPoints+'_int-'+self.integration+str(self.numIter)+'_TR'+str(self.toolTrajectory)
         self.inputDir=self.simulationDir+'/observations'
@@ -68,22 +72,20 @@ class synth1_BCDA(Sofa.PythonScriptController):
         self.saveToolForces=1
         self.saveAssess=0
 
-        self.filterKind = 'ROUKF' 
-        # self.filterKind = 'UKFSimCorr'    
 
-        # self.estimQuantity = 'forces'
-        # self.sdaSuffix = 'ForcesN4'
-        # self.paramInitExp = [0.0, 0.0, 0.0]
-        # self.paramInitSD = [0.0001, 0.002, 0.0001]
-        # self.obsInitSD= 1e-4
-        # self.transformParams='none'
-                
-        self.estimQuantity = 'springs'
-        self.sdaSuffix = 'SpringsN4'
-        self.paramInitExp = [0.0]
-        self.paramInitSD = [0.1]
+        self.estimQuantity = 'forces'
+        self.sdaSuffix = 'ForcesN4'
+        self.paramInitExp = [0.0, 0.0, 0.0]
+        self.paramInitSD = [100,100,100]
         self.obsInitSD= 1e-5
-        self.transformParams='absolute'                
+        self.transformParams='none'
+                
+        # self.estimQuantity = 'springs'
+        # self.sdaSuffix = 'SpringsN4'
+        # self.paramInitExp = [0.0]
+        # self.paramInitSD = [10000]
+        # self.obsInitSD= 1e-5
+        # self.transformParams='absolute'                
 
         self.outDir=self.simulationDir+'/'+self.filterKind +'_Ep' + str(self.paramInitExp[0]) + '_SDp' + str(self.paramInitSD[0]) + '_SDon' + str(self.obsInitSD) + '_' + self.sdaSuffix
         os.system('mkdir -p '+self.simulationDir+'/arch')        
@@ -168,6 +170,9 @@ class synth1_BCDA(Sofa.PythonScriptController):
         	# node.createObject('BoxROI', name='fixedBox1', box='-0.001 -0.001 -0.011 0.101 0.001 0.001', drawBoxes='1', doUpdate='0')
             # only four points on the left (N4)
             node.createObject('BoxROI', name='fixedBox1', box='-0.001 -0.001 -0.011 0.015 0.001 0.001', drawBoxes='1', doUpdate='0')
+        elif self.fixedPoints == 'L1':
+            node.createObject('BoxROI', name='fixedBox1', box='-0.001 -0.001 -0.001 0.001 0.001 0.001', drawBoxes='1', doUpdate='0')
+
         	    
 
         if self.estimQuantity == 'springs':

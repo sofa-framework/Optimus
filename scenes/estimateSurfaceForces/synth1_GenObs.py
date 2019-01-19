@@ -25,10 +25,15 @@ class synth1_GenObs (Sofa.PythonScriptController):
         volumeFileName='../../data/brickD/brickD_536.vtk'
         surfaceSTL='../../data/brickD/brickD_536.stl'
         self.geometry = 'brickD'
-        self.fixedPoints = 'L4'
-        self.obsPoints = 'GT3x10'    # observations in a grid 3x10 top part of the object
+        
+        #self.fixedPoints = 'L1'
+        self.fixedPoints = 'L1'
+        #self.fixedPoints = 'L4'
+
+
+        #self.obsPoints = 'GT3x10'    # observations in a grid 3x10 top part of the object
         # self.obsPoints = 'GC2x2'    # observations in a grid 2x2, corners
-        # self.obsPoints = 'PLB'  	# single point of observation, left bottom
+        self.obsPoints = 'PLB'  	# single point of observation, left bottom
 
         #self.integration = 'Euler'
         #self.numIter = 1
@@ -117,6 +122,11 @@ class synth1_GenObs (Sofa.PythonScriptController):
 
         if self.fixedPoints == 'L4':
             simuNode.createObject('BoxROI', box='-0.001 -0.001 -0.011 0.025 0.001 0.001', drawBoxes='0', name='FROI1')
+        elif self.fixedPoints == 'L2':
+            simuNode.createObject('BoxROI', box='-0.001 -0.001 -0.011 0.001 0.001 0.001', drawBoxes='0', name='FROI1')
+        elif self.fixedPoints == 'L1':
+            simuNode.createObject('BoxROI', box='-0.001 -0.001 -0.001 0.001 0.001 0.001', drawBoxes='0', name='FROI1')
+
         # simuNode.createObject('BoxROI', box='0.075 -0.001 -0.011 0.101 0.001 0.001', drawBoxes='1', name='FROI2')
         # simuNode.createObject('BoxROI', box='-0.001 -0.001 -0.011 0.101 0.001 0.001', drawBoxes='1', name='FROI')
         simuNode.createObject('ExtendedRestShapeSpringForceField', stiffness='1e5', name='fixingSpring', points='@FROI1.indices', showIndicesScale='0', springColor='0 1 0 1', startTimeSpringOn='0', numStepsSpringOn='10000')
