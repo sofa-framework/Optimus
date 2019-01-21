@@ -168,8 +168,8 @@ class AppStiff_SDA(Sofa.PythonScriptController):
         obsNode = simuNode.createChild('observations')        
         obsNode.createObject('MeshVTKLoader', name='obsloader', filename=self.opt['model']['observationPoints'])
         obsNode.createObject('MechanicalObject', name='SourceMO', position='@obsloader.position')
-        obsNode.createObject('VTKExporter', name='temporaryExporter', filename='tempObs.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="0",
-                exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="0", position='@SourceMO.position')
+        # obsNode.createObject('VTKExporter', name='temporaryExporter', filename='tempObs.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="0",
+                # exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="0", position='@SourceMO.position')
         
         obsNode.createObject('BarycentricMapping')
         obsNode.createObject('MappedStateObservationManager', name="MOBS", listening="1", stateWrapper="@../StateWrapper", verbose="1",
