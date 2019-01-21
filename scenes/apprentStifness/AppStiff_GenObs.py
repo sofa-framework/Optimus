@@ -9,6 +9,37 @@ import numpy as np
 
 __file = __file__.replace('\\', '/') # windows
 
+def argv2options(argv, options): # loads values from command line arguments into the options dictionary. syntax: runSofa file.py --argv file.yml key [key...] value key [key...] value ...
+                                 # the different values are concatenated and loaded into options[io][suffix]
+    i = 0
+    suffix = ''
+    while i < len(argv):
+        suffix = suffix +  '_'         
+        if argv[i] in options:
+            key0 = argv[i]
+            if argv[i+1] in options[key0]:
+                key1 = argv[i+1]
+                if argv[i+2] in options[key0][key1]:
+                    key2 = argv[i+2]
+                    options[key0][key1][key2] = argv[i+3]
+                    suffix = suffix + argv[i+3]
+                    i = i + 4
+                else:
+                    options[key0][key1] = argv[i+2]
+                    suffix = suffix + argv[i+2]
+                    i = i + 3
+            else:
+                options[key0] = argv[i+1]
+                suffix = suffix + argv[i+1]
+                i = i + 2
+        else:
+            print ('key needed')
+            return         
+
+    options['io']['suffix'] = suffix
+    print('suffix', suffix)
+    return options
+
 def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
     rootNode.createObject('RequiredPlugin', name='Pardiso', pluginName='SofaPardisoSolver')
@@ -38,12 +69,8 @@ def createScene(rootNode):
             print(exc)
             return
 
-
-    if len(commandLineArguments) > 4:
-        delta = [0.,float(commandLineArguments[2]),float(commandLineArguments[3])]
-        options['model']['applied_pressure']['delta'] = delta
-        options['model']['applied_pressure']['num_wait_steps'] = int(commandLineArguments[4])
-        options['io']['suffix'] = 'p-'+commandLineArguments[2]+'_'+commandLineArguments[3]+'-50-'+commandLineArguments[4]
+    if len(commandLineArguments) > 2:
+        options = argv2options(commandLineArguments[2:], options)
 
     AppStiff_GenObs(rootNode, options)
 
@@ -62,6 +89,7 @@ class AppStiff_GenObs(Sofa.PythonScriptController):
         self.saveGeo = opt["io"]["saveGeo"]
         self.planeCollision = opt['model']['plane_collision']
         self.meshFile = opt['model']['mesh_path'] + opt['model']['object'] + '_' + str(opt['model']['num_el'])
+        print('\n\n*************meshFile', self.meshFile)
 
         self.excitation = ''
         if 'applied_force' in self.opt['model'].keys():
@@ -76,7 +104,7 @@ class AppStiff_GenObs(Sofa.PythonScriptController):
             if self.planeCollision:
                 object = object + 'plane_'
             
-            self.mainFolder = object + '_' + str(opt['model']['num_el']) + '_' + self.excitation + '_' + opt['model']['obs_id'] + '_' + opt['model']['fem']['method'] + '_' +  opt['model']['int']['type'] + str(opt['model']['int']['maxit']) + '_' + str(opt['io']['suffix'])
+            self.mainFolder = object + '_' + str(opt['model']['num_el']) + '_' + self.excitation + '_' + opt['model']['obs_id'] + '_' + opt['model']['fem']['method'] + '_' +  opt['model']['int']['type'] + str(opt['model']['int']['maxit']) + str(opt['io']['suffix'])
 
             os.system('mv '+self.mainFolder+' arch/'+self.mainFolder)
             os.system('mkdir '+self.mainFolder)

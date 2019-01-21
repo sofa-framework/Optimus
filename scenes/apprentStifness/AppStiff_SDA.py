@@ -9,6 +9,37 @@ import numpy as np
 
 __file = __file__.replace('\\', '/') # windows
 
+def argv2options(argv, options): # loads values from command line arguments into the options dictionary. syntax: runSofa file.py --argv file.yml key [key...] value key [key...] value ...
+                                 # the different values are concatenated and loaded into options[io][suffix]
+    i = 0
+    suffix = ''
+    while i < len(argv):
+        suffix = suffix +  '_'         
+        if argv[i] in options:
+            key0 = argv[i]
+            if argv[i+1] in options[key0]:
+                key1 = argv[i+1]
+                if argv[i+2] in options[key0][key1]:
+                    key2 = argv[i+2]
+                    options[key0][key1][key2] = argv[i+3]
+                    suffix = suffix + argv[i+3]
+                    i = i + 4
+                else:
+                    options[key0][key1] = argv[i+2]
+                    suffix = suffix + argv[i+2]
+                    i = i + 3
+            else:
+                options[key0] = argv[i+1]
+                suffix = suffix + argv[i+1]
+                i = i + 2
+        else:
+            print ('key needed')
+            return         
+
+    options['io']['suffix'] = suffix
+    print('suffix', suffix)
+    return options
+
 def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
     rootNode.createObject('RequiredPlugin', name='Pardiso', pluginName='SofaPardisoSolver')
