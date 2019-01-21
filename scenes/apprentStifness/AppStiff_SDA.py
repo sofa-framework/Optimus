@@ -5,40 +5,14 @@ import sys
 import csv
 import yaml
 import pprint
+import time
 import numpy as np
+sys.path.append(os.getcwd() + '/../../python_src/utils')
+from Argv2Options import argv2options
+
 
 __file = __file__.replace('\\', '/') # windows
 
-def argv2options(argv, options): # loads values from command line arguments into the options dictionary. syntax: runSofa file.py --argv file.yml key [key...] value key [key...] value ...
-                                 # the different values are concatenated and loaded into options[io][suffix]
-    i = 0
-    suffix = ''
-    while i < len(argv):
-        suffix = suffix +  '_'         
-        if argv[i] in options:
-            key0 = argv[i]
-            if argv[i+1] in options[key0]:
-                key1 = argv[i+1]
-                if argv[i+2] in options[key0][key1]:
-                    key2 = argv[i+2]
-                    options[key0][key1][key2] = argv[i+3]
-                    suffix = suffix + argv[i+3]
-                    i = i + 4
-                else:
-                    options[key0][key1] = argv[i+2]
-                    suffix = suffix + argv[i+2]
-                    i = i + 3
-            else:
-                options[key0] = argv[i+1]
-                suffix = suffix + argv[i+1]
-                i = i + 2
-        else:
-            print ('key needed')
-            return         
-
-    options['io']['suffix'] = suffix
-    print('suffix', suffix)
-    return options
 
 def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
@@ -69,11 +43,8 @@ def createScene(rootNode):
             print(exc)
             return
 
-    if len(commandLineArguments) > 4:
-        delta = [0.,float(commandLineArguments[2]),float(commandLineArguments[3])]
-        options['model']['applied_pressure']['delta'] = delta
-        options['model']['applied_pressure']['num_wait_steps'] = int(commandLineArguments[4])
-        options['io']['suffix'] = 'p-'+commandLineArguments[2]+'_'+commandLineArguments[3]+'-50-'+commandLineArguments[4]
+    if len(commandLineArguments) > 2:
+        options = argv2options(commandLineArguments[2:], options)
     
     AppStiff_SDA(rootNode, options)
 
@@ -107,23 +78,22 @@ class AppStiff_SDA(Sofa.PythonScriptController):
             self.excitation = 'displ'
 
             
-        self.mainFolder = object + '_' + str(opt['model']['num_el']) + '_' + self.excitation + '_' + opt['model']['obs_id'] + '_' + opt['model']['fem']['method'] + '_' +  opt['model']['int']['type'] + str(opt['model']['int']['maxit']) + '_' + str(opt['io']['suffix'])
+        self.mainFolder = object + '_' + str(opt['model']['num_el']) + '_' + self.excitation + '_' + opt['model']['obs_id'] + '_' + opt['model']['fem']['method'] + '_' +  opt['model']['int']['type'] + str(opt['model']['int']['maxit']) + str(opt['io']['suffix'])
 
         print 'Reading observations from ',self.mainFolder
         self.obsFile = self.mainFolder + '/obs'
-        self.estFolder = self.mainFolder + '/' + opt['filter']['kind'] + '_' + str(opt['model']['num_el_sda']) + '_' + opt['io']['sdaFolderSuffix']
+        self.estFolder = self.mainFolder + '/' + opt['filter']['kind'] + '_' + str(opt['model']['num_el_sda']) + opt['io']['sdaSuffix']
 
-        if self.saveEst:                        
-            os.system('mv '+self.estFolder+' '+self.estFolder+'_arch')
-            os.system('mkdir '+self.estFolder)
+        stamp='_'+str(int(time.time()))
+        os.system('mkdir -p '+self.mainFolder+' /arch')
+        os.system('mv --backup -S '+stamp+' '+self.estFolder+' '+self.mainFolder+'/arch')
+        os.system('mkdir -p '+self.estFolder)          
 
+        if self.saveEst:                                    
             self.stateExpFile=self.estFolder+'/state.txt'
             self.stateVarFile=self.estFolder+'/variance.txt'
             self.stateCovarFile=self.estFolder+'/covariance.txt'
-            os.system('rm '+self.stateExpFile)
-            os.system('rm '+self.stateVarFile)
-            os.system('rm '+self.stateCovarFile)
-
+            
             # create file with parameters and additional information
             self.opt['visual_parameters'] = {}
             self.opt['visual_parameters']['state_file_name'] = self.stateExpFile[self.stateExpFile.rfind('/') + 1:]

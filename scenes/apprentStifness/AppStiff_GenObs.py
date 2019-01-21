@@ -5,40 +5,12 @@ import sys
 import csv
 import yaml
 import pprint
+import time
 import numpy as np
+sys.path.append(os.getcwd() + '/../../python_src/utils')
+from Argv2Options import argv2options
 
 __file = __file__.replace('\\', '/') # windows
-
-def argv2options(argv, options): # loads values from command line arguments into the options dictionary. syntax: runSofa file.py --argv file.yml key [key...] value key [key...] value ...
-                                 # the different values are concatenated and loaded into options[io][suffix]
-    i = 0
-    suffix = ''
-    while i < len(argv):
-        suffix = suffix +  '_'         
-        if argv[i] in options:
-            key0 = argv[i]
-            if argv[i+1] in options[key0]:
-                key1 = argv[i+1]
-                if argv[i+2] in options[key0][key1]:
-                    key2 = argv[i+2]
-                    options[key0][key1][key2] = argv[i+3]
-                    suffix = suffix + argv[i+3]
-                    i = i + 4
-                else:
-                    options[key0][key1] = argv[i+2]
-                    suffix = suffix + argv[i+2]
-                    i = i + 3
-            else:
-                options[key0] = argv[i+1]
-                suffix = suffix + argv[i+1]
-                i = i + 2
-        else:
-            print ('key needed')
-            return         
-
-    options['io']['suffix'] = suffix
-    print('suffix', suffix)
-    return options
 
 def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
@@ -106,9 +78,10 @@ class AppStiff_GenObs(Sofa.PythonScriptController):
             
             self.mainFolder = object + '_' + str(opt['model']['num_el']) + '_' + self.excitation + '_' + opt['model']['obs_id'] + '_' + opt['model']['fem']['method'] + '_' +  opt['model']['int']['type'] + str(opt['model']['int']['maxit']) + str(opt['io']['suffix'])
 
-            os.system('mv '+self.mainFolder+' arch/'+self.mainFolder)
-            os.system('mkdir '+self.mainFolder)
-
+            stamp='_'+str(int(time.time()))
+            os.system('mkdir -p arch')
+            os.system('mv --backup -S '+stamp+' '+self.mainFolder+' arch')
+            os.system('mkdir -p '+self.mainFolder)        
 
         if self.saveObs:
             self.obsPoints = opt['model']['mesh_path'] + opt['model']['object'] + '_' + opt['model']['obs_id'] + '.vtk'
