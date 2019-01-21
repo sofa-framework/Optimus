@@ -4,6 +4,7 @@ import os
 import sys
 import csv
 import time
+import numpy as np
 
 __file = __file__.replace('\\', '/') # windows
 
@@ -34,9 +35,8 @@ class synth1_BCDA(Sofa.PythonScriptController):
         self.materialParams='{} {}'.format(mu,lamb)
                
         self.geometry = 'brickD'
-        
-        self.fixedPoints = 'L1'
-        #self.fixedPoints = 'L4'
+        self.fixedPoints = 'L1'          #L1, L4        
+        self.fixingMethod = 'proj'       #proj, penal        
 
         # self.obsPoints = 'GT3x10'    # observations in a grid 3x10 top part of the object
         # self.obsPoints = 'GC2x2'    # observations in a grid 2x2, corners
@@ -51,10 +51,10 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
         self.toolTrajectory = 1
         
-        # self.filterKind = 'ROUKF' 
+        #self.filterKind = 'ROUKF'
         self.filterKind = 'UKFSimCorr'
 
-        self.simulationDir=self.geometry+'_fix-'+self.fixedPoints+'_obs-'+self.obsPoints+'_int-'+self.integration+str(self.numIter)+'_TR'+str(self.toolTrajectory)
+        self.simulationDir=self.geometry+'_fix-'+self.fixedPoints+self.fixingMethod+'_obs-'+self.obsPoints+'_int-'+self.integration+str(self.numIter)+'_TR'+str(self.toolTrajectory)        
         self.inputDir=self.simulationDir+'/observations'
         self.volumeVTK=self.inputDir+'/object_0.vtk'
         self.surfaceSTL='../../data/brickD/brickD_536.stl'
@@ -74,18 +74,18 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
 
         self.estimQuantity = 'forces'
-        self.sdaSuffix = 'ForcesN4'
+        self.sdaSuffix = 'ForcesN1'
         self.paramInitExp = [0.0, 0.0, 0.0]
-        self.paramInitSD = [100,100,100]
+        self.paramInitSD = [10,10,0.0001]
         self.obsInitSD= 1e-5
         self.transformParams='none'
                 
         # self.estimQuantity = 'springs'
         # self.sdaSuffix = 'SpringsN4'
         # self.paramInitExp = [0.0]
-        # self.paramInitSD = [10000]
+        # self.paramInitSD = [1e1]
         # self.obsInitSD= 1e-5
-        # self.transformParams='absolute'                
+        # self.transformParams='absolute'
 
         self.outDir=self.simulationDir+'/'+self.filterKind +'_Ep' + str(self.paramInitExp[0]) + '_SDp' + str(self.paramInitSD[0]) + '_SDon' + str(self.obsInitSD) + '_' + self.sdaSuffix
         os.system('mkdir -p '+self.simulationDir+'/arch')        
@@ -148,7 +148,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         if self.integration == 'Euler':
             node.createObject('EulerImplicitSolver', rayleighStiffness='0.1', rayleighMass='0.1')
         elif self.integration == 'Newton':
-            node.createObject('NewtonStaticSolver', maxIt=self.numIter, name='NewtonStatic', correctionTolerance='1e-8', convergeOnResidual='1', residualTolerance='1e-8', printLog='1')
+            node.createObject('NewtonStaticSolver', maxIt=self.numIter, name='NewtonStatic', correctionTolerance='1e-8', convergeOnResidual='1', residualTolerance='1e-8', printLog='0')
         elif self.integration == 'VarSym':
             node.createObject('VariationalSymplecticSolver', rayleighStiffness='1', rayleighMass='1',
              newtonError='1e-12', steps=self.numIter, verbose='0', useIncrementalPotentialEnergy='1')
@@ -346,6 +346,8 @@ class synth1_BCDA(Sofa.PythonScriptController):
             #print 'Reduced state:'
             #print reducedState
 
+            print 'State:',reducedState
+
             f1 = open(self.stateExpFile, "a")        
             f1.write(" ".join(map(lambda x: str(x), reducedState)))
             f1.write('\n')
@@ -354,7 +356,11 @@ class synth1_BCDA(Sofa.PythonScriptController):
             if self.filterKind == 'ROUKF':
                 rv=self.filter.findData('reducedVariance').value
             else:
-                rv=self.filter.findData('variance').value        
+                rv=self.filter.findData('variance').value   
+
+            std1=np.sqrt(rv)/self.paramInitSD[0]
+            print 'Stdev: ', std1.tolist()
+
             
             reducedVariance = [val for sublist in rv for val in sublist]
             #print 'Reduced variance:'

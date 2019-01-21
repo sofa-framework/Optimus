@@ -26,12 +26,10 @@ class synth1_GenObs (Sofa.PythonScriptController):
         surfaceSTL='../../data/brickD/brickD_536.stl'
         self.geometry = 'brickD'
         
-        #self.fixedPoints = 'L1'
-        self.fixedPoints = 'L1'
-        #self.fixedPoints = 'L4'
+        self.fixedPoints = 'L4'          #L1, L4        
+        self.fixingMethod = 'proj'       #proj, penal
 
-
-        #self.obsPoints = 'GT3x10'    # observations in a grid 3x10 top part of the object
+        # self.obsPoints = 'GT3x10'    # observations in a grid 3x10 top part of the object
         # self.obsPoints = 'GC2x2'    # observations in a grid 2x2, corners
         self.obsPoints = 'PLB'  	# single point of observation, left bottom
 
@@ -48,7 +46,7 @@ class synth1_GenObs (Sofa.PythonScriptController):
         self.saveToolForces = 1
         saveObservations=1
 
-        rootDir=self.geometry+'_fix-'+self.fixedPoints+'_obs-'+self.obsPoints+'_int-'+self.integration+str(self.numIter)+'_TR'+str(self.toolTrajectory)
+        rootDir=self.geometry+'_fix-'+self.fixedPoints+self.fixingMethod+'_obs-'+self.obsPoints+'_int-'+self.integration+str(self.numIter)+'_TR'+str(self.toolTrajectory)
         outputDir = rootDir+'/observations'        
 
         if saveObservations:
@@ -77,7 +75,7 @@ class synth1_GenObs (Sofa.PythonScriptController):
         if saveObservations:
             tool.createObject('VTKExporter', name='toolExporter', position="@MO.position", edges="1", listening="0" , XMLformat='0', exportAtBegin='1', exportEveryNumberOfSteps="0", filename=outputDir+'/tool.vtk')
             tool.createObject('BoxROI', name='toolDOFs', box='-1 -1 -1 1 1 1')        
-            tool.createObject('OptimMonitor', name='toolMonitor', fileName=outputDir+'/tool', showPositions='1', indices="@toolDOFs.indices", ExportPositions="1", ExportVelocities="1", ExportForces="1")
+            tool.createObject('OptimMonitor', name='toolMonitor', fileName=outputDir+'/tool', showPositions='1', indices="@toolDOFs.indices", ExportPositions="1", ExportVelocities="0", ExportForces="0")
 
         # rootNode/grid
         # gridNode = rootNode.createChild('grid')
@@ -96,7 +94,7 @@ class synth1_GenObs (Sofa.PythonScriptController):
             simuNode.createObject('VariationalSymplecticSolver', rayleighStiffness='1', rayleighMass='1',
              newtonError='1e-12', steps=self.numIter, verbose='0', useIncrementalPotentialEnergy='1')
 
-                # simuNode.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
+        # simuNode.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
         # simuNode.createObject('StaticSolver')
         simuNode.createObject('SparsePARDISOSolver', symmetric='1', exportDataToFolder='', name='precond', iterativeSolverNumbering='1')
 
@@ -105,20 +103,15 @@ class synth1_GenObs (Sofa.PythonScriptController):
         simuNode.createObject('TetrahedronSetTopologyContainer', name='Container', src="@loader")
         simuNode.createObject('TetrahedronSetTopologyModifier', name='Modifier')
         simuNode.createObject('TetrahedronSetTopologyAlgorithms', name='TopoAlgs')
-        simuNode.createObject('TetrahedronSetGeometryAlgorithms', name='GeomAlgs')
-        # simuNode.createObject('Hexa2TetraTopologicalMapping', input="@/grid/grid", output="@Container", swapping='1')
-        
-        # simuNode.createObject('MechanicalObject', src='@/grid/grid', showIndicesScale='0.00025', name='MO', template='Vec3d', showIndices='0')
+        simuNode.createObject('TetrahedronSetGeometryAlgorithms', name='GeomAlgs')        
+                
         simuNode.createObject('MechanicalObject', src='@loader', showIndicesScale='0.00025', name='MO', template='Vec3d', showIndices='0')
         simuNode.createObject('UniformMass', totalmass='0.01')
         
-        #simuNode.createObject('MJEDTetrahedralForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=materialParams)        
-        simuNode.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=materialParams)
-        
+        simuNode.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=materialParams)        
+        #simuNode.createObject('MJEDTetrahedralForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=materialParams)                
         # simuNode.createObject('TetrahedronFEMForceField', name='FEM', youngModulus=E, poissonRatio=nu, computeVonMisesStress='0', method='large')
         # simuNode.createObject('FastTetrahedralCorotationalForceField', name='FEM', youngModulus=E, poissonRatio=nu)    
-
-        # simuNode.createObject('Sphere', radius="0.0003")
 
         if self.fixedPoints == 'L4':
             simuNode.createObject('BoxROI', box='-0.001 -0.001 -0.011 0.025 0.001 0.001', drawBoxes='0', name='FROI1')
@@ -129,9 +122,14 @@ class synth1_GenObs (Sofa.PythonScriptController):
 
         # simuNode.createObject('BoxROI', box='0.075 -0.001 -0.011 0.101 0.001 0.001', drawBoxes='1', name='FROI2')
         # simuNode.createObject('BoxROI', box='-0.001 -0.001 -0.011 0.101 0.001 0.001', drawBoxes='1', name='FROI')
-        simuNode.createObject('ExtendedRestShapeSpringForceField', stiffness='1e5', name='fixingSpring', points='@FROI1.indices', showIndicesScale='0', springColor='0 1 0 1', startTimeSpringOn='0', numStepsSpringOn='10000')
-        # simuNode.createObject('ExtendedRestShapeSpringForceField', stiffness='1e5', name='fixingSpring', points='@FROI2.indices', springColor='0 1 0 1', startTimeSpringOn='0', numStepsSpringOn='10000')
-        # simuNode.createObject('FixedConstraint', indices='@FROI.indices', template='Vec3d')
+        
+        
+        if self.fixingMethod == 'proj':
+            simuNode.createObject('FixedConstraint', indices='@FROI1.indices', template='Vec3d')
+        elif self.fixingMethod == 'penal':
+            simuNode.createObject('ExtendedRestShapeSpringForceField', stiffness='1e5', name='fixingSpring', points='@FROI1.indices', showIndicesScale='0', springColor='0 1 0 1', startTimeSpringOn='0', numStepsSpringOn='10000')            
+
+        
         simuNode.createObject('Mapped3DoFForceField', mappedFEM='mappedTool/toolSpring', mappedMechObject='mappedTool/MO', printLog='0', mapping='mappedTool/baryMapping')
         simuNode.createObject('PointsFromIndices', template='Vec3d', name='FixedPoints', indices='@FROI1.indices')
 
