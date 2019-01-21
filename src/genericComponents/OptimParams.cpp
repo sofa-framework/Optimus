@@ -400,59 +400,42 @@ void OptimParams<sofa::helper::vector<double> >::handleEvent(core::objectmodel::
 template<>
 void OptimParams<Vec3dTypes::VecDeriv>::init() {
     Inherit::init();
-    paramMO = m_paramMOLink.get();
+    this->m_dim = 3;
 
-    if (paramMO == NULL)
-        std::cerr << "WARNING: cannot find the parametric mechanical state, assuming no mechanical state is associated with the parameters" << std::endl;
-    else {
-        std::cout << "Mechanical state associated with the parameters: " << paramMO->getName() << std::endl;
-
-        typename MechStateVec3d::ReadVecCoord moPos = paramMO->readPositions();
-        mstate_dim = moPos.size();
-
+    size_t numParams = m_numParams.getValue();
+    if ( numParams == 0 ) {
+        PRNE("No parameter to optimize! NumParams must be non-zero!");
     }
+    helper::WriteAccessor<Data<Vec3dTypes::VecDeriv> > val = m_val;
+    val.resize(numParams);
 
     helper::ReadAccessor<Data<Vec3dTypes::VecDeriv> >initVal = m_initVal;
     size_t nInitVal = initVal.size();
-
-    if (nInitVal != mstate_dim ){
-        PRNE ("Wrong values of parameter \"initValue\" in OptimParams. \nRESET it consistent with dimension of "<< paramMO->getName())
-        return;
-    }
-
-    if ( (m_numParams.getValue() == 0 && nInitVal > 0) || m_numParams.getValue() == nInitVal*3) {
-         sout << this->getName() << ": setting parameter number according to init. value vector: " << nInitVal*3 << sendl;
-         m_numParams.setValue(nInitVal*3);
+    if (nInitVal == 1) {
+        for (size_t i = 0; i < numParams; i++)
+            val[i] = initVal[0];
     } else {
-        if (m_numParams.getValue() > 0 && nInitVal ==  mstate_dim ) {
-
-        } else {
-            serr << this->getName() << ": Incompatible input: numParams: " << m_numParams.getValue() << " wth value = " << nInitVal*3 << sendl;
-            return;
+        if (nInitVal != numParams) {
+            PRNE("Size of initial value vector different from number of parameters!");
         }
+
+        for (size_t i = 0; i < numParams; i++)
+            val[i] = initVal[i];
     }
-    if (nInitVal != 0 || nInitVal==mstate_dim) {
-        helper::WriteAccessor<Data<Vec3dTypes::VecDeriv> > val = m_val;
 
-        if (val.size() == 0) {
-            val.resize(nInitVal);
-            for (size_t i = 0; i < nInitVal; i++)
-                val[i] = initVal[i];
+    helper::ReadAccessor<Data<Vec3dTypes::VecDeriv> > stdev = m_stdev;
+    if (stdev.size() == 1) {
+        Vec3dTypes::Deriv stdev0 = stdev[0];
+        helper::WriteAccessor<Data<Vec3dTypes::VecDeriv> > stdev_wa = m_stdev;
+        stdev_wa.resize(numParams);
+        for (size_t i = 0; i < numParams; i++) {
+            stdev_wa[i] = stdev0;
         }
-
-        helper::WriteAccessor<Data<Vec3dTypes::VecDeriv> > stdev = m_stdev;
-        if (stdev.size() == 0) {
-            stdev.resize(nInitVal);
-            PRNW("Standard deviation not used, setting to 0!")
-        } else if (stdev.size() != nInitVal) {
-            PRNW("|stdev| != |init value|, resizing and taking the first member of stdev. ")
-                    stdev.resize(nInitVal);
-            for (size_t i = 1; i < nInitVal; i++)
-                stdev[i] = stdev[0];
+    } else {
+        if (stdev.size() != numParams) {
+            PRNE("Size of standard deviation vector different from number of parameters!");
         }
-    }else{
-         PRNE ("Wrong initValue. Must be consistent with "<< paramMO->getName() << "dimensions. ")
-    }
+    }    
 }
 
 
@@ -460,31 +443,33 @@ template<>
 void OptimParams<Vec3dTypes::VecDeriv>::vectorToParams(VectorXd& _vector) {
     helper::WriteAccessor<Data<Vec3dTypes::VecDeriv> > waVal = m_val;
 
-    size_t numParams =  mstate_dim ;
+    size_t numParams =  m_numParams.getValue();
     size_t k = 0;
     for (size_t i = 0; i < numParams; i++)
-        for (size_t j = 0; k < this->paramIndices.size() ; j++, k++)
-            waVal[i][j] = _vector[paramIndices[k]];
+        for (size_t j = 0; j < this->m_dim ; j++, k++)
+            waVal[i][j] = _vector[paramIndices[i*m_dim+j]];
 }
 
 template<>
 void OptimParams<Vec3dTypes::VecDeriv>::paramsToVector(VectorXd& _vector) {
     helper::ReadAccessor<Data<Vec3dTypes::VecCoord> > raVal = m_val;
     size_t k = 0;
+    size_t numParams = this->m_numParams.getValue();
 
-    for (size_t i = 0; i <  mstate_dim ; i++)
-        for (size_t j = 0; k < this->paramIndices.size() ; j++, k++)
-            _vector[paramIndices[k]]=raVal[i][j];
+    for (size_t i = 0; i <  numParams ; i++)
+        for (size_t j = 0; j < m_dim ; j++, k++)
+            _vector[paramIndices[i*m_dim+j]]=raVal[i][j];
 }
 
 template<>
 void OptimParams<Vec3dTypes::VecDeriv>::getInitVariance(DVec& _variance) {
     size_t numParams = this->m_numParams.getValue();
-    _variance.resize(numParams);
+    _variance.resize(numParams*m_dim);
     size_t ij = 0;
-    for (size_t i = 0; i <  mstate_dim ; i++)
-        for (size_t j = 0; j < 3; j++, ij++)
-            _variance[ij] = helper::SQR(m_stdev.getValue()[i][j]);
+    for (size_t i = 0; i <  numParams ; i++)
+        for (size_t j = 0; j < m_dim; j++, ij++) {
+            _variance[ij] = helper::SQR(m_stdev.getValue()[i][j]);            
+        }
 
 }
 
@@ -574,7 +559,7 @@ void OptimParams<Rigid3dTypes::VecDeriv>::init() {
 
 
     if (nInitVal != mstate_dim ){
-        PRNE ("Wrong values of parameter \"initValue\" in OptimParams. \nRESET it consistent with dimension of "<< paramMO->getName())
+        PRNE ("Wrong values of parameter \"initValue\" in OptimParams. \nRESET it consistent with dimension of "<< paramMOrigid->getName())
         return;
     }
 
@@ -609,7 +594,7 @@ void OptimParams<Rigid3dTypes::VecDeriv>::init() {
                 stdev[i] = stdev[0];
         }
     }else{
-         PRNE ("Wrong initValue. Must be consistent with "<< paramMO->getName() << "dimensions. ")
+         PRNE ("Wrong initValue. Must be consistent with "<< paramMOrigid->getName() << "dimensions. ")
     }
 }
 
