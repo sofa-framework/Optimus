@@ -62,12 +62,11 @@ model:
     plane_collision: 0
 
 io:        
-    suffix: ''
-    saveGeo: 1
-    saveErr: 1
-    saveObs: 1                  # GO only    
-    saveEst: 1                  # SDA only
-    sdaSuffix: ''         # SDA only
+    suffix: ''    
+    saveObsData: 3                  # GO only. 0: do not save, 1: save positions, 2: + save grid positions, 3: + export VTK
+    sdaSuffix: ''                   # SDA only    
+    saveSdaData: 2                  # SDA only. 0: do not save, 1: save positions, 2: + export VTK
+    
 
 filter:                         # SDA only
     kind: 'ROUKF'               # options are "ROUKF", "UKFSimCorr", and "UKFClassic"

@@ -60,8 +60,7 @@ class AppStiff_SDA(Sofa.PythonScriptController):
         pp.pprint(opt)
                                 
         self.planeCollision = opt['model']['plane_collision']
-        self.saveEst = opt['io']['saveEst']
-        self.saveGeo = opt["io"]["saveGeo"]
+        self.saveData = opt['io']['saveSdaData']
         self.volumeMeshFile = opt['model']['mesh_path'] + opt['model']['object'] + '_' + str(opt['model']['num_el_sda']) + '.vtk'
         self.surfaceMeshFile = opt['model']['mesh_path'] + opt['model']['object'] + '_' + str(opt['model']['num_el_sda']) + '.stl'
         self.obsPoints = opt['model']['mesh_path'] + opt['model']['object'] + '_' + opt['model']['obs_id'] + '.vtk'                        
@@ -82,33 +81,33 @@ class AppStiff_SDA(Sofa.PythonScriptController):
         self.mainFolder = object + '_' + str(opt['model']['num_el']) + '_' + self.excitation + '_' + opt['model']['obs_id'] + '_' + opt['model']['fem']['method'] + '_' +  opt['model']['int']['type'] + str(opt['model']['int']['maxit']) + str(opt['io']['suffix'])
 
         print 'Reading observations from ',self.mainFolder
-        self.obsFile = self.mainFolder + '/obs'
-        self.estFolder = self.mainFolder + '/' + opt['filter']['kind'] + '_' + str(opt['model']['num_el_sda']) + opt['io']['sdaSuffix']
+        self.obsFile = self.mainFolder + '/observations'
 
-        stamp='_'+str(int(time.time()))
-        os.system('mkdir -p '+self.mainFolder+' /arch')
-        os.system('mv --backup -S '+stamp+' '+self.estFolder+' '+self.mainFolder+'/arch')
-        os.system('mkdir -p '+self.estFolder)          
+        if self.saveData > 0:
+            self.sdaFolder = self.mainFolder + '/' + opt['filter']['kind'] + '_' + str(opt['model']['num_el_sda']) + opt['io']['sdaSuffix']
 
-        if self.saveEst:                                    
-            self.stateExpFile=self.estFolder+'/state.txt'
-            self.stateVarFile=self.estFolder+'/variance.txt'
-            self.stateCovarFile=self.estFolder+'/covariance.txt'
+            stamp='_'+str(int(time.time()))
+            os.system('mkdir -p '+self.mainFolder+' /arch')
+            os.system('mv --backup -S '+stamp+' '+self.sdaFolder+' '+self.mainFolder+'/arch')
+            os.system('mkdir -p '+self.sdaFolder)
+            self.stateExpFile=self.sdaFolder+'/state.txt'
+            self.stateVarFile=self.sdaFolder+'/variance.txt'
+            self.stateCovarFile=self.sdaFolder+'/covariance.txt'
             
             # create file with parameters and additional information
             self.opt['visual_parameters'] = {}
             self.opt['visual_parameters']['state_file_name'] = self.stateExpFile[self.stateExpFile.rfind('/') + 1:]
             self.opt['visual_parameters']['variance_file_name'] = self.stateVarFile[self.stateVarFile.rfind('/') + 1:]
             self.opt['visual_parameters']['covariance_file_name'] = self.stateCovarFile[self.stateCovarFile.rfind('/') + 1:]
-            self.informationFileName = self.estFolder + '/daconfig.yml'
+            self.informationFileName = self.sdaFolder + '/daconfig.yml'
             with open(self.informationFileName, 'w') as stream:
                 try:
                     yaml.dump(self.opt, stream, default_flow_style=False)
                 except yaml.YAMLError as exc:
                     print(exc)
 
-        if self.saveGeo:
-            self.geoFolder = self.estFolder + '/VTK'
+        if self.saveData > 1:
+            self.geoFolder = self.sdaFolder + '/VTK'
             os.system('mkdir -p '+self.geoFolder)
 
 
@@ -141,7 +140,7 @@ class AppStiff_SDA(Sofa.PythonScriptController):
             self.filter = rootNode.createObject('UKFilterSimCorr', name="UKFSC", verbose="1", sigmaTopology=self.opt['filter']['sigma_points_topology'])
             estimatePosition = 0
         elif self.filterKind == 'UKFClassic':
-            self.filter = rootNode.createObject('UKFilterClassic', name="UKFClas", printLog='1', verbose="1", sigmaTopology=self.opt['filter']['sigma_points_topology'], exportPrefix=self.estFolder)
+            self.filter = rootNode.createObject('UKFilterClassic', name="UKFClas", printLog='1', verbose="1", sigmaTopology=self.opt['filter']['sigma_points_topology'], exportPrefix=self.sdaFolder)
             estimatePosition = 1
             
         rootNode.createObject('MeshVTKLoader', name='loader', filename=self.volumeMeshFile)
@@ -257,35 +256,15 @@ class AppStiff_SDA(Sofa.PythonScriptController):
                 external_rest_shape='../phant/MO', points='@prescDispBox.indices', external_points='@prescDispBox.indices', springThickness=4, showIndicesScale=0.0)
 
         # export
-        if self.saveGeo:
+        if self.saveData > 1:
             simuNode.createObject('VTKExporterDA', filename=self.geoFolder+'/object.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="1",
                 exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1", printLog='0')
 
-        
-        if self.planeCollision == 1:
-            # simuNode.createObject('LinearSolverConstraintCorrection')
-            simuNode.createObject('PardisoConstraintCorrection', solverName='lsolver', schurSolverName='lsolver')
-
-        # /ModelNode/cylinder/collision
-        if self.planeCollision == 1:
-            surface=simuNode.createChild('collision')        
-            surface.createObject('TriangleSetTopologyContainer', position='@/sloader.position', name='TriangleContainer', triangles='@/sloader.triangles')
-            surface.createObject('TriangleSetTopologyModifier', name='Modifier')
-            surface.createObject('MechanicalObject', showIndices='false', name='mstate')
-            surface.createObject('Triangle', color='1 0 0 1', group=0)
-            surface.createObject('Line', color='1 0 0 1', group=0)
-            surface.createObject('Point', color='1 0 0 1', group=0)
-            surface.createObject('BarycentricMapping', name='bpmapping')
-
+                
         # /ModelNode/cylinder/observations
         obsNode = simuNode.createChild('observations')
         obsNode.createObject('MeshVTKLoader', name='obsloader', filename=self.obsPoints)
-        obsNode.createObject('MechanicalObject', name='SourceMO', position='@obsloader.position')
-        # obsNode.createObject('MechanicalObject', name='SourceMO', position='0.02 0 0.08 0.02 0 0.16    0.0141 0.0141 0.08    0.0141 -0.0141 0.08    0.0141 0.0141 0.16    0.0141 -0.0141 0.16    0.02 0 0.0533    0.02 0 0.107   \
-        #     0.02 0 0.133    0.02 0 0.187    0.02 0 0.213    0.0175 0.00961 0.0649    0.00925 0.0177 0.0647    0.0139 0.0144 0.0398    0.00961 -0.0175 0.0649    0.0177 -0.00925 0.0647  \
-        #     0.0144 -0.0139 0.0402    0.0177 0.00936 0.145    0.0095 0.0176 0.145    0.0175 0.00961 0.0951    0.00925 0.0177 0.0953    0.0139 0.0144 0.12    0.00937 -0.0177 0.145   \
-        #     0.0176 -0.00949 0.145    0.00935 -0.0177 0.0953    0.0176 -0.00949 0.095    0.0142 -0.0141 0.12    0.0177 0.00937 0.175    0.00949 0.0176 0.175    0.014 0.0143 0.2   \
-        #     0.00959 -0.0175 0.175    0.0177 -0.00924 0.175    0.0143 -0.014 0.2')
+        obsNode.createObject('MechanicalObject', name='SourceMO', position='@obsloader.position')        
 
         obsNode.createObject('VTKExporter', name='temporaryExporter', filename='tempObs.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="0",
                 exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="0", position='@SourceMO.position')
@@ -299,13 +278,22 @@ class AppStiff_SDA(Sofa.PythonScriptController):
 
 
         # /ModelNode/cylinder/visualization
-        oglNode = simuNode.createChild('visualization')
-        self.oglNode = oglNode
-        # oglNode.createObject('OglModel', color='1 0 0 1')
-        # oglNode.createObject('BarycentricMapping')        
+        oglNode = simuNode.createChild('visualization')        
+        oglNode.createObject('OglModel', color='1 0 0 1', src='@/sloader')
+        oglNode.createObject('BarycentricMapping')        
 
         # /ModelNode/floor
         if self.planeCollision == 1:
+            # simuNode.createObject('LinearSolverConstraintCorrection')
+            simuNode.createObject('PardisoConstraintCorrection', solverName='lsolver', schurSolverName='lsolver')    
+            surface=simuNode.createChild('collision')        
+            surface.createObject('TriangleSetTopologyContainer', position='@/sloader.position', name='TriangleContainer', triangles='@/sloader.triangles')
+            surface.createObject('TriangleSetTopologyModifier', name='Modifier')
+            surface.createObject('MechanicalObject', showIndices='false', name='mstate')
+            surface.createObject('Triangle', color='1 0 0 1', group=0)
+            surface.createObject('Line', color='1 0 0 1', group=0)
+            surface.createObject('Point', color='1 0 0 1', group=0)
+            surface.createObject('BarycentricMapping', name='bpmapping')        
             floor = modelNode.createChild('floor')
             floor.createObject('RegularGrid', nx="2", ny="2", nz="2", xmin="-0.1", xmax="0.1",  ymin="-0.059", ymax="-0.061", zmin="0.0", zmax="0.3")
             floor.createObject('MechanicalObject', template="Vec3d")
@@ -316,10 +304,10 @@ class AppStiff_SDA(Sofa.PythonScriptController):
         return 0
 
     def createTimeProfiler(self):
-        print 'Time statistics file: ' + self.estFolder + '/' + self.opt['time']['time_statistics_file']
+        print 'Time statistics file: ' + self.sdaFolder + '/' + self.opt['time']['time_statistics_file']
         Sofa.timerSetInterval(self.opt['time']['timer_name'], self.opt['time']['iterations_interval'])    # Set the number of steps neded to compute the timer
         Sofa.timerSetOutputType(self.opt['time']['timer_name'], 'json')    # Set output file format
-        with open(self.estFolder + '/' + self.opt['time']['time_statistics_file'], "a") as outputFile:
+        with open(self.sdaFolder + '/' + self.opt['time']['time_statistics_file'], "a") as outputFile:
             outputFile.write('{')
             outputFile.close()
 
@@ -377,12 +365,12 @@ class AppStiff_SDA(Sofa.PythonScriptController):
             if self.iterations <= self.opt['time']['iteration_amount']:
                 result = Sofa.timerEnd(self.opt['time']['timer_name'], self.rootNode)
                 if result != None :
-                    with open(self.estFolder + '/' + self.opt['time']['time_statistics_file'], "a") as outputFile:
+                    with open(self.sdaFolder + '/' + self.opt['time']['time_statistics_file'], "a") as outputFile:
                         outputFile.write(result + ",")
                         outputFile.close()
             # replace last symbol
             if self.iterations == self.opt['time']['iteration_amount']:
-                with open(self.estFolder + '/' + self.opt['time']['time_statistics_file'], "a") as outputFile:
+                with open(self.sdaFolder + '/' + self.opt['time']['time_statistics_file'], "a") as outputFile:
                     outputFile.seek(-1, os.SEEK_END)
                     outputFile.truncate()
                     outputFile.write("\n}")
@@ -392,7 +380,7 @@ class AppStiff_SDA(Sofa.PythonScriptController):
 
 
     def exportStochasticState(self):
-    	if self.saveEst:              
+    	if self.saveData > 0:             
             stateName = 'reducedState' if self.filterKind == 'ROUKF' else 'state'
             varName = 'reducedVariance' if self.filterKind == 'ROUKF' else 'variance'
             covarName = 'reducedCovariance' if self.filterKind == 'ROUKF' else 'covariance'
@@ -433,11 +421,8 @@ class AppStiff_SDA(Sofa.PythonScriptController):
             return
 
     def cleanup(self):
-        if self.saveEst:
-            print 'Estimations saved to '+self.estFolder
-
-        if self.saveGeo:
-            print 'Geometries saved to '+self.geoFolder
+        if save.saveData > 0:
+            print 'Estimations saved to '+self.sdaFolder    
 
         return 0;
 

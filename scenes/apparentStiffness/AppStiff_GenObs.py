@@ -55,10 +55,8 @@ class AppStiff_GenObs(Sofa.PythonScriptController):
 
         pp = pprint.PrettyPrinter(indent=4)
         pp.pprint(opt)
-                        
-        self.saveObs = opt['io']['saveObs']
-        self.saveErr = opt['io']['saveErr']
-        self.saveGeo = opt["io"]["saveGeo"]
+                
+        self.saveData = opt['io']['saveObsData']        
         self.planeCollision = opt['model']['plane_collision']
         self.volumeMeshFile = opt['model']['mesh_path'] + opt['model']['object'] + '_' + str(opt['model']['num_el']) + '.vtk'
         self.surfaceMeshFile = opt['model']['mesh_path'] + opt['model']['object'] + '_' + str(opt['model']['num_el']) + '.stl'
@@ -72,7 +70,7 @@ class AppStiff_GenObs(Sofa.PythonScriptController):
         elif 'prescribed_displacement' in self.opt['model'].keys():
             self.excitation = 'displ'
 
-        if self.saveObs or self.saveGeo:
+        if self.saveData > 0:
             object = opt['model']['object']
             if self.planeCollision:
                 object = object + 'plane_'
@@ -83,17 +81,16 @@ class AppStiff_GenObs(Sofa.PythonScriptController):
             os.system('mkdir -p arch')
             os.system('mv --backup -S '+stamp+' '+self.mainFolder+' arch')
             os.system('mkdir -p '+self.mainFolder)        
-
-        if self.saveObs:
+        
             self.obsPoints = opt['model']['mesh_path'] + opt['model']['object'] + '_' + opt['model']['obs_id'] + '.vtk'
-            self.obsFile = self.mainFolder + '/obs'
+            self.obsFile = self.mainFolder + '/observations'
 
-        if self.saveErr:
+        if self.saveData > 1:
             self.errPoints = opt['model']['mesh_path'] + opt['model']['object'] + '_' + opt['model']['err_id'] + '.vtk'
-            self.errFile = self.mainFolder + '/err'
+            self.errFile = self.mainFolder + '/grid_points'
 
-        if self.saveGeo:
-            self.geoFolder = self.mainFolder + '/obsVTK'
+        if self.saveData > 2:
+            self.geoFolder = self.mainFolder + '/observation_vtk'
             os.system('mkdir -p '+self.geoFolder)
 
         self.createGraph(rootNode)
@@ -208,14 +205,7 @@ class AppStiff_GenObs(Sofa.PythonScriptController):
                 external_rest_shape='/phant/MO', points='@prescDispBox.indices', external_points='@prescDispBox.indices')
 
 
-        # export
-        if self.saveGeo:            
-            expField='youngMapper.outputValues'            
-            simuNode.createObject('VTKExporter', filename=self.geoFolder+'/object.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="1",
-                exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1", cellsDataFields=expField, printLog='0')
-
-
-        if self.saveObs:
+        if self.saveData > 0:
             obsNode = simuNode.createChild('obsNode')
             obsNode.createObject('MeshVTKLoader', name='obsloader', filename=self.obsPoints)
             obsNode.createObject('MechanicalObject', src='@obsloader', name='MO')
@@ -225,7 +215,7 @@ class AppStiff_GenObs(Sofa.PythonScriptController):
             obsNode.createObject('ShowSpheres', radius="0.002", color="1 0 0 1", position='@MO.position')
 
 
-        if self.saveErr:
+        if self.saveData > 1:
             obsNode = simuNode.createChild('errorNode')
             obsNode.createObject('MeshVTKLoader', name='obsloader', filename=self.errPoints)
             obsNode.createObject('MechanicalObject', src='@obsloader', name='MO')
@@ -234,14 +224,14 @@ class AppStiff_GenObs(Sofa.PythonScriptController):
             obsNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.errFile, ExportPositions='1', ExportVelocities='0', ExportForces='0')
             obsNode.createObject('ShowSpheres', radius="0.002", color="0.3 1 1 1", position='@MO.position')
 
+        if self.saveData > 2:
+            expField='youngMapper.outputValues'
+            simuNode.createObject('VTKExporter', filename=self.geoFolder+'/object.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="1",
+                exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1", cellsDataFields=expField, printLog='0')
 
-
+        
         if self.planeCollision:
             simuNode.createObject('PardisoConstraintCorrection', solverName='lsolver', schurSolverName='lsolver')
-            # simuNode.createObject('LinearSolverConstraintCorrection')
-
-
-        if self.planeCollision:
             surface=simuNode.createChild('collision')
             surface.createObject('MeshSTLLoader', name='sloader', filename=self.opt['model']['surf_mesh'])
             surface.createObject('TriangleSetTopologyContainer', position='@sloader.position', name='TriangleContainer', triangles='@sloader.triangles')
@@ -250,21 +240,18 @@ class AppStiff_GenObs(Sofa.PythonScriptController):
             surface.createObject('Triangle', color='1 0 0 1', group=0)
             surface.createObject('Line', color='1 0 0 1', group=0)
             surface.createObject('Point', color='1 0 0 1', group=0)
-            surface.createObject('BarycentricMapping', name='bpmapping')
-
-        # rootNode/simuNode/oglNode
-        oglNode = simuNode.createChild('oglNode')
-        self.oglNode = oglNode
-        oglNode.createObject('OglModel')
-        oglNode.createObject('BarycentricMapping')        
-
-        if self.planeCollision:
+            surface.createObject('BarycentricMapping', name='bpmapping')    
             floor = simuNode.createChild('floor')
             floor.createObject('RegularGrid', nx="2", ny="2", nz="2", xmin="-0.1", xmax="0.1",  ymin="-0.059", ymax="-0.061", zmin="0.0", zmax="0.3")
             floor.createObject('MechanicalObject', template="Vec3d")
             floor.createObject('Triangle',simulated="false", bothSide="true", contactFriction="0.00", color="1 0 0 1")
             floor.createObject('Line', simulated="false", bothSide="true", contactFriction="0.0")
             floor.createObject('Point', simulated="false", bothSide="true", contactFriction="0.0")
+
+        oglNode = simuNode.createChild('oglNode')
+        self.oglNode = oglNode
+        oglNode.createObject('OglModel', src='/sloader')
+        oglNode.createObject('BarycentricMapping')        
 
         return 0;
 
@@ -308,8 +295,8 @@ class AppStiff_GenObs(Sofa.PythonScriptController):
         return 0;
 
     def cleanup(self):
-        if self.saveObs or self.saveGeo:
-            print 'Observations saved to '+self.mainFolder         
+        if self.saveData > 0:
+            print 'Data saved to '+self.mainFolder
         return 0;
 
     def onEndAnimationStep(self, deltaTime):
