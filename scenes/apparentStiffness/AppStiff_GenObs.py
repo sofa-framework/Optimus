@@ -85,8 +85,7 @@ class AppStiff_GenObs(Sofa.PythonScriptController):
             self.obsPoints = opt['model']['mesh_path'] + opt['model']['object'] + '_' + opt['model']['obs_id'] + '.vtk'
             self.obsFile = self.mainFolder + '/observations'
 
-        if self.saveData > 1:
-            self.errPoints = opt['model']['mesh_path'] + opt['model']['object'] + '_' + opt['model']['err_id'] + '.vtk'
+        if self.saveData > 1:            
             self.errFile = self.mainFolder + '/grid_points'
 
         if self.saveData > 2:
@@ -168,8 +167,8 @@ class AppStiff_GenObs(Sofa.PythonScriptController):
             simuNode.createObject('MeshMatrixMass', printMass='0', lumping='1', massDensity=self.opt['model']['density'], name='mass')
 
         # physics forcefield
-        youngModuli=self.opt['model']['young_modulus']
-        poissonRatio = self.opt['model']['poisson_ratio']
+        youngModuli=self.opt['model']['fem']['young_modulus']
+        poissonRatio = self.opt['model']['fem']['poisson_ratio']
         indices = range(1, len(youngModuli)+1)
         simuNode.createObject('Indices2ValuesMapper', indices=indices, values=youngModuli, name='youngMapper', inputValues='@loader.dataset')
 
@@ -217,12 +216,12 @@ class AppStiff_GenObs(Sofa.PythonScriptController):
 
         if self.saveData > 1:
             obsNode = simuNode.createChild('errorNode')
-            obsNode.createObject('MeshVTKLoader', name='obsloader', filename=self.errPoints)
+            obsNode.createObject('RegularGrid', min=self.opt['model']['error_grid']['min'], max=self.opt['model']['error_grid']['max'], n=self.opt['model']['error_grid']['res'])
             obsNode.createObject('MechanicalObject', src='@obsloader', name='MO')
             obsNode.createObject('BarycentricMapping')
             obsNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1')
             obsNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.errFile, ExportPositions='1', ExportVelocities='0', ExportForces='0')
-            obsNode.createObject('ShowSpheres', radius="0.002", color="0.3 1 1 1", position='@MO.position')
+            obsNode.createObject('ShowSpheres', radius="0.0008", color="0.3 1 1 1", position='@MO.position')
 
         if self.saveData > 2:
             expField='youngMapper.outputValues'

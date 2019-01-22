@@ -107,6 +107,9 @@ class AppStiff_SDA(Sofa.PythonScriptController):
                     print(exc)
 
         if self.saveData > 1:
+            self.errFile = self.sdaFolder + '/grid_points'
+
+        if self.saveData > 2:
             self.geoFolder = self.sdaFolder + '/VTK'
             os.system('mkdir -p '+self.geoFolder)
 
@@ -221,8 +224,8 @@ class AppStiff_SDA(Sofa.PythonScriptController):
             initValue=self.opt['filter']['param_init_exval'], stdev=self.opt['filter']['param_init_stdev'],
             minValue=self.opt['filter']['param_min_val'], maxValue=self.opt['filter']['param_max_val'])
                 
-        youngModuli=self.opt['model']['young_modulus']
-        poissonRatio = self.opt['model']['poisson_ratio']
+        youngModuli=self.opt['model']['fem']['young_modulus']
+        poissonRatio = self.opt['model']['fem']['poisson_ratio']
         indices = [1] # range(1, len(youngModuli)+1)
         method = self.opt['model']['fem']['method']
         if  method[0:3] == 'Cor':
@@ -254,13 +257,7 @@ class AppStiff_SDA(Sofa.PythonScriptController):
             simuNode.createObject('ExtendedRestShapeSpringForceField', numStepsSpringOn='10000', stiffness=self.opt['model']['prescribed_displacement']['spring_stiffness'], name='toolSpring', 
                 springColor='0 1 0 1', drawSpring='1', updateStiffness='1', printLog='0', listening='1', angularStiffness='0', startTimeSpringOn='0',
                 external_rest_shape='../phant/MO', points='@prescDispBox.indices', external_points='@prescDispBox.indices', springThickness=4, showIndicesScale=0.0)
-
-        # export
-        if self.saveData > 1:
-            simuNode.createObject('VTKExporterDA', filename=self.geoFolder+'/object.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="1",
-                exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1", printLog='0')
-
-                
+                    
         # /ModelNode/cylinder/observations
         obsNode = simuNode.createChild('observations')
         obsNode.createObject('MeshVTKLoader', name='obsloader', filename=self.obsPoints)
@@ -280,7 +277,21 @@ class AppStiff_SDA(Sofa.PythonScriptController):
         # /ModelNode/cylinder/visualization
         oglNode = simuNode.createChild('visualization')        
         oglNode.createObject('OglModel', color='1 0 0 1', src='@/sloader')
-        oglNode.createObject('BarycentricMapping')        
+        oglNode.createObject('BarycentricMapping')
+
+        if self.saveData > 1:
+            obsNode = simuNode.createChild('errorNode')            
+            obsNode.createObject('RegularGrid', min=self.opt['model']['error_grid']['min'], max=self.opt['model']['error_grid']['max'], n=self.opt['model']['error_grid']['res'])
+            obsNode.createObject('MechanicalObject', src='@obsloader', name='MO')
+            obsNode.createObject('BarycentricMapping')
+            obsNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1')
+            obsNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.errFile, ExportPositions='1', ExportVelocities='0', ExportForces='0')
+            obsNode.createObject('ShowSpheres', radius="0.0008", color="0.3 1 1 1", position='@MO.position')    
+
+        if self.saveData > 2:
+            simuNode.createObject('VTKExporterDA', filename=self.geoFolder+'/object.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="1",
+                exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1", printLog='0')
+  
 
         # /ModelNode/floor
         if self.planeCollision == 1:
