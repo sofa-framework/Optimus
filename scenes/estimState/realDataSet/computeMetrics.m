@@ -39,9 +39,9 @@ splGt=zeros(N,3,simuStep);
 h=zeros(simuStep,NbCat);
 
 for i=1:simuStep
-   splGt(:,:,i) = interparc(N,IG(1,:,i),IG(2,:,i),IG(3,:,i),'linear');
+   splGt(:,:,i) = interparc(N,IG(1,:,i),IG(2,:,i),IG(3,:,i),'spline');
    for k=1:NbCat
-      splFilter(:,:,i,k) = interparc(N,IF(1,:,i,k),IF(2,:,i,k),IF(3,:,i,k),'linear');
+      splFilter(:,:,i,k) = interparc(N,IF(1,:,i,k),IF(2,:,i,k),IF(3,:,i,k),'spline');
       h(i,k)=HausdorffDist(splFilter(:,:,i,k),splGt(:,:,i));
    end
 end
@@ -100,7 +100,7 @@ ylabel('[mm]','FontSize',50);
 axis([0 2130 0 8])
 legend1 = legend(axes1,'show');
 set(legend1,'FontSize',60);    
-print(figure0,'/home/rtrivi/Documents/real_h','-dpdf','-r0')
+%  print(figure0,'../real_h','-dpdf','-r0')
 
 
 
@@ -124,7 +124,7 @@ ylabel('[mm]','FontSize',50);
 axis([0 2130 0 8])
 legend1 = legend(axes1,'show');
 set(legend1,'FontSize',60);    
-print(figure0,'/home/rtrivi/Documents/real_d','-dpdf','-r0')
+%  print(figure0,'../real_d','-dpdf','-r0')
 
 %% Plot  Mean Distance at the distal segment
 
@@ -147,4 +147,4 @@ ylabel('[mm]','FontSize',50);
 axis([0 2130 0 8])
 legend1 = legend(axes1,'show');
 set(legend1,'FontSize',60);    
-print(figure0,'/home/rtrivi/Documents/real_RMSE','-dpdf','-r0')
+%  print(figure0,'../real_RMSE','-dpdf','-r0')
