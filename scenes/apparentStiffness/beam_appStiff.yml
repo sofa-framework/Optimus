@@ -7,48 +7,25 @@ model:
     object: 'beam1'
     num_el: '10k'   # 10k 25k 1430
     num_el_sda: '1430'    
-    obs_id: 'obs2'
-    err_id: 'err4'
-    gravity: [0, 0, 0]
-    #total_mass: 0.2
-    # density: 2000
+    obs_id: 'obs2'    
+    gravity: [0, 0, 0]    
     density: 10000
-     
-    young_modulus: [5000]
-    # young_modulus: [5000, 5000, 5000, 5000]
+    plane_collision: 0
     
-    poisson_ratio: 0.49
-    
-    int:   # temporal integrator properties
-        type: 'Newton'    # Newton or Euler
-        maxit: 10        #only for Newton
-        verbose: 0       #only for Newton
-        #first_order: 0   #only for Euler
-        #rmass: 1         #only for Euler
-        #rstiff: 1        #only for Euler
-        
+    fem:
+        method: 'StVenant' #CorLarge  StVenant CorSmall
+        young_modulus: [5000]
+        poisson_ratio: 0.49
+              
     bc:
         type: 'fixed'
         boxes: [-0.001, -0.001, -0.001,   0.031, 0.031, 0.001]
-
-    # applied_force:
-    #     boxes: [-0.05, -0.05,  0.298,   0.05, 0.05, 0.302]
-    #     initial_force: [0., 0., 0.]
-    #     num_inc_steps: 200
-    #     delta: [0., 0., 0.0001]
-
+    
     applied_pressure:
         initial_pressure: [0., 0., 0.]
         num_inc_steps: 50
         num_wait_steps: 100
-        delta: [0., 1.0, 5.0]
-
-    # prescribed_displacement:
-    #     times: [0, 2]
-    #     displ: [.0, .0, .0,    .0, .0, .1]
-    #     boxes: [-0.05, -0.05, 0.299,   0.05, 0.05, 0.301]
-    #     spring_stiffness: 1e10
-
+        delta: [0., 1.0, 5.0]  
 
     linsol:
         usePCG: 0
@@ -56,18 +33,26 @@ model:
         pardisoSym: 1
         pardisoFolder: ''
 
-    fem:
-        method: 'StVenant' #CorLarge  StVenant CorSmall
-        
-    plane_collision: 0
+    int:   # temporal integrator properties
+        type: 'Newton'    # Newton or Euler
+        maxit: 10        #only for Newton
+        verbose: 0       #only for Newton
+        #first_order: 0   #only for Euler
+        #rmass: 1         #only for Euler
+        #rstiff: 1        #only for Euler
+
+    error_grid:
+        min: [0.,0.,0.]
+        max: [0.03,0.03,0.2]
+        res: [4,4,20]
+
 
 io:        
-    suffix: 'p-1.0_5.0-50-100'
-    saveGeo: 1
-    saveErr: 1
-    saveObs: 1                  # GO only    
-    saveEst: 1                  # SDA only
-    sdaFolderSuffix: 'E5000_v10_test'         # SDA only
+    suffix: ''    
+    saveObsData: 3                  # GO only. 0: do not save, 1: save positions, 2: + save grid positions, 3: + export VTK
+    sdaSuffix: ''                   # SDA only    
+    saveSdaData: 3                  # SDA only. 0: do not save, 1: save positions, 2: + save grid positions, 3: + export VTK
+    
 
 filter:                         # SDA only
     kind: 'ROUKF'               # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
@@ -104,3 +89,17 @@ time:
     #young_modulus: [5000, 3620.689655]   #E1
     #young_moduli: [100000, 50000, 1000]   #E1
     #young_moduli: [100000, 50000, 100000]   #E2
+
+
+#other excitations:
+    # prescribed_displacement:
+    #     times: [0, 2]
+    #     displ: [.0, .0, .0,    .0, .0, .1]
+    #     boxes: [-0.05, -0.05, 0.299,   0.05, 0.05, 0.301]
+    #     spring_stiffness: 1e10
+
+    # applied_force:
+    #     boxes: [-0.05, -0.05,  0.298,   0.05, 0.05, 0.302]
+    #     initial_force: [0., 0., 0.]
+    #     num_inc_steps: 200
+    #     delta: [0., 0., 0.0001]
