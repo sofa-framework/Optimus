@@ -26,7 +26,7 @@ class synth1_GenObs (Sofa.PythonScriptController):
         surfaceSTL='../../data/brickD/brickD_536.stl'
         self.geometry = 'brickD'
         
-        self.fixedPoints = 'L4'          #L1, L4        
+        self.fixedPoints = 'L1'          #L1, L4        
         self.fixingMethod = 'proj'       #proj, penal
 
         # self.obsPoints = 'GT3x10'    # observations in a grid 3x10 top part of the object
@@ -89,7 +89,7 @@ class synth1_GenObs (Sofa.PythonScriptController):
         if self.integration == 'Euler':
             simuNode.createObject('EulerImplicitSolver', rayleighStiffness='0.1', rayleighMass='0.1')
         elif self.integration == 'Newton':
-            simuNode.createObject('NewtonStaticSolver', maxIt=self.numIter, name='NewtonStatic', correctionTolerance='1e-8', convergeOnResidual='1', residualTolerance='1e-8', printLog='1')
+            simuNode.createObject('NewtonStaticSolver', maxIt=self.numIter, name='NewtonStatic', correctionTolerance='1e-8', convergeOnResidual='1', residualTolerance='1e-8', printLog='0')
         elif self.integration == 'VarSym':
             simuNode.createObject('VariationalSymplecticSolver', rayleighStiffness='1', rayleighMass='1',
              newtonError='1e-12', steps=self.numIter, verbose='0', useIncrementalPotentialEnergy='1')

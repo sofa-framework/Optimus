@@ -11,11 +11,9 @@ __file = __file__.replace('\\', '/') # windows
 def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', pluginName='Optimus')
     rootNode.createObject('RequiredPlugin', pluginName='SofaPardisoSolver')
-    rootNode.createObject('RequiredPlugin', pluginName='ImageMeshAux')
-    #rootNode.createObject('RequiredPlugin', pluginName='SofaMJEDFEM')
+    rootNode.createObject('RequiredPlugin', pluginName='ImageMeshAux')    
     
     rootNode.createObject('PythonScriptController', name='SynthBCDA', filename=__file, classname='synth1_BCDA')
-
 
 
 # Class definition 
@@ -141,10 +139,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
 
     #components common for both master and slave: the simulation itself (without observations and visualizations)
-    def createCommonComponents(self, node):                                  
-        #node.createObject('StaticSolver', applyIncrementFactor="0")
-        #node.createObject('SparsePARDISOSolver')        
-
+    def createCommonComponents(self, node):                                          
         if self.integration == 'Euler':
             node.createObject('EulerImplicitSolver', rayleighStiffness='0.1', rayleighMass='0.1')
         elif self.integration == 'Newton':
