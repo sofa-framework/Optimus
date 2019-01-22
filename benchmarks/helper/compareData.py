@@ -12,15 +12,15 @@ sh1 = a1.shape
 sh2 = a2.shape
 
 if len(sh1) > 1 and len(sh2) > 1 and sh1[1] != sh2[1]:
-	print 'Error: arrays have different number of columns, cannot compare'
+	print('Error: arrays have different number of columns, cannot compare')
 	exit()
 
 if sh1[0] < nl:
-	print 'Number of rows in first data (',sh1[0],') is smaller than required size ',nl
+	print('Number of rows in first data (',sh1[0],') is smaller than required size ',nl)
 	exit()
 
 if sh2[0] < nl:
-	print 'Number of rows in second data (',sh2[0],') is smaller than required size ',nl	
+	print('Number of rows in second data (',sh2[0],') is smaller than required size ',nl)	
 	exit()
 
 if len(sh1) > 1:
@@ -48,7 +48,7 @@ else:
 # print "  Element-wise mean of difference: abs = ", np.mean(df), " rel = ", np.mean(dfrel)
 # print "  Element-wise max  of difference: abs = ", np.max(df), " rel = ", np.max(dfrel)
 
-print "  Mean row-wise norm of difference: ",  np.mean(dfn)
-print "  Max  row-wise norm of difference: ", np.max(dfn)
-print "  Element-wise mean of difference: ", np.mean(df)
-print "  Element-wise max  of difference: ", np.max(df)
+print("  Mean row-wise norm of difference: ",  np.mean(dfn))
+print("  Max  row-wise norm of difference: ", np.max(dfn))
+print("  Element-wise mean of difference: ", np.mean(df))
+print("  Element-wise max  of difference: ", np.max(df))
