@@ -62,7 +62,8 @@ class AppStiff_SDA(Sofa.PythonScriptController):
         self.planeCollision = opt['model']['plane_collision']
         self.saveEst = opt['io']['saveEst']
         self.saveGeo = opt["io"]["saveGeo"]
-        self.meshFile = opt['model']['mesh_path'] + opt['model']['object'] + '_' + str(opt['model']['num_el_sda'])
+        self.volumeMeshFile = opt['model']['mesh_path'] + opt['model']['object'] + '_' + str(opt['model']['num_el_sda']) + '.vtk'
+        self.surfaceMeshFile = opt['model']['mesh_path'] + opt['model']['object'] + '_' + str(opt['model']['num_el_sda']) + '.stl'
         self.obsPoints = opt['model']['mesh_path'] + opt['model']['object'] + '_' + opt['model']['obs_id'] + '.vtk'                        
         
         object = opt['model']['object']
@@ -143,8 +144,8 @@ class AppStiff_SDA(Sofa.PythonScriptController):
             self.filter = rootNode.createObject('UKFilterClassic', name="UKFClas", printLog='1', verbose="1", sigmaTopology=self.opt['filter']['sigma_points_topology'], exportPrefix=self.estFolder)
             estimatePosition = 1
             
-        rootNode.createObject('MeshVTKLoader', name='loader', filename=self.meshFile+'.vtk')
-        rootNode.createObject('MeshSTLLoader', name='sloader', filename=self.meshFile+'.stl')
+        rootNode.createObject('MeshVTKLoader', name='loader', filename=self.volumeMeshFile)
+        rootNode.createObject('MeshSTLLoader', name='sloader', filename=self.surfaceMeshFile)
     
         # /ModelNode
         modelNode=rootNode.createChild('ModelNode')        
@@ -159,7 +160,7 @@ class AppStiff_SDA(Sofa.PythonScriptController):
         if 'prescribed_displacement' in self.opt['model'].keys():
             phant = modelNode.createChild('phant')
             phant.createObject('PreStochasticWrapper')
-            phant.createObject('MeshVTKLoader', name='loader', filename=self.meshFile+'.vtk')
+            phant.createObject('MeshVTKLoader', name='loader', filename=self.volumeMeshFile)
             phant.createObject('MechanicalObject', name='MO', src='@loader')
             phant.createObject('Mesh', src='@loader')            
             phant.createObject('LinearMotionStateController', keyTimes=self.opt['model']['prescribed_displacement']['times'], keyDisplacements=self.opt['model']['prescribed_displacement']['displ'])
@@ -241,11 +242,10 @@ class AppStiff_SDA(Sofa.PythonScriptController):
             self.appliedForce = simuNode.createObject('ConstantForceField', force=self.opt['model']['applied_force']['initial_force'], indices='@forceBox.indices')
 
         if 'applied_pressure' in self.opt['model'].keys():
-            surface=simuNode.createChild('pressure')
-            surface.createObject('MeshSTLLoader', name='sloader', filename=self.meshFile+'.stl')
-            surface.createObject('TriangleSetTopologyContainer', position='@sloader.position', name='TriangleContainer', triangles='@sloader.triangles')
+            surface=simuNode.createChild('pressure')                  
+            surface.createObject('TriangleSetTopologyContainer', position='@/sloader.position', name='TriangleContainer', triangles='@/sloader.triangles')
             surface.createObject('TriangleSetTopologyModifier', name='Modifier')
-            surface.createObject('MechanicalObject', showIndices='false', name='mstate')            
+            surface.createObject('MechanicalObject', showIndices='false', name='mstate', src='@sloader')            
             self.appliedPressure = surface.createObject('TrianglePressureForceField', pressure=self.opt['model']['applied_pressure']['initial_pressure'],
                                                      name='forceField', normal='0 0 1', showForces='1', dmin=0.199, dmax=0.201)
             surface.createObject('BarycentricMapping', name='bpmapping')   

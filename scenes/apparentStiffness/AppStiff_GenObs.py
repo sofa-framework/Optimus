@@ -60,8 +60,9 @@ class AppStiff_GenObs(Sofa.PythonScriptController):
         self.saveErr = opt['io']['saveErr']
         self.saveGeo = opt["io"]["saveGeo"]
         self.planeCollision = opt['model']['plane_collision']
-        self.meshFile = opt['model']['mesh_path'] + opt['model']['object'] + '_' + str(opt['model']['num_el'])
-        print('\n\n*************meshFile', self.meshFile)
+        self.volumeMeshFile = opt['model']['mesh_path'] + opt['model']['object'] + '_' + str(opt['model']['num_el']) + '.vtk'
+        self.surfaceMeshFile = opt['model']['mesh_path'] + opt['model']['object'] + '_' + str(opt['model']['num_el']) + '.stl'
+        print('\n\n*************volume mesh file', self.volumeMeshFile)
 
         self.excitation = ''
         if 'applied_force' in self.opt['model'].keys():
@@ -119,7 +120,7 @@ class AppStiff_GenObs(Sofa.PythonScriptController):
 
         if 'prescribed_displacement' in self.opt['model'].keys():
             phant = rootNode.createChild('phant')
-            phant.createObject('MeshVTKLoader', name='loader', filename=self.meshFile+'.vtk')
+            phant.createObject('MeshVTKLoader', name='loader', filename=self.volumeMeshFile)
             phant.createObject('MechanicalObject', name='MO', src='@loader')
             phant.createObject('Mesh', src='@loader')            
             phant.createObject('LinearMotionStateController', keyTimes=self.opt['model']['prescribed_displacement']['times'], keyDisplacements=self.opt['model']['prescribed_displacement']['displ'])
@@ -132,7 +133,7 @@ class AppStiff_GenObs(Sofa.PythonScriptController):
         # rootNode/simuNode
         simuNode = rootNode.createChild('simuNode')
         self.simuNode = simuNode
-        simuNode.createObject('MeshVTKLoader', name='loader', filename=self.meshFile+'.vtk')
+        simuNode.createObject('MeshVTKLoader', name='loader', filename=self.volumeMeshFile)
 
         
 
@@ -192,7 +193,7 @@ class AppStiff_GenObs(Sofa.PythonScriptController):
 
         if 'applied_pressure' in self.opt['model'].keys():
             surface=simuNode.createChild('pressure')
-            surface.createObject('MeshSTLLoader', name='sloader', filename=self.meshFile+'.stl')
+            surface.createObject('MeshSTLLoader', name='sloader', filename=self.surfaceMeshFile)
             surface.createObject('TriangleSetTopologyContainer', position='@sloader.position', name='TriangleContainer', triangles='@sloader.triangles')
             surface.createObject('TriangleSetTopologyModifier', name='Modifier')
             surface.createObject('MechanicalObject', showIndices='false', name='mstate')            
