@@ -46,6 +46,10 @@ for i=1:simuStep
    end
 end
 
+save('splGt.mat','splGt');
+save('splFilter.mat','splFilter');
+
+
 %% Compute Mean Distance at the Distal Segment 
 
 d=zeros(simuStep,NbCat);
