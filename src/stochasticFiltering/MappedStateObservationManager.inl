@@ -248,7 +248,7 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getPredict
     _predictedObservation.resize(this->observationSize);
     for (size_t i = 0; i < predictedMappedStateEdit.size(); i++)
         for (size_t d = 0; d < 3; d++)
-            _predictedObservation(3*i+d) = predictedMappedStateEdit[i][d];
+            _predictedObservation(3*i+d) = predictedMappedStateEdit[i][d];        
 
     return true;
 }

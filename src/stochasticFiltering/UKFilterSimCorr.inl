@@ -37,7 +37,7 @@ void UKFilterSimCorr<FilterType>::computePrediction()
     //PRNS("matPsqrt: " << matPsqrt);
 
     stateExp = masterStateWrapper->getState();
-    //PRNS("X(n): \n" << stateExp.transpose());
+    PRNS("X(n): \n" << stateExp.transpose());
     //PRNS("P(n): \n" << stateCovar);
 
     /// Computes X_{n}^{(i)-} sigma points        
@@ -95,14 +95,15 @@ void UKFilterSimCorr<FilterType>::computeCorrection()
         int id;
         matZmodel.resize(observationSize,sigmaPointsNum);
         predObsExp.resize(observationSize);
-        predObsExp.fill(FilterType(0.0));
+        predObsExp.fill(FilterType(0.0));        
         stateExp.fill(FilterType(0.0));
         /// compute predicted observations
         for (size_t i = 0; i < sigmaPointsNum; i++) {
-            xCol = matXi.col(i);
-            //PRNS("X: " << xCol.transpose());
+            xCol = matXi.col(i);            
+            PRNS("pX_n["<<i<<"]: "<< xCol.transpose());
             stateWrappers[0]->computeSimulationStep(xCol, mechParams, id);
             observationManager->getPredictedObservation(id,  zCol);
+            PRNS("pZ_n["<< i <<"]:" << zCol.transpose());
             matZmodel.col(i) = zCol;
             predObsExp = predObsExp + zCol * vecAlpha(i);
             stateExp = stateExp + xCol * vecAlpha(i);
