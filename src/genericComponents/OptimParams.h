@@ -210,8 +210,7 @@ public:
         return paramIndices;
     }
 
-    void setVStateParamIndices(IVec& _vector) {
-        std::cout << "SETTING VECTOR TO PARAMS: " << _vector << std::endl;
+    void setVStateParamIndices(IVec& _vector) {        
         paramIndices = _vector;
     }
 
