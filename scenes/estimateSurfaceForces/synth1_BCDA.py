@@ -126,7 +126,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
             self.filter = node.createObject('ROUKFilter', name="ROUKF", sigmaTopology="Simplex", verbose="1", useUnbiasedVariance='0')        
             self.estimatePosition = 1
         elif (self.filterKind == 'UKFSimCorr'):
-            self.filter = node.createObject('UKFilterSimCorr', name="UKF", verbose="1", sigmaTopology="Simplex", useUnbiasedVariance="0",  lambdaScale="1", boundFilterState="0")
+            self.filter = node.createObject('UKFilterSimCorr', name="UKF", printLog='1', verbose='1', sigmaTopology="Simplex", useUnbiasedVariance="0",  lambdaScale="1", boundFilterState="0")
             self.estimatePosition = 0
             
         node.createObject('MeshVTKLoader', name='objectLoader', filename=self.volumeVTK)
