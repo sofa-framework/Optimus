@@ -210,6 +210,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::init()
         this->declaredMappedState=0;
     }
     this->EstimatePOSITION = estimatePosition.getValue();
+    this->EstimateONLYXYZ=estimateOnlyXYZ.getValue();
 }
 
 template <class DataTypes, class FilterType>

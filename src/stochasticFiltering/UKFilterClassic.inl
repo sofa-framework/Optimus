@@ -52,8 +52,8 @@ void UKFilterClassic<FilterType>::computePrediction()
         PRNS("Computing prediction, T= " << this->actualTime  << " ======");
 
         //        /// Computes background error variance Cholesky factorization.
-//        Eigen::LLT<EMatrixX> lltU(stateCovar);
-//        EMatrixX matPsqrt = lltU.matrixL();
+        //        Eigen::LLT<EMatrixX> lltU(stateCovar);
+        //        EMatrixX matPsqrt = lltU.matrixL();
 
         /// Computes Square Root with SVD
         EMatrixX matPsqrt(stateSize,stateSize);
@@ -113,7 +113,7 @@ void UKFilterClassic<FilterType>::computeCorrection()
             predObsExp = predObsExp + zCol * vecAlpha(i);
         }
 
-         /// Compute State-Observation Cross-Covariance
+        /// Compute State-Observation Cross-Covariance
         EMatrixX matPxz(stateSize, observationSize);
         EMatrixX matPz(observationSize, observationSize);
         EMatrixX pinvmatPz(observationSize, observationSize);
@@ -147,7 +147,7 @@ void UKFilterClassic<FilterType>::computeCorrection()
         masterStateWrapper->setState(stateExp, mechParams);
 
 
-         /// Write Some File for Validation
+        /// Write Some File for Validation
         helper::WriteAccessor<Data <helper::vector<FilterType> > > stat = d_state;
         stat.resize(stateSize);
         for (size_t i = 0; i < stateSize; i++)
@@ -433,8 +433,10 @@ void UKFilterClassic<FilterType>::draw(const core::visual::VisualParams* vparams
 
                 for (unsigned j=0; j < d_MOnodes_draw.getValue(); j++){
                     for (unsigned k=0; k < 3; k++){
-
-                        predpoints[i][j][k]=coll(3*j+k);
+                        if  (masterStateWrapper->estimOnlyXYZ())
+                                predpoints[i][j][k]=coll(3*j+k);
+                        else
+                            predpoints[i][j][k]=coll(6*j+k);
                     }
                 }
 
