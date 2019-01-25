@@ -110,7 +110,7 @@ class liver_constForce_GenObs (Sofa.PythonScriptController):
 
         if self.options['obs_generating_parameters']['save_observations']:
             simuNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1', doUpdate='0')
-            simuNode.createObject('Monitor', name='ObservationMonitor', indices='@observationBox.indices', fileName = self.generalFolderName + '/' + self.options['system_parameters']['observation_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0')
+            simuNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName = self.generalFolderName + '/' + self.options['system_parameters']['observation_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0')
 
         # add constant force field
         simuNode.createObject('BoxROI', name='impactBounds', box='0.14 0.15 0.4 0.16 0.17 0.43', doUpdate='0')
@@ -121,7 +121,7 @@ class liver_constForce_GenObs (Sofa.PythonScriptController):
         obsNode.createObject('MechanicalObject', name='SourceMO', src="@obsLoader")
         obsNode.createObject('BarycentricMapping')
         obsNode.createObject('BoxROI', name='observationNodeBox', box='-1 -1 -1 1 1 1', doUpdate='0')
-        obsNode.createObject('Monitor', name='ObservationMonitor', indices='@observationNodeBox.indices', fileName = self.generalFolderName + '/observations/node', ExportPositions='1', ExportVelocities='0', ExportForces='0')
+        obsNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationNodeBox.indices', fileName = self.generalFolderName + '/observations/node', ExportPositions='1', ExportVelocities='0', ExportForces='0')
 
         return 0
 

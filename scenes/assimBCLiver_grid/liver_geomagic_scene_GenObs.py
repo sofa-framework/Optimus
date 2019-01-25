@@ -8,9 +8,9 @@ import yaml
 __file = __file__.replace('\\', '/') # windows
 
 def createScene(rootNode):
-    rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
+    #rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
     rootNode.createObject('RequiredPlugin', name='Pardiso', pluginName='SofaPardisoSolver')
-    rootNode.createObject('RequiredPlugin', name='IMAUX', pluginName='ImageMeshAux')
+    #rootNode.createObject('RequiredPlugin', name='IMAUX', pluginName='ImageMeshAux')
     # rootNode.createObject('RequiredPlugin', name='MJED', pluginName='SofaMJEDFEM')
     rootNode.createObject('RequiredPlugin', pluginName='Geomagic')
     rootNode.createObject('RequiredPlugin', name='BoundaryConditions', pluginName="BoundaryConditionsPlugin")
@@ -77,17 +77,17 @@ class liver_geomagicControlPoint_GenObs (Sofa.PythonScriptController):
             dotNode.createObject('GeomagicDriver', name='GeomagicDevice', deviceName='Default Device', scale='0.02', orientationBase='0 1 -1 -1', positionBase = self.options['geomagic_parameters']['omni_base'], orientationTool='0 0 0 1')
         dotNode.createObject('MechanicalObject', template='Rigid', name='GeomagicMO', position='@GeomagicDevice.positionDevice')
         dotNode.createObject('Sphere', color='0.5 0.5 0.5 1', radius='0.14', template='Rigid')
-        dotNode.createObject('ShowSpheres', radius="0.02", color="0 1 1 1", position='@GeomagicMO.position')
+        #dotNode.createObject('ShowSpheres', radius="0.02", color="0 1 1 1", position='@GeomagicMO.position')
         if self.options['obs_generating_parameters']['save_observations']:
             dotNode.createObject('BoxROI', name='geomagicBounds', box='-0.1 -0.1 -0.1 0.52 0.3 0.4', doUpdate='0')
-            dotNode.createObject('Monitor', name='toolMonitor', template='Rigid', showPositions='1', indices='@geomagicBounds.indices', ExportPositions='1', fileName = self.generalFolderName + '/observations/geomagic')
+            dotNode.createObject('OptimMonitor', name='toolMonitor', template='Rigid', showPositions='1', indices='@geomagicBounds.indices', ExportPositions='1', fileName = self.generalFolderName + '/observations/geomagic')
 
         mappingNode = dotNode.createChild('mappingNode')
         mappingNode.createObject('MechanicalObject', template='Vec3d', name='dot', showObject='true', position='0.0 0.0 0.0')
         mappingNode.createObject('RigidMapping', name='meshGeomagicMapping', input='@../GeomagicMO', output='@dot')
         if self.options['obs_generating_parameters']['save_observations']:
             mappingNode.createObject('BoxROI', name='dotBounds', box='-0.1 -0.1 -0.1 0.52 0.3 0.4', doUpdate='0')
-            mappingNode.createObject('Monitor', name='toolMonitor', template='Vec3d', showPositions='1', indices='@dotBounds.indices', ExportPositions='1', fileName = self.generalFolderName + '/' + self.options['impact_parameters']['observation_file_name'])
+            mappingNode.createObject('OptimMonitor', name='toolMonitor', template='Vec3d', showPositions='1', indices='@dotBounds.indices', ExportPositions='1', fileName = self.generalFolderName + '/' + self.options['impact_parameters']['observation_file_name'])
 	
         # rootNode/simuNode
         simuNode = rootNode.createChild('simuNode')
@@ -144,7 +144,7 @@ class liver_geomagicControlPoint_GenObs (Sofa.PythonScriptController):
 
         if self.options['obs_generating_parameters']['save_observations']:
             simuNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1', doUpdate='0')
-            simuNode.createObject('Monitor', name='ObservationMonitor', indices='@observationBox.indices', fileName = self.generalFolderName + '/' + self.options['system_parameters']['observation_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0')
+            simuNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName = self.generalFolderName + '/' + self.options['system_parameters']['observation_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0')
 
         visuNode = simuNode.createChild('visu')
         visuNode.createObject('OglModel', name='VisualModel', material="texture Ambient 1 0.5 0.04 0.102 1.0 Diffuse 1 0.71 0.0 0.0 1.0", fileMesh='../../data/liver/liver-smooth.obj')

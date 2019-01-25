@@ -71,7 +71,7 @@ class liver_controlPoint_GenObs (Sofa.PythonScriptController):
         self.impactPoint = dotNode.createObject('MechanicalObject', template='Vec3d', name='dot', showObject='true', position=self.options['impact_parameters']['position'])
         if self.options['obs_generating_parameters']['save_observations']:
             dotNode.createObject('BoxROI', name='dotBounds', box=self.options['impact_parameters']['boxes_coordinates'], doUpdate='0')
-            dotNode.createObject('Monitor', name='toolMonitor', template='Vec3d', showPositions='1', indices='@dotBounds.indices', ExportPositions='1', fileName = self.generalFolderName + '/' + self.options['impact_parameters']['observation_file_name'])
+            dotNode.createObject('OptimMonitor', name='toolMonitor', template='Vec3d', showPositions='1', indices='@dotBounds.indices', ExportPositions='1', fileName = self.generalFolderName + '/' + self.options['impact_parameters']['observation_file_name'])
         self.index = 0
         	
         # rootNode/simuNode
@@ -128,7 +128,7 @@ class liver_controlPoint_GenObs (Sofa.PythonScriptController):
 
         if self.options['obs_generating_parameters']['save_observations']:
             simuNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1', doUpdate='0')
-            simuNode.createObject('Monitor', name='ObservationMonitor', indices='@observationBox.indices', fileName = self.generalFolderName + '/' + self.options['system_parameters']['observation_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0')
+            simuNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName = self.generalFolderName + '/' + self.options['system_parameters']['observation_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0')
 
         # rootNode/simuNode/attached
         simuNode.createObject('BoxROI', name='impactBounds', box=self.options['impact_parameters']['boxes_coordinates'], doUpdate='0')
