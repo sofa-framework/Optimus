@@ -78,6 +78,7 @@ void FilteringAnimationLoop::init() {
         return;
     }
 
+    /// look for stochastic filters
     gnode->get(filter, core::objectmodel::BaseContext::SearchDown);
 
     if (filter) {
@@ -99,7 +100,7 @@ void FilteringAnimationLoop::bwdInit() {
     //PRNS("bwdInit");
 }
 
-
+/// function called in every step of SOFA loop: calls initialization, prediction and correction which must be implemented by the filter component
 void FilteringAnimationLoop::step(const core::ExecParams* _params, SReal /*_dt*/) {    
     SReal dt = gnode->getDt();
     sofa::simulation::AnimateBeginEvent ev(dt);

@@ -58,6 +58,7 @@ namespace stochastic
 
 using namespace defaulttype;
 
+/* Class which implements the main loop of SOFA simulation: requires stochastic filter that will be called */
 class SingleLevelEventVisitor : public sofa::simulation::Visitor
 {
 public:
