@@ -248,9 +248,9 @@ void UKFilterSimCorr<FilterType>::bwdInit() {
         obsCovar = observationManager->getErrorVariance();
     }
 
-    /// Initialize Model's Error Covariance
-    stateCovar = masterStateWrapper->getStateErrorVariance();
+    /// Initialize Model state expected value and covariance matrix
     stateExp = masterStateWrapper->getState();
+    stateCovar = masterStateWrapper->getStateErrorVariance();
 
     /// compute sigma points
     switch (this->m_sigmaTopology) {
@@ -261,10 +261,28 @@ void UKFilterSimCorr<FilterType>::bwdInit() {
     default:
         computeSimplexSigmaPoints(matI);
     }
-
     sigmaPointsNum = matI.rows();
     matXi.resize(stateSize, sigmaPointsNum);
     matXi.setZero();    
+
+    /// copy state (exp, covariance) to SOFA data for exporting
+    helper::WriteAccessor<Data <helper::vector<FilterType> > > dstate = this->d_state;
+    helper::WriteAccessor<Data <helper::vector<FilterType> > > dvar = this->d_variance;
+    helper::WriteAccessor<Data <helper::vector<FilterType> > > dcovar = this->d_covariance;
+
+    dstate.resize(stateSize);
+    dvar.resize(stateSize);
+    size_t numCovar = (stateSize*(stateSize-1))/2;
+    dcovar.resize(numCovar);
+
+    size_t gli = 0;
+    for (size_t i = 0; i < stateSize; i++) {
+        dstate[i] = stateExp(i);
+        dvar[i] = stateCovar(i);
+        for (size_t j = i+1; j < stateSize; j++) {
+            dcovar[gli++] = stateCovar(i,j);
+        }
+    }
 }
 
 template <class FilterType>
