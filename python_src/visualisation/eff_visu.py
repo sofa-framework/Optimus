@@ -101,9 +101,9 @@ for generalIndex in range (0, len(folder)):
     fig1 = plt.figure(generalIndex)
     spl1 = fig1.add_subplot(111)
 
-    nstate=numpy.size(stateVar[1,:])
+    nstate=numpy.size(stateVar[0,:])
     nparams=options['filtering_parameters']['optim_params_size']
-    nsteps=numpy.size(stateVar[:,1])
+    nsteps=numpy.size(stateVar[:,0])
 
     print "Number of steps: ", nsteps
     print "Number of parameters: ", nparams
