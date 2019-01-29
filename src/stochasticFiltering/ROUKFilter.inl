@@ -727,7 +727,7 @@ void ROUKFilter<FilterType>::bwdInit() {
     masterStateWrapper->writeState(double(0.0));
 
 
-    /// export initial stochastic state
+    /// copy state (exp, covariance) to SOFA data for exporting
     helper::WriteAccessor<Data <helper::vector<FilterType> > > redState = reducedState;
     helper::WriteAccessor<Data <helper::vector<FilterType> > > redVar = reducedVariance;
     helper::WriteAccessor<Data <helper::vector<FilterType> > > redCovar = reducedCovariance;
