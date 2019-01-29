@@ -24,8 +24,8 @@ saveImage=0;
 %mainDir = [ '../assimStiffness/' object '_' numEl  '_' excit '_' obsID '_' fem '_' integ '_' suffix '/' ];
 %inputDir = [ mainDir filterType '_' numElSda  '_' transform '_' sdaParams ];
 
-mainDir = '../exampleParameterIdentification/beamApplyForce_STV';
-sdaDir = 'ROUKF1';
+mainDir = '../compareFilters/beamApplyForce_LINDYN_fZ';
+sdaDir = 'UKFSimCorr_5000-100';
 %sdaDir = 'UKFSimCorr1';
 inputDir = [mainDir '/' sdaDir];
 disp(inputDir)
@@ -129,7 +129,7 @@ for i=1:nparams
 end
 
 %mytitle=sprintf('%s', [filterType ' ' numEl ' ' numElSda ' ' integ ' ' obsID ' ' transform ' ' strrep(suffix, '_', ' '), ' ' strrep(sdaParams,'_',' ')]);
-mytitle=sdaDir;
+mytitle=[mainDir '  ' sdaDir];
 title(mytitle);
 disp(mytitle);
 box on
