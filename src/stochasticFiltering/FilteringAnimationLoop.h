@@ -58,7 +58,6 @@ namespace stochastic
 
 using namespace defaulttype;
 
-/* Class which implements the main loop of SOFA simulation: requires stochastic filter that will be called */
 class SingleLevelEventVisitor : public sofa::simulation::Visitor
 {
 public:
@@ -76,6 +75,10 @@ protected:
     sofa::simulation::Node* m_node;
 };
 
+/** Class which implements the main loop of SOFA simulation: requires stochastic filter that will be called
+ *  It requires filter component on the same level (only one filter is supposed in the scene for now.
+ *  The filter API is defined in StochasticFilterBase.
+ */
 
 class FilteringAnimationLoop: public sofa::core::behavior::BaseAnimationLoop
 {
@@ -98,19 +101,23 @@ protected:
     double startTime, stopTime;
 
     size_t actualStep;
-
     helper::vector<stochastic::PreStochasticWrapper*> preStochasticWrappers;
-public:
-    sofa::simulation::Node* gnode;
+
+
     int numStep;
+    sofa::component::stochastic::TimeProfiling m_timeProfiler;
+
+    StochasticFilterBase* filter;
+
+public:        
+    sofa::simulation::Node* gnode;
     Data<bool> verbose;
     core::objectmodel::DataFileName d_timeDataFile;
-    sofa::component::stochastic::TimeProfiling m_timeProfiler;
 
     void init();
     void bwdInit();
 
-    StochasticFilterBase* filter;
+
 
 
 }; /// class
