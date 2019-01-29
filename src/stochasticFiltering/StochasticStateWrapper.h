@@ -85,6 +85,12 @@ public :
 
 using namespace defaulttype;
 
+/**
+ * Class which implements an interface between a filter (working with Eigen vectors and matrices) and SOFA and its own data types as Vec3d, Rigid3d etc.).
+ * Presence of the component StochasticStateWrapper in a SOFA scene node indicates that the physical simulation is employed for predictions.
+ * It closely interacts with mechanical state (set/get mechanism) and OptimParams which is a container for storing stochastic quantities.
+ */
+
 template <class DataTypes, class FilterType>
 class StochasticStateWrapper: public sofa::component::stochastic::StochasticStateWrapperBaseT<FilterType>
 {
@@ -160,202 +166,46 @@ public:
     Data< bool  > d_draw;
     Data< double  > d_radius_draw;
     Data<FullMatrix> d_fullMatrix;
+    Data<bool> m_solveVelocityConstraintFirst;
 
     EMatrixX modelErrorVariance;
     EMatrixX modelErrorVarianceInverse;
     FilterType modelErrorVarianceValue;
 
-
-    void stateDim();
-
+    /// initialization before the data assimilation starts
     void init();
     void bwdInit();
 
-    void transformState(EVectorX& _vecX, const core::MechanicalParams* _mparams, int* _stateID);
-    void lastApplyOperator(EVectorX& _vecX, const core::MechanicalParams* _mparams);
-
-    //void setSofaTime(const core::ExecParams* _execParams);
-    void computeSimulationStep(EVectorX& _state, const core::MechanicalParams* mparams,  int& _stateID);
+    /// function to prepare data used during prediction and correction phase
     void initializeStep(size_t _stepNumber);
+
+    /// functions calling one step of SOFA simulations in different manner given by the type of filter.
+    void transformState(EVectorX& _vecX, const core::MechanicalParams* _mparams, int* _stateID);
+    void lastApplyOperator(EVectorX& _vecX, const core::MechanicalParams* _mparams);   
+    void computeSimulationStep(EVectorX& _state, const core::MechanicalParams* mparams,  int& _stateID);
+
+    /// set/get of data demand
+    void stateDim();
     void storeMState();
     void reinitMState(const core::MechanicalParams* _mechParams);
     void getActualPosition(int _id, VecCoord& _pos);
     void getActualVelocity(int _id, VecDeriv& _vel);
-
-    void getActualMappedPosition(int _id, Vec3dTypes::VecCoord& _mapPos);
-    void draw(const core::visual::VisualParams* vparams);
-
-    void setState(EVectorX& _state, const core::MechanicalParams* _mparams) {
-        double    dt = this->gnode->getDt();
-        this->state = _state;
-
-        copyStateFilter2Sofa(_mparams, true);
-        sofa::helper::AdvancedTimer::stepBegin("UpdateMapping");
-        //Visual Information update: Ray Pick add a MechanicalMapping used as VisualMapping
-        //std::cout << "[" << this->getName() << "]: update mapping" << std::endl;
-        this->gnode->template execute<  sofa::simulation::UpdateMappingVisitor >(_mparams);
-        sofa::helper::AdvancedTimer::step("UpdateMappingEndEvent");
-        {
-            //std::cout << "[" << this->getName() << "]: update mapping end" << std::endl;
-            sofa::simulation::UpdateMappingEndEvent ev ( dt );
-            sofa::simulation::PropagateEventVisitor act ( _mparams , &ev );
-            this->gnode->execute ( act );
-        }
-        sofa::helper::AdvancedTimer::stepEnd("UpdateMapping");
-        sofa::simulation::AnimateEndEvent ev ( dt );
-
-    }
+    void getActualMappedPosition(int _id, Vec3dTypes::VecCoord& _mapPos);    
+    void setState(EVectorX& _state, const core::MechanicalParams* _mparams);
 
     void setSofaVectorFromFilterVector(EVectorX& _state, typename DataTypes::VecCoord& _vec);
 
-
-    virtual EMatrixX& getStateErrorVariance() {
-        if (this->stateErrorVariance.rows() == 0) {
-            PRNS("Constructing state co-variance matrix")
-                    this->stateErrorVariance.resize(this->stateSize, this->stateSize);
-            this->stateErrorVariance.setZero();
-
-            size_t vsi = 0;
-            if (estimatePosition.getValue()) {
-                for (size_t index = 0; index < (size_t)this->positionVariance.size(); index++, vsi++) {
-                    this->stateErrorVariance(vsi,vsi) = this->positionVariance[index];
-                }
-            }
-
-            /// vsi continues to increase since velocity is always after position
-            if (estimateVelocity.getValue()) {
-                for (size_t index = 0; index < (size_t)this->velocityVariance.size(); index++, vsi++) {
-                    this->stateErrorVariance(vsi,vsi) = this->velocityVariance[index];
-                }
-            }
-
-
-            for (size_t opi = 0; opi < this->vecOptimParams.size(); opi++) {
-                helper::vector<double> variance;
-                this->vecOptimParams[opi]->getInitVariance(variance);
-
-                for (size_t pi = 0; pi < this->vecOptimParams[opi]->size(); pi++, vsi++)
-                    this->stateErrorVariance(vsi,vsi) = variance[pi];
-            }
-        }
-        //std::cout << "P0: " << this->stateErrorVariance << std::endl;
-        return this->stateErrorVariance;
-    }
-
-
-    virtual EMatrixX& getModelErrorVariance() {
-        if (this->modelErrorVariance.rows() == 0) {           
-            helper::vector<FilterType> velModStDev, posModStDev;
-
-            if (estimatePosition.getValue()) {
-                posModStDev.resize(posDim);
-                for (size_t i=0 ;i<posDim;i++) {
-                    if (posModelStdev.getValue().size() != posDim) {
-                        posModStDev[i]=posModelStdev.getValue()[0];
-                    }else{
-                        posModStDev[i]=posModelStdev.getValue()[i];
-                    }
-                }
-            }
-
-
-            if (estimateVelocity.getValue()) {
-                velModStDev.resize(velDim);
-                for (size_t i=0 ;i<velDim;i++) {
-                    if (velModelStdev.getValue().size() != velDim) {
-                        velModStDev[i]=velModelStdev.getValue()[0];
-                    }else{
-                        velModStDev[i]=velModelStdev.getValue()[i];
-                    }
-                }
-            }
-
-            helper::vector<FilterType> paramModelStDev = paramModelStdev.getValue();
-            //            modelErrorVarianceValue = posModelStDev(0) * posModelStDev(0);
-
-            modelErrorVariance = EMatrixX::Identity(this->stateSize, this->stateSize);
-            modelErrorVarianceInverse = EMatrixX::Identity(this->stateSize, this->stateSize) ;
-
-            size_t kp= 0;
-            size_t kv= 0;
-            size_t k= 0;
-            const size_t N =freeNodes.size();
-            const size_t M =posDim;
-            const size_t V =velDim;
-
-            EVectorX diagPosModelStDev;
-            if (estimatePosition.getValue()) {
-                diagPosModelStDev.resize(N*M);
-                for (size_t i = 0; i < N; i++ ){
-                    for (size_t j = 0; j < M; j ++)
-                        diagPosModelStDev(i*M+j)=posModStDev[j%M]*posModStDev[j%M];
-                }
-            }
-
-            EVectorX diagVelModelStDev;
-            if (estimateVelocity.getValue()) {
-                diagVelModelStDev.resize(N*V);
-                for (size_t i = 0; i < N; i++){
-                    for (size_t j = 0; j < V; j ++)
-                        diagVelModelStDev(i*V+j)=velModStDev[j%V]*velModStDev[j%V];
-                }
-            }
-
-            if (estimatePosition.getValue() && estimateVelocity.getValue()){
-                modelErrorVariance = EMatrixX::Identity(this->stateSize, this->stateSize);
-                for (unsigned index = 0; index < this->positionVariance.size(); index++, kp++)
-                    modelErrorVariance(index,index) = diagPosModelStDev(kp)  ;
-                for (size_t index = this->positionVariance.size(); index < this->reducedStateIndex; index++,kv++)
-                    modelErrorVariance(index,index) = diagVelModelStDev[kv]  ;
-                for (size_t pi = this->reducedStateIndex; pi < this->stateSize; pi++,k++)
-                    modelErrorVariance(pi,pi) = 0;    /// why here the parameter variance is non-zero???
-            }
-
-            //NORMALLY IS THE CASE OF DATA ASSIMILATION where Parameters have no Q
-            if (estimatePosition.getValue() && !estimateVelocity.getValue()){
-                modelErrorVariance = EMatrixX::Identity(this->stateSize, this->stateSize);
-                for (unsigned index = 0; index < this->positionVariance.size(); index++, kp++)
-                    modelErrorVariance(index,index) = diagPosModelStDev(kp)  ;
-                for (size_t pi = this->reducedStateIndex; pi < this->stateSize; pi++,k++)
-                    modelErrorVariance(pi,pi) = 0;
-            }
-
-        }        
-        return this->modelErrorVariance;
-
-    }
+    /// get the variance of error of the state
+    virtual EMatrixX& getStateErrorVariance();
+    virtual EMatrixX& getModelErrorVariance();
 
     /// get the state error variant for the reduced order filters (stdev^2 of the parameters being estimated)
-    virtual EMatrixX& getStateErrorVarianceReduced() {
-        if (this->stateErrorVarianceReduced.rows() == 0) {
-            this->stateErrorVarianceReduced.resize(this->reducedStateSize,this->reducedStateSize);
-            this->stateErrorVarianceReduced.setZero();
+    virtual EMatrixX& getStateErrorVarianceReduced();
+    virtual EMatrixX& getStateErrorVarianceProjector();
 
-            size_t vpi = 0;
-            for (size_t opi = 0; opi < this->vecOptimParams.size(); opi++) {
-                helper::vector<double> variance;
-                this->vecOptimParams[opi]->getInitVariance(variance);
+    void draw(const core::visual::VisualParams* vparams);
 
-                for (size_t pi = 0; pi < this->vecOptimParams[opi]->size(); pi++, vpi++) {
-                    this->stateErrorVarianceReduced(vpi,vpi) = Type(Type(1.0) / variance[pi]);
-                }
-            }
-        }
-        return this->stateErrorVarianceReduced;
-    }
-
-    virtual EMatrixX& getStateErrorVarianceProjector() {
-        if (this->stateErrorVarianceProjector.rows() == 0) {
-            this->stateErrorVarianceProjector.resize(this->stateSize, this->reducedStateSize);
-            this->stateErrorVarianceProjector.setZero();
-
-            for (size_t i = 0; i < this->reducedStateSize; i++)
-                this->stateErrorVarianceProjector(i+this->reducedStateIndex,i) = Type(1.0);
-        }
-        return this->stateErrorVarianceProjector;
-    }
-
-    Data<bool> m_solveVelocityConstraintFirst;
+    /// SOFA-imposed methods for object factory
 
     template<class T>
     static bool canCreate(T*& obj, core::objectmodel::BaseContext* context, core::objectmodel::BaseObjectDescription* arg)
