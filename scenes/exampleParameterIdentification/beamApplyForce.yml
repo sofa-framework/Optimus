@@ -32,21 +32,21 @@ model:
         pardisoFolder: ''
 
     fem:
-        method: 'CorLarge' #CorLarge  StVenant CorSmall        
+        method: 'StVenant' #CorLarge  StVenant CorSmall        
         young_modulus: 10000
         poisson_ratio: 0.49
 
 io: 
-    folder: 'beamApplyForce_CorLarge'
-    sdaFolder: 'ROUKF1'
-    obsFile: 'obs'      
+    folder: 'beamApplyForce_STV'
+    sdaFolder: 'UKFSimCorr1'
+    obsFile: 'obs'
     saveGeo: 1    
     saveObs: 1                  # GO only    
     saveEst: 1                  # SDA only
     
 
 filter:                         # SDA only
-    kind: 'ROUKF'               # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
+    kind: 'UKFSimCorr'               # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
     nparams: 1
     param_init_exval: [5000]
     param_init_stdev: [100]
