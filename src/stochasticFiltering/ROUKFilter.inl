@@ -72,7 +72,7 @@ ROUKFilter<FilterType>::ROUKFilter()
     , d_reducedInnovation( initData(&d_reducedInnovation, "reducedInnovation", "innovation value computed by the filter" ) )
     , d_state( initData(&d_state, "state", "actual expected value of state estimated by the filter" ) )
     , d_variance( initData(&d_variance, "variance", "actual variance of state estimated by the filter" ) )
-    , d_covariance( initData(&d_covariance, "covariance", "actual co-variance of state estimated by the filter" ) )
+    //, d_covariance( initData(&d_covariance, "covariance", "actual co-variance of state estimated by the filter" ) )
     , d_executeSimulationForCorrectedData( initData(&d_executeSimulationForCorrectedData, false, "executeSimulationForCorrectedData", "if true execute last simulation for corrected data" ) )
 {    
     this->reducedOrder.setValue(true);
