@@ -35,29 +35,7 @@ namespace component
 namespace stochastic
 {
 
-template <class FilterType>
-struct WorkerThreadData
-{
-    typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, Eigen::Dynamic> EMatrixX;
-
-    StochasticStateWrapperBaseT<FilterType>* wrapper;
-    size_t threadID;
-    helper::vector<size_t>* sigmaIDs;
-    EMatrixX* stateMatrix;
-    const core::ExecParams* execParams;
-    bool saveLog;
-
-    void set(size_t _threadID,StochasticStateWrapperBaseT<FilterType>* _wrapper,  helper::vector<size_t> *_sigID,
-             EMatrixX* _stateMat, const core::ExecParams* _execParams, bool _saveLog) {
-        threadID=_threadID;
-        sigmaIDs=_sigID;
-        stateMatrix=_stateMat;
-        saveLog = _saveLog;
-        wrapper = _wrapper;
-        execParams = _execParams;
-    }
-};
-
+/// to speed up, wrappers for BLAS matrix multiplications created, much faster that Eigen by default
 extern "C"{
     // product C= alphaA.B + betaC
    void dgemm_(char* TRANSA, char* TRANSB, const int* M,
@@ -70,6 +48,13 @@ extern "C"{
                const int* INCX, double* beta, double* C, const int* INCY);
    }
 
+/**
+ * Class implementing a special version of the unscented Kalman filter for data assimilation.
+ * Partially inspired by the reduced order Kalman filter proposed by Moireau & Chapelle
+ * (Reduced-order Unscented Kalman Filtering with application to parameter identification in large-dimensional systems)
+ * This version keeps _only_ the parameters in the stochastic state.
+ * Filter requires StochasticStateWrapper which provides the interface with SOFA.
+ */
 
 using namespace defaulttype;
 
@@ -91,9 +76,7 @@ UKFilterSimCorr();
 protected:
     StochasticStateWrapperBaseT<FilterType>* masterStateWrapper;
     helper::vector<StochasticStateWrapperBaseT<FilterType>*> stateWrappers;
-    ObservationManager<FilterType>* observationManager;
-    //ObservationSource *observationSource;
-
+    ObservationManager<FilterType>* observationManager;    
 
     /// vector sizes
     size_t observationSize, stateSize, reducedStateSize;
@@ -150,6 +133,30 @@ public:
     virtual void initializeStep(const core::ExecParams* _params, const size_t _step);
 
 }; /// class
+
+template <class FilterType>
+struct WorkerThreadData
+{
+    typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, Eigen::Dynamic> EMatrixX;
+
+    StochasticStateWrapperBaseT<FilterType>* wrapper;
+    size_t threadID;
+    helper::vector<size_t>* sigmaIDs;
+    EMatrixX* stateMatrix;
+    const core::ExecParams* execParams;
+    bool saveLog;
+
+    void set(size_t _threadID,StochasticStateWrapperBaseT<FilterType>* _wrapper,  helper::vector<size_t> *_sigID,
+             EMatrixX* _stateMat, const core::ExecParams* _execParams, bool _saveLog) {
+        threadID=_threadID;
+        sigmaIDs=_sigID;
+        stateMatrix=_stateMat;
+        saveLog = _saveLog;
+        wrapper = _wrapper;
+        execParams = _execParams;
+    }
+};
+
 
 } // stochastic
 } // component

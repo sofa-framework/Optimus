@@ -59,68 +59,8 @@ namespace component
 namespace stochastic
 {
 
-template <class FilterType>
-struct WorkerThreadData
-{
-    typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, Eigen::Dynamic> EMatrixX;
 
-    StochasticStateWrapperBaseT<FilterType>* wrapper;
-    size_t threadID;
-    helper::vector<size_t>* sigmaIDs;
-    EMatrixX* stateMatrix;
-    const core::ExecParams* execParams;
-    bool saveLog;
-
-    void set(size_t _threadID,StochasticStateWrapperBaseT<FilterType>* _wrapper,  helper::vector<size_t> *_sigID,
-             EMatrixX* _stateMat, const core::ExecParams* _execParams, bool _saveLog) {
-        threadID=_threadID;
-        sigmaIDs=_sigID;
-        stateMatrix=_stateMat;
-        saveLog = _saveLog;
-        wrapper = _wrapper;
-        execParams = _execParams;
-    }
-};
-
-template <class FilterType>
-void* threadFunction(void* inArgs) {
-    char name[100];
-    std::ofstream fd;
-    WorkerThreadData<FilterType>* threadData = reinterpret_cast<WorkerThreadData<FilterType>* >(inArgs);
-    helper::vector<size_t>& sigIDs = *(threadData->sigmaIDs);
-    size_t id = threadData->threadID;
-    StochasticStateWrapperBaseT<FilterType>* wrapper = threadData->wrapper;
-
-    //const core::ExecParams* execParams = threadData->execParams;
-    //core::MechanicalParams* mechParams;
-    //if (wrapper->isSlave())
-        //mechParams = new core::MechanicalParams;
-        //mechParams->setThreadID(id);
-    //else
-    core::MechanicalParams* mechParams = new core::MechanicalParams;
-    //mechParams->setThreadID(0);
-
-    bool saveLog = threadData->saveLog;
-
-    if (saveLog) {
-        sprintf(name, "thread%02lu.out", id);
-        fd.open(name);
-        fd << "Thread " << id << std::endl;
-        //fd << "Sigma points to process: " << sigIDs << std::endl;
-    }
-
-    Eigen::Matrix<FilterType, Eigen::Dynamic, Eigen::Dynamic>& xMat = *(threadData->stateMatrix);
-    Eigen::Matrix<FilterType, Eigen::Dynamic, 1> xCol(xMat.rows());
-    for (size_t i = 0; i < sigIDs.size(); i++) {
-        xCol = xMat.col(sigIDs[i]);
-        wrapper->transformState(xCol, mechParams);
-        xMat.col(sigIDs[i]) = xCol;
-    }
-    fd.close();
-    delete mechParams;
-    return nullptr;
-}
-
+/// to speed up, wrappers for BLAS matrix multiplications created, much faster that Eigen by default
 extern "C"{
     // product C= alphaA.B + betaC
    void dgemm_(char* TRANSA, char* TRANSB, const int* M,
@@ -134,6 +74,16 @@ extern "C"{
    }
 
 using namespace defaulttype;
+
+
+/**
+ * Class implementing reduced-order unscented Kalman filter as it's described in
+ * Moireau, Philippe, and Dominique Chapelle. "Reduced-order Unscented Kalman Filtering with application to parameter identification in large-dimensional systems."
+ * ESAIM: Control, Optimisation and Calculus of Variations 17.2 (2011): 380-405.
+ * Naming conventions inspired by Verdandi library, corresponds to symbols used in the paper.
+ * Filter requires StochasticStateWrapper which provides the interface with SOFA.
+ */
+
 
 template <class FilterType>
 class ROUKFilter: public sofa::component::stochastic::StochasticFilterBase
@@ -204,14 +154,79 @@ public:
     void init();
     void bwdInit();
 
-    virtual void computePrediction();
-    virtual void computePerturbedStates(EVectorX &_meanState);
-
-    virtual void computeCorrection();
-
     virtual void initializeStep(const core::ExecParams* _params, const size_t _step);
 
+    virtual void computePrediction();
+    virtual void computePerturbedStates(EVectorX &_meanState);
+    virtual void computeCorrection();
+
 }; /// class
+
+/**
+ * Code necessary for parallelization. Not tested since longer time.
+ */
+
+template <class FilterType>
+struct WorkerThreadData
+{
+    typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, Eigen::Dynamic> EMatrixX;
+
+    StochasticStateWrapperBaseT<FilterType>* wrapper;
+    size_t threadID;
+    helper::vector<size_t>* sigmaIDs;
+    EMatrixX* stateMatrix;
+    const core::ExecParams* execParams;
+    bool saveLog;
+
+    void set(size_t _threadID,StochasticStateWrapperBaseT<FilterType>* _wrapper,  helper::vector<size_t> *_sigID,
+             EMatrixX* _stateMat, const core::ExecParams* _execParams, bool _saveLog) {
+        threadID=_threadID;
+        sigmaIDs=_sigID;
+        stateMatrix=_stateMat;
+        saveLog = _saveLog;
+        wrapper = _wrapper;
+        execParams = _execParams;
+    }
+};
+
+template <class FilterType>
+void* threadFunction(void* inArgs) {
+    char name[100];
+    std::ofstream fd;
+    WorkerThreadData<FilterType>* threadData = reinterpret_cast<WorkerThreadData<FilterType>* >(inArgs);
+    helper::vector<size_t>& sigIDs = *(threadData->sigmaIDs);
+    size_t id = threadData->threadID;
+    StochasticStateWrapperBaseT<FilterType>* wrapper = threadData->wrapper;
+
+    //const core::ExecParams* execParams = threadData->execParams;
+    //core::MechanicalParams* mechParams;
+    //if (wrapper->isSlave())
+        //mechParams = new core::MechanicalParams;
+        //mechParams->setThreadID(id);
+    //else
+    core::MechanicalParams* mechParams = new core::MechanicalParams;
+    //mechParams->setThreadID(0);
+
+    bool saveLog = threadData->saveLog;
+
+    if (saveLog) {
+        sprintf(name, "thread%02lu.out", id);
+        fd.open(name);
+        fd << "Thread " << id << std::endl;
+        //fd << "Sigma points to process: " << sigIDs << std::endl;
+    }
+
+    Eigen::Matrix<FilterType, Eigen::Dynamic, Eigen::Dynamic>& xMat = *(threadData->stateMatrix);
+    Eigen::Matrix<FilterType, Eigen::Dynamic, 1> xCol(xMat.rows());
+    for (size_t i = 0; i < sigIDs.size(); i++) {
+        xCol = xMat.col(sigIDs[i]);
+        wrapper->transformState(xCol, mechParams);
+        xMat.col(sigIDs[i]) = xCol;
+    }
+    fd.close();
+    delete mechParams;
+    return nullptr;
+}
 
 } // stochastic
 } // component
