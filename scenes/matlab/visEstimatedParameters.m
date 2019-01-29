@@ -2,11 +2,11 @@ addpath '~/AncillaIP/Matlab';
 %groundTruth=[1500 6000 2000];   %P1
 %groundTruth=[3500 4000 1000 6000 2000 7000 2500 8000 3000 1500];
 %groundTruth=[1000 4000 2000];   %P1
-groundTruth=[3000, 7000];
+groundTruth=[10000];
 %$groundTruth=zeros(1,10);   %P2
 %groundTruth = zeros(1,16);
 showStdev = 1;
-nsteps=1000;
+nsteps=500;
 
 object='cylinder2';
 numEl='385';  %2264 128
@@ -21,9 +21,13 @@ transform = 'project';
 sdaParams='45_45_200_ns1-5_debugUKF';
 saveImage=0;
 
-mainDir = [ '../assimStiffness/' object '_' numEl  '_' excit '_' obsID '_' fem '_' integ '_' suffix '/' ];
+%mainDir = [ '../assimStiffness/' object '_' numEl  '_' excit '_' obsID '_' fem '_' integ '_' suffix '/' ];
+%inputDir = [ mainDir filterType '_' numElSda  '_' transform '_' sdaParams ];
 
-inputDir = [ mainDir filterType '_' numElSda  '_' transform '_' sdaParams ];
+mainDir = '../exampleParameterIdentification/beamApplyForce_STV';
+sdaDir = 'ROUKF1';
+%sdaDir = 'UKFSimCorr1';
+inputDir = [mainDir '/' sdaDir];
 disp(inputDir)
 %old naming convention:
 %inputDir = [ mainDir filterType '_' transform '_' sdaParams ]
@@ -32,8 +36,8 @@ disp(inputDir)
 %inputDir='../assimStiffness/cyl3gravity_Euler1/UKFSimCorr_obs33_proj0'
 
 estStateFile=[inputDir '/state.txt'];
-estVarFile=[inputDir '/variance.txt'];
-estCovarFile=[inputDir '/covariance.txt'];
+estVarFile=[inputDir '/var.txt'];
+estCovarFile=[inputDir '/covar.txt'];
 
 %===================================================================
 nparams=size(groundTruth,2);
@@ -45,9 +49,9 @@ if nsteps < 0
     nsteps=size(estState,1);
 end
 
-nstate=nparams;
+nstate=nparams
 
-ncovar=nparams*(nparams-1)/2;
+ncovar=nparams*(nparams-1)/2
 
 if strcmp(transform,'abs')
     estState=abs(estState(1:nsteps,nstate-nparams+1:nstate));
@@ -69,7 +73,6 @@ if strcmp(transform,'project')
 end
 
 correl = zeros(size(estCovar));
-
 for ns = 1:nsteps
     gli = 0;
     for i=1:nparams
@@ -85,7 +88,10 @@ estimParams=estState(nsteps,:);
 disp(groundTruth);
 disp(estimParams);
 disp(estStd(nsteps,:));
-disp(correl(nsteps,:));
+
+if ncovar > 0
+    disp(correl(nsteps,1:ncovar));
+end
 
 if length(estimParams) == 2
     k1=estimParams(1);
@@ -99,9 +105,6 @@ if length(estimParams) == 2
     fprintf('Effective: GT: %f  estimated: %f\n', keff_gt, keff);
     fprintf('Effective2: GT: %f  estimated: %f\n', keff2_gt, keff2);
 end
-
-
-
 
 minval=0;
 maxval=max(max(estState)) + max(max(estStd));
@@ -125,7 +128,8 @@ for i=1:nparams
     
 end
 
-mytitle=sprintf('%s', [filterType ' ' numEl ' ' numElSda ' ' integ ' ' obsID ' ' transform ' ' strrep(suffix, '_', ' '), ' ' strrep(sdaParams,'_',' ')]);
+%mytitle=sprintf('%s', [filterType ' ' numEl ' ' numElSda ' ' integ ' ' obsID ' ' transform ' ' strrep(suffix, '_', ' '), ' ' strrep(sdaParams,'_',' ')]);
+mytitle=sdaDir;
 title(mytitle);
 disp(mytitle);
 box on
