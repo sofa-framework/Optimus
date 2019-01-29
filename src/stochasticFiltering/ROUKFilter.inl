@@ -69,7 +69,11 @@ ROUKFilter<FilterType>::ROUKFilter()
     , reducedState( initData(&reducedState, "reducedState", "actual expected value of reduced state (parameters) estimated by the filter" ) )
     , reducedVariance( initData(&reducedVariance, "reducedVariance", "actual variance  of reduced state (parameters) estimated by the filter" ) )
     , reducedCovariance( initData(&reducedCovariance, "reducedCovariance", "actual co-variance  of reduced state (parameters) estimated by the filter" ) )
-    , d_reducedInnovation( initData(&d_reducedInnovation, "reducedInnovation", "innovation value computed by the filter" ) )    
+    , d_reducedInnovation( initData(&d_reducedInnovation, "reducedInnovation", "innovation value computed by the filter" ) )
+    , d_state( initData(&d_state, "state", "actual expected value of state estimated by the filter" ) )
+    , d_variance( initData(&d_variance, "variance", "actual variance of state estimated by the filter" ) )
+    , d_covariance( initData(&d_covariance, "covariance", "actual co-variance of state estimated by the filter" ) )
+    , d_executeSimulationForCorrectedData( initData(&d_executeSimulationForCorrectedData, false, "executeSimulationForCorrectedData", "if true execute last simulation for corrected data" ) )
 {    
     this->reducedOrder.setValue(true);
 }
@@ -131,7 +135,7 @@ void ROUKFilter<FilterType>::computePrediction()
 template <class FilterType>
 void ROUKFilter<FilterType>::computeSimplexPrediction()
 {
-    //PRNS("Computing prediction, T= " << this->actualTime);
+    // PRNS("Computing prediction, T= " << this->actualTime);
     sofa::helper::AdvancedTimer::stepBegin("ROUKFSimplexPrediction");
 
     EMatrixX tmpStateVarProj(stateSize, reducedStateSize);
@@ -148,6 +152,7 @@ void ROUKFilter<FilterType>::computeSimplexPrediction()
     sofa::helper::AdvancedTimer::stepEnd("Cholseky_prediction");
 
     tmpStateVarProj = masterStateWrapper->getStateErrorVarianceProjector();
+    PRNS("errorVarProj: " << tmpStateVarProj);
 
     //TIC
     sofa::helper::AdvancedTimer::stepBegin("prediction_multiplication");
@@ -313,7 +318,7 @@ void ROUKFilter<FilterType>::computeCorrection()
 template <class FilterType>
 void ROUKFilter<FilterType>::computeSimplexCorrection()
 {
-    //PRNS("Computing correction, T= " << this->actualTime);
+    // PRNS("Computing correction, T= " << this->actualTime);
     sofa::helper::AdvancedTimer::stepBegin("ROUKFSimplexCorrection");
 
     if (!alphaConstant) {
@@ -335,6 +340,7 @@ void ROUKFilter<FilterType>::computeSimplexCorrection()
             vecXCol = matXi.col(i);
             vecZCol.setZero();
             observationManager->getInnovation(this->actualTime, vecXCol, vecZCol);
+            //std::cout << "\n vecZCol\n " << vecZCol << std::endl;
             vecZ = vecZ + alpha * vecZCol;
             matZItrans.row(i) = vecZCol;
         }
@@ -344,11 +350,16 @@ void ROUKFilter<FilterType>::computeSimplexCorrection()
 
         EMatrixX matHLtrans(reducedStateSize, observationSize);
         matHLtrans = alphaVar*matItrans.transpose()*matZItrans;
+        //std::cout << "\n alphaVar\n " << alphaVar << std::endl;
         //PRNS("\n alphaVar\n " << alphaVar);
+        //std::cout << "\n matItrans\n " << matItrans << std::endl;
         //PRNS("\n matItrans\n " << matItrans);
+        //std::cout << "\n matZItrans\n " << matZItrans << std::endl;
         //PRNS("\n matZItrans\n " << matZItrans);
+        //std::cout << "\n mult\n " << matItrans.transpose()*matZItrans << std::endl;
         //PRNS("\n mult\n " << matItrans.transpose()*matZItrans);
         //asumEMat("HL_trans", matHLtrans);
+        //std::cout << "\n matHLtrans\n " << matHLtrans << std::endl;
         //PRNS("\n matHLtrans\n " << matHLtrans);
 
         EMatrixX matWorkingPO(reducedStateSize, observationSize), matTemp;
@@ -367,19 +378,39 @@ void ROUKFilter<FilterType>::computeSimplexCorrection()
         EVectorX reducedInnovation(reducedStateSize);
         reducedInnovation = Type(-1.0) * matUinv*matWorkingPO*vecZ;
         //asumEMat("matUinv", matUinv);
+        //std::cout << "\n matUinv\n " << matUinv << std::endl;
         //PRNS("\n matUinv\n " << matUinv);
         //asumEMat("matWorkingPO", matWorkingPO);
+        //std::cout << "\n matWorkingPO\n " << matWorkingPO << std::endl;
         //PRNS("\n matWorkingPO\n " << matWorkingPO);
         //asumEVec("reduced innovation", reducedInnovation);
+        //std::cout << "\n vecZ \n " << vecZ << std::endl;
         //PRNS("\n vecZ \n " << vecZ);
 
         EVectorX state = masterStateWrapper->getState();
+        //std::cout << "state\n " << state.transpose() << std::endl;
         //PRNS("state\n " << state.transpose());
         EMatrixX errorVarProj = masterStateWrapper->getStateErrorVarianceProjector();
         state = state + errorVarProj*reducedInnovation;
+        //std::cout << "\n errorVarProj \n " << errorVarProj.transpose() << std::endl;
         //PRNS("\n errorVarProj \n " << errorVarProj.transpose());
+        //std::cout << "\n reducedInnovation \n " << reducedInnovation << std::endl;
         //PRNS("\n reducedInnovation \n " << reducedInnovation);
-        masterStateWrapper->setState(state,mechParams);
+        if (d_executeSimulationForCorrectedData.getValue()) {
+            EVectorX originalState = masterStateWrapper->getState();
+            // copy only average stiffness to original state
+            size_t reducedStateIndex = stateSize - reducedStateSize;
+            for (size_t i = 0; i < reducedStateSize; i++) {
+                originalState[reducedStateIndex+i] = state[reducedStateIndex+i];
+            }
+            stateWrappers[0]->transformState(originalState, mechParams);
+            masterStateWrapper->setState(originalState,mechParams);
+        } else {
+            masterStateWrapper->setState(state,mechParams);
+        }
+
+
+        //std::cout << "\n state+ \n" << state.transpose() << std::endl;
         //PRNS("\n state+ \n" << state.transpose());
 
 
@@ -392,26 +423,44 @@ void ROUKFilter<FilterType>::computeSimplexCorrection()
             for (size_t j = 0; j < reducedStateSize; j++)
                 parErrorVarProj(i,j) = errorVarProj(reducedStateIndex+i,j);
 
-        EMatrixX covarianceMatrix(reducedStateSize, reducedStateSize);
-        covarianceMatrix = parErrorVarProj * matUinv * parErrorVarProj.transpose();
+        EMatrixX reducedCovarianceMatrix(reducedStateSize, reducedStateSize);
+        reducedCovarianceMatrix = parErrorVarProj * matUinv * parErrorVarProj.transpose();
+        // PRNS("reducedCovarianceMatrix: " << reducedCovarianceMatrix);
+        EMatrixX covarianceMatrix(stateSize, stateSize);
+        covarianceMatrix = errorVarProj * matUinv * errorVarProj.transpose();
 
         helper::WriteAccessor<Data <helper::vector<FilterType> > > redState = reducedState;
         helper::WriteAccessor<Data <helper::vector<FilterType> > > redVar = reducedVariance;
         helper::WriteAccessor<Data <helper::vector<FilterType> > > redCovar = reducedCovariance;
         helper::WriteAccessor<Data <helper::vector<FilterType> > > innov = d_reducedInnovation;
+        helper::WriteAccessor<Data <helper::vector<FilterType> > > mstate = d_state;
+        helper::WriteAccessor<Data <helper::vector<FilterType> > > var = d_variance;
+        helper::WriteAccessor<Data <helper::vector<FilterType> > > covar = d_covariance;
 
         redState.resize(reducedStateSize);
         redVar.resize(reducedStateSize);
         size_t numCovariances = (reducedStateSize*(reducedStateSize-1))/2;
         redCovar.resize(numCovariances);
         innov.resize(observationSize);
+        mstate.resize(stateSize);
+        var.resize(stateSize);
+        numCovariances = (stateSize*(stateSize-1))/2;
+        covar.resize(numCovariances);
 
         size_t gli = 0;
         for (size_t i = 0; i < reducedStateSize; i++) {
             redState[i] = state[reducedStateIndex+i];
-            redVar[i] = covarianceMatrix(i,i);
+            redVar[i] = reducedCovarianceMatrix(i,i);
             for (size_t j = i+1; j < reducedStateSize; j++) {
-                redCovar[gli++] = covarianceMatrix(i,j);
+                redCovar[gli++] = reducedCovarianceMatrix(i,j);
+            }
+        }
+        gli = 0;
+        for (size_t i = 0; i < stateSize; i++) {
+            mstate[i] = state[i];
+            var[i] = covarianceMatrix(i,i);
+            for (size_t j = i+1; j < stateSize; j++) {
+                covar[gli++] = covarianceMatrix(i,j);
             }
         }
         for (size_t index = 0; index < observationSize; index++) {
@@ -432,7 +481,7 @@ void ROUKFilter<FilterType>::computeSimplexCorrection()
 
         sprintf(fileName, "outVar/covar_%03d.txt", this->stepNumber);
         cvmFile.open(fileName);
-        cvmFile << covarianceMatrix << std::endl;
+        cvmFile << reducedCovarianceMatrix << std::endl;
         cvmFile.close();*/
 
         //TOC("== an5sx == ");
@@ -564,8 +613,8 @@ void ROUKFilter<FilterType>::computeStarCorrection()
             for (size_t j = 0; j < reducedStateSize; j++)
                 parErrorVarProj(i,j) = errorVarProj(reducedStateIndex+i,j);
 
-        EMatrixX covarianceMatrix(reducedStateSize, reducedStateSize);
-        covarianceMatrix = parErrorVarProj * matUinv * parErrorVarProj.transpose();
+        EMatrixX reducedCovarianceMatrix(reducedStateSize, reducedStateSize);
+        reducedCovarianceMatrix = parErrorVarProj * matUinv * parErrorVarProj.transpose();
 
         helper::WriteAccessor<Data <helper::vector<FilterType> > > redState = reducedState;
         helper::WriteAccessor<Data <helper::vector<FilterType> > > redVar = reducedVariance;
@@ -581,9 +630,9 @@ void ROUKFilter<FilterType>::computeStarCorrection()
         size_t gli = 0;
         for (size_t i = 0; i < reducedStateSize; i++) {
             redState[i] = state[reducedStateIndex+i];
-            redVar[i] = covarianceMatrix(i,i);
+            redVar[i] = reducedCovarianceMatrix(i,i);
             for (size_t j = i+1; j < reducedStateSize; j++) {
-                redCovar[gli++] = covarianceMatrix(i,j);
+                redCovar[gli++] = reducedCovarianceMatrix(i,j);
             }
         }
         for (size_t index = 0; index < observationSize; index++) {
@@ -604,7 +653,7 @@ void ROUKFilter<FilterType>::computeStarCorrection()
 
         //sprintf(fileName, "outVar/covar_%03d.txt", this->stepNumber);
         //cvmFile.open(fileName);
-        //cvmFile << covarianceMatrix << std::endl;
+        //cvmFile << reducedCovarianceMatrix << std::endl;
         //cvmFile.close();
 
         //TOC("== an5sx == ");
@@ -672,6 +721,7 @@ void ROUKFilter<FilterType>::bwdInit() {
     reducedStateSize = matU.cols();
     matUinv = matU.inverse();   
 
+    PRNS("matUinv: " << matUinv);
     //PRNW("size: " << matU.rows() << " X " << matU.cols());
 
     /// compute sigma points
@@ -710,6 +760,8 @@ void ROUKFilter<FilterType>::bwdInit() {
     }
     matI = matItrans.transpose();
 
+    PRNS("Matrix verification: " << matI * matItrans);
+
     matDv.resize(sigmaPointsNum, sigmaPointsNum);
     matDv = alphaVar*alphaVar*matItrans*matI;
 
@@ -727,32 +779,50 @@ void ROUKFilter<FilterType>::bwdInit() {
     masterStateWrapper->writeState(double(0.0));
 
 
-    /// copy state (exp, covariance) to SOFA data for exporting
+    /// export initial stochastic state
     helper::WriteAccessor<Data <helper::vector<FilterType> > > redState = reducedState;
     helper::WriteAccessor<Data <helper::vector<FilterType> > > redVar = reducedVariance;
     helper::WriteAccessor<Data <helper::vector<FilterType> > > redCovar = reducedCovariance;
+    helper::WriteAccessor<Data <helper::vector<FilterType> > > mstate = d_state;
+    helper::WriteAccessor<Data <helper::vector<FilterType> > > var = d_variance;
+    helper::WriteAccessor<Data <helper::vector<FilterType> > > covar = d_covariance;
 
     EVectorX state = masterStateWrapper->getState();
     EMatrixX errorVarProj = masterStateWrapper->getStateErrorVarianceProjector();
+    PRNS("errorVarProj: " << errorVarProj);
     size_t reducedStateIndex = stateSize - reducedStateSize;
     EMatrixX parErrorVarProj(reducedStateSize,reducedStateSize);
     for (size_t i = 0; i < reducedStateSize; i++)
         for (size_t j = 0; j < reducedStateSize; j++)
             parErrorVarProj(i,j) = errorVarProj(reducedStateIndex+i,j);
-    EMatrixX covarianceMatrix(reducedStateSize, reducedStateSize);
-    covarianceMatrix = parErrorVarProj * matUinv * parErrorVarProj.transpose();
+    EMatrixX reducedCovarianceMatrix(reducedStateSize, reducedStateSize);
+    reducedCovarianceMatrix = parErrorVarProj * matUinv * parErrorVarProj.transpose();
+    EMatrixX covarianceMatrix(stateSize, stateSize);
+    covarianceMatrix = errorVarProj * matUinv * errorVarProj.transpose();
 
     redState.resize(reducedStateSize);
     redVar.resize(reducedStateSize);
     size_t numCovariances = (reducedStateSize*(reducedStateSize-1))/2;
     redCovar.resize(numCovariances);
+    mstate.resize(stateSize);
+    var.resize(stateSize);
+    numCovariances = (stateSize*(stateSize-1))/2;
+    covar.resize(numCovariances);
 
     size_t gli = 0;
     for (size_t i = 0; i < reducedStateSize; i++) {
         redState[i] = state[reducedStateIndex+i];
-        redVar[i] = covarianceMatrix(i,i);
+        redVar[i] = reducedCovarianceMatrix(i,i);
         for (size_t j = i+1; j < reducedStateSize; j++) {
-            redCovar[gli++] = covarianceMatrix(i,j);
+            redCovar[gli++] = reducedCovarianceMatrix(i,j);
+        }
+    }
+    gli = 0;
+    for (size_t i = 0; i < stateSize; i++) {
+        mstate[i] = state[i];
+        var[i] = covarianceMatrix(i,i);
+        for (size_t j = i+1; j < stateSize; j++) {
+            covar[gli++] = covarianceMatrix(i,j);
         }
     }
 

@@ -194,7 +194,11 @@ public:
     Data<helper::vector<FilterType> > reducedState;
     Data<helper::vector<FilterType> > reducedVariance;
     Data<helper::vector<FilterType> > reducedCovariance;
-    Data<helper::vector<FilterType> > d_reducedInnovation;    
+    Data<helper::vector<FilterType> > d_reducedInnovation;
+    Data<helper::vector<FilterType> > d_state;
+    Data<helper::vector<FilterType> > d_variance;
+    Data<helper::vector<FilterType> > d_covariance;
+    Data<bool> d_executeSimulationForCorrectedData;
 
 
     void init();

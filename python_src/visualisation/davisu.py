@@ -58,9 +58,9 @@ stateVar = load_matrix_from_file(folder+'/'+options['visual_parameters']['varian
 fig1 = plt.figure(1)
 spl1 = fig1.add_subplot(111)
 
-nstate=numpy.size(stateVar[1,:])
+nstate=numpy.size(stateVar[0,:])
 nparams=options['filter']['nparams']
-nsteps=numpy.size(stateVar[:,1])
+nsteps=numpy.size(stateVar[:,0])
 
 print "Number of steps: ", nsteps
 print "Number of parameters: ", nparams
@@ -123,8 +123,8 @@ for i in range(0, nparams):
 #     fig2 = plt.figure(2)
 #     spl2 = fig2.add_subplot(111)
     
-#     ninnov=numpy.size(innovationVal[1,:])
-#     nsteps=numpy.size(innovationVal[:,1])
+#     ninnov=numpy.size(innovationVal[0,:])
+#     nsteps=numpy.size(innovationVal[:,0])
 
 #     print "Innovation size: ",ninnov
 
