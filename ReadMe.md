@@ -1,5 +1,5 @@
-Advanced methods of state estimation and parameter identification in SOFA {#s:overview}
-============================================
+Advanced methods of state estimation and parameter identification in SOFA
+=========================================================================
 
 Optimus plugin was created to provide a testing environment for data-driven physics-based modeling (typically finite elements, FE).
 While actually the plugin implements only stochastic methods based on Kalman filtering, its architecture allows for implementation of 
@@ -104,7 +104,7 @@ Except for SOFA, the plugin dependencies are BLAS, Eigen (already in SOFA). It i
 
 
 Examples
-========
+--------
 
 In general, Optimus scenes are written in Python (occasionally in XML). It is highly recommended to use YAML (Python module) to define parameters of scenes. 
 Enormously increases the efficiency and avoids mishaps. 
@@ -126,7 +126,7 @@ More examples will be added soon.
 
 
 Benchmarks
-==========
+----------
 
 In order to facilitate development of Optimus, it is highly recommended to create benchmarks or regression tests. 
 The goal of these is to verify that the functionality of Optimus has not been changed. Thus, the main goal of benchmarks is to 
