@@ -83,72 +83,72 @@ end
 % RMSEStd=std(mean(RMSE))*1000;
 
 
-
-%% Plot  Hausdorff Distance
-figure0 = figure('units','normalized','outerposition',[0 0 1 1]);
-axes1 = axes('Parent',figure0);
-hold on
-grid(gca,'minor')
-grid on
-plot(h(:,1)*1000,'r','DisplayName','Q - R','Linewidth',3)
-hold on
-plot(h(:,2)*1000,'b','DisplayName','Q_{inf}- R_{inf}' ,'Linewidth',3)
-hold on
-plot(h(:,3)*1000,'g','DisplayName','Q_{sup}- R_{sup}','Linewidth',3)
-set(figure0,'Units','Inches');
-pos = get(figure0,'Position');
-set(figure0,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
-set(axes1,'FontSize',50)
-xlabel('T','FontSize',50);
-ylabel('[mm]','FontSize',50);
-axis([0 2130 0 8])
-legend1 = legend(axes1,'show');
-set(legend1,'FontSize',60);    
-%  print(figure0,'../real_h','-dpdf','-r0')
-
-
-
-%% Plot  Mean Distance at the distal segment
-figure1 = figure('units','normalized','outerposition',[0 0 1 1]);
-axes1 = axes('Parent',figure1);
-hold on
-grid(gca,'minor')
-grid on
-plot(d(:,1)*1000,'r','DisplayName','Q - R','Linewidth',3)
-hold on
-plot(d(:,2)*1000,'b','DisplayName','Q_{inf}- R_{inf}' ,'Linewidth',3)
-hold on
-plot(d(:,3)*1000,'g','DisplayName','Q_{sup}- R_{sup}','Linewidth',3)
-set(figure1,'Units','Inches');
-pos = get(figure1,'Position');
-set(figure1,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
-set(axes1,'FontSize',50)
-xlabel('T','FontSize',50);
-ylabel('[mm]','FontSize',50);
-axis([0 2130 0 8])
-legend1 = legend(axes1,'show');
-set(legend1,'FontSize',60);    
-%  print(figure0,'../real_d','-dpdf','-r0')
-
-%% Plot  Mean Distance at the distal segment
-
-figure2 = figure('units','normalized','outerposition',[0 0 1 1]);
-axes1 = axes('Parent',figure2);
-hold on
-grid(gca,'minor')
-grid on
-plot(RMSE(:,1)*1000,'r','DisplayName','Q - R','Linewidth',3)
-hold on
-plot(RMSE(:,2)*1000,'b','DisplayName','Q_{inf}- R_{inf}' ,'Linewidth',3)
-hold on
-plot(RMSE(:,3)*1000,'g','DisplayName','Q_{sup}- R_{sup}','Linewidth',3)
-set(figure2,'Units','Inches');
-pos = get(figure2,'Position');
-set(figure2,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
-set(axes1,'FontSize',50)
-xlabel('T','FontSize',50);
-ylabel('[mm]','FontSize',50);
-axis([0 2130 0 8])
-legend1 = legend(axes1,'show');
-set(legend1,'FontSize',60);    
-%  print(figure0,'../real_RMSE','-dpdf','-r0')
+% 
+% %% Plot  Hausdorff Distance
+% figure0 = figure('units','normalized','outerposition',[0 0 1 1]);
+% axes1 = axes('Parent',figure0);
+% hold on
+% grid(gca,'minor')
+% grid on
+% plot(h(:,1)*1000,'r','DisplayName','Q - R','Linewidth',3)
+% hold on
+% plot(h(:,2)*1000,'b','DisplayName','Q_{inf}- R_{inf}' ,'Linewidth',3)
+% hold on
+% plot(h(:,3)*1000,'g','DisplayName','Q_{sup}- R_{sup}','Linewidth',3)
+% set(figure0,'Units','Inches');
+% pos = get(figure0,'Position');
+% set(figure0,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
+% set(axes1,'FontSize',50)
+% xlabel('T','FontSize',50);
+% ylabel('[mm]','FontSize',50);
+% axis([0 2130 0 8])
+% legend1 = legend(axes1,'show');
+% set(legend1,'FontSize',60);    
+% %  print(figure0,'../real_h','-dpdf','-r0')
+% 
+% 
+% 
+% %% Plot  Mean Distance at the distal segment
+% figure1 = figure('units','normalized','outerposition',[0 0 1 1]);
+% axes1 = axes('Parent',figure1);
+% hold on
+% grid(gca,'minor')
+% grid on
+% plot(d(:,1)*1000,'r','DisplayName','Q - R','Linewidth',3)
+% hold on
+% plot(d(:,2)*1000,'b','DisplayName','Q_{inf}- R_{inf}' ,'Linewidth',3)
+% hold on
+% plot(d(:,3)*1000,'g','DisplayName','Q_{sup}- R_{sup}','Linewidth',3)
+% set(figure1,'Units','Inches');
+% pos = get(figure1,'Position');
+% set(figure1,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
+% set(axes1,'FontSize',50)
+% xlabel('T','FontSize',50);
+% ylabel('[mm]','FontSize',50);
+% axis([0 2130 0 8])
+% legend1 = legend(axes1,'show');
+% set(legend1,'FontSize',60);    
+% %  print(figure0,'../real_d','-dpdf','-r0')
+% 
+% %% Plot  Mean Distance at the distal segment
+% 
+% figure2 = figure('units','normalized','outerposition',[0 0 1 1]);
+% axes1 = axes('Parent',figure2);
+% hold on
+% grid(gca,'minor')
+% grid on
+% plot(RMSE(:,1)*1000,'r','DisplayName','Q - R','Linewidth',3)
+% hold on
+% plot(RMSE(:,2)*1000,'b','DisplayName','Q_{inf}- R_{inf}' ,'Linewidth',3)
+% hold on
+% plot(RMSE(:,3)*1000,'g','DisplayName','Q_{sup}- R_{sup}','Linewidth',3)
+% set(figure2,'Units','Inches');
+% pos = get(figure2,'Position');
+% set(figure2,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
+% set(axes1,'FontSize',50)
+% xlabel('T','FontSize',50);
+% ylabel('[mm]','FontSize',50);
+% axis([0 2130 0 8])
+% legend1 = legend(axes1,'show');
+% set(legend1,'FontSize',60);    
+% %  print(figure0,'../real_RMSE','-dpdf','-r0')

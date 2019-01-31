@@ -57,6 +57,7 @@ public:
     Data<VecCoord> _positions;
     Data<helper::vector<int> > _indices;
     Data<bool> _draw;
+    Data<bool>  _drawOnlySpheres;
     Data<float> _radius;
     Data<float> _showIndicesSize;
     Data<Vec4f> _color;

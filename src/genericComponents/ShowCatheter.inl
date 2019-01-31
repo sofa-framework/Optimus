@@ -41,7 +41,8 @@ template <class DataTypes>
 ShowCatheter<DataTypes>::ShowCatheter()
     : _positions( initData(&_positions, "position", "positions to draw the spheres") )
     , _indices( initData(&_indices, "indices", "indices of the position vector to be shown") )
-    , _draw( initData(&_draw, true, "draw", "draw the spheres") )
+    , _draw( initData(&_draw, true, "draw", "draw beams connecting the nodes") )
+    , _drawOnlySpheres ( initData(&_drawOnlySpheres, false, "drawOnlySpheres", "draw only spheres ") )
     , _radius( initData(&_radius, "radius", "radius of the spheres") )
     , _showIndicesSize( initData(&_showIndicesSize, float(0.0), "showIndicesScale", "size of indices") )
     , _color( initData(&_color, "color", "color of the spheres") )
@@ -92,6 +93,7 @@ void ShowCatheter<DataTypes>::draw(const core::visual::VisualParams* vparams) {
         vparams->drawTool()->setLightingEnabled(true); //Enable lightning
         vparams->drawTool()->drawSpheres(points, radii, _color.getValue());
         vparams->drawTool()->setPolygonMode(0,false);
+        if (!_drawOnlySpheres.getValue())
         vparams->drawTool()->drawLineStrip(points, 3.0, _color.getValue());
 
 
