@@ -219,7 +219,7 @@ class AppStiff_SDA(Sofa.PythonScriptController):
             simuNode.createObject('MeshMatrixMass', printMass='0', lumping='1', massDensity=self.opt['model']['density'], name='mass')    
         
         # physics forcefield
-        simuNode.createObject('OptimParams', name="paramE", optimize="1", template="Vector", 
+        simuNode.createObject('OptimParams', name="paramE", optimize="1", template="Vector",
             numParams=self.opt['filter']['nparams'], transformParams=self.opt['filter']['param_transform'],
             initValue=self.opt['filter']['param_init_exval'], stdev=self.opt['filter']['param_init_stdev'],
             minValue=self.opt['filter']['param_min_val'], maxValue=self.opt['filter']['param_max_val'])
@@ -285,7 +285,8 @@ class AppStiff_SDA(Sofa.PythonScriptController):
             obsNode.createObject('MechanicalObject', src='@obsloader', name='MO')
             obsNode.createObject('BarycentricMapping')
             obsNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1')
-            obsNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.errFile, ExportPositions='1', ExportVelocities='0', ExportForces='0')
+            obsNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.errFile, 
+                ExportPositions='1', ExportVelocities='0', ExportForces='0',  exportOnEvent='2', printLog='0')
             obsNode.createObject('ShowSpheres', radius="0.0008", color="0.3 1 1 1", position='@MO.position')    
 
         if self.saveData > 2:
@@ -432,7 +433,7 @@ class AppStiff_SDA(Sofa.PythonScriptController):
             return
 
     def cleanup(self):
-        if save.saveData > 0:
+        if self.saveData > 0:
             print 'Estimations saved to '+self.sdaFolder    
 
         return 0;

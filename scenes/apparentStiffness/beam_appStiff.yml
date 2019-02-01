@@ -24,7 +24,7 @@ model:
     applied_pressure:
         initial_pressure: [0., 0., 0.]
         num_inc_steps: 50
-        num_wait_steps: 100
+        num_wait_steps: 0
         delta: [0., 1.0, 5.0]  
 
     linsol:

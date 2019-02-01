@@ -33,6 +33,8 @@
 #include <sofa/defaulttype/Vec.h>
 #include <cmath>
 
+#include "../genericComponents/FilterEvents.h"
+
 
 
 
@@ -66,9 +68,11 @@ OptimMonitor<DataTypes>::OptimMonitor()
     , d_showSizeFactor(initData (&d_showSizeFactor, 1.0, "sizeFactor", "factor to multiply to arrows"))
     , d_fileName(initData (&d_fileName, "fileName", "name of the plot files to be generated"))
     , d_saveZeroStep(initData (&d_saveZeroStep, true, "saveZeroStep", "save positions for zero time step"))
+    , d_exportOnEvent (initData (&d_exportOnEvent, 0, "exportOnEvent", "on which event data are exported: 0: animate end event, 1: after prediction, 2: after correction"))
     , m_saveGnuplotX ( NULL ), m_saveGnuplotV ( NULL ), m_saveGnuplotF ( NULL )
     , m_X (NULL), m_V(NULL), m_F(NULL)
     , m_internalDt(0.0)
+
 {
     if (!f_listening.isSet()) f_listening.setValue(true);
 
@@ -167,9 +171,21 @@ void OptimMonitor<DataTypes>::reinit()
 template<class DataTypes>
 void OptimMonitor<DataTypes>::handleEvent( core::objectmodel::Event* ev )
 {
-    if (sofa::simulation::AnimateEndEvent::checkEventType(ev))
-    {
 
+    bool exportEvent = false;
+    int exportOnEvent = d_exportOnEvent.getValue();
+
+    switch (exportOnEvent) {
+    case 0: exportEvent = sofa::simulation::AnimateEndEvent::checkEventType(ev); break;
+    case 1: exportEvent = sofa::component::stochastic::PredictionEndEvent::checkEventType(ev); break;
+    case 2: exportEvent = sofa::component::stochastic::CorrectionEndEvent::checkEventType(ev); break;
+    }
+
+    if (exportEvent)
+        PRNS("Exporting on event " << exportOnEvent);
+
+    if (exportEvent)
+    {
         core::behavior::MechanicalState<DataTypes>* mmodel = dynamic_cast<core::behavior::MechanicalState<DataTypes>*>( this->getContext()->getMechanicalState() );
 
         if(!mmodel)

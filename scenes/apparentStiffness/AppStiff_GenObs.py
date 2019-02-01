@@ -210,7 +210,7 @@ class AppStiff_GenObs(Sofa.PythonScriptController):
             obsNode.createObject('MechanicalObject', src='@obsloader', name='MO')
             obsNode.createObject('BarycentricMapping')
             obsNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1')
-            obsNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.obsFile, ExportPositions='1', ExportVelocities='0', ExportForces='0')
+            obsNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.obsFile, ExportPositions='1', ExportVelocities='0', ExportForces='0', printLog='0')
             obsNode.createObject('ShowSpheres', radius="0.002", color="1 0 0 1", position='@MO.position')
 
 
@@ -220,7 +220,7 @@ class AppStiff_GenObs(Sofa.PythonScriptController):
             obsNode.createObject('MechanicalObject', src='@obsloader', name='MO')
             obsNode.createObject('BarycentricMapping')
             obsNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1')
-            obsNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.errFile, ExportPositions='1', ExportVelocities='0', ExportForces='0')
+            obsNode.createObject('OptimMonitor', name='ErrorMonitor', indices='@observationBox.indices', fileName=self.errFile, ExportPositions='1', ExportVelocities='0', ExportForces='0')
             obsNode.createObject('ShowSpheres', radius="0.0008", color="0.3 1 1 1", position='@MO.position')
 
         if self.saveData > 2:

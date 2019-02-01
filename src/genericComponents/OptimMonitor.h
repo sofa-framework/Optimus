@@ -116,6 +116,7 @@ public:
     Data< double > d_showSizeFactor; ///< factor to multiply to arrows
     core::objectmodel::DataFileName  d_fileName;
     Data< bool > d_saveZeroStep;
+    Data< int > d_exportOnEvent;
 
 protected:
 
