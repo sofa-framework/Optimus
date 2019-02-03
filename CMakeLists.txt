@@ -63,7 +63,7 @@ set(SOURCE_FILES
     )
 
 set(README_FILES 
-    Optimus.txt 
+    ReadMe.md
     )
 
 if ( ${STOCHASTIC_FILTERING} )
