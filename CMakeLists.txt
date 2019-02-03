@@ -8,7 +8,6 @@ set(OPTIMUS_VERSION ${OPTIMUS_MAJOR_VERSION}.${OPTIMUS_MINOR_VERSION})
 find_package(SofaFramework REQUIRED)
 find_package(SofaBase REQUIRED)
 find_package(SofaGeneral REQUIRED)
-#find_package(SofaPardisoSolver QUIET)
 
 set(LINKER_DEPENDENCIES SofaComponentBase SofaComponentGeneral SofaBaseTopology SofaExporter blas pthread)
 set(COMPILATION_FLAGS "-DSOFA_BUILD_OPTIMUS -Wno-unused-local-typedef -Wno-deprecated")
@@ -107,7 +106,6 @@ if ( ${STOCHASTIC_FILTERING} )
 endif()
 
 
-#link_directories("/usr/local/gfortran/lib")
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${README_FILES})
 
 if(SofaPardisoSolver_FOUND)
