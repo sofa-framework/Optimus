@@ -3,8 +3,8 @@
 ---
 model:
     dt: 0.01
-    vol_mesh: '../data/cylinder/cylinder10_4245.vtk'
-    surf_mesh: '../data/cylinder/cylinder10_4245.stl'
+    vol_mesh: '../../data/cylinder/cylinder10_4245.vtk'
+    surf_mesh: '../../data/cylinder/cylinder10_4245.stl'
     gravity: [0, -9.81, 0]
     total_mass: 0.2
     young_moduli: [3500, 4000, 1000, 6000, 2000, 7000, 2500, 8000, 3000, 1500]
@@ -19,7 +19,7 @@ model:
         boxes: '-0.05 -0.05 -0.002   0.05 0.05 0.002   -0.05 -0.05  0.298   0.05 0.05 0.302'
 
     linsol:
-        usePCG: 0
+        usePCG: 1
         pardisoSym: 1
         pardisoFolder: ''
         
@@ -28,9 +28,9 @@ model:
 io:    
     prefix: 'cyl10gravity_'
     suffix: ''
-    saveGeo: 0
+    saveGeo: 1
     saveObs: 1                  # GO only
-    obsFileName: 'obs'
+    obsFileName: 'pos33'
     saveEst: 1                  # SDA only
     sdaFolderSuffix: ''         # SDA only
 
@@ -38,11 +38,12 @@ filter:                         # SDA only
     kind: 'ROUKF'               # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
     nparams: 10
     param_init_exval: [6000]
-    param_init_stdev: [1000]
+    param_init_stdev: [100]
     param_transform: 'absolute'
     obs_tag: obs33
-    obs_points: '../data/cylinder/cyl10_4245_obs33.vtk'
-    observ_stdev: 1e-5
+    obs_points: '../../data/cylinder/cyl10_4245_obs33.vtk'
+    observ_stdev: 1e-3
+    observ_noise_stdev: 1e-3
     sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
     sigma_points_scale: 1
     bound_filter_state: 1

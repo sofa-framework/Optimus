@@ -62,12 +62,12 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             prefix = prefix + 'plane_'
 
         #self.mainFolder =  '' prefix + opt['model']['int']['type'] + str(opt['model']['int']['maxit']) + suffix    
-        self.obsFile = 'obs_testing/obs' # self.mainFolder + '/' + opt['io']['obsFileName']
-        self.estFolder = 'roukf_testing' # self.mainFolder + '/' + opt['filter']['kind'] + '_' + opt['filter']['obs_tag'] + opt['io']['sdaFolderSuffix']
+        self.obsFile = 'observations/'+ opt['io']['obsFileName']
+        self.estFolder = 'ROUKF' # self.mainFolder + '/' + opt['filter']['kind'] + '_' + opt['filter']['obs_tag'] + opt['io']['sdaFolderSuffix']
 
         if self.saveEst:                        
-            #os.system('mv '+self.estFolder+' '+self.estFolder+'_arch')
-            #os.system('mkdir '+self.estFolder)
+            os.system('mv '+self.estFolder+' '+self.estFolder+'_arch')
+            os.system('mkdir '+self.estFolder)
 
             self.stateExpFile=self.estFolder+'/state.txt'
             self.stateVarFile=self.estFolder+'/variance.txt'
@@ -200,7 +200,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         
         obsNode.createObject('BarycentricMapping')
         obsNode.createObject('MappedStateObservationManager', name="MOBS", listening="1", stateWrapper="@../../StateWrapper", verbose="1",
-                    observationStdev=self.opt['filter']['observ_stdev'], noiseStdev='0.0')
+                    observationStdev=self.opt['filter']['observ_stdev'], noiseStdev=self.opt['filter']['observ_noise_stdev'])
         obsNode.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix=self.obsFile)
         obsNode.createObject('ShowSpheres', radius="0.002", color="1 0 0 1", position='@SourceMO.position')
         obsNode.createObject('ShowSpheres', radius="0.0015", color="1 1 0 1", position='@MOBS.mappedObservations')

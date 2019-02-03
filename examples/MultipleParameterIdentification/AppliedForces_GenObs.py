@@ -61,16 +61,16 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
             if self.planeCollision:
                 prefix = prefix + 'plane_'
 
-            self.mainFolder = 'obs_testing' # prefix + opt['model']['int']['type'] + str(opt['model']['int']['maxit']) + suffix
+            self.mainFolder = 'observations' # prefix + opt['model']['int']['type'] + str(opt['model']['int']['maxit']) + suffix
 
-            #os.system('mv '+self.mainFolder+' '+self.mainFolder+'_arch')
-            #os.system('mkdir '+self.mainFolder)
+            os.system('mv '+self.mainFolder+' '+self.mainFolder+'_arch')
+            os.system('mkdir '+self.mainFolder)
 
         if self.saveObs:
             self.obsFile = self.mainFolder + '/' + opt['io']['obsFileName']
 
         if self.saveGeo:
-            self.geoFolder = self.mainFolder + '/' + opt['io']['obsFileName']+'VTK'
+            self.geoFolder = self.mainFolder + '/VTK'
             os.system('mkdir -p '+self.geoFolder)
 
         self.createGraph(rootNode)
