@@ -48,7 +48,6 @@ Compilation of these components must be activated by CMake macro STOCHASTIC_FILT
 -   Calls filter to perform the assimilation in each step.
 
 -	Issues special events: PredictionEndEvent after calling the prediction step of the filter, and CorrectionEndEvent after calling the correction step of the filter. 
-\medskip
 
 `StochasticStateWrapper`
 -   Wrapper of model provided by SOFA. This wrapper implements the interface between the stochastic components (filters) and SOFA simulation. 
@@ -57,7 +56,6 @@ Compilation of these components must be activated by CMake macro STOCHASTIC_FILT
 
 -   Requires MechanicalObject and assumes OptimParams in the same node. 
 
-\medskip
 
 `UKFilter`
 
@@ -65,7 +63,6 @@ Compilation of these components must be activated by CMake macro STOCHASTIC_FILT
 
 -	Main methods are initializeStep(), computePrediction() and computeCorrection(), all called by the FilteringAnimationLoop.
 
-\medskip
 
 `ROUKFilter`
 
@@ -73,7 +70,6 @@ Compilation of these components must be activated by CMake macro STOCHASTIC_FILT
 
 -	Main methods are initializeStep(), computePrediction() and computeCorrection(), all called by the FilteringAnimationLoop.
 
-\medskip
 
 `UKFilterSimCorr`
 
@@ -81,7 +77,6 @@ Compilation of these components must be activated by CMake macro STOCHASTIC_FILT
 
 -	Main methods are initializeStep(), computePrediction() and computeCorrection(), all called by the FilteringAnimationLoop.
 
-\medskip
 
 `MappedStateObservationManager`
 
