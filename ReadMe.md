@@ -46,6 +46,8 @@ Compilation of these components must be activated by CMake macro STOCHASTIC_FILT
 -   Compliant with SOFA API for animation loops.
 
 -   Calls filter to perform the assimilation in each step.
+
+-	Issues special events: PredictionEndEvent after calling the prediction step of the filter, and CorrectionEndEvent after calling the correction step of the filter. 
 \medskip
 
 `StochasticStateWrapper`
@@ -61,17 +63,23 @@ Compilation of these components must be activated by CMake macro STOCHASTIC_FILT
 
 -   Unscented Kalman Filter proposed by Julier and Uhlman (1997). Implementation performed according to code in Reduced order Kalman filter implemented according to Moireau, Philippe, and Dominique Chapelle. "Reduced-order Unscented Kalman Filtering with application to parameter identification in large-dimensional systems." 
 
+-	Main methods are initializeStep(), computePrediction() and computeCorrection(), all called by the FilteringAnimationLoop.
+
 \medskip
 
 `ROUKFilter`
 
 -   Reduced order Kalman filter implemented according to Moireau, Philippe, and Dominique Chapelle. "Reduced-order Unscented Kalman Filtering with application to parameter identification in large-dimensional systems." 
 
+-	Main methods are initializeStep(), computePrediction() and computeCorrection(), all called by the FilteringAnimationLoop.
+
 \medskip
 
 `UKFilterSimCorr`
 
 -   Special version of UKF filter purely for data assimilation. Currently being studied. 
+
+-	Main methods are initializeStep(), computePrediction() and computeCorrection(), all called by the FilteringAnimationLoop.
 
 \medskip
 
