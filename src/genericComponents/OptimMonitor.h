@@ -38,6 +38,12 @@ namespace component
 namespace misc
 {
 
+/**
+ * Class which replaces the default monitor in SOFA. Differences:
+ * 1. Export on special Optimus events (see initialization according to d_exportOnEvent
+ * 2. Reinitialize pointers to mechanical object data everytime before the export (needed for some Python scenes)
+ **/
+
 template <class DataTypes>
 class OptimMonitor: public virtual core::objectmodel::BaseObject
 {

@@ -309,6 +309,53 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _
 
 }
 
+template<class DataTypes>
+bool SimulatedStateObservationSource<DataTypes>::getObservation(double _time, VecCoord& _observation) {
+    if (d_asynObs.getValue()) {
+        helper::ReadAccessor<Data<VecCoord> > tracObs = m_trackedObservations;
+        if (tracObs.size() > 0 ) {
+            m_actualObservation.setValue(m_trackedObservations.getValue());
+            _observation = m_actualObservation.getValue();
+        } else {
+            int tround = (int) (_time * ROUND);
+            _time = tround / ROUND; // round the value time
+            typename std::map<double, VecCoord>::iterator it = observationTable.find(_time);
+            if (it == observationTable.end()) {
+                PRNE("No observation for time " << _time << " Computing Only Prediction ");
+                m_actualObservation.setValue(VecCoord());
+                _observation = VecCoord();
+                return false;
+            } else {
+                m_actualObservation.setValue(it->second);
+                _observation = it->second;
+                if (it->second.empty()){
+                    PRNE("No observation for time " << _time << " Computing Only Prediction ");
+                    return false;
+                }
+            }
+        }
+        return(true);
+    } else {
+        helper::ReadAccessor<Data<VecCoord> > tracObs = m_trackedObservations;
+        if (tracObs.size() > 0 ) {
+            m_actualObservation.setValue(m_trackedObservations.getValue());
+            _observation = m_actualObservation.getValue();
+        } else {
+            size_t ix = (fabs(dt) < 1e-10) ? 0 : size_t(round(_time/dt));
+            //PRNS("Getting observation for time " << _time << " index: " << ix);
+            if (ix >= size_t(positions.size())) {
+                PRNE("No observation for time " << _time << " , using the last one from " << positions.size()-1);
+                ix = positions.size() - 1;
+            }
+            m_actualObservation.setValue(positions[ix]);
+            _observation = positions[ix];
+        }
+
+        return(true);
+    }
+
+}
+
 
 
 template<class DataTypes>

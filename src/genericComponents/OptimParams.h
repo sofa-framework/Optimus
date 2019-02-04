@@ -53,6 +53,8 @@ namespace container
 
 using namespace defaulttype;
 
+/// definition of functors necessary to create a template on arbitrary SOFA type
+
 template <class DataTypes>
 struct templateName
 {
@@ -123,6 +125,10 @@ struct templateName<sofa::helper::vector<float> >
 {
     std::string operator ()(void) { return("Vector"); }
 };
+
+/**
+ * Parent class for OptimParams (see below)
+ */
 
 class OptimParamsBase : public sofa::core::objectmodel::BaseObject
 {
@@ -223,7 +229,9 @@ public:
     }
 };
 
-//////////////////////////////////////////////////////////////////////////
+/**
+ * Class used as a container of stochastic values. Gaussian distribution is assumed, thus a variable is represented by expected value and standard deviation.
+ */
 template <class DataTypes>
 class OptimParams : public OptimParamsBase
 {
@@ -243,6 +251,7 @@ public:
     typedef core::behavior::MechanicalState<defaulttype::Rigid3dTypes> MechStateRigid3d;
 
     //SingleLink<OptimParams<DataTypes>, MechStateVec3d, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> m_paramMOLink;
+    /// To be removed since the component must be independent  from the mechanical object!
     SingleLink<OptimParams<DataTypes>, MechStateRigid3d, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> m_paramMOLinkrigid;
     //MechStateVec3d* paramMO;
     MechStateRigid3d* paramMOrigid;
