@@ -85,7 +85,7 @@ void AddNoiseEngine<DataTypes>::init() {
 }
 
 template<class DataTypes>
-void AddNoiseEngine<DataTypes>::update() {
+void AddNoiseEngine<DataTypes>::doUpdate() {
     helper::ReadAccessor< Data< VecCoord > > inputPos = _inputPositions;
     helper::WriteAccessor< Data< VecCoord > > outputPos = _outputPositionsWithNoise;
 

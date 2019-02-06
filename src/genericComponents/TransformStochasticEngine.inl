@@ -94,7 +94,7 @@ void TransformStochasticEngine<DataTypes>::bwdInit()
 template <class DataTypes>
 void TransformStochasticEngine<DataTypes>::reinit()
 {
-    update();
+    doUpdate();
 
 }
 
@@ -238,7 +238,7 @@ private:
 
 
 template <class DataTypes>
-void TransformStochasticEngine<DataTypes>::update()
+void TransformStochasticEngine<DataTypes>::doUpdate()
 {
 //    ReadAccessor<Data<VecCoord> > inDilate= f_inputX;
 //    ReadAccessor<Data<SeqTriangles> > triangles = d_triangles;

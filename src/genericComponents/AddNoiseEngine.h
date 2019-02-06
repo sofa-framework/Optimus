@@ -85,10 +85,10 @@ public:
     void init();
 
     void reinit() {
-        update();
+        doUpdate();
     }
 
-    void update();
+    void doUpdate();
     double getRandomGauss(const double mean, const double sigma);
     
     void handleEvent(core::objectmodel::Event *event);

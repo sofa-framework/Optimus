@@ -11,7 +11,7 @@
     <ViewerSetting resolution="837 600" />
 
     <FilteringAnimationLoop name="StochAnimLoop" verbose="1"/>
-    <UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0"   draw="0" radiusDraw="0.0" MOnodesDraw="12"  filenameFinalState="realDataSet/test3" exportPrefix="cov_" />
+    <UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0"   draw="0" radiusDraw="0.0" MOnodesDraw="12"  filenameFinalState="realDataSet/Q3_R1" exportPrefix="cov_" />
 
     
 <!--  ####   HERE YOU CAN CHOOSE YOUR VIEW: EITHER SIDE OR TOP VIEW   ####--> 
@@ -64,7 +64,7 @@
         <Node name="cat">
             <EulerImplicitSolver rayleighMass="0.00" rayleighStiffness="0.0" />	
             <BTDLinearSolver name="BTD"/>
-            <MechanicalObject template="Rigid" name="MO"     
+            <MechanicalObject template="Rigid3d" name="MO"     
                               position=" 0.015043 0.053987 -0.058037 -5.84121e-12 -0.707107 0.707107 -3.31838e-10 
                                         0.010226 0.054093 -0.058009 -7.7867e-12 -0.707107 0.707107 -3.29785e-10 
                                         0.00531889 0.054576 -0.057995 -1.94831e-12 -0.707107 0.707107 2.06597e-12
@@ -109,7 +109,7 @@
             <Node name="obsNode" activated="1">        
                 <SimulatedStateObservationSource template="Vec2d" name="observations" monitorPrefix="realDataSet/obs_N12" asynObs="true"/>    
                 <SimpleObservationManager name="MSIDES" template="Vec2d,Rigid3d" listening="1"  stateWrapper="@../../StateWrapper" use2dObservation="true"   
-                                          projectionMatrix="[-3320.65 174.572 -514.441 193.451 134.409 3340.13 44.4847 -64.7090 0.0480279 0.103531 -0.993466 0.400192]" verbose="1" observationStdev="0.01"/>
+                                          projectionMatrix="[-3320.65 174.572 -514.441 193.451 134.409 3340.13 44.4847 -64.7090 0.0480279 0.103531 -0.993466 0.400192]" verbose="1" observationStdev="0.1"/>
             </Node>
         </Node> 
     

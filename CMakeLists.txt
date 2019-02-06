@@ -26,10 +26,10 @@ set(HEADER_FILES
     src/genericComponents/SimulatedStateObservationSource.inl
     src/genericComponents/SimulatedStateObservationStreamer.h
     src/genericComponents/SimulatedStateObservationStreamer.inl
-    src/genericComponents/AddNoiseEngine.h
-    src/genericComponents/AddNoiseEngine.inl
-    src/genericComponents/Transform3dToRigid.inl
-    src/genericComponents/Transform3dToRigid.h
+#    src/genericComponents/AddNoiseEngine.h
+#    src/genericComponents/AddNoiseEngine.inl
+#    src/genericComponents/Transform3dToRigid.inl
+#    src/genericComponents/Transform3dToRigid.h
     src/genericComponents/CorrectionForceField.h
     src/genericComponents/CorrectionForceField.inl
     src/genericComponents/TransformStochasticEngine.h
@@ -51,8 +51,8 @@ set(SOURCE_FILES
     src/genericComponents/PointProjection.cpp
     src/genericComponents/SimulatedStateObservationSource.cpp
     src/genericComponents/SimulatedStateObservationStreamer.cpp
-    src/genericComponents/AddNoiseEngine.cpp
-    src/genericComponents/Transform3dToRigid.cpp
+#    src/genericComponents/AddNoiseEngine.cpp
+#    src/genericComponents/Transform3dToRigid.cpp
     src/genericComponents/CorrectionForceField.cpp
     src/genericComponents/TransformStochasticEngine.cpp
     src/genericComponents/StochasticPositionHandler.cpp

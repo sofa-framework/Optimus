@@ -64,7 +64,7 @@
         <Node name="cat">
             <EulerImplicitSolver rayleighMass="0.00" rayleighStiffness="0.0" />	
             <BTDLinearSolver name="BTD"/>
-            <MechanicalObject template="Rigid" name="MO"     
+            <MechanicalObject template="Rigid3d" name="MO"     
                               position=" 0.015043 0.053987 -0.058037 -5.84121e-12 -0.707107 0.707107 -3.31838e-10 
                                         0.010226 0.054093 -0.058009 -7.7867e-12 -0.707107 0.707107 -3.29785e-10 
                                         0.00531889 0.054576 -0.057995 -1.94831e-12 -0.707107 0.707107 2.06597e-12
