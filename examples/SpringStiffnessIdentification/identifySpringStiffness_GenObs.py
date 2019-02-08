@@ -60,7 +60,7 @@ class synth1_GenObs (Sofa.PythonScriptController):
         simuNode.createObject('NewtonStaticSolver', maxIt='3', name='NewtonStatic', correctionTolerance='1e-8', convergeOnResidual='1', residualTolerance='1e-8', printLog='0')
         # simuNode.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
         # simuNode.createObject('StaticSolver')
-        simuNode.createObject('SparsePARDISOSolver', symmetric='1', exportDataToFolder='new', name='precond', iterativeSolverNumbering='1')
+        simuNode.createObject('SparsePARDISOSolver', symmetric='1', exportDataToFolder='', name='precond', iterativeSolverNumbering='1')
         # simuNode.createObject('SparseLDLSolver')
 
         simuNode.createObject('MeshVTKLoader', name='loader', filename=volumeFileName)
