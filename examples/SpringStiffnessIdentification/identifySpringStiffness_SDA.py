@@ -33,7 +33,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         self.materialParams='{} {}'.format(mu,lamb)
         
         self.ogridID=4
-        inputDir='obs_testing'
+        inputDir='observations'
         outDir='roukf_testing'
         self.volumeVTK=inputDir+'/object_0.vtk'
         self.surfaceSTL='../../data/brickD/brickD_536.stl'
@@ -157,7 +157,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         toolEmu = node.createChild('toolEmu')        
         toolEmu.createObject('MechanicalObject',name="MO",src="@/toolLoader")
         print self.toolMonitorPrefix
-        toolEmu.createObject('SimulatedStateObservationSource', name="ToolA",printLog="1", monitorPrefix=self.toolMonitorPrefix,drawSize="0.0015",controllerMode="1")
+        toolEmu.createObject('SimulatedStateObservationSource', name="ToolA",printLog="1", monitorPrefix=self.toolMonitorPrefix, drawSize="0.0015",controllerMode="1")
         
         node.createObject('Mapped3DoFForceField', mappedFEM="mappedTool/toolSpring", mappedMechObject="mappedTool/MO", mapping="mappedTool/baryMapping", printLog="0")        
         toolMapped = node.createChild('mappedTool');

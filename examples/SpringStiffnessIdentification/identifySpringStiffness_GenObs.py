@@ -36,14 +36,15 @@ class synth1_GenObs (Sofa.PythonScriptController):
 
         # rootNode/tool
         tool = rootNode.createChild('tool')
-        tool.createObject('MechanicalObject', name='MO', position='0.045 0.1 0.0   0.05 0.1 0.0   0.055 0.1 0.0   0.045 0.1 -0.005   0.05 0.1 -0.005   0.055 0.1 -0.005    0.045 0.1 -0.01   0.05 0.1 -0.01   0.055 0.1 -0.01')
+        tool.createObject('PointSetTopologyContainer', name='pointTopo', position='0.045 0.1 0.0   0.05 0.1 0.0   0.055 0.1 0.0   0.045 0.1 -0.005   0.05 0.1 -0.005   0.055 0.1 -0.005    0.045 0.1 -0.01   0.05 0.1 -0.01   0.055 0.1 -0.01')
+        tool.createObject('MechanicalObject', name='MO', position='@pointTopo.position')        
         tool.createObject('Sphere', color='0 0 1 1', radius='0.0014')
-        # tool.createObject('LinearMotionStateController', indices='0 1 2 3 4 5 6 7 8', keyTimes='0 200', keyDisplacements='0 0 0    0.0 0.04 0')
+        tool.createObject('LinearMotionStateController', indices='0 1 2 3 4 5 6 7 8', keyTimes='0 200', keyDisplacements='0 0 0    0.0 0.04 0')
 
-        tool.createObject('LinearMotionStateController', indices='0 1 2 3 4 5 6 7 8', keyTimes='0 200', keyDisplacements='0 0 0    0.0 0.0 0')
+        # tool.createObject('LinearMotionStateController', indices='0 1 2 3 4 5 6 7 8', keyTimes='0 200', keyDisplacements='0 0 0    0.0 0.0 0')
 
         if saveObservations:
-            tool.createObject('VTKExporter', position="@MO.position", edges="0", listening="0" , XMLformat='0', exportAtBegin='1', exportEveryNumberOfSteps="0", filename=outputDir+'/tool.vtk')
+            # tool.createObject('VTKExporter', position="@MO.position", edges="0", listening="0" , XMLformat='0', exportAtBegin='1', exportEveryNumberOfSteps="0", filename=outputDir+'/tool.vtk')
             tool.createObject('BoxROI', name='toolDOFs', box='-1 -1 -1 1 1 1')        
             tool.createObject('OptimMonitor', name='toolMonitor', fileName=outputDir+'/tool', showPositions='1', indices="@toolDOFs.indices", ExportPositions="1", ExportVelocities="1", ExportForces="1")
 
@@ -59,7 +60,7 @@ class synth1_GenObs (Sofa.PythonScriptController):
         simuNode.createObject('NewtonStaticSolver', maxIt='3', name='NewtonStatic', correctionTolerance='1e-8', convergeOnResidual='1', residualTolerance='1e-8', printLog='0')
         # simuNode.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
         # simuNode.createObject('StaticSolver')
-        simuNode.createObject('SparsePARDISOSolver', symmetric='1', exportDataToFolder='old', name='precond', iterativeSolverNumbering='1')
+        simuNode.createObject('SparsePARDISOSolver', symmetric='1', exportDataToFolder='new', name='precond', iterativeSolverNumbering='1')
         # simuNode.createObject('SparseLDLSolver')
 
         simuNode.createObject('MeshVTKLoader', name='loader', filename=volumeFileName)

@@ -36,12 +36,14 @@ class synth1_GenObs (Sofa.PythonScriptController):
 
         # rootNode/tool
         tool = rootNode.createChild('tool')
-        tool.createObject('MechanicalObject', name='MO', position='0.045 0.1 0.0   0.05 0.1 0.0   0.055 0.1 0.0   0.045 0.1 -0.005   0.05 0.1 -0.005   0.055 0.1 -0.005    0.045 0.1 -0.01   0.05 0.1 -0.01   0.055 0.1 -0.01')
+        tool.createObject('PointSetTopologyContainer', name='pointTopo', position='0.045 0.1 0.0   0.05 0.1 0.0   0.055 0.1 0.0   0.045 0.1 -0.005   0.05 0.1 -0.005   0.055 0.1 -0.005    0.045 0.1 -0.01   0.05 0.1 -0.01   0.055 0.1 -0.01')
+        tool.createObject('MechanicalObject', name='MO', position='@pointTopo.position')
         tool.createObject('Sphere', color='0 0 1 1', radius='0.0014')
         tool.createObject('LinearMotionStateController', indices='0 1 2 3 4 5 6 7 8', keyTimes='0 200', keyDisplacements='0 0 0    0.0 0.04 0')
 
         if saveObservations:
-            tool.createObject('VTKExporter', position="@MO.position", edges="0", listening="0" , XMLformat='0', exportAtBegin='1', exportEveryNumberOfSteps="0", filename=outputDir+'/tool.vtk')
+            # Grid.createObject('VTKExporter', name='observationExp', filename=monitorFile+'.vtk', position="@MO.position", listening="0" , XMLformat='0', exportAtBegin='1', exportEveryNumberOfSteps="0")
+            tool.createObject('VTKExporter', name='toolExp', filename=outputDir+'/tool.vtk',     position="@MO.position", listening="0" , XMLformat='0', exportAtBegin='1', exportEveryNumberOfSteps="0")
             tool.createObject('BoxROI', name='toolDOFs', box='-1 -1 -1 1 1 1')        
             tool.createObject('OptimMonitor', name='toolMonitor', fileName=outputDir+'/tool', showPositions='1', indices="@toolDOFs.indices", ExportPositions="1", ExportVelocities="1", ExportForces="1")
 
@@ -92,7 +94,7 @@ class synth1_GenObs (Sofa.PythonScriptController):
         simuNode.createObject('PointsFromIndices', template='Vec3d', name='FixedPoints', indices='@FROI1.indices')
 
         if saveObservations:
-            simuNode.createObject('VTKExporter', position="@MO.position", listening="1" , XMLformat='0', exportAtBegin="1", exportAtEnd='0', exportEveryNumberOfSteps="0", 
+            simuNode.createObject('VTKExporter', name='ObsExp', position="@MO.position", listening="1" , XMLformat='0', exportAtBegin="1", exportAtEnd='0', exportEveryNumberOfSteps="0", 
                 filename=outputDir+'/object.vtk', tetras='1', edges='0')
 
         # rootNode/object/mappedTool
@@ -102,15 +104,15 @@ class synth1_GenObs (Sofa.PythonScriptController):
         mappedTool.createObject('Sphere', color='0 0 1 1', radius='0.001')
         mappedTool.createObject('BarycentricMapping', name='baryMapping')
 
-        mappedTool2 = simuNode.createChild('mappedTool2')
-        mappedTool2.createObject('MechanicalObject', position='0.045 0.1 0.0   0.05 0.1 0.0   0.055 0.1 0.0   0.045 0.1 -0.005   0.05 0.1 -0.005   0.055 0.1 -0.005    0.045 0.1 -0.01   0.05 0.1 -0.01   0.055 0.1 -0.01', name='MO')
+        # mappedTool2 = simuNode.createChild('mappedTool2')
+        # mappedTool2.createObject('MechanicalObject', position='0.045 0.1 0.0   0.05 0.1 0.0   0.055 0.1 0.0   0.045 0.1 -0.005   0.05 0.1 -0.005   0.055 0.1 -0.005    0.045 0.1 -0.01   0.05 0.1 -0.01   0.055 0.1 -0.01', name='MO')
         # self.toolSprings2=mappedTool.createObject('ExtendedRestShapeSpringForceField', numStepsSpringOn='10000', stiffness='1e5', name='toolSpring', springColor='0 1 0 1', drawSpring='1', updateStiffness='1', printLog='0', listening='1', angularStiffness='0', startTimeSpringOn='0', external_rest_shape='/tool/MO')
-        mappedTool2.createObject('Sphere', color='0 0 1 0.1', radius='0.001')
+        # mappedTool2.createObject('Sphere', color='0 0 1 0.1', radius='0.001')
         # mappedTool2.createObject('BarycentricMapping', name='baryMapping')
 
-        fixedVisu=simuNode.createChild('fixedVisu')
-        fixedVisu.createObject('MechanicalObject', position="@../FixedPoints.indices_position")
-        fixedVisu.createObject('Sphere', color='0.5 0.6 1.0 1', radius='0.0014', template='Vec3d')
+        # fixedVisu=simuNode.createChild('fixedVisu')
+        # fixedVisu.createObject('MechanicalObject', position="@../FixedPoints.indices_position")
+        # fixedVisu.createObject('Sphere', color='0.5 0.6 1.0 1', radius='0.0014', template='Vec3d')
         
 
         # rootNode/simu/obsGrid
@@ -126,7 +128,7 @@ class synth1_GenObs (Sofa.PythonScriptController):
         obsGrid.createObject('Sphere', color='0.0 0.5 0.0 1', radius="0.0014", template='Vec3d')
 
         if saveObservations:
-            obsGrid.createObject('VTKExporter', filename=monitorFile+'.vtk', position="@MO.position", listening="0" , XMLformat='0', exportAtBegin='1', exportEveryNumberOfSteps="0")
+            obsGrid.createObject('VTKExporter', name='observationExp', filename=monitorFile+'.vtk', position="@MO.position", listening="0" , XMLformat='0', exportAtBegin='1', exportEveryNumberOfSteps="0")
             obsGrid.createObject('BoxROI', name='gridDOFs', box='-1 -1 -1 1 1 1')                
             obsGrid.createObject('OptimMonitor', name='observationMonitor', fileName=monitorFile, indices="@gridDOFs.indices", ExportPositions="1", ExportVelocities="0", ExportForces="0")
             
