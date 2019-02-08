@@ -11,7 +11,7 @@
     <ViewerSetting resolution="837 600" />
 
     <FilteringAnimationLoop name="StochAnimLoop" verbose="1"/>
-    <UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0"   draw="0" radiusDraw="0.0" MOnodesDraw="12"  filenameFinalState="realDataSet/Q3_R1" exportPrefix="cov_" />
+    <UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0"   draw="0" radiusDraw="0.0" MOnodesDraw="12"  filenameFinalState="realDataSet/Q3_R3" exportPrefix="cov_" />
 
     
 <!--  ####   HERE YOU CAN CHOOSE YOUR VIEW: EITHER SIDE OR TOP VIEW   ####--> 
@@ -55,10 +55,10 @@
     <!--  ####   HERE YOU HAVE THE NODE WITH THE FILTER     ####-->  
     <Node name="filteredModel">     
         <StochasticStateWrapper name="StateWrapper" template="Rigid3d" verbose="1" estimatePosition="1"  estimateOnlyXYZ="1" estimateVelocity="1" 
-                                positionStdev="7.5e-04 7.5e-04 7.5e-04  "
-                                velocityStdev="7.5e-04  7.5e-04  7.5e-04 7.5e-04 7.5e-04 7.5e-04  "
+                                positionStdev="1.75e-03  1.75e-03  1.75e-03   "
+                                velocityStdev="1.75e-03  1.75e-03  1.75e-03  1.75e-03  1.75e-03  1.75e-03  "
                                 posModelStdev="0 0 0 " 
-                                velModelStdev="7.5e-04 7.5e-04 7.5e-04 7.5e-04 7.5e-04 7.5e-04   "
+                                velModelStdev="1.75e-03  1.75e-03  1.75e-03  1.75e-03  1.75e-03  1.75e-03 "
                                 mappedState="cat/CollisionCat/ms" langrangeMultipliers="1" draw="0" radiusDraw="0.0"/>  
         <GenericConstraintSolver name="GenericConstraintSolver"  printLog="0"  maxIterations="1000"  tolerance="1e-10"  allVerified="0" />  
         <Node name="cat">
@@ -107,9 +107,9 @@
             <LinearSolverConstraintCorrection solverName="BTD" />  
             
             <Node name="obsNode" activated="1">        
-                <SimulatedStateObservationSource template="Vec2d" name="observations" monitorPrefix="realDataSet/obs_N12" asynObs="true"/>    
+                <SimulatedStateObservationSource template="Vec2d" name="observations" monitorPrefix="realDataSet/obs_N12_noise" asynObs="true"/>    
                 <SimpleObservationManager name="MSIDES" template="Vec2d,Rigid3d" listening="1"  stateWrapper="@../../StateWrapper" use2dObservation="true"   
-                                          projectionMatrix="[-3320.65 174.572 -514.441 193.451 134.409 3340.13 44.4847 -64.7090 0.0480279 0.103531 -0.993466 0.400192]" verbose="1" observationStdev="0.1"/>
+                                          projectionMatrix="[-3320.65 174.572 -514.441 193.451 134.409 3340.13 44.4847 -64.7090 0.0480279 0.103531 -0.993466 0.400192]" verbose="1" observationStdev="0.001"/>
             </Node>
         </Node> 
     

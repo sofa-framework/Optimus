@@ -1,0 +1,114 @@
+<?xml version="1.0"?>
+<Node    name="root" dt="0.001" gravity="0 0 0" > 
+    <RequiredPlugin pluginName="Optimus"/>c
+    <RequiredPlugin pluginName="ConstraintGeometryPlugin" />
+    <RequiredPlugin pluginName="NeedleConstraintPlugin" />
+
+
+<VisualStyle displayFlags="showVisualModels hideBehaviorModels hideCollisionModels hideMappings hideForceFields hideWireframe" />	
+<BackgroundSetting color="1 1 1 1" />
+
+
+ <Node name="simulation">
+        <Node name="init"> 
+            <EulerImplicitSolver  />
+            <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/>
+                <MechanicalObject template="Vec3" name="MO"  position="0.015043  0.053987  -0.058037  0.010226  0.054093  -0.058009  0.0053189  0.054576  -0.057995  0.00031872  0.054576  -0.057995  -0.0046815  0.054576  -0.057995  -0.0096816  0.054575  -0.057996  -0.014682  0.054575  -0.057996  -0.019682  0.054574  -0.057996  -0.024682  0.054572  -0.057997  -0.029682  0.054571  -0.057998  -0.034682  0.054569  -0.057999  -0.039682  0.054568  -0.058"/>
+            <ReadState filename="../referenceAll3" />
+            <ShowCatheter  radius="0.0001"  color="0 0 1 1" position="@MO.position" />
+        </Node>
+        
+        <Node name="init_1"> 
+            <EulerImplicitSolver  />
+            <EulerImplicitSolver  />
+            <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/>
+                <MechanicalObject template="Vec3" name="MO"  position="0.015043  0.053987  -0.058037  0.010226  0.054093  -0.058009  0.0053189  0.054576  -0.057995  0.00031872  0.054576  -0.057995  -0.0046815  0.054576  -0.057995  -0.0096816  0.054575  -0.057996  -0.014682  0.054575  -0.057996  -0.019682  0.054574  -0.057996  -0.024682  0.054572  -0.057997  -0.029682  0.054571  -0.057998  -0.034682  0.054569  -0.057999  -0.039682  0.054568  -0.058"/>
+            <ReadState filename="sQ1_R1" />
+            <ShowCatheter  radius="0.0"  color="0 1 0 1" position="@MO.position" />
+        </Node>
+
+        
+                <Node name="init_1"> 
+            <EulerImplicitSolver  />
+            <EulerImplicitSolver  />
+            <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/>
+                <MechanicalObject template="Vec3" name="MO"  position="0.015043  0.053987  -0.058037  0.010226  0.054093  -0.058009  0.0053189  0.054576  -0.057995  0.00031872  0.054576  -0.057995  -0.0046815  0.054576  -0.057995  -0.0096816  0.054575  -0.057996  -0.014682  0.054575  -0.057996  -0.019682  0.054574  -0.057996  -0.024682  0.054572  -0.057997  -0.029682  0.054571  -0.057998  -0.034682  0.054569  -0.057999  -0.039682  0.054568  -0.058"/>
+            <ReadState filename="sQ2_R1" />
+            <ShowCatheter  radius="0.0"  color="0 1 0 1" position="@MO.position" />
+        </Node>
+        
+                        <Node name="init_1"> 
+            <EulerImplicitSolver  />
+            <EulerImplicitSolver  />
+            <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/>
+                <MechanicalObject template="Vec3" name="MO"  position="0.015043  0.053987  -0.058037  0.010226  0.054093  -0.058009  0.0053189  0.054576  -0.057995  0.00031872  0.054576  -0.057995  -0.0046815  0.054576  -0.057995  -0.0096816  0.054575  -0.057996  -0.014682  0.054575  -0.057996  -0.019682  0.054574  -0.057996  -0.024682  0.054572  -0.057997  -0.029682  0.054571  -0.057998  -0.034682  0.054569  -0.057999  -0.039682  0.054568  -0.058"/>
+            <ReadState filename="sQ3_R1" />
+            <ShowCatheter  radius="0.0"  color="0 1 0 1" position="@MO.position" />
+        </Node>
+
+
+                <Node name="init_1"> 
+            <EulerImplicitSolver  />
+            <EulerImplicitSolver  />
+            <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/>
+                <MechanicalObject template="Vec3" name="MO"  position="0.015043  0.053987  -0.058037  0.010226  0.054093  -0.058009  0.0053189  0.054576  -0.057995  0.00031872  0.054576  -0.057995  -0.0046815  0.054576  -0.057995  -0.0096816  0.054575  -0.057996  -0.014682  0.054575  -0.057996  -0.019682  0.054574  -0.057996  -0.024682  0.054572  -0.057997  -0.029682  0.054571  -0.057998  -0.034682  0.054569  -0.057999  -0.039682  0.054568  -0.058"/>
+            <ReadState filename="sQ1_R3" />
+            <ShowCatheter  radius="0.0"  color="0 1 0 1" position="@MO.position" />
+        </Node>
+
+        
+                <Node name="init_1"> 
+            <EulerImplicitSolver  />
+            <EulerImplicitSolver  />
+            <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/>
+                <MechanicalObject template="Vec3" name="MO"  position="0.015043  0.053987  -0.058037  0.010226  0.054093  -0.058009  0.0053189  0.054576  -0.057995  0.00031872  0.054576  -0.057995  -0.0046815  0.054576  -0.057995  -0.0096816  0.054575  -0.057996  -0.014682  0.054575  -0.057996  -0.019682  0.054574  -0.057996  -0.024682  0.054572  -0.057997  -0.029682  0.054571  -0.057998  -0.034682  0.054569  -0.057999  -0.039682  0.054568  -0.058"/>
+            <ReadState filename="sQ2_R3" />
+            <ShowCatheter  radius="0.0"  color="0 1 0 1" position="@MO.position" />
+        </Node>
+        
+                        <Node name="init_1"> 
+            <EulerImplicitSolver  />
+            <EulerImplicitSolver  />
+            <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/>
+                <MechanicalObject template="Vec3" name="MO"  position="0.015043  0.053987  -0.058037  0.010226  0.054093  -0.058009  0.0053189  0.054576  -0.057995  0.00031872  0.054576  -0.057995  -0.0046815  0.054576  -0.057995  -0.0096816  0.054575  -0.057996  -0.014682  0.054575  -0.057996  -0.019682  0.054574  -0.057996  -0.024682  0.054572  -0.057997  -0.029682  0.054571  -0.057998  -0.034682  0.054569  -0.057999  -0.039682  0.054568  -0.058"/>
+            <ReadState filename="sQ3_R3" />
+            <ShowCatheter  radius="0.0"  color="0 1 0 1" position="@MO.position" />
+        </Node>
+        
+        
+                <Node name="init_1"> 
+            <EulerImplicitSolver  />
+            <EulerImplicitSolver  />
+            <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/>
+                <MechanicalObject template="Vec3" name="MO"  position="0.015043  0.053987  -0.058037  0.010226  0.054093  -0.058009  0.0053189  0.054576  -0.057995  0.00031872  0.054576  -0.057995  -0.0046815  0.054576  -0.057995  -0.0096816  0.054575  -0.057996  -0.014682  0.054575  -0.057996  -0.019682  0.054574  -0.057996  -0.024682  0.054572  -0.057997  -0.029682  0.054571  -0.057998  -0.034682  0.054569  -0.057999  -0.039682  0.054568  -0.058"/>
+            <ReadState filename="sQ1_R2" />
+            <ShowCatheter  radius="0.0"  color="0 1 0 1" position="@MO.position" />
+        </Node>
+
+        
+                <Node name="init_1"> 
+            <EulerImplicitSolver  />
+            <EulerImplicitSolver  />
+            <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/>
+                <MechanicalObject template="Vec3" name="MO"  position="0.015043  0.053987  -0.058037  0.010226  0.054093  -0.058009  0.0053189  0.054576  -0.057995  0.00031872  0.054576  -0.057995  -0.0046815  0.054576  -0.057995  -0.0096816  0.054575  -0.057996  -0.014682  0.054575  -0.057996  -0.019682  0.054574  -0.057996  -0.024682  0.054572  -0.057997  -0.029682  0.054571  -0.057998  -0.034682  0.054569  -0.057999  -0.039682  0.054568  -0.058"/>
+            <ReadState filename="sQ2_R2" />
+            <ShowCatheter  radius="0.0"  color="0 1 0 1" position="@MO.position" />
+        </Node>
+        
+                        <Node name="init_1"> 
+            <EulerImplicitSolver  />
+            <EulerImplicitSolver  />
+            <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/>
+                <MechanicalObject template="Vec3" name="MO"  position="0.015043  0.053987  -0.058037  0.010226  0.054093  -0.058009  0.0053189  0.054576  -0.057995  0.00031872  0.054576  -0.057995  -0.0046815  0.054576  -0.057995  -0.0096816  0.054575  -0.057996  -0.014682  0.054575  -0.057996  -0.019682  0.054574  -0.057996  -0.024682  0.054572  -0.057997  -0.029682  0.054571  -0.057998  -0.034682  0.054569  -0.057999  -0.039682  0.054568  -0.058"/>
+            <ReadState filename="sQ3_R2" />
+            <ShowCatheter  radius="0.0"  color="0 1 0 1" position="@MO.position" />
+        </Node>
+        <Node name="VisualRealSurface">
+<!--             <VisualStyle displayFlags="showWireframe " />  -->
+            <MeshSTLLoader name="surface" filename="../phantomScaled2.stl"  />
+            <MeshTopology src="@surface" />
+            <MechanicalObject name="DOFs" />
+            <OglModel name="VisualModel" src="@surface"  material="Default Diffuse 1 1 0.93 0.83 0.05 Ambient 0 0 0 0 0 Specular 0 0 0 0 0 Emissive 0 0 0 0 0 Shininess 0 45" />
+        </Node>
+    </Node> 
+</Node> 

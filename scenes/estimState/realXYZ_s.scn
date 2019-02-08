@@ -11,7 +11,7 @@
     <ViewerSetting resolution="837 600" />
 
     <FilteringAnimationLoop name="StochAnimLoop" verbose="1"/>
-    <UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0"   draw="0" radiusDraw="0.0" MOnodesDraw="12"  filenameFinalState="realDataSet/Q1_R1" exportPrefix="cov_" />
+    <UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0"   draw="1" radiusDraw="0.0001" MOnodesDraw="12"   exportPrefix="cov_" />
 
     
 <!--  ####   HERE YOU CAN CHOOSE YOUR VIEW: EITHER SIDE OR TOP VIEW   ####--> 
@@ -40,7 +40,7 @@
             <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/>
             <MechanicalObject template="Vec3" name="MO" position="0.015043  0.053987  -0.058037  0.010226  0.054093  -0.058009  0.0053189  0.054576  -0.057995  0.00031872  0.054576  -0.057995  -0.0046815  0.054576  -0.057995  -0.0096816  0.054575  -0.057996  -0.014682  0.054575  -0.057996  -0.019682  0.054574  -0.057996  -0.024682  0.054572  -0.057997  -0.029682  0.054571  -0.057998  -0.034682  0.054569  -0.057999  -0.039682  0.054568  -0.058"/>
             <ReadState filename="realDataSet/referenceAll3" />
-            <ShowCatheter  radius="0.0002"  color="0 0 1 1" position="@MO.position" />
+<!--             <ShowCatheter  radius="0.0002"  color="0 0 1 1" position="@MO.position" /> -->
         </Node>
         <Node name="VisualRealSurface">
             <MeshSTLLoader name="surface" filename="realDataSet/phantomScaled.stl"  />
@@ -55,10 +55,10 @@
     <!--  ####   HERE YOU HAVE THE NODE WITH THE FILTER     ####-->  
     <Node name="filteredModel">     
         <StochasticStateWrapper name="StateWrapper" template="Rigid3d" verbose="1" estimatePosition="1"  estimateOnlyXYZ="1" estimateVelocity="1" 
-                                positionStdev="1.2e-04 1.2e-04 1.2e-04  "
-                                velocityStdev="1.2e-04  1.2e-04  1.2e-04 1.2e-04 1.2e-04 1.2e-04  "
+                                positionStdev="1e-03  1e-03  1e-03   "
+                                velocityStdev="1e-03 1e-03 1e-03 1e-03  1e-03  1e-03  "
                                 posModelStdev="0 0 0 " 
-                                velModelStdev="1.2e-04 1.2e-04 1.2e-04 1.2e-04 1.2e-04 1.2e-04   "
+                                velModelStdev="1e-03 1e-03 1e-03 1e-03  1e-03  1e-03    "
                                 mappedState="cat/CollisionCat/ms" langrangeMultipliers="1" draw="0" radiusDraw="0.0"/>  
         <GenericConstraintSolver name="GenericConstraintSolver"  printLog="0"  maxIterations="1000"  tolerance="1e-10"  allVerified="0" />  
         <Node name="cat">
@@ -101,15 +101,15 @@
                     
                 <Node name="VisuOgl">
                     <OglModel position="@../ContainerCath.position" vertices="@../ContainerCath.position" quads="@../ContainerCath.quads" 
-                    color="0.85 0.85 0.85" material="texture Ambient 1 0.2 0.2 0.2 0.0 Diffuse 0 1.0 1.0 1.0 1.0 Specular 1 1.0 1.0 1.0 1.0 Emissive 0 0.15 0.05 0.05 0.0 Shininess 1 20" name="VisualCatheter"/>                    <IdentityMapping />	
+                    color="0.0 1 0" material="texture Ambient 1 1 1 1 1 Diffuse 0 1.0 1.0 1.0 1.0 Specular 1 1.0 1.0 1.0 1.0 Emissive 0 0.15 0.05 0.05 0.0 Shininess 1 20" name="VisualCatheter"/>                    <IdentityMapping />	
                 </Node>
-            </Node>  -->            
+            </Node>     -->         
             <LinearSolverConstraintCorrection solverName="BTD" />  
             
             <Node name="obsNode" activated="1">        
-                <SimulatedStateObservationSource template="Vec2d" name="observations" monitorPrefix="realDataSet/obs_N12" asynObs="true"/>    
+                <SimulatedStateObservationSource template="Vec2d" name="observations" monitorPrefix="realDataSet/obs_N12_noise" asynObs="true"/>    
                 <SimpleObservationManager name="MSIDES" template="Vec2d,Rigid3d" listening="1"  stateWrapper="@../../StateWrapper" use2dObservation="true"   
-                                          projectionMatrix="[-3320.65 174.572 -514.441 193.451 134.409 3340.13 44.4847 -64.7090 0.0480279 0.103531 -0.993466 0.400192]" verbose="1" observationStdev="0.1"/>
+                                          projectionMatrix="[-3320.65 174.572 -514.441 193.451 134.409 3340.13 44.4847 -64.7090 0.0480279 0.103531 -0.993466 0.400192]" verbose="1" observationStdev="0.01"/>
             </Node>
         </Node> 
     

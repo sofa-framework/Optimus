@@ -3,11 +3,10 @@ close all
 clc
 
 %% Read GT and reshape as a matrix 3 x Nodes x Time Step
-GTnn=dlmread('GTreal.txt');
-GTn=GTnn(2871:end,:);
-GTn(1,:)=GTn(3,:);
-GTn(2,:)=GTn(3,:);
-GT=zeros(3,11,size(GTn,1));
+GTn=dlmread('rszrealAll3');
+GTn=GTn(2:2:end,2:end);
+
+GT=zeros(3,12,size(GTn,1));
 for i=1:size(GTn,1)
    GT(1,1,i)=GTn(i,1);    GT(2,1,i)=GTn(i,2);   GT(3,1,i)=GTn(i,3);
    GT(1,2,i)=GTn(i,4);    GT(2,2,i)=GTn(i,5);   GT(3,2,i)=GTn(i,6);   
@@ -20,124 +19,176 @@ for i=1:size(GTn,1)
    GT(1,9,i)=GTn(i,25);    GT(2,9,i)=GTn(i,26);   GT(3,9,i)=GTn(i,27);   
    GT(1,10,i)=GTn(i,28);   GT(2,10,i)=GTn(i,29);  GT(3,10,i)=GTn(i,30); 
    GT(1,11,i)=GTn(i,31);   GT(2,11,i)=GTn(i,32);  GT(3,11,i)=GTn(i,33); 
+   GT(1,12,i)=GTn(i,34);   GT(2,12,i)=GTn(i,35);  GT(3,12,i)=GTn(i,36); 
+
 end
 
 %% Read Filter Results as a matrix Nodes x 3 x Time Step
- 
-RV=dlmread('real_E_10');
-V=zeros(11,3,size(GT,3));
-for i=1:size(V,3)
-    V(:,:,i)=cat(1,RV(i,1:3),RV(i,7:9),RV(i,13:15),...
-              RV(i,19:21),RV(i,25:27),RV(i,31:33),...
-              RV(i,37:39),RV(i,43:45),RV(i,49:51),...
-              RV(i,55:57),RV(i,61:63));
+
+RQ1_R1=dlmread('Q1_R1');
+Q1_R1=zeros(12,3,size(RQ1_R1,1));
+for i=1:size(RQ1_R1,1)
+    Q1_R1(:,:,i)=cat(1,RQ1_R1(i,1:3),RQ1_R1(i,4:6),RQ1_R1(i,7:9),...
+              RQ1_R1(i,10:12),RQ1_R1(i,13:15),RQ1_R1(i,16:18),...
+              RQ1_R1(i,19:21),RQ1_R1(i,22:24),RQ1_R1(i,25:27),...
+              RQ1_R1(i,28:30),RQ1_R1(i,31:33),RQ1_R1(i,34:36));
+end
+RQ2_R1=dlmread('Q2_R1');
+Q2_R1=zeros(12,3,size(RQ2_R1,1));
+for i=1:size(RQ2_R1,1)
+    Q2_R1(:,:,i)=cat(1,RQ2_R1(i,1:3),RQ2_R1(i,4:6),RQ2_R1(i,7:9),...
+              RQ2_R1(i,10:12),RQ2_R1(i,13:15),RQ2_R1(i,16:18),...
+              RQ2_R1(i,19:21),RQ2_R1(i,22:24),RQ2_R1(i,25:27),...
+              RQ2_R1(i,28:30),RQ2_R1(i,31:33),RQ2_R1(i,34:36));
+end
+RQ3_R1=dlmread('Q3_R1');
+Q3_R1=zeros(12,3,size(RQ3_R1,1));
+for i=1:size(RQ3_R1,1)
+    Q3_R1(:,:,i)=cat(1,RQ3_R1(i,1:3),RQ3_R1(i,4:6),RQ3_R1(i,7:9),...
+              RQ3_R1(i,10:12),RQ3_R1(i,13:15),RQ3_R1(i,16:18),...
+              RQ3_R1(i,19:21),RQ3_R1(i,22:24),RQ3_R1(i,25:27),...
+              RQ3_R1(i,28:30),RQ3_R1(i,31:33),RQ3_R1(i,34:36));
+end
+RQ1_R2=dlmread('Q1_R2');
+Q1_R2=zeros(12,3,size(RQ1_R2,1));
+for i=1:size(RQ1_R2,1)
+    Q1_R2(:,:,i)=cat(1,RQ1_R2(i,1:3),RQ1_R2(i,4:6),RQ1_R2(i,7:9),...
+              RQ1_R2(i,10:12),RQ1_R2(i,13:15),RQ1_R2(i,16:18),...
+              RQ1_R2(i,19:21),RQ1_R2(i,22:24),RQ1_R2(i,25:27),...
+              RQ1_R2(i,28:30),RQ1_R2(i,31:33),RQ1_R2(i,34:36));
+end
+RQ2_R2=dlmread('Q2_R2');
+Q2_R2=zeros(12,3,size(RQ2_R2,1));
+for i=1:size(RQ2_R2,1)
+    Q2_R2(:,:,i)=cat(1,RQ2_R2(i,1:3),RQ2_R2(i,4:6),RQ2_R2(i,7:9),...
+              RQ2_R2(i,10:12),RQ2_R2(i,13:15),RQ2_R2(i,16:18),...
+              RQ2_R2(i,19:21),RQ2_R2(i,22:24),RQ2_R2(i,25:27),...
+              RQ2_R2(i,28:30),RQ2_R2(i,31:33),RQ2_R2(i,34:36));
+end
+RQ3_R2=dlmread('Q3_R2');
+Q3_R2=zeros(12,3,size(RQ3_R2,1));
+for i=1:size(RQ3_R2,1)
+    Q3_R2(:,:,i)=cat(1,RQ3_R2(i,1:3),RQ3_R2(i,4:6),RQ3_R2(i,7:9),...
+              RQ3_R2(i,10:12),RQ3_R2(i,13:15),RQ3_R2(i,16:18),...
+              RQ3_R2(i,19:21),RQ3_R2(i,22:24),RQ3_R2(i,25:27),...
+              RQ3_R2(i,28:30),RQ3_R2(i,31:33),RQ3_R2(i,34:36));
+end
+RQ1_R3=dlmread('Q1_R3');
+Q1_R3=zeros(12,3,size(RQ1_R3,1));
+for i=1:size(RQ1_R3,1)
+    Q1_R3(:,:,i)=cat(1,RQ1_R3(i,1:3),RQ1_R3(i,4:6),RQ1_R3(i,7:9),...
+              RQ1_R3(i,10:12),RQ1_R3(i,13:15),RQ1_R3(i,16:18),...
+              RQ1_R3(i,19:21),RQ1_R3(i,22:24),RQ1_R3(i,25:27),...
+              RQ1_R3(i,28:30),RQ1_R3(i,31:33),RQ1_R3(i,34:36));
+end
+RQ2_R3=dlmread('Q2_R3');
+Q2_R3=zeros(12,3,size(RQ2_R3,1));
+for i=1:size(RQ2_R3,1)
+    Q2_R3(:,:,i)=cat(1,RQ2_R3(i,1:3),RQ2_R3(i,4:6),RQ2_R3(i,7:9),...
+              RQ2_R3(i,10:12),RQ2_R3(i,13:15),RQ2_R3(i,16:18),...
+              RQ2_R3(i,19:21),RQ2_R3(i,22:24),RQ2_R3(i,25:27),...
+              RQ2_R3(i,28:30),RQ2_R3(i,31:33),RQ2_R3(i,34:36));
+end
+RQ3_R3=dlmread('Q3_R3');
+Q3_R3=zeros(12,3,size(RQ3_R3,1));
+for i=1:size(RQ3_R3,1)
+    Q3_R3(:,:,i)=cat(1,RQ3_R3(i,1:3),RQ3_R3(i,4:6),RQ3_R3(i,7:9),...
+              RQ3_R3(i,10:12),RQ3_R3(i,13:15),RQ3_R3(i,16:18),...
+              RQ3_R3(i,19:21),RQ3_R3(i,22:24),RQ3_R3(i,25:27),...
+              RQ3_R3(i,28:30),RQ3_R3(i,31:33),RQ3_R3(i,34:36));
 end
 
-RVF_QVF=dlmread('real_E_12');
-VF_QVF=zeros(11,3,size(GT,3));
-for i=1:size(VF_QVF,3)
-    VF_QVF(:,:,i)=cat(1,RVF_QVF(i,1:3),RVF_QVF(i,7:9),RVF_QVF(i,13:15),...
-              RVF_QVF(i,19:21),RVF_QVF(i,25:27),RVF_QVF(i,31:33),...
-              RVF_QVF(i,37:39),RVF_QVF(i,43:45),RVF_QVF(i,49:51),...
-              RVF_QVF(i,55:57),RVF_QVF(i,61:63));
-end
-
-RVF_QV=dlmread('real_E_11');
-VF_QV=zeros(11,3,size(GT,3));
-for i=1:size(VF_QV,3)
-    VF_QV(:,:,i)=cat(1,RVF_QV(i,1:3),RVF_QV(i,7:9),RVF_QV(i,13:15),...
-              RVF_QV(i,19:21),RVF_QV(i,25:27),RVF_QV(i,31:33),...
-              RVF_QV(i,37:39),RVF_QV(i,43:45),RVF_QV(i,49:51),...
-              RVF_QV(i,55:57),RVF_QV(i,61:63));
-end
-
-
-RVF_QVgrad=dlmread('../real_E_13');
-VF_QVgrad=zeros(11,3,size(GT,3));
-for i=1:size(VF_QVgrad,3)
-    VF_QVgrad(:,:,i)=cat(1,RVF_QVgrad(i,1:3),RVF_QVgrad(i,7:9),RVF_QVgrad(i,13:15),...
-              RVF_QVgrad(i,19:21),RVF_QVgrad(i,25:27),RVF_QVgrad(i,31:33),...
-              RVF_QVgrad(i,37:39),RVF_QVgrad(i,43:45),RVF_QVgrad(i,49:51),...
-              RVF_QVgrad(i,55:57),RVF_QVgrad(i,61:63));
-end
-
-RVFF_QVgrad=dlmread('../real_E_14');
-VFF_QVgrad=zeros(11,3,size(GT,3));
-for i=1:size(VFF_QVgrad,3)
-    VFF_QVgrad(:,:,i)=cat(1,RVFF_QVgrad(i,1:3),RVFF_QVgrad(i,7:9),RVFF_QVgrad(i,13:15),...
-              RVFF_QVgrad(i,19:21),RVFF_QVgrad(i,25:27),RVFF_QVgrad(i,31:33),...
-              RVFF_QVgrad(i,37:39),RVFF_QVgrad(i,43:45),RVFF_QVgrad(i,49:51),...
-              RVFF_QVgrad(i,55:57),RVFF_QVgrad(i,61:63));
+RQ2_odl=dlmread('Q2_odlNOISE');
+Q2_odl=zeros(12,3,size(RQ3_R3,1));
+for i=1:size(RQ3_R3,1)
+    Q2_odl(:,:,i)=cat(1,RQ2_odl(i,1:3),RQ2_odl(i,4:6),RQ2_odl(i,7:9),...
+              RQ2_odl(i,10:12),RQ2_odl(i,13:15),RQ2_odl(i,16:18),...
+              RQ2_odl(i,19:21),RQ2_odl(i,22:24),RQ2_odl(i,25:27),...
+              RQ2_odl(i,28:30),RQ2_odl(i,31:33),RQ2_odl(i,34:36));
 end
 
 %% Compute Interpolation 
 N=100; %interpolation resampling size
-% 
-splGt=zeros(N,3,size(GT,3));
-splFilter=zeros(N,3,size(GT,3),3);
-ALL=cat(4,V,VF_QVF,VF_QV,VF_QVgrad,VFF_QVgrad);
- 
-h_mu_1=zeros(size(GT,3),3);
- 
-t=0:size(h_mu_1,1)-1;
-for k=1:size(ALL,4);
-for i=1:size(GT,3)
-   splGt(:,:,i) = interparc(N,GT(1,:,i),GT(2,:,i),GT(3,:,i),'linear');
-   splFilter(:,:,i,k) = interparc(N,ALL(:,1,i,k),ALL(:,2,i,k),ALL(:,3,i,k),'linear');
-   h_mu_1(i,k)=HausdorffDist(splFilter(:,:,i,k),splGt(:,:,i));
+T=size(Q1_R1,3);
+
+splGt=zeros(N,3,T);
+ALL=cat(4,...
+    Q1_R1,Q2_R1,Q3_R1,...
+    Q1_R2,Q2_R2,Q3_R2,...
+    Q1_R3,Q2_R3,Q3_R3,Q2_odl);
+
+nbC=size(ALL,4);
+splFilter=zeros(N,3,T,nbC);
+h_mu_REAL=zeros(T,nbC);
+
+t=0:size(h_mu_REAL,1)-1;
+for k=1:nbC;
+    for i=1:T
+       splGt(:,:,i) = interparc(N,GT(1,:,i),GT(2,:,i),GT(3,:,i),'linear');
+       splFilter(:,:,i,k) = interparc(N,ALL(:,1,i,k),ALL(:,2,i,k),ALL(:,3,i,k),'linear');
+    end
+end
+
+
+save('splGt.mat','splGt');
+save('splFilter.mat','splFilter');
+
+
+t=0:size(h_mu_REAL,1)-1;
+for k=1:nbC;
+for i=1:T
+   h_mu_REAL(i,k)=HausdorffDist(splFilter(:,:,i,k),splGt(:,:,i));
 end
 end
 
-figure
-for i=1:size(ALL,4)
-plot(t, h_mu_1(:,i))
-hold on
-end% 
 %% Compute mean dist at TIP
-meanALL=zeros(size(ALL,3),size(ALL,4));
+d_mu_REAL=zeros(T,nbC);
 
-d_mu_1=meanALL;
-
-for i=1:size(ALL,3)
-        for k=1:size(ALL,4)
-               d_mu_1(i,k)=mean(sqrt(sum((splFilter(1:10,:,i,k)'-splGt(1:10,:,i)').^2)));
+for i=1:T
+        for k=1:nbC
+               d_mu_REAL(i,k)=mean(sqrt(sum((splFilter(1:10,:,i,k)'-splGt(1:10,:,i)').^2)));
         end
 end 
 
-
-figure
-for i=1:size(ALL,4)
-plot(t, d_mu_1(:,i))
-hold on
-end
 %% Compute RMSE Tip
-% 
-tGT=zeros(1,size(ALL,3));
-tALL=zeros(size(ALL,3),18);
-% 
-RMSE_mu_1=tALL;
-for i=1:size(ALL,3)
-        tGT(i)=norm([GT(1,1,i) GT(2,1,i) GT(3,1,i)]);
 
-        for k=1:size(ALL,4)
-        tALL(i,k)=norm([ALL(1,1,i,k) ALL(1,2,i,k) ALL(1,3,i,k)]);
-        RMSE_mu_1(i,k)=sqrt(mean((tALL(i,k) - tGT(i)).^2));
+
+RMSE_mu_REAL=zeros(T,nbC);
+for i=1:T
+        for k=1:nbC
+        RMSE_mu_REAL(i,k)=norm([ALL(1,1,i,k) ALL(1,2,i,k) ALL(1,3,i,k)]-[GT(1,1,i) GT(2,1,i) GT(3,1,i)]);
         end
 end 
 
-figure
-for i=1:size(ALL,4)
-plot(t, RMSE_mu_1(:,i))
-hold on
-end% 
-% 
-% 
-% %% Samu_20e data
-% samu_20e('h_mu_1.mat','h_mu_1');
-% samu_20e('h_Wmu_1.mat','h_Wmu_1');
-% samu_20e('RMSE_mu_1.mat','RMSE_mu_1');
-% samu_20e('RMSE_Wmu_1.mat','RMSE_Wmu_1');
-% samu_20e('d_mu_1.mat','d_mu_1');
-% samu_20e('d_Wmu_1.mat','d_Wmu_1');
+
+Q1_R1=sofaResize(Q1_R1);
+Q1_R2=sofaResize(Q1_R2);
+Q1_R3=sofaResize(Q1_R3);
+
+Q2_R1=sofaResize(Q2_R1);
+Q2_R2=sofaResize(Q2_R2);
+Q2_R3=sofaResize(Q2_R3);
+
+Q3_R1=sofaResize(Q3_R1);
+Q3_R2=sofaResize(Q3_R2);
+Q3_R3=sofaResize(Q3_R3);
+
+writeStateSofa(Q1_R1,'sQ1_R1');
+writeStateSofa(Q1_R2,'sQ1_R2');
+writeStateSofa(Q1_R3,'sQ1_R3');
+writeStateSofa(Q2_R1,'sQ2_R1');
+writeStateSofa(Q2_R2,'sQ2_R2');
+writeStateSofa(Q2_R3,'sQ2_R3');
+writeStateSofa(Q3_R1,'sQ3_R1');
+writeStateSofa(Q3_R2,'sQ3_R2');
+writeStateSofa(Q3_R3,'sQ3_R3');
+
+
+
+
+%% Save data
+save('h_mu_REAL.mat','h_mu_REAL');
+save('RMSE_mu_REAL.mat','RMSE_mu_REAL');
+save('d_mu_REAL.mat','d_mu_REAL');
 
         

@@ -12,7 +12,7 @@
     <ViewerSetting resolution="837 600" />
 
     <FilteringAnimationLoop name="StochAnimLoop" verbose="1"/>
-    <UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0"   draw="0" radiusDraw="0.0" MOnodesDraw="12"  filenameFinalState="realDataSet/testN6colli" exportPrefix="cov_" />
+    <UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0"   draw="0" radiusDraw="0.0" MOnodesDraw="12"  filenameFinalState="realDataSet/s_R2_N6" exportPrefix="cov_" />
 
     
 <!--  ####   HERE YOU CAN CHOOSE YOUR VIEW: EITHER SIDE OR TOP VIEW   ####--> 
@@ -41,7 +41,7 @@
             <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/>
             <MechanicalObject template="Vec3" name="MO" position="0.015043  0.053987  -0.058037  0.010226  0.054093  -0.058009  0.0053189  0.054576  -0.057995  0.00031872  0.054576  -0.057995  -0.0046815  0.054576  -0.057995  -0.0096816  0.054575  -0.057996  -0.014682  0.054575  -0.057996  -0.019682  0.054574  -0.057996  -0.024682  0.054572  -0.057997  -0.029682  0.054571  -0.057998  -0.034682  0.054569  -0.057999  -0.039682  0.054568  -0.058"/>
             <ReadState filename="realDataSet/referenceAll3" />
-            <ShowCatheter  radius="0.0002"  color="0 0 1 1" position="@MO.position" />
+<!--             <ShowCatheter  radius="0.0002"  color="0 0 1 1" position="@MO.position" /> -->
         </Node>
         <Node name="VisualRealSurface">
             <MeshSTLLoader name="surface" filename="realDataSet/phantomScaled.stl"  />
@@ -56,28 +56,28 @@
     <!--  ####   HERE YOU HAVE THE NODE WITH THE FILTER     ####-->  
     <Node name="filteredModel">     
         <StochasticStateWrapper name="StateWrapper" template="Rigid3d" verbose="1" estimatePosition="1"  estimateOnlyXYZ="1" estimateVelocity="1" 
-                                positionStdev="0.5e-04 0.5e-04 0.5e-04  0.5e-04 0.5e-04 0.5e-04"
-                                velocityStdev="0.5e-04  0.5e-04  0.5e-04 0.5e-04 0.5e-04 0.5e-04  "
-                                posModelStdev="0 0 0 0 0 0 " 
-                                velModelStdev="0.5e-04 0.5e-04 0.5e-04 0.5e-04 0.5e-04 0.5e-04 "
+                                positionStdev="1e-03  1e-03  1e-03   "
+                                velocityStdev="1e-03 1e-03 1e-03 1e-03  1e-03  1e-03  "
+                                posModelStdev="0 0 0 " 
+                                velModelStdev="1e-03 1e-03 1e-03 1e-03  1e-03  1e-03    "
                                 mappedState="cat/CollisionCat/ms" langrangeMultipliers="1" draw="0" radiusDraw="0.0"/>  
         <GenericConstraintSolver name="GenericConstraintSolver"  printLog="0"  maxIterations="1000"  tolerance="1e-10"  allVerified="0" />  
         <Node name="cat">
             <EulerImplicitSolver rayleighMass="0.00" rayleighStiffness="0.0" />	
             <BTDLinearSolver name="BTD"/>
             <MechanicalObject template="Rigid3d" name="MO"     
-                              position=" 0.01499999999999999944 0.05399999999999999939 -0.05800000000000000294 0.01943958404869522427 0.7068395168438261766 -0.7068395168438262877 -0.01943958404869522774 0.004100000000000000346 0.0546000000000000027 -0.05800000000000000294 0 -0.7071067811865474617 0.7071067811865475727 0 -0.006799999999999999621 0.0546000000000000027 -0.05800000000000000294 0 -0.7071067811865474617 0.7071067811865475727 0 -0.01779999999999999985 0.0546000000000000027 -0.05800000000000000294 0 -0.7071067811865474617 0.7071067811865475727 0 -0.02869999999999999982 0.0546000000000000027 -0.05800000000000000294 0 -0.7071067811865474617 0.7071067811865475727 0 -0.03969999999999999918 0.0546000000000000027 -0.05800000000000000294 0 -0.7071067811865474617 0.7071067811865475727 0" showObject="1" showObjectScale="0.001"/>
+                              position=" 0.01499999999999999944 0.05399999999999999939 -0.05800000000000000294 0.01943958404869522427 0.7068395168438261766 -0.7068395168438262877 -0.01943958404869522774 0.004100000000000000346 0.0546000000000000027 -0.05800000000000000294 0 -0.7071067811865474617 0.7071067811865475727 0 -0.006799999999999999621 0.0546000000000000027 -0.05800000000000000294 0 -0.7071067811865474617 0.7071067811865475727 0 -0.01779999999999999985 0.0546000000000000027 -0.05800000000000000294 0 -0.7071067811865474617 0.7071067811865475727 0 -0.02869999999999999982 0.0546000000000000027 -0.05800000000000000294 0 -0.7071067811865474617 0.7071067811865475727 0 -0.03969999999999999918 0.0546000000000000027 -0.05800000000000000294 0 -0.7071067811865474617 0.7071067811865475727 0" showObject="0" showObjectScale="0.001"/>
             <Mesh name="lines" lines="0 1  1 2 2 3 3 4 4 5 " />
             <UniformMass totalMass="0.0001" printLog="false" />
             <BeamFEMForceField name="FEM" radius="0.0005" youngModulus="1e6" poissonRatio="0.49" useSymmetricAssembly="1"/>
             <ConstantForceField force="0.0008 0 -0.0008  0.0 0.0  0.0 "  indices=" 5"/>
             <Node name="CollisionCat">
-                <CubeTopology nx="11" ny="1" nz="1" min="0 0 0" max="5 0 0" />
+                <CubeTopology nx="6" ny="1" nz="1" min="0 0 0" max="5 0 0" />
                 <MechanicalObject name="ms" />
                 <BeamLinearMapping />
                 <EdgeGeometry name="edge"/> 
                 <PointGeometry name ="point"/>
-                <ShowCatheter  radius="0.0002"  color="0 1 0 1" position="@ms.position" />
+                <ShowCatheter  radius="0.0"  color="0 1 0 1" position="@ms.position" />
                 <BoxROI name="boxA" box="0 0 -0.1 0.1 0.1 0" drawBoxes="0" drawSize="1" position="@ms.position"/>
             </Node>    
 <!--             <Node name="VM"> 
@@ -97,9 +97,9 @@
             <LinearSolverConstraintCorrection solverName="BTD" />  
             
             <Node name="obsNode" activated="1">        
-                <SimulatedStateObservationSource template="Vec2d" name="observations" monitorPrefix="realDataSet/obs_N6" asynObs="true"/>    
+                <SimulatedStateObservationSource template="Vec2d" name="observations" monitorPrefix="realDataSet/obs_N6_noise" asynObs="true"/>    
                 <SimpleObservationManager name="MSIDES" template="Vec2d,Rigid3d" listening="1"  stateWrapper="@../../StateWrapper" use2dObservation="true"   
-                                          projectionMatrix="[-3320.65 174.572 -514.441 193.451 134.409 3340.13 44.4847 -64.7090 0.0480279 0.103531 -0.993466 0.400192]" verbose="1" observationStdev="0.0005"/>
+                                          projectionMatrix="[-3320.65 174.572 -514.441 193.451 134.409 3340.13 44.4847 -64.7090 0.0480279 0.103531 -0.993466 0.400192]" verbose="1" observationStdev="0.01"/>
             </Node>
         </Node> 
     

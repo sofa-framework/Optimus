@@ -11,19 +11,19 @@
     <ViewerSetting resolution="837 600" />
 
     <FilteringAnimationLoop name="StochAnimLoop" verbose="1"/>
-    <UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0"   draw="0" radiusDraw="0.0" MOnodesDraw="12"  filenameFinalState="realDataSet/Q2_R1" exportPrefix="cov_" />
+    <UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0"   draw="0" radiusDraw="0.0" MOnodesDraw="12"  filenameFinalState="realDataSet/Q2_R3" exportPrefix="cov_" />
 
     
 <!--  ####   HERE YOU CAN CHOOSE YOUR VIEW: EITHER SIDE OR TOP VIEW   ####--> 
     
-    <Node name="validationView"/>    
+<!--    <Node name="validationView"/>    
         <OpenCVPngStreamer name="streamer" filename="realDataSet/cat0/cat0__??????.png" imageId="001448"/>
         <OpenCVProjectiveCalibrator listening="1" name="calibrator" streamer="streamer" mode="0" projectionMatrix="[-3452.3 219.165 -50.3532 251.620 -24.5691 647.057 3388.13 271.587 -0.00217632 0.993 -0.118096	0.474452]" drawCamera="0" depth="0.9" drawzNear="0.0000001" drawViewPort="0" drawscreenSize="640 480" drawzFar="10000000" drawscreenPosition="0 0" drawswapMainView="1" />    
         <OpenCVViewer name="viewer" streamer="streamer" drawcolor="1 1 1 1" /> 
         <OpenCVScheduler name="scheduler" frequency="0"  />
-    <Node />
-    
-<!--    <Node name="aquisitionView" />
+    <Node />-->
+<!--    
+    <Node name="aquisitionView" />
         <OpenCVPngStreamer name="streamer" filename="realDataSet/cat1/test_??????.png" imageId="001448"/>
         <OpenCVProjectiveCalibrator listening="1" name="calibrator" streamer="streamer" mode="0"  projectionMatrix="[-3320.65	174.572	-514.441 193.451 134.409 3340.13 44.4847 -64.7090 0.0480279	0.103531 -0.993466 0.400192]" drawCamera="0" depth="0.7" drawzNear="0.0000001" drawViewPort="0" drawscreenSize="640 480" drawzFar="10000000" drawscreenPosition="0 0" drawswapMainView="1" />    
         <OpenCVViewer name="viewer" streamer="streamer" drawcolor="1 1 1 1" /> 
@@ -55,10 +55,10 @@
     <!--  ####   HERE YOU HAVE THE NODE WITH THE FILTER     ####-->  
     <Node name="filteredModel">     
         <StochasticStateWrapper name="StateWrapper" template="Rigid3d" verbose="1" estimatePosition="1"  estimateOnlyXYZ="1" estimateVelocity="1" 
-                                positionStdev="0.3e-04 0.3e-04 0.3e-04  "
-                                velocityStdev="0.3e-04  0.3e-04  0.3e-04 0.3e-04 0.3e-04 0.3e-04  "
+                                positionStdev="0.25e-03  0.25e-03  0.25e-03   "
+                                velocityStdev="0.25e-03  0.25e-03  0.25e-03  0.25e-03  0.25e-03  0.25e-03  "
                                 posModelStdev="0 0 0 " 
-                                velModelStdev="0.3e-04 0.3e-04 0.3e-04 0.3e-04 0.3e-04 0.3e-04   "
+                                velModelStdev="0.25e-03  0.25e-03  0.25e-03  0.25e-03  0.25e-03  0.25e-03  "
                                 mappedState="cat/CollisionCat/ms" langrangeMultipliers="1" draw="0" radiusDraw="0.0"/>  
         <GenericConstraintSolver name="GenericConstraintSolver"  printLog="0"  maxIterations="1000"  tolerance="1e-10"  allVerified="0" />  
         <Node name="cat">
@@ -107,9 +107,9 @@
             <LinearSolverConstraintCorrection solverName="BTD" />  
             
             <Node name="obsNode" activated="1">        
-                <SimulatedStateObservationSource template="Vec2d" name="observations" monitorPrefix="realDataSet/obs_N12" asynObs="true"/>    
+                <SimulatedStateObservationSource template="Vec2d" name="observations" monitorPrefix="realDataSet/obs_N12_noise" asynObs="true"/>    
                 <SimpleObservationManager name="MSIDES" template="Vec2d,Rigid3d" listening="1"  stateWrapper="@../../StateWrapper" use2dObservation="true"   
-                                          projectionMatrix="[-3320.65 174.572 -514.441 193.451 134.409 3340.13 44.4847 -64.7090 0.0480279 0.103531 -0.993466 0.400192]" verbose="1" observationStdev="0.1"/>
+                                          projectionMatrix="[-3320.65 174.572 -514.441 193.451 134.409 3340.13 44.4847 -64.7090 0.0480279 0.103531 -0.993466 0.400192]" verbose="1" observationStdev="0.001"/>
             </Node>
         </Node> 
     
