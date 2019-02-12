@@ -37,7 +37,7 @@ void UKFilterSimCorr<FilterType>::computePrediction()
     //PRNS("matPsqrt: " << matPsqrt);
 
     stateExp = masterStateWrapper->getState();
-    PRNS("X(n): \n" << stateExp.transpose());
+    //PRNS("X(n): \n" << stateExp.transpose());
     //PRNS("P(n): \n" << stateCovar);
 
     /// Computes X_{n}^{(i)-} sigma points        
@@ -100,10 +100,10 @@ void UKFilterSimCorr<FilterType>::computeCorrection()
         /// compute predicted observations
         for (size_t i = 0; i < sigmaPointsNum; i++) {
             xCol = matXi.col(i);            
-            PRNS("pX_n["<<i<<"]: "<< xCol.transpose());
+            //PRNS("pX_n["<<i<<"]: "<< xCol.transpose());
             stateWrappers[0]->computeSimulationStep(xCol, mechParams, id);
             observationManager->getPredictedObservation(id,  zCol);
-            PRNS("pZ_n["<< i <<"]:" << zCol.transpose());
+            //PRNS("pZ_n["<< i <<"]:" << zCol.transpose());
             matZmodel.col(i) = zCol;
             predObsExp = predObsExp + zCol * vecAlpha(i);
             stateExp = stateExp + xCol * vecAlpha(i);
@@ -341,6 +341,8 @@ void UKFilterSimCorr<FilterType>::computeSimplexSigmaPoints(EMatrixX& sigmaMat) 
     alphaVar = (this->useUnbiasedVariance.getValue()) ? Type(1.0)/Type(r-1) : Type(1.0)/Type(r);
     vecAlphaVar.resize(r);
     vecAlphaVar.fill(alphaVar);
+    //PRNS("sigmaMat: \n" << sigmaMat);
+    //PRNS("vecAlphaVar: \n" << vecAlphaVar);
 }
 
 
@@ -368,7 +370,7 @@ void UKFilterSimCorr<FilterType>::computeStarSigmaPoints(EMatrixX& sigmaMat) {
         sigmaMat.row(i) = workingMatrix.col(i);
 
     vecAlpha.resize(r);
-    vecAlpha.fill(Type(1.0)/Type(r));
+    vecAlpha.fill(Type(1.0)/Type(2 * (p + lambda)));
     vecAlpha(2 * p) = Type(lambda) / Type(p + lambda);
     alphaConstant = false;
 
