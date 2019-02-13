@@ -373,6 +373,7 @@ void UKFilterSimCorr<FilterType>::computeStarSigmaPoints(EMatrixX& sigmaMat) {
     vecAlpha.fill(Type(1.0)/Type(2 * (p + lambda)));
     vecAlpha(2 * p) = Type(lambda) / Type(p + lambda);
     alphaConstant = false;
+    alpha = vecAlpha(0);
 
     alphaVar = (this->useUnbiasedVariance.getValue()) ? Type(1.0)/Type(2 * (p + lambda) - 1) : Type(1.0)/Type(2 * (p + lambda));
     vecAlphaVar.resize(r);

@@ -75,7 +75,7 @@ public:
 protected:
     typedef enum SigmaTopology {
         SIMPLEX = 0,
-        STAR = 1,
+        STAR = 1
     } SigmaTopologyType;
 
     sofa::helper::system::thread::CTime *timer;
