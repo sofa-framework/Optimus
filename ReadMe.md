@@ -38,7 +38,7 @@ These components provide various functionality employed in Optimus scenes.
 Stochastic filtering
 --------------------
 
-THese components are the core of Optimus plugin and implement functionality necessary for stochastic estimation. 
+These components are the core of Optimus plugin and implement functionality necessary for stochastic estimation.
 Compilation of these components must be activated by CMake macro STOCHASTIC_FILTERING.
 
 `FilteringAnimationLoop`
@@ -59,34 +59,34 @@ Compilation of these components must be activated by CMake macro STOCHASTIC_FILT
 
 `UKFilter`
 
--   Unscented Kalman Filter proposed by Julier and Uhlman (1997). Implementation performed according to code in Reduced order Kalman filter implemented according to Moireau, Philippe, and Dominique Chapelle. "Reduced-order Unscented Kalman Filtering with application to parameter identification in large-dimensional systems." 
+-   Unscented Kalman Filter proposed by Julier and Uhlman (1997). Implementation performed according to code in Reduced order Kalman filter implemented according to Moireau, Philippe, and Dominique Chapelle. "Reduced-order Unscented Kalman Filtering with application to parameter identification in large-dimensional systems."
 
 -	Main methods are initializeStep(), computePrediction() and computeCorrection(), all called by the FilteringAnimationLoop.
 
 
 `ROUKFilter`
 
--   Reduced order Kalman filter implemented according to Moireau, Philippe, and Dominique Chapelle. "Reduced-order Unscented Kalman Filtering with application to parameter identification in large-dimensional systems." 
+-   Reduced order Kalman filter implemented according to Moireau, Philippe, and Dominique Chapelle. "Reduced-order Unscented Kalman Filtering with application to parameter identification in large-dimensional systems."
 
 -	Main methods are initializeStep(), computePrediction() and computeCorrection(), all called by the FilteringAnimationLoop.
 
 
 `UKFilterSimCorr`
 
--   Special version of UKF filter purely for data assimilation. Currently being studied. 
+-   Special version of UKF filter purely for data assimilation. Currently being studied.
 
 -	Main methods are initializeStep(), computePrediction() and computeCorrection(), all called by the FilteringAnimationLoop.
 
 
 `MappedStateObservationManager`
 
--   One instance of observation manager which handles the observations and provides them to the filter via computation of innovation. 
+-   One instance of observation manager which handles the observations and provides them to the filter via computation of innovation.
 
 -   Assumes that the predicted observations are mapped to the main mechanical object (associated with StochasticStateWrapper). 
 
 `PreStochasticWrapper`
 
--   Special version of wrapper which allows for including other simulated object into Optimus scene which do not contain any quantities being estimated. 
+-   Special version of wrapper which allows for including other simulated object into Optimus scene which do not contain any quantities being estimated.
 
 -   Typical example is an obstacle which displays a physical behaviour, however, none of its features is directly involved in the estimation. 
 
@@ -146,22 +146,57 @@ Benchmarks
 In order to facilitate development of Optimus, it is highly recommended to create benchmarks or regression tests. 
 The goal of these is to verify that the functionality of Optimus has not been changed. Thus, the main goal of benchmarks is to 
 compare results of simulations to previously generated reliable data. If the comparison shows important difference, it is necesary 
-to identify the source of this change which probably indicates a serious issue either in Optimus or in SOFA itself. 
+to identify the source of this change which probably indicates a serious issue either in Optimus or in SOFA itself.
 
-Currently, two benchmarks have been implemented: *** assimBC_synthBrick *** and ***   *** 
+Currently, six benchmarks have been implemented: *** assimStiffness_cylinder_yaml *** , *** assimStiffness_cylinder_UKFSimCorr_yaml *** , *** assimBC_synthBrick *** , *** assimStiffness_cylinder_geomagic_yaml *** , *** assimBC_liver_geomagic_cutting_yaml *** , and *** assimBC_liver_polynomial_springs_point_cloud_yaml ***
 
 `assimStiffness_cylinder_yaml`
 
 -   ROUKF-based identification of 10 values of Young's modulus of a heterogeneous cylinder subjected to gravity. See Peterlík and A. Klíma.Towards an efficient data assimilation in physically-based medical simulations, 2015.
 
+
+`assimStiffness_cylinder_UKFSimCorr_yaml`
+
+-   UKFSimCorr-based identification of 2 values of Young's modulus of a heterogeneous cylinder subjected to gravity.
+
+
 `assimBC_synthBrick`
 
--   ROUKF-based identification of stiffnesses of 16 values of spring stiffness (identification of boundary conditions), see I. Peterlík, N. Haouchine, L. Ručka and S. Cotin. Image-driven Stochastic Identification of Boundary Conditions for Predictive Simulation. In International Conference on Medical Image Computing and Computer-Assisted Intervention, 2017.
+-   ROUKF-based identification of 16 values of spring stiffness (identification of boundary conditions), see I. Peterlík, N. Haouchine, L. Ručka and S. Cotin. Image-driven Stochastic Identification of Boundary Conditions for Predictive Simulation. In International Conference on Medical Image Computing and Computer-Assisted Intervention, 2017.
 
-Both benchmarks are executed using script verify.sh which runs the observation generation, then executes data assimilation and finally computes differences between obtained values and results stored previously. 
+All benchmarks are executed using script verify.sh which runs the observation generation, then executes data assimilation and finally computes differences between obtained values and results stored previously.
+
+
+`assimStiffness_cylinder_geomagic_yaml`
+
+-   ROUKF-based identification of 2 values of Young's modulus of a heterogeneous cylinder. The cylinder is deformed following the recorded manipulation of GeoMagic device.
+
+
+`assimBC_liver_geomagic_cutting_yaml`
+
+-   ROUKF-based identification of 3 values of spring stiffnesses for a deformation of a liver model. The liver is deformed following the recorded manipulation of GeoMagic device. At some moment the simulation of ligament cutting is performed, see S. Nikolaev, I. Peterlik, S. Cotin. Stochastic Correction of Boundary COnditions during Liver Surgery, 2018.
+
+
+`assimBC_liver_polynomial_springs_point_cloud_yaml`
+
+-   ROUKF-based identification of 6 coefficients of 2 two polynomial springs.
+
 
 
 Data
 ----
 
 The plugin contains several volume (VTK) and surface (STL) meshes used in the examples, benchmarks and scenes. Most of meshes were generated by GMesh generator.
+
+
+
+Visualization
+-------------
+
+Optimus plugin has several python scripts that allow to show the dynamics of estimated parameters (stiffnesses), variance values, and correlation between parameters. All scripts use Matplotlib python library to draw figures and charts and YAML configuration files to load main scene parameters.
+
+
+All visualization scripts are stored in python_src/visualisation subfolder in Optimus. To scripts generally require only path to output folder(s) with results, since special subfolders structure, which is recognized by scripts, is generated and YAML is copied to output folder during data assimilation process.
+
+
+
