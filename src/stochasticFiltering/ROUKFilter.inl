@@ -683,7 +683,7 @@ void ROUKFilter<FilterType>::computeStarCorrection()
         //PRNS("state\n " << state.transpose());
         //std::cout << "state: \n" << state.transpose() << std::endl;
 
-        state = state + K * vecZ;
+        state = state - K * vecZ;
 
         //PRNS("\n errorVarProj \n " << errorVarProj.transpose());
         //PRNS("\n reducedInnovation \n " << reducedInnovation);
