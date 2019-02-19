@@ -101,6 +101,7 @@ with open(dataFile, 'r') as stream:
         print(exc)
         sys.exit()
 
+dataFolder = dataFile[ : dataFile.rfind('/') + 1]
 
 ### create a tree of dependences
 fullNode = statistics['1']['records']
@@ -114,10 +115,10 @@ create_tree(fullNode, 'TOTAL', insertionsGraph, nodesList)
 insertionsGraph.layout(prog='dot')
 
 # save image with graph
-insertionsGraph.draw('insertions.png')
+insertionsGraph.draw(dataFolder + 'timer_insertions.png')
 
 # load image and show it
-img = mpimg.imread('insertions.png')
+img = mpimg.imread(dataFolder + 'timer_insertions.png')
 fig1 = plt.figure(1)
 spl1 = fig1.add_subplot(111)
 imgplot = spl1.imshow(img)

@@ -126,10 +126,10 @@ for generalIndex in range (0, len(folder)):
     insertionsGraph.layout(prog='dot')
 
     # save image with graph
-    insertionsGraph.draw('insertions' + str(generalIndex) + '.png')
+    insertionsGraph.draw(folder[generalIndex] + '/timer_insertions.png')
 
     # load image and show it
-    img = mpimg.imread('insertions' + str(generalIndex) + '.png')
+    img = mpimg.imread(folder[generalIndex] + '/timer_insertions.png')
     fig1 = plt.figure(2 * generalIndex)
     spl1 = fig1.add_subplot(111)
     imgplot = spl1.imshow(img)
