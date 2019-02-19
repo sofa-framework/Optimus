@@ -5,6 +5,7 @@ import sys
 import csv
 import yaml
 import pprint
+import numpy as np
 
 __file = __file__.replace('\\', '/') # windows
 
@@ -98,13 +99,15 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
         simuNode.createObject('MeshVTKLoader', name='loader', filename=self.opt['model']['vol_mesh'])
 
         intType = self.opt['model']['int']['type']
-        intMaxit = self.opt['model']['int']['maxit']
-        rmass = self.opt['model']['int']['rmass']
-        rstiff = self.opt['model']['int']['rstiff']
-
+                
         if intType == 'Euler':
+            rmass = self.opt['model']['int']['rmass']
+            rstiff = self.opt['model']['int']['rstiff']
             simuNode.createObject('EulerImplicitSolver', rayleighStiffness=rstiff, rayleighMass=rmass)
-        # simuNode.createObject('NewtonStaticSolver', maxIt='1', correctionTolerance='1e-8', residualTolerance='1e-8', convergeOnResidual='1')
+        elif intType == 'Newton':
+            intMaxit = self.opt['model']['int']['maxit']
+            simuNode.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt=intMaxit)
+
         # simuNode.createObject('StepPCGLinearSolver', name='lsolverit', precondOnTimeStep='0', use_precond='1', tolerance='1e-10', iterations='500',
         #  verbose='0', update_step='10', listening='1', preconditioners='lsolver')
         # simuNode.createObject('ShewchukPCGLinearSolver', name='lsolverit', iterations='500', use_precond='1', tolerance='1e-10', preconditioners='lsolver')
@@ -126,12 +129,22 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
         if 'density' in self.opt['model'].keys():
             simuNode.createObject('MeshMatrixMass', printMass='0', lumping='1', massDensity=self.opt['model']['density'], name='mass')
 
-        youngModuli=self.opt['model']['young_moduli']
+        youngModuli=self.opt['model']['fem']['young_modulus']
+        poissonRatio = self.opt['model']['fem']['poisson_ratio']
         indices = range(1, len(youngModuli)+1)
-        simuNode.createObject('Indices2ValuesMapper', indices=indices, values=youngModuli, 
-            name='youngMapper', inputValues='@loader.dataset')
 
-        simuNode.createObject('TetrahedronFEMForceField', updateStiffness='1', name='FEM', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
+        method = self.opt['model']['fem']['method']    
+        if  method[0:3] == 'Cor':
+            simuNode.createObject('Indices2ValuesMapper', indices=indices, values=youngModuli, name='youngMapper', inputValues='@loader.dataset')
+            simuNode.createObject('TetrahedronFEMForceField', name='FEM', method=method[3:].lower(), listening='true', drawHeterogeneousTetra='1', 
+                poissonRatio=poissonRatio, youngModulus='@youngMapper.outputValues', updateStiffness='1')        
+        elif method == 'StVenant':            
+            poissonRatii = poissonRatio * np.ones([1,len(youngModuli)])
+            simuNode.createObject('Indices2ValuesTransformer', name='paramMapper', indices=indices,
+                values1=youngModuli, values2=poissonRatii, inputValues='@loader.dataset', transformation='ENu2MuLambda')
+            simuNode.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet='@paramMapper.outputValues', drawHeterogeneousTetra='1')
+
+
 
         if self.saveGeo:
             simuNode.createObject('VTKExporter', filename=self.geoFolder+'/object.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="1",

@@ -99,7 +99,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         self.filterKind = self.opt['filter']['kind']
 
         if self.filterKind == 'ROUKF':
-            self.filter = rootNode.createObject('ROUKFilter', name="ROUKF", verbose="1", useBlasToMultiply='0')
+            self.filter = rootNode.createObject('ROUKFilter', name="ROUKF", verbose="1", useBlasToMultiply='0', printLog='1', sigmaTopology=self.opt['filter']['sigma_points_topology'])
             estimatePosition = 1
         elif self.filterKind == 'UKFSimCorr':
             self.filter = rootNode.createObject('UKFilterSimCorr', name="UKFSC", verbose="1")
@@ -123,20 +123,19 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         # /ModelNode/cylinder
         simuNode=modelNode.createChild('cylinder')  
 
-        intType = self.opt['model']['int']['type']
-        intMaxit = self.opt['model']['int']['maxit']
-        rmass = self.opt['model']['int']['rmass']
-        rstiff = self.opt['model']['int']['rstiff']
-
+        intType = self.opt['model']['int']['type']            
         if intType == 'Euler':
+            rmass = self.opt['model']['int']['rmass']
+            rstiff = self.opt['model']['int']['rstiff']
             simuNode.createObject('EulerImplicitSolver', rayleighStiffness=rstiff, rayleighMass=rmass)
         elif intType == 'Newton':
-            simuNode.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")           
+            intMaxit = self.opt['model']['int']['maxit']
+            simuNode.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt=intMaxit)
 
         
         if self.opt['model']['linsol']['usePCG']:
             simuNode.createObject('StepPCGLinearSolver', name='lsolverit', precondOnTimeStep='1', use_precond='1', tolerance='1e-10', iterations='500',
-                verbose='0', listening='1', preconditioners='lsolver')
+                verbose='1', listening='1', preconditioners='lsolver', update_step=self.opt['model']['linsol']['updatePCGTimeStep'])
 
         simuNode.createObject('SparsePARDISOSolver', name='lsolver', verbose='0', pardisoSchurComplement=self.planeCollision, 
             symmetric=self.opt['model']['linsol']['pardisoSym'], exportDataToFolder=self.opt['model']['linsol']['pardisoFolder'])
@@ -159,11 +158,20 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             numParams=self.opt['filter']['nparams'], transformParams=self.opt['filter']['param_transform'],
             initValue=self.opt['filter']['param_init_exval'], stdev=self.opt['filter']['param_init_stdev'])
 
-        youngModuli=self.opt['model']['young_moduli']
+        youngModuli=self.opt['model']['fem']['young_modulus']
+        poissonRatio = self.opt['model']['fem']['poisson_ratio']
         indices = range(1, len(youngModuli)+1)
-        simuNode.createObject('Indices2ValuesMapper', indices=indices, values='@paramE.value', name='youngMapper', inputValues='@/loader.dataset')
+        method = self.opt['model']['fem']['method']
+        if  method[0:3] == 'Cor':
+            simuNode.createObject('Indices2ValuesMapper', indices=indices, values='@paramE.value', name='youngMapper', inputValues='@loader.dataset')
+            simuNode.createObject('TetrahedronFEMForceField', name='FEM', method=method[3:].lower(), listening='true', drawHeterogeneousTetra='1', 
+                poissonRatio=poissonRatio, youngModulus='@youngMapper.outputValues', updateStiffness='1')
+        elif method == 'StVenant':
+            poissonRatii = poissonRatio * np.ones([1,len(youngModuli)])
+            simuNode.createObject('Indices2ValuesTransformer', name='paramMapper', indices=indices,
+                values1='@paramE.value', values2=poissonRatii, inputValues='@loader.dataset', transformation='ENu2MuLambda')
+            simuNode.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet='@paramMapper.outputValues', drawHeterogeneousTetra='1')
 
-        simuNode.createObject('TetrahedronFEMForceField', name='FEM', updateStiffness='1', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
 
         if self.saveGeo:
             simuNode.createObject('VTKExporterDA', filename=self.geoFolder+'/object.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="1",
