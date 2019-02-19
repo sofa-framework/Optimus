@@ -1,11 +1,11 @@
 clear all
 close
 
-ori=dlmread('obs_N12_x.txt');
+ori=dlmread('../intermObs/SSFFObs3D_hooke_x.txt');
 t=ori(:,1);
 obs=ori(:,2:end);
 
-r=0.1*randn(size(obs));
+r=0.0005*rand(size(obs));
 
 noi=obs+r;
 
@@ -21,3 +21,8 @@ noi=obs+r;
 % end
 
 noi2=cat(2,t,noi);
+asynnoi2=noi2(1:20:end,:);
+dlmwrite('../intermObs/SSFFObs3D_hookeNoise_x.txt',noi2,'delimiter',' ')
+dlmwrite('../intermObs/SSFFAsynObs3D_hookeNoise_x.txt',asynnoi2,'delimiter',' ')
+
+writeStateSofa(noi,'../intermObs/SSFFNoisy3D_hooke')

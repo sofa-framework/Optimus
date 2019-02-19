@@ -49,6 +49,7 @@ void UKFilterClassic<FilterType>::computePrediction()
 {
     hasObs = observationManager->hasObservation(this->actualTime);
     if (hasObs) {
+//        std::cout<<"\n HAS OBS: =" << hasObs << " COMPUTE PREDICTION" << std::endl;
         PRNS("Computing prediction, T= " << this->actualTime  << " ======");
 
         //        /// Computes background error variance Cholesky factorization.
@@ -89,9 +90,44 @@ void UKFilterClassic<FilterType>::computePrediction()
         masterStateWrapper->setState(stateExp, mechParams);
 
     }else{
+//        std::cout<<"\n HAS OBS: =" << hasObs << " COMPUTE ONLY PREDICTION" << std::endl;
+
+//        stateExp.fill(FilterType(0.0));
+//        stateExp = masterStateWrapper->getState();
+//        masterStateWrapper->lastApplyOperator(stateExp, mechParams);
+
+        EMatrixX matPsqrt(stateSize,stateSize);
+        sqrtMat(stateCovar, matPsqrt);
+
+
+
         stateExp.fill(FilterType(0.0));
         stateExp = masterStateWrapper->getState();
-        masterStateWrapper->lastApplyOperator(stateExp, mechParams);
+
+        /// Computes X_{n}^{(i)-} sigma points
+        for (size_t i = 0; i < sigmaPointsNum; i++) {
+            matXi.col(i) = stateExp + matPsqrt * matI.row(i).transpose();
+        }
+
+        /// Propagate sigma points
+        genMatXi=matXi.transpose();
+        computePerturbedStates();
+
+        /// Compute Predicted Mean
+        stateExp.fill(FilterType(0.0));
+        for (size_t i = 0; i < sigmaPointsNum; i++) {
+            stateExp += matXi.col(i) * vecAlpha(i);
+        }
+
+        /// Compute Predicted Covariance
+        EMatrixX matXiTrans= matXi.transpose();
+        EMatrixX centeredPxx = matXiTrans.rowwise() - matXiTrans.colwise().mean();
+        EMatrixX weightedCenteredPxx = centeredPxx.array().colwise() * vecAlphaVar.array();
+        EMatrixX covPxx = (centeredPxx.adjoint() * weightedCenteredPxx);
+        stateCovar = covPxx + modelCovar;
+
+        masterStateWrapper->setState(stateExp, mechParams);
+
     }
 }
 
@@ -100,6 +136,8 @@ void UKFilterClassic<FilterType>::computeCorrection()
 {
 
     if (hasObs) {
+//        std::cout<<"\n HAS OBS: =" << hasObs << " COMPUTE CORRECTION" << std::endl;
+
         PRNS("======= Computing correction, T= " << this->actualTime << " ======");
         EVectorX zCol(observationSize);
         matZmodel.resize(observationSize, sigmaPointsNum);
@@ -457,9 +495,9 @@ void UKFilterClassic<FilterType>::draw(const core::visual::VisualParams* vparams
                     colorB[i]= ((double) rand() / (RAND_MAX)) ;
                 }
 
-                vparams->drawTool()->drawSpheres(predpoints[i],  d_radius_draw.getValue(), sofa::defaulttype::Vec<4, float>(m_omega,0.0f,0.0f,1.0f));
-                if (d_MOnodes_draw.getValue()>=2)
-                    vparams->drawTool()->drawLineStrip(predpoints[i],3.0,sofa::defaulttype::Vec<4, float>(color[i],0.5f,colorB[i],1.0f));            }
+                vparams->drawTool()->drawSpheres(predpoints[i],  d_radius_draw.getValue(), sofa::defaulttype::Vec<4, float>(m_omega,0.0f,0.0f,1.0f)); }
+//                if (d_MOnodes_draw.getValue()>=2)
+//                    vparams->drawTool()->drawLineStrip(predpoints[i],3.0,sofa::defaulttype::Vec<4, float>(color[i],0.5f,colorB[i],1.0f));            }
 
         }
     }
