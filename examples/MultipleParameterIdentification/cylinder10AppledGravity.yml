@@ -9,7 +9,7 @@ model:
     total_mass: 0.2    
         
     int:   # temporal integrator properties
-        type: 'Newton'
+        type: 'Euler'
         rmass: 0.1  #Euler only
         rstiff: 3   #Euler only
         maxit: 5   # Newton only
