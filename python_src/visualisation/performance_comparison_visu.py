@@ -14,17 +14,28 @@ plt.style.use('classic')
 #print(plt.style.available)
 
 
-
-
 ######### configuration for visualisation
-inputList = ['cyl3gravity_Euler1/ROUKF_obs33_0_proj2']
-#inputList.append('cyl3gravity_Euler1/ROUKF_obs33_1_proj2')
+inputList = ['cyl10_constForce_Newton/ROUKF_cyl10_4245_obs33_forceField385_Gui_init100']
+inputList.append('cyl10_constForce_Newton/ROUKF_cyl10_4245_obs33_forceField385_PCG_step1_Gui_init100')
+inputList.append('cyl10_constForce_Newton/ROUKF_cyl10_4245_obs33_forceField385_PCG_step5_Gui_init100')
+inputList.append('cyl10_constForce_Newton/ROUKF_cyl10_4245_obs33_forceField385_PCG_step10_Gui_init100')
 ######### end of configuration for visualisation
 
 
+####### labels for visualisation
+labels = ['no Step PCG']
+labels.append('Step PCG 1 iteration')
+labels.append('Step PCG 5 iterations')
+labels.append('Step PCG 10 iterations')
 
 
+
+draw_total_performance = 1
+estimate_parallel_performance = 1
+indices_without_PCG = [0]
 only_leaves_performance = 0
+####### end labels for visualisation
+
 
 def create_tree(node, nodeName, graph, nodesList):
     leafNode = 1
@@ -102,6 +113,15 @@ else:
 
 print("Command line arguments for python : " + str(commandLineArguments))
 
+# create extra vector for additional cases
+if draw_total_performance == 1:
+    totalPerformanceVector = []
+
+    if estimate_parallel_performance == 1:
+        parallelizedDataVector = []
+        totalPerformanceVectorNoPCG = []
+
+
 for generalIndex in range (0, len(folder)):
 
     dataFile = folder[generalIndex] + '/computationTime.txt' 
@@ -136,7 +156,7 @@ for generalIndex in range (0, len(folder)):
     spl1.set_title('Graph of nested timesteps')
 
 
-    ### create histogramm of performance
+    ### compute performance for all nested elements
     executedTime = numpy.zeros(len(nodesList))
     for index in range(1, len(statistics) + 1):
         fullNode = statistics[str(index)]['records']
@@ -161,7 +181,30 @@ for generalIndex in range (0, len(folder)):
             averageTime[index] = totalTime[index] / iterations[index]
 
 
+    ### save data for total performance
+    if draw_total_performance == 1:
+        for index in range(0, len(nodesList)):
+            if nodesList[index] == 'TOTAL':
+                totalPerformanceVector.append(totalTime[index])
 
+        ### save data for parallel estimation
+        if estimate_parallel_performance == 1:
+            parallel_data = 0
+            for index in range (0, len(indices_without_PCG)):
+                if generalIndex == indices_without_PCG[index]:
+                    parallel_data = 1
+                    break
+
+            if parallel_data == 1:
+                for index in range(0, len(nodesList)):
+                    if nodesList[index] == 'KalmanFilterPrediction':
+                        parallelizedDataVector.append(totalTime[index])
+                    elif nodesList[index] == 'TOTAL':
+                        totalPerformanceVectorNoPCG.append(totalTime[index])
+
+
+
+    ### draw histogram for performance
     fig2 = plt.figure(2 * generalIndex + 1)
     spl2 = fig2.add_subplot(111)
     amount = numpy.arange(len(executedTime))
@@ -183,6 +226,39 @@ for generalIndex in range (0, len(folder)):
     spl2.grid(color='k', linestyle=':', linewidth=1)
     spl2.legend((rects1[0], rects2[0]), ('Average', 'Total'))
     spl2.set_title('Computational time after ' + str(len(statistics)) + ' iterations')
+
+
+if draw_total_performance == 1:
+    fig3 = plt.figure(100000)
+    spl3 = fig3.add_subplot(111)
+
+    data_size = len(folder)
+    if estimate_parallel_performance == 1:
+        data_size = data_size + 2 * len(parallelizedDataVector)
+        for index in range (0, len(parallelizedDataVector)):
+            eightThread_computationTime = totalPerformanceVectorNoPCG[index] - parallelizedDataVector[index] + parallelizedDataVector[index] / 8
+            totalPerformanceVector.insert(1, eightThread_computationTime)
+            labels.insert(1, 'estimated 8 threads parallelization')
+            fourThread_computationTime = totalPerformanceVectorNoPCG[index] - parallelizedDataVector[index] + parallelizedDataVector[index] / 4
+            totalPerformanceVector.insert(1, fourThread_computationTime)
+            labels.insert(1, 'estimated 4 threads parallelization')
+    totalPerformanceArray = numpy.array(totalPerformanceVector)
+
+    amount = xrange(0, data_size)
+    cmap = plt.cm.get_cmap('hsv', data_size + 1)
+
+    spl3.plot(amount, totalPerformanceArray, color=cmap(0), linestyle='solid', linewidth=4)
+    # Label the functions below  bars
+    print labels
+    for index in range(0, data_size):
+        position = numpy.array((index, -1.05))
+        trans_angle = plt.gca().transData.transform_angles(numpy.array((90,)), position.reshape((1, 2)))[0]
+        spl3.text(float(index) + 0.1, totalPerformanceVector[0], labels[index], fontsize=25, rotation=trans_angle, rotation_mode='anchor', ha='center', va='bottom')
+
+    spl3.set_ylabel('general time, ms', fontsize=50)
+    spl3.tick_params(axis = 'both', which = 'major', labelsize=40)
+    spl3.grid(color='k', linestyle=':', linewidth=1)
+    spl3.set_title('Total computational time after ' + str(len(statistics)) + ' iterations')
 
 
 # Give ourselves some more room at the bottom of the plot
