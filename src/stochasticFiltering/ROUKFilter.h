@@ -117,8 +117,6 @@ protected:
     EMatrixX matItrans, matI;
     EMatrixX matDv;
     EMatrixX matXi;
-    EMatrixX M_trans, U, Umod;
-    EMatrixX workingMatrixRR, workingMatrixRN;
 
     Type alpha, alphaVar;
 

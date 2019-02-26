@@ -120,17 +120,19 @@ void FilteringAnimationLoop::step(const core::ExecParams* _params, SReal /*_dt*/
         preStochasticWrappers[i]->step(_params, actualStep);
 
     // add advanced timer to the system
-    sofa::helper::AdvancedTimer::stepBegin("KalmanFilterPrediction");
     m_timeProfiler.SaveStartTime();
 
     filter->initializeStep(_params, actualStep);
     //TIC
+    sofa::helper::AdvancedTimer::stepBegin("KalmanFilterPrediction");
+    //std::cout << "Start filter prediction" << std::endl;
     filter->computePrediction();
+    sofa::helper::AdvancedTimer::stepEnd("KalmanFilterPrediction");
+    //std::cout << "End filter prediction" << std::endl;
     PredictionEndEvent predEvent ( dt );
     sofa::simulation::PropagateEventVisitor predEVisitor ( _params, &predEvent );
     gnode->execute ( predEVisitor );
-    sofa::helper::AdvancedTimer::stepEnd("KalmanFilterPrediction");
-    //TOCTIC("== prediction total");    
+    //TOCTIC("== prediction total");
 
     sofa::helper::AdvancedTimer::stepBegin("KalmanFilterCorrection");
     filter->computeCorrection();

@@ -154,7 +154,7 @@ void ROUKFilter<FilterType>::computeSimplexPrediction()
     sofa::helper::AdvancedTimer::stepEnd("Cholseky_prediction");
 
     tmpStateVarProj = masterStateWrapper->getStateErrorVarianceProjector();
-    PRNS("errorVarProj: " << tmpStateVarProj);
+    //PRNS("errorVarProj: " << tmpStateVarProj);
 
     //TIC
     sofa::helper::AdvancedTimer::stepBegin("prediction_multiplication");
@@ -219,8 +219,6 @@ void ROUKFilter<FilterType>::computeStarPrediction()
     //PRNS("Computing prediction, T= " << this->actualTime);
     sofa::helper::AdvancedTimer::stepBegin("ROUKFStarPrediction");
 
-    //std::cout << "Compute star prediction" << std::endl;
-
     EMatrixX tmpStateVarProj(stateSize, reducedStateSize);
     EMatrixX tmpStateVarProj2(stateSize, reducedStateSize);
 
@@ -254,7 +252,6 @@ void ROUKFilter<FilterType>::computeStarPrediction()
         matXi.col(i) = vecX;
 
     //TIC
-
     if (useBlasToMultiply.getValue())
         blasMultAdd(tmpStateVarProj2, matI, matXi, 1.0, 1.0);
     else
@@ -269,7 +266,6 @@ void ROUKFilter<FilterType>::computeStarPrediction()
     //TOCTIC("== prediction compute perturbations ==");
     sofa::helper::AdvancedTimer::stepEnd("transform_state");
 
-    //std::cout << "\n matXi\n " << matXi.transpose() << std::endl;
     //std::cout << "\n matItrans \n " << matItrans.transpose() << std::endl;
     //std::cout << "\n tmpStateVarProj2 \n " << tmpStateVarProj2.transpose() << std::endl;
 
@@ -277,7 +273,7 @@ void ROUKFilter<FilterType>::computeStarPrediction()
     masterStateWrapper->writeState(this->getTime());
 
     sofa::helper::AdvancedTimer::stepBegin("SVD resampling");
-    M_trans.resize(sigmaPointsNum, stateSize);
+    EMatrixX M_trans(sigmaPointsNum, stateSize);
     for (size_t i = 0; i < sigmaPointsNum; i++)
         M_trans.row(i) = vecX.transpose();
 
@@ -297,7 +293,8 @@ void ROUKFilter<FilterType>::computeStarPrediction()
         return;
     }
     M_trans = Type(sqrt(alpha)) * M_trans;
-    workingMatrixRR.resize(sigmaPointsNum, sigmaPointsNum);
+    EMatrixX workingMatrixRR(sigmaPointsNum, sigmaPointsNum);
+    EMatrixX workingMatrixRN;
     if (useBlasToMultiply.getValue())
         blasMultAdd('N', 'T', M_trans, M_trans, workingMatrixRR, 1.0, 0.0);
     else
@@ -307,8 +304,8 @@ void ROUKFilter<FilterType>::computeStarPrediction()
 
     // Get SVD decomposition
     Eigen::JacobiSVD<EMatrixX> svdDecomposition(workingMatrixRR, Eigen::ComputeThinU);
-    Umod.resize(sigmaPointsNum, reducedStateSize);
-    U = svdDecomposition.matrixU();
+    EMatrixX Umod(sigmaPointsNum, reducedStateSize);
+    EMatrixX U = svdDecomposition.matrixU();
     for (size_t i = 0; i < reducedStateSize; i++)
         Umod.col(i) = U.col(i);
 
@@ -325,13 +322,12 @@ void ROUKFilter<FilterType>::computeStarPrediction()
     workingMatrixRN = workingMatrixRN - matXi.transpose();
 
     //std::cout << "\n workingMatrixRN \n " << workingMatrixRN << std::endl;
-
     if (useBlasToMultiply.getValue()) {
         blasMultAdd('N', 'T', Umod, matItrans, workingMatrixRR, sqrt(alpha), 0.0);
         blasMultAdd('T', 'N', workingMatrixRN, workingMatrixRR, matXi, 1.0, 1.0);
         blasMultAdd(matXi, matItrans, tmpStateVarProj2, alpha, 0.0);
     } else {
-        workingMatrixRR = Type(sqrt(alpha)) * Umod.transpose() * matItrans;
+        workingMatrixRR = Type(sqrt(alpha)) * Umod * matItrans.transpose();
         matXi = matXi + workingMatrixRN.transpose() * workingMatrixRR;
         tmpStateVarProj2 = alpha*matXi * matItrans;
     }
@@ -877,7 +873,7 @@ void ROUKFilter<FilterType>::bwdInit() {
 
     EVectorX state = masterStateWrapper->getState();
     EMatrixX errorVarProj = masterStateWrapper->getStateErrorVarianceProjector();
-    PRNS("errorVarProj: " << errorVarProj);
+    //PRNS("errorVarProj: " << errorVarProj);
     size_t reducedStateIndex = stateSize - reducedStateSize;
     EMatrixX parErrorVarProj(reducedStateSize,reducedStateSize);
     for (size_t i = 0; i < reducedStateSize; i++)
@@ -969,6 +965,9 @@ void ROUKFilter<FilterType>::computeSimplexSigmaPoints(EMatrixX& sigmaMat) {
     alphaVar = (this->useUnbiasedVariance.getValue()) ? Type(1.0)/Type(r-1) : Type(1.0)/Type(r);
     vecAlphaVar.resize(r);
     vecAlphaVar.fill(alphaVar);
+
+    //PRNS("sigmaMat: \n" << sigmaMat);
+    //PRNS("vecAlphaVar: \n" << vecAlphaVar);
 }
 
 template <class FilterType>
