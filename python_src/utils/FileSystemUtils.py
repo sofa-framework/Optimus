@@ -23,3 +23,4 @@ class FolderHandler:
                 shutil.rmtree(self.folder)                        
         
         os.mkdir(self.folder)
+

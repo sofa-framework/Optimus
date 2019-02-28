@@ -9,73 +9,15 @@ import matplotlib.image as mpimg
 from itertools import repeat
 import pygraphviz as PG
 
+sys.path.append(os.getcwd() + '/../../python_src/utils')
+from AdvancedTimerUtils import AdvancedTimerHandler
+
+
 # select the visual style for images
 plt.style.use('classic')
 #print(plt.style.available)
 
-
 only_leaves_performance = 0
-
-def create_tree(node, nodeName, graph, nodesList):
-    leafNode = 1
-    if not isinstance(node, (float, int)) and len(node) > 0:
-        for item in node.keys():
-            if item == "end_time" or item == "start_time" or item == 'iterations':
-                continue
-            ##### fix due to empty nodes in result file #####
-            if len(item) < 1:
-                continue
-            ##### fix due to empty nodes in result file #####
-            graph.add_edge(nodeName, item)
-            leafNode = 0
-            create_tree(node[item], item, graph, nodesList)
-    if only_leaves_performance == 0 or leafNode == 1:
-        foundNode = 0
-        for item in nodesList:
-            if item == nodeName:
-                foundNode = 1
-                break
-        if not foundNode:
-            nodesList.append(nodeName)
-
-
-def compute_performance(node, nodeName, nodesList, executedTime):
-    if not isinstance(node, (float, int)) and len(node) > 0:
-        for item in node.keys():
-            if item == "start_time" or len(item) < 1:
-                continue
-            if item == "end_time":
-                for index in range(0, len(nodesList)):
-                    if nodesList[index] == nodeName:
-                        executedTime[index] = executedTime[index] + float(node['end_time']) - float(node['start_time'])
-            else:
-                compute_performance(node[item], item, nodesList, executedTime)
-
-
-def compute_full_performance(node, nodeName, nodesList, executedTime):
-    if not isinstance(node, (float, int)) and len(node) > 0:
-        for item in node.keys():
-            if item == "Values":
-                for index in range(0, len(nodesList)):
-                    if nodesList[index] == nodeName:
-                        executedTime[index] = executedTime[index] + float(node['Values']['Total'])
-            else:
-                compute_full_performance(node[item], item, nodesList, executedTime)
-
-
-def compute_iterations(node, nodeName, nodesList, iterations):
-    if not isinstance(node, (float, int)) and len(node) > 0:
-        for item in node.keys():
-            if len(item) < 1:
-                continue
-            if item == "iterations":
-                for index in range(0, len(nodesList)):
-                    if nodesList[index] == nodeName:
-                        iterations[index] = int(node['iterations'])
-            else:
-                compute_iterations(node[item], item, nodesList, iterations)
-
-
 
 
 try : 
@@ -97,7 +39,7 @@ with open(dataFile, 'r') as stream:
     try:
         statistics = json.load(stream)
 
-    except statistics.JSONError as exc:
+    except ValueError as exc:
         print(exc)
         sys.exit()
 
@@ -108,7 +50,8 @@ fullNode = statistics['1']['records']
 insertionsGraph = PG.AGraph(directed=True, strict=True)
 nodesList = []
 
-create_tree(fullNode, 'TOTAL', insertionsGraph, nodesList)
+timerHandler = AdvancedTimerHandler()
+timerHandler.create_nested_steps_tree(fullNode, 'TOTAL', only_leaves_performance, insertionsGraph, nodesList)
 
 # pygraphviz renders graphs in neato by default, 
 # so you need to specify dot as the layout engine
@@ -129,18 +72,18 @@ spl1.set_title('Graph of nested timesteps')
 executedTime = numpy.zeros(len(nodesList))
 for index in range(1, len(statistics) + 1):
     fullNode = statistics[str(index)]['records']
-    compute_performance(fullNode, 'TOTAL', nodesList, executedTime)
+    timerHandler.compute_performance(fullNode, 'TOTAL', nodesList, executedTime)
 
 totalTime = numpy.zeros(len(nodesList))
 for index in range(1, len(statistics) + 1):
     fullNode = statistics[str(index)]['TOTAL']
-    compute_full_performance(fullNode, 'TOTAL', nodesList, totalTime)
+    timerHandler.compute_full_performance(fullNode, 'TOTAL', nodesList, totalTime)
 
 
 ### estimate average time
 iterations = numpy.zeros(len(nodesList))
 fullNode = statistics['1']['records']
-compute_iterations(fullNode, 'TOTAL', nodesList, iterations)
+timerHandler.compute_iterations(fullNode, 'TOTAL', nodesList, iterations)
 for index in range(0, len(nodesList)):
     if nodesList[index] == 'TOTAL':
         iterations[index] = 1
