@@ -19,64 +19,15 @@ plt.style.use('classic')
 
 
 ######### configuration for visualisation
-inputList = ['cyl10_constForce_Newton/Results_deformation_maxForce0_0.06_0/ROUKF_cyl10_4245_obs33_forceField385_Gui_init100']
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.06_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step1_Gui_init100')
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.06_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step5_Gui_init100')
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.06_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step10_Gui_init100')
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.06_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step15_Gui_init100')
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.06_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step20_Gui_init100')
-
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.12_0/ROUKF_cyl10_4245_obs33_forceField385_Gui_init100')
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.12_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step1_Gui_init100')
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.12_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step5_Gui_init100')
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.12_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step10_Gui_init100')
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.12_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step15_Gui_init100')
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.12_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step20_Gui_init100')
-
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.15_0/ROUKF_cyl10_4245_obs33_forceField385_Gui_init100')
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.15_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step1_Gui_init100')
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.15_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step5_Gui_init100')
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.15_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step10_Gui_init100')
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.15_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step15_Gui_init100')
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.15_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step20_Gui_init100')
-
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.18_0/ROUKF_cyl10_4245_obs33_forceField385_Gui_init100')
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.18_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step1_Gui_init100')
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.18_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step5_Gui_init100')
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.18_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step10_Gui_init100')
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.18_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step15_Gui_init100')
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.18_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step20_Gui_init100')
-
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.21_0/ROUKF_cyl10_4245_obs33_forceField385_Gui_init100')
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.21_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step1_Gui_init100')
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.21_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step5_Gui_init100')
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.21_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step10_Gui_init100')
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.21_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step15_Gui_init100')
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.21_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step20_Gui_init100')
-
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.25_0/ROUKF_cyl10_4245_obs33_forceField385_Gui_init100')
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.25_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step1_Gui_init100')
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.25_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step5_Gui_init100')
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.25_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step10_Gui_init100')
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.25_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step15_Gui_init100')
-inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.25_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step20_Gui_init100')
-
-#inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.5_0/ROUKF_cyl10_4245_obs33_forceField385_Gui_init100')
-#inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.5_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step1_Gui_init100')
-#inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.5_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step5_Gui_init100')
-#inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.5_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step10_Gui_init100')
-#inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.5_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step15_Gui_init100')
-#inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.5_0/ROUKF_cyl10_4245_obs33_forceField385_PCG_step20_Gui_init100')
-######### end of configuration for visualisation
+inputList = []
 
 
-####### labels for visualisation
 performance_labels = ['no Step PCG']
-performance_labels.append('Step PCG 1 iteration')
-performance_labels.append('Step PCG 5 iterations')
-performance_labels.append('Step PCG 10 iterations')
-performance_labels.append('Step PCG 15 iterations')
-performance_labels.append('Step PCG 20 iterations')
+performance_labels.append('Step PCG update every 1 iteration')
+performance_labels.append('Step PCG update every 5 iterations')
+performance_labels.append('Step PCG update every 10 iterations')
+performance_labels.append('Step PCG update every 15 iterations')
+performance_labels.append('Step PCG update every 20 iterations')
 
 
 parameter_labels = ['angle 1']
@@ -93,7 +44,7 @@ draw_total_performance = 1
 estimate_parallel_performance = 1
 indices_without_PCG = [0]
 only_leaves_performance = 0
-####### end labels for visualisation
+######### end of configuration for visualisation
 
 
 try : 
@@ -104,7 +55,13 @@ else :
     commandLineArguments = sys.argv
 
 if (len(commandLineArguments) > 1):
-    folder = commandLineArguments[1]
+    inputData = commandLineArguments[1]
+    folder = []
+    with open(inputData, 'r') as stream:
+        for line in stream:
+            if len(line) <= 1:
+                continue
+            folder.append(line.rstrip())
 else:
     folder = inputList
 
@@ -270,6 +227,7 @@ if draw_total_performance == 1:
     spl3.set_ylabel('general time, ms', fontsize=50)
     spl3.tick_params(axis = 'both', which = 'major', labelsize=40)
     spl3.grid(color='k', linestyle=':', linewidth=1)
+    spl3.set_xticklabels([])  # hide x label values
     spl3.set_title('Total computational time after ' + str(len(statistics)) + ' iterations')
     legendForSpl3 = spl3.legend(loc='upper center', shadow=True, fontsize='x-large')
     legendForSpl3.get_frame().set_facecolor('#FFFFFF')
