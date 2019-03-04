@@ -20,6 +20,7 @@ plt.style.use('classic')
 
 ######### configuration for visualisation
 inputList = []
+sigma_points_amount = 11.0
 
 
 performance_labels = ['no Step PCG']
@@ -202,11 +203,13 @@ for generalIndex in range (0, len(parameter_labels)):
         if estimate_parallel_performance == 1:
             currentDataSize = initialPerfomanceLabelsAmount + 2 * len(parallelizedDataVector)
             for index in range (0, len(parallelizedDataVector)):
-                eightThread_computationTime = totalPerformanceVectorNoPCG[index] - parallelizedDataVector[index] + parallelizedDataVector[index] / 8
+                improvement_eight = sigma_points_amount / math.ceil(sigma_points_amount / 8.0)
+                eightThread_computationTime = totalPerformanceVectorNoPCG[index] - parallelizedDataVector[index] + parallelizedDataVector[index] / improvement_eight
                 totalPerformanceVector.insert(1, eightThread_computationTime)
                 if append_labels == 1:
-                    performance_labels.insert(1, 'estimated 8 threads parallelization')        
-                fourThread_computationTime = totalPerformanceVectorNoPCG[index] - parallelizedDataVector[index] + parallelizedDataVector[index] / 4
+                    performance_labels.insert(1, 'estimated 8 threads parallelization')
+                improvement_four = sigma_points_amount / math.ceil(sigma_points_amount / 4.0)
+                fourThread_computationTime = totalPerformanceVectorNoPCG[index] - parallelizedDataVector[index] + parallelizedDataVector[index] / improvement_four
                 totalPerformanceVector.insert(1, fourThread_computationTime)
                 if append_labels == 1:
                     performance_labels.insert(1, 'estimated 4 threads parallelization')

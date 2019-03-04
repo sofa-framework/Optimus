@@ -29,6 +29,7 @@ inputList.append('cyl10_constForce_Newton/Results_deformation_maxForce0_0.12_0/R
 
 
 ####### labels for visualisation
+sigma_points_amount = 11.0
 labels = ['no Step PCG']
 labels.append('Step PCG 1 iteration')
 labels.append('Step PCG 5 iterations')
@@ -183,10 +184,12 @@ if draw_total_performance == 1:
     if estimate_parallel_performance == 1:
         data_size = data_size + 2 * len(parallelizedDataVector)
         for index in range (0, len(parallelizedDataVector)):
-            eightThread_computationTime = totalPerformanceVectorNoPCG[index] - parallelizedDataVector[index] + parallelizedDataVector[index] / 8
+            improvement_eight = sigma_points_amount / math.ceil(sigma_points_amount / 8.0)
+            eightThread_computationTime = totalPerformanceVectorNoPCG[index] - parallelizedDataVector[index] + parallelizedDataVector[index] / improvement_eight
             totalPerformanceVector.insert(1, eightThread_computationTime)
             labels.insert(1, 'estimated 8 threads parallelization')
-            fourThread_computationTime = totalPerformanceVectorNoPCG[index] - parallelizedDataVector[index] + parallelizedDataVector[index] / 4
+            improvement_four = sigma_points_amount / math.ceil(sigma_points_amount / 4.0)
+            fourThread_computationTime = totalPerformanceVectorNoPCG[index] - parallelizedDataVector[index] + parallelizedDataVector[index] / improvement_four
             totalPerformanceVector.insert(1, fourThread_computationTime)
             labels.insert(1, 'estimated 4 threads parallelization')
     totalPerformanceArray = numpy.array(totalPerformanceVector)
