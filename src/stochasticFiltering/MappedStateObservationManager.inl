@@ -252,6 +252,15 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getPredict
 
     return true;
 }
+template <class FilterType, class DataTypes1, class DataTypes2>
+bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::obsFunction(EVectorX& _state, EVectorX& _predictedObservation)
+{
+}
+
+template <class FilterType, class DataTypes1, class DataTypes2>
+bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getRealObservation(double _time, EVectorX& _realObs)
+{
+}
 
 
 template <class FilterType, class DataTypes1, class DataTypes2>

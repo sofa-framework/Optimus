@@ -93,7 +93,9 @@ public:
 
     virtual bool hasObservation(double _time); /// TODO    
     virtual bool getInnovation(double _time, EVectorX& _state, EVectorX& _innovation);
+    virtual bool getRealObservation(double _time, EVectorX& _realObs);
     virtual bool getPredictedObservation(int _id, EVectorX& _predictedObservation);
+    virtual bool obsFunction(EVectorX& _state, EVectorX& _predictedObservation) ;
 
     Data<typename DataTypes1::VecCoord> inputObservationData;
     Data<typename DataTypes2::VecCoord> mappedObservationData;

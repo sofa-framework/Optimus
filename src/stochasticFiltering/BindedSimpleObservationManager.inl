@@ -151,6 +151,16 @@ bool BindedSimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getInnova
 
 }
 template <class FilterType, class DataTypes1, class DataTypes2>
+bool BindedSimpleObservationManager<FilterType,DataTypes1,DataTypes2>::obsFunction(EVectorX& _state, EVectorX& _predictedObservation)
+{
+}
+
+template <class FilterType, class DataTypes1, class DataTypes2>
+bool BindedSimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getRealObservation(double _time, EVectorX& _realObs)
+{
+}
+
+template <class FilterType, class DataTypes1, class DataTypes2>
 bool BindedSimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getPredictedObservation(int _id, EVectorX& _predictedObservation)
 {
 

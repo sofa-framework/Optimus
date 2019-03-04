@@ -134,6 +134,73 @@ bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovation(d
 }
 
 template <class FilterType, class DataTypes1, class DataTypes2>
+bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getRealObservation(double _time, EVectorX& _realObs)
+{
+
+    if (_time != this->actualTime) {
+        PRNE("Observation for time " << this->actualTime << " not prepared, call hasObservation first!");
+        return(false);
+    }
+
+    if (_realObs.rows() != long(this->observationSize)) {
+        PRNE("Wrong innovation size: " << _realObs.rows() << " should be " << this->observationSize);
+        return(false);
+    }
+
+    if ((stateWrapper->getFilterKind() == SIMCORR) || (stateWrapper->getFilterKind() == CLASSIC)) {
+            for (size_t i = 0; i < this->observationSize; i++)
+                _realObs(i) = realObservations[0](i);
+    }
+
+    return true;
+
+
+}
+template <class FilterType, class DataTypes1, class DataTypes2>
+bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::obsFunction(EVectorX& _state, EVectorX& _predictedObservation)
+{
+    const Mat3x4d & P = d_projectionMatrix.getValue();
+    _predictedObservation.resize(this->observationSize);
+
+    Data<typename DataTypes1::VecCoord> predicted2DState;
+    Data<typename DataTypes2::VecCoord> predicted3DState;
+
+
+    typename DataTypes1::VecCoord& predicted2DStateEdit = *predicted2DState.beginEdit();
+    typename DataTypes2::VecCoord& predicted3DStateEdit = *predicted3DState.beginEdit();
+
+    predicted3DStateEdit.resize(masterState->getSize());
+
+    stateWrapper->getPos(_state, predicted3DStateEdit);
+    predicted2DStateEdit.resize(predicted3DStateEdit.size());
+
+    if(d_use2dObservations.getValue()){
+        for (unsigned i = 0; i < predicted3DStateEdit.size(); i++){
+            double rx = P[0][0] * predicted3DStateEdit[i][0] + P[0][1] * predicted3DStateEdit[i][1] + P[0][2] * predicted3DStateEdit[i][2] + P[0][3];
+            double ry = P[1][0] * predicted3DStateEdit[i][0] + P[1][1] * predicted3DStateEdit[i][1] + P[1][2] * predicted3DStateEdit[i][2] + P[1][3];
+            double rz = P[2][0] * predicted3DStateEdit[i][0] + P[2][1] * predicted3DStateEdit[i][1] + P[2][2] * predicted3DStateEdit[i][2] + P[2][3];
+            predicted2DStateEdit[i][0]=rx* (1.0/rz);
+            predicted2DStateEdit[i][1]=ry* (1.0/rz);
+        }
+        for (size_t i = 0; i < predicted3DStateEdit.size(); i++){
+            for (size_t d = 0; d < 2; d++){
+                _predictedObservation(2*i+d) = predicted2DStateEdit[i][d];
+            }
+        }
+
+    }else{
+        for (size_t i = 0; i < predicted3DStateEdit.size(); i++)
+            for (size_t d = 0; d < 3; d++)
+                _predictedObservation(3*i+d) = predicted3DStateEdit[i][d];
+
+    }
+    return true;
+
+
+}
+
+
+template <class FilterType, class DataTypes1, class DataTypes2>
 bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getPredictedObservation(int _id, EVectorX& _predictedObservation)
 {
     const Mat3x4d & P = d_projectionMatrix.getValue();

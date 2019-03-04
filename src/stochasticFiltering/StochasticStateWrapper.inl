@@ -698,6 +698,42 @@ void StochasticStateWrapper<DataTypes, FilterType>::getActualPosition(int _id, V
 }
 
 template <class DataTypes, class FilterType>
+void StochasticStateWrapper<DataTypes, FilterType>::getPos(EVectorX& _state, VecCoord& actualPos) {
+    if (! (this->filterKind == CLASSIC || this->filterKind == REDORD) )
+        return;
+
+    EVectorX savedState;
+    savedState = this->state;
+    this->state = _state;
+
+
+    typename MechanicalState::WriteVecCoord posW = mechanicalState->writePositions();
+    if(estimatePosition.getValue()){
+        for (helper::vector<std::pair<size_t, size_t> >::iterator it = positionPairs.begin(); it != positionPairs.end(); it++) {
+            for (size_t d = 0; d < posDim; d++) {
+                posW[it->first][d] = _state(it->second + d);
+            }
+        }
+    }
+
+    typename MechanicalState::ReadVecCoord posRead = mechanicalState->readPositions();
+    for (size_t i = 0; i < this->mStateSize; i++) {
+        actualPos[i] = posRead[i];
+    }
+
+
+    typename MechanicalState::WriteVecCoord pos = mechanicalState->writePositions();
+    if(estimatePosition.getValue()){
+        for (helper::vector<std::pair<size_t, size_t> >::iterator it = positionPairs.begin(); it != positionPairs.end(); it++) {
+            for (size_t d = 0; d < posDim; d++) {
+                pos[it->first][d] = savedState(it->second + d);
+            }
+        }
+    }
+
+}
+
+template <class DataTypes, class FilterType>
 void StochasticStateWrapper<DataTypes, FilterType>::getActualMappedPosition(int _id, Vec3dTypes::VecCoord& _mapPos) {
     if ( mappedState != NULL)
         _mapPos = sigmaMappedStatePos[_id];

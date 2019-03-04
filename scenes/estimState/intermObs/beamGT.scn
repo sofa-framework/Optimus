@@ -1,44 +1,36 @@
 <?xml version="1.0"?>
-<Node    name="root" dt="0.01" gravity="0 -9.81 0" >
+<Node    name="root" dt="0.001" gravity="0 -9.81 0" >
     <RequiredPlugin pluginName="Optimus"/>
 
     <VisualStyle displayFlags=" showCollisionModels showForceFields" />
 <!--     <BackgroundSetting color="1 1 1 1" /> -->
 
     <Node name="hooke">
-<!--        <EulerImplicit rayleighStiffness="0" printLog="false"  rayleighMass="0.1" />
+        <EulerImplicit rayleighStiffness="0" printLog="false"  rayleighMass="0.0" />
         <BTDLinearSolver template="BTDMatrix6d" printLog="false" verbose="false" />
         <MechanicalObject template="Rigid3d" name="DOFs" position="0 0 0  0 0 0 1  0.02 0 0  0 0 0 1  0.04 0 0  0 0 0 1 " showObject="1" showObjectScale="0.001"/>
         <Mesh name="lines" lines="0 1  1 2  " />
-        <FixedConstraint name="FixedConstraint" indices="0" />
+<!--         <FixedConstraint name="FixedConstraint" indices="0" /> -->
         <UniformMass totalMass="0.001" printLog="false" />
-        <BeamFEMForceField name="FEM" radius="0.0005" youngModulus="1e8" poissonRatio="0.49"/>
+        <PlaneForceField name="PFF" normal="0 1 0" d="0" />
+        <ConstantForceField forces="0.005 0 0 0 0 0" indices="2" />
+        <ConstantForceField forces="-0.005 0 0 0 0 0" indices="0" />
+        <BeamFEMForceField name="FEM" radius="0.0002" youngModulus="1e4" poissonRatio="0.49"/>
         <Node name="Collision">
             <CubeTopology nx="3" ny="1" nz="1" min="0 0 0" max="2 0 0 " />
-            <MechanicalObject name="DOFs" />
+            <MechanicalObject name="MO" />
             <BeamLinearMapping  />
             <ShowCatheter  radius="0.001"  color="0 1 0 1" position="@DOFs.position" drawOnlySpheres="0" />
             <Triangle />
-        </Node>-->
-        
-            <EulerImplicitSolver rayleighMass="0.01" rayleighStiffness="0.1" />			
-            <CGLinearSolver name="solver" iterations="500" tolerance="1e-9" threshold="1e-9" />
-            <MechanicalObject template="Vec3d" name="MO" position="0 0 0   0.02 0 0  0.04 0 0" showObject="0"/>
-            <StiffSpringForceField name="SPFF" spring="0 1 1e6 5 0.02   1 2 1e6 5 0.02   " />
-<!--             <PartialFixedConstraint indices="0" /> -->
-<!--             <PlaneForceField name="PFF" normal="0 1 0" d="-2" /> -->
-            <UniformMass totalMass="0.05" />
-            <ShowCatheter  radius="0.001"  color="0 1 0 1" position="@MO.position" drawOnlySpheres="0" />
-
-        
+        </Node>
     </Node>
     
     
-<!--    <Node name="init"> 
+    <Node name="init"> 
             <EulerImplicit rayleighStiffness="0" printLog="false"  rayleighMass="0.1" />
             <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/>
             <MechanicalObject template="Vec3d" name="DOFs" position="0 0 0  0.02 0 0   0.04 0 0 " showObject="1" showObjectScale="0.001"/>
-            <ReadState filename="ObsNoisy3D_hooke_x" />
+            <ReadState filename="Reference_beamE" />
             <ShowCatheter  radius="0.001"  color="0 0 1 1" position="@DOFs.position" drawOnlySpheres="1" />
     </Node>
     
@@ -47,25 +39,25 @@
             <EulerImplicit rayleighStiffness="0" printLog="false"  rayleighMass="0.1" />
             <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/>
             <MechanicalObject template="Vec3d" name="DOFs" position="0 0 0  0.02 0 0   0.04 0 0 " showObject="1" showObjectScale="0.001"/>
-            <ReadState filename="Reference_hooke" />
+            <ReadState filename="Reference_beamENOISE" />
             <ShowCatheter  radius="0.001"  color="1 0 1 1" position="@DOFs.position" drawOnlySpheres="1" />
-    </Node>-->
+    </Node>
     
     
-    <Node name="WRITEnoisy3Dobs"> 		
-        <MechanicalObject template="Vec3d" name="MO" position="@../hooke/MO.position" />	
-        <StochasticPositionHandler filename="SSFFObs3D_hooke100_x.txt" observations="true" indices="0 1 2  " />
+<!--    <Node name="WRITEnoisy3Dobs"> 		
+        <MechanicalObject template="Vec3d" name="MO" position="@../hooke/Collision/MO.position" />	
+        <StochasticPositionHandler filename="Obs3D_beamE_x.txt" observations="true" indices="0 1 2  " />
     </Node>
 
     <Node name="WRITEGroundTruthCatheter"> 
-        <MechanicalObject template="Vec3" name="MO" position="@../hooke/MO.position" showObject="0"/>		
-        <WriteState filename="SSFFReference_hooke100"  />
+        <MechanicalObject template="Vec3" name="MO" position="@../hooke/Collision/MO.position" showObject="0"/>		
+        <WriteState filename="Reference_beamE"  />
     </Node>
 
     
     <Node name="MatlabPlotGroundTruth"> 
-        <MechanicalObject template="Vec3" name="MO" position="@../hooke/MO.position" showObject="0"/>		
-        <StochasticPositionHandler filename="SSFFGT_hooke100" observations="true" groundTruth="true"/>
-    </Node>
+        <MechanicalObject template="Vec3" name="MO" position="@../hooke/Collision/MO.position" showObject="0"/>		
+        <StochasticPositionHandler filename="GT_beamE" observations="true" groundTruth="true"/>
+    </Node>-->
 
 </Node>

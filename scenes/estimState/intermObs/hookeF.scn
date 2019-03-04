@@ -11,45 +11,51 @@
     <ViewerSetting resolution="837 600" />
 
     <FilteringAnimationLoop name="StochAnimLoop" verbose="1"/>
-    <UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0"   draw="1" radiusDraw="0.0003" MOnodesDraw="3"   exportPrefix="cov_" />
+    <UKFilterClassic name="UKF" verbose="1" useUnbiasedVariance="0"   draw="1" radiusDraw="0.0005" MOnodesDraw="3"  
+                               lambda_0="0.5" delta_0="0.5" paramA="0.5" paramB="0.5" chiSquared="1.73" exportPrefix="covSEAsyn_" filenameFinalState="m_3"   />
 
     <Node name="Reference">
         <PreStochasticWrapper />
         <Node name="init"> 
-            <EulerImplicit rayleighStiffness="0" printLog="false"  rayleighMass="0.1" />
+            <EulerImplicit rayleighStiffness="0" printLog="false"  />
             <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/>
             <MechanicalObject template="Vec3d" name="DOFs" position="0 0 0  0.02 0 0   0.04 0 0 " showObject="1" showObjectScale="0.001"/>
-            <ReadState filename="Reference_hooke" />
-            <ShowCatheter  radius="0.001"  color="1 0 1 1" position="@DOFs.position" drawOnlySpheres="1" />
+            <ReadState filename="SSFFReference_hooke" />
+            <ShowCatheter  radius="0.00052"  color="0 0 1 1" position="@DOFs.position" drawOnlySpheres="1" />
         </Node>
         
+        <Node name="init"> 
+            <EulerImplicit rayleighStiffness="0" printLog="false"  />
+            <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/>
+            <MechanicalObject template="Vec3d" name="DOFs" position="0 0 0  0.02 0 0   0.04 0 0 " showObject="1" showObjectScale="0.001"/>
+            <ReadState filename="SSFFReference_hookeNOISE" />
+            <ShowCatheter  radius="0.0005"  color="1 0 0  1" position="@DOFs.position" drawOnlySpheres="1" />
+        </Node>
+       
 <!--        <Node name="init"> 
             <EulerImplicit rayleighStiffness="0" printLog="false"  rayleighMass="0.1" />
             <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/>
             <MechanicalObject template="Vec3d" name="DOFs" position="0 0 0  0.02 0 0   0.04 0 0 " showObject="1" showObjectScale="0.001"/>
             <ReadState filename="ObsNoisy3D_hooke_x" />
-            <ShowCatheter  radius="0.001"  color="0 0 1 1" position="@DOFs.position" drawOnlySpheres="1" />
+            <ShowCatheter  radius="0.005"  color="0 0 1 1" position="@DOFs.position" drawOnlySpheres="1" />
         </Node>-->
     </Node> 
     
     <Node name="filteredModel">     
-            <StochasticStateWrapper name="StateWrapper" template="Rigid3d" verbose="1" estimatePosition="1"  estimateOnlyXYZ="0" estimateVelocity="1" 
+<!--            <StochasticStateWrapper name="StateWrapper" template="Rigid3d" verbose="1" estimatePosition="1"  estimateOnlyXYZ="0" estimateVelocity="1" 
                                         positionStdev="1e-03  1e-03  1e-03 1e-05  1e-05  1e-05  "
                                         velocityStdev="1e-03 1e-03 1e-03 1e-05  1e-05  1e-05  "
                                         posModelStdev="0 0 0 0 0 0" 
                                         velModelStdev="1e-03 1e-03 1e-03 1e-03  1e-03  1e-03    "
                                         paramModelStdev="0"
-                                        mappedState="hooke/Collision/DOFs" langrangeMultipliers="0" draw="0" radiusDraw="0.0"/>  
-<!--            <StochasticStateWrapper name="StateWrapper" template="Vec3d" verbose="1" estimatePosition="1"  estimateOnlyXYZ="1" estimateVelocity="1" 
-                                        positionStdev="1e-03  1e-03  1e-03 "
-                                        velocityStdev="1e-03 1e-03 1e-03 "
-                                        posModelStdev="0 0 0 " 
-                                        velModelStdev="1e-03 1e-03 1e-03 "
-                                        paramModelStdev="0"
                                         mappedState="hooke/Collision/DOFs" langrangeMultipliers="0" draw="0" radiusDraw="0.0"/>  -->
-            <OptimParams name="paramMass" numParams="1" optimize="1" template ="Vector" initValue="1000000" stdev="500000" transformParams="0" />
+            <StochasticStateWrapper name="StateWrapper" template="Vec3d" verbose="1" estimatePosition="1"  estimateOnlyXYZ="1" estimateVelocity="1" 
+                                        positionStdev="1e-04 1e-04 1e-04 " velocityStdev="1e-04 1e-04 1e-04 " posModelStdev="0 0 0" velModelStdev="0 0 0 "
+                                        paramModelStdev="0"
+                                    mappedState="hooke/Collision/DOFs" langrangeMultipliers="0" draw="0" radiusDraw="0.0"/>  
+            <OptimParams name="paramMass" numParams="1" optimize="1" template ="Vector" initValue="0.03" stdev="0.02" transformParams="0" />
             <Node name="hooke">     
-                <EulerImplicit rayleighStiffness="0" printLog="false"  rayleighMass="0.1" />
+<!--                <EulerImplicit rayleighStiffness="0" printLog="false"  rayleighMass="0.1" />
                 <BTDLinearSolver template="BTDMatrix6d" printLog="false" verbose="false" />
                 <MechanicalObject template="Rigid3d" name="DOFs" position="0 0 0  0 0 0 1  0.02 0 0  0 0 0 1  0.04 0 0  0 0 0 1 " showObject="1" showObjectScale="0.001"/>
                 <Mesh name="lines" lines="0 1  1 2  " />
@@ -60,25 +66,25 @@
                     <CubeTopology nx="3" ny="1" nz="1" min="0 0 0" max="2 0 0 " />
                     <MechanicalObject name="DOFs" />
                     <BeamLinearMapping  />
-                    <ShowCatheter  radius="0.001"  color="1 1 0 1" position="@DOFs.position" drawOnlySpheres="0" />
+                    <ShowCatheter  radius="0.005"  color="1 1 0 1" position="@DOFs.position" drawOnlySpheres="0" />
                     <Triangle />
                 </Node>
                 <Node name="obsNode" activated="1">        
                     <SimulatedStateObservationSource template="Vec3d" name="observations" monitorPrefix="Obs3D_hookeNoise" asynObs="true"/>    
                     <SimpleObservationManager name="MSIDES" template="Vec3d,Rigid3d" listening="1"  stateWrapper="@../../StateWrapper" use2dObservation="false" observationStdev="0.0001"/>
                 </Node>
-                
-<!--                <EulerImplicitSolver rayleighMass="0.01" rayleighStiffness="0.1" />			
+                -->
+                <EulerImplicitSolver rayleighMass="0.01" rayleighStiffness="0.1" />			
                 <CGLinearSolver name="solver" iterations="500" tolerance="1e-9" threshold="1e-9" />
                 <MechanicalObject template="Vec3d" name="MO" position="0 0 0   0.02 0 0  0.04 0 0" showObject="0"/>
                 <StiffSpringForceField name="SPFF" spring="0 1 1e6 5 0.02   1 2 1e6 5 0.02   " />
-                <PlaneForceField name="PFF" normal="0 1 0" d="-0.02" />
-                <UniformMass vertexMass="0.01" printLog="false" listening="true" />
-                <ShowCatheter  radius="0.001"  color="1 1 0 1" position="@MO.position" drawOnlySpheres="0" />
+<!--                 <PlaneForceField name="PFF" normal="0 1 0" d="-2" /> -->
+                <UniformMass totalMass="@../paramMass.value" printLog="false" listening="true" />
+                <ShowCatheter  radius="0.0005"  color="0 1 0 1" position="@MO.position" drawOnlySpheres="0" />
                 <Node name="obsNode" activated="1">        
-                    <SimulatedStateObservationSource template="Vec3d" name="observations" monitorPrefix="SSFFObs3D_hookeNoise" asynObs="true"/>    
+                    <SimulatedStateObservationSource template="Vec3d" name="observations" monitorPrefix="SSFFObs3D_hooke" asynObs="true"/>    
                     <SimpleObservationManager name="MSIDES" template="Vec3d,Vec3d" listening="1"  stateWrapper="@../../StateWrapper" use2dObservation="false" observationStdev="0.0001"/>
-                </Node>-->
+                </Node>
                 
                 
                 

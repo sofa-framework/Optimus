@@ -189,6 +189,8 @@ public:
     void storeMState();
     void reinitMState(const core::MechanicalParams* _mechParams);
     void getActualPosition(int _id, VecCoord& _pos);
+    void getPos(EVectorX& _state, VecCoord& actualPos);
+
     void getActualVelocity(int _id, VecDeriv& _vel);
     void getActualMappedPosition(int _id, Vec3dTypes::VecCoord& _mapPos);    
     void setState(EVectorX& _state, const core::MechanicalParams* _mparams);
