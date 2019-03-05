@@ -1,0 +1,81 @@
+---
+system_parameters:
+    volume_file_name: "../../../Optimus/data/cylinder/cylinder10_4245.vtk"
+    observation_file_name: "observations/cylinder10forceField_4245"
+    observation_points_file_name: "../../../Optimus/data/cylinder/cyl10_4245_obs33.vtk" # "../../data/cylinder/cyl2_385_obs3.vtk"
+
+general_parameters:
+    scenario_type: "Generate_data"   # options are "Generate_data" and "Validate_estimations"
+    gravity: "0 0 0"
+    density: 200 # total_mass: 0.2
+    delta_time: 0.01
+    solver_kind: "Newton"   # options are "Euler", "Newton", and "Symplectic"
+    rayleigh_mass: 20.1
+    rayleigh_stiffness: 0.1
+    boundary_conditions_list:
+        - condition_type: "fixed"   # options are "fixed" and "elastic"
+          boxes_coordinates: "-0.05 -0.05 -0.002 0.05 0.05 0.002   -0.05 -0.05 0.298 0.05 0.05 0.302"
+          spring_stiffness_values: "25"
+
+obs_generating_parameters:
+    object_young_moduli: "3500 4000 1000 6000 2000 7000 2500 8000 3000 1500"
+    save_observations: 1
+
+filtering_parameters:
+    common_directory_prefix: "cyl10_constForce_"
+    output_directory_suffix: "_forceField385_PCG_step2_CLI_init100_period200"
+    output_files_suffix: "test"
+    optim_params_size: 10
+    filter_kind: "ROUKF"   # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
+    use_unbiased_variance: "0"
+    initial_stiffness: [6000]
+    minimal_stiffness: [300]
+    maximal_stiffness: [1000000]
+    initial_standart_deviation: 100
+    observation_noise_standart_deviation: 1e-3
+    positions_standart_deviation: 1e-3
+    transform_parameters: absolute
+    sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
+    sigma_points_scale: 0.4
+    save_state: 1
+    save_internal_data: 1
+
+impact_parameters:
+    external_force_bound: "-0.015 -0.023 0.11 0.015 -0.017 0.13"
+    reverse_force_bound: "-0.015 0.017 0.11 0.015 0.023 0.13"
+    force_period: 100
+    force_amplitude: 0.21
+
+time_parameters:
+    timer_name: 'filter_computation_statistics'
+    computation_time_file_name: "computationTime.txt"
+    time_profiling: 1
+    iterations_interval: 1
+    iteration_amount: 500
+
+precondition_parameters:
+    usePCG: 1
+    PCGUpdateSteps: 2
+
+validation_grid_parameters:
+    - minimum_values: "0.13 0.18 0.32"
+      maximum_values: "0.13 0.18 0.38"
+      amount_of_layers: "1 1 4"
+      grid_file_name: "gridData/estimLiverGrid"
+    - minimum_values: "0.182 0.2 0.4"
+      maximum_values: "0.182 0.2 0.4"
+      amount_of_layers: "1 1 1"
+      grid_file_name: "gridData/estimLiver1Grid"
+    - minimum_values: "0.182 0.22 0.4"
+      maximum_values: "0.234 0.22 0.4"
+      amount_of_layers: "3 1 1"
+      grid_file_name: "gridData/estimLiver2Grid"
+    - minimum_values: "0.13 0.25 0.32"
+      maximum_values: "0.23 0.25 0.34"
+      amount_of_layers: "5 1 2"
+      grid_file_name: "gridData/estimLiver3Grid"
+
+additional_parameters:
+    bound_box_file: "boundBoxData.txt"
+    compute_bound_box: 0
+...
