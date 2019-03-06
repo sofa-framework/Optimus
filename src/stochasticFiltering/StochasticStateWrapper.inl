@@ -824,8 +824,6 @@ typename StochasticStateWrapper<DataTypes, FilterType>::EMatrixX& StochasticStat
         }
 
         helper::vector<FilterType> paramModelStDev = paramModelStdev.getValue();
-        //            modelErrorVarianceValue = posModelStDev(0) * posModelStDev(0);
-
         modelErrorVariance = EMatrixX::Identity(this->stateSize, this->stateSize);
         modelErrorVarianceInverse = EMatrixX::Identity(this->stateSize, this->stateSize) ;
 
@@ -861,7 +859,11 @@ typename StochasticStateWrapper<DataTypes, FilterType>::EMatrixX& StochasticStat
             for (size_t index = this->positionVariance.size(); index < this->reducedStateIndex; index++,kv++)
                 modelErrorVariance(index,index) = diagVelModelStDev[kv]  ;
             for (size_t pi = this->reducedStateIndex; pi < this->stateSize; pi++,k++)
-                modelErrorVariance(pi,pi) = 0;    /// why here the parameter variance is non-zero???
+                if (paramModelStdev.isSet()==0){
+                    modelErrorVariance(pi,pi) = 0;
+                }else{
+                    modelErrorVariance(pi,pi) = paramModelStDev[k]  *paramModelStDev[k];    /// Non-null Q for Force
+                }
         }
 
         //NORMALLY IS THE CASE OF DATA ASSIMILATION where Parameters have no Q
