@@ -83,7 +83,7 @@ public:
     Data<bool> overwrite; ///< overwrite the file, otherwise create a new file at each export, with suffix in the filename
 
     int nbFiles;
-    int sigmaPointNumber;
+    int sigmaPointIndex;
 
     double lastTime;
 

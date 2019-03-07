@@ -94,7 +94,7 @@ void SigmaPointsVTKExporter::init()
     }
 
     nbFiles = 0;
-    sigmaPointNumber = 0;
+    sigmaPointIndex = 0;
 
     lastTime = -1.0;
     gnode = dynamic_cast<sofa::simulation::Node*>(this->getContext());
@@ -353,7 +353,7 @@ void SigmaPointsVTKExporter::writeVTKSimple()
     std::string filename = vtkFilename.getFullPath();
 
     std::ostringstream oss;
-    oss << "_sigma" << sigmaPointNumber << "_" << nbFiles;
+    oss << "_sigma" << sigmaPointIndex << "_" << nbFiles;
 
     if (filename.size() > 3) {
         std::string ext;
@@ -550,7 +550,7 @@ void SigmaPointsVTKExporter::writeVTKXML()
     std::string filename = vtkFilename.getFullPath();
 
     std::ostringstream oss;
-    oss << "_sigma" << sigmaPointNumber << "_" << nbFiles;
+    oss << "_sigma" << sigmaPointIndex << "_" << nbFiles;
 
     if ( filename.size() > 3 && filename.substr(filename.size()-4)==".vtu")
     {
@@ -803,10 +803,10 @@ void SigmaPointsVTKExporter::handleEvent(sofa::core::objectmodel::Event *event)
         double actualTime = gnode->getTime();
         if (actualTime > lastTime) {
             lastTime = actualTime;
-            sigmaPointNumber = 0;
+            sigmaPointIndex = 0;
             nbFiles++;
         } else {
-            sigmaPointNumber++;
+            sigmaPointIndex++;
         }
     }
 }
