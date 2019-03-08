@@ -40,6 +40,7 @@ labels.append('Step PCG 20 iterations')
 
 
 draw_total_performance = 1
+draw_dynamic_performance = 1
 estimate_parallel_performance = 1
 indices_without_PCG = [0]
 only_leaves_performance = 0
@@ -63,10 +64,17 @@ print("Command line arguments for python : " + str(commandLineArguments))
 # create extra vector for additional cases
 if draw_total_performance == 1:
     totalPerformanceVector = []
-
     if estimate_parallel_performance == 1:
         parallelizedDataVector = []
         totalPerformanceVectorNoPCG = []
+
+
+if draw_dynamic_performance == 1:
+    fig3 = plt.figure(100000)
+    spl3 = fig3.add_subplot(111)
+    cmap = plt.cm.get_cmap('hsv', len(folder) + 1)
+    selectedNode = ['TOTAL']
+
 
 
 timerHandler = AdvancedTimerHandler()
@@ -81,6 +89,10 @@ for generalIndex in range (0, len(folder)):
             print(exc)
             sys.exit()
 
+
+    if draw_dynamic_performance == 1:
+        dynamicPerformanceVector = []
+        fullDynamicPerformanceVector = []
 
     ### create a tree of dependences
     fullNode = statistics['1']['records']
@@ -107,13 +119,26 @@ for generalIndex in range (0, len(folder)):
     ### compute performance for all nested elements
     executedTime = numpy.zeros(len(nodesList))
     for index in range(1, len(statistics) + 1):
+        currentTime = numpy.zeros(len(nodesList))
         fullNode = statistics[str(index)]['records']
-        timerHandler.compute_performance(fullNode, 'TOTAL', nodesList, executedTime)
+        timerHandler.compute_performance(fullNode, 'TOTAL', nodesList, currentTime)
+        for selIndex in range(0, len(nodesList)):
+            executedTime[selIndex] = executedTime[selIndex] + currentTime[selIndex]
+            if draw_dynamic_performance == 1:
+                if nodesList[selIndex] == selectedNode[0]:
+                    dynamicPerformanceVector.append(currentTime[selIndex])
 
     totalTime = numpy.zeros(len(nodesList))
     for index in range(1, len(statistics) + 1):
+        currentTime = numpy.zeros(len(nodesList))
         fullNode = statistics[str(index)]['TOTAL']
-        timerHandler.compute_full_performance(fullNode, 'TOTAL', nodesList, totalTime)
+        timerHandler.compute_full_performance(fullNode, 'TOTAL', nodesList, currentTime)
+        for selIndex in range(0, len(nodesList)):
+            totalTime[selIndex] = totalTime[selIndex] + currentTime[selIndex]
+            if draw_dynamic_performance == 1:
+                if nodesList[selIndex] == selectedNode[0]:
+                    fullDynamicPerformanceVector.append(currentTime[selIndex])
+
 
     ### estimate average time
     iterations = numpy.zeros(len(nodesList))
@@ -176,9 +201,25 @@ for generalIndex in range (0, len(folder)):
     spl2.set_title('Computational time after ' + str(len(statistics)) + ' iterations')
 
 
+    ### draw chart for dynamic performance
+    if draw_dynamic_performance == 1:
+        iterations = xrange(0, len(statistics))
+        dynamicPerformanceArray = numpy.array(fullDynamicPerformanceVector)
+        spl3.plot(iterations, dynamicPerformanceArray, color=cmap(generalIndex), linestyle='solid', linewidth=4, label=labels[generalIndex])
+        spl3.set_ylabel('time, ms', fontsize=50)
+        spl3.set_xlabel('iterations', fontsize=50)
+        spl3.tick_params(axis = 'both', which = 'major', labelsize=40)
+        spl3.grid(color='k', linestyle=':', linewidth=1)
+        spl3.set_title('Computational time for every iteration after ' + str(len(statistics)) + ' iterations')
+        legendForSpl3 = spl3.legend(loc='upper center', shadow=True, fontsize='x-large')
+        legendForSpl3.get_frame().set_facecolor('#FFFFFF')
+
+
+
+### draw chart for total performance
 if draw_total_performance == 1:
-    fig3 = plt.figure(100000)
-    spl3 = fig3.add_subplot(111)
+    fig4 = plt.figure(200000)
+    spl4 = fig4.add_subplot(111)
 
     data_size = len(folder)
     if estimate_parallel_performance == 1:
@@ -192,23 +233,21 @@ if draw_total_performance == 1:
             fourThread_computationTime = totalPerformanceVectorNoPCG[index] - parallelizedDataVector[index] + parallelizedDataVector[index] / improvement_four
             totalPerformanceVector.insert(1, fourThread_computationTime)
             labels.insert(1, 'estimated 4 threads parallelization')
-    totalPerformanceArray = numpy.array(totalPerformanceVector)
-
     amount = xrange(0, data_size)
+    totalPerformanceArray = numpy.array(totalPerformanceVector)
     cmap = plt.cm.get_cmap('hsv', data_size + 1)
 
-    spl3.plot(amount, totalPerformanceArray, color=cmap(0), linestyle='solid', linewidth=4)
+    spl4.plot(amount, totalPerformanceArray, color=cmap(0), linestyle='solid', linewidth=4)
     # Label the functions below  bars
-    print labels
     for index in range(0, data_size):
         position = numpy.array((index, -1.05))
         trans_angle = plt.gca().transData.transform_angles(numpy.array((90,)), position.reshape((1, 2)))[0]
-        spl3.text(float(index) + 0.1, totalPerformanceVector[0], labels[index], fontsize=25, rotation=trans_angle, rotation_mode='anchor', ha='center', va='bottom')
+        spl4.text(float(index) + 0.1, totalPerformanceVector[0], labels[index], fontsize=25, rotation=trans_angle, rotation_mode='anchor', ha='center', va='bottom')
 
-    spl3.set_ylabel('general time, ms', fontsize=50)
-    spl3.tick_params(axis = 'both', which = 'major', labelsize=40)
-    spl3.grid(color='k', linestyle=':', linewidth=1)
-    spl3.set_title('Total computational time after ' + str(len(statistics)) + ' iterations')
+    spl4.set_ylabel('general time, ms', fontsize=50)
+    spl4.tick_params(axis = 'both', which = 'major', labelsize=40)
+    spl4.grid(color='k', linestyle=':', linewidth=1)
+    spl4.set_title('Total computational time after ' + str(len(statistics)) + ' iterations')
 
 
 # Give ourselves some more room at the bottom of the plot

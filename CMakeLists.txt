@@ -38,6 +38,7 @@ set(HEADER_FILES
     src/genericComponents/StochasticPositionHandler.inl
     src/genericComponents/FilterEvents.h
     src/genericComponents/VTKExporterDA.h
+    src/genericComponents/SigmaPointsVTKExporter.h
     src/genericComponents/OptimMonitor.h
     src/genericComponents/OptimMonitor.inl
     src/genericComponents/ShowCatheter.h
@@ -58,6 +59,7 @@ set(SOURCE_FILES
     src/genericComponents/StochasticPositionHandler.cpp
     src/genericComponents/FilterEvents.cpp
     src/genericComponents/VTKExporterDA.cpp
+    src/genericComponents/SigmaPointsVTKExporter.cpp
     src/genericComponents/OptimMonitor.cpp
     src/genericComponents/ShowCatheter.cpp
     )
