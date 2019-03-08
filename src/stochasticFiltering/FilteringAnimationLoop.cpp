@@ -123,7 +123,7 @@ void FilteringAnimationLoop::step(const core::ExecParams* _params, SReal /*_dt*/
     m_timeProfiler.SaveStartTime();
 
     filter->initializeStep(_params, actualStep);
-    //TIC
+    TIC
     sofa::helper::AdvancedTimer::stepBegin("KalmanFilterPrediction");
     //std::cout << "Start filter prediction" << std::endl;
     filter->computePrediction();
@@ -132,14 +132,14 @@ void FilteringAnimationLoop::step(const core::ExecParams* _params, SReal /*_dt*/
     PredictionEndEvent predEvent ( dt );
     sofa::simulation::PropagateEventVisitor predEVisitor ( _params, &predEvent );
     gnode->execute ( predEVisitor );
-    //TOCTIC("== prediction total");
+    TOCTIC("== prediction total");
 
     sofa::helper::AdvancedTimer::stepBegin("KalmanFilterCorrection");
     filter->computeCorrection();
     CorrectionEndEvent corrEvent ( dt );
     sofa::simulation::PropagateEventVisitor corrEVisitor ( _params, &corrEvent );
     gnode->execute ( corrEVisitor );
-    //TOC("== correction total");
+    TOC("== correction total");
 
     // compute signle iteration step
     sofa::helper::AdvancedTimer::stepEnd("KalmanFilterCorrection");
