@@ -140,10 +140,10 @@ void ROUKFilter<FilterType>::computeSimplexPrediction()
 
     //std::cout << "Compute star prediction" << std::endl;
 
+    TIC
     EMatrixX tmpStateVarProj(stateSize, reducedStateSize);
     EMatrixX tmpStateVarProj2(stateSize, reducedStateSize);
 
-    //TIC
     sofa::helper::AdvancedTimer::stepBegin("Cholseky_prediction");
 
     EVectorX vecX = masterStateWrapper->getState();
@@ -156,7 +156,6 @@ void ROUKFilter<FilterType>::computeSimplexPrediction()
     tmpStateVarProj = masterStateWrapper->getStateErrorVarianceProjector();
     //PRNS("errorVarProj: " << tmpStateVarProj);
 
-    //TIC
     sofa::helper::AdvancedTimer::stepBegin("prediction_multiplication");
     if (useBlasToMultiply.getValue())
         blasMultAdd(tmpStateVarProj, matUinv, tmpStateVarProj2, 1.0, 0.0);
@@ -186,12 +185,13 @@ void ROUKFilter<FilterType>::computeSimplexPrediction()
     //std::cout << "\n matI \n " << matI.transpose() << std::endl;
     //std::cout << "\n tmpStateVarProj2 \n " << tmpStateVarProj2.transpose() << std::endl;
 
-    //TIC;
+    TOCTIC(" =T= pred.pre sx")
     sofa::helper::AdvancedTimer::stepBegin("transform_state");
     computePerturbedStates(vecX);   
     //asumEVec("summPred",vecX);
     //TOCTIC("== prediction compute perturbations ==");
     sofa::helper::AdvancedTimer::stepEnd("transform_state");
+    TOCTIC(" =T= pred.sim sx")
 
     //std::cout << "\n matXi+\n " << matXi.transpose() << std::endl;
 
@@ -211,6 +211,7 @@ void ROUKFilter<FilterType>::computeSimplexPrediction()
     masterStateWrapper->writeState(this->getTime());
 
     sofa::helper::AdvancedTimer::stepEnd("ROUKFSimplexPrediction");
+    TOCTIC(" =T= pred.post sx")
 }
 
 template <class FilterType>
@@ -219,10 +220,10 @@ void ROUKFilter<FilterType>::computeStarPrediction()
     //PRNS("Computing prediction, T= " << this->actualTime);
     sofa::helper::AdvancedTimer::stepBegin("ROUKFStarPrediction");
 
+    TIC
     EMatrixX tmpStateVarProj(stateSize, reducedStateSize);
     EMatrixX tmpStateVarProj2(stateSize, reducedStateSize);
 
-    //TIC
     sofa::helper::AdvancedTimer::stepBegin("Cholseky_prediction");
 
     EVectorX vecX = masterStateWrapper->getState();
@@ -232,9 +233,7 @@ void ROUKFilter<FilterType>::computeStarPrediction()
     //TOC("== prediction: Cholesky ");
     sofa::helper::AdvancedTimer::stepEnd("Cholseky_prediction");
 
-    tmpStateVarProj = masterStateWrapper->getStateErrorVarianceProjector();
-
-    //TIC
+    tmpStateVarProj = masterStateWrapper->getStateErrorVarianceProjector();   
     sofa::helper::AdvancedTimer::stepBegin("prediction_multiplication");
     if (useBlasToMultiply.getValue())
         blasMultAdd(tmpStateVarProj, matUinv, tmpStateVarProj2, 1.0, 0.0);
@@ -251,20 +250,18 @@ void ROUKFilter<FilterType>::computeStarPrediction()
     for (size_t i = 0; i < sigmaPointsNum; i++)
         matXi.col(i) = vecX;
 
-    //TIC
     if (useBlasToMultiply.getValue())
         blasMultAdd(tmpStateVarProj2, matI, matXi, 1.0, 1.0);
     else
-        matXi = matXi + tmpStateVarProj2 * matI;
-    //TOC("== prediction multiplication2 == ");
+        matXi = matXi + tmpStateVarProj2 * matI;    
     sofa::helper::AdvancedTimer::stepEnd("prediction_multiplication");
 
-    //TIC;
-    sofa::helper::AdvancedTimer::stepBegin("transform_state");
-    computePerturbedStates(vecX);
-    //asumEVec("summPred",vecX);
-    //TOCTIC("== prediction compute perturbations ==");
+    TOCTIC("=T= pred.pre st")
+    sofa::helper::AdvancedTimer::stepBegin("transform_state");    
+    computePerturbedStates(vecX);    
+    //asumEVec("summPred",vecX);    
     sofa::helper::AdvancedTimer::stepEnd("transform_state");
+    TOCTIC("=T= pred.sim st")
 
     //std::cout << "\n matItrans \n " << matItrans.transpose() << std::endl;
     //std::cout << "\n tmpStateVarProj2 \n " << tmpStateVarProj2.transpose() << std::endl;
@@ -341,6 +338,7 @@ void ROUKFilter<FilterType>::computeStarPrediction()
     //std::cout << "\n tmpStateVarProj2_resampled \n " << tmpStateVarProj2.transpose() << std::endl;
 
     masterStateWrapper->setStateErrorVarianceProjector(tmpStateVarProj2);
+    TOC("=T= pred.post st")
 
     sofa::helper::AdvancedTimer::stepEnd("ROUKFStarPrediction");
 }
@@ -511,6 +509,7 @@ void ROUKFilter<FilterType>::computeSimplexCorrection()
         for (size_t index = 0; index < observationSize; index++) {
             innov[index] = vecZ[index];
         }
+        TOC( "=T= corr sx")
 
         /*char fileName[100];
         sprintf(fileName, "outVar/parL_%03d.txt", this->stepNumber);
@@ -555,7 +554,7 @@ void ROUKFilter<FilterType>::computeStarCorrection()
     }
 
     if (observationManager->hasObservation(this->actualTime)) {
-        //TIC
+        TIC
         EVectorX vecXCol;
         EVectorX vecZCol(observationSize), vecZ(observationSize);
         EMatrixX matZItrans(sigmaPointsNum, observationSize);
@@ -720,6 +719,7 @@ void ROUKFilter<FilterType>::computeStarCorrection()
         for (size_t index = 0; index < observationSize; index++) {
             innov[index] = vecZ[index];
         }
+        TOC ("=T= corr st")
 
         //char fileName[100];
         //sprintf(fileName, "outVar/parL_%03d.txt", this->stepNumber);
