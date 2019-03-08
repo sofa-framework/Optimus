@@ -97,15 +97,16 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
             simuNode.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="1", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt=intMaxit)
 
         if self.opt['model']['linsol']['usePCG']:
-            simuNode.createObject('StepPCGLinearSolver', name='lsolverit',use_precond='1', tolerance='1e-10', iterations='500', verbose='1', listening='1', preconditioners='lsolver',  printLog='0',                
+            simuNode.createObject('StepPCGLinearSolver', name='lsolverit',use_precond='1', tolerance='1e-10', iterations='500', verbose='1', listening='1', preconditioners='lsolver', printLog='0',              
                 precondOnTimeStep=self.opt['model']['linsol']['PCGOnTimeStep'],
                 update_step=self.opt['model']['linsol']['PCGRegularUpdate'], numIterationsToRefactorize=self.opt['model']['linsol']['PCGNumIterToRefact'])
         
         # simuNode.createObject('ShewchukPCGLinearSolver', name='lsolverit', iterations='500', use_precond='1', tolerance='1e-10', preconditioners='lsolver')
         # simuNode.createObject('CGLinearSolver', name='lsolverit', tolerance='1e-10', threshold='1e-10', iterations='500', verbose='0')
         
-        simuNode.createObject('SparsePARDISOSolver', name='lsolver', verbose='0', pardisoSchurComplement=0, analyseEachInvert=0,
+        simuNode.createObject('SparsePARDISOSolver', name='lsolver', verbose='0', pardisoSchurComplement=0, analyseEachInvert=0, printLog=0, showTiming=0,         
             symmetric=self.opt['model']['linsol']['pardisoSym'], exportDataToFolder=self.opt['model']['linsol']['pardisoFolder'])
+
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')        
         simuNode.createObject('BoxROI', box=self.opt['model']['bc']['boxes'], name='fixedBox', drawBoxes='1')
         simuNode.createObject('FixedConstraint', indices='@fixedBox.indices')        
@@ -122,18 +123,30 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
 
         youngModuli=self.opt['model']['fem']['young_modulus']
         poissonRatio = self.opt['model']['fem']['poisson_ratio']
-        indices = range(1, len(youngModuli)+1)
+        method = self.opt['model']['fem']['method']
 
-        method = self.opt['model']['fem']['method']    
-        if  method[0:3] == 'Cor':
-            simuNode.createObject('Indices2ValuesMapper', indices=indices, values=youngModuli, name='youngMapper', inputValues='@loader.dataset')
-            simuNode.createObject('TetrahedronFEMForceField', name='FEM', method=method[3:].lower(), listening='true', drawHeterogeneousTetra='1', 
-                poissonRatio=poissonRatio, youngModulus='@youngMapper.outputValues', updateStiffness='1')        
-        elif method == 'StVenant':            
-            poissonRatii = poissonRatio * np.ones([1,len(youngModuli)])
-            simuNode.createObject('Indices2ValuesTransformer', name='paramMapper', indices=indices,
-                values1=youngModuli, values2=poissonRatii, inputValues='@loader.dataset', transformation='ENu2MuLambda')
-            simuNode.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet='@paramMapper.outputValues', drawHeterogeneousTetra='1')
+        if len(youngModuli) > 1:
+            indices = range(1, len(youngModuli)+1)            
+            if  method[0:3] == 'Cor':
+                simuNode.createObject('Indices2ValuesMapper', indices=indices, values=youngModuli, name='youngMapper', inputValues='@loader.dataset')
+                simuNode.createObject('TetrahedronFEMForceField', name='FEM', method=method[3:].lower(), listening='true', drawHeterogeneousTetra='1', 
+                    poissonRatio=poissonRatio, youngModulus='@youngMapper.outputValues', updateStiffness='1')        
+            elif method == 'StVenant':            
+                poissonRatii = poissonRatio * np.ones([1,len(youngModuli)])
+                simuNode.createObject('Indices2ValuesTransformer', name='paramMapper', indices=indices,
+                    values1=youngModuli, values2=poissonRatii, inputValues='@loader.dataset', transformation='ENu2MuLambda')
+                simuNode.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet='@paramMapper.outputValues', drawHeterogeneousTetra='1')
+        else:
+            E=youngModuli[0]
+            nu=poissonRatio
+            lamb=(E*nu)/((1+nu)*(1-2*nu))
+            mu=E/(2+2*nu)
+            materialParams='{} {}'.format(mu,lamb)
+            if  method[0:3] == 'Cor':                
+                simuNode.createObject('TetrahedronFEMForceField', name='FEM', method=method[3:].lower(), listening='true', drawHeterogeneousTetra='1', 
+                    poissonRatio=poissonRatio[0], youngModulus=youngModuli[0], updateStiffness='1')
+            elif method == 'StVenant':                                            
+                simuNode.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=materialParams, drawHeterogeneousTetra='0', printLog='0')
 
 
         if 'applied_periodic_force' in self.opt['model'].keys():

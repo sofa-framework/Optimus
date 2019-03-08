@@ -24,7 +24,7 @@ model:
         pardisoFolder: ''
 
     fem:
-        method: StVenant
+        method: CorLarge
         young_modulus: [3500, 4000, 1000, 6000, 2000, 7000, 2500, 8000, 3000, 1500]
         poisson_ratio: 0.49
 
@@ -50,8 +50,8 @@ filter:                         # SDA only
     obs_tag: obs33
     obs_points: '../../data/cylinder/cyl10_4245_obs33.vtk'
     observ_stdev: 1e-3
-    observ_noise_stdev: 1e-3
-    sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
+    observ_noise_stdev: 0e-3
+    sigma_points_topology: "Star"   # options are "Simplex" and "Star"
     sigma_points_scale: 1
     bound_filter_state: 1
 ...

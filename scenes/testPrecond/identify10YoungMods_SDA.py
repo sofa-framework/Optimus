@@ -57,7 +57,8 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         prefix = opt['io']['prefix']
         suffix = opt['io']['suffix']
             
-        self.mainFolder = prefix + opt['model']['int']['type'] + str(opt['model']['int']['maxit']) + suffix
+        self.mainFolder = prefix + opt['model']['fem']['method'] + '_' + opt['model']['int']['type'] + str(opt['model']['int']['maxit']) + suffix
+        # self.mainFolder = prefix + opt['model']['int']['type'] + str(opt['model']['int']['maxit']) + suffix
         self.obsFile = self.mainFolder +'/'+ opt['io']['obsFileName']
         self.estFolder = self.mainFolder + '/' + opt['filter']['kind'] + opt['io']['sda_suffix']
 
@@ -125,9 +126,10 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
 
         
         if self.opt['model']['linsol']['usePCG']:
-            simuNode.createObject('StepPCGLinearSolver', name='lsolverit', precondOnTimeStep='1', use_precond='1', tolerance='1e-10', iterations='500',
-                verbose='1', listening='1', preconditioners='lsolver', update_step=self.opt['model']['linsol']['updatePCGTimeStep'])
-
+            simuNode.createObject('StepPCGLinearSolver', name='lsolverit',use_precond='1', tolerance='1e-10', iterations='500', verbose='1', listening='1', preconditioners='lsolver',                 
+                precondOnTimeStep=self.opt['model']['linsol']['PCGOnTimeStep'],
+                update_step=self.opt['model']['linsol']['PCGRegularUpdate'], numIterationsToRefactorize=self.opt['model']['linsol']['PCGNumIterToRefact'])
+            
         simuNode.createObject('SparsePARDISOSolver', name='lsolver', verbose='0', pardisoSchurComplement=0, 
             symmetric=self.opt['model']['linsol']['pardisoSym'], exportDataToFolder=self.opt['model']['linsol']['pardisoFolder'])
         
