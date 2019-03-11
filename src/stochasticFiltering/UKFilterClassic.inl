@@ -64,6 +64,7 @@ void UKFilterClassic<FilterType>::computePrediction()
 
         stateExp.fill(FilterType(0.0));
         stateExp = masterStateWrapper->getState();
+        std::cout<<"stateExp "<< stateExp.transpose() << std::endl;
 
         /// Computes X_{n}^{(i)-} sigma points
         for (size_t i = 0; i < sigmaPointsNum; i++) {
@@ -137,6 +138,12 @@ void UKFilterClassic<FilterType>::computeCorrection()
 
     if (hasObs) {
 //        std::cout<<"\n HAS OBS: =" << hasObs << " COMPUTE CORRECTION" << std::endl;
+
+        observationSize = this->observationManager->getObservationSize();
+        PRNS("Observation size: " << observationSize);
+        if (observationSize == 0) {
+            PRNE("No observations available, cannot allocate the structures!");
+        }
 
         PRNS("======= Computing correction, T= " << this->actualTime << " ======");
         EVectorX zCol(observationSize);
@@ -274,11 +281,11 @@ void UKFilterClassic<FilterType>::bwdInit() {
 
     /// Initialize Observation's data
     if (!initialiseObservationsAtFirstStep.getValue()) {
-        observationSize = this->observationManager->getObservationSize();
-        PRNS("Observation size: " << observationSize);
-        if (observationSize == 0) {
-            PRNE("No observations available, cannot allocate the structures!");
-        }
+//        observationSize = this->observationManager->getObservationSize();
+//        PRNS("Observation size: " << observationSize);
+//        if (observationSize == 0) {
+//            PRNE("No observations available, cannot allocate the structures!");
+//        }
         obsCovar = observationManager->getErrorVariance();
     }
 

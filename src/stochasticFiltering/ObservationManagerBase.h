@@ -99,6 +99,7 @@ public:
 protected:
     size_t observationSize;     /// size of the observation vector
 
+
     FilterType errorVarianceValue;
     EMatrixX errorVariance;
     EMatrixX errorVarianceInverse;

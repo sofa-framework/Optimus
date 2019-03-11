@@ -112,6 +112,9 @@ void SimulatedStateObservationSource<DataTypes>::parseAsynMonitorFile(std::strin
     initTime = -1.0;
 
     if (file.good()) {
+
+
+
         /// parse the header of a monitor-generated file:
         std::string line;
 

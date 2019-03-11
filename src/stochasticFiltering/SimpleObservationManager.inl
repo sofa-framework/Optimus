@@ -88,6 +88,9 @@ template <class FilterType, class DataTypes1, class DataTypes2>
 void SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::bwdInit()
 {
     this->observationSize = observationSource->getStateSize() * DataTypes1::spatial_dimensions;
+//    this->orientationSize = observationSource->getStateSize() * 4;
+
+
     Inherit::bwdInit();
 
 }
