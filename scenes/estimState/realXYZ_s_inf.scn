@@ -1,8 +1,9 @@
 <?xml version="1.0"?>
 <Node    name="root" dt="0.001" gravity="0 0 0" > 
-    <RequiredPlugin pluginName="Optimus"/>c
-    <RequiredPlugin pluginName="ConstraintGeometryPlugin" />
-    <RequiredPlugin pluginName="NeedleConstraintPlugin" />
+    <RequiredPlugin pluginName="Optimus"/>
+    <RequiredPlugin pluginName="ConstraintGeometry" />
+    <!-- <RequiredPlugin pluginName="NeedleConstraintPlugin" /> -->
+    <RequiredPlugin pluginName="NeedleConstraint" />
     <RequiredPlugin pluginName="OpenCVPlugin" />
 
 
@@ -42,6 +43,13 @@
             <ReadState filename="realDataSet/referenceAll3" />
             <ShowCatheter  radius="0.0002"  color="0 0 1 1" position="@MO.position" />
         </Node>
+        <Node name="init_1">            
+            <EulerImplicitSolver  />
+            <CGLinearSolver iterations="25" tolerance="1e-5" threshold="1e-5"/>
+               <MechanicalObject template="Vec3" name="MO"  position="0.015043  0.053987  -0.058037  0.010226  0.054093  -0.058009  0.0053189  0.054576  -0.057995  0.00031872  0.054576  -0.057995  -0.0046815  0.054576  -0.057995  -0.0096816  0.054575  -0.057996  -0.014682  0.054575  -0.057996  -0.019682  0.054574  -0.057996  -0.024682  0.054572  -0.057997  -0.029682  0.054571  -0.057998  -0.034682  0.054569  -0.057999  -0.039682  0.054568  -0.058"/>
+           <ReadState filename="realDataSet/valid/sQ2_R3" />
+           <ShowCatheter  radius="0.0"  color="1 0 0 1" position="@MO.position" />
+       </Node> 
         <Node name="VisualRealSurface">
             <MeshSTLLoader name="surface" filename="realDataSet/phantomScaled.stl"  />
             <MeshTopology src="@surface" />
@@ -87,6 +95,8 @@
                 <BeamLinearMapping />
                 <EdgeGeometry name="edge"/> 
                 <PointGeometry name ="point"/>
+                <!-- <AABBBroadPhase name="AABBBroadPhase" geometry="@point" nbox="8 8 8" color="1 0 0 0.3" />  -->
+
                 <ShowCatheter  drawOnlySpheres="false" radius="0.0002"  color="0 1 0 1" position="@ms.position" />
                 <BoxROI name="boxA" box="0 0 -0.1 0.1 0.1 0" drawBoxes="0" drawSize="1" position="@ms.position"/>
             </Node>    
@@ -120,12 +130,15 @@
             <MeshTopology name="mesh" position="@transform.output_position" triangles="@transform.triangles"  />
             <TriangleSetTopologyContainer name="Container" src="@mesh" />
             <MechanicalObject name="MS" free_position="@transform.output_position" position="@transform.output_position" template="Vec3d" />
-            <TriangleGeometry name="triangle"/> 
-            <AABBDecorator/>
+            <TriangleGeometry name="triangle"  /> 
+            <AABBBroadPhase name="AABBBroadPhase" geometry="@triangle" nbox="8 8 8" color="1 0 0 0.3" refine="true" isStatic="true" /> 
         </Node>
-
-        <NeedleContactConstraint needle="cat/CollisionCat/point" surface="Vessel/triangle" tipIndex="@cat/CollisionCat/boxA.indices" friction="0.1" draw="0" draw_normal_scale="0.001" />    
-        
+        <!-- 
+        <NormalFilter name="normal" angle="0.5" />
+        <DistanceFilter name="distance" distance="0.1" />
+        <FindClosestPointAlgorithm name="algo" filters="@distance @normal" />
+        <ConstraintContact algo="@algo" dest="@cat/CollisionCat/point" from="@Vessel/triangle" mu="0.9" /> -->
+        <NeedleContactConstraint needle="cat/CollisionCat/point" surface="Vessel/triangle" tipIndex="@cat/CollisionCat/boxA.indices" friction="0.1" draw="0" draw_normal_scale="0.001" />
     </Node>
     
     
