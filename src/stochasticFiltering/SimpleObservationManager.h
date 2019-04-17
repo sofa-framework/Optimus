@@ -72,7 +72,7 @@ public:
 
 
     SimpleObservationManager();
-    ~SimpleObservationManager() {}
+    virtual ~SimpleObservationManager() override {}
 
 protected:
 
@@ -85,19 +85,18 @@ protected:
 
 
 public:
-    void init();
-    void bwdInit();
+    void init() override;
+    void bwdInit() override;
 
-    virtual bool hasObservation(double _time); /// TODO
-    virtual bool getInnovation(double _time, EVectorX& _state, EVectorX& _innovation);
-    virtual bool getRealObservation(double _time, EVectorX& _realObs);
-    virtual bool obsFunction(EVectorX& _state, EVectorX& _predictedObservation);
-    virtual bool getPredictedObservation(int _id, EVectorX& _predictedObservation);
+    virtual bool hasObservation(double _time) override; /// TODO
+    virtual bool getInnovation(double _time, EVectorX& _state, EVectorX& _innovation) override;
+    virtual bool getRealObservation(double _time, EVectorX& _realObs) override;
+    virtual bool obsFunction(EVectorX& _state, EVectorX& _predictedObservation) override;
+    virtual bool getPredictedObservation(int _id, EVectorX& _predictedObservation) override;
 
     typename DataTypes1::VecCoord realObservations;
     typename helper::vector< VecCoord > modelObservations;
 
-    Data<bool> d_use2dObservations;
     Data<Mat3x4d> d_projectionMatrix;
 
     SingleLink<SimpleObservationManager<FilterType, DataTypes1, DataTypes2>, StateWrapper, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> stateWrapperLink;
@@ -111,7 +110,7 @@ public:
         return sofa::core::objectmodel::BaseObject::canCreate(obj, context, arg);
     }
 
-    virtual std::string getTemplateName() const
+    virtual std::string getTemplateName() const override
     {
         return templateName(this);
     }
@@ -123,6 +122,11 @@ public:
 
 
 }; /// class
+
+extern template class SOFA_STOCHASTIC_API SimpleObservationManager<double, Vec3dTypes, Vec3dTypes>;
+extern template class SOFA_STOCHASTIC_API SimpleObservationManager<double, Vec2dTypes, Vec3dTypes>;
+extern template class SOFA_STOCHASTIC_API SimpleObservationManager<double, Vec2dTypes, Rigid3dTypes>;
+extern template class SOFA_STOCHASTIC_API SimpleObservationManager<double, Vec3dTypes, Rigid3dTypes>;
 
 
 } // stochastic

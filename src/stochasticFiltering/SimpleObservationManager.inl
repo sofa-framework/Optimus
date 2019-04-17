@@ -40,7 +40,6 @@ namespace stochastic
 template <class FilterType, class DataTypes1, class DataTypes2>
 SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::SimpleObservationManager()
     : Inherit()
-    , d_use2dObservations(initData(&d_use2dObservations, false, "use2dObservation", "Set to True if using 2D observations"))
     , d_projectionMatrix( initData(&d_projectionMatrix, Mat3x4d(defaulttype::Vec<4,float>(1.0,0.0,0.0,0.0),
                                                                 defaulttype::Vec<4,float>(0.0,1.0,0.0,0.0),
                                                                 defaulttype::Vec<4,float>(0.0,0.0,1.0,0.0)), "projectionMatrix","Projection matrix"))
@@ -174,21 +173,27 @@ bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::obsFunction(EVe
     stateWrapper->getPos(_state, predicted3DStateEdit);
     predicted2DStateEdit.resize(predicted3DStateEdit.size());
 
-    if(d_use2dObservations.getValue()){
-        for (unsigned i = 0; i < predicted3DStateEdit.size(); i++){
+    //2D observations
+    if(ObservationSource::Coord::total_size == 2)
+    {
+        for (unsigned i = 0; i < predicted3DStateEdit.size(); i++)
+        {
             double rx = P[0][0] * predicted3DStateEdit[i][0] + P[0][1] * predicted3DStateEdit[i][1] + P[0][2] * predicted3DStateEdit[i][2] + P[0][3];
             double ry = P[1][0] * predicted3DStateEdit[i][0] + P[1][1] * predicted3DStateEdit[i][1] + P[1][2] * predicted3DStateEdit[i][2] + P[1][3];
             double rz = P[2][0] * predicted3DStateEdit[i][0] + P[2][1] * predicted3DStateEdit[i][1] + P[2][2] * predicted3DStateEdit[i][2] + P[2][3];
             predicted2DStateEdit[i][0]=rx* (1.0/rz);
             predicted2DStateEdit[i][1]=ry* (1.0/rz);
         }
-        for (size_t i = 0; i < predicted3DStateEdit.size(); i++){
+        for (size_t i = 0; i < predicted3DStateEdit.size(); i++)
+        {
             for (size_t d = 0; d < 2; d++){
                 _predictedObservation(2*i+d) = predicted2DStateEdit[i][d];
             }
         }
 
-    }else{
+    }
+    else // 3D Observations
+    {
         for (size_t i = 0; i < predicted3DStateEdit.size(); i++)
             for (size_t d = 0; d < 3; d++)
                 _predictedObservation(3*i+d) = predicted3DStateEdit[i][d];
@@ -218,21 +223,28 @@ bool SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getPredictedObs
     stateWrapper->getActualPosition(_id, predicted3DStateEdit);
     predicted2DStateEdit.resize(predicted3DStateEdit.size());
 
-    if(d_use2dObservations.getValue()){
-        for (unsigned i = 0; i < predicted3DStateEdit.size(); i++){
+    //2D observations
+    if(ObservationSource::Coord::total_size == 2)
+    {
+        for (unsigned i = 0; i < predicted3DStateEdit.size(); i++)
+        {
             double rx = P[0][0] * predicted3DStateEdit[i][0] + P[0][1] * predicted3DStateEdit[i][1] + P[0][2] * predicted3DStateEdit[i][2] + P[0][3];
             double ry = P[1][0] * predicted3DStateEdit[i][0] + P[1][1] * predicted3DStateEdit[i][1] + P[1][2] * predicted3DStateEdit[i][2] + P[1][3];
             double rz = P[2][0] * predicted3DStateEdit[i][0] + P[2][1] * predicted3DStateEdit[i][1] + P[2][2] * predicted3DStateEdit[i][2] + P[2][3];
             predicted2DStateEdit[i][0]=rx* (1.0/rz);
             predicted2DStateEdit[i][1]=ry* (1.0/rz);
         }
-        for (size_t i = 0; i < predicted3DStateEdit.size(); i++){
-            for (size_t d = 0; d < 2; d++){
+        for (size_t i = 0; i < predicted3DStateEdit.size(); i++)
+        {
+            for (size_t d = 0; d < 2; d++)
+            {
                 _predictedObservation(2*i+d) = predicted2DStateEdit[i][d];
             }
         }
 
-    }else{
+    }
+     // 3D Observations
+    else{
         for (size_t i = 0; i < predicted3DStateEdit.size(); i++)
             for (size_t d = 0; d < 3; d++)
                 _predictedObservation(3*i+d) = predicted3DStateEdit[i][d];
