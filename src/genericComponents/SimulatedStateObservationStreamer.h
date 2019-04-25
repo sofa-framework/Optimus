@@ -55,7 +55,7 @@ namespace container
 
 
 template<class DataTypes>
-class SOFA_SIMULATION_COMMON_API SimulatedStateObservationStreamer : public SimulatedStateObservationSource<DataTypes> //  ObservationSource
+class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationStreamer : public SimulatedStateObservationSource<DataTypes> //  ObservationSource
 {
 public:
     SOFA_CLASS(SOFA_TEMPLATE(SimulatedStateObservationStreamer, DataTypes) , SOFA_TEMPLATE(SimulatedStateObservationSource, DataTypes));

@@ -5,7 +5,6 @@
 #include "StochasticFilterBase.h"
 #include "StochasticStateWrapper.h"
 #include "ObservationManagerBase.h"
-#include "genericComponents/SimulatedStateObservationSource.h"
 
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/RigidTypes.h>

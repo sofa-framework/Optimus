@@ -5,6 +5,7 @@
 #pragma once
 #endif
 
+#include <initOptimusPlugin.h>
 #include <sofa/core/DataEngine.h>
 #include <sofa/core/objectmodel/BaseObject.h>
 #include <sofa/core/topology/BaseMeshTopology.h>
@@ -77,10 +78,7 @@ protected:
     Data<bool> d_stochEstim;
 };
 
-#if defined(SOFA_EXTERN_TEMPLATE) && !defined(SOFA_COMPONENT_ENGINE_TransformStochasticEngine_CPP)
-extern template class SOFA_GENERAL_ENGINE_API TransformStochasticEngine<defaulttype::Vec3dTypes>;
-
-#endif
+extern template class SOFA_OPTIMUSPLUGIN_API TransformStochasticEngine<defaulttype::Vec3dTypes>;
 
 } // namespace engine
 

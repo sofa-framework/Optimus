@@ -22,6 +22,7 @@
 #ifndef SOFA_COMPONENT_MISC_StochasticPositionHandler_H
 #define SOFA_COMPONENT_MISC_StochasticPositionHandler_H
 
+#include <initOptimusPlugin.h>
 #include <sofa/core/behavior/ForceField.h>
 #include <sofa/core/behavior/BaseMechanicalState.h>
 #include <sofa/core/objectmodel/BaseObject.h>
@@ -47,7 +48,7 @@ namespace misc
  * Stop to write the state if the kinematic energy reach a given threshold (stopAt)
  * The energy will be measured at each period determined by keperiod
 */
-class  StochasticPositionHandler: public core::objectmodel::BaseObject
+class SOFA_OPTIMUSPLUGIN_API StochasticPositionHandler: public core::objectmodel::BaseObject
 {
 public:
     SOFA_CLASS(StochasticPositionHandler,core::objectmodel::BaseObject);

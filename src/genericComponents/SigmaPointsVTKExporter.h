@@ -45,7 +45,7 @@ namespace component
 namespace misc
 {
 
-class SOFA_OptimusPlugin_API SigmaPointsVTKExporter : public core::objectmodel::BaseObject
+class SOFA_OPTIMUSPLUGIN_API SigmaPointsVTKExporter : public core::objectmodel::BaseObject
 {
 public:
     SOFA_CLASS(SigmaPointsVTKExporter,core::objectmodel::BaseObject);

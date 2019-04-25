@@ -2,6 +2,7 @@
 #define AdaptativeUKFilterClassic_INL
 
 #include "AdaptativeUKFilterClassic.h"
+#include <sofa/core/visual/VisualParams.h>
 #include <iostream>
 #include <fstream>
 

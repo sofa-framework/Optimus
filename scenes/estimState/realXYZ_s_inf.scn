@@ -4,7 +4,9 @@
     <RequiredPlugin pluginName="ConstraintGeometry" />
     <!-- <RequiredPlugin pluginName="NeedleConstraintPlugin" /> -->
     <RequiredPlugin pluginName="NeedleConstraint" />
-    <RequiredPlugin pluginName="OpenCVPlugin" />
+    <!-- <RequiredPlugin pluginName="OpenCVPlugin" /> -->
+    <RequiredPlugin pluginName="SofaCV" />
+    <RequiredPlugin pluginName="ImageProcessing" />
 
 
     <VisualStyle displayFlags="showVisualModels hideBehaviorModels hideCollisionModels hideMappings hideForceFields hideWireframe" />	
@@ -16,20 +18,21 @@
 
     
 <!--  ####   HERE YOU CAN CHOOSE YOUR VIEW: EITHER SIDE OR TOP VIEW   ####--> 
-    
-<!--    <Node name="validationView"/>    
-        <OpenCVPngStreamer name="streamer" filename="realDataSet/cat0/cat0__??????.png" imageId="001448"/>
-        <OpenCVProjectiveCalibrator listening="1" name="calibrator" streamer="streamer" mode="0" projectionMatrix="[-3452.3 219.165 -50.3532 251.620 -24.5691 647.057 3388.13 271.587 -0.00217632 0.993 -0.118096	0.474452]" drawCamera="0" depth="0.9" drawzNear="0.0000001" drawViewPort="0" drawscreenSize="640 480" drawzFar="10000000" drawscreenPosition="0 0" drawswapMainView="1" />    
-        <OpenCVViewer name="viewer" streamer="streamer" drawcolor="1 1 1 1" /> 
-        <OpenCVScheduler name="scheduler" frequency="0"  />
-    <Node />-->
-<!--    
-    <Node name="aquisitionView" />
-        <OpenCVPngStreamer name="streamer" filename="realDataSet/cat1/test_??????.png" imageId="001448"/>
-        <OpenCVProjectiveCalibrator listening="1" name="calibrator" streamer="streamer" mode="0"  projectionMatrix="[-3320.65	174.572	-514.441 193.451 134.409 3340.13 44.4847 -64.7090 0.0480279	0.103531 -0.993466 0.400192]" drawCamera="0" depth="0.7" drawzNear="0.0000001" drawViewPort="0" drawscreenSize="640 480" drawzFar="10000000" drawscreenPosition="0 0" drawswapMainView="1" />    
-        <OpenCVViewer name="viewer" streamer="streamer" drawcolor="1 1 1 1" /> 
-        <OpenCVScheduler name="scheduler" frequency="0"  />
-    <Node/>-->
+
+      <Node name="CV_validationView" />
+        <VideoGrabber name="grabber" videoFile="/mnt/data/sofa/src/plugins/Optimus/scenes/estimState/realDataSet/cat0/cat0__%06d.png" seek="1448" />
+        <CameraSettings name="cam" imageSize="640 480" f="0.9" M="[-3452.3 219.165 -50.3532 251.620 -24.5691 647.057 3388.13 271.587 -0.00217632 0.993 -0.118096 0.474452]"/>
+        <FrameViewer img="@grabber.img_out" corners="@cam.corners"/>
+        <CalibratedCamera name="cc" cam="@cam" drawGizmo="false" freeProj="false" freeCam="false" />
+    <Node/>
+
+<!-- 
+    <Node name="CV_acquisitionView" />
+        <VideoGrabber name="grabber" videoFile="/mnt/data/sofa/src/plugins/Optimus/scenes/estimState/realDataSet/cat1/test_%06d.png" seek="1448" />
+        <CameraSettings name="cam" imageSize="640 480" f="0.7" M="[-3320.65 174.572 -514.441 193.451 134.409 3340.13 44.4847 -64.7090 0.0480279 0.103531 -0.993466 0.400192]"/>
+        <FrameViewer img="@grabber.img_out" corners="@cam.corners" />
+        <CalibratedCamera name="cc" cam="@cam" drawGizmo="false" freeProj="false" freeCam="false" />
+    <Node/> -->
 
     
     
@@ -118,7 +121,7 @@
             
             <Node name="obsNode" activated="1">        
                 <SimulatedStateObservationSource template="Vec2d" name="observations" monitorPrefix="realDataSet/obs_N12_noise" asynObs="true"/>    
-                <SimpleObservationManager name="MSIDES" template="Vec2d,Rigid3d" listening="1"  stateWrapper="@../../StateWrapper" use2dObservation="true"   
+                <SimpleObservationManager name="MSIDES" template="Vec2d,Rigid3d" listening="1"  stateWrapper="@../../StateWrapper" 
                                           projectionMatrix="[-3320.65 174.572 -514.441 193.451 134.409 3340.13 44.4847 -64.7090 0.0480279 0.103531 -0.993466 0.400192]" verbose="1" observationStdev="0.001"/>
             </Node>
         </Node> 
@@ -130,7 +133,7 @@
             <MeshTopology name="mesh" position="@transform.output_position" triangles="@transform.triangles"  />
             <TriangleSetTopologyContainer name="Container" src="@mesh" />
             <MechanicalObject name="MS" free_position="@transform.output_position" position="@transform.output_position" template="Vec3d" />
-            <TriangleGeometry name="triangle"  /> 
+            <TriangleGeometry name="triangle" topology="@Container" /> 
             <AABBBroadPhase name="AABBBroadPhase" geometry="@triangle" nbox="8 8 8" color="1 0 0 0.3" refine="true" isStatic="true" /> 
         </Node>
         <!-- 
@@ -140,7 +143,6 @@
         <ConstraintContact algo="@algo" dest="@cat/CollisionCat/point" from="@Vessel/triangle" mu="0.9" /> -->
         <NeedleContactConstraint needle="cat/CollisionCat/point" surface="Vessel/triangle" tipIndex="@cat/CollisionCat/boxA.indices" friction="0.1" draw="0" draw_normal_scale="0.001" />
     </Node>
-    
     
 </Node>
 

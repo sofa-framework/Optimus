@@ -33,12 +33,12 @@ namespace component
 	//Here are just several convenient functions to help user to know what contains the plugin
 
 	extern "C" {
-                SOFA_OptimusPlugin_API void initExternalModule();
-                SOFA_OptimusPlugin_API const char* getModuleName();
-                SOFA_OptimusPlugin_API const char* getModuleVersion();
-                SOFA_OptimusPlugin_API const char* getModuleLicense();
-                SOFA_OptimusPlugin_API const char* getModuleDescription();
-                SOFA_OptimusPlugin_API const char* getModuleComponentList();
+                SOFA_OPTIMUSPLUGIN_API void initExternalModule();
+                SOFA_OPTIMUSPLUGIN_API const char* getModuleName();
+                SOFA_OPTIMUSPLUGIN_API const char* getModuleVersion();
+                SOFA_OPTIMUSPLUGIN_API const char* getModuleLicense();
+                SOFA_OPTIMUSPLUGIN_API const char* getModuleDescription();
+                SOFA_OPTIMUSPLUGIN_API const char* getModuleComponentList();
 	}
 	
 	void initExternalModule()

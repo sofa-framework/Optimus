@@ -55,10 +55,10 @@ int ShowCatheterClass = core::RegisterObject("ShowCatheter")
         ;
 
 #ifndef SOFA_FLOAT
-template class  ShowCatheter<Vec3dTypes>;
+template class ShowCatheter<Vec3dTypes>;
 #endif
 #ifndef SOFA_DOUBLE
-template class  ShowCatheter<Vec3fTypes>;
+template class ShowCatheter<Vec3fTypes>;
 #endif
 
 

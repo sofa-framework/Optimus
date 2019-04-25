@@ -47,7 +47,7 @@ namespace component
 namespace misc
 {
 
-class SOFA_OptimusPlugin_API VTKExporterDA : public VTKExporter
+class SOFA_OPTIMUSPLUGIN_API VTKExporterDA : public VTKExporter
 {
 public:
     SOFA_CLASS(VTKExporterDA,VTKExporter);

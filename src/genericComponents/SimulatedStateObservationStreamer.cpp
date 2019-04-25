@@ -55,9 +55,9 @@ int SimulatedStateObservationStreamerClass = core::RegisterObject("Parameters th
         ;
 
 //#ifndef SOFA_FLOAT
-template class SimulatedStateObservationStreamer<Vec2dTypes>;
-template class SimulatedStateObservationStreamer<Vec3dTypes>;
-template class SimulatedStateObservationStreamer<Rigid3dTypes>;
+template class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationStreamer<Vec2dTypes>;
+template class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationStreamer<Vec3dTypes>;
+template class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationStreamer<Rigid3dTypes>;
 
 //#endif
 //#ifndef SOFA_DOUBLE

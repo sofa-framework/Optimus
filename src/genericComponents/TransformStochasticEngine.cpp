@@ -1,4 +1,5 @@
 #define SOFA_COMPONENT_ENGINE_TransformStochasticEngine_CPP
+
 #include <genericComponents/TransformStochasticEngine.inl>
 #include <sofa/core/ObjectFactory.h>
 
@@ -16,7 +17,8 @@ SOFA_DECL_CLASS(TransformStochasticEngine)
 int TransformStochasticEngineClass = core::RegisterObject("Transform position of 3d points")
         .add< TransformStochasticEngine<defaulttype::Vec3dTypes> >(true) // default template
         ;
-template class SOFA_GENERAL_ENGINE_API TransformStochasticEngine<defaulttype::Vec3dTypes>;
+
+template class SOFA_OPTIMUSPLUGIN_API TransformStochasticEngine<defaulttype::Vec3dTypes>;
 
 } // namespace constraint
 
