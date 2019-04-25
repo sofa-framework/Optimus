@@ -55,9 +55,9 @@ int SimulatedStateObservationSourceClass = core::RegisterObject("Parameters that
         ;
 
 //#ifndef SOFA_FLOAT
-template class SimulatedStateObservationSource<Vec2dTypes>;
-template class SimulatedStateObservationSource<Vec3dTypes>;
-template class SimulatedStateObservationSource<Rigid3dTypes>;
+template class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationSource<Vec2dTypes>;
+template class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationSource<Vec3dTypes>;
+template class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationSource<Rigid3dTypes>;
 
 //#endif
 //#ifndef SOFA_DOUBLE

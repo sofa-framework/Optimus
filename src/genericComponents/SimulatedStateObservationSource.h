@@ -56,82 +56,90 @@ namespace container
 /**
   Class implementing an observation source: it reads observations exported in direct simulation using OptimMonitor component and provides data to the observation manager.
 */
-class SOFA_SIMULATION_COMMON_API SimulatedStateObservationSourceBase : public BaseObject //  ObservationSource
+class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationSourceBase : public BaseObject //  ObservationSource
 {
 public:
     virtual int getObsDimention() = 0;
 };
 
 template<class DataTypes>
-class SOFA_SIMULATION_COMMON_API SimulatedStateObservationSource : public SimulatedStateObservationSourceBase //  ObservationSource
+class SimulatedStateObservationSource : public SimulatedStateObservationSourceBase //  ObservationSource
 {
 public:
-    SOFA_CLASS(SOFA_TEMPLATE(SimulatedStateObservationSource, DataTypes) ,BaseObject);
+    SOFA_CLASS(SOFA_TEMPLATE(SimulatedStateObservationSource, DataTypes) , SimulatedStateObservationSourceBase);
 
     typedef SimulatedStateObservationSourceBase Inherit;
     typedef typename DataTypes::VecCoord VecCoord;
+    typedef typename helper::vector<unsigned int> VecIndex;
     typedef typename DataTypes::Coord Coord;
     typedef typename DataTypes::Real Real;
     typedef typename std::vector<VecCoord> VecVecCoord;
     typedef typename std::map<double, VecCoord> ObservationTable;
+    typedef typename std::map<double, VecIndex > PresenceTable;
 
 protected:
-    ObservationTable observationTable;
+    ObservationTable m_observationTable;
+    PresenceTable m_indexTable;
 
-    int nParticles, nObservations, dim;
-    double initTime, finalTime;
-    double dt;
+    std::vector<bool> m_;
+
+    int m_nParticles, m_nObservations, m_dim;
+    double m_initTime, m_finalTime;
+    double m_dt;
 
 public:
 
     SimulatedStateObservationSource();
-    ~SimulatedStateObservationSource();
+    virtual ~SimulatedStateObservationSource() override;
 
-    Data<bool> verbose;
-    Data<std::string> m_monitorPrefix;
-    Data<VecCoord> m_actualObservation;
-    Data<SReal> m_drawSize;
-    Data<bool> m_controllerMode;
-    Data<VecCoord> m_trackedObservations;
+    Data<bool> d_verbose;
+    Data<std::string> d_monitorPrefix;
+    Data<VecCoord> d_actualObservation;
+    Data<SReal> d_drawSize;
+    Data<bool> d_controllerMode;
+    Data<VecCoord> d_trackedObservations;
     Data< bool  > d_asynObs;
 
 
     /// maps:  time + vector
 
-    std::vector<VecCoord> positions;
+    std::vector<VecCoord> m_positions;
 
-    void init();
+    void init() override ;
 
-    void bwdInit() {}
+    void bwdInit() override {}
 
-    void draw(const core::visual::VisualParams* vparams);
+    void draw(const core::visual::VisualParams* vparams) override;
 
-    void parseMonitorFile(std::string& _name);
-    void parseAsynMonitorFile(std::string& _name);
+    void parseMonitorFile(const std::string& _name);
+    void parseAsynMonitorFile(const std::string &_name);
+    void parseAsynMonitorFileVariable(const std::string& _name);
+
     /// an "alias" for better naming
     bool getStateAtTime(double _time, VecCoord& _state) {
         return(getObservation(_time, _state));
     }
 
     bool getObservation(double _time, VecCoord& _observation);
+    bool getObservation(double _time, VecCoord& _observation, VecIndex &_index);
 
-    int getNParticles() {
-        return nParticles;
+    int getNParticles() const {
+        return m_nParticles;
     }
 
-    int getStateSize() {
-        return nParticles;
+    int getStateSize() const {
+        return m_nParticles;
     }
 
-    int getObsDimention() {
-        return dim;
+    int getObsDimention() override {
+        return m_dim;
     }
 
-    int getNStates() {
-        return nObservations;
+    int getNStates() const {
+        return m_nObservations;
     }
 
-    void handleEvent(core::objectmodel::Event *event);
+    void handleEvent(core::objectmodel::Event *event) override;
 
     /// Pre-construction check method called by ObjectFactory.
     /// Check that DataTypes matches the MechanicalState.
@@ -142,7 +150,7 @@ public:
         return sofa::core::objectmodel::BaseObject::canCreate(obj, context, arg);
     }
 
-    virtual std::string getTemplateName() const
+    virtual std::string getTemplateName() const override
     {
         return templateName(this);
     }
@@ -153,9 +161,12 @@ public:
     }
 
 private:
-#define ROUND 10000000.0
 
 };
+
+extern template class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationSource<sofa::defaulttype::Vec2dTypes>;
+extern template class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationSource<sofa::defaulttype::Vec3dTypes>;
+extern template class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationSource<sofa::defaulttype::Rigid3dTypes>;
 
 } // namespace container
 

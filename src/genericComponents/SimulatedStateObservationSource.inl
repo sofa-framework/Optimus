@@ -27,6 +27,7 @@
 
 #include "SimulatedStateObservationSource.h"
 
+#include <sofa/helper/system/FileRepository.h>
 #include <sofa/core/objectmodel/Event.h>
 #include <sofa/core/objectmodel/BaseObject.h>
 #include <sofa/core/objectmodel/Data.h>
@@ -34,6 +35,9 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <numeric>
+#define ROUND 10000000.0
+
 using namespace sofa::core::objectmodel;
 
 namespace sofa
@@ -49,12 +53,12 @@ namespace container
 template<class DataTypes>
 SimulatedStateObservationSource<DataTypes>::SimulatedStateObservationSource()
     : Inherit()
-    , verbose( initData(&verbose, false, "verbose", "print tracing informations") )
-    , m_monitorPrefix( initData(&m_monitorPrefix, std::string("monitor1"), "monitorPrefix", "prefix of the monitor-generated file") )
-    , m_actualObservation( initData (&m_actualObservation, "actualObservation", "actual observation") )
-    , m_drawSize( initData(&m_drawSize, SReal(0.0),"drawSize","size of observation spheres in each time step") )
-    , m_controllerMode( initData(&m_controllerMode, false,"controllerMode","if true, sets the mechanical object in begin animation step") )
-    , m_trackedObservations( initData (&m_trackedObservations, "trackedObservations", "tracked observations: temporary solution!!!") )
+    , d_verbose( initData(&d_verbose, false, "verbose", "print tracing informations") )
+    , d_monitorPrefix( initData(&d_monitorPrefix, std::string("monitor1"), "monitorPrefix", "prefix of the monitor-generated file") )
+    , d_actualObservation( initData (&d_actualObservation, "actualObservation", "actual observation") )
+    , d_drawSize( initData(&d_drawSize, SReal(0.0),"drawSize","size of observation spheres in each time step") )
+    , d_controllerMode( initData(&d_controllerMode, false,"controllerMode","if true, sets the mechanical object in begin animation step") )
+    , d_trackedObservations( initData (&d_trackedObservations, "trackedObservations", "tracked observations: temporary solution!!!") )
     , d_asynObs(initData(&d_asynObs, false, "asynObs","Asynchronous or Missing Observations"))
 
 {
@@ -73,33 +77,130 @@ void SimulatedStateObservationSource<DataTypes>::init()
     if(d_asynObs.getValue())
         std::cout << "[SimulatedStateObservationSource] Asynchronous Observations Used "<<std::endl;
 
-     helper::ReadAccessor<Data<VecCoord> > tracObs = m_trackedObservations;
+     helper::ReadAccessor<Data<VecCoord> > tracObs = d_trackedObservations;
     /// take observations from another component (tracking)
     if (tracObs.size() > 0) {
-        nParticles = tracObs.size();
+        m_nParticles = tracObs.size();
         std::cout << "[" << this->getName() << "]: taking observations from other source, size: " << tracObs.size() << std::endl;
-        m_actualObservation.setValue(m_trackedObservations.getValue());
+        d_actualObservation.setValue(d_trackedObservations.getValue());
     } else {   /// read observations from a file
         //std::cout << this->getName() << " Init started" << std::endl;
-        std::string posFile = m_monitorPrefix.getValue() + "_x.txt";
-        if (d_asynObs.getValue()) {
-            parseAsynMonitorFile(posFile);
-        } else {
-            parseMonitorFile(posFile);
+        std::string posFile = d_monitorPrefix.getValue() + "_x.txt";
+        if(sofa::helper::system::DataRepository.findFile(posFile))
+        {
+            if (d_asynObs.getValue()) {
+                parseAsynMonitorFile(posFile);
+            } else {
+                parseMonitorFile(posFile);
+            }
+        }
+        else
+        {
+            msg_error(this) << "Could not find " << posFile;
         }
 
-        if (positions.empty()) m_actualObservation.setValue(VecCoord());  // OK, since there is at least the dummy observation
-        else m_actualObservation.setValue(positions[0]);  // OK, since there is at least the dummy observation
+        if (m_positions.empty())
+            d_actualObservation.setValue(VecCoord());  // OK, since there is at least the dummy observation
+        else
+            d_actualObservation.setValue(m_positions[0]);  // OK, since there is at least the dummy observation
     }
 
-    if (m_controllerMode.getValue())
+    if (d_controllerMode.getValue())
         this->f_listening.setValue(true);
 
 }
 
+/*
+ * File format:
+ *  time | indices | positions
+ *  e.g (in 2d)
+ *  0.1 | 0 1 3 | 0.1 0.2 0.2 0.4 0.5 0.6
+ */
 template<class DataTypes>
-void SimulatedStateObservationSource<DataTypes>::parseAsynMonitorFile(std::string& _name) {
-    observationTable.clear();
+void SimulatedStateObservationSource<DataTypes>::parseAsynMonitorFileVariable(const std::string &_name)
+{
+    m_observationTable.clear();
+    m_indexTable.clear();
+#ifdef __APPLE__
+    setlocale(LC_ALL, "C");
+#else
+    std::setlocale(LC_ALL, "C");
+#endif
+
+    m_nParticles = 0;
+    m_nObservations = 0;
+
+    //info to fill
+    helper::vector<Real> vdt;
+    helper::vector<helper::vector<unsigned int> > vindices;
+    helper::vector<helper::vector<Coord> > vpositions;
+    unsigned int maxIndex = 0;
+
+    std::ifstream in(_name);
+    if(!in.good())
+        return;
+
+    std::string line;
+    while(std::getline(in, line))
+    {
+        if(line.find("|") == std::string::npos)
+            continue;
+
+        Real dt;
+        helper::vector<unsigned int> indices;
+        helper::vector<Coord> positions;
+
+        std::istringstream ss(line);
+        std::string substr;
+        std::getline(ss, substr, '|');
+        dt = std::stod(substr);
+
+        std::getline(ss, substr, '|');
+        std::istringstream ssI(substr);
+        unsigned int index;
+        while(ssI >> index)
+        {
+            indices.push_back(index);
+            maxIndex = std::max(index, maxIndex);
+        }
+
+        std::getline(ss, substr);
+        std::istringstream ssP(substr);
+        Coord position;
+        while(ssP >> position)
+            positions.push_back(position);
+
+        vdt.push_back(dt);
+        vindices.push_back(indices);
+        vpositions.push_back(positions);
+
+        m_nObservations++;
+    }
+
+    m_nParticles = maxIndex + 1; // size is biggest index we found + 1
+
+    for(unsigned int i ; i<m_nObservations ; i++)
+    {
+        VecCoord position(m_nParticles);
+
+        const helper::vector<unsigned int>& indices = vindices[i];
+        for(unsigned int j=0 ; j<indices.size() ; j++)
+        {
+            position[j] = vpositions[i][j];
+        }
+
+        m_observationTable[vdt[i]] = position;
+        m_indexTable[vdt[i]] = indices;
+
+        m_positions.push_back(position);
+    }
+}
+
+template<class DataTypes>
+void SimulatedStateObservationSource<DataTypes>::parseAsynMonitorFile(const std::string& _name)
+{
+    m_observationTable.clear();
+    m_indexTable.clear();
 #ifdef __APPLE__
     setlocale(LC_ALL, "C");
 #else
@@ -107,27 +208,30 @@ void SimulatedStateObservationSource<DataTypes>::parseAsynMonitorFile(std::strin
 #endif
 
     std::ifstream file(_name.c_str());
-    nParticles = 0;
-    nObservations = 0;
-    initTime = -1.0;
+
+    m_nParticles = 0;
+    m_nObservations = 0;
+    m_initTime = -1.0;
+
 
     if (file.good()) {
         /// parse the header of a monitor-generated file:
         std::string line;
 
-        nParticles = 0;
+        m_nParticles = 0;
+
         do {
             getline(file, line);
 
             if (line.substr(0,14) == std::string("# nParticles :")) {
                 std::istringstream stm(line.substr(15));
-                stm >> nParticles;
-                if(nParticles==0){
+                stm >> m_nParticles;
+                if(m_nParticles==0){
                     std::cerr << "[SimulatedStateObservationSource] ERROR nParticles is zero. Please check the header of Observations File " << std::endl;
                     return;
                 }
                 else
-                std::cout << "[SimulatedStateObservationSource] nParticles observed: " << nParticles << std::endl;
+                std::cout << "[SimulatedStateObservationSource] nParticles observed: " << m_nParticles << std::endl;
             }
         } while (line[0] == '#');
         do {
@@ -146,12 +250,16 @@ void SimulatedStateObservationSource<DataTypes>::parseAsynMonitorFile(std::strin
                 for (unsigned j=0;j<Coord::size();j++) {
                     pos[j] = numbers[i+j];
                 }
-                position.push_back(pos);
+                position.push_back( pos );
             }
 
-            positions.push_back(position);
-            observationTable[time] = position;
-            nObservations++;
+            m_positions.push_back(position);
+
+            m_observationTable[time] = position;
+            VecIndex index(position.size());
+            std::iota(index.begin(), index.end(), 0); // fill vector with increment, from 0
+            m_indexTable[time] = index;
+            m_nObservations++;
 
         } while (getline(file, line));
     } else {
@@ -159,10 +267,11 @@ void SimulatedStateObservationSource<DataTypes>::parseAsynMonitorFile(std::strin
         return;
     }
 
-    PRNS("Number of observations: " << nObservations << " |tbl| = " << observationTable.size())
+    PRNS("Number of observations: " << m_nObservations << " |tbl| = " << m_observationTable.size())
 
-            if (nObservations > 0) {
-        sout << "Valid observations available: #observations: " << nObservations << " #particles: " << nParticles << std::endl;
+    if (m_nObservations > 0)
+    {
+        sout << "Valid observations available: #observations: " << m_nObservations << " #particles: " << m_nParticles << std::endl;
     }
 #ifdef __APPLE__
     setlocale(LC_ALL, "C");
@@ -174,8 +283,10 @@ void SimulatedStateObservationSource<DataTypes>::parseAsynMonitorFile(std::strin
 }
 
 template<class DataTypes>
-void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _name) {
-    observationTable.clear();
+void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(const std::string &_name)
+{
+    m_observationTable.clear();
+    m_indexTable.clear();
 #ifdef __APPLE__
     setlocale(LC_ALL, "C");
 #else
@@ -185,9 +296,9 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _
 
     std::ifstream file(_name.c_str());
 
-    nParticles = 0;
-    nObservations = 0;
-    initTime = -1.0;
+    m_nParticles = 0;
+    m_nObservations = 0;
+    m_initTime = -1.0;
 
     if (file.good()) {
         /// parse the header of a monitor-generated file:
@@ -218,9 +329,9 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _
         int tki = 0;
         while (std::strcmp(tokens[tki++].c_str(),"number")!=0) ;
 
-        nParticles = tokens.size() - tki;
+        m_nParticles = tokens.size() - tki;
 
-        PRNS("Number of observed particles: " << nParticles);
+        PRNS("Number of observed particles: " << m_nParticles);
 
         getline(file, line);
         nLine++;
@@ -230,9 +341,9 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _
         std::vector<std::string> tk2(it2, end2);
 
         tokens=tk2;
-        dim = (tokens.size() -1)/nParticles;
-        if (dim == 2) {
-            PRNS(" Working with 2D observations" << " dim: " << dim);
+        m_dim = (tokens.size() -1)/m_nParticles;
+        if (m_dim == 2) {
+            PRNS(" Working with 2D observations" << " dim: " << m_dim);
         }
         while (tokens.size() > 1) {
 //            if (dim != 3) {
@@ -241,32 +352,36 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _
 //            }
 
             double lineTime = atof(tokens[0].c_str()) ;
-            if (initTime < 0.0)
-                initTime = lineTime;
-            finalTime = lineTime;
+            if (m_initTime < 0.0)
+                m_initTime = lineTime;
+            m_finalTime = lineTime;
 
-            if (nObservations == 0)
-                dt = atof(tokens[0].c_str());
+            if (m_nObservations == 0)
+                m_dt = atof(tokens[0].c_str());
 
-            if (nObservations == 1)
-                dt = atof(tokens[0].c_str()) - dt;
+            if (m_nObservations == 1)
+                m_dt = atof(tokens[0].c_str()) - m_dt;
 
-            VecCoord position(nParticles);
-            if (dim == 2) {
-                for (int i = 0; i < nParticles; i++)
+            VecCoord position(m_nParticles);
+            VecIndex index(position.size());
+            std::iota(index.begin(), index.end(), 0); // fill vector with increment, from 0
+
+            if (m_dim == 2) {
+                for (int i = 0; i < m_nParticles; i++)
                     for (int d = 0; d < 2; d++)
-                        position[i][d] = atof(tokens[2*i+d+1].c_str()); ;
+                        position[i][d] = atof(tokens[2*i+d+1].c_str());
             } else {
-                for (int i = 0; i < nParticles; i++)
+                for (int i = 0; i < m_nParticles; i++)
                     for (int d = 0; d < 3; d++)
                         position[i][d] = atof(tokens[3*i+d+1].c_str());
             }
 
 
-            positions.push_back(position);
+            m_positions.push_back(position);
             //std::cout << "###### adding position to obsTable at " << lineTime << std::endl;
-            observationTable[lineTime] = position;
-            nObservations++;
+            m_observationTable[lineTime] = position;
+            m_indexTable[lineTime] = index;
+            m_nObservations++;
             //std::cout << " positions size: " << positions.size() << std::endl;
 
 
@@ -284,10 +399,10 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _
         return;
     }
 
-    PRNS("Number of observations: " << nObservations << " |tbl| = " << observationTable.size())
+    PRNS("Number of observations: " << m_nObservations << " |tbl| = " << m_observationTable.size())
 
-    if (nObservations > 0) {
-        sout << "Valid observations available: #observations: " << nObservations << " #particles: " << nParticles << std::endl;
+    if (m_nObservations > 0) {
+        sout << "Valid observations available: #observations: " << m_nObservations << " #particles: " << m_nParticles << std::endl;
     } /*else {
         // workaround in the case when no observations are available
         if (nParticles > 0) {
@@ -310,52 +425,80 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(std::string& _
 }
 
 template<class DataTypes>
-bool SimulatedStateObservationSource<DataTypes>::getObservation(double _time, VecCoord& _observation) {
-    if (d_asynObs.getValue()) {
-        helper::ReadAccessor<Data<VecCoord> > tracObs = m_trackedObservations;
-        if (tracObs.size() > 0 ) {
-            m_actualObservation.setValue(m_trackedObservations.getValue());
-            _observation = m_actualObservation.getValue();
-        } else {
+bool SimulatedStateObservationSource<DataTypes>::getObservation(double _time, VecCoord& _observation)
+{
+    VecIndex index;
+    return getObservation(_time, _observation, index);
+}
+
+template<class DataTypes>
+bool SimulatedStateObservationSource<DataTypes>::getObservation(double _time, VecCoord& _observation, VecIndex& _index)
+{
+    if (d_asynObs.getValue())
+    {
+        helper::ReadAccessor<Data<VecCoord> > tracObs = d_trackedObservations;
+        if (tracObs.size() > 0 )
+        {
+            d_actualObservation.setValue(d_trackedObservations.getValue());
+            _observation = d_actualObservation.getValue();
+
+            // assume that actualObservation gives all data
+            _index.resize(_observation.size());
+            std::iota(_index.begin(), _index.end(), 0);
+        }
+        else
+        {
             int tround = (int) (_time * ROUND);
             _time = tround / ROUND; // round the value time
-            typename std::map<double, VecCoord>::iterator it = observationTable.find(_time);
-            if (it == observationTable.end()) {
+            auto it = m_observationTable.find(_time);
+            if (it == m_observationTable.end())
+            {
                 PRNE("No observation for time " << _time << " Computing Only Prediction ");
-                m_actualObservation.setValue(VecCoord());
+                d_actualObservation.setValue(VecCoord());
                 _observation = VecCoord();
+                _index = VecIndex();
                 return false;
-            } else {
-                m_actualObservation.setValue(it->second);
+            }
+            else
+            {
+                auto indexIt = m_indexTable.find(_time);
+                d_actualObservation.setValue(it->second);
                 _observation = it->second;
-                if (it->second.empty()){
+                _index = indexIt->second;
+                if (it->second.empty())
+                {
                     PRNE("No observation for time " << _time << " Computing Only Prediction ");
                     return false;
                 }
             }
         }
         return(true);
-    } else {
-        helper::ReadAccessor<Data<VecCoord> > tracObs = m_trackedObservations;
-        if (tracObs.size() > 0 ) {
-            m_actualObservation.setValue(m_trackedObservations.getValue());
-            _observation = m_actualObservation.getValue();
-        } else {
-            size_t ix = (fabs(dt) < 1e-10) ? 0 : size_t(round(_time/dt));
+    }
+    else
+    {
+        helper::ReadAccessor<Data<VecCoord> > tracObs = d_trackedObservations;
+        if (tracObs.size() > 0 )
+        {
+            d_actualObservation.setValue(d_trackedObservations.getValue());
+            _observation = d_actualObservation.getValue();
+        }
+        else
+        {
+            size_t ix = (fabs(m_dt) < 1e-10) ? 0 : size_t(round(_time/m_dt));
             //PRNS("Getting observation for time " << _time << " index: " << ix);
-            if (ix >= size_t(positions.size())) {
-                PRNE("No observation for time " << _time << " , using the last one from " << positions.size()-1);
-                ix = positions.size() - 1;
+            if (ix >= size_t(m_positions.size()))
+            {
+                PRNE("No observation for time " << _time << " , using the last one from " << m_positions.size()-1);
+                ix = m_positions.size() - 1;
             }
-            m_actualObservation.setValue(positions[ix]);
-            _observation = positions[ix];
+            d_actualObservation.setValue(m_positions[ix]);
+            _observation = m_positions[ix];
         }
 
         return(true);
     }
 
 }
-
 
 
 template<class DataTypes>
@@ -388,13 +531,13 @@ void SimulatedStateObservationSource<DataTypes>::handleEvent(core::objectmodel::
 {
     if (dynamic_cast<sofa::simulation::AnimateBeginEvent *>(event))
     {
-        helper::ReadAccessor<Data<VecCoord> > tracObs = m_trackedObservations;
+        helper::ReadAccessor<Data<VecCoord> > tracObs = d_trackedObservations;
         if (tracObs.size() > 0 ) {
         } else {
             double time = this->getTime();
-            size_t ix = (fabs(dt) < 1e-10) ? 0 : size_t(round(time/dt));
-            if (ix >= unsigned(positions.size()))
-                ix = positions.size() - 1;
+            size_t ix = (fabs(m_dt) < 1e-10) ? 0 : size_t(round(time/m_dt));
+            if (ix >= unsigned(m_positions.size()))
+                ix = m_positions.size() - 1;
 
             core::behavior::MechanicalState<DataTypes> *mState = dynamic_cast<core::behavior::MechanicalState<DataTypes>*> (this->getContext()->getMechanicalState());
 
@@ -402,7 +545,7 @@ void SimulatedStateObservationSource<DataTypes>::handleEvent(core::objectmodel::
 
             //std::cout << "Sizes: mstate: " << x.size() << " positions: " << positions[ix].size() << std::endl;
             for (size_t i = 0; i < x.size(); i++)
-                x[i] = positions[ix][i];
+                x[i] = m_positions[ix][i];
         }
     }
 }
@@ -415,3 +558,5 @@ void SimulatedStateObservationSource<DataTypes>::handleEvent(core::objectmodel::
 } // namespace sofa
 
 #endif
+
+
