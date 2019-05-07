@@ -1,6 +1,6 @@
 # Blender v2.76 (sub 0) OBJ File: ''
 # www.blender.org
-mtllib liver-smooth-frontHalf.mtl
+mtllib liver_frontHalf_obs_761points.mtl
 o Mesh1.002
 v 0.300577 0.242501 0.355290
 v 0.299102 0.239154 0.355342
