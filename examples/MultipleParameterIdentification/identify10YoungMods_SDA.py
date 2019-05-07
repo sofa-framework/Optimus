@@ -132,13 +132,14 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             intMaxit = self.opt['model']['int']['maxit']
             simuNode.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt=intMaxit)
 
-        
-        if self.opt['model']['linsol']['usePCG']:
-            simuNode.createObject('StepPCGLinearSolver', name='lsolverit', precondOnTimeStep='1', use_precond='1', tolerance='1e-10', iterations='500',
-                verbose='1', listening='1', preconditioners='lsolver', update_step=self.opt['model']['linsol']['updatePCGTimeStep'])
-
+        lsconf = self.opt['model']['linsol']
+        if lsconf['usePCG'] == 1:
+            simuNode.createObject('StepPCGLinearSolver', name='lsolverit', precondOnTimeStep='1', use_precond='1', tolerance=lsconf['pcgTol'],
+                iterations=lsconf['pcgIt'], verbose=lsconf['pcgVerb'], update_step=lsconf['pcgUpdateStep'],
+                numIterationsToRefactorize=lsconf['pcgAdaptiveThreshold'], listening='1', preconditioners='lsolver')
+                
         simuNode.createObject('SparsePARDISOSolver', name='lsolver', verbose='0', pardisoSchurComplement=self.planeCollision, 
-            symmetric=self.opt['model']['linsol']['pardisoSym'], exportDataToFolder=self.opt['model']['linsol']['pardisoFolder'])
+            symmetric=lsconf['pardisoSym'], exportDataToFolder=lsconf['pardisoFolder'])
         
         simuNode.createObject('MechanicalObject', src="@/loader", name="Volume")
         simuNode.createObject('BoxROI', box=self.opt['model']['bc']['boxes'], name='fixedBox')
