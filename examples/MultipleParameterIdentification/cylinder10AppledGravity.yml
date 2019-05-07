@@ -19,7 +19,11 @@ model:
 
     linsol:
         usePCG: 1
-        updatePCGTimeStep: 5
+        pcgTol: 1e-10
+        pcgIt: 50
+        pcgVerb: True
+        pcgUpdateStep: 10
+        pcgAdaptiveThreshold: -1
         pardisoSym: 1
         pardisoFolder: ''
 
