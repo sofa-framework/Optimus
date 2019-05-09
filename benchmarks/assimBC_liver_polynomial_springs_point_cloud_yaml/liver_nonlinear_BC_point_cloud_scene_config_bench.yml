@@ -1,8 +1,8 @@
 ---
 system_parameters:
-    volume_file_name: "../../../Optimus/data/liver/liver.msh"
+    volume_file_name: "../../../Optimus/data/baseLiver/baseLiver.msh"
     observation_file_name: "obs_testing/liverControlPoint"
-    observation_points_file_name: "../../../Optimus/data/liver/liverGen_obs_pointcloud.vtk"
+    observation_points_file_name: "../../../Optimus/data/baseLiver/baseLiverGen_obs_pointcloud.vtk"
 
 general_parameters:
     scenario_type: "Generate_data"    # options are "Generate_data" and "Validate_estimations"
@@ -73,7 +73,7 @@ geomagic_parameters:
     listener_file: "geomagicObservations2Params/listener.txt"
 
 point_cloud_parameters:
-    mesh_file: "../../../Optimus/data/liver/liver-smooth-frontHalf.obj"
+    mesh_file: "../../../Optimus/data/baseLiver/baseLiverGen_frontHalf_obs_761points.obj"
 
 time_parameters:
     timer_name: "filter_computation_statistics"
