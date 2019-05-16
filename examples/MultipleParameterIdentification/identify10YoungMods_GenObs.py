@@ -143,7 +143,7 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
             poissonRatii = poissonRatio * np.ones([1,len(youngModuli)])
             simuNode.createObject('Indices2ValuesTransformer', name='paramMapper', indices=indices,
                 values1=youngModuli, values2=poissonRatii, inputValues='@loader.dataset', transformation='ENu2MuLambda')
-            simuNode.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet='@paramMapper.outputValues', drawHeterogeneousTetra='1')
+            simuNode.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet='@paramMapper.outputValues', drawHeterogeneousTetra='1', numOmpThreads=-1)
 
 
 

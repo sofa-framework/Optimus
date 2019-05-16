@@ -21,7 +21,7 @@ model:
         usePCG: 1
         pcgTol: 1e-10
         pcgIt: 50
-        pcgVerb: True
+        pcgVerb: 0
         pcgUpdateStep: 10
         pcgAdaptiveThreshold: -1
         pardisoSym: 1
