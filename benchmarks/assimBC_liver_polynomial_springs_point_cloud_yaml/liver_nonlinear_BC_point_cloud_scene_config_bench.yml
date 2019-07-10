@@ -42,7 +42,7 @@ filtering_parameters:
     save_internal_data: 1  
 
 boundary_parameters:
-    spring_type: "PolynomialLen"    # options are "Simple", "Exponential", "Polynomial", "PolynomialLen", and "LagrangePolynomial"
+    spring_type: "Polynomial"    # options are "Simple", "Exponential", "PolynomialRestshape", "Polynomial", and "LagrangePolynomial"
     strain_params: [0, 0.08, 0.15, 0.2]
     stress_params: [0, 8000, 15000, 20000]
     initial_length: 0.02

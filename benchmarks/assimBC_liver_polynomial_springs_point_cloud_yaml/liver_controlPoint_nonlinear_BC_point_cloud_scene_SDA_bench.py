@@ -197,9 +197,9 @@ class liver_controlPoint_SDA(Sofa.PythonScriptController):
                 if bcElement['condition_type'] == 'fixed':
                     node.createObject('FixedConstraint', indices='@boundBoxes'+str(index)+'.indices')
                 elif bcElement['condition_type'] == 'elastic':
-                    if self.options['boundary_parameters']['spring_type'] == 'Polynomial':
+                    if self.options['boundary_parameters']['spring_type'] == 'PolynomialRestshape':
                         node.createObject('PolynomialRestShapeSpringsForceField', polynomialStiffness='@paramE.value', howIndicesScale='0', springThickness="3", listening="1", updateStiffness="1", printLog="0", points='@boundBoxes'+str(index)+'.indices', initialLength=self.options['boundary_parameters']['initial_length'], polynomialDegree=bcElement['polynomial_degrees'], directionScale=self.options['boundary_parameters']['direction_scale'], drawSpring='1')
-                    elif self.options['boundary_parameters']['spring_type'] == 'PolynomialLen':
+                    elif self.options['boundary_parameters']['spring_type'] == 'Polynomial':
                         node.createObject('PolynomialSpringsForceField', polynomialStiffness='@paramE.value', howIndicesScale='0', springThickness="3", listening="1", updateStiffness="1", printLog="0", points='@boundBoxes'+str(index)+'.indices', polynomialDegree=bcElement['polynomial_degrees'], external_rest_shape='../fixNode/fixElements', external_points=self.options['boundary_parameters']['external_indices'])
                     else:
                         node.createObject('ExtendedRestShapeSpringForceField', stiffness='@paramE.value', showIndicesScale='0', springThickness="3", listening="1", updateStiffness="1", printLog="0", points='@boundBoxes'+str(index)+'.indices')
