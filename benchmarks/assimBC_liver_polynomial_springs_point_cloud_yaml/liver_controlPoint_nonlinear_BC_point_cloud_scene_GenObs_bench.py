@@ -74,7 +74,7 @@ class liver_controlPoint_GenObs (Sofa.PythonScriptController):
         self.impactPoint = dotNode.createObject('MechanicalObject', template='Vec3d', name='dot', showObject='true', position='0.143369 0.156781 0.395153')
         dotNode.createObject('ShowSpheres', position='@dot.position', color='1.0 0.0 1.0 1', radius="0.01", showIndicesScale='0.0')
         if self.options['obs_generating_parameters']['save_observations'] and self.scenario_type == 'Generate_data':
-            dotNode.createObject('BoxROI', name='dotBounds', box='0.14 0.15 0.37 0.18 0.17 0.4', doUpdate='0')
+            dotNode.createObject('BCBoxROI', name='dotBounds', box='0.14 0.15 0.37 0.18 0.17 0.4', doUpdate='0')
             dotNode.createObject('OptimMonitor', name='toolMonitor', template='Vec3d', showPositions='1', indices='@dotBounds.indices', ExportPositions='1', fileName = self.options['impact_parameters']['observation_file_name'])
         self.index = 0
         	
@@ -104,7 +104,7 @@ class liver_controlPoint_GenObs (Sofa.PythonScriptController):
         if 'boundary_conditions_list' in self.options['boundary_parameters'].keys():
             for index in range(0, len(self.options['boundary_parameters']['boundary_conditions_list'])):
                 bcElement = self.options['boundary_parameters']['boundary_conditions_list'][index]
-                simuNode.createObject('BoxROI', box=bcElement['boxes_coordinates'], name='boundBoxes'+str(index), drawBoxes='0', doUpdate='0')
+                simuNode.createObject('BCBoxROI', box=bcElement['boxes_coordinates'], name='boundBoxes'+str(index), drawBoxes='0', doUpdate='0')
                 if bcElement['condition_type'] == 'fixed':
                     simuNode.createObject('FixedConstraint', indices='@boundBoxes'+str(index)+'.indices')
                 elif bcElement['condition_type'] == 'elastic':
@@ -135,7 +135,7 @@ class liver_controlPoint_GenObs (Sofa.PythonScriptController):
         simuNode.createObject('TetrahedronFEMForceField', updateStiffness='1', name='FEM', listening='true', drawHeterogeneousTetra='1', method='large', youngModulus='5000', poissonRatio='0.45')
 
         # rootNode/simuNode/attached
-        simuNode.createObject('BoxROI', name='impactBounds', box='0.14 0.15 0.37 0.18 0.17 0.4', doUpdate='0')
+        simuNode.createObject('BCBoxROI', name='impactBounds', box='0.14 0.15 0.37 0.18 0.17 0.4', doUpdate='0')
         simuNode.createObject('RestShapeSpringsForceField', name='Springs', stiffness='10000', angularStiffness='1', external_rest_shape='@../dotNode/dot', points='@impactBounds.indices')
 
         if 'use_point_cloud' in self.options['obs_generating_parameters'] and self.options['obs_generating_parameters']['save_observations'] and self.scenario_type == 'Generate_data':
@@ -147,10 +147,10 @@ class liver_controlPoint_GenObs (Sofa.PythonScriptController):
 
         if self.options['obs_generating_parameters']['save_observations'] and self.scenario_type == 'Generate_data':
             if 'use_point_cloud' in self.options['obs_generating_parameters'] and self.options['obs_generating_parameters']['save_observations']:
-                pointCloudNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1', doUpdate='0')
+                pointCloudNode.createObject('BCBoxROI', name='observationBox', box='-1 -1 -1 1 1 1', doUpdate='0')
                 pointCloudNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName = self.options['system_parameters']['observation_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0')
             else:
-                simuNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1', doUpdate='0')
+                simuNode.createObject('BCBoxROI', name='observationBox', box='-1 -1 -1 1 1 1', doUpdate='0')
                 simuNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName = self.options['system_parameters']['observation_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0', saveZeroStep='0')
 
         if self.scenario_type == 'Validate_estimations':
@@ -163,7 +163,7 @@ class liver_controlPoint_GenObs (Sofa.PythonScriptController):
                     obsGrid.createObject('BarycentricMapping')
                     obsGrid.createObject('ShowSpheres', position='@MO'+str(index)+'.position', color='0.0 0.5 0.0 1', radius="0.0054", showIndicesScale='0.0')
                     if self.options['obs_generating_parameters']['save_observations']:
-                        obsGrid.createObject('BoxROI', name='gridBox'+str(index), box='-1 -1 -1 1 1 1', doUpdate='0')
+                        obsGrid.createObject('BCBoxROI', name='gridBox'+str(index), box='-1 -1 -1 1 1 1', doUpdate='0')
                         obsGrid.createObject('OptimMonitor', name='GridMonitor'+str(index), indices='@gridBox'+str(index)+'.indices', fileName = gridElement['grid_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0')
 
         return 0

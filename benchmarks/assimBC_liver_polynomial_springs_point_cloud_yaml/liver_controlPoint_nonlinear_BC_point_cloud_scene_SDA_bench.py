@@ -193,7 +193,7 @@ class liver_controlPoint_SDA(Sofa.PythonScriptController):
         if 'boundary_conditions_list' in self.options['boundary_parameters'].keys():
             for index in range(0, len(self.options['boundary_parameters']['boundary_conditions_list'])):
                 bcElement = self.options['boundary_parameters']['boundary_conditions_list'][index]
-                node.createObject('BoxROI', box=bcElement['boxes_coordinates'], name='boundBoxes'+str(index), doUpdate='0')
+                node.createObject('BCBoxROI', box=bcElement['boxes_coordinates'], name='boundBoxes'+str(index), doUpdate='0')
                 if bcElement['condition_type'] == 'fixed':
                     node.createObject('FixedConstraint', indices='@boundBoxes'+str(index)+'.indices')
                 elif bcElement['condition_type'] == 'elastic':
@@ -206,7 +206,7 @@ class liver_controlPoint_SDA(Sofa.PythonScriptController):
                 else:
                     print 'Unknown type of boundary conditions'
 
-        node.createObject('BoxROI', name='impactBounds', box='0.14 0.15 0.37 0.18 0.17 0.4', doUpdate='0')
+        node.createObject('BCBoxROI', name='impactBounds', box='0.14 0.15 0.37 0.18 0.17 0.4', doUpdate='0')
         self.toolSprings = node.createObject('RestShapeSpringsForceField', name="impactSpring", stiffness="10000", angularStiffness='1', external_rest_shape='@../externalImpSimu/state', points='@impactBounds.indices')
                 
         return 0
