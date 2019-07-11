@@ -12,7 +12,7 @@ find_package(SofaGeneral REQUIRED)
 set(LINKER_DEPENDENCIES SofaComponentBase SofaComponentGeneral SofaBaseTopology SofaExporter blas pthread)
 set(COMPILATION_FLAGS "-DSOFA_BUILD_OPTIMUS -Wno-unused-local-typedef -Wno-deprecated")
 
-set ( STOCHASTIC_FILTERING "0" CACHE BOOL "Set to activate the compilation the new filtering module replacing Verdandi" )
+set ( STOCHASTIC_FILTERING "1" CACHE BOOL "Set to activate the compilation the new filtering module replacing Verdandi" )
 
 set(HEADER_FILES
     src/initOptimusPlugin.h
