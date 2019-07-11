@@ -162,7 +162,7 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
             for index in range(0, len(self.options['general_parameters']['boundary_conditions_list'])):
                 bcElement = self.options['general_parameters']['boundary_conditions_list'][index]
                 print bcElement
-                node.createObject('BoxROI', box=bcElement['boxes_coordinates'], name='boundBoxes'+str(index), drawBoxes='0', doUpdate='0')
+                node.createObject('BCBoxROI', box=bcElement['boxes_coordinates'], name='boundBoxes'+str(index), drawBoxes='0', doUpdate='0')
                 if bcElement['condition_type'] == 'fixed':
                     node.createObject('FixedConstraint', indices='@boundBoxes'+str(index)+'.indices')
                 elif bcElement['condition_type'] == 'elastic':
@@ -174,7 +174,7 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
         node.createObject('Indices2ValuesMapper', name='youngMapper', indices='1 3', values='@paramE.value', inputValues='@/loader.dataset', defaultValue='6000')
         node.createObject('TetrahedronFEMForceField', name='FEM', updateStiffness='1', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
 
-        node.createObject('BoxROI', name='impactBounds', box='-0.01 -0.02 0.1 0.01 -0.01 0.11', doUpdate='0')
+        node.createObject('BCBoxROI', name='impactBounds', box=self.options['impact_parameters']['bound'], doUpdate='0')
         self.toolSprings = node.createObject('RestShapeSpringsForceField', name="impactSpring", stiffness="10000", angularStiffness='1', external_rest_shape='@/externalImpSimu/state', drawSpring='1', points='@impactBounds.indices')
 
         return 0

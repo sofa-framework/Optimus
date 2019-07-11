@@ -156,7 +156,7 @@ class cylConstForce_SDA(Sofa.PythonScriptController):
             for index in range(0, len(self.options['general_parameters']['boundary_conditions_list'])):
                 bcElement = self.options['general_parameters']['boundary_conditions_list'][index]
                 print bcElement
-                node.createObject('BoxROI', box=bcElement['boxes_coordinates'], name='boundBoxes'+str(index), drawBoxes='0', doUpdate='0')
+                node.createObject('BCBoxROI', box=bcElement['boxes_coordinates'], name='boundBoxes'+str(index), drawBoxes='0', doUpdate='0')
                 if bcElement['condition_type'] == 'fixed':
                     node.createObject('FixedConstraint', indices='@boundBoxes'+str(index)+'.indices')
                 elif bcElement['condition_type'] == 'elastic':
@@ -177,9 +177,9 @@ class cylConstForce_SDA(Sofa.PythonScriptController):
 
         # add constant force field
         self.forceIndex = 1
-        node.createObject('BoxROI', name='forceBounds', box=self.options['impact_parameters']['external_force_bound'], doUpdate='0')
+        node.createObject('BCBoxROI', name='forceBounds', box=self.options['impact_parameters']['external_force_bound'], doUpdate='0')
         self.constantForce = node.createObject('ConstantForceField', name='appliedForce', indices='@forceBounds.indices', totalForce='0.0 0.0 0.0')
-        node.createObject('BoxROI', name='oppForceBounds', box=self.options['impact_parameters']['reverse_force_bound'], doUpdate='0')
+        node.createObject('BCBoxROI', name='oppForceBounds', box=self.options['impact_parameters']['reverse_force_bound'], doUpdate='0')
         self.oppositeConstantForce = node.createObject('ConstantForceField', name='oppAppliedForce', indices='@oppForceBounds.indices', totalForce='0.0 1.0 0.0')
                 
         return 0

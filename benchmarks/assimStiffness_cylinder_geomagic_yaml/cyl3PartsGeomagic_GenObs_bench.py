@@ -66,17 +66,17 @@ class cyl3PartsGeomagic_GenObs (Sofa.PythonScriptController):
         dotNode.createObject('EulerImplicitSolver', firstOrder='false', vdamping=self.vdamping, rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'])
         dotNode.createObject('CGLinearSolver', iterations='25', tolerance='1e-5', threshold='1e-5')
         dotNode.createObject('GeomagicEmulator', name='GeomagicDevice', positionFilename='geomagicObservations/geomagic_x.txt', buttonFilename='geomagicObservations/listener.txt')
-        dotNode.createObject('MechanicalObject', template='Rigid', name='GeomagicMO', position='@GeomagicDevice.positionDevice')
-        dotNode.createObject('Sphere', color='0.5 0.5 0.5 1', radius='0.014', template='Rigid')
+        dotNode.createObject('MechanicalObject', template='Rigid3d', name='GeomagicMO', position='@GeomagicDevice.positionDevice')
+        dotNode.createObject('Sphere', color='0.5 0.5 0.5 1', radius='0.014', template='Rigid3d')
         if self.options['obs_generating_parameters']['save_observations']:
-            dotNode.createObject('BoxROI', name='geomagicBounds', box='-0.05 -0.05 -0.05 0.52 0.3 0.4', doUpdate='0')
-            dotNode.createObject('OptimMonitor', name='toolMonitor', template='Rigid', showPositions='1', indices='@geomagicBounds.indices', ExportPositions='1', fileName='obs_testing/geomagic')
+            dotNode.createObject('BCBoxROI', name='geomagicBounds', box='-0.05 -0.05 -0.05 0.52 0.3 0.4', doUpdate='0')
+            dotNode.createObject('OptimMonitor', name='toolMonitor', template='Rigid3d', showPositions='1', indices='@geomagicBounds.indices', ExportPositions='1', fileName='obs_testing/geomagic')
 
         mappingNode = dotNode.createChild('mappingNode')
         mappingNode.createObject('MechanicalObject', template='Vec3d', name='dot', showObject='true', position='0.0 0.0 0.0')
         mappingNode.createObject('RigidMapping', name='meshGeomagicMapping', input='@../GeomagicMO', output='@dot')
         if self.options['obs_generating_parameters']['save_observations']:
-            mappingNode.createObject('BoxROI', name='dotBounds', box='-0.01 -0.03 -0.08 0.01 0.01 0.11', doUpdate='0')
+            mappingNode.createObject('BCBoxROI', name='dotBounds', box='-0.01 -0.03 -0.08 0.01 0.01 0.11', doUpdate='0')
             mappingNode.createObject('OptimMonitor', name='toolMonitor', template='Vec3d', showPositions='1', indices='@dotBounds.indices', ExportPositions='1', fileName=self.options['impact_parameters']['observation_file_name'])
 	
         # rootNode/simuNode
@@ -101,7 +101,7 @@ class cyl3PartsGeomagic_GenObs (Sofa.PythonScriptController):
             print 'Unknown file type!'
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')
 
-        simuNode.createObject('BoxROI', name='impactBounds', box='-0.01 -0.02 0.1 0.01 -0.01 0.11', doUpdate='0')
+        simuNode.createObject('BCBoxROI', name='impactBounds', box=self.options['impact_parameters']['bound'], doUpdate='0')
         simuNode.createObject('RestShapeSpringsForceField', name='Springs', stiffness='10000', angularStiffness='1', external_rest_shape='@../dotNode/mappingNode/dot', points='@impactBounds.indices')
         simuNode.createObject('GeomagicDeviceListener', template='Vec3d', geomagicButtonPressed='@../dotNode/GeomagicDevice.button1', geomagicSecondButtonPressed='@../dotNode/GeomagicDevice.button2', geomagicPosition='@../dotNode/GeomagicDevice.positionDevice', saveAttachmentData='true', filename='obs_testing/listener.txt')
 
@@ -109,7 +109,7 @@ class cyl3PartsGeomagic_GenObs (Sofa.PythonScriptController):
             for index in range(0, len(self.options['general_parameters']['boundary_conditions_list'])):
                 bcElement = self.options['general_parameters']['boundary_conditions_list'][index]
                 print bcElement
-                simuNode.createObject('BoxROI', box=bcElement['boxes_coordinates'], name='boundBoxes'+str(index), drawBoxes='0', doUpdate='0')
+                simuNode.createObject('BCBoxROI', box=bcElement['boxes_coordinates'], name='boundBoxes'+str(index), drawBoxes='0', doUpdate='0')
                 if bcElement['condition_type'] == 'fixed':
                     simuNode.createObject('FixedConstraint', indices='@boundBoxes'+str(index)+'.indices')
                 elif bcElement['condition_type'] == 'elastic':
@@ -134,7 +134,7 @@ class cyl3PartsGeomagic_GenObs (Sofa.PythonScriptController):
         simuNode.createObject('TetrahedronFEMForceField', updateStiffness='1', name='FEM', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
 
         if self.options['obs_generating_parameters']['save_observations']:
-            simuNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1', doUpdate='0')
+            simuNode.createObject('BCBoxROI', name='observationBox', box='-1 -1 -1 1 1 1', doUpdate='0')
             simuNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.options['system_parameters']['observation_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0')
 
         return 0;

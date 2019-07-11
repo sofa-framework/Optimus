@@ -80,7 +80,7 @@ class cylConstForce_GenObs (Sofa.PythonScriptController):
             for index in range(0, len(self.options['general_parameters']['boundary_conditions_list'])):
                 bcElement = self.options['general_parameters']['boundary_conditions_list'][index]
                 print bcElement
-                simuNode.createObject('BoxROI', box=bcElement['boxes_coordinates'], name='boundBoxes'+str(index), drawBoxes='0', doUpdate='0')
+                simuNode.createObject('BCBoxROI', box=bcElement['boxes_coordinates'], name='boundBoxes'+str(index), drawBoxes='0', doUpdate='0')
                 if bcElement['condition_type'] == 'fixed':
                     simuNode.createObject('FixedConstraint', indices='@boundBoxes'+str(index)+'.indices')
                 elif bcElement['condition_type'] == 'elastic':
@@ -101,15 +101,15 @@ class cylConstForce_GenObs (Sofa.PythonScriptController):
         simuNode.createObject('TetrahedronFEMForceField', updateStiffness='1', name='FEM', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
 
         if self.options['obs_generating_parameters']['save_observations']:
-            simuNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1', doUpdate='0')
+            simuNode.createObject('BCBoxROI', name='observationBox', box='-1 -1 -1 1 1 1', doUpdate='0')
             simuNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.options['system_parameters']['observation_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0')
 
         # add constant force field
         self.forceIndex = 1
-        simuNode.createObject('BoxROI', name='forceBounds', box=self.options['impact_parameters']['external_force_bound'], doUpdate='0')
+        simuNode.createObject('BCBoxROI', name='forceBounds', box=self.options['impact_parameters']['external_force_bound'], doUpdate='0')
         self.constantForce = simuNode.createObject('ConstantForceField', name='appliedForce', 
             indices='@forceBounds.indices', totalForce='0.0 0.0 0.0')
-        simuNode.createObject('BoxROI', name='oppForceBounds', box=self.options['impact_parameters']['reverse_force_bound'], doUpdate='0')
+        simuNode.createObject('BCBoxROI', name='oppForceBounds', box=self.options['impact_parameters']['reverse_force_bound'], doUpdate='0')
         self.oppositeConstantForce = simuNode.createObject('ConstantForceField', name='oppAppliedForce', 
             indices='@oppForceBounds.indices', totalForce='0.0 1.0 0.0')
         
