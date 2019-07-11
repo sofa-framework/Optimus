@@ -14,6 +14,7 @@ def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', pluginName='SofaPardisoSolver')
     rootNode.createObject('RequiredPlugin', pluginName='ImageMeshAux')
     #rootNode.createObject('RequiredPlugin', pluginName='SofaMJEDFEM')
+    rootNode.createObject('RequiredPlugin', name='BoundaryConditions', pluginName="BoundaryConditionsPlugin")
     
     try : 
         sys.argv[0]
