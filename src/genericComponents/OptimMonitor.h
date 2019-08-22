@@ -135,6 +135,7 @@ protected:
     const VecDeriv * m_F; ///< forces of the mechanical object monitored;
 
 
+    double m_saveDt; ///< use for trajectoriesPrecision (save to file value only if trajectoriesPrecision <= internalDt)
     double m_internalDt; ///< use for trajectoriesPrecision (save value only if trajectoriesPrecision <= internalDt)
 
     sofa::helper::vector < sofa::helper::vector<Coord> > m_savedPos; ///< store all the monitored positions, for trajectories display

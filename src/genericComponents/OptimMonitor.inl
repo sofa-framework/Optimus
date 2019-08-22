@@ -72,6 +72,7 @@ OptimMonitor<DataTypes>::OptimMonitor()
     , m_saveGnuplotX ( NULL ), m_saveGnuplotV ( NULL ), m_saveGnuplotF ( NULL )
     , m_X (NULL), m_V(NULL), m_F(NULL)
     , m_internalDt(0.0)
+    , m_saveDt(0.0)
 
 {
     if (!f_listening.isSet()) f_listening.setValue(true);
@@ -124,8 +125,14 @@ void OptimMonitor<DataTypes>::init()
 
     ///  initial export of the data
     if (d_saveZeroStep.getValue()) {
-        if ( d_saveXToGnuplot.getValue() || d_saveVToGnuplot.getValue() || d_saveFToGnuplot.getValue() )
-            exportGnuplot ( (Real) this ->getTime() );
+        if ( d_saveXToGnuplot.getValue() || d_saveVToGnuplot.getValue() || d_saveFToGnuplot.getValue() ) {
+
+            if (d_trajectoriesPrecision.getValue() <= m_saveDt)
+            {
+                m_saveDt = 0.0;
+                exportGnuplot ( (Real) this ->getTime() );
+            }
+        }
 
         if (d_showTrajectories.getValue())
         {
@@ -199,8 +206,15 @@ void OptimMonitor<DataTypes>::handleEvent( core::objectmodel::Event* ev )
         m_V = &mmodel->read(core::ConstVecDerivId::velocity())->getValue();
         m_F = &mmodel->read(core::ConstVecDerivId::force())->getValue();
 
-        if ( d_saveXToGnuplot.getValue() || d_saveVToGnuplot.getValue() || d_saveFToGnuplot.getValue() )
-            exportGnuplot ( (Real) this ->getTime() );
+        if ( d_saveXToGnuplot.getValue() || d_saveVToGnuplot.getValue() || d_saveFToGnuplot.getValue() ) {
+            m_saveDt += this->getContext()->getDt();
+
+            if (d_trajectoriesPrecision.getValue() <= m_saveDt)
+            {
+                m_saveDt = 0.0;
+                exportGnuplot ( (Real) this ->getTime() );
+            }
+        }
 
         if (d_showTrajectories.getValue())
         {
