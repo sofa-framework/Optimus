@@ -47,7 +47,8 @@ public:
 
     SReal getDt() const { return dt; }
 
-    virtual const char* getClassName() const { return "AssimilationEndEvent"; }
+    inline static const char* GetClassName() { return "AssimilationEndEvent"; }
+
 protected:
     SReal dt;
 };
@@ -65,7 +66,8 @@ public:
 
     SReal getDt() const { return dt; }
 
-    virtual const char* getClassName() const { return "AssimilationEndEvent"; }
+    inline static const char* GetClassName() { return "AssimilationEndEvent"; }
+
 protected:
     SReal dt;
 };
