@@ -67,9 +67,9 @@ void SimpleObservationManager<FilterType,DataTypes1,DataTypes2>::init()
 
     stateWrapper = stateWrapperLink.get();
     if (stateWrapper) {
-        std::cout<<" [SimpleObservationManager] Link to state wrapper: " << stateWrapper->getName()<<std::endl;
+        std::cout<<"[SimpleObservationManager] Link to state wrapper: " << stateWrapper->getName()<<std::endl;
     } else {
-        std::cout<<" [SimpleObservationManager] Link to state wrapper not initialized!"<<std::endl;
+        std::cout<<"[SimpleObservationManager] Link to state wrapper not initialized!"<<std::endl;
         return;
     }
 
