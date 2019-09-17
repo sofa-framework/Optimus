@@ -202,11 +202,11 @@ void StochasticStateWrapper<DataTypes, FilterType>::init()
     }
     this->gnode->get(mappedState, d_mappedStatePath.getValue());
     if ( mappedState != NULL)  {
-        PRNS("Found mapped mechanical state: " << mappedState->getName());
+        std::cout<<"Found mapped mechanical state: " << mappedState->getName()<<std::endl;
         this->declaredMappedState=1;
     }
     else {
-        PRNS("[WARNING] No mapped state state found! Necessary for BindedSimpleObservationManager");
+        std::cout<<"[WARNING] No mapped state state found! Necessary for BindedSimpleObservationManager"<<std::endl;
         this->declaredMappedState=0;
     }
     this->EstimatePOSITION = estimatePosition.getValue();
