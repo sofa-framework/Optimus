@@ -30,6 +30,7 @@
 #include <sofa/core/objectmodel/Context.h>
 #include <sofa/core/objectmodel/Data.h>
 #include <fstream>
+#include <iomanip>
 #include <sofa/defaulttype/Vec.h>
 #include <cmath>
 
@@ -68,7 +69,8 @@ OptimMonitor<DataTypes>::OptimMonitor()
     , d_showSizeFactor(initData (&d_showSizeFactor, 1.0, "sizeFactor", "factor to multiply to arrows"))
     , d_fileName(initData (&d_fileName, "fileName", "name of the plot files to be generated"))
     , d_saveZeroStep(initData (&d_saveZeroStep, true, "saveZeroStep", "save positions for zero time step"))
-    , d_exportOnEvent (initData (&d_exportOnEvent, 0, "exportOnEvent", "on which event data are exported: 0: animate end event, 1: after prediction, 2: after correction"))
+    , d_exportOnEvent (initData (&d_exportOnEvent, 0, "exportOnEvent", "on which event data are exported: -1: no export, 0: animate end event, 1: after prediction, 2: after correction"))
+    , d_timeShift (initData (&d_timeShift, 0.0, "timeShift", "add shift to time when exporting data"))
     , m_saveGnuplotX ( NULL ), m_saveGnuplotV ( NULL ), m_saveGnuplotF ( NULL )
     , m_X (NULL), m_V(NULL), m_F(NULL)
     , m_internalDt(0.0)
@@ -183,6 +185,7 @@ void OptimMonitor<DataTypes>::handleEvent( core::objectmodel::Event* ev )
     int exportOnEvent = d_exportOnEvent.getValue();
 
     switch (exportOnEvent) {
+    case -1: break;
     case 0: exportEvent = sofa::simulation::AnimateEndEvent::checkEventType(ev); break;
     case 1: exportEvent = sofa::component::stochastic::PredictionEndEvent::checkEventType(ev); break;
     case 2: exportEvent = sofa::component::stochastic::CorrectionEndEvent::checkEventType(ev); break;
@@ -367,7 +370,7 @@ void OptimMonitor<DataTypes>::exportGnuplot ( Real time )
 {
     if ( d_saveXToGnuplot.getValue() )
     {
-        ( *m_saveGnuplotX ) << time <<"\t" ;
+        ( *m_saveGnuplotX ) << (time - d_timeShift.getValue() < 1e-08 ? 0.00 : time - d_timeShift.getValue()) <<"\t";
 
         for (unsigned int i = 0; i < d_indices.getValue().size(); i++)
             ( *m_saveGnuplotX ) << (*m_X)[d_indices.getValue()[i]] << "\t";
@@ -375,7 +378,7 @@ void OptimMonitor<DataTypes>::exportGnuplot ( Real time )
     }
     if ( d_saveVToGnuplot.getValue() && m_V->size()>0 )
     {
-        ( *m_saveGnuplotV ) << time <<"\t";
+        ( *m_saveGnuplotV ) << (time - d_timeShift.getValue() < 1e-08 ? 0.00 : time - d_timeShift.getValue()) <<"\t";
 
         for (unsigned int i = 0; i < d_indices.getValue().size(); i++)
             ( *m_saveGnuplotV ) << (*m_V)[d_indices.getValue()[i]] << "\t";
@@ -384,7 +387,7 @@ void OptimMonitor<DataTypes>::exportGnuplot ( Real time )
 
     if ( d_saveFToGnuplot.getValue() && m_F->size()>0)
     {
-        ( *m_saveGnuplotF ) << time <<"\t";
+        ( *m_saveGnuplotF ) << (time - d_timeShift.getValue() < 1e-08 ? 0.00 : time - d_timeShift.getValue()) <<"\t";
 
         for (unsigned int i = 0; i < d_indices.getValue().size(); i++)
             ( *m_saveGnuplotF ) << (*m_F)[d_indices.getValue()[i]] << "\t";

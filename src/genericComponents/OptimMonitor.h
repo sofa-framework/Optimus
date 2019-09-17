@@ -123,6 +123,7 @@ public:
     core::objectmodel::DataFileName  d_fileName;
     Data< bool > d_saveZeroStep;
     Data< int > d_exportOnEvent;
+    Data< double > d_timeShift;
 
 protected:
 
