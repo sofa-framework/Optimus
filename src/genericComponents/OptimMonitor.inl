@@ -64,7 +64,7 @@ OptimMonitor<DataTypes>::OptimMonitor()
     , d_forcesColor (initData (&d_forcesColor, "ForcesColor", "define the color of forces"))
     , d_showMinThreshold (initData (&d_showMinThreshold, 0.01 ,"showMinThreshold", "under this value, vectors are not represented"))
     , d_showTrajectories (initData (&d_showTrajectories, false ,"showTrajectories", "print the trajectory of OptimMonitored particles"))
-    , d_trajectoriesPrecision (initData (&d_trajectoriesPrecision, 0.1,"TrajectoriesPrecision", "set the dt between to save of positions"))
+    , d_trajectoriesPrecision (initData (&d_trajectoriesPrecision, 0.001,"TrajectoriesPrecision", "set the dt between to save of positions"))
     , d_trajectoriesColor(initData (&d_trajectoriesColor, "TrajectoriesColor", "define the color of the trajectories"))
     , d_showSizeFactor(initData (&d_showSizeFactor, 1.0, "sizeFactor", "factor to multiply to arrows"))
     , d_fileName(initData (&d_fileName, "fileName", "name of the plot files to be generated"))
@@ -73,8 +73,8 @@ OptimMonitor<DataTypes>::OptimMonitor()
     , d_timeShift (initData (&d_timeShift, 0.0, "timeShift", "add shift to time when exporting data"))
     , m_saveGnuplotX ( NULL ), m_saveGnuplotV ( NULL ), m_saveGnuplotF ( NULL )
     , m_X (NULL), m_V(NULL), m_F(NULL)
-    , m_internalDt(0.0)
     , m_saveDt(0.0)
+    , m_internalDt(0.0)
 
 {
     if (!f_listening.isSet()) f_listening.setValue(true);
@@ -128,6 +128,7 @@ void OptimMonitor<DataTypes>::init()
     ///  initial export of the data
     if (d_saveZeroStep.getValue()) {
         if ( d_saveXToGnuplot.getValue() || d_saveVToGnuplot.getValue() || d_saveFToGnuplot.getValue() ) {
+            m_saveDt += this->getContext()->getDt();
 
             if (d_trajectoriesPrecision.getValue() <= m_saveDt)
             {
