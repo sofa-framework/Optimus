@@ -28,6 +28,7 @@
 #include <sofa/core/behavior/ForceField.h>
 #include <sofa/core/objectmodel/Data.h>
 #include <sofa/helper/vector.h>
+#include <SofaBaseTopology/TopologySubsetData.h>
 
 namespace sofa
 {
@@ -59,38 +60,41 @@ public:
     typedef typename DataTypes::Real Real;
     typedef helper::vector< unsigned int > VecIndex;
     typedef helper::vector< Real >	 VecReal;
+    typedef sofa::component::topology::PointSubsetData< VecIndex > SetIndex;
 
     typedef core::objectmodel::Data<VecCoord> DataVecCoord;
     typedef core::objectmodel::Data<VecDeriv> DataVecDeriv;
 
 
-    Data< VecDeriv > d_forces;
+    Data< Deriv > d_force;
+    SetIndex                   d_indices;
+    Data< VecDeriv >           d_forces;
+    Data<helper::vector<double>> d_Optimforces;
 
-
-protected:
-    CorrectionForceField();
+    protected:
+        CorrectionForceField();
 public:
     /// BaseObject initialization method.
     void bwdInit();
 
     /// Add the forces.
-        virtual void addForce(const core::MechanicalParams* /* mparams */, DataVecDeriv& f, const DataVecCoord& /* x */, const DataVecDeriv& /* v */);
+    virtual void addForce(const core::MechanicalParams* /* mparams */, DataVecDeriv& f, const DataVecCoord& /* x */, const DataVecDeriv& /* v */);
 
-        virtual void addDForce(const core::MechanicalParams* /* mparams */, DataVecDeriv& /* df */, const DataVecDeriv& /* dx */);
+    virtual void addDForce(const core::MechanicalParams* /* mparams */, DataVecDeriv& /* df */, const DataVecDeriv& /* dx */);
 
-        /// Brings ForceField contribution to the global system stiffness matrix.
-        virtual void addKToMatrix(const core::MechanicalParams* /* mparams */, const sofa::core::behavior::MultiMatrixAccessor* /* matrix */);
+    /// Brings ForceField contribution to the global system stiffness matrix.
+    virtual void addKToMatrix(const core::MechanicalParams* /* mparams */, const sofa::core::behavior::MultiMatrixAccessor* /* matrix */);
 
-        virtual SReal getPotentialEnergy(const core::MechanicalParams* /*mparams*/, const DataVecCoord&  /* x */) const
-        {
-            serr << "Get potentialEnergy not implemented" << sendl;
-            return 0.0;
-        }
+    virtual SReal getPotentialEnergy(const core::MechanicalParams* /*mparams*/, const DataVecCoord&  /* x */) const
+    {
+        serr << "Get potentialEnergy not implemented" << sendl;
+        return 0.0;
+    }
 
 
-        virtual void draw(const core::visual::VisualParams* /* vparams */);
+    virtual void draw(const core::visual::VisualParams* /* vparams */);
 
-        helper::vector<bool> m_active;
+    helper::vector<bool> m_active;
 
 
 };
