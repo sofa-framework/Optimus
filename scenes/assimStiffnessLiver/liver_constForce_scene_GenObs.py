@@ -12,7 +12,6 @@ def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
     rootNode.createObject('RequiredPlugin', name='Pardiso', pluginName='SofaPardisoSolver')
     rootNode.createObject('RequiredPlugin', name='IMAUX', pluginName='ImageMeshAux')
-    # rootNode.createObject('RequiredPlugin', name='MJED', pluginName='SofaMJEDFEM')
     
     try : 
         sys.argv[0]

@@ -1,8 +1,8 @@
 ---
 system_parameters:
-    volume_file_name: "Andrea_model_parenchyma_m_volume_11377.vtu"
+    volume_file_name: "../../data/baseLiver/baseLiver.msh"
     observation_file_name: "observations/node"
-    observation_points_file_name: "Andrea_liver_model_observations.vtk"
+    observation_points_file_name: "../../data/baseLiver/baseLiverGen_obs7_variant1.vtk"
 
 general_parameters:
     gravity: "0 0 0"
@@ -14,7 +14,7 @@ general_parameters:
     boundary_conditions_list:
         - condition_type: "fixed"   # options are "fixed" and "elastic"
           boxes_coordinates: "0.11 0.245 0.355 0.12 0.255 0.365  0.295 0.26 0.34 0.305 0.27 0.35"
-          fixed_indices: "1195 1379 1185 1376 730 235 72 619 1032 333 284 784 601 148 137 769 821 514 124 506 679 261 535 819 113 471 799 33 230 968"
+          fixed_indices: "91 90 92 89 93 0 45 135 134"
           spring_stiffness_values: "150 300"
 
 obs_generating_parameters:
@@ -27,7 +27,7 @@ filtering_parameters:
     output_directory_suffix: "_test"
     output_files_suffix: "test" 
     optim_params_size: 1
-    filter_kind: "ROUKF"   # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
+    filter_kind: "UKFClassic"   # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
     use_unbiased_variance: "0"
     initial_stiffness: [1000]
     minimal_stiffness: [0.01]
@@ -35,6 +35,7 @@ filtering_parameters:
     initial_standart_deviation: 200
     observation_noise_standart_deviation: 1e-3
     positions_standart_deviation: 1e-3
+    model_standart_deviation: 1e-5
     transform_parameters: project
     sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
     sigma_points_scale: 1
@@ -43,13 +44,13 @@ filtering_parameters:
 
 impact_parameters:
     impact_type: "Periodic"
-    applied_indices: "398 1025 143 1102 508 703 1087 176 783 483 380 87 1097 64 632 234 612 216 876 26 774 308 1052 901 583 722"
+    applied_indices: "32 33 34 35 36 37"
     bounds: "0.045 -0.02 -0.02  0.055 0.02 0.02"
 
 force_parameters:
     force_period: 200
-    force_amplitude: 0.5
-    force_value: [2.0, -2.0, 0.9]
+    force_amplitude: 0.3
+    force_value: [1.0, -1.0, 0.45]
 
 ...
 
