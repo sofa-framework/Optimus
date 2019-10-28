@@ -33,8 +33,10 @@
 #include <sofa/helper/gl/template.h>
 #include <assert.h>
 #include <iostream>
+#include <sofa/core/objectmodel/Event.h>
 
-
+#include <sofa/core/objectmodel/KeypressedEvent.h>
+#include <sofa/core/objectmodel/KeyreleasedEvent.h>
 namespace sofa
 {
 
@@ -48,14 +50,16 @@ template<class DataTypes>
 CorrectionForceField<DataTypes>::CorrectionForceField()
     : d_force(initData(&d_force, "force","applied forces at each point"))
 
-    ,d_indices(initData(&d_indices, "indices",
-                        "indices where the forces are applied"))
+    , d_indices(initData(&d_indices, "indices",
+                         "indices where the forces are applied"))
 
 
     , d_forces(initData(&d_forces, "forces",
                         "applied forces at each point"))
     , d_Optimforces(initData(&d_Optimforces, "optimForces",
-                        "applied forces at each point"))
+                             "applied forces at each point"))
+    , d_delta(initData(&d_delta, "delta","translation rotation vector"))
+
 {
 }
 
@@ -64,6 +68,54 @@ template<class DataTypes>
 void CorrectionForceField<DataTypes>::bwdInit()
 {
     core::behavior::ForceField<DataTypes>::init();
+    this->f_listening.setValue(true);
+
+}
+
+template<class DataTypes>
+void CorrectionForceField<DataTypes>::plusF() {
+
+    double temp = d_Optimforces.getValue()[0];
+    temp+= d_delta.getValue();
+    helper::vector<double> T;
+    T.resize(d_Optimforces.getValue().size());
+
+    T[0]=d_Optimforces.getValue()[0];
+    T[1]=temp;
+    for (unsigned int i=2; i<T.size();i++)
+        T[i]=d_Optimforces.getValue()[i];
+
+    d_Optimforces=T;
+    std::cout<<"newForc: "<< d_Optimforces.getValue() <<std::endl;
+}
+
+template<class DataTypes>
+void CorrectionForceField<DataTypes>::minusF() {
+
+    double temp = d_Optimforces.getValue()[0];
+    temp-= d_delta.getValue();
+    helper::vector<double> T;
+    T.resize(d_Optimforces.getValue().size());
+
+    T[0]=d_Optimforces.getValue()[0];
+
+    T[1]=temp;
+    for (unsigned int i=2; i<T.size();i++)
+        T[i]=d_Optimforces.getValue()[i];
+
+    d_Optimforces=T;
+}
+
+template<class DataTypes>
+void CorrectionForceField<DataTypes>::handleEvent(sofa::core::objectmodel::Event *event)
+{
+   if (sofa::core::objectmodel::KeypressedEvent* ev = dynamic_cast<sofa::core::objectmodel::KeypressedEvent*>(event)) {
+        if ((ev->getKey() == 'z') || (ev->getKey() == 'Z'))      {
+            plusF();
+        }else if ((ev->getKey() == 'a') || (ev->getKey() == 'A')){
+            minusF();
+        }
+    }
 }
 
 template<class DataTypes>
@@ -77,7 +129,7 @@ void CorrectionForceField<DataTypes>::addForce(const core::MechanicalParams* /*p
 
 
     Deriv forceVal;
-    for (int i=0; i< d_Optimforces.getValue().size(); i++)
+    for (unsigned int i=0; i< d_Optimforces.getValue().size(); i++)
         forceVal[i]=d_Optimforces.getValue()[i];
     const VecIndex& indices = d_indices.getValue();
     const VecDeriv& f = d_forces.getValue();
@@ -92,7 +144,7 @@ void CorrectionForceField<DataTypes>::addForce(const core::MechanicalParams* /*p
     {
         unsigned int nbIndices = indices.size();
         unsigned int nbCopy = std::min(nbForcesIn, nbIndices); // forces & points are not garanteed to be of the same size
-       {
+        {
             for (; i < nbCopy; ++i)
                 _f1[indices[i]] += f[i];
             for (; i < nbIndices; ++i)

@@ -29,6 +29,13 @@
 #include <sofa/core/objectmodel/Data.h>
 #include <sofa/helper/vector.h>
 #include <SofaBaseTopology/TopologySubsetData.h>
+#include <sofa/simulation/AnimateBeginEvent.h>
+#include <sofa/simulation/AnimateEndEvent.h>
+#include <sofa/core/objectmodel/Event.h>
+
+#include <sofa/core/objectmodel/KeypressedEvent.h>
+#include <sofa/simulation/AnimateBeginEvent.h>
+#include <sofa/core/objectmodel/KeyreleasedEvent.h>
 
 namespace sofa
 {
@@ -70,6 +77,7 @@ public:
     SetIndex                   d_indices;
     Data< VecDeriv >           d_forces;
     Data<helper::vector<double>> d_Optimforces;
+    Data<double>         d_delta;
 
     protected:
         CorrectionForceField();
@@ -93,6 +101,9 @@ public:
 
 
     virtual void draw(const core::visual::VisualParams* /* vparams */);
+     void plusF();
+     void minusF();
+    void handleEvent(sofa::core::objectmodel::Event *event);
 
     helper::vector<bool> m_active;
 
