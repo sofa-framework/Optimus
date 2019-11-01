@@ -128,26 +128,14 @@ void OptimMonitor<DataTypes>::init()
     ///  initial export of the data
     if (d_saveZeroStep.getValue()) {
         if ( d_saveXToGnuplot.getValue() || d_saveVToGnuplot.getValue() || d_saveFToGnuplot.getValue() ) {
-            m_saveDt += this->getContext()->getDt();
-
-            if (d_trajectoriesPrecision.getValue() <= m_saveDt)
-            {
-                m_saveDt = 0.0;
-                exportGnuplot ( (Real) this ->getTime() );
-            }
+            exportGnuplot ( (Real) this ->getTime() );
         }
 
         if (d_showTrajectories.getValue())
         {
-            m_internalDt += this->getContext()->getDt();
-
-            if (d_trajectoriesPrecision.getValue() <= m_internalDt)
+            for (unsigned int i=0; i < d_indices.getValue().size(); ++i)
             {
-                m_internalDt = 0.0;
-                for (unsigned int i=0; i < d_indices.getValue().size(); ++i)
-                {
-                    m_savedPos[i].push_back( (*m_X)[d_indices.getValue()[i]] );
-                }
+                m_savedPos[i].push_back( (*m_X)[d_indices.getValue()[i]] );
             }
         }
     }
