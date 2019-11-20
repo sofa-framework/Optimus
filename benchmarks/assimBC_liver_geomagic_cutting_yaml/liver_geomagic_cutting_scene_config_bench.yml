@@ -2,7 +2,7 @@
 system_parameters:
     volume_file_name: "../../data/baseLiver/baseLiver.msh"
     observation_file_name: "obs_testing/livergeomagic"
-    observation_points_file_name: "../../data/baseLiver/baseLiverGen_obs7_variant1.vtk"
+    observation_points_file_name: "../../data/baseLiver/baseLiverGen_obs7_variant2.vtk"
 
 general_parameters:
     gravity: "0 0 0"

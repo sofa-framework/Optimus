@@ -48,6 +48,11 @@ class cylConstForce_GenObs (Sofa.PythonScriptController):
 
         rootNode.findData('dt').value = options['general_parameters']['delta_time']
         rootNode.findData('gravity').value = options['general_parameters']['gravity']
+
+        self.generatingFolder = 'obs_testing'
+        if not os.path.isdir(self.generatingFolder):
+            os.mkdir(self.generatingFolder)
+
         self.createGraph(rootNode)
         return None;
 
