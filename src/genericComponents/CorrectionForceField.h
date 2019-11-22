@@ -78,6 +78,8 @@ public:
     Data< VecDeriv >           d_forces;
     Data<helper::vector<double>> d_Optimforces;
     Data<double>         d_delta;
+    Data<double>         d_paramF;
+
 
     protected:
         CorrectionForceField();

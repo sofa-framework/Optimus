@@ -53,6 +53,8 @@ CorrectionForceField<DataTypes>::CorrectionForceField()
     , d_indices(initData(&d_indices, "indices",
                          "indices where the forces are applied"))
 
+    ,d_paramF(initData(&d_paramF, "paramF",
+                             "parameter modeling force uncertainty"))
 
     , d_forces(initData(&d_forces, "forces",
                         "applied forces at each point"))
@@ -130,7 +132,7 @@ void CorrectionForceField<DataTypes>::addForce(const core::MechanicalParams* /*p
 
     Deriv forceVal;
     for (unsigned int i=0; i< d_Optimforces.getValue().size(); i++)
-        forceVal[i]=d_Optimforces.getValue()[i];
+        forceVal[i]=d_paramF.getValue()*d_Optimforces.getValue()[i];
     const VecIndex& indices = d_indices.getValue();
     const VecDeriv& f = d_forces.getValue();
     unsigned int i = 0, nbForcesIn = f.size(), nbForcesOut = _f1.size();

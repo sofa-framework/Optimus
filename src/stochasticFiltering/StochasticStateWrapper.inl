@@ -165,7 +165,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::init()
         PRNSC("OptimParams found " << vecOptimParams.size() << "x: ");
         if (this->verbose.getValue()) {
             for (size_t i = 0; i < vecOptimParams.size(); i++)
-                std::cout << vecOptimParams[i]->getName() << " ";
+                std::cout << "[OptimParams] " << vecOptimParams[i]->getName() << " ";
             std::cout << std::endl;
         }
     }
@@ -407,6 +407,9 @@ void StochasticStateWrapper<Rigid3dTypes, double>::copyStateFilter2Sofa(const co
         }
     }
 
+    if(!estimatePosition.getValue()&& estimateOnlyXYZ.getValue()){
+       std::cout<<"ERROR check boolean estimatePosition " <<std::endl;
+    }
 
     /// Only Position in State Vector
     if(estimatePosition.getValue() && estimateOnlyXYZ.getValue()){
@@ -496,15 +499,53 @@ void StochasticStateWrapper<Rigid3dTypes, double>::copyStateFilter2Sofa(const co
         }
     }
     /// if velocity is not estimated, it must be computed from the positions at the beginning and at the end of the time step
-    if (_setVelocityFromPosition) {
+    if (!estimateVelocity.getValue()) {
         if (velocityPairs.empty() && beginTimeStepPos.size() == pos.size()) {
+
+
+            helper::vector<Vector6> EulerPos;            EulerPos.resize(pos.size());
+            defaulttype::Quat q_ori;            q_ori.normalize();
+            Vector3 euler_ori;           Vector3 eu_pos;
+
+
+            helper::vector<Vector6> begEulerPos;            begEulerPos.resize(pos.size());
+            defaulttype::Quat begq_ori;            begq_ori.normalize();
+            Vector3 begeuler_ori;           Vector3 begeu_pos;
+
+            for(size_t i= 0; i < pos.size(); i++)    {
+                q_ori.clear();
+                q_ori=pos[i].getOrientation();
+                q_ori.normalize();
+                eu_pos=pos[i].getCenter();
+                euler_ori=q_ori.toEulerVector();
+
+                begq_ori.clear();
+                begq_ori=beginTimeStepPos[i].getOrientation();
+                begq_ori.normalize();
+                begeu_pos=beginTimeStepPos[i].getCenter();
+                begeuler_ori=begq_ori.toEulerVector();
+
+                for(size_t j=0; j <3; j++){
+                    EulerPos[i][j]=eu_pos[j];
+                    begEulerPos[i][j]=begeu_pos[j];
+
+                }
+                unsigned k=0;
+                for(size_t j=3; j <6; j++, k++){
+                    EulerPos[i][j]=euler_ori[k]*180/M_PI;
+                    begEulerPos[i][j]=begeuler_ori[k]*180/M_PI;
+
+                }
+
+            }
+
+
             for (helper::vector<std::pair<size_t, size_t> >::iterator it = positionPairs.begin(); it != positionPairs.end(); it++) {
-                for (size_t d = 0; d < 3; d++) {
-                    vel[it->first][d] = (pos[it->first][d] - beginTimeStepPos[it->first][d])/this->getContext()->getDt();
+                for (size_t d = 0; d < 6; d++) {
+                    vel[it->first][d] = (EulerPos[it->first][d] - begEulerPos[it->first][d])/this->getContext()->getDt();
                 }
-                for (size_t d = 3; d < velDim; d++) {
-                    vel[it->first][d] = 0;
-                }
+//                std::cout<<"pos: " <<pos <<std::endl;
+//                std::cout<<"beginTimeStepPos: " <<beginTimeStepPos <<std::endl;
             }
         }
     }
@@ -523,7 +564,9 @@ void StochasticStateWrapper<Rigid3dTypes, double>::copyStateSofa2Filter() {
     typename MechanicalState::ReadVecDeriv vel = mechanicalState->readVelocities();
 
 
-
+    if(!estimatePosition.getValue()&& estimateOnlyXYZ.getValue()){
+       std::cout<<"ERROR check boolean estimatePosition " <<std::endl;
+    }
     if(estimatePosition.getValue()&& !estimateOnlyXYZ.getValue()){
 
         helper::vector<Vector6> EulerPos;
@@ -1039,16 +1082,23 @@ void StochasticStateWrapper<DataTypes, FilterType>::lastApplyOperator(EVectorX &
     if (!this->filterKind == CLASSIC )
         return;
 
-    this->state = _vecX;
-    reinitMState(_mparams);
+//    this->state = _vecX;
+//    reinitMState(_mparams);
 
-    copyStateFilter2Sofa(_mparams);
+//    copyStateFilter2Sofa(_mparams);
 
-    if (this->d_langrangeMultipliers.getValue())
-        computeSofaStepWithLM(_mparams);
-    else
-        computeSofaStep(_mparams, false);
-    copyStateSofa2Filter();
+//    if (this->d_langrangeMultipliers.getValue())
+//        computeSofaStepWithLM(_mparams);
+//    else
+//        computeSofaStep(_mparams, false);
+//    copyStateSofa2Filter()
+
+    typename MechanicalState::ReadVecCoord Initpos = mechanicalState->readPositions();
+    typename MechanicalState::ReadVecDeriv vel = mechanicalState->readVelocities();
+    typename MechanicalState::WriteVecCoord pos = mechanicalState->writePositions();
+    for (size_t i = 0; i < this->mStateSize; i++) {
+        pos[i] = Initpos[i] +  vel[i]*this->gnode->getDt() ;
+    }
 
 }
 
