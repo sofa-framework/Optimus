@@ -43,6 +43,7 @@
 #include <sofa/simulation/XMLPrintVisitor.h>
 #include <sofa/simulation/PropagateEventVisitor.h>
 #include <sofa/simulation/BehaviorUpdatePositionVisitor.h>
+#include <sofa/simulation/UpdateInternalDataVisitor.h>
 #include <sofa/simulation/AnimateBeginEvent.h>
 #include <sofa/simulation/AnimateEndEvent.h>
 #include <sofa/simulation/UpdateMappingEndEvent.h>
@@ -130,6 +131,10 @@ void PreStochasticWrapper::step(const core::ExecParams* _params, const size_t _s
     //std::cout << "[" << this->getName() << "]: behaviour update position" << std::endl;
     sofa::simulation::BehaviorUpdatePositionVisitor beh(_params , dt);
     this->gnode->execute ( beh );
+    //std::cout<<"step "<<step++<<std::endl;
+    //std::cout << "[" << this->getName() << "]: update internal data" << std::endl;
+    sofa::simulation::UpdateInternalDataVisitor uid(_params);
+    this->gnode->execute ( uid );
     //std::cout<<"step "<<step++<<std::endl;
     //std::cout << "[" << this->getName() << "]: animate" << std::endl;
     sofa::simulation::AnimateVisitor act(_params, dt);

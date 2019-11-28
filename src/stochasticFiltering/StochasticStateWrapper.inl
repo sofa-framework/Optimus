@@ -43,6 +43,7 @@
 #include <sofa/simulation/XMLPrintVisitor.h>
 #include <sofa/simulation/PropagateEventVisitor.h>
 #include <sofa/simulation/BehaviorUpdatePositionVisitor.h>
+#include <sofa/simulation/UpdateInternalDataVisitor.h>
 #include <sofa/simulation/AnimateBeginEvent.h>
 #include <sofa/simulation/AnimateEndEvent.h>
 #include <sofa/simulation/UpdateMappingEndEvent.h>
@@ -1171,6 +1172,10 @@ void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStep(const core::
     sofa::simulation::BehaviorUpdatePositionVisitor beh(execParams , dt);
     this->gnode->execute ( beh );
     //std::cout<<"step "<<step++<<std::endl;
+    //std::cout << "[" << this->getName() << "]: update internal data" << std::endl;
+    sofa::simulation::UpdateInternalDataVisitor uid(execParams);
+    this->gnode->execute ( uid );
+    //std::cout<<"step "<<step++<<std::endl;
     //std::cout << "[" << this->getName() << "]: animate" << std::endl;
     sofa::simulation::AnimateVisitor act(execParams, dt);
     this->gnode->execute ( act );
@@ -1265,7 +1270,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStepWithLM(const 
         sofa::helper::AdvancedTimer::stepEnd("AnimateBeginEvent");
     }
 
-    BehaviorUpdatePositionVisitor beh(params , dt);
+    sofa::simulation::BehaviorUpdatePositionVisitor beh(params , dt);
 
     using helper::system::thread::CTime;
     using sofa::helper::AdvancedTimer;
@@ -1282,9 +1287,22 @@ void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStepWithLM(const 
     this->gnode->execute(&beh);
     AdvancedTimer::stepEnd("UpdatePosition");
 
+    dmsg_info() << "updatePos performed - updateInternal called" ;
+
+    sofa::simulation::UpdateInternalDataVisitor iud(params);
+
+    dmsg_info() << "updateInternal called" ;
+
+    {
+        AdvancedTimer::stepBegin("updateInternalData");
+        this->gnode->execute(&iud);
+        AdvancedTimer::stepEnd("updateInternalData");
+    }
+
     dmsg_info() << "updatePos performed - beginVisitor called" ;
 
-    simulation::MechanicalBeginIntegrationVisitor beginVisitor(params, dt);
+
+    sofa::simulation::MechanicalBeginIntegrationVisitor beginVisitor(params, dt);
     this->gnode->execute(&beginVisitor);
 
     dmsg_info() << "beginVisitor performed - SolveVisitor for freeMotion is called" ;
