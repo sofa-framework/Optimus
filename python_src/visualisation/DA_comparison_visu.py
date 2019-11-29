@@ -5,13 +5,12 @@ import types
 import math
 import yaml
 import matplotlib.pyplot as plt
-from itertools import repeat
+sys.path.append(os.getcwd() + '/../../python_src/utils')
+from FileSystemUtils import DataLoader
 
 # select the visual style for images
 plt.style.use('classic')
 #print(plt.style.available)
-
-
 
 
 ######### configuration for visualisation
@@ -20,45 +19,6 @@ inputList.append('outCyl3_770_ROUKF_cyl3ForceField770Verification_init2000')
 #inputList.append('outCyl2_385_UKFClassic_forceField385Verification_init2000')
 ######### end of configuration for visualisation
 
-
-
-
-def load_matrix_from_file(f):
-    if type(f) == types.StringType:
-        fo = open(f, 'r')
-        matrix = load_matrix_from_file(fo)
-        fo.close()
-        return matrix
-    elif type(f) == types.FileType:
-        file_content = f.read().strip()
-        file_content = file_content.replace('\r\n', ';')
-        file_content = file_content.replace('\n', ';')
-        file_content = file_content.replace('\r', ';')
-
-        return numpy.matrix(file_content)
-
-    raise TypeError('f must be a file object or a file name.')
-
-
-def load_time_data(f):
-    fo = open(f, 'r')
-    timeLine = []
-    # throw out first line
-    fo.readline()
-    line = fo.readline()
-    line = fo.readline()
-    while line:
-        tokens = line.split()
-        startTime = int(tokens[len(tokens) - 1])
-        line = fo.readline()
-        tokens = line.split()
-        endTime = int(tokens[len(tokens) - 1])
-        deltaTime = endTime - startTime
-        timeLine.append(deltaTime)
-        line = fo.readline()
-        line = fo.readline()
-
-    return timeLine
 
 try : 
     sys.argv[0]
@@ -82,6 +42,7 @@ spl2.yaxis.grid(color='gray', linestyle='dotted')
 fig3 = plt.figure(200)
 spl3 = fig3.add_subplot(111)
 
+loader = DataLoader()
 for generalIndex in range (0, len(folder)):
 
     options = dict()
@@ -93,8 +54,8 @@ for generalIndex in range (0, len(folder)):
             print(exc)
             sys.exit()
 
-    stateExpVal = load_matrix_from_file(folder[generalIndex]+'/'+options['visual_parameters']['state_file_name'])
-    stateVar = load_matrix_from_file(folder[generalIndex]+'/'+options['visual_parameters']['variance_file_name'])
+    stateExpVal = loader.loadDataFromFilterFile(folder[generalIndex]+'/'+options['visual_parameters']['state_file_name'])
+    stateVar = loader.loadDataFromFilterFile(folder[generalIndex]+'/'+options['visual_parameters']['variance_file_name'])
 
 
     # plot stiffnesses with variances
@@ -172,20 +133,10 @@ for generalIndex in range (0, len(folder)):
     averageDiff = [x / nparams for x in averageDiff]
     averageVariance = [x / nparams for x in averageVariance]
 
-    # extract time result data
-    timeVal = load_time_data(folder[generalIndex]+'/'+options['time_parameters']['computation_time_file_name'])
-    timeShift = []
-    timeShift.append(timeVal[0])
-    for index in range(1, len(timeVal)):
-        timeShift.append(timeShift[len(timeShift) - 1] + timeVal[index])
-
-    # convert to milliseconds
-    timeShift = [x / 1000 for x in timeShift]
-
     cmap = plt.cm.get_cmap('hsv', len(folder) + 1)
 
     # print averageDiff
-    spl2.plot(timeShift, averageDiff, color=cmap(generalIndex),  linestyle='solid', label=options['filtering_parameters']['filter_kind'])
+    spl2.plot(rng, averageDiff, color=cmap(generalIndex),  linestyle='solid', label=options['filtering_parameters']['filter_kind'])
     spl2.set_xlabel('time in milliseconds', fontsize=50)
     spl2.set_ylabel('average difference between estimation and groundtruth', fontsize=50)
     spl2.tick_params(axis = 'both', which = 'major', labelsize=40)
@@ -193,7 +144,7 @@ for generalIndex in range (0, len(folder)):
     spl2.set_title('General computation time:')
 
     # print averageDiff
-    spl3.plot(timeShift, averageVariance, color=cmap(generalIndex),  linestyle='solid', label=options['filtering_parameters']['filter_kind'])
+    spl3.plot(rng, averageVariance, color=cmap(generalIndex),  linestyle='solid', label=options['filtering_parameters']['filter_kind'])
     spl3.set_xlabel('time in milliseconds', fontsize=50)
     spl3.set_ylabel('average standart deviation', fontsize=50)
     spl3.tick_params(axis = 'both', which = 'major', labelsize=40)

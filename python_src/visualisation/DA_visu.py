@@ -5,27 +5,13 @@ import types
 import math
 import yaml
 import matplotlib.pyplot as plt
-from itertools import repeat
+sys.path.append(os.getcwd() + '/../../python_src/utils')
+from FileSystemUtils import DataLoader
 
 # select the visual style for images
 plt.style.use('classic')
 #print(plt.style.available)
 
-def load_matrix_from_file(f):
-    if type(f) == types.StringType:
-        fo = open(f, 'r')
-        matrix = load_matrix_from_file(fo)
-        fo.close()
-        return matrix
-    elif type(f) == types.FileType:
-        file_content = f.read().strip()
-        file_content = file_content.replace('\r\n', ';')
-        file_content = file_content.replace('\n', ';')
-        file_content = file_content.replace('\r', ';')
-
-        return numpy.matrix(file_content)
-
-    raise TypeError('f must be a file object or a file name.')
 
 try : 
     sys.argv[0]
@@ -50,8 +36,9 @@ with open(folder+'/daconfig.yml', 'r') as stream:
         print(exc)
         sys.exit()
 
-stateExpVal = load_matrix_from_file(folder+'/'+options['visual_parameters']['state_file_name'])
-stateVar = load_matrix_from_file(folder+'/'+options['visual_parameters']['variance_file_name'])
+loader = DataLoader()
+stateExpVal = loader.loadDataFromFilterFile(folder+'/'+options['visual_parameters']['state_file_name'])
+stateVar = loader.loadDataFromFilterFile(folder+'/'+options['visual_parameters']['variance_file_name'])
 
 
 # plot stiffnesses with variances
@@ -118,7 +105,7 @@ for i in range(0, nparams):
 
 # plot innovation values
 # if options['filter']['save_internal_data'] == 1:
-#     innovationVal = load_matrix_from_file(folder+'/'+options['visual_parameters']['innovation_file_name'])
+#     innovationVal = loader.loadDataFromFilterFile(folder+'/'+options['visual_parameters']['innovation_file_name'])
 
 #     fig2 = plt.figure(2)
 #     spl2 = fig2.add_subplot(111)

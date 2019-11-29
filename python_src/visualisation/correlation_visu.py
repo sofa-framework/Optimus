@@ -5,27 +5,13 @@ import types
 import math
 import yaml
 import matplotlib.pyplot as plt
-from itertools import repeat
+sys.path.append(os.getcwd() + '/../../python_src/utils')
+from FileSystemUtils import DataLoader
 
 # select the visual style for images
 plt.style.use('classic')
 #print(plt.style.available)
 
-def load_matrix_from_file(f):
-    if type(f) == types.StringType:
-        fo = open(f, 'r')
-        matrix = load_matrix_from_file(fo)
-        fo.close()
-        return matrix
-    elif type(f) == types.FileType:
-        file_content = f.read().strip()
-        file_content = file_content.replace('\r\n', ';')
-        file_content = file_content.replace('\n', ';')
-        file_content = file_content.replace('\r', ';')
-
-        return numpy.matrix(file_content)
-
-    raise TypeError('f must be a file object or a file name.')
 
 try : 
     sys.argv[0]
@@ -50,8 +36,9 @@ with open(folder+'/daconfig.yml', 'r') as stream:
         print(exc)
         sys.exit()
 
-stateVar = load_matrix_from_file(folder+'/'+options['visual_parameters']['variance_file_name'])
-stateCovar = load_matrix_from_file(folder+'/'+options['visual_parameters']['covariance_file_name'])
+loader = DataLoader()
+stateVar = loader.loadDataFromFilterFile(folder+'/'+options['visual_parameters']['variance_file_name'])
+stateCovar = loader.loadDataFromFilterFile(folder+'/'+options['visual_parameters']['covariance_file_name'])
 
 
 # plot correlation
@@ -60,7 +47,7 @@ spl1 = fig1.add_subplot(111)
 
 nstate=numpy.size(stateVar[1,:])
 covarSize=numpy.size(stateCovar[1,:])
-nparams=options['filter']['nparams']
+nparams=options['filtering_parameters']['optim_params_size']
 nsteps=numpy.size(stateVar[:,1])
 
 print "Number of steps: ", nsteps
@@ -70,7 +57,7 @@ print "Size of covariance: ", nsteps
 
 
 rng=xrange(0,nsteps)
-rng=[i*options['model']['dt'] for i in rng]
+rng=[i*options['general_parameters']['delta_time'] for i in rng]
 
 cmap = plt.cm.get_cmap('hsv', nsteps+1)
 
@@ -78,11 +65,11 @@ firstVarInd = 0
 secondVarInd = 1
 
 for i in range(0, covarSize):
-    if options['filter']['param_transform'] == 'absolute':
+    if options['filtering_parameters']['transform_parameters'] == 'absolute':
         firstVar = abs(stateVar[:,firstVarInd])
         secondVar = abs(stateVar[:,secondVarInd])
         covar = stateCovar[:,i]
-    elif options['filter']['param_transform'] == 'exponential':
+    elif options['filtering_parameters']['transform_parameters'] == 'exponential':
         firstVar = numpy.exp(stateVar[:,firstVarInd])
         secondVar = numpy.exp(stateVar[:,secondVarInd])
         covar = numpy.exp(stateCovar[:,i])
