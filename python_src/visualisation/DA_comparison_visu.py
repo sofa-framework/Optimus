@@ -137,15 +137,15 @@ for generalIndex in range (0, len(folder)):
 
     # print averageDiff
     spl2.plot(rng, averageDiff, color=cmap(generalIndex),  linestyle='solid', label=options['filtering_parameters']['filter_kind'])
-    spl2.set_xlabel('time in milliseconds', fontsize=50)
+    spl2.set_xlabel('iterations', fontsize=50)
     spl2.set_ylabel('average difference between estimation and groundtruth', fontsize=50)
     spl2.tick_params(axis = 'both', which = 'major', labelsize=40)
     spl2.grid(color='k', linestyle=':', linewidth=1)
-    spl2.set_title('General computation time:')
+    spl2.set_title('Estimated values:')
 
     # print averageDiff
     spl3.plot(rng, averageVariance, color=cmap(generalIndex),  linestyle='solid', label=options['filtering_parameters']['filter_kind'])
-    spl3.set_xlabel('time in milliseconds', fontsize=50)
+    spl3.set_xlabel('iterations', fontsize=50)
     spl3.set_ylabel('average standart deviation', fontsize=50)
     spl3.tick_params(axis = 'both', which = 'major', labelsize=40)
     spl3.grid(color='k', linestyle=':', linewidth=1)
