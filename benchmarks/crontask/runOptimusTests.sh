@@ -30,9 +30,11 @@ echo $SOFA_DIRECTORY
 if [ -d "$SOFA_DIRECTORY" ]; then
     echo "Update sofa repository"
     cd $SOFA_DIRECTORY
-    /usr/bin/git pull --progress https://github.com/mimesis-inria/sofa.git 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
+    #/usr/bin/git pull --progress https://github.com/mimesis-inria/sofa.git 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
+    /usr/bin/git pull --progress https://github.com/sofa-framework/sofa.git 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
 else
-    /usr/bin/git clone --progress https://github.com/mimesis-inria/sofa.git $SOFA_DIRECTORY 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
+    #/usr/bin/git clone --progress https://github.com/mimesis-inria/sofa.git $SOFA_DIRECTORY 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
+    /usr/bin/git clone --progress https://github.com/sofa-framework/sofa.git $SOFA_DIRECTORY 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
     echo "Clone data from sofa repository"
 fi
 if ! [ -d "$BUILD_DIRECTORY" ]; then
