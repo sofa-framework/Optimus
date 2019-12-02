@@ -60,7 +60,7 @@ class DataLoader:
     ###
     ### load location data from monitor file
     ###
-    def loadDataFormMonitorFile(self, File):
+    def loadDataFromMonitorFile(self, File):
         fo = open(File, 'r')
         # throw out first line
         fo.readline()
