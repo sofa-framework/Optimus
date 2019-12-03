@@ -89,19 +89,18 @@ for i in range(0, nparams):
 
     # print options['scene_parameters']['obs_generating_parameters']['object_young_moduli']
     #, rng, vll, rng, vlu)
-    
-    
+
     # print groundTruthValues    
     groundTruthData = [numpy.int(elem) * float(groundTruthValues[i]) for elem in data]
     # plt.plot(rng, groundTruthData, color=cmap(i), linestyle='None', marker=r'$\clubsuit$', markersize=5)
     spl1.plot(rng, groundTruthData, color=cmap(i), linestyle='dotted', linewidth=4)
     # plt.setp(lines, color=cmap(i), linewidth=2.0)
 
-    spl1.set_xlabel('iterations') #, fontsize=20)
-    spl1.set_ylabel('stiffness with variance') #, fontsize=20)
-    spl1.tick_params(axis = 'both', which = 'major', labelsize=10)
-    spl1.grid(color='k', linestyle=':', linewidth=1)
-    spl1.set_title('Params '+folder)
+spl1.set_xlabel('iterations') #, fontsize=20)
+spl1.set_ylabel('stiffness with variance') #, fontsize=20)
+spl1.tick_params(axis = 'both', which = 'major', labelsize=10)
+spl1.grid(color='k', linestyle=':', linewidth=1)
+spl1.set_title('Params '+folder)
 
 # plot innovation values
 # if options['filter']['save_internal_data'] == 1:

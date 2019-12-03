@@ -43,6 +43,7 @@ fig3 = plt.figure(200)
 spl3 = fig3.add_subplot(111)
 
 loader = DataLoader()
+cmap1 = plt.cm.get_cmap('hsv', len(folder) + 1)
 for generalIndex in range (0, len(folder)):
 
     options = dict()
@@ -118,44 +119,43 @@ for generalIndex in range (0, len(folder)):
         spl1.plot(rng, groundTruthData, color=cmap(i), linestyle='dotted', linewidth=4)
         # plt.setp(lines, color=cmap(i), linewidth=2.0)
 
-        spl1.set_xlabel('iterations', fontsize=50)
-        spl1.set_ylabel('stiffness with variance', fontsize=50)
-        spl1.tick_params(axis = 'both', which = 'major', labelsize=40)
-        spl1.grid(color='k', linestyle=':', linewidth=1)
-        spl1.set_title('Params ' + folder[generalIndex])
-
         diffVal = numpy.squeeze([abs(x - int(y)) for x,y in zip(ev, groundTruthData)])
         averageDiff = [x + y for x,y in zip(averageDiff, diffVal)]
         averageVariance = [x + y for x,y in zip(averageVariance, stdev)]
 
-
-
     averageDiff = [x / nparams for x in averageDiff]
     averageVariance = [x / nparams for x in averageVariance]
 
-    cmap = plt.cm.get_cmap('hsv', len(folder) + 1)
+
+    spl1.set_xlabel('iterations', fontsize=50)
+    spl1.set_ylabel('stiffness with variance', fontsize=50)
+    spl1.tick_params(axis = 'both', which = 'major', labelsize=40)
+    spl1.grid(color='k', linestyle=':', linewidth=1)
+    spl1.set_title('Params ' + folder[generalIndex])
 
     # print averageDiff
-    spl2.plot(rng, averageDiff, color=cmap(generalIndex),  linestyle='solid', label=options['filtering_parameters']['filter_kind'])
-    spl2.set_xlabel('iterations', fontsize=50)
-    spl2.set_ylabel('average difference between estimation and groundtruth', fontsize=50)
-    spl2.tick_params(axis = 'both', which = 'major', labelsize=40)
-    spl2.grid(color='k', linestyle=':', linewidth=1)
-    spl2.set_title('Estimated values:')
-
-    # print averageDiff
-    spl3.plot(rng, averageVariance, color=cmap(generalIndex),  linestyle='solid', label=options['filtering_parameters']['filter_kind'])
-    spl3.set_xlabel('iterations', fontsize=50)
-    spl3.set_ylabel('average standart deviation', fontsize=50)
-    spl3.tick_params(axis = 'both', which = 'major', labelsize=40)
-    spl3.grid(color='k', linestyle=':', linewidth=1)
-    spl3.set_title('Standart deviation values:')
+    spl2.plot(rng, averageDiff, color=cmap1(generalIndex),  linestyle='solid', label=options['filtering_parameters']['filter_kind'])
     
+    # print averageDiff
+    spl3.plot(rng, averageVariance, color=cmap1(generalIndex),  linestyle='solid', label=options['filtering_parameters']['filter_kind'])
+
+
+### descriptions for average estimation difference and standart deviation
+spl2.set_xlabel('iterations', fontsize=50)
+spl2.set_ylabel('average difference between estimation and groundtruth', fontsize=50)
+spl2.tick_params(axis = 'both', which = 'major', labelsize=40)
+spl2.grid(color='k', linestyle=':', linewidth=1)
+spl2.set_title('Estimated values:')
 legendForSpl2 = spl2.legend(loc='upper center', shadow=True, fontsize='x-large')
 legendForSpl2.get_frame().set_facecolor('#FFFFFF')
+
+spl3.set_xlabel('iterations', fontsize=50)
+spl3.set_ylabel('average standart deviation', fontsize=50)
+spl3.tick_params(axis = 'both', which = 'major', labelsize=40)
+spl3.grid(color='k', linestyle=':', linewidth=1)
+spl3.set_title('Standart deviation values:')
 legendForSpl3 = spl3.legend(loc='upper center', shadow=True, fontsize='x-large')
 legendForSpl3.get_frame().set_facecolor('#FFFFFF')
+
 plt.show()
-
-
 
