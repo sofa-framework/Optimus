@@ -62,7 +62,7 @@ rng=[i*options['general_parameters']['delta_time'] for i in rng]
 cmap = plt.cm.get_cmap('hsv', nsteps+1)
 
 firstVarInd = 0
-secondVarInd = 1
+secondVarInd = 0
 
 for i in range(0, covarSize):
     if options['filtering_parameters']['transform_parameters'] == 'absolute':
@@ -78,20 +78,20 @@ for i in range(0, covarSize):
         secondVar = stateVar[:,secondVarInd]
         covar = stateCovar[:,i]
 
+    stdev1 = [max(1e-3, math.sqrt(x)) for x in firstVar]
+    stdev2 = [max(1e-3, math.sqrt(x)) for x in secondVar]
+
+    predCorr = numpy.squeeze([x / y for x,y in zip(covar, stdev1)])
+    corr = numpy.squeeze([x / y for x,y in zip(predCorr, stdev2)])
+
     # update indices for related variance
     secondVarInd = secondVarInd + 1
     if secondVarInd == nstate:
         firstVarInd = firstVarInd + 1
         secondVarInd = firstVarInd + 1
 
-    stdev1 = [math.sqrt(x) for x in firstVar]
-    stdev2 = [math.sqrt(x) for x in secondVar]
+    spl1.plot(rng, corr, color=cmap(i), linestyle='solid', linewidth=4, label='Correlation between elements ' + str(firstVarInd + 1) + ' and ' + str(secondVarInd + 1))
 
-
-    predCorr = numpy.squeeze([x / y for x,y in zip(covar, stdev1)])
-    corr = numpy.squeeze([x / y for x,y in zip(predCorr, stdev2)])
-
-    spl1.plot(rng, corr, color=cmap(i),  linestyle='solid', linewidth=4, label='Correlation between elements ' + str(firstVarInd) + ' and ' + str(secondVarInd))
 
 ### description for correlation plot
 spl1.set_xlabel('iterations', fontsize=50)
@@ -103,5 +103,4 @@ legendForSpl1 = spl1.legend(loc='upper center', shadow=True, fontsize='x-large')
 legendForSpl1.get_frame().set_facecolor('#FFFFFF')
 
 plt.show()
-
 
