@@ -29,50 +29,7 @@
 \usepackage{calligra}
 \DeclareMathAlphabet{\mathcalligra}{T1}{calligra}{m}{n}
 
-\def\wrt{w.\,r.\,t.}
-\def\eg{e.\,g.}
-\def\ie{i.\,e.}
-\def\Ie{I.\,e.}
-\def\Dash{\nobreak\,---\penalty-500\,}
-%\def\Dash{\nobreak\,---\,}
-\def\mystrut{\vrule height2.5ex depth.2ex width0pt}
-\DeclareMathAlphabet{\mathbi}{T1}{cmr}{bx}{it}
-\def\stat{{\mathbi{s}}}
-\def\x{{\mathbi{x}}}
-\def\y{{\mathbi{y}}}
-\def\d{{\mathbi{d}}}
-\def\op{$\mathcal{O}$}
-\def\asn{\textit{\textbf{assimilation node}}}
-\def\osn{\textit{\textbf{observation subnode}}}
-\def\asns{\textit{\textbf{assimilation nodes}}}
-\def\osns{\textit{\textbf{observation subnodes}}}
-
-\def\Model{\mathcal{M}}
-\def\State{\mathbf{s}}
-\def\Params{\mathbf{p}}
-\def\Control{\mathbf{c}}
-
-
-\def\sstate{\textit{{S-state}}}
-\def\mstate{\textit{{M-state}}}
-\def\vstate{\textit{V-state}}
-\def\svda{\textit{SVDA}}
-
-
-\def\smp{$\sigma-$\textit{point}}
-\def\smw{\texttt{SofaModelWrapper}}
-\def\roukf{\texttt{ReducedOrderUKF}}
-\def\opr{\texttt{OptimParams}}
-\def\mobs{\texttt{MappedPointsObservationManager}}
-
-
-%obsolete:
-\def\veal{\texttt{VerdandiAnimationLoop}}
-\def\sroukf{\texttt{SofaReducedOrderUKF}}
-\def\mobs{\texttt{MappedPointsObservationManager}}
-\def\slobs{\texttt{MappedPointsObservationManager}}
-
-
+\input{macros}
 
 \setlength{\topmargin}{1cm}
 \setlength{\oddsidemargin}{1cm}
@@ -132,38 +89,38 @@ Adopting the naming conventions in both the mechanics and filtering, we end up w
 	In this text, mechanical state is abbreviated as \mstate.
 	\item[Stochastic state:] Quantity given as a probability distribution (PD), represented by its statistics. In case of Gaussian PD considered here, the statistics are the expected value and the standard deviation. From the physical point of view, this state may contain an arbitrary combination of positions, velocities, parameters and forces. It is stored a set of Eigen vectors (e.g., two of them for Gaussian PD). In this text, stochastic state is abbreviated as \sstate.
 \end{description}
-In Optimus, \mstate is strictly separated from \sstate both conceptually and from the implementation point of view and these two terms cannot be interchanged. While the filter works {\bf only} with \sstate, classical SOFA components (e.g. components from SOFA framework and other existing plugins) employ only \mstate. The interface between \sstate and \mstate is provided by the \smw and \opr components.
+In Optimus, \mstate\ is strictly separated from \sstate both conceptually and from the implementation point of view and these two terms cannot be interchanged. While the filter works {\bf only} with \sstate, classical SOFA components (e.g. components from SOFA framework and other existing plugins) employ only \mstate. The interface between \sstate\ and \mstate is provided by the \smw\ and \opr\ components.
 
 
-\section{Data Assimilation Using Verdandi}
+\section{Data Assimilation description}
 
-{\large\bf This section is now obsolete, since Verdandi was replaced with our own implementation of filters. Nonetheless, in the new version, the concepts remain very similar: mainly, the Verdandi-related stuff has been replaced by SOFA-filtering (as explained above). Results are still relevant showing the behaviour of both the previous and actual code.}
+%{\large\bf Initially, Optimus plugin was based on Verdandi library. The concepts remain very similar: mainly, the Verdandi-related stuff has been replaced by SOFA-filtering (as explained above).}
 
 \subsection{Parameter handling}
-The main goal of the \svda\ (and data assimilation in general) is to estimate a set of model parameters based on the model dynamics and observations,
+The main goal of the stochastic state data assimilation (\ssda)\ (and data assimilation in general) is to estimate a set of model parameters based on the model dynamics and observations,
 where both are associated with uncertainties.
 
 From the SOFA point of view, the parameters are usually simple numbers (or vectors of numbers) handled by local components: for example, the Young's
 modulus is a number (usually constant) defined and handled by the FEM-component, stiffnesses of a set of springs is a vector handled by the spring
 component. 
 
-From the Verdandi point of view, the parameters are included in the extended  state (\vstate\ in our case) and they evolve together with the model
+However, in estimation process, the parameters are included in the extended  state (\sstate\ in our case) and they evolve together with the model
 state. The parameters are not regarded as simple numbers, 
 but as probability distributions (defined by corresponding statistics as mean value and variance). Since the model itself requires concrete instances
 the parameters, these are instantiated in each \texttt{Forward} step using the method of \smp.
 
 In order to integrate the two different concepts, a new component was introduced, namely \opr:
 \begin{itemize}
-\item The component is a container of parameters which vary during the \svda. The parameters are defined using \emph{initial value} and \emph{standard
+\item The component is a container of parameters which vary during the \ssda. The parameters are defined using \emph{initial value} and \emph{standard
 deviation}.
-\item It also handles correct update of the \vstate: it works as an \emph{interface} between SOFA and Verdandi in terms of parameters. 
+\item It also handles correct update of the \sstate: it works as an \emph{interface} between SOFA and Filtering components. 
 \item If option \texttt{optimize} is true (which is the case by default), \textbf{the node containing the component is considered as the part of the
-physical model assimilated by Verdandi}, being denoted as an \asn. This is extremely important, since in turn it means that the mechanical state of
-this node will be associated with its counterpart included in the \vstate. If in a node this component is not present, or \texttt{optimize="0"}, 
+physical model assimilated by filtering process}. This is extremely important, since in turn it means that the mechanical state of
+this node will be associated with its counterpart included in the \sstate. If in a node this component is not present, or \texttt{optimize="0"}, 
 the object modeled by the node is not included in the assimilation: currently, this functionality is mainly used for mapped objects
 (collision, visualisation etc.). 
 \end{itemize}
-In each phase and step of the \svda, the actual value of the parameters handled by \opr\ can be accessed via SOFA \texttt{Data<> value}. Therefore,
+In each phase and step of the \ssda, the actual value of the parameters handled by \opr\ can be accessed via SOFA \texttt{Data<> value}. Therefore,
 the components which depends on the parameters being optimized (such as already mentioned Young's modulus) must be linked via @. \textbf{It must be
 verified, that the component which depends on the parameters being optimized is compatible with the fact that this parameter changes in each step,}
 \ie\ there are no internal structures which are precomputed using the initial values of the parameters. 
@@ -177,72 +134,58 @@ Finally, in one node, several  \opr\ can be present if different types of parame
 \subsection{Prediction: \texttt{Forward}}
 In the forward stage, the filter performs the prediction phase by evaluating on \emph{operator} (UKF) and/or it's derivatives (EKF). This evaluation
 is done for each \smp\ independently and the 
-result is used to compute the mean prediction (\emph{a priori}) value of the \vstate. The \emph{operator} \op\ is in fact a time step of the model,
+result is used to compute the mean prediction (\emph{a priori}) value of the \sstate. The \emph{operator} \op\ is in fact a time step of the model,
 here represented by a standard SOFA simulation time step.
 A few facts about \op\ must be emphasized:
 \begin{itemize}
-\item From the Verdandi point of view, it acts on the state provided by Verdandi (\vstate), so for a given \vstate\ $X_n$ it performs $X^-_{n+1} =
+\item From the filtering context, it acts on the state (\sstate), so for a given \sstate\ $X_n$ it performs $X^-_{n+1} =
 \mathcal{O}(X_{n})$.  
 \item From the SOFA point of view, it performs a single step of the simulation on a given DoF positions/velocities (encoded as a part of $X_n$)  while
 taking into account the current parameters (also encoded as a part of $X_n$).
-\item It is evaluated several times in each step of \svda, namely, it is evaluated for each \smp\ which is a different perturbation of $X_{n+1}$
+\item It is evaluated several times in each step of \ssda, namely, it is evaluated for each \smp\ which is a different perturbation of $X_{n+1}$
 according to the chosen method (simplex, star, circle). 
 \end{itemize}
 
-In order to facilitate the integration of SOFA and Verdandi, it was desirable to make the real evaluation of \op\ (SOFA model) completely transparent
-from the Verdandi point of view. 
-For this reason, a new component \smw\  was created: it serves as a wrapper of all \asns and ensures the correspondence between the respective
+In order to facilitate the integration with SOFA, it was desirable to make the real evaluation of \op\ (SOFA model) completely transparent
+from the filtering process. 
+For this reason, a new component \smw\  was created: it serves as a wrapper of all \asns\ and ensures the correspondence between the respective
 mechanical states and parameters 
-inside each \asn\ and the \vstate.
+inside each \asn\ and the \sstate.
 
-The component is not explicitly included in the scene but it is instantiated dynamically during the initialization of the filter wrapper. 
-This might change in future; at this moment it is a workaround for Verdandi which unfortunately instantiate the model in filter initialization and
-uses reference (not a pointer) during the assimilation.
-There is only one \smw\ in the entire \svda, however, it can handle multiple \asns\ which constitute the actual physical model  (e.g. one for a
-deformable body, other for a needle).
+This part is also the trickiest one in terms of the implementation as the SOFA components are usually not implemented with the idea of total independence on the previous (the highlighted part in the previous section).
 
-This part is also the trickiest one in terms of the implementation as the SOFA components are usually not implemented with the idea of total
-independence on the previous 
-(the highlighted part in the previous section).
-
-The forward stage is computationally  expensive mainly due to multiple evaluation of the model; the subsequent manipulation with \vstate\ are rather
-cheap. 
-At the same time, the execution of the operator is embarrassingly parallel. However, the main issue is that for a parallelization on $N$ threads, $N$
-independent copies of the 
-SOFA world would have to be created (TODO, with python maybe? ).
+The forward stage is computationally  expensive mainly due to multiple evaluation of the model; the subsequent manipulation with \sstate\ are rather cheap. At the same time, the execution of the operator is embarrassingly parallel. However, the main issue is that for a parallelization on $N$ threads, $N$ independent copies of the SOFA world would have to be created (TODO, with python maybe? ).
 
 
 \subsection{Correction: \texttt{Analyze}}
-While the forward stage requires a significant manipulation \vstate\ and \asns, analyze stage is almost exclusively performed by Verdandi filter. The
-only 
-part supplied by SOFA is the \texttt{ObservationManager} which computes an \emph{innovation} using prediction computed previously and observations
-obtained by an external source. 
+While the forward stage requires a significant manipulation \sstate\ and \asns, analyze stage is almost exclusively performed by filter. The only part supplied by SOFA is the \texttt{ObservationManager} which computes an \emph{innovation} using prediction computed previously and observations obtained by an external source. 
 
 So far, we have been experimenting only with simple cases where the observations are generated using a \emph{forward simulation}, \ie\ a standard SOFA
-simulation where 
-the states of the modeled objects are stored in each step into a text file using SOFA monitors. Then, each \asn\ has to have an \emph{observation
-sub-node} which 
-contains following components:
+simulation where the states of the modeled objects are stored in each step into a text file using SOFA monitors. Then, each \asn\ has to have an \emph{observation
+sub-node} which contains following components:
 \begin{itemize}
-\item Mechanical object which defines a set of observation points. These can be any points inside the moving objects were observations are made
-(trivially, it can be equivalent to the mechanical 
+\item Mechanical object which defines a set of observation points. These can be any points inside the moving objects were observations are made (trivially, it can be equivalent to the mechanical 
 state of the assimilated object).
-\item Mapping between the observation mechanical state and the mechanical state of the assimilated body (trivially an \texttt{IdentityMapping},
-usually a \texttt{BarycentricMapping}.
-\item An observation manager which provides a method \texttt{GetInnovation} called by the Verdandi filter. The method must have an access to
-observation in each time (supplied for example by an \texttt{ObservationSource} and it uses mapping (\texttt{Apply}) to get the observations in points
+\item Mapping between the observation mechanical state and the mechanical state of the assimilated body (trivially an \texttt{IdentityMapping}, usually a \texttt{BarycentricMapping}.
+\item An observation manager which provides a method \texttt{GetInnovation} called by the filter. The method must have an access to observation in each time (supplied for example by an \texttt{ObservationSource} and it uses mapping (\texttt{Apply}) to get the observations in points
 defined by the mechanical state. 
 \end{itemize}
 
-So far we are using \texttt{SimulationStateObservationSource} in order to read the positions exported by monitors in forward simulations. Currently,
-the code allows for adding a noise, although 
-only in very preliminary version.
+So far we are using \texttt{SimulationStateObservationSource} in order to read the positions exported by monitors in forward simulations. Currently, the code allows for adding a noise, although only in very preliminary version.
 
 \section{Components}
-{\large \veal}
+{\large \al}
 \begin{itemize}
 \item Compliant with SOFA API for animation loops. 
 \item Calls filter wrapper to perform the assimilation in each step.
+\item Issues special events: PredictionEndEvent after calling the prediction step of the filter, and CorrectionEndEvent after calling the correction step of the filter.
+\end{itemize}
+\medskip
+{\large\smw}
+\begin{itemize}
+\item Wrapper of model provided by SOFA. This wrapper implements the interface between the stochastic components (filters) and SOFA simulation.
+\item Must be placed inside the SOFA subnode containing the physical simulation components.
+\item Requires MechanicalObject and assumes OptimParams in the same node.
 \end{itemize}
 \medskip
 {\large \sroukf}
@@ -250,16 +193,6 @@ only in very preliminary version.
 \item Wrapper of Verdandi ReducedOrderUKF (inherits from ROUKF and BaseNode).
 \item Templated on model and observation manager.
 \item Basically replaces initialisation to avoid reading the parameters from LUA and uses parameters defined in XML scene instead. 
-\end{itemize}
-\medskip
-{\large\smw}
-\begin{itemize}
-\item Wrapper of \asns\ in SOFA: looks for all \asns\ in the initialization via \opr.
-\item Templated on scalar type (might change in future).
-\item Created in filter initialization; probably OK (it's not a real object but somehow represents entire SOFA scene \wrt\ Verdandi.
-\item The component is initialized via \texttt{initSimuData} called by \sroukf\texttt{.init()} receiving the parameters set to \sroukf\ (as this
-component cannot 
-receive any parameters from XML via \texttt{ModelData} structure.
 \end{itemize}
 \medskip
 {\large\opr}
@@ -361,7 +294,7 @@ estimation and the variance (standard deviation squared) of the
 parameters.
 
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \begin{center}
 %\subfigure[]{
 \includegraphics[width=.49\linewidth]{figures/p1_estim.pdf}
@@ -375,7 +308,7 @@ parameters.
 \end{figure}
 
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \begin{center}
 %\subfigure[]{
 \includegraphics[width=.49\linewidth]{figures/p2_estim.pdf}
@@ -390,7 +323,7 @@ parameters.
 
 
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \begin{center}
 %\subfigure[]{
 \includegraphics[width=.49\linewidth]{figures/p3_estim.pdf}
@@ -405,7 +338,7 @@ parameters.
 
 
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \begin{center}
 %\subfigure[]{
 \includegraphics[width=.49\linewidth]{figures/p4_estim.pdf}
@@ -421,7 +354,7 @@ deviation of 1\,mm.}
 
 
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \begin{center}
 %\subfigure[]{
 \includegraphics[width=.49\linewidth]{figures/p5_estim.pdf}
@@ -437,7 +370,7 @@ deviation of 2\,mm.}
 
 
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \begin{center}
 %\subfigure[]{
 \includegraphics[width=.49\linewidth]{figures/p6_estim.pdf}
@@ -455,7 +388,7 @@ uncertainty of 2\,mm modeled with white Gaussian noise with standard deviation o
 The example is the same as the previous one, except for the fact that the Young's modulus is decreased from 6\,kPa to 2\,kPa between t=3\,s and t=5\,s.
 The result is illustrated in figures (dash line is showing the value of parameters).
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \begin{center}
 %\subfigure[]{
 \includegraphics[width=.49\linewidth]{figures/pVarSm1_estim.pdf}
@@ -469,7 +402,7 @@ change of the parameter with delay. Surprisingly, the other two parameters are p
 \end{center}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \begin{center}
 %\subfigure[]{
 \includegraphics[width=.49\linewidth]{figures/pVarSm3_estim.pdf}
@@ -483,7 +416,7 @@ varying parameter.}
 \end{center}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \begin{center}
 %\subfigure[]{
 \includegraphics[width=.49\linewidth]{figures/pHardSmooth3_estim.pdf}
@@ -545,8 +478,8 @@ The graphs in the EX1 were obtained using quasi-static scenario, \ie\ \texttt{St
 \begin{itemize}
  \item The result with the \texttt{StaticSolver} depend on \texttt{dt}: the results were obtained with \texttt{dt=0.01s}. Comparable results can be
 achieved with \texttt{dt=0.1}, 
- the \svda\ remains stable even for dt of 1\,s.
- \item The stability of the \svda\ seems to depend on the integration scheme, as with \texttt{EulerImplicitSolver} the method seems to be less stable.
+ the \ssda\ remains stable even for dt of 1\,s.
+ \item The stability of the \ssda\ seems to depend on the integration scheme, as with \texttt{EulerImplicitSolver} the method seems to be less stable.
 The stability depends on \texttt{Rayleigh stiffness}: a behavior comparable to the static behavior is achieved with RS=0.5, the process is stable and
 the final approximation is even more precise that in the static case. 
 \item With decreasing RS, the DA becomes less stable in the beginning since the change in positions is too fast and so the perturbations becomes

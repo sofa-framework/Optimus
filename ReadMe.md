@@ -2,16 +2,15 @@ Advanced methods of state estimation and parameter identification in SOFA
 =========================================================================
 
 Optimus plugin was created to provide a testing environment for data-driven physics-based modeling (typically finite elements, FE).
-While actually the plugin implements only stochastic methods based on Kalman filtering, its architecture allows for implementation of 
+While actually the plugin implements only stochastic methods based on Kalman filtering, its architecture allows for the implementation of
 generic prediction--correction schemes where the model is employed as a predictor and correction is performed using given observation data. 
 
 
-The concepts of estimation of state and parameter identification are summarized in a documentation in doc/OptimusDoc. To generate the 
-PDF, compile the tex file as 
-pdflatex ConceptsBehindOptimus.tex
+The concepts of estimation of state and parameter identification are summarized in a document in doc/OptimusDoc. To generate the
+PDF, compile the tex file as pdflatex ConceptsBehindOptimus.tex.
 
-Doxygen documentation [HTML and LaTeX] can be generated using existing doxygen file located in folder doc:
-doxygen Optimus.doxygen.
+Doxygen documentation [HTML and LaTeX] can be generated using the existing Doxygen file located in folder doc:
+Doxygen Optimus.doxygen.
 
 
 Components
