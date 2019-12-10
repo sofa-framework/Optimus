@@ -25,15 +25,36 @@ These components provide various functionality employed in Optimus scenes.
 
 `OptimParams`
 
--   Container of Gaussian stochastic variables given by expected value and standard deviation. 
+-   Container of Gaussian stochastic variables given by expected value and standard deviation.
+
+`OptimMonitor`
+
+-   Component to store observations in SOFA Monitor format, extending the functionality of SOFA Monitor.
 
 `SimulatedStateObservationSource`
 
--   Tool for reading observations exported previously in SOFA Monitor format. 
+-   Tool for reading observations exported previously in SOFA Monitor format.
+
+`SimulatedStateObservationStreamer`
+
+-   Tool for reading observations from another component on SOFA scene (unstable).
 
 `VTKExporterDA`
 
 -   Component extending the functionality of SOFA VTKExporter (reaction to different events).
+
+`StochasticPositionHandler`
+
+-   Another component to save the data of mechanical object during stochastic simulation.
+
+`SigmaPointsVTKExporter`
+
+-   Component extending the functionality of SOFA VTKExporter to save the mechanical object for every sigma point.
+
+`AddNoiseEngine`
+
+-   Component to add the noise (for now only Gaussian is avaialble) with specified direction, mean, and variance.
+
 
 
 Stochastic filtering
@@ -110,6 +131,24 @@ Optimus plugin has several python scripts that allow to show the dynamics of est
 
 All visualization scripts are stored in python_src/visualisation subfolder in Optimus. To scripts generally require only path to output folder(s) with results, since special subfolders structure, which is recognized by scripts, is generated and YAML is copied to output folder during data assimilation process.
 
+
+List of scripts:
+
+-   DA_visu.py - script to plot estimated parameters, their standart deviation, and innovation values; path to output folder as command line argument is required
+
+-   correlation_visu.py - script to plot correlation values between parameters; path to output folder as command line argument is required
+
+-   DA_comparison_visu.py - script to plot estimated parameters, their standart deviation, and innovation values for different cases; paths to output folders is stored in inputList variable and case descriptions in labels variable in the header of the script
+
+-   correlation_comparison_visu.py - script to plot correlation values between parameters for different cases; paths to output folders is stored in inputList variable and case descriptions in labels variable in the header of the script
+
+-   DA_visu.py - script to plot estimated parameters, their standart deviation, and innovation values; path to output folder as command line argument is required
+
+-   performance_visu.py - script to plot performance statistics for the estimation process; json output from SOFA AdvancedTimer is needed
+
+-   performance_comparison_visu.py - script to plot performance statistics for the estimation process for different situations; json output from SOFA AdvancedTimer is needed; paths to output folders is stored in inputList variable and case descriptions in labels variable in the header of the script
+
+-   performance_comparison_with_parameter_2d_visu.py - an attempt to plot performance statistics for two parameters as 3d surface; json output from SOFA AdvancedTimer is needed; description are stored in performance_labels and parameter_labels variables; a special names for output folders are needed
 
 
 

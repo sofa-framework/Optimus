@@ -14,9 +14,13 @@ plt.style.use('classic')
 
 
 ######### configuration for visualisation
-inputList = ['outCyl3_770_UKFSimCorr_cyl3ForceField770Verification_init2000']
-inputList.append('outCyl3_770_ROUKF_cyl3ForceField770Verification_init2000')
+inputList = ['outCyl3_770_UKFSimCorr_cylRestShape_init500']
+inputList.append('outCyl3_770_ROUKF_cyl3RestShape_init500')
 #inputList.append('outCyl2_385_UKFClassic_forceField385Verification_init2000')
+
+labels = ['UKFilterSimCorr']
+labels.append('ROUKFilter')
+labels.append('UKFilterClassic')
 ######### end of configuration for visualisation
 
 
@@ -134,10 +138,10 @@ for generalIndex in range (0, len(folder)):
     spl1.set_title('Params ' + folder[generalIndex])
 
     # print averageDiff
-    spl2.plot(rng, averageDiff, color=cmap1(generalIndex),  linestyle='solid', label=options['filtering_parameters']['filter_kind'])
+    spl2.plot(rng, averageDiff, color=cmap1(generalIndex),  linestyle='solid', label=labels[generalIndex])
     
     # print averageDiff
-    spl3.plot(rng, averageVariance, color=cmap1(generalIndex),  linestyle='solid', label=options['filtering_parameters']['filter_kind'])
+    spl3.plot(rng, averageVariance, color=cmap1(generalIndex),  linestyle='solid', label=labels[generalIndex])
 
 
 ### descriptions for average estimation difference and standart deviation

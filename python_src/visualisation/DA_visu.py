@@ -104,31 +104,29 @@ spl1.grid(color='k', linestyle=':', linewidth=1)
 spl1.set_title('Params '+folder)
 
 # plot innovation values
-# if options['filter']['save_internal_data'] == 1:
-#     innovationVal = loader.loadDataFromFilterFile(folder+'/'+options['visual_parameters']['innovation_file_name'])
+if options['filter']['save_internal_data'] == 1:
+    innovationVal = loader.loadDataFromFilterFile(folder+'/'+options['visual_parameters']['innovation_file_name'])
 
-#     fig2 = plt.figure(2)
-#     spl2 = fig2.add_subplot(111)
+    fig2 = plt.figure(2)
+    spl2 = fig2.add_subplot(111)
     
-#     ninnov=numpy.size(innovationVal[0,:])
-#     nsteps=numpy.size(innovationVal[:,0])
+    ninnov=numpy.size(innovationVal[0,:])
+    nsteps=numpy.size(innovationVal[:,0])
 
-#     print "Innovation size: ",ninnov
+    print "Innovation size: ",ninnov
 
-#     rng=xrange(0,nsteps)
-#     rng=[i*options['general_parameters']['delta_time'] for i in rng]
+    rng=xrange(0,nsteps)
+    rng=[i*options['general_parameters']['delta_time'] for i in rng]
 
-#     cmap = plt.cm.get_cmap('hsv', ninnov+1)
+    cmap = plt.cm.get_cmap('hsv', ninnov+1)
 
-#     for i in range(0,ninnov):
-#         innov = innovationVal[:,i]
-#         spl2.plot(rng, innov, color=cmap(i),  linestyle='solid')
+    for i in range(0,ninnov):
+        innov = innovationVal[:,i]
+        spl2.plot(rng, innov, color=cmap(i),  linestyle='solid')
 
-#     spl2.set_xlabel('iterations')
-#     spl2.set_ylabel('innovation values')
-#     spl2.set_title('Innovation '+folder)
-
+     spl2.set_xlabel('iterations')
+     spl2.set_ylabel('innovation values')
+     spl2.set_title('Innovation '+folder)
     
 plt.show()
-
 
