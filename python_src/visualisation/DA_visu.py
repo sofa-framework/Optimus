@@ -96,6 +96,7 @@ for i in range(0, nparams):
     spl1.plot(rng, groundTruthData, color=cmap(i), linestyle='dotted', linewidth=4)
     # plt.setp(lines, color=cmap(i), linewidth=2.0)
 
+### descriptions for estimation
 spl1.set_xlabel('iterations') #, fontsize=20)
 spl1.set_ylabel('stiffness with variance') #, fontsize=20)
 spl1.tick_params(axis = 'both', which = 'major', labelsize=10)

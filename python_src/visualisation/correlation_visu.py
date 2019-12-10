@@ -65,6 +65,12 @@ firstVarInd = 0
 secondVarInd = 0
 
 for i in range(0, covarSize):
+    # update indices for related variance
+    secondVarInd = secondVarInd + 1
+    if secondVarInd == nstate:
+        firstVarInd = firstVarInd + 1
+        secondVarInd = firstVarInd + 1
+
     if options['filtering_parameters']['transform_parameters'] == 'absolute':
         firstVar = abs(stateVar[:,firstVarInd])
         secondVar = abs(stateVar[:,secondVarInd])
@@ -83,12 +89,6 @@ for i in range(0, covarSize):
 
     predCorr = numpy.squeeze([x / y for x,y in zip(covar, stdev1)])
     corr = numpy.squeeze([x / y for x,y in zip(predCorr, stdev2)])
-
-    # update indices for related variance
-    secondVarInd = secondVarInd + 1
-    if secondVarInd == nstate:
-        firstVarInd = firstVarInd + 1
-        secondVarInd = firstVarInd + 1
 
     spl1.plot(rng, corr, color=cmap(i), linestyle='solid', linewidth=4, label='Correlation between elements ' + str(firstVarInd + 1) + ' and ' + str(secondVarInd + 1))
 
