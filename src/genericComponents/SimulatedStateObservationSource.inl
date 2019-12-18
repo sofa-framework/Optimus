@@ -55,12 +55,12 @@ SimulatedStateObservationSource<DataTypes>::SimulatedStateObservationSource()
     : Inherit()
     , d_verbose( initData(&d_verbose, false, "verbose", "print tracing informations") )
     , d_monitorPrefix( initData(&d_monitorPrefix, std::string("monitor1"), "monitorPrefix", "prefix of the monitor-generated file") )
+    , d_velocitiesData( initData(&d_velocitiesData, false, "velocitiesData", "load velocities data") )
     , d_actualObservation( initData (&d_actualObservation, "actualObservation", "actual observation") )
     , d_drawSize( initData(&d_drawSize, SReal(0.0),"drawSize","size of observation spheres in each time step") )
     , d_controllerMode( initData(&d_controllerMode, false,"controllerMode","if true, sets the mechanical object in begin animation step") )
     , d_trackedObservations( initData (&d_trackedObservations, "trackedObservations", "tracked observations: temporary solution!!!") )
     , d_asynObs(initData(&d_asynObs, false, "asynObs","Asynchronous or Missing Observations"))
-
 {
 
 }
@@ -85,18 +85,24 @@ void SimulatedStateObservationSource<DataTypes>::init()
         d_actualObservation.setValue(d_trackedObservations.getValue());
     } else {   /// read observations from a file
         //std::cout << this->getName() << " Init started" << std::endl;
-        std::string posFile = d_monitorPrefix.getValue() + "_x.txt";
-        if(sofa::helper::system::DataRepository.findFile(posFile))
+        std::string dataFile;
+        if (d_velocitiesData.getValue()) {
+            dataFile = d_monitorPrefix.getValue() + "_v.txt";
+        } else {
+            dataFile = d_monitorPrefix.getValue() + "_x.txt";
+        }
+
+        if(sofa::helper::system::DataRepository.findFile(dataFile))
         {
             if (d_asynObs.getValue()) {
-                parseAsynMonitorFile(posFile);
+                parseAsynMonitorFile(dataFile);
             } else {
-                parseMonitorFile(posFile);
+                parseMonitorFile(dataFile);
             }
         }
         else
         {
-            msg_error(this) << "Could not find " << posFile;
+            msg_error(this) << "Could not find " << dataFile;
         }
 
         if (m_positions.empty())

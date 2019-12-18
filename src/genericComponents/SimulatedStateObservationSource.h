@@ -94,6 +94,7 @@ public:
 
     Data<bool> d_verbose;
     Data<std::string> d_monitorPrefix;
+    Data<bool> d_velocitiesData;
     Data<VecCoord> d_actualObservation;
     Data<SReal> d_drawSize;
     Data<bool> d_controllerMode;
