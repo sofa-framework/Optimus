@@ -81,6 +81,8 @@ if ( ${STOCHASTIC_FILTERING} )
                 src/stochasticFiltering/ObservationManagerBase.h
 		src/stochasticFiltering/MappedStateObservationManager.h
 		src/stochasticFiltering/MappedStateObservationManager.inl
+                src/stochasticFiltering/MappedStateVelocityObservationManager.h
+		src/stochasticFiltering/MappedStateVelocityObservationManager.inl
                 src/stochasticFiltering/SimpleObservationManager.h
 		src/stochasticFiltering/SimpleObservationManager.inl
                 src/stochasticFiltering/BindedSimpleObservationManager.h
@@ -97,6 +99,7 @@ if ( ${STOCHASTIC_FILTERING} )
                 src/stochasticFiltering/AdaptativeUKFilterClassic.cpp
 		src/stochasticFiltering/StochasticStateWrapper.cpp
                 src/stochasticFiltering/MappedStateObservationManager.cpp
+                src/stochasticFiltering/MappedStateVelocityObservationManager.cpp
                 src/stochasticFiltering/SimpleObservationManager.cpp
                 src/stochasticFiltering/BindedSimpleObservationManager.cpp
 		src/stochasticFiltering/PreStochasticWrapper.cpp
