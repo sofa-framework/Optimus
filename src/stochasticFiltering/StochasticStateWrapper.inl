@@ -368,6 +368,37 @@ void StochasticStateWrapper<DataTypes, FilterType>::setSofaVectorFromFilterVecto
         //PRNS("Setting free[" << it->first << "] = " << _vec[it->first]);
     }
 }
+template <class DataTypes, class FilterType>
+void StochasticStateWrapper<DataTypes, FilterType>::setSofaVelocityFromFilterVector(EVectorX& _state, typename DataTypes::VecDeriv& _vel) {
+ /*   if (_vec.size() != mechanicalState->getSize()) {
+        PRNE("Input vector not compatible with the actual Sofa state size");
+        return;
+    }
+
+    typename MechanicalState::ReadVecCoord pos = mechanicalState->readPositions();
+    for (size_t fni = 0; fni < fixedNodes.size(); fni++) {
+        size_t fn = fixedNodes[fni];
+        _vec[fn] = pos[fn];
+        //PRNS("Setting fixed[" << fn << "] = " << _vec[fn]);
+    }
+
+    for (helper::vector<std::pair<size_t, size_t> >::iterator it = positionPairs.begin(); it != positionPairs.end(); it++) {
+        if (it->first >= _vec.size()) {
+            PRNE("Accessing Sofa vector out of bounds: " << it->first <<  " vs. " << _vec.size());
+            return;
+        }
+
+        if ((it->second + posDim) >= (size_t)_state.rows()) {
+            PRNE("Accessing DA vector out of bounds: " << it->second + posDim <<  " vs. " << _state.rows());
+            return;
+        }
+
+        for (size_t d = 0; d < posDim; d++) {
+            _vec[it->first][d] = _state(it->second + d);
+        }
+        //PRNS("Setting free[" << it->first << "] = " << _vec[it->first]);
+    }*/
+}
 
 
 /// function that sets SOFA state (position, velocity, parameters) from this->state (stochastic state, Eigen vector)
@@ -740,6 +771,13 @@ template <class DataTypes, class FilterType>
 void StochasticStateWrapper<DataTypes, FilterType>::getActualPosition(int _id, VecCoord& _pos) {
     _pos = sigmaStatePos[_id];
 }
+
+
+template <class DataTypes, class FilterType>
+void StochasticStateWrapper<DataTypes, FilterType>::getActualVelocity(int _id, VecDeriv& _vel) {
+    _vel = sigmaStateVel[_id];
+}
+
 
 template <class DataTypes, class FilterType>
 void StochasticStateWrapper<DataTypes, FilterType>::getPos(EVectorX& _state, VecCoord& actualPos) {

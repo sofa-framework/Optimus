@@ -155,7 +155,7 @@ void MappedStateVelocityObservationManager<FilterType,DataTypes1,DataTypes2>::in
 
     if (doNotMapObservations.getValue()) {
         if (inputStateSize != mappedStateSize) {
-            PRNE("In non-mapping version, |input observation state| !=  |mapped state| " << inputStateSize << " vs. " << mappedStateSize);
+            PRNE("In non-mapping version, |input observation state| != |mapped state| " << inputStateSize << " vs. " << mappedStateSize);
             return;
         }
         PRNS("Non-mapping version, |observations| = |input observation state| = |mapped state| = " << inputStateSize);
@@ -179,7 +179,21 @@ void MappedStateVelocityObservationManager<FilterType,DataTypes1,DataTypes2>::in
         PRNS("Mapping version, |observations| = " << mappedVectorSize << " |input observation state| = |master state| = " << inputStateSize);
         sofa::core::MechanicalParams mp;
         mapping->apply(&mp, mappedObservationData, inputObservationData);
-        this->observationSize = mappedVectorSize;
+        sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > mappedObsFullState = mappedObservationFullData;
+        sofa::helper::ReadAccessor< Data<typename DataTypes1::VecCoord> > mappedObsState = mappedObservationData;
+        unsigned int stateSizeScale = d_observeVelocities.getValue() ? 2 : 1;
+        mappedObsFullState.resize(stateSizeScale * mappedStateSize);
+        for (size_t i = 0; i < mappedStateSize; i++)
+            mappedObsFullState[i] = mappedObsState[i];
+
+        if (d_observeVelocities.getValue()) {
+            mapping->applyJ(&mp, mappedObservationVelocityData, inputVelocityObservationData);
+            sofa::helper::ReadAccessor< Data<typename DataTypes1::VecDeriv> > mappedObsVelocityState = mappedObservationVelocityData;
+            for (size_t i = 0; i < mappedStateSize; i++)
+                mappedObsFullState[mappedStateSize + i] = mappedObsVelocityState[i];
+        }
+
+        this->observationSize = stateSizeScale * mappedVectorSize;
     }
 
     actualObservation.resize(this->observationSize);
@@ -199,6 +213,10 @@ bool MappedStateVelocityObservationManager<FilterType,DataTypes1,DataTypes2>::ha
     typename DataTypes1::VecCoord& inputObsState = *inputObservationData.beginEdit();
     //PRNS("Getting observation at time " << this->actualTime);
     bool hasObservation = observationSources[0]->getObservation(this->actualTime, inputObsState);
+    typename DataTypes1::VecCoord& inputVelocityObsState = *inputVelocityObservationData.beginEdit();
+    if (d_observeVelocities.getValue()) {
+        observationSources[1]->getObservation(this->actualTime, inputVelocityObsState);
+    }
 
     if (!hasObservation) {
         PRNE("No observation for time " << _time);
@@ -221,15 +239,37 @@ bool MappedStateVelocityObservationManager<FilterType,DataTypes1,DataTypes2>::ha
                 actualObservation(3*i+d) = mappedObsState[i][d];                
             }
         }
+
+        if (d_observeVelocities.getValue()) {
+            mapping->applyJ(&mp, mappedObservationVelocityData, inputVelocityObservationData);
+            sofa::helper::WriteAccessor< Data<typename DataTypes1::VecDeriv> > mappedObsVelocityState = mappedObservationVelocityData;
+            //std::cout << "Mapped observation: " << mappedObsState << std::endl;
+
+            for (size_t i = 0; i < mappedStateSize; i++) {
+                for (size_t d = 0; d < 3; d++) {
+                    if (noiseStdev.getValue() != 0.0)
+                        mappedObsVelocityState[i][d] += (*pVarNorm)();
+                    actualObservation(mappedStateSize * d + 3*i+d) = mappedObsVelocityState[i][d];
+                }
+            }
+        }
+
     } else {
         sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > mappedObsState = mappedObservationData;
-        if (mappedObsState.size() != inputObsState.size()) {
-            PRNE("Different mapped and input observation size: " << mappedObsState.size() << " vs " << inputObsState.size());
+        unsigned int stateSizeScale = d_observeVelocities.getValue() ? 2 : 1;
+        unsigned int mappedStateSize = mappedObsState.size() / stateSizeScale;
+        if (mappedStateSize != inputObsState.size()) {
+            PRNE("Difference between mapped and input observation size: " << mappedObsState.size() << " vs " << inputObsState.size());
             return(false);
         }
 
-        for (size_t i = 0; i < mappedObsState.size(); i++)
+        for (size_t i = 0; i < mappedStateSize; i++)
             mappedObsState[i] = inputObsState[observationIndices[i]];
+
+        if (d_observeVelocities.getValue()) {
+            for (size_t i = 0; i < mappedStateSize; i++)
+                mappedObsState[mappedStateSize + i] = inputVelocityObsState[observationIndices[i]];
+        }
 
         for (size_t i = 0; i < mappedObsState.size(); i++) {
             for (size_t d = 0; d < 3; d++) {
@@ -238,6 +278,7 @@ bool MappedStateVelocityObservationManager<FilterType,DataTypes1,DataTypes2>::ha
                 actualObservation(3*i+d) = mappedObsState[i][d];                
             }
         }
+
     }
     return(true);
 }
@@ -259,14 +300,36 @@ bool MappedStateVelocityObservationManager<FilterType,DataTypes1,DataTypes2>::ge
     //stateWrapper->setSofaVectorFromFilterVector(_state, predictedMasterStateEdit);
     sofa::core::MechanicalParams mp;
 
-    sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > masterState = predictedMasterState;
+    //sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > masterState = predictedMasterState;
 
     mapping->apply(&mp, predictedMappedState, predictedMasterState);
 
     _predictedObservation.resize(this->observationSize);
     for (size_t i = 0; i < predictedMappedStateEdit.size(); i++)
         for (size_t d = 0; d < 3; d++)
-            _predictedObservation(3*i+d) = predictedMappedStateEdit[i][d];        
+            _predictedObservation(3*i+d) = predictedMappedStateEdit[i][d];
+
+    if (d_observeVelocities.getValue()) {
+        Data<typename DataTypes1::VecDeriv> predictedMasterVelocity;
+        Data<typename DataTypes2::VecDeriv> predictedMappedVelocity;
+
+        typename DataTypes1::VecDeriv& predictedMasterVelocityEdit = *predictedMasterVelocity.beginEdit();
+        typename DataTypes2::VecDeriv& predictedMappedVelocityEdit = *predictedMappedVelocity.beginEdit();
+
+        predictedMasterVelocityEdit.resize(masterState->getSize());
+        predictedMappedVelocityEdit.resize(mappedState->getSize());
+
+        stateWrapper->getActualVelocity(_id, predictedMasterVelocityEdit);
+        //stateWrapper->setSofaVectorFromFilterVector(_state, predictedMasterStateEdit);
+
+        sofa::helper::WriteAccessor< Data<typename DataTypes1::VecDeriv> > masterVelocity = predictedMasterVelocity;
+
+        mapping->applyJ(&mp, predictedMappedVelocity, predictedMasterVelocity);
+
+        for (size_t i = 0; i < predictedMappedVelocityEdit.size(); i++)
+            for (size_t d = 0; d < 3; d++)
+                _predictedObservation(predictedMappedStateEdit.size() + 3*i+d) = predictedMappedVelocityEdit[i][d];
+    }
 
     return true;
 }
@@ -312,6 +375,24 @@ bool MappedStateVelocityObservationManager<FilterType,DataTypes1,DataTypes2>::ge
         for (size_t i = 0; i < predictedMappedStateEdit.size(); i++)
             for (size_t d = 0; d < 3; d++)
                 _innovation(3*i+d) = actualObservation(3*i+d) - predictedMappedStateEdit[i][d];
+
+        if (d_observeVelocities.getValue()) {
+            Data<typename DataTypes1::VecDeriv> predictedMasterVelocity;
+            Data<typename DataTypes2::VecDeriv> predictedMappedVelocity;
+
+            typename DataTypes1::VecDeriv& predictedMasterVelocityEdit = *predictedMasterVelocity.beginEdit();
+            typename DataTypes2::VecDeriv& predictedMappedVelocityEdit = *predictedMappedVelocity.beginEdit();
+
+            predictedMasterVelocityEdit.resize(masterState->getSize());
+            predictedMappedVelocityEdit.resize(mappedState->getSize());
+
+            stateWrapper->setSofaVelocityFromFilterVector(_state, predictedMasterVelocityEdit);
+            mapping->applyJ(&mp, predictedMappedVelocity, predictedMasterVelocity);
+
+            for (size_t i = 0; i < predictedMappedVelocityEdit.size(); i++)
+                for (size_t d = 0; d < 3; d++)
+                    _innovation(predictedMappedStateEdit.size() + 3*i+d) = actualObservation(3*i+d) - predictedMappedVelocityEdit[i][d];
+        }
     }
 
     /// TEMPORARY: _state here is the predicted observation computed before

@@ -241,7 +241,7 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getPredict
     //stateWrapper->setSofaVectorFromFilterVector(_state, predictedMasterStateEdit);
     sofa::core::MechanicalParams mp;
 
-    sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > masterState = predictedMasterState;
+    //sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > masterState = predictedMasterState;
 
     mapping->apply(&mp, predictedMappedState, predictedMasterState);
 

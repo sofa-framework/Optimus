@@ -99,7 +99,9 @@ public:
 
     Data<typename DataTypes1::VecCoord> inputObservationData;
     Data<typename DataTypes1::VecDeriv> inputVelocityObservationData;
+    Data<typename DataTypes2::VecCoord> mappedObservationFullData;
     Data<typename DataTypes2::VecCoord> mappedObservationData;
+    Data<typename DataTypes2::VecDeriv> mappedObservationVelocityData;
     Data<double> noiseStdev;
     Data<int> abberantIndex;
     Data<bool> doNotMapObservations;

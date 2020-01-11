@@ -196,6 +196,7 @@ public:
     void setState(EVectorX& _state, const core::MechanicalParams* _mparams);
 
     void setSofaVectorFromFilterVector(EVectorX& _state, typename DataTypes::VecCoord& _vec);
+    void setSofaVelocityFromFilterVector(EVectorX& _state, typename DataTypes::VecDeriv& _vel);
 
     /// get the variance of error of the state
     virtual EMatrixX& getStateErrorVariance();
