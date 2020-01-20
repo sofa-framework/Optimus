@@ -105,6 +105,7 @@ public:
     Data<double> noiseStdev;
     Data<int> abberantIndex;
     Data<bool> doNotMapObservations;
+    Data<bool> d_observePositions;
     Data<bool> d_observeVelocities;
     Data<FilterType> d_velocityObservationStdev;
     Data<helper::vector<int> > d_observationIndices;
@@ -117,8 +118,6 @@ public:
     boost::normal_distribution<>* pNormDist;
     boost::variate_generator<boost::mt19937&, boost::normal_distribution<> >* pVarNorm;
     helper::vector<double> noise;
-
-
 
 }; /// class
 
