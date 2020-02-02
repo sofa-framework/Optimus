@@ -156,6 +156,8 @@ public:
 
     virtual void initializeStep(const core::ExecParams* _params, const size_t _step);
 
+    virtual void updateState() { }
+
 }; /// class
 
 template <class FilterType>

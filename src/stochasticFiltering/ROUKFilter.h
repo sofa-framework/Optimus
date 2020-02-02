@@ -158,6 +158,8 @@ public:
     virtual void computePerturbedStates(EVectorX &_meanState);
     virtual void computeCorrection();
 
+    virtual void updateState() { }
+
 }; /// class
 
 /**

@@ -44,13 +44,16 @@ OptimParams<DataTypes>::OptimParams(loader_t* mm)
     : OptimParamsBase()
     //, m_paramMOLink(initLink("parametricMechanicalObject", "link to a mechanical object which is considered as parameter (only for VecCoord3D)"))
     , m_paramMOLinkrigid(initLink("parametricMechanicalObjectRigid", "link to a mechanical object which is considered as parameter (only for Rigid)"))
-    , m_val( initData(&m_val, "value", "parameter value") )
-    , m_initVal( initData(&m_initVal, "initValue", "initial parameter value") )
-    , m_minVal( initData(&m_minVal, "minValue", "lower bound for parameter") )
-    , m_maxVal( initData(&m_maxVal, "maxValue", "higher bound for parameter") )
-    , m_stdev( initData(&m_stdev, "stdev", "standard variation") )
+    , m_addedVal(initData(&m_addedVal, "addedVal", "added parameters values"))
+    , m_addedMinVal(initData(&m_addedMinVal, "addedMinVal", "added minimal bound for parameters values"))
+    , m_addedMaxVal(initData(&m_addedMaxVal, "addedMaxVal", "added maximal bound for parameters values"))
+    , m_addedStd(initData(&m_addedStd, "addedStd", "added std values"))
+    , m_val(initData(&m_val, "value", "parameter value"))
+    , m_initVal(initData(&m_initVal, "initValue", "initial parameter value"))
+    , m_minVal(initData(&m_minVal, "minValue", "lower bound for parameter"))
+    , m_maxVal(initData(&m_maxVal, "maxValue", "higher bound for parameter"))
+    , m_stdev(initData(&m_stdev, "stdev", "standard variation"))
     , m_loader(initLink("loader", "loader for mechanical state for which we approximate stiffness of ALL elements"), mm)
-
 {    
 }
 
@@ -109,6 +112,7 @@ void OptimParams<helper::vector<double> >::bwdInit()
         }
     }
 }
+
 
 } // container
 } // component

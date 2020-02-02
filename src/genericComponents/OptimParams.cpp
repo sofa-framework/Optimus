@@ -105,6 +105,7 @@ void OptimParams<sofa::helper::vector<double> >::vectorToParams(VectorXd& _vecto
     std::cout << std::endl;*/
 }
 
+
 template<>
 void OptimParams<sofa::helper::vector<double> >::vectorToParams(VectorXf& _vector) {    
     helper::WriteAccessor<Data<helper::vector<double> > > val = m_val;
@@ -325,6 +326,65 @@ void OptimParams<sofa::helper::vector<double> >::init() {
     }
 }
 
+
+template<>
+void OptimParams<helper::vector<double> >::appendParameters()
+{
+    size_t numParams = this->m_dim * this->m_numParams.getValue();
+    std::cout << "Old number of parameters: " << numParams << std::endl;
+
+    // read added parameters
+    helper::ReadAccessor<Data<sofa::helper::vector<double> > > addedVal = m_addedVal;
+    helper::ReadAccessor<Data<sofa::helper::vector<double> > > addedMinVal = m_addedMinVal;
+    helper::ReadAccessor<Data<sofa::helper::vector<double> > > addedMaxVal = m_addedMaxVal;
+    helper::ReadAccessor<Data<sofa::helper::vector<double> > > addedStd = m_addedStd;
+
+    size_t newNumParams = addedVal.size() + this->m_dim * this->m_numParams.getValue();
+    std::cout << "Added values size: " << addedVal.size() << std::endl;
+    std::cout << "New number of parameters: " << newNumParams << std::endl;
+
+    helper::WriteAccessor<Data<sofa::helper::vector<double> > > val = m_val;
+    val.resize(newNumParams);
+    for (size_t i = numParams; i < newNumParams; i++)
+        val[i] = addedVal[i - numParams];
+
+    helper::WriteAccessor<Data<sofa::helper::vector<double> > > initVal = m_initVal;
+    initVal.resize(newNumParams);
+    for (size_t i = numParams; i < newNumParams; i++)
+        initVal[i] = addedVal[i - numParams];
+
+    helper::WriteAccessor<Data<sofa::helper::vector<double> > > minVal = m_minVal;
+    minVal.resize(newNumParams);
+    for (size_t i = numParams; i < newNumParams; i++)
+        minVal[i] = addedMinVal[i - numParams];
+
+    helper::WriteAccessor<Data<sofa::helper::vector<double> > > maxVal = m_maxVal;
+    maxVal.resize(newNumParams);
+    for (size_t i = numParams; i < newNumParams; i++)
+        maxVal[i] = addedMaxVal[i - numParams];
+
+    helper::WriteAccessor<Data<sofa::helper::vector<double> > > stdev = m_stdev;
+    stdev.resize(newNumParams);
+    for (size_t i = numParams; i < newNumParams; i++)
+        stdev[i] = addedStd[i - numParams];
+
+    m_numParams.setValue(newNumParams);
+}
+
+template<>
+void OptimParams<double>::appendParameters() { }
+
+template<>
+void OptimParams<Vec3d>::appendParameters() { }
+
+template<>
+void OptimParams<Vec3dTypes::VecDeriv>::appendParameters() { }
+
+template<>
+void OptimParams<Rigid3dTypes::VecDeriv>::appendParameters() { }
+
+
+
 template<>
 void OptimParams<sofa::helper::vector<double> >::handleEvent(core::objectmodel::Event *event) {
     if (dynamic_cast<sofa::simulation::AnimateBeginEvent *>(event))
@@ -443,7 +503,7 @@ template<>
 void OptimParams<Vec3dTypes::VecDeriv>::vectorToParams(VectorXd& _vector) {
     helper::WriteAccessor<Data<Vec3dTypes::VecDeriv> > waVal = m_val;
 
-    size_t numParams =  m_numParams.getValue();
+    size_t numParams = m_numParams.getValue();
     size_t k = 0;
     for (size_t i = 0; i < numParams; i++)
         for (size_t j = 0; j < this->m_dim ; j++, k++)

@@ -139,6 +139,7 @@ void sqrtMat(EMatrixX& A, EMatrixX& sqrtA);
     virtual void initializeStep(const core::ExecParams* _params, const size_t _step);
     void draw(const core::visual::VisualParams* vparams);
 
+    virtual void updateState() { }
 
 }; /// class
 

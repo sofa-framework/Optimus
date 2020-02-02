@@ -165,7 +165,8 @@ public:
     virtual void paramsToVector(VectorXf& _vector) = 0;
     virtual void paramsToVector(VectorXd& _vector) = 0;
 
-    virtual void getInitVariance(DVec& _variance) = 0;  /// provide variance as a vector of length given by the number of parameters    
+    virtual void getInitVariance(DVec& _variance) = 0;  /// provide variance as a vector of length given by the number of parameters
+    virtual void appendParameters() = 0;
 
 
     OptimParamsBase()
@@ -247,6 +248,8 @@ public:
     void reinit();
     void bwdInit(){}
 
+    virtual void appendParameters();
+
     typedef core::behavior::MechanicalState<defaulttype::Vec3dTypes> MechStateVec3d;
     typedef core::behavior::MechanicalState<defaulttype::Rigid3dTypes> MechStateRigid3d;
 
@@ -272,6 +275,10 @@ public:
     }
     static std::string templateName(const OptimParams<DataTypes>* = NULL) { std::string name = sofa::component::container::templateName<DataTypes>()(); return(name); }
 
+    Data< DataTypes > m_addedVal;      /// added parameters
+    Data< DataTypes > m_addedMinVal;   /// added minimal bound for parameters
+    Data< DataTypes > m_addedMaxVal;   /// added maximal bound for parameters
+    Data< DataTypes > m_addedStd;      /// added standart deviation
 
 protected:
     Data< DataTypes > m_val;            /// real actual value of parameters
@@ -279,6 +286,8 @@ protected:
     Data< DataTypes > m_minVal;
     Data< DataTypes > m_maxVal;
     Data< DataTypes > m_stdev;          /// standard deviation
+
+
 
     SingleLink<OptimParams<DataTypes>, loader_t, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> m_loader;
     std::vector<std::pair<double, DataTypes> > m_paramKeys;

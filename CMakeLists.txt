@@ -32,6 +32,8 @@ set(HEADER_FILES
     src/genericComponents/CorrectionForceField.inl
     src/genericComponents/TransformStochasticEngine.h
     src/genericComponents/TransformStochasticEngine.inl
+    src/genericComponents/FilteringUpdateEngine.h
+    src/genericComponents/FilteringUpdateEngine.inl
     src/genericComponents/StochasticPositionHandler.h
     src/genericComponents/StochasticPositionHandler.inl
     src/genericComponents/FilterEvents.h
@@ -51,6 +53,7 @@ set(SOURCE_FILES
 #    src/genericComponents/AddNoiseEngine.cpp
     src/genericComponents/CorrectionForceField.cpp
     src/genericComponents/TransformStochasticEngine.cpp
+    src/genericComponents/FilteringUpdateEngine.cpp
     src/genericComponents/StochasticPositionHandler.cpp
     src/genericComponents/FilterEvents.cpp
     src/genericComponents/VTKExporterDA.cpp

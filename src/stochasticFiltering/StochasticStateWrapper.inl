@@ -129,7 +129,7 @@ void StochasticStateWrapper<Rigid3dTypes, double>::stateDim(){
     }
     else {
         std::cout<<"[StochasticStateWrapper] Estimate 3Dof Position"<<std::endl;
-        posDim=3;
+        posDim = 3;
     }
     velDim = 6;
 }
@@ -334,6 +334,46 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
         colorB[i]= ((double) rand() / (RAND_MAX)) ;
     }
 }
+
+
+
+template <class DataTypes, class FilterType>
+void StochasticStateWrapper<DataTypes, FilterType>::updateState() {
+     size_t vsi = freeNodes.size() * posDim;
+     if (estimateVelocity.getValue()) {
+         vsi += freeNodes.size() * velDim;
+     }
+
+     size_t vpi = 0;
+     this->reducedStateIndex = vsi;
+     for (size_t pi = 0; pi < vecOptimParams.size(); pi++) {
+         helper::vector<size_t> opv;
+         for (size_t i = 0; i < vecOptimParams[pi]->size(); i++, vpi++) {
+             opv.push_back(this->reducedStateIndex+vpi);
+         }
+         vecOptimParams[pi]->setVStateParamIndices(opv);
+     }
+
+     this->stateSize = vsi + vpi;
+
+     this->reducedStateSize = vpi;
+
+     PRNS("Initializing stochastic state with size " << this->stateSize);
+     PRNS("Reduced state index: " << this->reducedStateIndex << " size: " << this->reducedStateSize);
+
+     this->state.resize(this->stateSize);
+     updateStateErrorVariance();
+     updateModelErrorVariance();
+     copyStateSofa2Filter();
+
+     color.resize(this->stateSize+1); //TRUE IF USING SIMPLEX SIGMA PTS
+     colorB.resize(color.size());
+     for(size_t i =0; i < color.size(); i++){
+         color[i]= ((double) rand() / (RAND_MAX)) ;
+         colorB[i]= ((double) rand() / (RAND_MAX)) ;
+     }
+}
+
 
 
 /// function called from observation manager when it needs to perform mapping (a more elegant solution could/should be found)
@@ -877,6 +917,52 @@ typename StochasticStateWrapper<DataTypes, FilterType>::EMatrixX& StochasticStat
     return this->stateErrorVariance;
 }
 
+
+template <class DataTypes, class FilterType>
+void StochasticStateWrapper<DataTypes, FilterType>::updateStateErrorVariance() {
+    PRNS("Constructing state co-variance matrix")
+    size_t oldStateVarianceSize = this->stateErrorVariance.rows();
+    this->stateErrorVariance.conservativeResize(this->stateSize, this->stateSize);
+
+    // set zeros to new added elements
+    for (size_t first_index = 0; first_index < this->stateErrorVariance.rows(); first_index++) {
+        for (size_t second_index = oldStateVarianceSize; second_index < this->stateErrorVariance.rows(); second_index++) {
+            this->stateErrorVariance(first_index, second_index) = 0.0;
+            this->stateErrorVariance(second_index, first_index) = 0.0;
+        }
+    }
+
+    size_t vsi = 0;
+    if (estimatePosition.getValue()) {
+        vsi += (size_t)this->positionVariance.size();
+    //     for (size_t index = 0; index < (size_t)this->positionVariance.size(); index++, vsi++) {
+    //         this->stateErrorVariance(vsi,vsi) = this->positionVariance[index];
+    //     }
+    }
+
+    /// vsi continues to increase since velocity is always after position
+    if (estimateVelocity.getValue()) {
+        vsi += (size_t)this->velocityVariance.size();
+    //     for (size_t index = 0; index < (size_t)this->velocityVariance.size(); index++, vsi++) {
+    //         this->stateErrorVariance(vsi,vsi) = this->velocityVariance[index];
+    //     }
+    }
+
+    for (size_t opi = 0; opi < this->vecOptimParams.size(); opi++) {
+        helper::vector<double> variance;
+        this->vecOptimParams[opi]->getInitVariance(variance);
+
+        for (size_t pi = 0; pi < this->vecOptimParams[opi]->size(); pi++, vsi++)
+            if (vsi >= oldStateVarianceSize) {
+                this->stateErrorVariance(vsi,vsi) = variance[pi];
+            }
+    }
+
+    std::cout << "stateErrorVariance: " << this->stateErrorVariance << std::endl;
+    //std::cout << "P0: " << this->stateErrorVariance << std::endl;
+}
+
+
 template <class DataTypes, class FilterType>
 typename StochasticStateWrapper<DataTypes, FilterType>::EMatrixX& StochasticStateWrapper<DataTypes, FilterType>::getModelErrorVariance() {
     if (this->modelErrorVariance.rows() == 0) {
@@ -960,6 +1046,22 @@ typename StochasticStateWrapper<DataTypes, FilterType>::EMatrixX& StochasticStat
     }
     return this->modelErrorVariance;
 
+}
+
+
+template <class DataTypes, class FilterType>
+void StochasticStateWrapper<DataTypes, FilterType>::updateModelErrorVariance() {
+    PRNS("Constructing state co-variance matrix")
+    size_t oldModelVarianceSize = this->stateErrorVariance.rows();
+    modelErrorVariance.conservativeResize(this->stateSize, this->stateSize);
+
+    // set zeros to new added elements
+    for (size_t first_index = 0; first_index < modelErrorVariance.rows(); first_index++) {
+        for (size_t second_index = oldModelVarianceSize; second_index < modelErrorVariance.rows(); second_index++) {
+            modelErrorVariance(first_index, second_index) = 0.0;
+            modelErrorVariance(second_index, first_index) = 0.0;
+        }
+    }
 }
 
 template <class DataTypes, class FilterType>

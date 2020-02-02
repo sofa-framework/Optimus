@@ -128,6 +128,8 @@ public:
     virtual void computePrediction() = 0;
     virtual void computeCorrection() = 0;
 
+    // change filter state
+    virtual void updateState() = 0;
 
 }; /// class
 

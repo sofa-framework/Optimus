@@ -176,6 +176,8 @@ public:
     void init();
     void bwdInit();
 
+    virtual void updateState();
+
     /// function to prepare data used during prediction and correction phase
     void initializeStep(size_t _stepNumber);
 
@@ -200,7 +202,9 @@ public:
 
     /// get the variance of error of the state
     virtual EMatrixX& getStateErrorVariance();
+    void updateStateErrorVariance();
     virtual EMatrixX& getModelErrorVariance();
+    void updateModelErrorVariance();
 
     /// get the state error variant for the reduced order filters (stdev^2 of the parameters being estimated)
     virtual EMatrixX& getStateErrorVarianceReduced();

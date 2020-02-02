@@ -149,6 +149,8 @@ public:
         Inherit::init();
     }
 
+    virtual void updateState() { }
+
     /// function required by classical and reduced-order filters (preform simulation -> compute new sigma state)
     virtual void transformState(EVectorX& _vecX, const core::MechanicalParams* mparams,  int* _stateID = nullptr) = 0;
     virtual void lastApplyOperator(EVectorX& _vecX, const core::MechanicalParams* mparams) = 0;
@@ -188,11 +190,11 @@ public:
         return declaredMappedState;
     }
 
-    virtual EMatrixX& getModelErrorVariance() {
-        return modelErrorVariance;
-    }
     virtual EMatrixX& getStateErrorVariance() {
         return stateErrorVariance;
+    }
+    virtual EMatrixX& getModelErrorVariance() {
+        return modelErrorVariance;
     }
 
     virtual EMatrixX& getStateErrorVarianceDevUKF() {
