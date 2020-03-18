@@ -14,6 +14,7 @@ general_parameters:
     boundary_conditions_list:
         - condition_type: "fixed"   # options are "fixed" and "elastic"
           boxes_coordinates: "-0.05 -0.05 -0.002 0.05 0.05 0.002   -0.05 -0.05 0.298 0.05 0.05 0.302"
+          spring_stiffness_values: "25"
 
 obs_generating_parameters:
     object_young_moduli: "1500 4000"
@@ -24,7 +25,7 @@ filtering_parameters:
     output_directory_suffix: "_forceField385BenchMarkTest_init500"
     output_files_suffix: "test"
     optim_params_size: 2
-    filter_kind: "ROUKF"   # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
+    filter_kind: "UKFSimCorr"   # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
     use_unbiased_variance: "0"
     initial_stiffness: [500, 500]
     minimal_stiffness: [300, 300]
@@ -32,17 +33,24 @@ filtering_parameters:
     initial_standart_deviation: 500
     observation_noise_standart_deviation: 1e-3
     positions_standart_deviation: 1e-3
+    model_standart_deviation: 1e-5
     transform_parameters: absolute
     sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
-    sigma_points_scale: 1
+    sigma_points_scale: 0.4
     save_state: 1
     save_internal_data: 1
 
 impact_parameters:
     external_force_bound: "-0.01 -0.03 0.11 0.01 0.01 0.12"
+    external_force_value: [0.0, -1.0, 0.0]
     reverse_force_bound: "-0.01 -0.01 0.11 0.01 0.03 0.12" 
+    reverse_force_value: [0.0, 1.0, 0.0]
+    period_in_iterations: 80
 
 time_parameters:
     computation_time_file_name: "computationTime.txt"
+
+collision_parameters:
+    collision_plane: 1
 ...
 

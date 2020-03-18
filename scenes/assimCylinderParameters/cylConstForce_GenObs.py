@@ -111,7 +111,7 @@ class cylConstForce_GenObs (Sofa.PythonScriptController):
         simuNode.createObject('BoxROI', name='forceBounds', box=self.options['impact_parameters']['external_force_bound'], doUpdate='0')
         self.constantForce = simuNode.createObject('ConstantForceField', name='appliedForce', indices='@forceBounds.indices', totalForce='0.0 0.0 0.0')
         simuNode.createObject('BoxROI', name='oppForceBounds', box=self.options['impact_parameters']['reverse_force_bound'], doUpdate='0')
-        self.oppositeConstantForce = simuNode.createObject('ConstantForceField', name='oppAppliedForce', indices='@oppForceBounds.indices', totalForce='0.0 1.0 0.0')
+        self.oppositeConstantForce = simuNode.createObject('ConstantForceField', name='oppAppliedForce', indices='@oppForceBounds.indices', totalForce=self.options['impact_parameters']['reverse_force_value'])
         
 
         return 0;
@@ -122,13 +122,13 @@ class cylConstForce_GenObs (Sofa.PythonScriptController):
         if self.iterations == 0:
             self.forceIndex = (self.forceIndex + 1) % 2
             if self.forceIndex == 0:
-                self.constantForce.findData('totalForce').value = [0.0, -1.0, 0.0]
+                self.constantForce.findData('totalForce').value = self.options['impact_parameters']['external_force_value']
                 self.oppositeConstantForce.findData('totalForce').value = [0.0, 0.0, 0.0]
             elif self.forceIndex == 1:
                 self.constantForce.findData('totalForce').value = [0.0, 0.0, 0.0]
-                self.oppositeConstantForce.findData('totalForce').value = [0.0, 1.0, 0.0]
+                self.oppositeConstantForce.findData('totalForce').value = self.options['impact_parameters']['reverse_force_value']
             
-            self.iterations = 80
+            self.iterations = self.options['impact_parameters']['period_in_iterations']
 
         return 0;
 
