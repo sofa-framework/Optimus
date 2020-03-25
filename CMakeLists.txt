@@ -1,18 +1,22 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.1)
 project(Optimus)
 
-set(OPTIMUS_MAJOR_VERSION 0)
+set(OPTIMUS_MAJOR_VERSION 1)
 set(OPTIMUS_MINOR_VERSION 1)
 set(OPTIMUS_VERSION ${OPTIMUS_MAJOR_VERSION}.${OPTIMUS_MINOR_VERSION})
 
 find_package(SofaFramework REQUIRED)
 find_package(SofaBase REQUIRED)
 find_package(SofaGeneral REQUIRED)
+find_package(SofaMisc REQUIRED)
+find_package(SofaExporter REQUIRED)
+find_package(SofaPython REQUIRED)
+
 
 set(LINKER_DEPENDENCIES SofaComponentBase SofaComponentGeneral SofaBaseTopology SofaExporter blas pthread)
 set(COMPILATION_FLAGS "-DSOFA_BUILD_OPTIMUS -Wno-unused-local-typedef -Wno-deprecated")
 
-set ( STOCHASTIC_FILTERING "1" CACHE BOOL "Set to activate the compilation the new filtering module replacing Verdandi" )
+set ( STOCHASTIC_FILTERING "1" CACHE BOOL "Set to activate the compilation the new filtering module replacing Verdandi" FORCE)
 
 set(HEADER_FILES
     src/initOptimusPlugin.h
