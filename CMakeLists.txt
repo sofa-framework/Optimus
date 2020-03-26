@@ -5,12 +5,14 @@ set(OPTIMUS_MAJOR_VERSION 1)
 set(OPTIMUS_MINOR_VERSION 1)
 set(OPTIMUS_VERSION ${OPTIMUS_MAJOR_VERSION}.${OPTIMUS_MINOR_VERSION})
 
+# set Qt5 directory
+set(Qt5_DIR /opt/Qt/5.12.7/gcc_64/lib/cmake/Qt5)
+
 find_package(SofaFramework REQUIRED)
 find_package(SofaBase REQUIRED)
 find_package(SofaGeneral REQUIRED)
 find_package(SofaMisc REQUIRED)
 find_package(SofaExporter REQUIRED)
-find_package(SofaPython REQUIRED)
 
 
 set(LINKER_DEPENDENCIES SofaComponentBase SofaComponentGeneral SofaBaseTopology SofaExporter blas pthread)
