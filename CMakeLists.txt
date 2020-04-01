@@ -5,6 +5,10 @@ set(OPTIMUS_MAJOR_VERSION 1)
 set(OPTIMUS_MINOR_VERSION 1)
 set(OPTIMUS_VERSION ${OPTIMUS_MAJOR_VERSION}.${OPTIMUS_MINOR_VERSION})
 
+# required standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 # set Qt5 directory
 set(Qt5_DIR /opt/Qt/5.12.7/gcc_64/lib/cmake/Qt5)
 
@@ -15,7 +19,7 @@ find_package(SofaMisc REQUIRED)
 find_package(SofaExporter REQUIRED)
 
 
-set(LINKER_DEPENDENCIES SofaComponentBase SofaComponentGeneral SofaBaseTopology SofaExporter blas pthread)
+set(LINKER_DEPENDENCIES SofaComponentBase SofaComponentGeneral SofaBoundaryCondition SofaBaseTopology SofaExporter blas pthread)
 set(COMPILATION_FLAGS "-DSOFA_BUILD_OPTIMUS -Wno-unused-local-typedef -Wno-deprecated")
 
 set ( STOCHASTIC_FILTERING "1" CACHE BOOL "Set to activate the compilation the new filtering module replacing Verdandi" FORCE)
