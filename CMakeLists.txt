@@ -15,6 +15,8 @@ set(Qt5_DIR /opt/Qt/5.12.7/gcc_64/lib/cmake/Qt5)
 find_package(SofaFramework REQUIRED)
 find_package(SofaBase REQUIRED)
 find_package(SofaGeneral REQUIRED)
+find_package(SofaComponentBase REQUIRED)
+find_package(SofaComponentGeneral REQUIRED)
 find_package(SofaMisc REQUIRED)
 find_package(SofaExporter REQUIRED)
 
