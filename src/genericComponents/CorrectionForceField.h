@@ -29,6 +29,7 @@
 #include <sofa/core/objectmodel/Data.h>
 #include <sofa/helper/vector.h>
 #include <SofaBaseTopology/TopologySubsetData.h>
+#include <SofaBaseTopology/TopologySubsetData.inl>
 #include <sofa/simulation/AnimateBeginEvent.h>
 #include <sofa/simulation/AnimateEndEvent.h>
 #include <sofa/core/objectmodel/Event.h>
@@ -85,27 +86,27 @@ public:
         CorrectionForceField();
 public:
     /// BaseObject initialization method.
-    void bwdInit();
+    void bwdInit() override;
 
     /// Add the forces.
-    virtual void addForce(const core::MechanicalParams* /* mparams */, DataVecDeriv& f, const DataVecCoord& /* x */, const DataVecDeriv& /* v */);
+    virtual void addForce(const core::MechanicalParams* /* mparams */, DataVecDeriv& f, const DataVecCoord& /* x */, const DataVecDeriv& /* v */) override;
 
-    virtual void addDForce(const core::MechanicalParams* /* mparams */, DataVecDeriv& /* df */, const DataVecDeriv& /* dx */);
+    virtual void addDForce(const core::MechanicalParams* /* mparams */, DataVecDeriv& /* df */, const DataVecDeriv& /* dx */) override;
 
     /// Brings ForceField contribution to the global system stiffness matrix.
-    virtual void addKToMatrix(const core::MechanicalParams* /* mparams */, const sofa::core::behavior::MultiMatrixAccessor* /* matrix */);
+    virtual void addKToMatrix(const core::MechanicalParams* /* mparams */, const sofa::core::behavior::MultiMatrixAccessor* /* matrix */) override;
 
-    virtual SReal getPotentialEnergy(const core::MechanicalParams* /*mparams*/, const DataVecCoord&  /* x */) const
+    virtual SReal getPotentialEnergy(const core::MechanicalParams* /*mparams*/, const DataVecCoord&  /* x */) const override
     {
         serr << "Get potentialEnergy not implemented" << sendl;
         return 0.0;
     }
 
 
-    virtual void draw(const core::visual::VisualParams* /* vparams */);
+    virtual void draw(const core::visual::VisualParams* /* vparams */) override;
      void plusF();
      void minusF();
-    void handleEvent(sofa::core::objectmodel::Event *event);
+    void handleEvent(sofa::core::objectmodel::Event *event) override;
 
     helper::vector<bool> m_active;
 
