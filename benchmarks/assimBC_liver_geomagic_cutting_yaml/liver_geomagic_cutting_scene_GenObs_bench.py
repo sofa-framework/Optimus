@@ -138,7 +138,7 @@ class liver_geomagicControlPoint_GenObs (Sofa.PythonScriptController):
             simuNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.options['system_parameters']['observation_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0')
 
         visuNode = simuNode.createChild('visu')
-        visuNode.createObject('OglModel', name='VisualModel', material="texture Ambient 1 0.5 0.5 0.5 1.0 Diffuse 1 1.0 1.0 1.0 1.0", fileMesh='../../data/liver/liver-smooth.obj')
+        visuNode.createObject('OglModel', name='VisualModel', material="texture Ambient 1 0.5 0.5 0.5 1.0 Diffuse 1 1.0 1.0 1.0 1.0", fileMesh='../../data/baseLiver/baseLiver_surface.obj')
         visuNode.createObject('BarycentricMapping', name='VisualMapping', input='@../Volume', output='@VisualModel')
 
         return 0
