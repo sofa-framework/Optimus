@@ -29,6 +29,8 @@ set ( STOCHASTIC_FILTERING "1" CACHE BOOL "Set to activate the compilation the n
 set(HEADER_FILES
     src/initOptimusPlugin.h
     src/genericComponents/TimeProfiling.h
+    src/genericComponents/ShowSpheres.h
+    src/genericComponents/ShowSpheres.inl
     src/genericComponents/OptimParams.h
     src/genericComponents/OptimParams.inl
     src/genericComponents/PointProjection.h
@@ -53,11 +55,14 @@ set(HEADER_FILES
     src/genericComponents/SigmaPointsVTKExporter.h
     src/genericComponents/OptimMonitor.h
     src/genericComponents/OptimMonitor.inl
-
+    src/genericComponents/StepPCGLinearSolver.h
+    src/genericComponents/forceFields/ExtendedRestShapeSpringForceField.h
+    src/genericComponents/forceFields/ExtendedRestShapeSpringForceField.inl
     )
 
 set(SOURCE_FILES
     src/initOptimusPlugin.cpp
+    src/genericComponents/ShowSpheres.cpp
     src/genericComponents/OptimParams.cpp
     src/genericComponents/PointProjection.cpp
     src/genericComponents/SimulatedStateObservationSource.cpp
@@ -71,6 +76,8 @@ set(SOURCE_FILES
     src/genericComponents/VTKExporterDA.cpp
     src/genericComponents/SigmaPointsVTKExporter.cpp
     src/genericComponents/OptimMonitor.cpp
+    src/genericComponents/StepPCGLinearSolver.cpp
+    src/genericComponents/forceFields/ExtendedRestShapeSpringForceField.cpp
     )
 
 set(README_FILES 

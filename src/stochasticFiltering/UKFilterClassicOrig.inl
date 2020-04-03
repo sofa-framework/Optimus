@@ -52,11 +52,11 @@ void UKFilterClassicOrig<FilterType>::computePrediction()
     if (hasObs) {
         // std::cout<<"\n HAS OBS: =" << hasObs << " COMPUTE PREDICTION" << std::endl;
         PRNS("Computing prediction, T= " << this->actualTime  << " ======");
-        std::cout << "Computing prediction, T= " << this->actualTime  << " ======" << std::endl;
+        //std::cout << "Computing prediction, T= " << this->actualTime  << " ======" << std::endl;
         /// Computes background error variance Cholesky factorization.
         Eigen::LLT<EMatrixX> lltU(stateCovar);
         EMatrixX matPsqrt = lltU.matrixL();
-        std::cout << "matPsqrt: " << matPsqrt << std::endl;
+        //std::cout << "matPsqrt: " << matPsqrt << std::endl;
 
         ///// Computes Square Root with SVD --- Raffaella's modification instead of Cholesky factorization
         //EMatrixX matPsqrt(stateSize,stateSize);
@@ -71,11 +71,11 @@ void UKFilterClassicOrig<FilterType>::computePrediction()
             matXi.col(i) = stateExp + matPsqrt * matI.row(i).transpose();
         }
 
-        std::cout << "matXi: " << matXi << std::endl;
+        //std::cout << "matXi: " << matXi << std::endl;
         /// Propagate sigma points
         genMatXi=matXi.transpose();
         computePerturbedStates();
-        std::cout << "matXi: " << matXi << std::endl;
+        //std::cout << "matXi: " << matXi << std::endl;
 
         /// Compute Predicted Mean
         stateExp.fill(FilterType(0.0));
@@ -165,7 +165,7 @@ void UKFilterClassicOrig<FilterType>::computeCorrection()
         /// Compute Predicted Observations
         for (size_t i = 0; i < sigmaPointsNum; i++) {
             observationManager->getPredictedObservation(m_sigmaPointObservationIndexes[i],  zCol);
-            std::cout << "zCol: " << zCol << std::endl;
+            //std::cout << "zCol: " << zCol << std::endl;
             matZmodel.col(i) = zCol;
             predObsExp = predObsExp + zCol * vecAlpha(i);
         }
@@ -183,14 +183,14 @@ void UKFilterClassicOrig<FilterType>::computeCorrection()
         //EMatrixX covPxz = (centeredCx.adjoint() * centeredCz) / double(centeredCx.rows() );
         EMatrixX weightedCenteredCz = centeredCz.array().colwise() * vecAlphaVar.array();
         EMatrixX covPxz = (centeredCx.adjoint() * weightedCenteredCz);
-        std::cout << "covPxz: " << covPxz << std::endl;
+        //std::cout << "covPxz: " << covPxz << std::endl;
 
         /// Compute Observation Covariance
         matPxz=covPxz;
         //EMatrixX covPzz = (centeredCz.adjoint() * centeredCz) / double(centeredCz.rows() );
         EMatrixX covPzz = (centeredCz.adjoint() * weightedCenteredCz);
         matPz = obsCovar + covPzz;
-        std::cout << "matPz: " << matPz << std::endl;
+        //std::cout << "matPz: " << matPz << std::endl;
 
         /// Compute Kalman Gain
         EMatrixX matK(stateSize, observationSize);
@@ -200,17 +200,19 @@ void UKFilterClassicOrig<FilterType>::computeCorrection()
         /// Compute Innovation
         EVectorX innovation(observationSize);
         observationManager->getInnovation(this->actualTime, predObsExp, innovation);
-        std::cout << "Innovation: " << innovation << std::endl;
+        //std::cout << "Innovation: " << innovation << std::endl;
 
         /// Compute Final State and Final Covariance
         stateExp = stateExp + matK * innovation;
-        std::cout << "matK: " << matK << std::endl;
+        //std::cout << "matK: " << matK << std::endl;
         stateCovar = stateCovar - matK*matPxz.transpose();
 
         for (size_t i = 0; i < (size_t)stateCovar.rows(); i++) {
             diagStateCov(i)=stateCovar(i,i);
         }
 
+        //std::cout << "FINAL STATE X(n+1)+n: " << stateExp.transpose() << std::endl;
+        //std::cout << "FINAL COVARIANCE DIAGONAL P(n+1)+n: " << diagStateCov.transpose() << std::endl;
         PRNS("FINAL STATE X(n+1)+n: \n" << stateExp.transpose());
         PRNS("FINAL COVARIANCE DIAGONAL P(n+1)+n:  \n" << diagStateCov.transpose());
 
@@ -335,7 +337,7 @@ void UKFilterClassicOrig<FilterType>::bwdInit() {
     assert(masterStateWrapper);
 
     stateSize = masterStateWrapper->getStateSize();
-    std::cout<< "[UKF] stateSize " << stateSize << std::endl;
+    //std::cout<< "[UKF] stateSize " << stateSize << std::endl;
     //PRNS("StateSize " << stateSize);
 
     /// Initialize Observation's data
@@ -409,7 +411,7 @@ template <class FilterType>
 void UKFilterClassicOrig<FilterType>::updateState() {
 
     stateSize = masterStateWrapper->getStateSize();
-    std::cout<< "new [UKF] stateSize " << stateSize << std::endl;
+    //std::cout<< "new [UKF] stateSize " << stateSize << std::endl;
     //PRNS("StateSize " << stateSize);
 
     /// Initialize Model's Error Covariance
@@ -419,9 +421,11 @@ void UKFilterClassicOrig<FilterType>::updateState() {
     for (size_t i = 0; i < (size_t)stateCovar.rows(); i++) {
         diagStateCov(i)=stateCovar(i,i);
     }
+    //std::cout<< "INIT COVARIANCE DIAGONAL P(n+1)+n: " << diagStateCov.transpose() << std::endl;
     PRNS(" INIT COVARIANCE DIAGONAL P(n+1)+n:  \n" << diagStateCov.transpose());
 
     modelCovar = masterStateWrapper->getModelErrorVariance();
+    //std::cout<< "Model covariance: " << modelCovar << std::endl;
     PRNS(" INIT COVARIANCE DIAGONAL P(n+1)+n:  \n" << modelCovar);
 
     stateExp = masterStateWrapper->getState();
@@ -536,6 +540,10 @@ void UKFilterClassicOrig<FilterType>::computeSimplexSigmaPoints(EMatrixX& sigmaM
     alphaVar = (this->useUnbiasedVariance.getValue()) ? Type(1.0)/Type(r-1) : Type(1.0)/Type(r);
     vecAlphaVar.resize(r);
     vecAlphaVar.fill(alphaVar);
+    //PRNS("sigmaMat: \n" << sigmaMat);
+    //PRNS("vecAlphaVar: \n" << vecAlphaVar);
+    //std::cout<< "Sigma mat: " << sigmaMat << std::endl;
+    //std::cout<< "vecAlphaVar: " << vecAlphaVar << std::endl;
 }
 
 template <class FilterType>
@@ -573,6 +581,8 @@ void UKFilterClassicOrig<FilterType>::computeStarSigmaPoints(EMatrixX& sigmaMat)
     vecAlphaVar(2 * p) = Type(lambda) / Type(p + lambda);
     //PRNS("sigmaMat: \n" << sigmaMat);
     //PRNS("vecAlphaVar: \n" << vecAlphaVar);
+    //std::cout<< "Sigma mat: " << sigmaMat << std::endl;
+    //std::cout<< "vecAlphaVar: " << vecAlphaVar << std::endl;
 }
 
 template <class FilterType>
