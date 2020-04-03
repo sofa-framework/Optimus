@@ -9,8 +9,7 @@ __file = __file__.replace('\\', '/') # windows
 def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', pluginName='Optimus')
     rootNode.createObject('RequiredPlugin', pluginName='SofaPardisoSolver')
-    rootNode.createObject('RequiredPlugin', pluginName='ImageMeshAux')
-    #rootNode.createObject('RequiredPlugin', pluginName='SofaMJEDFEM')
+    rootNode.createObject('RequiredPlugin', name='BoundaryConditions', pluginName="BoundaryConditionsPlugin")
     
     rootNode.createObject('PythonScriptController', name='SynthBCDA', filename=__file, classname='synth1_BCDA')
 

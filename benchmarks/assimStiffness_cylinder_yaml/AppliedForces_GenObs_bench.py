@@ -11,9 +11,8 @@ __file = __file__.replace('\\', '/') # windows
 def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
     rootNode.createObject('RequiredPlugin', name='Pardiso', pluginName='SofaPardisoSolver')
-    rootNode.createObject('RequiredPlugin', name='IMAUX', pluginName='ImageMeshAux')
-    # rootNode.createObject('RequiredPlugin', name='MJED', pluginName='SofaMJEDFEM')
-    
+    rootNode.createObject('RequiredPlugin', name='BoundaryConditions', pluginName="BoundaryConditionsPlugin")
+
     try : 
         sys.argv[0]
     except :
