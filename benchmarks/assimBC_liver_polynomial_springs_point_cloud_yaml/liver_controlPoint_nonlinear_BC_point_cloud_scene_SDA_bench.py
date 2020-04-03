@@ -156,7 +156,7 @@ class liver_controlPoint_SDA(Sofa.PythonScriptController):
     def createCommonComponents(self, node):
         #node.createObject('StaticSolver', applyIncrementFactor="0")
         if self.options['general_parameters']['solver_kind'] == 'Euler':
-            node.createObject('EulerImplicitSolver', vdamping='5.0', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'])
+            node.createObject('EulerImplicitSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'])
         elif self.options['general_parameters']['solver_kind'] == 'Symplectic':
             node.createObject('VariationalSymplecticSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'], newtonError='1e-12', steps='1', verbose='0')
         elif self.options['general_parameters']['solver_kind'] == 'Newton':

@@ -55,7 +55,7 @@ class synth1_GenObs (Sofa.PythonScriptController):
         simuNode.activated = 'true'
         # simuNode.createObject('EulerImplicitSolver', firstOrder="0")
         # simuNode.createObject('EulerImplicitSolver', rayleighStiffness='0.1', rayleighMass='0.1')
-        simuNode.createObject('NewtonStaticSolver', maxIt='3', name='NewtonStatic', correctionTolerance='1e-8', convergeOnResidual='1', residualTolerance='1e-8', printLog='0')
+        simuNode.createObject('StaticSolver', name="NewtonStatic", printLog="0", correction_tolerance_threshold="1e-8", residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations="3")
         # simuNode.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
         # simuNode.createObject('StaticSolver')
         simuNode.createObject('SparsePARDISOSolver', symmetric='1', exportDataToFolder='', name='precond', iterativeSolverNumbering='1')
@@ -76,7 +76,7 @@ class synth1_GenObs (Sofa.PythonScriptController):
         mu=E/(2+2*nu)
         materialParams='{} {}'.format(mu,lamb)
         #simuNode.createObject('MJEDTetrahedralForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=materialParams)        
-        simuNode.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=materialParams)
+        simuNode.createObject('TetrahedronHyperelasticityFEMForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=materialParams)
         
         # simuNode.createObject('TetrahedronFEMForceField', name='FEM', youngModulus=E, poissonRatio=nu, computeVonMisesStress='0', method='large')
         # simuNode.createObject('FastTetrahedralCorotationalForceField', name='FEM', youngModulus=E, poissonRatio=nu)    

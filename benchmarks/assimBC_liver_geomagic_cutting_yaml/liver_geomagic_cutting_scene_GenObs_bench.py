@@ -44,7 +44,6 @@ class liver_geomagicControlPoint_GenObs (Sofa.PythonScriptController):
 
     def __init__(self, rootNode, options):
         self.options = options
-        self.vdamping = 5.0
         self.iterations = 1200
 
         rootNode.findData('dt').value = options['general_parameters']['delta_time']
@@ -63,7 +62,7 @@ class liver_geomagicControlPoint_GenObs (Sofa.PythonScriptController):
         # rootNode/externalImpact
         dotNode = rootNode.createChild('dotNode')
         self.dotNode = dotNode
-        dotNode.createObject('EulerImplicitSolver', firstOrder='false', vdamping=self.vdamping, rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'])
+        dotNode.createObject('EulerImplicitSolver', firstOrder='false', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'])
         dotNode.createObject('CGLinearSolver', iterations='25', tolerance='1e-5', threshold='1e-5')
         dotNode.createObject('GeomagicEmulator', name='GeomagicDevice', positionFilename='geomagicObservations/geomagic_x.txt', buttonFilename='geomagicObservations/listener.txt')
         dotNode.createObject('MechanicalObject', template='Rigid', name='GeomagicMO', position='@GeomagicDevice.positionDevice')
@@ -83,7 +82,7 @@ class liver_geomagicControlPoint_GenObs (Sofa.PythonScriptController):
         simuNode = rootNode.createChild('simuNode')
         self.simuNode = simuNode
         if self.options['general_parameters']['solver_kind'] == 'Euler':
-            simuNode.createObject('EulerImplicitSolver', firstOrder='false', vdamping=self.vdamping, rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'])
+            simuNode.createObject('EulerImplicitSolver', firstOrder='false', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'])
         elif self.options['general_parameters']['solver_kind'] == 'Symplectic':
             simuNode.createObject('VariationalSymplecticSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'], newtonError='1e-12', steps='1', verbose='0')
         elif self.options['general_parameters']['solver_kind'] == 'Newton':

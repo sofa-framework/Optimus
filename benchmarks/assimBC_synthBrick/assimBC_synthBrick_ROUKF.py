@@ -105,7 +105,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         #node.createObject('SparsePARDISOSolver')        
 
         # node.createObject('EulerImplicitSolver', rayleighStiffness='0.1', rayleighMass='0.1')
-        node.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")   
+        node.createObject('StaticSolver', name="NewtonStatic", printLog="0", correction_tolerance_threshold="1e-8", residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations="3")
         # node.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
         node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
 
@@ -125,7 +125,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
             showIndicesScale='0', springThickness="3", listening="1", updateStiffness="1", printLog="0")
         node.createObject('ColorMap',colorScheme="Blue to Red")                                                                  
         #node.createObject('MJEDTetrahedralForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=self.materialParams)
-        node.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=self.materialParams)
+        node.createObject('TetrahedronHyperelasticityFEMForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=self.materialParams)
         # node.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus="1e5", poissonRatio="0.45", method="large")
 
         #node.createObject('BoxROI', name='fixedBoxA', box='-0.001 -0.001 -0.011 0.003 0.001 0.001', drawBoxes='0')
