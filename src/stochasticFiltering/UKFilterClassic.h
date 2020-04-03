@@ -115,8 +115,8 @@ public:
     Data< double  > d_MOnodes_draw;
     double m_omega;
     bool hasObs;
-    void init();
-    void bwdInit();
+    void init() override;
+    void bwdInit() override;
 
     /*virtual std::string getTemplateName() const override
     {
@@ -133,13 +133,13 @@ public:
 void sqrtMat(EMatrixX& A, EMatrixX& sqrtA);
     virtual void computePerturbedStates();
 
-    virtual void computePrediction(); // Compute perturbed state included in computeprediction
-    virtual void computeCorrection();
+    virtual void computePrediction() override; // Compute perturbed state included in computeprediction
+    virtual void computeCorrection() override;
 
-    virtual void initializeStep(const core::ExecParams* _params, const size_t _step);
-    void draw(const core::visual::VisualParams* vparams);
+    virtual void initializeStep(const core::ExecParams* _params, const size_t _step) override;
+    void draw(const core::visual::VisualParams* vparams) override;
 
-    virtual void updateState() { }
+    virtual void updateState() override { }
 
 }; /// class
 

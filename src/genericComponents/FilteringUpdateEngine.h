@@ -76,15 +76,15 @@ public:
     // found planes
     sofa::simulation::Node* gnode;
     
-    void init();
+    void init() override;
 
-    void bwdInit();
+    void bwdInit() override;
 
-    void reinit() {
+    void reinit() override {
 
     }
 
-    void handleEvent(sofa::core::objectmodel::Event* event);
+    void handleEvent(sofa::core::objectmodel::Event* event) override;
     
     //virtual std::string getTemplateName() const override
     //{

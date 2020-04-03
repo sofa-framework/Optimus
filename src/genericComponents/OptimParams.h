@@ -179,7 +179,7 @@ public:
         , m_interpolateSmooth( initData(&m_interpolateSmooth, true, "interpolateSmooth", "use hyperbolic tangent to interpolate the parameters (linear interpolation if false") )        
     {}
 
-    void init() {       
+    void init() override {
         if (!m_prescribedParamKeys.getValue().empty()) {
             if (m_optimize.getValue()) {
                 std::cout << this->getName() << ": WARNING: parameters can be either optimized or prescribed, optimization set to false" << std::endl;
@@ -244,11 +244,11 @@ public:
 
     OptimParams(loader_t* = NULL);
     ~OptimParams();
-    void init();
-    void reinit();
-    void bwdInit(){}
+    void init() override;
+    void reinit() override;
+    void bwdInit() override {}
 
-    virtual void appendParameters();
+    virtual void appendParameters() override;
 
     typedef core::behavior::MechanicalState<defaulttype::Vec3dTypes> MechStateVec3d;
     typedef core::behavior::MechanicalState<defaulttype::Rigid3dTypes> MechStateRigid3d;
@@ -258,7 +258,7 @@ public:
     SingleLink<OptimParams<DataTypes>, MechStateRigid3d, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> m_paramMOLinkrigid;
     //MechStateVec3d* paramMO;
     MechStateRigid3d* paramMOrigid;
-    void getInitVariance(DVec& /*_variance*/)  {}    
+    void getInitVariance(DVec& /*_variance*/) override {}
 
     /// Pre-construction check method called by ObjectFactory.
     /// Check that DataTypes matches the MechanicalState.
@@ -269,7 +269,7 @@ public:
         return sofa::core::objectmodel::BaseObject::canCreate(obj, context, arg);
     }
 
-    virtual std::string getTemplateName() const
+    virtual std::string getTemplateName() const override
     {
         return templateName(this);
     }
@@ -293,23 +293,23 @@ protected:
     std::vector<std::pair<double, DataTypes> > m_paramKeys;
 
     /// must be implemented in specializations    
-    virtual void vectorToParams(VectorXf& /*_vector*/) {
+    virtual void vectorToParams(VectorXf& /*_vector*/) override {
 //        std::cerr << "[" << this->getName() << "] ERROR: vectorToParams not implemented!" << std::endl;
     }
 
-    virtual void vectorToParams(VectorXd& /*_vector*/) {
+    virtual void vectorToParams(VectorXd& /*_vector*/) override {
         std::cerr << "[" << this->getName() << "] ERROR: vectorToParams not implemented!" << std::endl;
     }
 
-    virtual void paramsToVector(VectorXf& /*_vector*/) {
+    virtual void paramsToVector(VectorXf& /*_vector*/) override {
 //        std::cerr << "[" << this->getName() << "] ERROR: paramsToVector not implemented!" << std::endl;
     }
 
-    virtual void paramsToVector(VectorXd& /*_vector*/) {
+    virtual void paramsToVector(VectorXd& /*_vector*/) override {
         std::cerr << "[" << this->getName() << "] ERROR: paramsToVector not implemented!" << std::endl;
     }   
 
-    virtual void handleEvent(core::objectmodel::Event */*event*/) {}
+    virtual void handleEvent(core::objectmodel::Event */*event*/) override {}
 
 
     template<class X, class Y> inline X sigmoid(X arg, Y maxBound, Y minBound) {

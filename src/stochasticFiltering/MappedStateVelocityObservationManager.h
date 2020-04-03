@@ -87,15 +87,15 @@ protected:
 
 
 public:
-    void init();
-    void bwdInit();
+    void init() override;
+    void bwdInit() override;
     void initializeObservationData();
 
-    virtual bool hasObservation(double _time); /// TODO    
-    virtual bool getInnovation(double _time, EVectorX& _state, EVectorX& _innovation);
-    virtual bool getRealObservation(double _time, EVectorX& _realObs);
-    virtual bool getPredictedObservation(int _id, EVectorX& _predictedObservation);
-    virtual bool obsFunction(EVectorX& _state, EVectorX& _predictedObservation) ;
+    virtual bool hasObservation(double _time) override; /// TODO
+    virtual bool getInnovation(double _time, EVectorX& _state, EVectorX& _innovation) override;
+    virtual bool getRealObservation(double _time, EVectorX& _realObs) override;
+    virtual bool getPredictedObservation(int _id, EVectorX& _predictedObservation) override;
+    virtual bool obsFunction(EVectorX& _state, EVectorX& _predictedObservation) override;
 
     Data<typename DataTypes1::VecCoord> inputObservationData;
     Data<typename DataTypes1::VecDeriv> inputVelocityObservationData;

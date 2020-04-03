@@ -30,7 +30,7 @@
 #include <SofaBaseLinearSolver/MatrixLinearSolver.h>
 #include <sofa/helper/map.h>
 
-#include "../initMeshImageAux.h"
+#include "../initOptimusPlugin.h"
 
 #include <math.h>
 
@@ -86,7 +86,6 @@ private :
 
     double lastTime;
 
-    TIMER_VAR
 protected:
     /// This method is separated from the rest to be able to use custom/optimized versions depending on the types of vectors.
     /// It computes: p = p*beta + r

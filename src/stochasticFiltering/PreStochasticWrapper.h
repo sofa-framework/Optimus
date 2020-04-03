@@ -52,7 +52,7 @@ public:
     ~PreStochasticWrapper() {}
 
     virtual void step(const core::ExecParams* _params, const size_t _step);
-    void init();
+    void init() override;
 
 protected:    
 

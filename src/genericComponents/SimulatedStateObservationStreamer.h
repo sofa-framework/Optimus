@@ -90,11 +90,11 @@ public:
     //std::map<double, VecCoord> positions;
     std::vector<VecCoord> positions;    
 
-    void init();
+    void init() override;
 
-    void bwdInit() {}
+    void bwdInit() override {}
 
-    void draw(const core::visual::VisualParams* vparams);
+    void draw(const core::visual::VisualParams* vparams) override;
 
     /// an "alias" for better naming
     bool getStateAtTime(double _time, VecCoord& _state) {
@@ -120,7 +120,7 @@ public:
         return nParticles;
     }
 
-    int getObsDimention() {
+    int getObsDimention() override {
         return dim;
     }
 
@@ -128,7 +128,7 @@ public:
         return nObservations;
     }
 
-    void handleEvent(core::objectmodel::Event *event);
+    void handleEvent(core::objectmodel::Event *event) override;
 
     /// Pre-construction check method called by ObjectFactory.
     /// Check that DataTypes matches the MechanicalState.
@@ -139,7 +139,7 @@ public:
         return sofa::core::objectmodel::BaseObject::canCreate(obj, context, arg);
     }
 
-    virtual std::string getTemplateName() const
+    virtual std::string getTemplateName() const override
     {
         return templateName(this);
     }

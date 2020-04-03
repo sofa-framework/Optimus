@@ -59,7 +59,7 @@ protected:
 public:
     Data<bool> verbose;
 
-    void init() {
+    void init() override {
         Inherit::init();
 
         gnode = dynamic_cast<sofa::simulation::Node*>(this->getContext());
@@ -125,7 +125,7 @@ public:
         return errorVarianceInverse;
     }
 
-    void init() {
+    void init() override {
         Inherit::init();
 
         gnode = dynamic_cast<sofa::simulation::Node*>(this->getContext());
@@ -135,7 +135,7 @@ public:
         }
     }
 
-    void bwdInit() {
+    void bwdInit() override {
         Inherit::bwdInit();
 
         if (!initialiseObservationsAtFirstStep.getValue()) {

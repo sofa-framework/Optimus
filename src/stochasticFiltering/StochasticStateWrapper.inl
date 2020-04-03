@@ -1220,7 +1220,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::transformState(EVectorX &_ve
 }
 template <class DataTypes, class FilterType>
 void StochasticStateWrapper<DataTypes, FilterType>::lastApplyOperator(EVectorX &_vecX, const core::MechanicalParams *_mparams) {
-    if (!this->filterKind == CLASSIC )
+    if (! (this->filterKind == CLASSIC) )
         return;
 
 //    this->state = _vecX;

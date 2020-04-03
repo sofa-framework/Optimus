@@ -71,7 +71,7 @@ public:
     sofa::core::objectmodel::DataFileName writeStateFile;
     std::fstream stateFile;
 
-    void init() {        
+    void init() override {
         Inherit::init();
 
         gnode = dynamic_cast<sofa::simulation::Node*>(this->getContext());
@@ -145,7 +145,7 @@ protected:
     size_t mStateSize;  /// size of the mechanical state
     size_t mappedMStateSize; /// size of the mapped mechanical state
 public:
-    void init() {
+    void init() override {
         Inherit::init();
     }
 
@@ -218,7 +218,7 @@ public:
         return stateErrorVarianceReduced;
     }
 
-    virtual void writeState(double timeStep) {
+    virtual void writeState(double timeStep) override {
         if (this->stateFile.is_open()) {
             this->stateFile << "T= " << timeStep << std::endl << "  X= ";
             for (size_t i = 0; i < reducedStateIndex; i++)

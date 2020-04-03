@@ -192,7 +192,6 @@ void StepPCGLinearSolver<Matrix,Vector>::handleEvent(sofa::core::objectmodel::Ev
 template<class TMatrix, class TVector>
 void StepPCGLinearSolver<TMatrix,TVector>::solve (Matrix& M, Vector& x, Vector& b)
 {
-    TIC
     sofa::helper::AdvancedTimer::stepBegin("PCGLinearSolver::solve");    
 
     std::map < std::string, sofa::helper::vector<double> >& graph = * f_graph.beginEdit();
@@ -209,20 +208,14 @@ void StepPCGLinearSolver<TMatrix,TVector>::solve (Matrix& M, Vector& x, Vector& 
     Vector& w = *vtmp.createTempVector();
     Vector& s = *vtmp.createTempVector();
 
-    //TOCTIC("CG 1")
     bool apply_precond = preconditioners!=NULL && f_use_precond.getValue();
 
-    //TOCTIC("CG 2.1")
     double b_norm = b.dot(b);
-    //TOCTIC("CG 2.2")
     double tol = f_tolerance.getValue() * b_norm;
-    //TOCTIC("CG 2.3")
-            //PRNS("M : " << M.colSize() << " x " << M.rowSize());
+    //PRNS("M : " << M.colSize() << " x " << M.rowSize());
 
     r = M * x;
-    TOCTIC("CG init M*x")
     cgstep_beta(r,b,-1);// r = -1 * r + b  =   b - (M * x)
-    //TOCTIC("CG 2.5")
 
     if (apply_precond) {
         sofa::helper::AdvancedTimer::stepBegin("PCGLinearSolver::apply Precond");
@@ -234,24 +227,19 @@ void StepPCGLinearSolver<TMatrix,TVector>::solve (Matrix& M, Vector& x, Vector& 
     } else {
         w = r;
     }
-    //TOC("apply preconditionner initial")
-    //TOCTIC("CG 3")
 
     double r_norm = r.dot(w);
     //PRNS("Initial residual: " << r_norm << " tol = " << tol << " cmp: " << (r_norm > tol));
     graph_error.push_back(r_norm/b_norm);
 
-    //TOCTIC("CG 4")
     unsigned iter=1;
     while ((iter <= f_maxIter.getValue()) && (r_norm > tol)) {
-        //TIC
         s = M * w;
         double dtq = w.dot(s);
         double alpha = r_norm / dtq;
 
         cgstep_alpha(x,w,alpha);//for(int i=0; i<n; i++) x[i] += alpha * d[i];
         cgstep_alpha(r,s,-alpha);//for (int i=0; i<n; i++) r[i] = r[i] - alpha * q[i];
-        //TOCTIC("before precond");
 
         if (apply_precond) {
             sofa::helper::AdvancedTimer::stepBegin("PCGLinearSolver::apply Precond");
@@ -263,7 +251,6 @@ void StepPCGLinearSolver<TMatrix,TVector>::solve (Matrix& M, Vector& x, Vector& 
         } else {
             s = r;
         }
-        //TOCTIC("apply preconditionner iteration " << iter)
 
         double deltaOld = r_norm;
         r_norm = r.dot(s);
@@ -274,10 +261,8 @@ void StepPCGLinearSolver<TMatrix,TVector>::solve (Matrix& M, Vector& x, Vector& 
         cgstep_beta(w,s,beta);//for (int i=0; i<n; i++) d[i] = r[i] + beta * d[i];
 
         iter++;
-        //TOC("after precond");
     }
 
-    //TOCTIC("CG 5")
     if (verbose.getValue()) {
         std::cout << "[" << this->getName() << "] " << gnode->getTime() << " #iterations: " << graph_error.size() << " res: " << graph_error.back() << std::endl;
     }
@@ -291,7 +276,6 @@ void StepPCGLinearSolver<TMatrix,TVector>::solve (Matrix& M, Vector& x, Vector& 
 
     sofa::helper::AdvancedTimer::valSet("PCG iterations", iter);
     sofa::helper::AdvancedTimer::stepEnd("PCGLinearSolver::solve");
-    //TOC("CG 6");
 }
 
 SOFA_DECL_CLASS(StepPCGLinearSolver)

@@ -173,18 +173,18 @@ public:
     FilterType modelErrorVarianceValue;
 
     /// initialization before the data assimilation starts
-    void init();
-    void bwdInit();
+    void init() override;
+    void bwdInit() override;
 
-    virtual void updateState();
+    virtual void updateState() override;
 
     /// function to prepare data used during prediction and correction phase
-    void initializeStep(size_t _stepNumber);
+    void initializeStep(size_t _stepNumber) override;
 
     /// functions calling one step of SOFA simulations in different manner given by the type of filter.
-    void transformState(EVectorX& _vecX, const core::MechanicalParams* _mparams, int* _stateID);
-    void lastApplyOperator(EVectorX& _vecX, const core::MechanicalParams* _mparams);   
-    void computeSimulationStep(EVectorX& _state, const core::MechanicalParams* mparams,  int& _stateID);
+    void transformState(EVectorX& _vecX, const core::MechanicalParams* _mparams, int* _stateID) override;
+    void lastApplyOperator(EVectorX& _vecX, const core::MechanicalParams* _mparams) override;
+    void computeSimulationStep(EVectorX& _state, const core::MechanicalParams* mparams,  int& _stateID) override;
 
     /// set/get of data demand
     void stateDim();
@@ -195,22 +195,22 @@ public:
 
     void getActualVelocity(int _id, VecDeriv& _vel);
     void getActualMappedPosition(int _id, Vec3dTypes::VecCoord& _mapPos);    
-    void setState(EVectorX& _state, const core::MechanicalParams* _mparams);
+    void setState(EVectorX& _state, const core::MechanicalParams* _mparams) override;
 
     void setSofaVectorFromFilterVector(EVectorX& _state, typename DataTypes::VecCoord& _vec);
     void setSofaVelocityFromFilterVector(EVectorX& _state, typename DataTypes::VecDeriv& _vel);
 
     /// get the variance of error of the state
-    virtual EMatrixX& getStateErrorVariance();
+    virtual EMatrixX& getStateErrorVariance() override;
     void updateStateErrorVariance();
-    virtual EMatrixX& getModelErrorVariance();
+    virtual EMatrixX& getModelErrorVariance() override;
     void updateModelErrorVariance();
 
     /// get the state error variant for the reduced order filters (stdev^2 of the parameters being estimated)
-    virtual EMatrixX& getStateErrorVarianceReduced();
-    virtual EMatrixX& getStateErrorVarianceProjector();
+    virtual EMatrixX& getStateErrorVarianceReduced() override;
+    virtual EMatrixX& getStateErrorVarianceProjector() override;
 
-    void draw(const core::visual::VisualParams* vparams);
+    void draw(const core::visual::VisualParams* vparams) override;
 
     /// SOFA-imposed methods for object factory
 
@@ -220,7 +220,7 @@ public:
         //        if (dynamic_cast<MState *>(context->getMechanicalState()) == NULL) return false;
         return sofa::core::objectmodel::BaseObject::canCreate(obj, context, arg);
     }
-    virtual std::string getTemplateName() const
+    virtual std::string getTemplateName() const override
     {
         return templateName(this);
     }

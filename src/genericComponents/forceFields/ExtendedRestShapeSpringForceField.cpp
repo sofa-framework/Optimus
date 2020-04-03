@@ -25,7 +25,7 @@
 #define SOFA_COMPONENT_FORCEFIELD_EXTENDEDRESTSHAPESPRINGFORCEFIELD_CPP
 
 #include "ExtendedRestShapeSpringForceField.inl"
-#include "../initMeshImageAux.h"
+#include "../../initOptimusPlugin.h"
 
 #include <sofa/core/visual/DrawTool.h>
 #include <sofa/core/ObjectFactory.h>
@@ -556,20 +556,20 @@ int ExtendedRestShapeSpringForceFieldClass = core::RegisterObject("Simple elasti
         ;
 
 #ifndef SOFA_FLOAT
-template class SOFA_MESHIMAGE_AUX_API ExtendedRestShapeSpringForceField<Vec3dTypes>;
-//template class SOFA_MESHIMAGE_AUX_API ExtendedRestShapeSpringForceField<Vec2dTypes>;
-//template class SOFA_MESHIMAGE_AUX_API ExtendedRestShapeSpringForceField<Vec1dTypes>;
-//template class SOFA_MESHIMAGE_AUX_API ExtendedRestShapeSpringForceField<Vec6dTypes>;
-template class SOFA_MESHIMAGE_AUX_API ExtendedRestShapeSpringForceField<Rigid3dTypes>;
-//template class SOFA_MESHIMAGE_AUX_API ExtendedRestShapeSpringForceField<Rigid2dTypes>;
+template class SOFA_OPTIMUSPLUGIN_API ExtendedRestShapeSpringForceField<Vec3dTypes>;
+//template class SOFA_OPTIMUSPLUGIN_API ExtendedRestShapeSpringForceField<Vec2dTypes>;
+//template class SOFA_OPTIMUSPLUGIN_API ExtendedRestShapeSpringForceField<Vec1dTypes>;
+//template class SOFA_OPTIMUSPLUGIN_API ExtendedRestShapeSpringForceField<Vec6dTypes>;
+template class SOFA_OPTIMUSPLUGIN_API ExtendedRestShapeSpringForceField<Rigid3dTypes>;
+//template class SOFA_OPTIMUSPLUGIN_API ExtendedRestShapeSpringForceField<Rigid2dTypes>;
 #endif
 #ifndef SOFA_DOUBLE
-template class SOFA_MESHIMAGE_AUX_API ExtendedRestShapeSpringForceField<Vec3fTypes>;
-//template class SOFA_MESHIMAGE_AUX_API ExtendedRestShapeSpringForceField<Vec2fTypes>;
-//template class SOFA_MESHIMAGE_AUX_API ExtendedRestShapeSpringForceField<Vec1fTypes>;
-//template class SOFA_MESHIMAGE_AUX_API ExtendedRestShapeSpringForceField<Vec6fTypes>;
-template class SOFA_MESHIMAGE_AUX_API ExtendedRestShapeSpringForceField<Rigid3fTypes>;
-//template class SOFA_MESHIMAGE_AUX_API ExtendedRestShapeSpringForceField<Rigid2fTypes>;
+template class SOFA_OPTIMUSPLUGIN_API ExtendedRestShapeSpringForceField<Vec3fTypes>;
+//template class SOFA_OPTIMUSPLUGIN_API ExtendedRestShapeSpringForceField<Vec2fTypes>;
+//template class SOFA_OPTIMUSPLUGIN_API ExtendedRestShapeSpringForceField<Vec1fTypes>;
+//template class SOFA_OPTIMUSPLUGIN_API ExtendedRestShapeSpringForceField<Vec6fTypes>;
+template class SOFA_OPTIMUSPLUGIN_API ExtendedRestShapeSpringForceField<Rigid3fTypes>;
+//template class SOFA_OPTIMUSPLUGIN_API ExtendedRestShapeSpringForceField<Rigid2fTypes>;
 #endif
 
 } // namespace forcefield

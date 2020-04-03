@@ -149,16 +149,16 @@ public:
     Data<bool> d_executeSimulationForCorrectedData;
 
 
-    void init();
-    void bwdInit();
+    void init() override;
+    void bwdInit() override;
 
-    virtual void initializeStep(const core::ExecParams* _params, const size_t _step);
+    virtual void initializeStep(const core::ExecParams* _params, const size_t _step) override;
 
-    virtual void computePrediction();
+    virtual void computePrediction() override;
     virtual void computePerturbedStates(EVectorX &_meanState);
-    virtual void computeCorrection();
+    virtual void computeCorrection() override;
 
-    virtual void updateState() { }
+    virtual void updateState() override { }
 
 }; /// class
 

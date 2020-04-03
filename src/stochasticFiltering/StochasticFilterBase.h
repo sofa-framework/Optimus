@@ -98,7 +98,7 @@ public:
     Data<bool> initialiseObservationsAtFirstStep;
 
 
-    void init() {
+    void init() override {
         Inherit::init();
         gnode = dynamic_cast<sofa::simulation::Node*>(this->getContext());
 

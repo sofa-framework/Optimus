@@ -94,7 +94,7 @@ public:
     FilteringAnimationLoop(sofa::simulation::Node* _gnode);
 
 
-virtual void step(const core::ExecParams* _params, SReal _dt);
+virtual void step(const core::ExecParams* _params, SReal _dt) override;
 
 protected:    
     sofa::helper::system::thread::CTime *timer;
@@ -114,8 +114,8 @@ public:
     Data<bool> verbose;
     core::objectmodel::DataFileName d_timeDataFile;
 
-    void init();
-    void bwdInit();
+    void init() override;
+    void bwdInit() override;
 
 
 

@@ -138,8 +138,8 @@ public:
     Data<helper::vector<FilterType> > d_covariance;
     Data<helper::vector<FilterType> > d_innovation;    
 
-    void init();
-    void bwdInit();
+    void init() override;
+    void bwdInit() override;
 
     /*virtual std::string getTemplateName() const override
     {
@@ -151,12 +151,12 @@ public:
         return
     }*/
 
-    virtual void computePrediction(); // Compute perturbed state included in computeprediction    
-    virtual void computeCorrection();
+    virtual void computePrediction() override; // Compute perturbed state included in computeprediction
+    virtual void computeCorrection() override;
 
-    virtual void initializeStep(const core::ExecParams* _params, const size_t _step);
+    virtual void initializeStep(const core::ExecParams* _params, const size_t _step) override;
 
-    virtual void updateState() { }
+    virtual void updateState() override { }
 
 }; /// class
 

@@ -25,7 +25,7 @@
 #ifndef SHOWSPHERES_H_
 #define SHOWSPHERES_H_
 
-#include "initMeshImageAux.h"
+#include "../initOptimusPlugin.h"
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/RigidTypes.h>
 #include <sofa/defaulttype/defaulttype.h>
