@@ -55,6 +55,8 @@ set(HEADER_FILES
     src/genericComponents/SigmaPointsVTKExporter.h
     src/genericComponents/OptimMonitor.h
     src/genericComponents/OptimMonitor.inl
+    src/genericComponents/Indices2ValuesTransformer.h
+    src/genericComponents/Indices2ValuesTransformer.inl
     src/genericComponents/StepPCGLinearSolver.h
     src/genericComponents/forceFields/ExtendedRestShapeSpringForceField.h
     src/genericComponents/forceFields/ExtendedRestShapeSpringForceField.inl
@@ -76,6 +78,7 @@ set(SOURCE_FILES
     src/genericComponents/VTKExporterDA.cpp
     src/genericComponents/SigmaPointsVTKExporter.cpp
     src/genericComponents/OptimMonitor.cpp
+    src/genericComponents/Indices2ValuesTransformer.cpp
     src/genericComponents/StepPCGLinearSolver.cpp
     src/genericComponents/forceFields/ExtendedRestShapeSpringForceField.cpp
     )
