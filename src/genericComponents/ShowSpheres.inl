@@ -75,12 +75,12 @@ void ShowSpheres<DataTypes>::draw(const core::visual::VisualParams* vparams) {
         }
 
         // Check topological modifications
-        const int npoints = ind.size();
+        const unsigned int npoints = ind.size();
         const float rad = _radius.getValue();
 
         std::vector<Vector3> points(npoints);
         std::vector<float> radii(npoints);
-        for (int i=0; i<npoints; i++)
+        for (unsigned int i=0; i<npoints; i++)
         {
             points[i] = Vector3(pos[ind[i]][0], pos[ind[i]][1], pos[ind[i]][2]);
             radii[i] = rad;

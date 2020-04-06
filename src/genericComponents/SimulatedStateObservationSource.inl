@@ -185,7 +185,7 @@ void SimulatedStateObservationSource<DataTypes>::parseAsynMonitorFileVariable(co
 
     m_nParticles = maxIndex + 1; // size is biggest index we found + 1
 
-    for(unsigned int i ; i<m_nObservations ; i++)
+    for(unsigned int i=0; i < m_nObservations; i++)
     {
         VecCoord position(m_nParticles);
 

@@ -53,15 +53,14 @@ CorrectionForceField<DataTypes>::CorrectionForceField()
     , d_indices(initData(&d_indices, "indices",
                          "indices where the forces are applied"))
 
-    ,d_paramF(initData(&d_paramF, "paramF",
-                             "parameter modeling force uncertainty"))
-
     , d_forces(initData(&d_forces, "forces",
                         "applied forces at each point"))
     , d_Optimforces(initData(&d_Optimforces, "optimForces",
                              "applied forces at each point"))
     , d_delta(initData(&d_delta, "delta","translation rotation vector"))
 
+    , d_paramF(initData(&d_paramF, "paramF",
+                             "parameter modeling force uncertainty"))
 {
 }
 

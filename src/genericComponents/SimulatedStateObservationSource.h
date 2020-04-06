@@ -83,7 +83,7 @@ protected:
 
     std::vector<bool> m_;
 
-    int m_nParticles, m_nObservations, m_dim;
+    unsigned int m_nParticles, m_nObservations, m_dim;
     double m_initTime, m_finalTime;
     double m_dt;
 
