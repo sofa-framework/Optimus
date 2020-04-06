@@ -10,14 +10,12 @@ __file = __file__.replace('\\', '/') # windows
 
 def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
-    rootNode.createObject('RequiredPlugin', name='Pardiso', pluginName='SofaPardisoSolver')
-    rootNode.createObject('RequiredPlugin', name='IMAUX', pluginName='ImageMeshAux')
-    
-    try : 
+
+    try:
         sys.argv[0]
-    except :
+    except:
         commandLineArguments = []
-    else :
+    else:
         commandLineArguments = sys.argv
 
     if len(commandLineArguments) > 1:
@@ -34,6 +32,9 @@ def createScene(rootNode):
         except yaml.YAMLError as exc:
             print(exc)
             return
+
+    if options['general_parameters']['linear_solver_kind'] == 'Pardiso':
+        rootNode.createObject('RequiredPlugin', name='Pardiso', pluginName='SofaPardisoSolver')
 
     liver_constForce_GenObs(rootNode, options)
     return 0
@@ -65,6 +66,11 @@ class liver_constForce_GenObs (Sofa.PythonScriptController):
 
         # rootNode
         rootNode.createObject('VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels hideVisual')
+        #rootNode.createObject('DefaultAnimationLoop')
+        #rootNode.createObject('CollisionPipeline', verbose="0", draw="0")
+        #rootNode.createObject('BruteForceDetection', name="N2")
+        #rootNode.createObject('NewProximityIntersection', name="Proximity", alarmDistance="0.05", contactDistance="0.025")
+        #rootNode.createObject('CollisionResponse', name="Response", response="default")
 
         # rootNode/simuNode
         simuNode = rootNode.createChild('simuNode')
@@ -77,7 +83,13 @@ class liver_constForce_GenObs (Sofa.PythonScriptController):
             simuNode.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")
         else:
             print 'Unknown solver type!'
-        simuNode.createObject('SparsePARDISOSolver', name='LDLsolver', verbose='0', symmetric='2', exportDataToFolder='')
+
+        if self.options['general_parameters']['linear_solver_kind'] == 'Pardiso':
+            simuNode.createObject('SparsePARDISOSolver', name='LDLsolver', verbose='0', symmetric='2', exportDataToFolder='')
+        elif self.options['general_parameters']['linear_solver_kind'] == 'CG':
+            simuNode.createObject('CGLinearSolver', iterations="20", tolerance="1e-12", threshold="1e-12")
+        else:
+            print 'Unknown linear solver type!'
 
         fileExtension = self.options['system_parameters']['volume_file_name']
         fileExtension = fileExtension[fileExtension.rfind('.') + 1:]
@@ -128,7 +140,7 @@ class liver_constForce_GenObs (Sofa.PythonScriptController):
             obsNode.createObject('MechanicalObject', name='SourceMO', src="@obsLoader")
             obsNode.createObject('ShowSpheres', position='@SourceMO.position', color='1.0 1.0 0.0 1', radius="0.0034", showIndicesScale='0.0') 
             obsNode.createObject('BarycentricMapping')
-            obsNode.createObject('BoxROI', name='observationNodeBox', box='-1 -1 -1 1 1 1', doUpdate='0')
+            obsNode.createObject('BoxROI', name='observationNodeBox', box='-1 -1 -1 1 1 1', doUpdate='1')
             obsNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationNodeBox.indices', fileName = self.generalFolderName + '/observations/node', ExportPositions='1', ExportVelocities='0', ExportForces='0')
 
         return 0
