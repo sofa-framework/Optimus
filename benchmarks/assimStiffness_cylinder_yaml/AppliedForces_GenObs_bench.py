@@ -10,8 +10,6 @@ __file = __file__.replace('\\', '/') # windows
 
 def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
-    rootNode.createObject('RequiredPlugin', name='Pardiso', pluginName='SofaPardisoSolver')
-    rootNode.createObject('RequiredPlugin', name='BoundaryConditions', pluginName="BoundaryConditionsPlugin")
 
     try : 
         sys.argv[0]
@@ -36,10 +34,12 @@ def createScene(rootNode):
             print(exc)
             return
     
+    if options['general_parameters']['linear_solver_kind'] == 'Pardiso':
+        rootNode.createObject('RequiredPlugin', name='Pardiso', pluginName='SofaPardisoSolver')
 
     AppliedForces_GenObs(rootNode, options)
 
-    return 0;
+    return 0
 
 class AppliedForces_GenObs (Sofa.PythonScriptController):
 
@@ -97,20 +97,28 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
         simuNode.createObject('MeshVTKLoader', name='loader', filename=self.opt['model']['vol_mesh'])
 
         intType = self.opt['model']['int']['type']
+        intLinearType = self.opt['model']['int']['linear_type']
         intMaxit = self.opt['model']['int']['maxit']
         rmass = self.opt['model']['int']['rmass']
         rstiff = self.opt['model']['int']['rstiff']
 
         if intType == 'Euler':
             simuNode.createObject('EulerImplicitSolver', rayleighStiffness=rstiff, rayleighMass=rmass)
-        # simuNode.createObject('NewtonStaticSolver', maxIt='1', correctionTolerance='1e-8', residualTolerance='1e-8', convergeOnResidual='1')
-        # simuNode.createObject('StepPCGLinearSolver', name='lsolverit', precondOnTimeStep='0', use_precond='1', tolerance='1e-10', iterations='500',
-        #  verbose='0', update_step='10', listening='1', preconditioners='lsolver')
-        # simuNode.createObject('ShewchukPCGLinearSolver', name='lsolverit', iterations='500', use_precond='1', tolerance='1e-10', preconditioners='lsolver')
-        # simuNode.createObject('CGLinearSolver', name='lsolverit', tolerance='1e-10', threshold='1e-10', iterations='500', verbose='0')
-        
-        simuNode.createObject('SparsePARDISOSolver', name='lsolver', verbose='0', pardisoSchurComplement=self.planeCollision, 
-            symmetric=self.opt['model']['linsol']['pardisoSym'], exportDataToFolder=self.opt['model']['linsol']['pardisoFolder'])
+        elif intType == 'Newton':
+            simuNode.createObject('NewtonStaticSolver', maxIt='1', correctionTolerance='1e-8', residualTolerance='1e-8', convergeOnResidual='1')
+        else:
+            print 'Unknown solver type!'
+
+        if intLinearType:
+            simuNode.createObject('SparsePARDISOSolver', name='lsolver', verbose='0', pardisoSchurComplement=self.planeCollision, symmetric=self.opt['model']['linsol']['pardisoSym'], exportDataToFolder=self.opt['model']['linsol']['pardisoFolder'])
+        elif intLinearType:
+            simuNode.createObject('CGLinearSolver', name='lsolverit', tolerance='1e-10', threshold='1e-10', iterations='500', verbose='0')
+            # simuNode.createObject('StepPCGLinearSolver', name='lsolverit', precondOnTimeStep='0', use_precond='1', tolerance='1e-10', iterations='500',
+            #  verbose='0', update_step='10', listening='1', preconditioners='lsolver')
+            # simuNode.createObject('ShewchukPCGLinearSolver', name='lsolverit', iterations='500', use_precond='1', tolerance='1e-10', preconditioners='lsolver')
+        else:
+            print 'Unknown linear solver type!'
+
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')        
         simuNode.createObject('BoxROI', box=self.opt['model']['bc']['boxes'], name='fixedBox', drawBoxes='1')
         simuNode.createObject('FixedConstraint', indices='@fixedBox.indices')        

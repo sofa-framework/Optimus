@@ -10,14 +10,13 @@ __file = __file__.replace('\\', '/') # windows
 
 def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
-    rootNode.createObject('RequiredPlugin', name='Pardiso', pluginName='SofaPardisoSolver')
     rootNode.createObject('RequiredPlugin', name='BoundaryConditions', pluginName="BoundaryConditionsPlugin")
-    
-    try : 
+
+    try:
         sys.argv[0]
-    except :
+    except:
         commandLineArguments = []
-    else :
+    else:
         commandLineArguments = sys.argv
 
     if len(commandLineArguments) > 1:
@@ -34,6 +33,9 @@ def createScene(rootNode):
         except yaml.YAMLError as exc:
             print(exc)
             return
+
+    if options['general_parameters']['linear_solver_kind'] == 'Pardiso':
+        rootNode.createObject('RequiredPlugin', name='Pardiso', pluginName='SofaPardisoSolver')
 
     cylConstForce_GenObs(rootNode, options)
     return 0
@@ -76,7 +78,14 @@ class cylConstForce_GenObs (Sofa.PythonScriptController):
             simuNode.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")
         else:
             print 'Unknown solver type!'
-        simuNode.createObject('SparsePARDISOSolver', name='LDLsolver', verbose='0', symmetric='2', exportDataToFolder='')
+
+        if self.options['general_parameters']['linear_solver_kind'] == 'Pardiso':
+            simuNode.createObject('SparsePARDISOSolver', name='LDLsolver', verbose='0', symmetric='2', exportDataToFolder='')
+        elif self.options['general_parameters']['linear_solver_kind'] == 'CG':
+            simuNode.createObject('CGLinearSolver', iterations="20", tolerance="1e-12", threshold="1e-12")
+        else:
+            print 'Unknown linear solver type!'
+
         simuNode.createObject('MeshVTKLoader', name='loader', filename=self.options['system_parameters']['volume_file_name'])
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')
 

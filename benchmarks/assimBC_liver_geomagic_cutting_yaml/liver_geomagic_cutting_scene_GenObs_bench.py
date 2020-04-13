@@ -10,14 +10,13 @@ __file = __file__.replace('\\', '/') # windows
 
 def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
-    rootNode.createObject('RequiredPlugin', name='Pardiso', pluginName='SofaPardisoSolver')
     rootNode.createObject('RequiredPlugin', name='BoundaryConditions', pluginName="BoundaryConditionsPlugin")
-    
-    try : 
+
+    try:
         sys.argv[0]
-    except :
+    except:
         commandLineArguments = []
-    else :
+    else:
         commandLineArguments = sys.argv
 
     if len(commandLineArguments) > 1:
@@ -35,6 +34,9 @@ def createScene(rootNode):
             print(exc)
             return
 
+    if options['general_parameters']['linear_solver_kind'] == 'Pardiso':
+        rootNode.createObject('RequiredPlugin', name='Pardiso', pluginName='SofaPardisoSolver')
+
     liver_geomagicControlPoint_GenObs(rootNode, options)
     return 0
 
@@ -46,6 +48,9 @@ class liver_geomagicControlPoint_GenObs (Sofa.PythonScriptController):
         self.options = options
         self.vdamping = 5.0
         self.iterations = 1200
+        if not os.path.isdir('obs_testing'):
+            os.mkdir('obs_testing')
+
 
         rootNode.findData('dt').value = options['general_parameters']['delta_time']
         rootNode.findData('gravity').value = options['general_parameters']['gravity']
@@ -90,7 +95,13 @@ class liver_geomagicControlPoint_GenObs (Sofa.PythonScriptController):
             simuNode.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")
         else:
             print 'Unknown solver type!'
-        simuNode.createObject('SparsePARDISOSolver', name='LDLsolver', verbose='0', symmetric='1', exportDataToFolder='')
+
+        if self.options['general_parameters']['linear_solver_kind'] == 'Pardiso':
+            simuNode.createObject('SparsePARDISOSolver', name='LDLsolver', verbose='0', symmetric='1', exportDataToFolder='')
+        elif self.options['general_parameters']['linear_solver_kind'] == 'CG':
+            simuNode.createObject('CGLinearSolver', iterations="20", tolerance="1e-12", threshold="1e-12")
+        else:
+            print 'Unknown linear solver type!'
 
         fileExtension = self.options['system_parameters']['volume_file_name']
         fileExtension = fileExtension[fileExtension.rfind('.') + 1:]
@@ -114,7 +125,7 @@ class liver_geomagicControlPoint_GenObs (Sofa.PythonScriptController):
                 if bcElement['condition_type'] == 'fixed':
                     simuNode.createObject('FixedConstraint', indices='@boundBoxes'+str(index)+'.indices')
                 elif bcElement['condition_type'] == 'elastic':
-                    self.restSpring = simuNode.createObject('ExtendedRestShapeSpringForceField', listening='1', stiffness=bcElement['spring_stiffness_values'], showIndicesScale='0', springThickness="3", updateStiffness="1", printLog="0", points='@boundBoxes'+str(index)+'.indices')
+                    self.restSpring = simuNode.createObject('RestShapeSpringsForceField', listening='1', stiffness=bcElement['spring_stiffness_values'], showIndicesScale='0', updateStiffness="1", printLog="0", points='@boundBoxes'+str(index)+'.indices')
                 else:
                     print 'Unknown type of boundary conditions'
 

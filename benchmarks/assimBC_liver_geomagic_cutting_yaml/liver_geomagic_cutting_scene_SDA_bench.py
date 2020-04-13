@@ -11,9 +11,7 @@ __file = __file__.replace('\\', '/') # windows
 
 def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', pluginName='Optimus')
-    rootNode.createObject('RequiredPlugin', pluginName='SofaPardisoSolver')
-    rootNode.createObject('RequiredPlugin', name='BoundaryConditions', pluginName="BoundaryConditionsPlugin")
-    
+
     try : 
         sys.argv[0]
     except :
@@ -36,6 +34,9 @@ def createScene(rootNode):
         except yaml.YAMLError as exc:
             print(exc)
             return
+
+    if options['general_parameters']['linear_solver_kind'] == 'Pardiso':
+        rootNode.createObject('RequiredPlugin', name='PardisoSolver', pluginName='SofaPardisoSolver')
 
     liver_geomagicControlPoint_SDA(rootNode, options, configFileName)
     return 0
@@ -152,8 +153,14 @@ class liver_geomagicControlPoint_SDA (Sofa.PythonScriptController):
             simuNode.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")
         else:
             print 'Unknown solver type!'
-        node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
-        #node.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
+
+        if self.options['general_parameters']['linear_solver_kind'] == 'Pardiso':
+            node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
+        elif self.options['general_parameters']['linear_solver_kind'] == 'CG':
+            node.createObject('CGLinearSolver', iterations="20", tolerance="1e-12", threshold="1e-12")
+            #node.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
+        else:
+            print 'Unknown linear solver type!'
 
         node.createObject('MechanicalObject', src="@/loader", name="Volume")
         node.createObject('TetrahedronSetTopologyContainer', name="Container", src="@/loader", tags=" ")
@@ -185,7 +192,7 @@ class liver_geomagicControlPoint_SDA (Sofa.PythonScriptController):
                 if bcElement['condition_type'] == 'fixed':
                     node.createObject('FixedConstraint', indices='@boundBoxes'+str(index)+'.indices')
                 elif bcElement['condition_type'] == 'elastic':
-                    node.createObject('ExtendedRestShapeSpringForceField', stiffness='@paramE.value', showIndicesScale='0', springThickness="3", listening="1", updateStiffness="1", printLog="0", points='@boundBoxes'+str(index)+'.indices')
+                    node.createObject('RestShapeSpringsForceField', stiffness='@paramE.value', showIndicesScale='0', listening="1", printLog="0", points='@boundBoxes'+str(index)+'.indices')
                 else:
                     print 'Unknown type of boundary conditions'
 

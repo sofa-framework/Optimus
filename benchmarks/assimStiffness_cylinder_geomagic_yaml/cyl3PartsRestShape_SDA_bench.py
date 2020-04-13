@@ -10,15 +10,14 @@ from FileSystemUtils import FolderHandler
 __file = __file__.replace('\\', '/') # windows
 
 def createScene(rootNode):
-    rootNode.createObject('RequiredPlugin', pluginName='Optimus')
-    rootNode.createObject('RequiredPlugin', pluginName='SofaPardisoSolver')
+    rootNode.createObject('RequiredPlugin', name='Optim', pluginName='Optimus')
     rootNode.createObject('RequiredPlugin', name='BoundaryConditions', pluginName="BoundaryConditionsPlugin")
-    
-    try : 
+
+    try:
         sys.argv[0]
-    except :
+    except:
         commandLineArguments = []
-    else :
+    else:
         commandLineArguments = sys.argv
 
     if len(commandLineArguments) > 1:
@@ -35,6 +34,9 @@ def createScene(rootNode):
         except yaml.YAMLError as exc:
             print(exc)
             return
+
+    if options['general_parameters']['linear_solver_kind'] == 'Pardiso':
+        rootNode.createObject('RequiredPlugin', name='PardisoSolver', pluginName='SofaPardisoSolver')
 
     cyl3PartsRestShape_SDA(rootNode, options, configFileName)
     return 0

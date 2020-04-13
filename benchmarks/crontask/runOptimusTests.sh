@@ -14,7 +14,6 @@ SOFA_DIRECTORY=$GENERAL_DIRECTORY/sofa
 BUILD_DIRECTORY=$GENERAL_DIRECTORY/sofa/build_release
 SOFACONFIG_DIRECTORY=$GENERAL_DIRECTORY/sofaconfig
 PARDISO_SOLVER_DIRECTORY=$GENERAL_DIRECTORY/SofaPardisoSolver
-IMAUX_DIRECTORY=$GENERAL_DIRECTORY/ImageMeshAux
 BOUNDARY_CONDITIONS_DIRECTORY=$GENERAL_DIRECTORY/BoundaryConditions
 OPTIMUS_DIRECTORY=$GENERAL_DIRECTORY/Optimus
 
@@ -69,16 +68,6 @@ if [ -d "$PARDISO_SOLVER_DIRECTORY" ]; then
 else
     /usr/bin/git clone --progress https://gitlab.inria.fr/mimesis/SofaPardisoSolver.git $PARDISO_SOLVER_DIRECTORY 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
     echo "Clone data from Pardiso Solver repository"
-fi
-
-# checkout IMAUX
-if [ -d "$IMAUX_DIRECTORY" ]; then
-    echo "Update ImageMeshAux repository"
-    cd $IMAUX_DIRECTORY
-    /usr/bin/git pull --progress https://gitlab.inria.fr/mimesis/ImageMeshAux.git 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
-else
-    /usr/bin/git clone --progress https://gitlab.inria.fr/mimesis/ImageMeshAux.git $IMAUX_DIRECTORY 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
-    echo "Clone data from ImageMeshAux repository"
 fi
 
 # checkout Optimus
