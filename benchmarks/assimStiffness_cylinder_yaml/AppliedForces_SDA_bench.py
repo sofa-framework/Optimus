@@ -35,7 +35,7 @@ def createScene(rootNode):
             print(exc)
             return
 
-    if options['general_parameters']['linear_solver_kind'] == 'Pardiso':
+    if options['model']['int']['linear_type'] == 'Pardiso':
         rootNode.createObject('RequiredPlugin', name='PardisoSolver', pluginName='SofaPardisoSolver')
 
     AppliedForces_SDA(rootNode, options)
