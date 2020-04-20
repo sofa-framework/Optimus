@@ -11,9 +11,6 @@ __file = __file__.replace('\\', '/') # windows
 
 def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', pluginName='Optimus')
-    rootNode.createObject('RequiredPlugin', pluginName='SofaPardisoSolver')
-    rootNode.createObject('RequiredPlugin', pluginName='ImageMeshAux')
-    #rootNode.createObject('RequiredPlugin', pluginName='SofaMJEDFEM')
     
     try : 
         sys.argv[0]
@@ -36,6 +33,9 @@ def createScene(rootNode):
         except yaml.YAMLError as exc:
             print(exc)
             return
+
+    if options['general_parameters']['linear_solver_kind'] == 'Pardiso':
+        rootNode.createObject('RequiredPlugin', name='PardisoSolver', pluginName='SofaPardisoSolver')
 
     cylConstForce_SDA(rootNode, options, configFileName)
     return 0
@@ -141,11 +141,18 @@ class cylConstForce_SDA(Sofa.PythonScriptController):
         elif self.options['general_parameters']['solver_kind'] == 'Symplectic':
             node.createObject('VariationalSymplecticSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'], newtonError='1e-12', steps='1', verbose='0')
         elif self.options['general_parameters']['solver_kind'] == 'Newton':
-            node.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")
+            node.createObject('StaticSolver', name="NewtonStatic", printLog="0", correction_tolerance_threshold="1e-8", residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations="2")
         else:
             print 'Unknown solver type!'
-        # node.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
-        node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
+
+        if self.options['general_parameters']['linear_solver_kind'] == 'Pardiso':
+            node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
+        elif self.options['general_parameters']['linear_solver_kind'] == 'CG':
+            node.createObject('CGLinearSolver', iterations="20", tolerance="1e-12", threshold="1e-12")
+            # node.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
+        else:
+            print 'Unknown linear solver type!'
+
 
         node.createObject('MechanicalObject', src="@/loader", name="Volume")
         node.createObject('TetrahedronSetTopologyContainer', name="Container", src="@/loader", tags=" ")

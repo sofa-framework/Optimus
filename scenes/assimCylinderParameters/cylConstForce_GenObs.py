@@ -10,9 +10,6 @@ __file = __file__.replace('\\', '/') # windows
 
 def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
-    rootNode.createObject('RequiredPlugin', name='Pardiso', pluginName='SofaPardisoSolver')
-    rootNode.createObject('RequiredPlugin', name='IMAUX', pluginName='ImageMeshAux')
-    # rootNode.createObject('RequiredPlugin', name='MJED', pluginName='SofaMJEDFEM')
     
     try : 
         sys.argv[0]
@@ -36,11 +33,16 @@ def createScene(rootNode):
             print(exc)
             return
 
+    if options['general_parameters']['linear_solver_kind'] == 'Pardiso':
+        rootNode.createObject('RequiredPlugin', name='Pardiso', pluginName='SofaPardisoSolver')
+
+    print "We are here"
+
     cylConstForce_GenObs(rootNode, options)
     return 0
 
 
-class cylConstForce_GenObs (Sofa.PythonScriptController):
+class cylConstForce_GenObs(Sofa.PythonScriptController):
 
     def __init__(self, rootNode, options):
         self.options = options
@@ -49,6 +51,7 @@ class cylConstForce_GenObs (Sofa.PythonScriptController):
             os.mkdir(self.generalFolderName)
         if not os.path.isdir(self.generalFolderName + '/observations'):
             os.mkdir(self.generalFolderName + '/observations')
+
 
         rootNode.findData('dt').value = self.options['general_parameters']['delta_time']
         rootNode.findData('gravity').value = self.options['general_parameters']['gravity']
@@ -71,10 +74,17 @@ class cylConstForce_GenObs (Sofa.PythonScriptController):
         elif self.options['general_parameters']['solver_kind'] == 'Symplectic':
             simuNode.createObject('VariationalSymplecticSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'], newtonError='1e-12', steps='1', verbose='0')
         elif self.options['general_parameters']['solver_kind'] == 'Newton':
-            simuNode.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")
+            simuNode.createObject('StaticSolver', name="NewtonStatic", printLog="0", correction_tolerance_threshold="1e-8", residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations="2")
         else:
             print 'Unknown solver type!'
-        simuNode.createObject('SparsePARDISOSolver', name='LDLsolver', verbose='0', symmetric='2', exportDataToFolder='')
+
+        if self.options['general_parameters']['linear_solver_kind'] == 'Pardiso':
+            simuNode.createObject('SparsePARDISOSolver', name='LDLsolver', verbose='0', symmetric='2', exportDataToFolder='')
+        elif self.options['general_parameters']['linear_solver_kind'] == 'CG':
+            node.createObject('CGLinearSolver', iterations="20", tolerance="1e-12", threshold="1e-12")
+        else:
+            print 'Unknown linear solver type!'
+
         simuNode.createObject('MeshVTKLoader', name='loader', filename=self.options['system_parameters']['volume_file_name'])
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')
 
@@ -82,13 +92,14 @@ class cylConstForce_GenObs (Sofa.PythonScriptController):
             for index in range(0, len(self.options['general_parameters']['boundary_conditions_list'])):
                 bcElement = self.options['general_parameters']['boundary_conditions_list'][index]
                 print bcElement
-                simuNode.createObject('BoxROI', box=bcElement['boxes_coordinates'], name='boundBoxes'+str(index), drawBoxes='0', doUpdate='0')
+                simuNode.createObject('BoxROI', box=bcElement['boxes_coordinates'], name='boundBoxes'+str(index), drawBoxes='0', doUpdate='1')
                 if bcElement['condition_type'] == 'fixed':
                     simuNode.createObject('FixedConstraint', indices='@boundBoxes'+str(index)+'.indices')
                 elif bcElement['condition_type'] == 'elastic':
                     simuNode.createObject('RestShapeSpringsForceField', stiffness=bcElement['spring_stiffness_values'], angularStiffness="1", points='@boundBoxes'+str(index)+'.indices')
                 else:
                     print 'Unknown type of boundary conditions'
+
 
         simuNode.createObject('TetrahedronSetTopologyContainer', name="Container", src="@loader", tags=" ")
         simuNode.createObject('TetrahedronSetTopologyModifier', name="Modifier")        

@@ -1,4 +1,5 @@
 ---
+# this scene is compatible with python3
 system_parameters:
     volume_file_name: "../../data/cylinder/cylinder2_385.vtk"
     observation_file_name: "observations/cylinder2restShape_385"
@@ -11,6 +12,7 @@ general_parameters:
         &time
         0.01
     solver_kind: "Euler"   # options are "Euler", "Newton", and "Symplectic"
+    linear_solver_kind: "Pardiso"   # options are "CG" and "Pardiso"
     rayleigh_mass: 0.1
     rayleigh_stiffness: 0.1
     boundary_conditions_list:

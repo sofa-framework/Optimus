@@ -9,10 +9,7 @@ __file = __file__.replace('\\', '/') # windows
 
 def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
-    rootNode.createObject('RequiredPlugin', name='Pardiso', pluginName='SofaPardisoSolver')
-    rootNode.createObject('RequiredPlugin', name='IMAUX', pluginName='ImageMeshAux')
-    # rootNode.createObject('RequiredPlugin', name='MJED', pluginName='SofaMJEDFEM')
-    rootNode.createObject('RequiredPlugin', pluginName='Geomagic')
+    rootNode.createObject('RequiredPlugin', name='Geom', pluginName='Geomagic')
     rootNode.createObject('RequiredPlugin', name='BoundaryConditions', pluginName="BoundaryConditionsPlugin")
     
     try : 
@@ -36,6 +33,9 @@ def createScene(rootNode):
         except yaml.YAMLError as exc:
             print(exc)
             return
+
+    if options['general_parameters']['linear_solver_kind'] == 'Pardiso':
+        rootNode.createObject('RequiredPlugin', name='Pardiso', pluginName='SofaPardisoSolver')
 
     cyl3PartsGeomagic_GenObs (rootNode, options)
     return 0;
@@ -95,13 +95,26 @@ class cyl3PartsGeomagic_GenObs (Sofa.PythonScriptController):
         elif self.options['general_parameters']['solver_kind'] == 'Symplectic':
             simuNode.createObject('VariationalSymplecticSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'], newtonError='1e-12', steps='1', verbose='0')
         elif self.options['general_parameters']['solver_kind'] == 'Newton':
-            simuNode.createObject('NewtonStaticSolver', maxIt=self.numIter, name='NewtonStatic', correctionTolerance='1e-8', convergeOnResidual='1', residualTolerance='1e-8', printLog='1')
+            simuNode.createObject('StaticSolver', name="NewtonStatic", printLog="0", correction_tolerance_threshold="1e-8", residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations="2")
         else:
             print 'Unknown solver type!'
-        
-        simuNode.createObject('SparsePARDISOSolver', name='LDLsolver', verbose='0', symmetric='1', exportDataToFolder='')
-        simuNode.createObject('MeshVTKLoader', name='loader', filename=self.options['system_parameters']['volume_file_name'])
-        # simuNode.createObject('MeshGmshLoader', name='loader', filename=self.options['system_parameters']['volume_file_name'])
+
+        if self.options['general_parameters']['linear_solver_kind'] == 'Pardiso':
+            simuNode.createObject('SparsePARDISOSolver', name='LDLsolver', verbose='0', symmetric='1', exportDataToFolder='')
+        elif self.options['general_parameters']['linear_solver_kind'] == 'CG':
+            simuNode.createObject('CGLinearSolver', iterations="20", tolerance="1e-12", threshold="1e-12")
+        else:
+            print 'Unknown linear solver type!'
+
+        fileExtension = self.options['system_parameters']['volume_file_name']
+        fileExtension = fileExtension[fileExtension.rfind('.') + 1:]
+        if fileExtension == 'vtk' or fileExtension == 'vtu':
+            simuNode.createObject('MeshVTKLoader', name='loader', filename=self.options['system_parameters']['volume_file_name'])
+        elif fileExtension == 'msh':
+            simuNode.createObject('MeshGmshLoader', name='loader', filename=self.options['system_parameters']['volume_file_name'])
+        else:
+            print 'Unknown file type!'
+
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')
 
         simuNode.createObject('BoxROI', name='impactBounds', box='-0.01 -0.02 0.1 0.01 -0.01 0.11', doUpdate='0')
