@@ -6,14 +6,13 @@ import sys
 import csv
 import yaml
 
-__file = __file__.replace('\\', '/') # windows
 
-SofaRuntime.PluginRepository.addFirstPath('/home/sergei/Source_code/Sofa_development/plugin.SofaPython3/build_release/install/lib')
+__file = __file__.replace('\\', '/') # windows
 
 def createScene(rootNode):
     rootNode.addObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
     rootNode.addObject('RequiredPlugin', name='Python3', pluginName='SofaPython3')
-    
+
     try : 
         sys.argv[0]
     except :
@@ -21,12 +20,13 @@ def createScene(rootNode):
     else :
         commandLineArguments = sys.argv
 
-    if len(commandLineArguments) > 1:
-        configFileName = commandLineArguments[1]
-    else:
-        print('ERROR: Must supply a yaml config file as an argum ent!')
-        return
-    print ("Command line arguments for python : ") + str(commandLineArguments)
+    print(sys.argv)
+    #if len(commandLineArguments) > 1:
+    configFileName = "yaml/cylRestShape_scene_config.yml"
+    #else:
+    #    print('ERROR: Must supply a yaml config file as an argum ent!')
+    #    return
+    print ("Command line arguments for python : " + str(commandLineArguments))
 
     with open(configFileName, 'r') as stream:
         try:
@@ -39,24 +39,28 @@ def createScene(rootNode):
     if options['general_parameters']['linear_solver_kind'] == 'Pardiso':
         rootNode.addObject('RequiredPlugin', name='Pardiso', pluginName='SofaPardisoSolver')
 
-    cylRestShape_GenObs(rootNode, options)
+    rootNode.addObject(cylRestShapeGenObs_Controller(name="cylRestShape_GenObs", node=rootNode, opt=options))
     return 0;
 
 
 
-class cylRestShape_GenObs(Sofa.Core.Controller):
+class cylRestShapeGenObs_Controller(Sofa.Core.Controller):
 
-    def __init__(self, rootNode, options):
-        self.options = options
+    def __init__(self, *args, **kwargs):
+        # These are needed (and the normal way to override from a python class)
+        Sofa.Core.Controller.__init__(self, *args, **kwargs)
+
+        self.rootNode = kwargs["node"]
+        self.options = kwargs["opt"]
         self.generalFolderName = self.options['filtering_parameters']['common_directory_prefix'] + self.options['general_parameters']['solver_kind']
         if not os.path.isdir(self.generalFolderName):
             os.mkdir(self.generalFolderName)
         if not os.path.isdir(self.generalFolderName + '/observations'):
             os.mkdir(self.generalFolderName + '/observations')
 
-        rootNode.findData('dt').value = options['general_parameters']['delta_time']
-        rootNode.findData('gravity').value = options['general_parameters']['gravity']
-        self.createGraph(rootNode)
+        self.rootNode.findData('dt').value = self.options['general_parameters']['delta_time']
+        self.rootNode.findData('gravity').value = self.options['general_parameters']['gravity']
+        self.createGraph(self.rootNode)
         return None
 
 
@@ -67,7 +71,7 @@ class cylRestShape_GenObs(Sofa.Core.Controller):
 
         # rootNode/externalImpact
         dotNode = rootNode.addChild('dotNode')
-        self.impactPoint = dotNode.createObject('MechanicalObject', template='Vec3d', name='dot', showObject='true', position='0.0 -0.02 0.12')
+        self.impactPoint = dotNode.addObject('MechanicalObject', template='Vec3d', name='dot', showObject='true', showObjectScale='0.01', drawMode='1', position='0.0 -0.02 0.12')
         if self.options['obs_generating_parameters']['save_observations']:
             dotNode.addObject('BoxROI', name='impactBounds1', box='-0.01 -0.03 0.11 0.01 -0.01 0.13', doUpdate='0')
             dotNode.addObject('OptimMonitor', name='toolMonitor', template='Vec3d', showPositions='0', indices='0', ExportPositions='1', fileName = self.generalFolderName + '/' + self.options['impact_parameters']['observation_file_name'])
@@ -100,7 +104,7 @@ class cylRestShape_GenObs(Sofa.Core.Controller):
             for index in range(0, len(self.options['general_parameters']['boundary_conditions_list'])):
                 bcElement = self.options['general_parameters']['boundary_conditions_list'][index]
                 print(bcElement)
-                simuNode.addObject('BoxROI', box=bcElement['boxes_coordinates'], name='boundBoxes'+str(index), drawBoxes='0', doUpdate='0')
+                simuNode.addObject('BoxROI', box=bcElement['boxes_coordinates'], name='boundBoxes'+str(index), drawBoxes='0', doUpdate='1')
                 if bcElement['condition_type'] == 'fixed':
                     simuNode.addObject('FixedConstraint', indices='@boundBoxes'+str(index)+'.indices')
                 elif bcElement['condition_type'] == 'elastic':
@@ -133,7 +137,7 @@ class cylRestShape_GenObs(Sofa.Core.Controller):
 
 
 
-    def onEndAnimationStep(self, deltaTime):
+    def onAnimateEndEvent(self, eventType):
 
         if self.index < 10000:
             position = self.impactPoint.findData('position').value

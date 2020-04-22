@@ -5,6 +5,7 @@ import os
 import sys
 import csv
 import yaml
+
 sys.path.append(os.getcwd() + '/../../python_src/utils')
 from FileSystemUtils import FolderHandler
 
@@ -21,12 +22,13 @@ def createScene(rootNode):
     else :
         commandLineArguments = sys.argv
 
-    if len(commandLineArguments) > 1:
-        configFileName = commandLineArguments[1]
-    else:
-        print 'ERROR: Must supply a yaml config file as an argument!'
-        return
-    print "Command line arguments for python : " + str(commandLineArguments)
+    #if len(commandLineArguments) > 1:
+    configFileName = "yaml/cylRestShape_scene_config.yml"
+    #    configFileName = commandLineArguments[1]
+    #else:
+    #    print('ERROR: Must supply a yaml config file as an argument!')
+    #    return
+    print("Command line arguments for python : " + str(commandLineArguments))
 
     with open(configFileName, 'r') as stream:
         try:
@@ -39,24 +41,28 @@ def createScene(rootNode):
     if options['general_parameters']['linear_solver_kind'] == 'Pardiso':
         rootNode.createObject('RequiredPlugin', name='PardisoSolver', pluginName='SofaPardisoSolver')
 
-    cylRestShape_SDA(rootNode, options, configFileName)
+    rootNode.addObject(cylRestShapeSDA_Controller(name="cylRestShape_GenObs", node=rootNode, opt=options))
     return 0
 
 
 
 # Class definition 
-class cylRestShape_SDA(Sofa.Core.Controller):
+class cylRestShapeSDA_Controller(Sofa.Core.Controller):
 
-    def __init__(self, rootNode, options, configFileName):
-        self.options = options
-    	self.cameraReactivated = False
+    def __init__(self, *args, **kwargs):
+        # These are needed (and the normal way to override from a python class)
+        Sofa.Core.Controller.__init__(self, *args, **kwargs)
+
+        self.rootNode = kwargs["node"]
+        self.options = kwargs["opt"]
+        self.cameraReactivated = False
         self.generalFolderName = self.options['filtering_parameters']['common_directory_prefix'] + self.options['general_parameters']['solver_kind']
         if not os.path.isdir(self.generalFolderName):
             os.mkdir(self.generalFolderName)
 
         observationInfix = self.options['system_parameters']['observation_points_file_name']
         observationInfix = observationInfix[observationInfix.rfind('/') + 1 : observationInfix.rfind('.')]
-        self.folderName = options['filtering_parameters']['filter_kind'] + "_" + observationInfix + options['filtering_parameters']['output_directory_suffix']
+        self.folderName = self.options['filtering_parameters']['filter_kind'] + "_" + observationInfix + self.options['filtering_parameters']['output_directory_suffix']
         self.fullFolderName = self.generalFolderName + '/' + self.folderName
         folderCreator = FolderHandler()
         folderCreator.createFolder(self.generalFolderName, self.folderName, archiveResults=1)
@@ -82,15 +88,13 @@ class cylRestShape_SDA(Sofa.Core.Controller):
                 print(exc)
                 return
 
-        self.createGraph(rootNode)
+        self.createGraph(self.rootNode)
 
 
 
     def createGraph(self, rootNode):
 
-        self.rootNode=rootNode
-
-        print "Create graph called (Python side)\n"
+        print("Create graph called (Python side)\n")
 
         self.lambdaScale = 1.0
         if self.options['filtering_parameters']['filter_kind'] == 'ROUKF':
@@ -105,7 +109,7 @@ class cylRestShape_SDA(Sofa.Core.Controller):
             self.estimPosition='1'
             self.estimVelocity='0'
 
-        self.createScene(rootNode)
+        self.createSimulationScene(rootNode)
 
         return 0
 
@@ -129,7 +133,7 @@ class cylRestShape_SDA(Sofa.Core.Controller):
         elif (self.options['filtering_parameters']['filter_kind'] == 'UKFClassic'):
             self.filter = rootNode.addObject('UKFilterClassic', name="UKFClas", verbose="1", exportPrefix=self.fullFolderName, useUnbiasedVariance=self.options['filtering_parameters']['use_unbiased_variance'], sigmaTopology=self.options['filtering_parameters']['sigma_points_topology'], lambdaScale=self.lambdaScale)
         else:
-            print 'Unknown filter type!'
+            print('Unknown filter type!')
             
         rootNode.addObject('MeshVTKLoader', name='loader', filename=self.options['system_parameters']['volume_file_name'])
 
@@ -154,7 +158,7 @@ class cylRestShape_SDA(Sofa.Core.Controller):
         elif self.options['general_parameters']['solver_kind'] == 'Newton':
             node.addObject('StaticSolver', name="NewtonStatic", printLog="0", correction_tolerance_threshold="1e-8", residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations="2")
         else:
-            print 'Unknown solver type!'
+            print('Unknown solver type!')
 
         if self.options['general_parameters']['linear_solver_kind'] == 'Pardiso':
             node.addObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
@@ -162,7 +166,7 @@ class cylRestShape_SDA(Sofa.Core.Controller):
             node.addObject('CGLinearSolver', iterations="20", tolerance="1e-12", threshold="1e-12")
             # node.addObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
         else:
-            print 'Unknown linear solver type!'
+            print('Unknown linear solver type!')
 
 
         node.addObject('MechanicalObject', src="@/loader", name="Volume")
@@ -178,14 +182,14 @@ class cylRestShape_SDA(Sofa.Core.Controller):
         if 'boundary_conditions_list' in self.options['general_parameters'].keys():
             for index in range(0, len(self.options['general_parameters']['boundary_conditions_list'])):
                 bcElement = self.options['general_parameters']['boundary_conditions_list'][index]
-                print bcElement
+                print(bcElement)
                 node.addObject('BoxROI', box=bcElement['boxes_coordinates'], name='boundBoxes'+str(index), drawBoxes='0', doUpdate='0')
                 if bcElement['condition_type'] == 'fixed':
                     node.addObject('FixedConstraint', indices='@boundBoxes'+str(index)+'.indices')
                 elif bcElement['condition_type'] == 'elastic':
                     node.addObject('RestShapeSpringsForceField', stiffness=bcElement['spring_stiffness_values'], angularStiffness="1", points='@boundBoxes'+str(index)+'.indices')
                 else:
-                    print 'Unknown type of boundary conditions'
+                    print('Unknown type of boundary conditions')
                     
         node.addObject('OptimParams', name="paramE", optimize="1", numParams=self.options['filtering_parameters']['optim_params_size'], template="Vector", initValue=self.options['filtering_parameters']['initial_stiffness'], minValue=self.options['filtering_parameters']['minimal_stiffness'], maxValue=self.options['filtering_parameters']['maximal_stiffness'], stdev=self.options['filtering_parameters']['initial_standart_deviation'], transformParams=self.options['filtering_parameters']['transform_parameters'])
         node.addObject('Indices2ValuesMapper', name='youngMapper', indices='1 2 3 4 5 6 7 8 9 10', values='@paramE.value', inputValues='@/loader.dataset')
@@ -217,7 +221,7 @@ class cylRestShape_SDA(Sofa.Core.Controller):
 
 
 
-    def createScene(self,node):
+    def createSimulationScene(self,node):
         # r_slaves = [] # list of created auxiliary nodes
         self.createGlobalComponents(node)
                 
@@ -228,14 +232,14 @@ class cylRestShape_SDA(Sofa.Core.Controller):
 
 
     def initGraph(self,node):
-        print 'Init graph called (python side)'
+        print('Init graph called (python side)')
         self.step = 0
         self.total_time = 0
         
         # self.process.initializationObjects(node)
         return 0
 
-    def onEndAnimationStep(self, deltaTime):  
+    def onAnimateEndEvent(self, eventType):
 
         if self.options['filtering_parameters']['save_state']:
             if (self.options['filtering_parameters']['filter_kind'] == 'ROUKF'):
@@ -243,12 +247,13 @@ class cylRestShape_SDA(Sofa.Core.Controller):
             elif (self.options['filtering_parameters']['filter_kind'] == 'UKFSimCorr' or self.options['filtering_parameters']['filter_kind'] == 'UKFClassic'):
                 st=self.filter.findData('state').value
 
-            state = [val for sublist in st for val in sublist]
+            state = [val for val in st]
+            #state = [val for sublist in st for val in sublist]
             #print 'Reduced state:'
             #print reducedState
 
             self.stateExpValFile = self.fullFolderName + '/' + self.stateFileName
-            print 'Storing to', self.stateExpValFile
+            print('Storing to', self.stateExpValFile)
             f1 = open(self.stateExpValFile, "a")
             f1.write(" ".join(map(lambda x: str(x), state)))
             f1.write('\n')
@@ -259,7 +264,8 @@ class cylRestShape_SDA(Sofa.Core.Controller):
             elif (self.options['filtering_parameters']['filter_kind'] == 'UKFSimCorr' or self.options['filtering_parameters']['filter_kind'] == 'UKFClassic'):
                 var=self.filter.findData('variance').value
                                 
-            variance = [val for sublist in var for val in sublist]
+            variance = [val for val in var]
+            #variance = [val for sublist in var for val in sublist]
             #print 'Reduced variance:'
             #print reducedVariance
 
@@ -274,7 +280,8 @@ class cylRestShape_SDA(Sofa.Core.Controller):
             elif (self.options['filtering_parameters']['filter_kind'] == 'UKFSimCorr' or self.options['filtering_parameters']['filter_kind'] == 'UKFClassic'):
                 covar=self.filter.findData('covariance').value
             
-            covariance = [val for sublist in covar for val in sublist]
+            covariance = [val for val in covar]
+            #covariance = [val for sublist in covar for val in sublist]
             #print 'Reduced Covariance:'
             #print reducedCovariance
 
@@ -290,7 +297,8 @@ class cylRestShape_SDA(Sofa.Core.Controller):
             elif (self.options['filtering_parameters']['filter_kind'] == 'UKFSimCorr' or self.options['filtering_parameters']['filter_kind'] == 'UKFClassic'):
                 innov=self.filter.findData('innovation').value
 
-            innovation = [val for sublist in innov for val in sublist]
+            innovation = [val for val in innov]
+            #innovation = [val for sublist in innov for val in sublist]
             #print 'Reduced state:'
             #print reducedState
 
