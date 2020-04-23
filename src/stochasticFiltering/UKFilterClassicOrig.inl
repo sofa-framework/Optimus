@@ -62,9 +62,11 @@ void UKFilterClassicOrig<FilterType>::computePrediction()
         //EMatrixX matPsqrt(stateSize,stateSize);
         //sqrtMat(stateCovar, matPsqrt);
         //// end of Raffaella's modification
+        ///
 
         stateExp.fill(FilterType(0.0));
         stateExp = masterStateWrapper->getState();
+        //std::cout << "INITIAL STATE: " << stateExp.transpose() << std::endl;
 
         /// Computes X_{n}^{(i)-} sigma points
         for (size_t i = 0; i < sigmaPointsNum; i++) {
@@ -96,6 +98,8 @@ void UKFilterClassicOrig<FilterType>::computePrediction()
         }
 
         masterStateWrapper->setState(stateExp, mechParams);
+        //std::cout << "PREDICTED STATE: " << stateExp.transpose() << std::endl;
+
 
     }else{
         // std::cout<<"\n HAS OBS: =" << hasObs << " COMPUTE ONLY PREDICTION" << std::endl;
@@ -155,7 +159,7 @@ void UKFilterClassicOrig<FilterType>::computeCorrection()
         // std::cout<<"\n HAS OBS: =" << hasObs << " COMPUTE CORRECTION" << std::endl;
 
         PRNS("======= Computing correction, T= " << this->actualTime << " ======");
-        std::cout << "======= Computing correction, T= " << this->actualTime << " ======" << std::endl;
+        //std::cout << "======= Computing correction, T= " << this->actualTime << " ======" << std::endl;
 
         EVectorX zCol(observationSize);
         matZmodel.resize(observationSize, sigmaPointsNum);
@@ -195,7 +199,7 @@ void UKFilterClassicOrig<FilterType>::computeCorrection()
         /// Compute Kalman Gain
         EMatrixX matK(stateSize, observationSize);
         pseudoInverse(matPz, pinvmatPz);
-        matK =matPxz*pinvmatPz;
+        matK = matPxz*pinvmatPz;
 
         /// Compute Innovation
         EVectorX innovation(observationSize);
@@ -337,7 +341,7 @@ void UKFilterClassicOrig<FilterType>::bwdInit() {
     assert(masterStateWrapper);
 
     stateSize = masterStateWrapper->getStateSize();
-    //std::cout<< "[UKF] stateSize " << stateSize << std::endl;
+    std::cout<< "[UKF] stateSize " << stateSize << std::endl;
     //PRNS("StateSize " << stateSize);
 
     /// Initialize Observation's data

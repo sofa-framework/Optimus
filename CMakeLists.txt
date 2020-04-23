@@ -15,13 +15,13 @@ set(Qt5_DIR /opt/Qt/5.12.7/gcc_64/lib/cmake/Qt5)
 find_package(SofaFramework REQUIRED)
 find_package(SofaBase REQUIRED)
 find_package(SofaGeneral REQUIRED)
-find_package(SofaComponentBase REQUIRED)
-find_package(SofaComponentGeneral REQUIRED)
+#find_package(SofaComponentBase REQUIRED)
+#find_package(SofaComponentGeneral REQUIRED)
 find_package(SofaMisc REQUIRED)
 find_package(SofaExporter REQUIRED)
 
 
-set(LINKER_DEPENDENCIES SofaComponentBase SofaComponentGeneral SofaBoundaryCondition SofaBaseTopology SofaExporter blas pthread)
+set(LINKER_DEPENDENCIES SofaBase SofaGeneral SofaBoundaryCondition SofaBaseTopology SofaExporter blas pthread)
 set(COMPILATION_FLAGS "-DSOFA_BUILD_OPTIMUS -Wno-unused-local-typedef -Wno-deprecated")
 
 set ( STOCHASTIC_FILTERING "1" CACHE BOOL "Set to activate the compilation the new filtering module replacing Verdandi" FORCE)

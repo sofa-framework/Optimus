@@ -176,7 +176,7 @@ public:
     void init() override;
     void bwdInit() override;
 
-    virtual void updateState() override;
+    virtual void updateState(bool addData) override;
 
     /// function to prepare data used during prediction and correction phase
     void initializeStep(size_t _stepNumber) override;

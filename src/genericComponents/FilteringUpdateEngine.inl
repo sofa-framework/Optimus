@@ -48,9 +48,11 @@ namespace engine
  */
 template <class DataTypes>
 FilteringUpdateEngine<DataTypes>::FilteringUpdateEngine()
-    : d_updateData(initData(&d_updateData, "updateData", "flag to update filter state after adding new data"))
+    : d_addData(initData(&d_addData, "addData", "flag to mark to add new data to filter state"))
+    , d_updateData(initData(&d_updateData, "updateData", "flag to update filter state after adding new data"))
 {
     this->f_listening.setValue(true);
+    d_addData.setValue(0);
     d_updateData.setValue(0);
 }
 
@@ -141,15 +143,22 @@ void FilteringUpdateEngine<DataTypes>::handleEvent(sofa::core::objectmodel::Even
     {
         // if needed search for new planes
         if (d_updateData.getValue() == 1) {
-            for (size_t index = 0; index < vecOptimParams.size(); index++) {
-                vecOptimParams[index]->appendParameters();
-            }
-        
-            for (size_t index = 0; index < stateWrappers.size(); index++) {
-                stateWrappers[index]->updateState();
-            }
-            filter->updateState();
+            if (d_addData.getValue() == 1) {
+                for (size_t index = 0; index < vecOptimParams.size(); index++) {
+                    vecOptimParams[index]->appendParameters();
+                }
 
+                for (size_t index = 0; index < stateWrappers.size(); index++) {
+                    stateWrappers[index]->updateState(true);
+                }
+                filter->updateState();
+            } else {
+                for (size_t index = 0; index < stateWrappers.size(); index++) {
+                    stateWrappers[index]->updateState(false);
+                }
+            }
+
+            d_addData.setValue(0);
             d_updateData.setValue(0);
         }
     }

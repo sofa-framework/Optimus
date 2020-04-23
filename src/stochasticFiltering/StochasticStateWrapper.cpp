@@ -71,7 +71,3 @@ template class SOFA_SIMULATION_COMMON_API StochasticStateWrapper<Rigid3dTypes, d
 } // namespace simulation
 } // namespace component
 } // namespace sofa
-
-
-
-

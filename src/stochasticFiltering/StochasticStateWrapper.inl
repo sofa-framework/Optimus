@@ -338,40 +338,47 @@ void StochasticStateWrapper<DataTypes, FilterType>::bwdInit() {
 
 
 template <class DataTypes, class FilterType>
-void StochasticStateWrapper<DataTypes, FilterType>::updateState() {
-     size_t vsi = freeNodes.size() * posDim;
-     if (estimateVelocity.getValue()) {
-         vsi += freeNodes.size() * velDim;
-     }
+void StochasticStateWrapper<DataTypes, FilterType>::updateState(bool addData) {
+    if (addData) {
+        size_t vsi = freeNodes.size() * posDim;
+        if (estimateVelocity.getValue()) {
+            vsi += freeNodes.size() * velDim;
+        }
 
-     size_t vpi = 0;
-     this->reducedStateIndex = vsi;
-     for (size_t pi = 0; pi < vecOptimParams.size(); pi++) {
-         helper::vector<size_t> opv;
-         for (size_t i = 0; i < vecOptimParams[pi]->size(); i++, vpi++) {
-             opv.push_back(this->reducedStateIndex+vpi);
-         }
-         vecOptimParams[pi]->setVStateParamIndices(opv);
-     }
+        size_t vpi = 0;
+        this->reducedStateIndex = vsi;
+        for (size_t pi = 0; pi < vecOptimParams.size(); pi++) {
+            helper::vector<size_t> opv;
+            for (size_t i = 0; i < vecOptimParams[pi]->size(); i++, vpi++) {
+                opv.push_back(this->reducedStateIndex+vpi);
+            }
+            vecOptimParams[pi]->setVStateParamIndices(opv);
+        }
 
-     this->stateSize = vsi + vpi;
+        this->stateSize = vsi + vpi;
 
-     this->reducedStateSize = vpi;
+        this->reducedStateSize = vpi;
 
-     PRNS("Initializing stochastic state with size " << this->stateSize);
-     PRNS("Reduced state index: " << this->reducedStateIndex << " size: " << this->reducedStateSize);
+        PRNS("Initializing stochastic state with size " << this->stateSize);
+        PRNS("Reduced state index: " << this->reducedStateIndex << " size: " << this->reducedStateSize);
 
-     this->state.resize(this->stateSize);
-     updateStateErrorVariance();
-     updateModelErrorVariance();
-     copyStateSofa2Filter();
+        this->state.resize(this->stateSize);
+        updateStateErrorVariance();
+        updateModelErrorVariance();
+        copyStateSofa2Filter();
 
-     color.resize(this->stateSize+1); //TRUE IF USING SIMPLEX SIGMA PTS
-     colorB.resize(color.size());
-     for(size_t i =0; i < color.size(); i++){
-         color[i]= ((double) rand() / (RAND_MAX)) ;
-         colorB[i]= ((double) rand() / (RAND_MAX)) ;
-     }
+        color.resize(this->stateSize+1); //TRUE IF USING SIMPLEX SIGMA PTS
+        colorB.resize(color.size());
+        for(size_t i =0; i < color.size(); i++){
+            color[i]= ((double) rand() / (RAND_MAX)) ;
+            colorB[i]= ((double) rand() / (RAND_MAX)) ;
+        }
+    } else {
+        PRNS("Update stochastic state with size " << this->stateSize);
+        std::cout << "Update stochastic state with size " << this->stateSize << std::endl;
+        updateStateErrorVariance();
+        copyStateSofa2Filter();
+    }
 }
 
 

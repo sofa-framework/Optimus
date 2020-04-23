@@ -66,6 +66,7 @@ public:
     FilteringUpdateEngine();
     ~FilteringUpdateEngine() {}
     
+    Data<size_t> d_addData;
     Data<size_t> d_updateData;
 
     component::stochastic::UKFilterClassicOrig<DataTypes>* filter;
