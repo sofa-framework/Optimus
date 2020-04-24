@@ -12,8 +12,8 @@ from FileSystemUtils import FolderHandler
 __file = __file__.replace('\\', '/') # windows
 
 def createScene(rootNode):
-    rootNode.createObject('RequiredPlugin', pluginName='Optimus')
-    rootNode.createObject('RequiredPlugin', pluginName='SofaPardisoSolver')
+    rootNode.addObject('RequiredPlugin', pluginName='Optimus')
+    rootNode.addObject('RequiredPlugin', pluginName='SofaPardisoSolver')
     
     try : 
         sys.argv[0]
@@ -39,7 +39,7 @@ def createScene(rootNode):
             return
 
     if options['general_parameters']['linear_solver_kind'] == 'Pardiso':
-        rootNode.createObject('RequiredPlugin', name='PardisoSolver', pluginName='SofaPardisoSolver')
+        rootNode.addObject('RequiredPlugin', name='PardisoSolver', pluginName='SofaPardisoSolver')
 
     rootNode.addObject(cylRestShapeSDA_Controller(name="cylRestShape_GenObs", node=rootNode, opt=options))
     return 0
@@ -150,7 +150,7 @@ class cylRestShapeSDA_Controller(Sofa.Core.Controller):
 
     #components common for both master and slave: the simulation itself (without observations and visualizations)
     def createCommonComponents(self, node):
-        # node.createObject('StaticSolver', applyIncrementFactor="0")
+        # node.addObject('StaticSolver', applyIncrementFactor="0")
         if self.options['general_parameters']['solver_kind'] == 'Euler':
             node.addObject('EulerImplicitSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'])
         elif self.options['general_parameters']['solver_kind'] == 'Symplectic':
@@ -197,7 +197,7 @@ class cylRestShapeSDA_Controller(Sofa.Core.Controller):
         node.addObject('VTKExporter', position='@Volume.position', edges='0', tetras='1', listening='0', XMLformat='0', exportAtEnd='1', exportEveryNumberOfSteps='0', filename = self.generalFolderName + '/observations/stochasticScene2.vtk')
 
         node.addObject('BoxROI', name='impactBounds', box='-0.01 -0.03 0.11 0.01 0.01 0.12', doUpdate='0')
-        self.toolSprings = node.createObject('RestShapeSpringsForceField', name="impactSpring", stiffness="10000", angularStiffness='1', external_rest_shape='@../externalImpSimu/state', points='@impactBounds.indices')
+        self.toolSprings = node.addObject('RestShapeSpringsForceField', name="impactSpring", stiffness="10000", angularStiffness='1', external_rest_shape='@../externalImpSimu/state', points='@impactBounds.indices')
                 
         return 0
 
