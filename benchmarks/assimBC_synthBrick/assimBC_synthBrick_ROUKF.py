@@ -11,6 +11,10 @@ def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
     rootNode.createObject('RequiredPlugin', name='Exporter', pluginName='SofaExporter')
     rootNode.createObject('RequiredPlugin', name='Visual', pluginName='SofaOpenglVisual')
+
+    rootNode.createObject('RequiredPlugin', pluginName='SofaPardisoSolver')
+    rootNode.createObject('RequiredPlugin', name='BoundaryConditions', pluginName="BoundaryConditionsPlugin")
+
     rootNode.createObject('PythonScriptController', name='SynthBCDA', filename=__file, classname='synth1_BCDA')
 
 
@@ -107,7 +111,8 @@ class synth1_BCDA(Sofa.PythonScriptController):
     def createCommonComponents(self, node):                                  
         # node.createObject('EulerImplicitSolver', rayleighStiffness='0.1', rayleighMass='0.1')
         node.createObject('StaticSolver', name="NewtonStatic", printLog="0", correction_tolerance_threshold="1e-8", residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations="3")
-        node.createObject('CGLinearSolver', iterations="50", tolerance="1e-12", threshold="1e-12")
+        #node.createObject('CGLinearSolver', iterations="50", tolerance="1e-12", threshold="1e-12")
+        node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
         # node.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
 
         node.createObject('MechanicalObject', src="@/objectLoader", name="Volume")
@@ -130,8 +135,9 @@ class synth1_BCDA(Sofa.PythonScriptController):
         print self.toolMonitorPrefix
         toolEmu.createObject('SimulatedStateObservationSource', name="ToolA", printLog="1", monitorPrefix=self.toolMonitorPrefix, drawSize="0.0015", controllerMode="1")
 
+        node.createObject('Mapped3DoFForceField', mappedFEM="mappedTool/toolSpring", mappedMechObject="mappedTool/MO", mapping="mappedTool/baryMapping", printLog="0")
 
-        toolMapped = node.createChild('mappedTool');
+        toolMapped = node.createChild('mappedTool')
         toolMapped.createObject('MechanicalObject', name="MO",src="@/toolLoader")
         self.toolSprings=toolMapped.createObject('RestShapeSpringsForceField', name="toolSpring", stiffness="1e5", external_rest_shape="@../toolEmu/MO", listening="1", springColor="0 1 0 1")
         toolMapped.createObject('OglColorMap', colorScheme="Blue to Red")
