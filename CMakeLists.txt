@@ -9,14 +9,10 @@ set(OPTIMUS_VERSION ${OPTIMUS_MAJOR_VERSION}.${OPTIMUS_MINOR_VERSION})
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# set Qt5 directory
-set(Qt5_DIR /opt/Qt/5.12.7/gcc_64/lib/cmake/Qt5)
 
 find_package(SofaFramework REQUIRED)
 find_package(SofaBase REQUIRED)
 find_package(SofaGeneral REQUIRED)
-#find_package(SofaComponentBase REQUIRED)
-#find_package(SofaComponentGeneral REQUIRED)
 find_package(SofaMisc REQUIRED)
 find_package(SofaExporter REQUIRED)
 
@@ -40,8 +36,8 @@ set(HEADER_FILES
     src/genericComponents/SimulatedStateObservationSource.inl
     src/genericComponents/SimulatedStateObservationStreamer.h
     src/genericComponents/SimulatedStateObservationStreamer.inl
-#    src/genericComponents/AddNoiseEngine.h
-#    src/genericComponents/AddNoiseEngine.inl
+    src/genericComponents/AddNoiseEngine.h
+    src/genericComponents/AddNoiseEngine.inl
     src/genericComponents/CorrectionForceField.h
     src/genericComponents/CorrectionForceField.inl
     src/genericComponents/TransformStochasticEngine.h
@@ -60,6 +56,8 @@ set(HEADER_FILES
     src/genericComponents/StepPCGLinearSolver.h
     src/genericComponents/forceFields/ExtendedRestShapeSpringForceField.h
     src/genericComponents/forceFields/ExtendedRestShapeSpringForceField.inl
+    src/test/GeoEmulator.h
+    src/test/GeoEmulator.inl
     )
 
 set(SOURCE_FILES
@@ -69,7 +67,7 @@ set(SOURCE_FILES
     src/genericComponents/PointProjection.cpp
     src/genericComponents/SimulatedStateObservationSource.cpp
     src/genericComponents/SimulatedStateObservationStreamer.cpp
-#    src/genericComponents/AddNoiseEngine.cpp
+    src/genericComponents/AddNoiseEngine.cpp
     src/genericComponents/CorrectionForceField.cpp
     src/genericComponents/TransformStochasticEngine.cpp
     src/genericComponents/FilteringUpdateEngine.cpp
@@ -81,6 +79,7 @@ set(SOURCE_FILES
     src/genericComponents/Indices2ValuesTransformer.cpp
     src/genericComponents/StepPCGLinearSolver.cpp
     src/genericComponents/forceFields/ExtendedRestShapeSpringForceField.cpp
+    src/test/GeoEmulator.cpp
     )
 
 set(README_FILES 
@@ -88,50 +87,50 @@ set(README_FILES
     )
 
 if ( ${STOCHASTIC_FILTERING} )
-	message(STATUS "Activating stochastic filtering")
-	list(APPEND HEADER_FILES
-		src/stochasticFiltering/FilteringAnimationLoop.h
-		src/stochasticFiltering/StochasticFilterBase.h
-		src/stochasticFiltering/ROUKFilter.h
-		src/stochasticFiltering/ROUKFilter.inl
-		src/stochasticFiltering/UKFilterSimCorr.h
-		src/stochasticFiltering/UKFilterSimCorr.inl
-                src/stochasticFiltering/UKFilterClassic.h
-		src/stochasticFiltering/UKFilterClassic.inl
-                src/stochasticFiltering/UKFilterClassicOrig.h
-                src/stochasticFiltering/UKFilterClassicOrig.inl
-		src/stochasticFiltering/AdaptativeUKFilterClassic.h
-		src/stochasticFiltering/AdaptativeUKFilterClassic.inl
-		src/stochasticFiltering/StochasticStateWrapperBase.h
-		src/stochasticFiltering/StochasticStateWrapper.h
-		src/stochasticFiltering/StochasticStateWrapper.inl
-                src/stochasticFiltering/ObservationManagerBase.h
-		src/stochasticFiltering/MappedStateObservationManager.h
-		src/stochasticFiltering/MappedStateObservationManager.inl
-                src/stochasticFiltering/MappedStateVelocityObservationManager.h
-		src/stochasticFiltering/MappedStateVelocityObservationManager.inl
-                src/stochasticFiltering/SimpleObservationManager.h
-		src/stochasticFiltering/SimpleObservationManager.inl
-                src/stochasticFiltering/BindedSimpleObservationManager.h
-                src/stochasticFiltering/BindedSimpleObservationManager.inl
-		src/stochasticFiltering/PreStochasticWrapper.h
-		src/stochasticFiltering/ForceFieldSensitivity.h
-	)
+    message(STATUS "Activating stochastic filtering")
+    list(APPEND HEADER_FILES
+        src/stochasticFiltering/FilteringAnimationLoop.h
+        src/stochasticFiltering/StochasticFilterBase.h
+        src/stochasticFiltering/ROUKFilter.h
+        src/stochasticFiltering/ROUKFilter.inl
+        src/stochasticFiltering/UKFilterSimCorr.h
+        src/stochasticFiltering/UKFilterSimCorr.inl
+        src/stochasticFiltering/UKFilterClassic.h
+        src/stochasticFiltering/UKFilterClassic.inl
+        src/stochasticFiltering/UKFilterClassicOrig.h
+        src/stochasticFiltering/UKFilterClassicOrig.inl
+        src/stochasticFiltering/AdaptativeUKFilterClassic.h
+        src/stochasticFiltering/AdaptativeUKFilterClassic.inl
+        src/stochasticFiltering/StochasticStateWrapperBase.h
+        src/stochasticFiltering/StochasticStateWrapper.h
+        src/stochasticFiltering/StochasticStateWrapper.inl
+        src/stochasticFiltering/ObservationManagerBase.h
+        src/stochasticFiltering/MappedStateObservationManager.h
+        src/stochasticFiltering/MappedStateObservationManager.inl
+        src/stochasticFiltering/MappedStateVelocityObservationManager.h
+        src/stochasticFiltering/MappedStateVelocityObservationManager.inl
+        src/stochasticFiltering/SimpleObservationManager.h
+        src/stochasticFiltering/SimpleObservationManager.inl
+        src/stochasticFiltering/BindedSimpleObservationManager.h
+        src/stochasticFiltering/BindedSimpleObservationManager.inl
+        src/stochasticFiltering/PreStochasticWrapper.h
+        src/stochasticFiltering/ForceFieldSensitivity.h
+    )
 
-	list(APPEND SOURCE_FILES
-		src/stochasticFiltering/FilteringAnimationLoop.cpp
-		src/stochasticFiltering/ROUKFilter.cpp
-		src/stochasticFiltering/UKFilterSimCorr.cpp
-                src/stochasticFiltering/UKFilterClassic.cpp
-                src/stochasticFiltering/UKFilterClassicOrig.cpp
-                src/stochasticFiltering/AdaptativeUKFilterClassic.cpp
-		src/stochasticFiltering/StochasticStateWrapper.cpp
-                src/stochasticFiltering/MappedStateObservationManager.cpp
-                src/stochasticFiltering/MappedStateVelocityObservationManager.cpp
-                src/stochasticFiltering/SimpleObservationManager.cpp
-                src/stochasticFiltering/BindedSimpleObservationManager.cpp
-		src/stochasticFiltering/PreStochasticWrapper.cpp
-	)
+    list(APPEND SOURCE_FILES
+        src/stochasticFiltering/FilteringAnimationLoop.cpp
+        src/stochasticFiltering/ROUKFilter.cpp
+        src/stochasticFiltering/UKFilterSimCorr.cpp
+        src/stochasticFiltering/UKFilterClassic.cpp
+        src/stochasticFiltering/UKFilterClassicOrig.cpp
+        src/stochasticFiltering/AdaptativeUKFilterClassic.cpp
+        src/stochasticFiltering/StochasticStateWrapper.cpp
+        src/stochasticFiltering/MappedStateObservationManager.cpp
+        src/stochasticFiltering/MappedStateVelocityObservationManager.cpp
+        src/stochasticFiltering/SimpleObservationManager.cpp
+        src/stochasticFiltering/BindedSimpleObservationManager.cpp
+        src/stochasticFiltering/PreStochasticWrapper.cpp
+    )
 
 endif()
 
@@ -139,7 +138,7 @@ endif()
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${README_FILES})
 
 if(SofaPardisoSolver_FOUND)
-    set(LINKER_DEPENDENCIES ${LINKER_DEPENDENCIES} SofaPardisoSolver )
+    set(LINKER_DEPENDENCIES ${LINKER_DEPENDENCIES} SofaPardisoSolver)
 else()
     message("SofaPardisoSolver not found, some scenes may not work")
 endif()
