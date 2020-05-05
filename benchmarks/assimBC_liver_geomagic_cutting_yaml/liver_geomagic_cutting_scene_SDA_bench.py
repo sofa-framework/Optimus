@@ -11,6 +11,7 @@ __file = __file__.replace('\\', '/') # windows
 
 def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', pluginName='Optimus')
+    rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
 
     try : 
         sys.argv[0]
@@ -97,11 +98,13 @@ class liver_geomagicControlPoint_SDA (Sofa.PythonScriptController):
             self.estimPosition='1'
             self.estimVelocity='0'
 
-        self.createScene(rootNode)
+        self.createGlobalComponents(rootNode)
+        masterNode = rootNode.createChild('MasterScene')
+        self.createMasterScene(masterNode)
 
         return 0
 
-    
+
     def createGlobalComponents(self, rootNode):
         # scene global stuff                
         rootNode.findData('gravity').value = self.options['general_parameters']['gravity']
@@ -142,9 +145,8 @@ class liver_geomagicControlPoint_SDA (Sofa.PythonScriptController):
 
 
 
-    #components common for both master and slave: the simulation itself (without observations and visualizations)
+    # common components
     def createCommonComponents(self, node):                                  
-        #node.createObject('StaticSolver', applyIncrementFactor="0")
         if self.options['general_parameters']['solver_kind'] == 'Euler':
             node.createObject('EulerImplicitSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'])
         elif self.options['general_parameters']['solver_kind'] == 'Symplectic':
@@ -174,14 +176,13 @@ class liver_geomagicControlPoint_SDA (Sofa.PythonScriptController):
 
         node.createObject('BoxROI', name='impactBounds', box='0.14 0.15 0.37 0.18 0.17 0.4', doUpdate='0')
         self.toolSprings = node.createObject('RestShapeSpringsForceField', name="impactSpring", stiffness="10000", angularStiffness='1', external_rest_shape='@../externalImpSimu/state', points='@impactBounds.indices')
-        # node.createObject('GeomagicEmulator', attachSpring='false', filename='observations/listener.txt')
 
         node.createObject('OptimParams', name="paramE", optimize="1", numParams=self.options['filtering_parameters']['optim_params_size'], template="Vector", initValue=self.options['filtering_parameters']['initial_stiffness'], minValue=self.options['filtering_parameters']['minimal_stiffness'], maxValue=self.options['filtering_parameters']['maximal_stiffness'], stdev=self.options['filtering_parameters']['initial_standart_deviation'], transformParams=self.options['filtering_parameters']['transform_parameters'])
-        nu=0.45
-        E=5000
-        lamb=(E*nu)/((1+nu)*(1-2*nu))
-        mu=E/(2+2*nu)
-        materialParams='{} {}'.format(mu,lamb)
+        # nu=0.45
+        # E=5000
+        # lamb=(E*nu)/((1+nu)*(1-2*nu))
+        # mu=E/(2+2*nu)
+        # materialParams='{} {}'.format(mu,lamb)
         # node.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=materialParams)
         node.createObject('TetrahedronFEMForceField', name='FEM', updateStiffness='1', listening='true', drawHeterogeneousTetra='1', method='large', youngModulus='5000', poissonRatio='0.45')
 
@@ -192,7 +193,7 @@ class liver_geomagicControlPoint_SDA (Sofa.PythonScriptController):
                 if bcElement['condition_type'] == 'fixed':
                     node.createObject('FixedConstraint', indices='@boundBoxes'+str(index)+'.indices')
                 elif bcElement['condition_type'] == 'elastic':
-                    node.createObject('RestShapeSpringsForceField', stiffness='@paramE.value', showIndicesScale='0', listening="1", printLog="0", points='@boundBoxes'+str(index)+'.indices')
+                    node.createObject('RestShapeSpringsForceField', stiffness='@paramE.value', listening="1", printLog="0", points='@boundBoxes'+str(index)+'.indices')
                 else:
                     print 'Unknown type of boundary conditions'
 
@@ -210,29 +211,18 @@ class liver_geomagicControlPoint_SDA (Sofa.PythonScriptController):
         obsNode.createObject('MappedStateObservationManager', name="MOBS", observationStdev=self.options['filtering_parameters']['observation_noise_standart_deviation'], noiseStdev="0.0", listening="1", stateWrapper="@../StateWrapper", verbose="1")
         obsNode.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix=self.options['system_parameters']['observation_file_name'])
         obsNode.createObject('ShowSpheres', radius="0.003", color="1 0 0 1", position='@SourceMO.position')
-        #obsNode.createObject('ShowSpheres', radius="0.0015", color="1 1 0 1", position='@MOBS.mappedObservations')
 
         return 0
 
-
-
-    def createScene(self, node):
-        # r_slaves = [] # list of created auxiliary nodes
-        self.createGlobalComponents(node)
-                
-        masterNode=node.createChild('MasterScene')
-        self.createMasterScene(masterNode)        
- 
-        return 0
 
 
     def initGraph(self,node):
         print 'Init graph called (python side)'
-        self.step    =     0
-        self.total_time =     0
-        
+        self.step = 0
+        self.total_time = 0
         # self.process.initializationObjects(node)
         return 0
+
 
     def onEndAnimationStep(self, deltaTime):  
 

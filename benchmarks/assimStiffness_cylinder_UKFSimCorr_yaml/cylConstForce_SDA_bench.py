@@ -10,8 +10,8 @@ from FileSystemUtils import FolderHandler
 __file = __file__.replace('\\', '/') # windows
 
 def createScene(rootNode):
-    rootNode.createObject('RequiredPlugin', pluginName='Optimus')
-    rootNode.createObject('RequiredPlugin', name='BoundaryConditions', pluginName="BoundaryConditionsPlugin")
+    rootNode.createObject('RequiredPlugin', name='Optim', pluginName='Optimus')
+    rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
 
     try:
         sys.argv[0]
@@ -98,11 +98,15 @@ class cylConstForce_SDA(Sofa.PythonScriptController):
             self.estimPosition='1'
             self.estimVelocity='0'
 
-        self.createScene(rootNode)        
-        
+
+        self.createGlobalComponents(rootNode)
+        masterNode = rootNode.createChild('MasterScene')
+        self.createMasterScene(masterNode)
+
         return 0
 
-    
+
+
     def createGlobalComponents(self, rootNode):
         # scene global stuff                
         rootNode.findData('gravity').value = self.options['general_parameters']['gravity']
@@ -111,7 +115,6 @@ class cylConstForce_SDA(Sofa.PythonScriptController):
         rootNode.createObject('ViewerSetting', cameraMode='Perspective', resolution='1000 700', objectPickingMethod='Ray casting')
         rootNode.createObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels')
 
-        #rootNode.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")
         rootNode.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1", computationTimeFile=self.folderName+'/'+self.options['time_parameters']['computation_time_file_name'])
 
         if (self.options['filtering_parameters']['filter_kind'] == 'ROUKF'):
@@ -124,20 +127,18 @@ class cylConstForce_SDA(Sofa.PythonScriptController):
             print 'Unknown filter type!'
             
         rootNode.createObject('MeshVTKLoader', name='loader', filename=self.options['system_parameters']['volume_file_name'])
-        #rootNode.createObject('MeshSTLLoader', name='objectSLoader', filename=self.surfaceSTL)
         
         return 0        
 
 
-    #components common for both master and slave: the simulation itself (without observations and visualizations)
+    # common components for scene
     def createCommonComponents(self, node):                                  
-        #node.createObject('StaticSolver', applyIncrementFactor="0")
         if self.options['general_parameters']['solver_kind'] == 'Euler':
             node.createObject('EulerImplicitSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'])
         elif self.options['general_parameters']['solver_kind'] == 'Symplectic':
             node.createObject('VariationalSymplecticSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'], newtonError='1e-12', steps='1', verbose='0')
         elif self.options['general_parameters']['solver_kind'] == 'Newton':
-            node.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")
+            node.createObject('StaticSolver', name="NewtonStatic", printLog="0", correction_tolerance_threshold="1e-8", residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations="2")
         else:
             print 'Unknown solver type!'
 
@@ -159,11 +160,17 @@ class cylConstForce_SDA(Sofa.PythonScriptController):
         if 'density' in self.options['general_parameters'].keys():
             node.createObject('MeshMatrixMass', printMass='0', lumping='1', massDensity=self.options['general_parameters']['density'], name='mass')
 
+
+        node.createObject('OptimParams', name="paramE", optimize="1", numParams=self.options['filtering_parameters']['optim_params_size'], template="Vector", initValue=self.options['filtering_parameters']['initial_stiffness'], minValue=self.options['filtering_parameters']['minimal_stiffness'], maxValue=self.options['filtering_parameters']['maximal_stiffness'], stdev=self.options['filtering_parameters']['initial_standart_deviation'], transformParams=self.options['filtering_parameters']['transform_parameters'])
+        node.createObject('Indices2ValuesMapper', name='youngMapper', indices='1 2 3 4 5 6 7 8 9 10', values='@paramE.value', inputValues='@/loader.dataset')
+        node.createObject('TetrahedronFEMForceField', name='FEM', updateStiffness='1', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
+
+
         if 'boundary_conditions_list' in self.options['general_parameters'].keys():
             for index in range(0, len(self.options['general_parameters']['boundary_conditions_list'])):
                 bcElement = self.options['general_parameters']['boundary_conditions_list'][index]
                 print bcElement
-                node.createObject('BCBoxROI', box=bcElement['boxes_coordinates'], name='boundBoxes'+str(index), drawBoxes='0', doUpdate='0')
+                node.createObject('BoxROI', box=bcElement['boxes_coordinates'], name='boundBoxes'+str(index), drawBoxes='0', doUpdate='0')
                 if bcElement['condition_type'] == 'fixed':
                     node.createObject('FixedConstraint', indices='@boundBoxes'+str(index)+'.indices')
                 elif bcElement['condition_type'] == 'elastic':
@@ -171,30 +178,20 @@ class cylConstForce_SDA(Sofa.PythonScriptController):
                 else:
                     print 'Unknown type of boundary conditions'
 
-                    
-        node.createObject('OptimParams', name="paramE", optimize="1", numParams=self.options['filtering_parameters']['optim_params_size'], template="Vector", initValue=self.options['filtering_parameters']['initial_stiffness'], minValue=self.options['filtering_parameters']['minimal_stiffness'], maxValue=self.options['filtering_parameters']['maximal_stiffness'], stdev=self.options['filtering_parameters']['initial_standart_deviation'], transformParams=self.options['filtering_parameters']['transform_parameters'])
-        node.createObject('Indices2ValuesMapper', name='youngMapper', indices='1 2 3 4 5 6 7 8 9 10', values='@paramE.value', inputValues='@/loader.dataset')
-        node.createObject('TetrahedronFEMForceField', name='FEM', updateStiffness='1', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
-
-        # rootNode/simuNode/oglNode
-        oglNode = node.createChild('oglNode')
-        self.oglNode = oglNode
-        oglNode.createObject('OglModel', color='0 0 0 0')
-        # node.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus="1e5", poissonRatio="0.45", method="large")
-
         # add constant force field
         self.forceIndex = 1
-        node.createObject('BCBoxROI', name='forceBounds', box=self.options['impact_parameters']['external_force_bound'], doUpdate='0')
+        node.createObject('BoxROI', name='forceBounds', box=self.options['impact_parameters']['external_force_bound'], doUpdate='0')
         self.constantForce = node.createObject('ConstantForceField', name='appliedForce', indices='@forceBounds.indices', totalForce='0.0 0.0 0.0')
-        node.createObject('BCBoxROI', name='oppForceBounds', box=self.options['impact_parameters']['reverse_force_bound'], doUpdate='0')
+        node.createObject('BoxROI', name='oppForceBounds', box=self.options['impact_parameters']['reverse_force_bound'], doUpdate='0')
         self.oppositeConstantForce = node.createObject('ConstantForceField', name='oppAppliedForce', indices='@oppForceBounds.indices', totalForce='0.0 1.0 0.0')
                 
         return 0
 
 
+
     def createMasterScene(self, node):
+
         node.createObject('StochasticStateWrapper',name="StateWrapper",verbose="1", estimatePosition=self.estimPosition, positionStdev=self.options['filtering_parameters']['positions_standart_deviation'], estimateVelocity=self.estimVelocity)
-        
         self.createCommonComponents(node)
 
         obsNode = node.createChild('obsNode')        
@@ -203,41 +200,24 @@ class cylConstForce_SDA(Sofa.PythonScriptController):
         obsNode.createObject('BarycentricMapping')
         obsNode.createObject('MappedStateObservationManager', name="MOBS", observationStdev=self.options['filtering_parameters']['observation_noise_standart_deviation'], noiseStdev="0.0", listening="1", stateWrapper="@../StateWrapper", verbose="1")
         obsNode.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix=self.options['system_parameters']['observation_file_name'])
-        obsNode.createObject('ShowSpheres', radius="0.002", color="1 0 0 1", position='@SourceMO.position')
-        obsNode.createObject('ShowSpheres', radius="0.0015", color="1 1 0 1", position='@MOBS.mappedObservations')
-
-
+        obsNode.createObject('ShowSpheres', name="estimated", radius="0.002", color="1 0 0 1", position='@SourceMO.position')
+        obsNode.createObject('ShowSpheres', name="groundTruth", radius="0.0015", color="1 1 0 1", position='@MOBS.mappedObservations')
 
         return 0
   
-
-    
-
-    def createScene(self,node):
-        # r_slaves = [] # list of created auxiliary nodes
-        self.createGlobalComponents(node)
-                
-        masterNode=node.createChild('MasterScene')
-        self.createMasterScene(masterNode)        
- 
-        return 0
 
 
     def initGraph(self,node):
         print 'Init graph called (python side)'
         self.step = 0
         self.total_time = 0
-        
         # self.process.initializationObjects(node)
+
         return 0
 
-    def onEndAnimationStep(self, deltaTime):
 
-        # self.iterations = self.iterations - 1
-        # if self.iterations == 0:
-        #     self.constantForce.findData('isCompliance').value = 1 - self.constantForce.findData('isCompliance').value
-        #     self.oppositeConstantForce.findData('isCompliance').value = 1 - self.oppositeConstantForce.findData('isCompliance').value
-        #     self.iterations = 80
+
+    def onEndAnimationStep(self, deltaTime):
 
         self.iterations = self.iterations - 1
         if self.iterations == 0:
@@ -259,8 +239,8 @@ class cylConstForce_SDA(Sofa.PythonScriptController):
                 st=self.filter.findData('state').value
 
             state = [val for sublist in st for val in sublist]
-            #print 'Reduced state:'
-            #print reducedState
+            # print 'Reduced state:'
+            # print reducedState
 
             self.stateExpValFile = self.folderName + '/' + self.stateFileName
             print 'Storing to', self.stateExpValFile
@@ -275,8 +255,8 @@ class cylConstForce_SDA(Sofa.PythonScriptController):
                 var=self.filter.findData('variance').value
                                 
             variance = [val for sublist in var for val in sublist]
-            #print 'Reduced variance:'
-            #print reducedVariance
+            # print 'Reduced variance:'
+            # print reducedVariance
 
             self.stateVarFile = self.folderName + '/' + self.varianceFileName
             f2 = open(self.stateVarFile, "a")        
@@ -290,8 +270,8 @@ class cylConstForce_SDA(Sofa.PythonScriptController):
                 covar=self.filter.findData('covariance').value
             
             covariance = [val for sublist in covar for val in sublist]
-            #print 'Reduced Covariance:'
-            #print reducedCovariance
+            # print 'Reduced Covariance:'
+            # print reducedCovariance
 
             self.stateCovarFile = self.folderName + '/' + self.covarianceFileName
             f3 = open(self.stateCovarFile, "a")
@@ -306,8 +286,8 @@ class cylConstForce_SDA(Sofa.PythonScriptController):
                 innov=self.filter.findData('innovation').value
 
             innovation = [val for sublist in innov for val in sublist]
-            #print 'Reduced state:'
-            #print reducedState
+            # print 'Reduced state:'
+            # print reducedState
 
             self.innovationFile = self.folderName + '/' + self.innovationFileName
             f4 = open(self.innovationFile, "a")        

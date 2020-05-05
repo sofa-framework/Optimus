@@ -11,7 +11,7 @@ __file = __file__.replace('\\', '/') # windows
 
 def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', name='Optim', pluginName='Optimus')
-    rootNode.createObject('RequiredPlugin', name='BoundaryConditions', pluginName="BoundaryConditionsPlugin")
+    rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
 
     try:
         sys.argv[0]
@@ -100,8 +100,10 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
             self.estimPosition='1'
             self.estimVelocity='0'
 
-        self.createScene(rootNode)
-        
+        self.createGlobalComponents(rootNode)
+        masterNode = rootNode.createChild('MasterScene')
+        self.createMasterScene(masterNode)
+
         return 0
 
     
@@ -113,7 +115,6 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
         rootNode.createObject('ViewerSetting', cameraMode='Perspective', resolution='1000 700', objectPickingMethod='Ray casting')
         rootNode.createObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels')
 
-        #node.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")
         rootNode.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1", computationTimeFile=self.folderName+'/'+self.options['time_parameters']['computation_time_file_name'])
 
         if (self.options['filtering_parameters']['filter_kind'] == 'ROUKF'):
@@ -139,15 +140,23 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
 
 
 
-    #components common for both master and slave: the simulation itself (without observations and visualizations)
+    # common components for scene
     def createCommonComponents(self, node):                                  
-        # node.createObject('StaticSolver', applyIncrementFactor="0")
-        # solver is always Euler despite the yaml parameter
-        node.createObject('EulerImplicitSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'])
-        # node.createObject('VariationalSymplecticSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'], newtonError='1e-12', steps='1', verbose='0')
-        node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
-        # node.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")   
-        # node.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
+        if self.options['general_parameters']['solver_kind'] == 'Euler':
+            node.createObject('EulerImplicitSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'])
+        elif self.options['general_parameters']['solver_kind'] == 'Symplectic':
+            node.createObject('VariationalSymplecticSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'], newtonError='1e-12', steps='1', verbose='0')
+        elif self.options['general_parameters']['solver_kind'] == 'Newton':
+            node.createObject('StaticSolver', name="NewtonStatic", printLog="0", correction_tolerance_threshold="1e-8", residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations="2")
+
+        if self.options['general_parameters']['linear_solver_kind'] == 'Pardiso':
+            node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
+        elif self.options['general_parameters']['linear_solver_kind'] == 'CG':
+            node.createObject('CGLinearSolver', iterations="20", tolerance="1e-12", threshold="1e-12")
+            # node.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
+        else:
+            print 'Unknown linear solver type!'
+
 
         self.sourcePoint = node.createObject('MechanicalObject', src="@/loader", name="Volume")
         node.createObject('TetrahedronSetTopologyContainer', name="Container", src="@/loader", tags=" ")
@@ -159,23 +168,24 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
         if 'density' in self.options['general_parameters'].keys():
             node.createObject('MeshMatrixMass', printMass='0', lumping='1', massDensity=self.options['general_parameters']['density'], name='mass')
 
+        node.createObject('OptimParams', name="paramE", optimize="1", numParams=self.options['filtering_parameters']['optim_params_size'], template="Vector", initValue=self.options['filtering_parameters']['initial_stiffness'], minValue=self.options['filtering_parameters']['minimal_stiffness'], maxValue=self.options['filtering_parameters']['maximal_stiffness'], stdev=self.options['filtering_parameters']['initial_standart_deviation'], transformParams=self.options['filtering_parameters']['transform_parameters'])
+        node.createObject('Indices2ValuesMapper', name='youngMapper', indices='1 3', values='@paramE.value', inputValues='@/loader.dataset', defaultValue='6000')
+        node.createObject('TetrahedronFEMForceField', name='FEM', updateStiffness='1', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
+
+
         if 'boundary_conditions_list' in self.options['general_parameters'].keys():
             for index in range(0, len(self.options['general_parameters']['boundary_conditions_list'])):
                 bcElement = self.options['general_parameters']['boundary_conditions_list'][index]
                 print bcElement
-                node.createObject('BCBoxROI', box=bcElement['boxes_coordinates'], name='boundBoxes'+str(index), drawBoxes='0', doUpdate='0')
+                node.createObject('BoxROI', box=bcElement['boxes_coordinates'], name='boundBoxes'+str(index), drawBoxes='0', doUpdate='0')
                 if bcElement['condition_type'] == 'fixed':
                     node.createObject('FixedConstraint', indices='@boundBoxes'+str(index)+'.indices')
                 elif bcElement['condition_type'] == 'elastic':
                     node.createObject('RestShapeSpringsForceField', stiffness=bcElement['spring_stiffness_values'], angularStiffness="1", points='@boundBoxes'+str(index)+'.indices')
                 else:
                     print 'Unknown type of boundary conditions'
-                    
-        node.createObject('OptimParams', name="paramE", optimize="1", numParams=self.options['filtering_parameters']['optim_params_size'], template="Vector", initValue=self.options['filtering_parameters']['initial_stiffness'], minValue=self.options['filtering_parameters']['minimal_stiffness'], maxValue=self.options['filtering_parameters']['maximal_stiffness'], stdev=self.options['filtering_parameters']['initial_standart_deviation'], transformParams=self.options['filtering_parameters']['transform_parameters'])
-        node.createObject('Indices2ValuesMapper', name='youngMapper', indices='1 3', values='@paramE.value', inputValues='@/loader.dataset', defaultValue='6000')
-        node.createObject('TetrahedronFEMForceField', name='FEM', updateStiffness='1', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
 
-        node.createObject('BCBoxROI', name='impactBounds', box=self.options['impact_parameters']['bound'], doUpdate='0')
+        node.createObject('BoxROI', name='impactBounds', box=self.options['impact_parameters']['bound'], doUpdate='0')
         self.toolSprings = node.createObject('RestShapeSpringsForceField', name="impactSpring", stiffness="10000", angularStiffness='1', external_rest_shape='@/externalImpSimu/state', drawSpring='1', points='@impactBounds.indices')
 
         return 0
@@ -183,7 +193,7 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
 
 
     def createMasterScene(self, node):
-        node.createObject('StochasticStateWrapper',name="StateWrapper",verbose="1", estimatePosition=self.estimPosition, positionStdev=self.options['filtering_parameters']['positions_standart_deviation'], estimateVelocity=self.estimVelocity)
+        node.createObject('StochasticStateWrapper', name="StateWrapper", verbose="1", estimatePosition=self.estimPosition, positionStdev=self.options['filtering_parameters']['positions_standart_deviation'], estimateVelocity=self.estimVelocity)
         
         self.createCommonComponents(node)
 
@@ -193,30 +203,22 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
         obsNode.createObject('BarycentricMapping')
         obsNode.createObject('MappedStateObservationManager', name="MOBS", observationStdev=self.options['filtering_parameters']['observation_noise_standart_deviation'], noiseStdev="0.0", listening="1", stateWrapper="@../StateWrapper", verbose="1")
         obsNode.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix=self.options['system_parameters']['observation_file_name'])
-        obsNode.createObject('ShowSpheres', radius="0.002", color="1 0 0 1", position='@SourceMO.position')
-        obsNode.createObject('ShowSpheres', radius="0.0015", color="1 1 0 1", position='@MOBS.mappedObservations')
+        obsNode.createObject('ShowSpheres', name="estimated", radius="0.002", color="1 0 0 1", position='@SourceMO.position')
+        obsNode.createObject('ShowSpheres', name="groundTruth", radius="0.0015", color="1 1 0 1", position='@MOBS.mappedObservations')
 
         return 0
   
     
 
-    def createScene(self,node):
-        # r_slaves = [] # list of created auxiliary nodes
-        self.createGlobalComponents(node)
-                
-        masterNode=node.createChild('MasterScene')
-        self.createMasterScene(masterNode)        
- 
-        return 0
-
-
     def initGraph(self,node):
         print 'Init graph called (python side)'
-        self.step    =     0
-        self.total_time =     0
-        
+        self.step = 0
+        self.total_time = 0
         # self.process.initializationObjects(node)
+
         return 0
+
+
 
     def onEndAnimationStep(self, deltaTime):
 
