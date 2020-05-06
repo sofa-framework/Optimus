@@ -142,11 +142,11 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
 
     # common components for scene
     def createCommonComponents(self, node):                                  
-        if self.options['general_parameters']['solver_kind'] == 'Euler':
+        if self.options['general_parameters']['da_solver_kind'] == 'Euler':
             node.createObject('EulerImplicitSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'])
-        elif self.options['general_parameters']['solver_kind'] == 'Symplectic':
+        elif self.options['general_parameters']['da_solver_kind'] == 'Symplectic':
             node.createObject('VariationalSymplecticSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'], newtonError='1e-12', steps='1', verbose='0')
-        elif self.options['general_parameters']['solver_kind'] == 'Newton':
+        elif self.options['general_parameters']['da_solver_kind'] == 'Newton':
             node.createObject('StaticSolver', name="NewtonStatic", printLog="0", correction_tolerance_threshold="1e-8", residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations="2")
 
         if self.options['general_parameters']['linear_solver_kind'] == 'Pardiso':
