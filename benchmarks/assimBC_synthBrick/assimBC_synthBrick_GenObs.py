@@ -8,9 +8,6 @@ def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
     rootNode.createObject('RequiredPlugin', name='Exporter', pluginName='SofaExporter')
 
-    rootNode.createObject('RequiredPlugin', name='BoundaryConditions', pluginName="BoundaryConditionsPlugin")
-    rootNode.createObject('RequiredPlugin', name='Pardiso', pluginName='SofaPardisoSolver')
-
     rootNode.createObject('PythonScriptController', name='GenerateObservations', filename=__file, classname='synth1_GenObs')
 
 
@@ -38,8 +35,7 @@ class synth1_GenObs (Sofa.PythonScriptController):
         # rootNode/tool
         tool = rootNode.createChild('tool')
         tool.createObject('StaticSolver', name="NewtonStatic", printLog="0", correction_tolerance_threshold="1e-8", residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations="3")
-        #tool.createObject('CGLinearSolver', iterations="50", tolerance="1e-12", threshold="1e-12")
-        tool.createObject('SparsePARDISOSolver', symmetric='1', exportDataToFolder='', name='precond', iterativeSolverNumbering='1')
+        tool.createObject('CGLinearSolver', iterations="100", tolerance="1e-20", threshold="1e-20")
         tool.createObject('PointSetTopologyContainer', name='pointTopo', position='0.045 0.1 0.0   0.05 0.1 0.0   0.055 0.1 0.0   0.045 0.1 -0.005   0.05 0.1 -0.005   0.055 0.1 -0.005    0.045 0.1 -0.01   0.05 0.1 -0.01   0.055 0.1 -0.01')
         tool.createObject('MechanicalObject', name='MO', position='@pointTopo.position')
         tool.createObject('SphereCollisionModel', color='0 0 1 1', radius='0.0014')
@@ -56,9 +52,8 @@ class synth1_GenObs (Sofa.PythonScriptController):
         simuNode.activated = 'true'
         # simuNode.createObject('EulerImplicitSolver', rayleighStiffness='0.1', rayleighMass='0.1')
         simuNode.createObject('StaticSolver', name="NewtonStatic", printLog="0", correction_tolerance_threshold="1e-8", residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations="3")
-        # simuNode.createObject('CGLinearSolver', iterations="50", tolerance="1e-12", threshold="1e-12")
+        simuNode.createObject('CGLinearSolver', iterations="100", tolerance="1e-20", threshold="1e-20")
         # simuNode.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
-        simuNode.createObject('SparsePARDISOSolver', symmetric='1', exportDataToFolder='', name='precond', iterativeSolverNumbering='1')
 
 
         simuNode.createObject('MeshVTKLoader', name='loader', filename=volumeFileName)
@@ -79,7 +74,6 @@ class synth1_GenObs (Sofa.PythonScriptController):
 
         simuNode.createObject('BoxROI', box='-0.001 -0.001 -0.011 0.025 0.001 0.001', drawBoxes='0', name='FROI1')
         simuNode.createObject('RestShapeSpringsForceField', name='fixingSpring', stiffness='1e5', points='@FROI1.indices', springColor='0 1 0 1')
-        simuNode.createObject('Mapped3DoFForceField', mappedFEM='mappedTool/toolSpring', mappedMechObject='mappedTool/MO', printLog='0', mapping='mappedTool/baryMapping')
         simuNode.createObject('PointsFromIndices', template='Vec3d', name='FixedPoints', indices='@FROI1.indices')
 
         if saveObservations:
