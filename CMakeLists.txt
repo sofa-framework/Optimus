@@ -58,6 +58,8 @@ set(HEADER_FILES
     src/genericComponents/forceFields/ExtendedRestShapeSpringForceField.inl
     src/test/GeoEmulator.h
     src/test/GeoEmulator.inl
+    src/test/GeoListener.h
+    src/test/GeoListener.inl
     )
 
 set(SOURCE_FILES
@@ -80,6 +82,7 @@ set(SOURCE_FILES
     src/genericComponents/StepPCGLinearSolver.cpp
     src/genericComponents/forceFields/ExtendedRestShapeSpringForceField.cpp
     src/test/GeoEmulator.cpp
+    src/test/GeoListener.cpp
     )
 
 set(README_FILES 
