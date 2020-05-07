@@ -9,27 +9,28 @@ general_parameters:
     density: 200 # total_mass: 0.2
     delta_time: 0.01
     solver_kind: "Euler"   # options are "Euler", "Newton", and "Symplectic"
+    linear_solver_kind: "Pardiso"   # options are "CG" and "Pardiso"
     rayleigh_mass: 0.1
     rayleigh_stiffness: 0.1
     boundary_conditions_list:
         - condition_type: "elastic"   # options are "fixed" and "elastic"
-          boxes_coordinates: "-0.005 0.07 -0.005 0.005 0.08 0.005  -0.005 0.07 0.08 0.005 0.08 0.09  -0.005 0.07 0.135 0.005 0.08 0.145  -0.005 0.07 0.19 0.005 0.08 0.2  -0.005 0.07 0.265 0.005 0.08 0.275"
-          spring_stiffness_values: "150 400 300 100 200"
+          boxes_coordinates: "-0.005 0.07 -0.005 0.005 0.08 0.005  -0.005 0.07 0.135 0.005 0.08 0.145  -0.005 0.07 0.265 0.005 0.08 0.275" # "-0.005 0.07 -0.005 0.005 0.08 0.005  -0.005 0.07 0.08 0.005 0.08 0.09  -0.005 0.07 0.135 0.005 0.08 0.145  -0.005 0.07 0.19 0.005 0.08 0.2  -0.005 0.07 0.265 0.005 0.08 0.275"
+          spring_stiffness_values: "150 300 200" # "150 400 300" # "100 200"
 
 obs_generating_parameters:
-    object_young_moduli: "150 400 300 100 200"
+    object_young_moduli: "150 300 200" # "150 400 300" # "100 200"
     save_observations: 1
 
 filtering_parameters:
-    common_directory_prefix: "brick_controlPoint_449_"
+    common_directory_prefix: "brick_polynomial_controlPoint_449_"
     output_directory_suffix: "_withPreconditioning_std500_test"
     output_files_suffix: "test" 
-    optim_params_size: 5
+    optim_params_size: 3
     filter_kind: "ROUKF"   # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
     use_unbiased_variance: "0"
-    initial_stiffness: [150, 150, 150, 150, 150]
-    minimal_stiffness: [0.001, 0.001, 0.001, 0.001, 0.001]
-    maximal_stiffness: [100000, 100000, 100000, 100000, 100000]
+    initial_stiffness: [150, 150, 150]
+    minimal_stiffness: [0.001, 0.001, 0.001]
+    maximal_stiffness: [100000, 100000, 100000]
     initial_standart_deviation: 500
     observation_noise_standart_deviation: 1e-3
     positions_standart_deviation: 1e-3
@@ -40,14 +41,14 @@ filtering_parameters:
     save_internal_data: 1
 
 boundary_parameters:
-    spring_type: "Polynomial"    # options are "Simple" and "Polynomial"
+    spring_type: "Simple"    # options are "Simple" and "Polynomial"
     strain_params: [0, 0.08, 0.15, 0.2]
-    stress_params: [0, 10000, 50000, 150000]
+    stress_params: [0, 8000, 25000, 80000]
     initial_length: 1.0
     initial_stiffness: 10000
 
 precondition_parameters:
-    usePCG: 1
+    usePCG: 0
     PCGUpdateSteps: 1
 
 impact_parameters:
