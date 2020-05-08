@@ -1,14 +1,15 @@
 ---
 system_parameters:
-    volume_file_name: "../../data/liver/liver.msh"
+    volume_file_name: "../../data/baseLiver/baseLiver.msh"
     observation_file_name: "observations/liverControlPoint"
-    observation_points_file_name: "../../data/liver/liverGen_obs1_variant2.vtk"
+    observation_points_file_name: "../../data/baseLiver/baseLiverGen_obs1_variant2.vtk"
 
 general_parameters:
     gravity: "0 0 0"
     density: 200 # total_mass: 0.2
     delta_time: 0.01
     solver_kind: "Euler"   # options are "Euler", "Newton", and "Symplectic"
+    linear_solver_kind: "Pardiso"   # options are "CG" and "Pardiso"
     rayleigh_mass: 0.1
     rayleigh_stiffness: 0.1
     boundary_conditions_list:
@@ -21,7 +22,7 @@ obs_generating_parameters:
     save_observations: 1
 
 filtering_parameters:
-    common_directory_prefix: "outCyl2_138_controlPoint_liver_"
+    common_directory_prefix: "controlPoint_liver_"
     output_directory_suffix: "_test"
     output_files_suffix: "test" 
     optim_params_size: 2
@@ -50,7 +51,7 @@ impact_parameters:
 time_parameters:
     timer_name: 'filter_computation_statistics'
     time_statistics_file: "computationTime.txt"
-    time_profiling: 1
+    time_profiling: 0
     iterations_interval: 1
     iteration_amount: 300
 ...

@@ -12,7 +12,7 @@ def createScene(rootNode):
     rootNode.addObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
     rootNode.addObject('RequiredPlugin', name='Python3', pluginName='SofaPython3')
 
-    try:
+    try: 
         sys.argv[0]
     except:
         commandLineArguments = []
@@ -21,9 +21,9 @@ def createScene(rootNode):
 
     # if len(commandLineArguments) > 1:
     #     configFileName = commandLineArguments[1]
-    configFileName = "yaml/cylRestShape_scene_config.yml"
+    configFileName = "yaml/liver_constForce_scene_config.yml"
     # else:
-    #     print('ERROR: Must supply a yaml config file as an argum ent!')
+    #     print 'ERROR: Must supply a yaml config file as an argument!'
     #     return
     print("Command line arguments for python : " + str(commandLineArguments))
 
@@ -38,12 +38,12 @@ def createScene(rootNode):
     if options['general_parameters']['linear_solver_kind'] == 'Pardiso':
         rootNode.addObject('RequiredPlugin', name='Pardiso', pluginName='SofaPardisoSolver')
 
-    rootNode.addObject(cylRestShapeGenObs_Controller(name="cylRestShape_GenObs", node=rootNode, opt=options))
+    rootNode.addObject(liverConstForceGenObs_Controller(name="liverConstForce_GenObs", node=rootNode, opt=options))
     return 0
 
 
 
-class cylRestShapeGenObs_Controller(Sofa.Core.Controller):
+class liverConstForceGenObs_Controller(Sofa.Core.Controller):
 
     def __init__(self, *args, **kwargs):
         # These are needed (and the normal way to override from a python class)
@@ -64,17 +64,8 @@ class cylRestShapeGenObs_Controller(Sofa.Core.Controller):
 
 
     def createGraph(self, rootNode):
-        
         # rootNode
         rootNode.addObject('VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels hideVisual')
-
-        # external impact simulation
-        dotNode = rootNode.addChild('dotNode')
-        self.impactPoint = dotNode.addObject('MechanicalObject', template='Vec3d', name='dot', showObject='true', showObjectScale='0.01', drawMode='1', position='0.0 -0.02 0.12')
-        if self.options['obs_generating_parameters']['save_observations']:
-            dotNode.addObject('BoxROI', name='impactBounds1', box='-0.01 -0.03 0.11 0.01 -0.01 0.13', doUpdate='0')
-            dotNode.addObject('OptimMonitor', name='toolMonitor', template='Vec3d', showPositions='0', indices='0', ExportPositions='1', fileName = self.generalFolderName + '/' + self.options['impact_parameters']['observation_file_name'])
-        self.index = 0
 
         # general node
         simuNode = rootNode.addChild('simuNode')
@@ -98,10 +89,18 @@ class cylRestShapeGenObs_Controller(Sofa.Core.Controller):
             print('Unknown linear solver type!')
 
         # mechanical object
-        simuNode.addObject('MeshVTKLoader', name='loader', filename=self.options['system_parameters']['volume_file_name'])
+        fileExtension = self.options['system_parameters']['volume_file_name']
+        fileExtension = fileExtension[fileExtension.rfind('.') + 1:]
+        if fileExtension == 'vtk' or fileExtension == 'vtu':
+            simuNode.addObject('MeshVTKLoader', name='loader', filename=self.options['system_parameters']['volume_file_name'])
+        elif fileExtension == 'msh':
+            simuNode.addObject('MeshGmshLoader', name='loader', filename=self.options['system_parameters']['volume_file_name'])
+        else:
+            print('Unknown file type!')
+
         simuNode.addObject('MechanicalObject', src='@loader', name='Volume')
         simuNode.addObject('TetrahedronSetTopologyContainer', name="Container", src="@loader", tags=" ")
-        simuNode.addObject('TetrahedronSetTopologyModifier', name="Modifier")
+        simuNode.addObject('TetrahedronSetTopologyModifier', name="Modifier")        
         simuNode.addObject('TetrahedronSetTopologyAlgorithms', name="TopoAlgo")
         simuNode.addObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
         if 'total_mass' in self.options['general_parameters'].keys():
@@ -109,20 +108,17 @@ class cylRestShapeGenObs_Controller(Sofa.Core.Controller):
         if 'density' in self.options['general_parameters'].keys():
             simuNode.addObject('MeshMatrixMass', printMass='0', lumping='1', massDensity=self.options['general_parameters']['density'], name='mass')
 
-        simuNode.addObject('Indices2ValuesMapper', indices='1 2 3 4 5 6 7 8 9 10', values=self.options['obs_generating_parameters']['object_young_moduli'], name='youngMapper', inputValues='@loader.dataset')
-        simuNode.addObject('TetrahedronFEMForceField', updateStiffness='1', name='FEM', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
-        #simuNode.addObject('VTKExporter', position='@Volume.position', edges='0', tetras='1', listening='0', XMLformat='0', exportAtEnd='1', exportEveryNumberOfSteps='0', filename='observations/directScene.vtk')
+        simuNode.addObject('TetrahedronFEMForceField', updateStiffness='1', name='FEM', listening='true', drawHeterogeneousTetra='1', method='large', youngModulus='5000', poissonRatio='0.45')
 
         # boundary conditions
         if 'boundary_conditions_list' in self.options['general_parameters'].keys():
             for index in range(0, len(self.options['general_parameters']['boundary_conditions_list'])):
                 bcElement = self.options['general_parameters']['boundary_conditions_list'][index]
-                print(bcElement)
-                simuNode.addObject('BoxROI', box=bcElement['boxes_coordinates'], name='boundBoxes'+str(index), drawBoxes='0', doUpdate='1')
+                simuNode.addObject('BoxROI', box=bcElement['boxes_coordinates'], name='boundBoxes'+str(index), drawBoxes='0', doUpdate='0')
                 if bcElement['condition_type'] == 'fixed':
                     simuNode.addObject('FixedConstraint', indices='@boundBoxes'+str(index)+'.indices')
                 elif bcElement['condition_type'] == 'elastic':
-                    simuNode.addObject('RestShapeSpringsForceField', stiffness=bcElement['spring_stiffness_values'], angularStiffness="1", points='@boundBoxes'+str(index)+'.indices')
+                    simuNode.addObject('RestShapeSpringsForceField', stiffness=bcElement['spring_stiffness_values'], drawSpring='1', angularStiffness="1", points='@boundBoxes'+str(index)+'.indices')
                 else:
                     print('Unknown type of boundary conditions')
 
@@ -131,21 +127,17 @@ class cylRestShapeGenObs_Controller(Sofa.Core.Controller):
             simuNode.addObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1', doUpdate='0')
             simuNode.addObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName = self.generalFolderName + '/' + self.options['system_parameters']['observation_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0')
 
-        # attachement to external impact
-        simuNode.addObject('BoxROI', name='impactBounds', box='-0.01 -0.03 0.11 0.01 0.01 0.12', doUpdate='0')
-        simuNode.addObject('RestShapeSpringsForceField', name='Springs', stiffness='10000', angularStiffness='1', external_rest_shape='@dotNode/dot', points='@impactBounds.indices')
+        # constant force field
+        simuNode.addObject('BoxROI', name='impactBounds', box='0.14 0.15 0.4 0.16 0.17 0.43', doUpdate='0')
+        simuNode.addObject('ConstantForceField', name='appliedForce', indices='@impactBounds.indices', totalForce='0.0 -2.0 0.9')
 
-        return 0;
+        # saving selected observations in a separate file
+        obsNode = simuNode.addChild('obsNode')        
+        obsNode.addObject('MeshVTKLoader', name='obsLoader', filename=self.options['system_parameters']['observation_points_file_name'])
+        obsNode.addObject('MechanicalObject', name='SourceMO', src="@obsLoader")
+        obsNode.addObject('BarycentricMapping')
+        obsNode.addObject('BoxROI', name='observationNodeBox', box='-1 -1 -1 1 1 1', doUpdate='0')
+        obsNode.addObject('OptimMonitor', name='ObservationMonitor', indices='@observationNodeBox.indices', fileName = self.generalFolderName + '/observations/node', ExportPositions='1', ExportVelocities='0', ExportForces='0')
 
-
-
-    def onAnimateEndEvent(self, eventType):
-
-        if self.index < 10000:
-            position = self.impactPoint.findData('position').value
-            position[0][1] = position[0][1] - 0.00002
-            self.impactPoint.findData('position').value = position
-            self.index = self.index + 1
-
-        return 0;
+        return 0
 

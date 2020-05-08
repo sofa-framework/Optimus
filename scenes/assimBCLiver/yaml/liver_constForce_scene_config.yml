@@ -1,15 +1,16 @@
 ---
 system_parameters:
-    volume_file_name: "../../data/liver/liver.msh"
-    observation_file_name: "observations/livergeomagic"
-    observation_points_file_name: "../../data/liver/liverGen_obs1_variant1.vtk"
+    volume_file_name: "../../data/baseLiver/baseLiver.msh"
+    observation_file_name: "observations/liver"
+    observation_points_file_name: "../../data/baseLiver/baseLiverGen_obs1_variant2.vtk"
 
 general_parameters:
-    gravity: "0 0 0"
+    gravity: [0, 0, 0]
     density: 200 # total_mass: 0.2
     delta_time: 0.01
     solver_kind: "Euler"   # options are "Euler", "Newton", and "Symplectic"
-    rayleigh_mass: 0.1
+    linear_solver_kind: "Pardiso"   # options are "CG" and "Pardiso"
+    rayleigh_mass: 200.1
     rayleigh_stiffness: 0.1
     boundary_conditions_list:
         - condition_type: "elastic"   # options are "fixed" and "elastic"
@@ -21,14 +22,14 @@ obs_generating_parameters:
     save_observations: 1
 
 filtering_parameters:
-    common_directory_prefix: "outLiver_138_geomagic_liver_forPresentation_"
-    output_directory_suffix: "_test_oldScene_workable"
+    common_directory_prefix: "constForce_138_liver_"
+    output_directory_suffix: "_test"
     output_files_suffix: "test" 
     optim_params_size: 2
     filter_kind: "ROUKF"   # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
     use_unbiased_variance: "0"
     initial_stiffness: [100, 100]
-    minimal_stiffness: [50, 50]
+    minimal_stiffness: [0, 0]
     maximal_stiffness: [100000, 100000]
     initial_standart_deviation: 100
     observation_noise_standart_deviation: 1e-3
@@ -38,27 +39,5 @@ filtering_parameters:
     sigma_points_scale: 1
     save_state: 1
     save_internal_data: 1
-
-precondition_parameters:
-    usePCG: 0
-    PCGUpdateSteps: 100
-
-impact_parameters:
-    observation_file_name: "observations/liverimpact"
-    position: "0.14 0.18 0.39"
-    bounds: "0.14 0.15 0.37 0.18 0.17 0.4"
-
-geomagic_parameters:
-    load_track: 1
-    position_file: "geomagicObservations/geomagic_x.txt"
-    listener_file: "geomagicObservations/listener.txt"
-    omni_base: "-0.06 0.08 0.37"
-
-time_parameters:
-    timer_name: 'filter_computation_statistics'
-    time_statistics_file: "computationTime.txt"
-    time_profiling: 0
-    iterations_interval: 1
-    iteration_amount: 300
 ...
 

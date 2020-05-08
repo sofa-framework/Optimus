@@ -137,6 +137,7 @@ class liver_controlPoint_SDA(Sofa.PythonScriptController):
         else:
             print 'Unknown filter type!'
 
+        # object loader
         fileExtension = self.options['system_parameters']['volume_file_name']
         fileExtension = fileExtension[fileExtension.rfind('.') + 1:]
         if fileExtension == 'vtk' or fileExtension == 'vtu':
@@ -160,12 +161,13 @@ class liver_controlPoint_SDA(Sofa.PythonScriptController):
 
     # common components for simulation
     def createCommonComponents(self, node):
+        # solvers
         if self.options['general_parameters']['solver_kind'] == 'Euler':
             node.createObject('EulerImplicitSolver', vdamping='5.0', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'])
         elif self.options['general_parameters']['solver_kind'] == 'Symplectic':
             node.createObject('VariationalSymplecticSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'], newtonError='1e-12', steps='1', verbose='0')
         elif self.options['general_parameters']['solver_kind'] == 'Newton':
-            node.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")
+            node.createObject('StaticSolver', name="NewtonStatic", printLog="0", correction_tolerance_threshold="1e-8", residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations="2")
         else:
             print 'Unknown solver type!'
 
@@ -211,7 +213,7 @@ class liver_controlPoint_SDA(Sofa.PythonScriptController):
                     if self.options['boundary_parameters']['spring_type'] == 'Polynomial':
                         node.createObject('PolynomialRestShapeSpringsForceField', stiffness='@paramE.value', howIndicesScale='0', springThickness="3", listening="1", updateStiffness="1", printLog="0", points='@boundBoxes'+str(index)+'.indices', strainPoints=self.options['boundary_parameters']['strain_params'], stressPoints=self.options['boundary_parameters']['stress_params'], initialLength=self.options['boundary_parameters']['initial_length'], springInitialStiffness=self.options['boundary_parameters']['initial_stiffness'])
                     else:
-                        node.createObject('RestShapeSpringsForceField', stiffness='@paramE.value', listening="1", angularStiffness='1', points='@boundBoxes'+str(index)+'.indices')
+                        node.createObject('RestShapeSpringsForceField', stiffness='@paramE.value', drawSpring='1', listening="1", angularStiffness='1', points='@boundBoxes'+str(index)+'.indices')
                 else:
                     print 'Unknown type of boundary conditions'
 
@@ -240,18 +242,6 @@ class liver_controlPoint_SDA(Sofa.PythonScriptController):
 
 
 
-    def createTimeProfiler(self):
-        print 'Time statistics file: ' + self.fullFolderName + '/' + self.options['time_parameters']['time_statistics_file']
-        Sofa.timerSetInterval(self.options['time_parameters']['timer_name'], self.options['time_parameters']['iterations_interval'])    # Set the number of steps neded to compute the timer
-        Sofa.timerSetOutputType(self.options['time_parameters']['timer_name'], 'json')    # Set output file format
-        with open(self.fullFolderName + '/' + self.options['time_parameters']['time_statistics_file'], "a") as outputFile:
-            outputFile.write('{')
-            outputFile.close()
-
-        return 0
-
-
-
     def initGraph(self, node):
         print 'Init graph called (python side)'
         self.step = 0
@@ -261,14 +251,13 @@ class liver_controlPoint_SDA(Sofa.PythonScriptController):
         return 0
 
 
-
+    # start timing statistics at every iteration
     def onBeginAnimationStep(self, deltaTime):
         if self.options['time_parameters']['time_profiling']:
             Sofa.timerSetEnabled(self.options['time_parameters']['timer_name'], True)
             Sofa.timerBegin(self.options['time_parameters']['timer_name'])
 
         return 0
-
 
 
     def onEndAnimationStep(self, deltaTime):
@@ -345,6 +334,17 @@ class liver_controlPoint_SDA(Sofa.PythonScriptController):
 
 
 
+    # creating timer and saving timing statistics
+    def createTimeProfiler(self):
+        print 'Time statistics file: ' + self.fullFolderName + '/' + self.options['time_parameters']['time_statistics_file']
+        Sofa.timerSetInterval(self.options['time_parameters']['timer_name'], self.options['time_parameters']['iterations_interval'])    # Set the number of steps neded to compute the timer
+        Sofa.timerSetOutputType(self.options['time_parameters']['timer_name'], 'json')    # Set output file format
+        with open(self.fullFolderName + '/' + self.options['time_parameters']['time_statistics_file'], "a") as outputFile:
+            outputFile.write('{')
+            outputFile.close()
+
+        return 0
+
     def saveTimeStatistics(self):
         if self.options['time_parameters']['time_profiling']:
             if self.iterations <= self.options['time_parameters']['iteration_amount']:
@@ -362,7 +362,6 @@ class liver_controlPoint_SDA(Sofa.PythonScriptController):
                     outputFile.close()
 
         return 0
-
 
 
     def onScriptEvent(self, senderNode, eventName,data):        

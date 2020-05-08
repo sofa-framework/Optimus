@@ -10,16 +10,14 @@ from FileSystemUtils import FolderHandler
 __file = __file__.replace('\\', '/') # windows
 
 def createScene(rootNode):
-    rootNode.createObject('RequiredPlugin', pluginName='Optimus')
-    rootNode.createObject('RequiredPlugin', pluginName='SofaPardisoSolver')
-    rootNode.createObject('RequiredPlugin', pluginName='ImageMeshAux')
-    #rootNode.createObject('RequiredPlugin', pluginName='SofaMJEDFEM')
-    
-    try : 
+    rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
+    rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
+
+    try:
         sys.argv[0]
-    except :
+    except:
         commandLineArguments = []
-    else :
+    else:
         commandLineArguments = sys.argv
 
     if len(commandLineArguments) > 1:
@@ -37,6 +35,9 @@ def createScene(rootNode):
             print(exc)
             return
 
+    if options['general_parameters']['linear_solver_kind'] == 'Pardiso':
+        rootNode.createObject('RequiredPlugin', name='PardisoSolver', pluginName='SofaPardisoSolver')
+
     liver_controlPoint_SDA(rootNode, options, configFileName)
     return 0
 
@@ -52,6 +53,7 @@ class liver_controlPoint_SDA(Sofa.PythonScriptController):
         if not os.path.isdir(self.generalFolderName):
             os.mkdir(self.generalFolderName)
 
+        # archive and save previous data
         observationInfix = self.options['system_parameters']['observation_points_file_name']
         observationInfix = observationInfix[observationInfix.rfind('/') + 1 : observationInfix.rfind('.')]
         self.folderName = options['filtering_parameters']['filter_kind'] + "_" + observationInfix + options['filtering_parameters']['output_directory_suffix']
@@ -69,7 +71,7 @@ class liver_controlPoint_SDA(Sofa.PythonScriptController):
         self.options['visual_parameters']['covariance_file_name'] = self.covarianceFileName
         self.innovationFileName = 'innovation_' + self.options['filtering_parameters']['output_files_suffix'] + '.txt'
         self.options['visual_parameters']['innovation_file_name'] = self.innovationFileName
-        
+
         self.informationFileName = self.fullFolderName + '/daconfig.yml'
 
         with open(self.informationFileName, 'w') as stream:
@@ -80,6 +82,7 @@ class liver_controlPoint_SDA(Sofa.PythonScriptController):
                 print(exc)
                 return
 
+        # add timer to evaluate performance
         self.createGraph(rootNode)
         if self.options['time_parameters']['time_profiling']:
             self.createTimeProfiler()
@@ -103,7 +106,9 @@ class liver_controlPoint_SDA(Sofa.PythonScriptController):
             self.estimPosition='1'
             self.estimVelocity='0'
 
-        self.createScene(rootNode)
+        self.createGlobalComponents(rootNode)
+        masterNode = rootNode.createChild('MasterScene')
+        self.createMasterScene(masterNode)        
 
         return 0
 
@@ -112,7 +117,7 @@ class liver_controlPoint_SDA(Sofa.PythonScriptController):
     def createGlobalComponents(self, rootNode):
         self.iterations = 0
 
-        # scene global stuff                
+        # scene global stuff
         rootNode.findData('gravity').value = self.options['general_parameters']['gravity']
         rootNode.findData('dt').value = self.options['general_parameters']['delta_time']
 
@@ -121,6 +126,7 @@ class liver_controlPoint_SDA(Sofa.PythonScriptController):
 
         rootNode.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")
 
+        # filter data
         if (self.options['filtering_parameters']['filter_kind'] == 'ROUKF'):
             self.filter = rootNode.createObject('ROUKFilter', name="ROUKF", verbose="1", useUnbiasedVariance=self.options['filtering_parameters']['use_unbiased_variance'], sigmaTopology=self.options['filtering_parameters']['sigma_points_topology'], lambdaScale=self.lambdaScale)
         elif (self.options['filtering_parameters']['filter_kind'] == 'UKFSimCorr'):
@@ -130,6 +136,7 @@ class liver_controlPoint_SDA(Sofa.PythonScriptController):
         else:
             print 'Unknown filter type!'
 
+        # object loader
         fileExtension = self.options['system_parameters']['volume_file_name']
         fileExtension = fileExtension[fileExtension.rfind('.') + 1:]
         if fileExtension == 'vtk' or fileExtension == 'vtu':
@@ -139,6 +146,7 @@ class liver_controlPoint_SDA(Sofa.PythonScriptController):
         else:
             print 'Unknown file type!'
 
+        # external impact node
         impactSimu = rootNode.createChild('externalImpSimu')
         impactSimu.createObject('PreStochasticWrapper')
         impactSimu.createObject('EulerImplicitSolver')
@@ -150,23 +158,28 @@ class liver_controlPoint_SDA(Sofa.PythonScriptController):
 
 
 
-    #components common for both master and slave: the simulation itself (without observations and visualizations)
+    # common components for simulation
     def createCommonComponents(self, node):
-        #node.createObject('StaticSolver', applyIncrementFactor="0")
+        # solvers
         if self.options['general_parameters']['solver_kind'] == 'Euler':
             node.createObject('EulerImplicitSolver', vdamping='5.0', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'])
         elif self.options['general_parameters']['solver_kind'] == 'Symplectic':
             node.createObject('VariationalSymplecticSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'], newtonError='1e-12', steps='1', verbose='0')
         elif self.options['general_parameters']['solver_kind'] == 'Newton':
-            node.createObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")
+            node.createObject('StaticSolver', name="NewtonStatic", printLog="0", correction_tolerance_threshold="1e-8", residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations="2")
         else:
             print 'Unknown solver type!'
-        if self.options['precondition_parameters']['usePCG']:
-            node.createObject('StepPCGLinearSolver', name='lsolverit', precondOnTimeStep='1', use_precond='1', tolerance='1e-10', iterations='500',
-                verbose='1', listening='1', update_step=self.options['precondition_parameters']['PCGUpdateSteps'], preconditioners='precond')
-        node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
-        #node.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
 
+        if self.options['general_parameters']['linear_solver_kind'] == 'Pardiso':
+            node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
+        elif self.options['general_parameters']['linear_solver_kind'] == 'CG':
+            node.createObject('CGLinearSolver', iterations="20", tolerance="1e-12", threshold="1e-12")
+            if self.options['precondition_parameters']['usePCG']:
+                node.createObject('StepPCGLinearSolver', name='lsolverit', precondOnTimeStep='1', use_precond='1', tolerance='1e-10', iterations='500', verbose='1', listening='1', update_step=self.options['precondition_parameters']['PCGUpdateSteps'], preconditioners='precond')
+        else:
+            print 'Unknown linear solver type!'
+
+        # mechanical object
         node.createObject('MechanicalObject', src="@/loader", name="Volume")
         node.createObject('TetrahedronSetTopologyContainer', name="Container", src="@/loader", tags=" ")
         node.createObject('TetrahedronSetTopologyModifier', name="Modifier")        
@@ -177,14 +190,16 @@ class liver_controlPoint_SDA(Sofa.PythonScriptController):
         if 'density' in self.options['general_parameters'].keys():
             node.createObject('MeshMatrixMass', printMass='0', lumping='1', massDensity=self.options['general_parameters']['density'], name='mass')
 
-        node.createObject('OptimParams', name="paramE", optimize="1", numParams=self.options['filtering_parameters']['optim_params_size'], template="Vector", initValue=self.options['filtering_parameters']['initial_stiffness'], minValue=self.options['filtering_parameters']['minimal_stiffness'], maxValue=self.options['filtering_parameters']['maximal_stiffness'], stdev=self.options['filtering_parameters']['initial_standart_deviation'], transformParams=self.options['filtering_parameters']['transform_parameters'])
-        nu=0.45
-        E=5000
-        lamb=(E*nu)/((1+nu)*(1-2*nu))
-        mu=E/(2+2*nu)
-        materialParams='{} {}'.format(mu,lamb)
+        # nu=0.45
+        # E=5000
+        # lamb=(E*nu)/((1+nu)*(1-2*nu))
+        # mu=E/(2+2*nu)
+        # materialParams='{} {}'.format(mu,lamb)
         # node.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=materialParams)
         node.createObject('TetrahedronFEMForceField', name='FEM', updateStiffness='1', listening='true', drawHeterogeneousTetra='1', method='large', youngModulus='5000', poissonRatio='0.45')
+
+        # boundary conditions and their estimated parameters
+        node.createObject('OptimParams', name="paramE", optimize="1", numParams=self.options['filtering_parameters']['optim_params_size'], template="Vector", initValue=self.options['filtering_parameters']['initial_stiffness'], minValue=self.options['filtering_parameters']['minimal_stiffness'], maxValue=self.options['filtering_parameters']['maximal_stiffness'], stdev=self.options['filtering_parameters']['initial_standart_deviation'], transformParams=self.options['filtering_parameters']['transform_parameters'])
 
         if 'boundary_conditions_list' in self.options['general_parameters'].keys():
             for index in range(0, len(self.options['general_parameters']['boundary_conditions_list'])):
@@ -193,13 +208,14 @@ class liver_controlPoint_SDA(Sofa.PythonScriptController):
                 if bcElement['condition_type'] == 'fixed':
                     node.createObject('FixedConstraint', indices='@boundBoxes'+str(index)+'.indices')
                 elif bcElement['condition_type'] == 'elastic':
-                    node.createObject('ExtendedRestShapeSpringForceField', stiffness='@paramE.value', showIndicesScale='0', springThickness="3", listening="1", updateStiffness="1", printLog="0", points='@boundBoxes'+str(index)+'.indices')
+                    node.createObject('RestShapeSpringsForceField', stiffness='@paramE.value', drawSpring='1', listening="1", printLog="0", points='@boundBoxes'+str(index)+'.indices')
                 else:
                     print 'Unknown type of boundary conditions'
 
+        # attachement to external impact
         node.createObject('BoxROI', name='impactBounds', box='0.14 0.15 0.37 0.18 0.17 0.4', doUpdate='0')
         self.toolSprings = node.createObject('RestShapeSpringsForceField', name="impactSpring", stiffness="10000", angularStiffness='1', external_rest_shape='@../externalImpSimu/state', points='@impactBounds.indices')
-                
+
         return 0
 
 
@@ -207,52 +223,29 @@ class liver_controlPoint_SDA(Sofa.PythonScriptController):
     def createMasterScene(self, node):
         node.createObject('StochasticStateWrapper',name="StateWrapper",verbose="1", estimatePosition=self.estimPosition, positionStdev=self.options['filtering_parameters']['positions_standart_deviation'], estimateVelocity=self.estimVelocity)
         self.createCommonComponents(node)
+        # node with groundtruth observations
         obsNode = node.createChild('obsNode')        
         obsNode.createObject('MeshVTKLoader', name='obsLoader', filename=self.options['system_parameters']['observation_points_file_name'])
         obsNode.createObject('MechanicalObject', name='SourceMO', src="@obsLoader")
         obsNode.createObject('BarycentricMapping')
         obsNode.createObject('MappedStateObservationManager', name="MOBS", observationStdev=self.options['filtering_parameters']['observation_noise_standart_deviation'], noiseStdev="0.0", listening="1", stateWrapper="@../StateWrapper", verbose="1")
         obsNode.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix = self.generalFolderName + '/' + self.options['system_parameters']['observation_file_name'])
-        obsNode.createObject('ShowSpheres', radius="0.002", color="1 0 0 1", position='@SourceMO.position')
-        obsNode.createObject('ShowSpheres', radius="0.0015", color="1 1 0 1", position='@MOBS.mappedObservations')
+        obsNode.createObject('ShowSpheres', name="estimated", radius="0.002", color="1 0 0 1", position='@SourceMO.position')
+        obsNode.createObject('ShowSpheres', name="groundTruth", radius="0.0015", color="1 1 0 1", position='@MOBS.mappedObservations')
 
         return 0
-
-
-
-    def createScene(self,node):
-        # r_slaves = [] # list of created auxiliary nodes
-        self.createGlobalComponents(node)
-                
-        masterNode=node.createChild('MasterScene')
-        self.createMasterScene(masterNode)        
- 
-        return 0
-
-
-
-    def createTimeProfiler(self):
-        print 'Time statistics file: ' + self.fullFolderName + '/' + self.options['time_parameters']['time_statistics_file']
-        Sofa.timerSetInterval(self.options['time_parameters']['timer_name'], self.options['time_parameters']['iterations_interval'])    # Set the number of steps neded to compute the timer
-        Sofa.timerSetOutputType(self.options['time_parameters']['timer_name'], 'json')    # Set output file format
-        with open(self.fullFolderName + '/' + self.options['time_parameters']['time_statistics_file'], "a") as outputFile:
-            outputFile.write('{')
-            outputFile.close()
-
-        return 0
-
 
 
     def initGraph(self,node):
         print 'Init graph called (python side)'
         self.step = 0
         self.total_time = 0
-        
         # self.process.initializationObjects(node)
+
         return 0
 
 
-
+    # start timing statistics at every iteration
     def onBeginAnimationStep(self, deltaTime):
         if self.options['time_parameters']['time_profiling']:
             Sofa.timerSetEnabled(self.options['time_parameters']['timer_name'], True)
@@ -261,7 +254,7 @@ class liver_controlPoint_SDA(Sofa.PythonScriptController):
         return 0
 
 
-
+    # save filtering data to files
     def onEndAnimationStep(self, deltaTime):
 
         self.iterations = self.iterations + 1
@@ -335,6 +328,16 @@ class liver_controlPoint_SDA(Sofa.PythonScriptController):
         return 0
 
 
+    # creating timer and saving timing statistics
+    def createTimeProfiler(self):
+        print 'Time statistics file: ' + self.fullFolderName + '/' + self.options['time_parameters']['time_statistics_file']
+        Sofa.timerSetInterval(self.options['time_parameters']['timer_name'], self.options['time_parameters']['iterations_interval'])    # Set the number of steps neded to compute the timer
+        Sofa.timerSetOutputType(self.options['time_parameters']['timer_name'], 'json')    # Set output file format
+        with open(self.fullFolderName + '/' + self.options['time_parameters']['time_statistics_file'], "a") as outputFile:
+            outputFile.write('{')
+            outputFile.close()
+
+        return 0
 
     def saveTimeStatistics(self):
         if self.options['time_parameters']['time_profiling']:
@@ -355,7 +358,6 @@ class liver_controlPoint_SDA(Sofa.PythonScriptController):
         return 0
 
 
-
-    def onScriptEvent(self, senderNode, eventName,data):        
+    def onScriptEvent(self, senderNode, eventName, data):        
         return 0;
 
