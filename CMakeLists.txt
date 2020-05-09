@@ -54,8 +54,6 @@ set(HEADER_FILES
     src/genericComponents/Indices2ValuesTransformer.h
     src/genericComponents/Indices2ValuesTransformer.inl
     src/genericComponents/StepPCGLinearSolver.h
-    src/genericComponents/forceFields/ExtendedRestShapeSpringForceField.h
-    src/genericComponents/forceFields/ExtendedRestShapeSpringForceField.inl
     src/test/GeoEmulator.h
     src/test/GeoEmulator.inl
     src/test/GeoListener.h
@@ -80,7 +78,6 @@ set(SOURCE_FILES
     src/genericComponents/OptimMonitor.cpp
     src/genericComponents/Indices2ValuesTransformer.cpp
     src/genericComponents/StepPCGLinearSolver.cpp
-    src/genericComponents/forceFields/ExtendedRestShapeSpringForceField.cpp
     src/test/GeoEmulator.cpp
     src/test/GeoListener.cpp
     )

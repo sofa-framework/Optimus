@@ -10,12 +10,14 @@ __file = __file__.replace('\\', '/') # windows
 
 def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
-    
-    try : 
+    rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
+    rootNode.createObject('RequiredPlugin', name='Exporter', pluginName='SofaExporter')
+
+    try:
         sys.argv[0]
-    except :
+    except:
         commandLineArguments = []
-    else :
+    else:
         commandLineArguments = sys.argv
 
     if len(commandLineArguments) > 1:
@@ -63,7 +65,7 @@ class cyl3PartsRestShape_GenObs(Sofa.PythonScriptController):
         # rootNode
         rootNode.createObject('VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels hideVisual')
 
-        # rootNode/externalImpact
+        # external impact simulation
         dotNode = rootNode.createChild('dotNode')
         self.impactPoint = dotNode.createObject('MechanicalObject', template='Vec3d', name='dot', showObject='true', position='0.0 -0.02 0.107')
         if self.options['obs_generating_parameters']['save_observations']:
@@ -72,9 +74,11 @@ class cyl3PartsRestShape_GenObs(Sofa.PythonScriptController):
         dotNode.createObject('ShowSpheres', radius='0.005', color='1 0 1 1', position='@dot.position')
         self.index = 0
 
-        # rootNode/simuNode
+        # general node
         simuNode = rootNode.createChild('simuNode')
         self.simuNode = simuNode
+
+        # solvers
         if self.options['general_parameters']['solver_kind'] == 'Euler':
             simuNode.createObject('EulerImplicitSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'])
         elif self.options['general_parameters']['solver_kind'] == 'Symplectic':
@@ -91,10 +95,22 @@ class cyl3PartsRestShape_GenObs(Sofa.PythonScriptController):
         else:
             print 'Unknown linear solver type!'
 
-
+        # mechanical object
         simuNode.createObject('MeshVTKLoader', name='loader', filename=self.options['system_parameters']['volume_file_name'])
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')
+        simuNode.createObject('TetrahedronSetTopologyContainer', name="Container", src="@loader", tags=" ")
+        simuNode.createObject('TetrahedronSetTopologyModifier', name="Modifier")
+        simuNode.createObject('TetrahedronSetTopologyAlgorithms', name="TopoAlgo")
+        simuNode.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
+        if 'total_mass' in self.options['general_parameters'].keys():
+            simuNode.createObject('UniformMass', totalMass=self.options['general_parameters']['total_mass'])
+        if 'density' in self.options['general_parameters'].keys():
+            simuNode.createObject('MeshMatrixMass', printMass='0', lumping='1', massDensity=self.options['general_parameters']['density'], name='mass')
 
+        simuNode.createObject('Indices2ValuesMapper', indices='1 2 3 4 5 6 7 8 9 10', values=self.options['obs_generating_parameters']['object_young_moduli'], name='youngMapper', inputValues='@loader.dataset')
+        simuNode.createObject('TetrahedronFEMForceField', updateStiffness='1', name='FEM', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
+
+        # boundary conditions
         if 'boundary_conditions_list' in self.options['general_parameters'].keys():
             for index in range(0, len(self.options['general_parameters']['boundary_conditions_list'])):
                 bcElement = self.options['general_parameters']['boundary_conditions_list'][index]
@@ -107,37 +123,20 @@ class cyl3PartsRestShape_GenObs(Sofa.PythonScriptController):
                 else:
                     print 'Unknown type of boundary conditions'
 
-        simuNode.createObject('TetrahedronSetTopologyContainer', name="Container", src="@loader", tags=" ")
-        simuNode.createObject('TetrahedronSetTopologyModifier', name="Modifier")        
-        simuNode.createObject('TetrahedronSetTopologyAlgorithms', name="TopoAlgo")
-        simuNode.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
-        if 'total_mass' in self.options['general_parameters'].keys():
-            simuNode.createObject('UniformMass', totalMass=self.options['general_parameters']['total_mass'])
-        if 'density' in self.options['general_parameters'].keys():
-            simuNode.createObject('MeshMatrixMass', printMass='0', lumping='1', massDensity=self.options['general_parameters']['density'], name='mass')
-
-        simuNode.createObject('Indices2ValuesMapper', indices='1 2 3 4 5 6 7 8 9 10', values=self.options['obs_generating_parameters']['object_young_moduli'], name='youngMapper', inputValues='@loader.dataset')
-        simuNode.createObject('TetrahedronFEMForceField', updateStiffness='1', name='FEM', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
-
+        # saving generated observations
         if self.options['obs_generating_parameters']['save_observations']:
             simuNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1', doUpdate='0')
             simuNode.createObject('Monitor', name='ObservationMonitor', indices='@observationBox.indices', fileName = self.generalFolderName + '/' + self.options['system_parameters']['observation_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0')
 
-        # rootNode/simuNode/attached
-        #attachedNode = simuNode.createChild('Attached')
-        #self.attachedNode = attachedNode
-        #attachedNode.createObject('MechanicalObject', template='Vec3d', name='dofs', showObject='true', position=self.options['system_parameters']['position'])
-        #attachedNode.createObject('RestShapeSpringsForceField', name='Springs', stiffness='10', angularStiffness='1', external_rest_shape='@../../dotNode/dot')
-        #attachedNode.createObject('BarycentricMapping')
-        #attachedNode.createObject('BoxROI', name='impactBounds', box='0.08 0.1 0.31 0.22 0.27 0.46', doUpdate='0')
-        #attachedNode.createObject('Monitor', name='toolMonitor', template='Vec3d', showPositions='1', indices='@impactBounds.indices', ExportPositions='1', fileName=self.options['system_parameters']['observation_file_name'])
+        # attachement to external impact
         simuNode.createObject('BoxROI', name='impactBounds', box='-0.01 -0.02 0.1 0.01 -0.01 0.11', doUpdate='0')
         simuNode.createObject('RestShapeSpringsForceField', name='Springs', stiffness='10000', angularStiffness='1', external_rest_shape='@dotNode/dot', points='@impactBounds.indices', external_points='0')
-        ##simuNode.createObject('ConstantForceField', name='appliedForce', indices='@impactBounds.indices', totalForce='0.0 -2.0 0.0')
 
         return 0;
 
-    def onEndAnimationStep(self, deltaTime):    	
+
+    def onEndAnimationStep(self, deltaTime):
+        # shift external impact
         if self.index < 2000:
             position = self.impactPoint.findData('position').value
             position[0][1] = position[0][1] - 0.0001
@@ -147,75 +146,47 @@ class cyl3PartsRestShape_GenObs(Sofa.PythonScriptController):
         return 0;
 
     def onMouseButtonLeft(self, mouseX,mouseY,isPressed):
-        ## usage e.g.
-        #if isPressed : 
-        #    print "Control+Left mouse button pressed at position "+str(mouseX)+", "+str(mouseY)
         return 0;
 
     def onKeyReleased(self, c):
-        ## usage e.g.
-        #if c=="A" :
-        #    print "You released a"
         return 0;
 
     def initGraph(self, node):
-        ## Please feel free to add an example for a simple usage in /home/ip/Work/sofa/MyPlugins/Optimus/scenes/assimStiffness//home/ip/Work/sofa/master/src/applications/plugins/SofaPython/scn2python.py
         return 0;
 
     def onKeyPressed(self, c):
-        ## usage e.g.
-        #if c=="A" :
-        #    print "You pressed control+a"
         return 0;
 
     def onMouseWheel(self, mouseX,mouseY,wheelDelta):
-        ## usage e.g.
-        #if isPressed : 
-        #    print "Control button pressed+mouse wheel turned at position "+str(mouseX)+", "+str(mouseY)+", wheel delta"+str(wheelDelta)
         return 0;
 
     def storeResetState(self):
-        ## Please feel free to add an example for a simple usage in /home/ip/Work/sofa/MyPlugins/Optimus/scenes/assimStiffness//home/ip/Work/sofa/master/src/applications/plugins/SofaPython/scn2python.py
         return 0;
 
     def cleanup(self):
-        ## Please feel free to add an example for a simple usage in /home/ip/Work/sofa/MyPlugins/Optimus/scenes/assimStiffness//home/ip/Work/sofa/master/src/applications/plugins/SofaPython/scn2python.py
         return 0;
 
     def onGUIEvent(self, strControlID,valueName,strValue):
-        ## Please feel free to add an example for a simple usage in /home/ip/Work/sofa/MyPlugins/Optimus/scenes/assimStiffness//home/ip/Work/sofa/master/src/applications/plugins/SofaPython/scn2python.py
         return 0;
 
     def onLoaded(self, node):
-        ## Please feel free to add an example for a simple usage in /home/ip/Work/sofa/MyPlugins/Optimus/scenes/assimStiffness//home/ip/Work/sofa/master/src/applications/plugins/SofaPython/scn2python.py
         return 0;
 
     def reset(self):
-        ## Please feel free to add an example for a simple usage in /home/ip/Work/sofa/MyPlugins/Optimus/scenes/assimStiffness//home/ip/Work/sofa/master/src/applications/plugins/SofaPython/scn2python.py
         return 0;
 
     def onMouseButtonMiddle(self, mouseX,mouseY,isPressed):
-        ## usage e.g.
-        #if isPressed : 
-        #    print "Control+Middle mouse button pressed at position "+str(mouseX)+", "+str(mouseY)
         return 0;
 
     def bwdInitGraph(self, node):
-        ## Please feel free to add an example for a simple usage in /home/ip/Work/sofa/MyPlugins/Optimus/scenes/assimStiffness//home/ip/Work/sofa/master/src/applications/plugins/SofaPython/scn2python.py
         return 0;
 
     def onScriptEvent(self, senderNode, eventName,data):
-        ## Please feel free to add an example for a simple usage in /home/ip/Work/sofa/MyPlugins/Optimus/scenes/assimStiffness//home/ip/Work/sofa/master/src/applications/plugins/SofaPython/scn2python.py
         return 0;
 
     def onMouseButtonRight(self, mouseX,mouseY,isPressed):
-        ## usage e.g.
-        #if isPressed : 
-        #    print "Control+Right mouse button pressed at position "+str(mouseX)+", "+str(mouseY)
         return 0;
 
     def onBeginAnimationStep(self, deltaTime):
-        ## Please feel free to add an example for a simple usage in /home/ip/Work/sofa/MyPlugins/Optimus/scenes/assimStiffness//home/ip/Work/sofa/master/src/applications/plugins/SofaPython/scn2python.py
         return 0;
-
 

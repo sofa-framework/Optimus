@@ -11,12 +11,13 @@ __file = __file__.replace('\\', '/') # windows
 
 def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', pluginName='Optimus')
+    rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
 
-    try : 
+    try:
         sys.argv[0]
-    except :
+    except:
         commandLineArguments = []
-    else :
+    else:
         commandLineArguments = sys.argv
 
     if len(commandLineArguments) > 1:
@@ -54,6 +55,7 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
         if not os.path.isdir(self.generalFolderName):
             os.mkdir(self.generalFolderName)
 
+        # archive and save previous data
         observationInfix = self.options['system_parameters']['observation_points_file_name']
         observationInfix = observationInfix[observationInfix.rfind('/') + 1 : observationInfix.rfind('.')]
         self.folderName = options['filtering_parameters']['filter_kind'] + "_" + observationInfix + options['filtering_parameters']['output_directory_suffix']
@@ -105,8 +107,10 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
             self.estimPosition='1'
             self.estimVelocity='0'
 
-        self.createScene(rootNode)
-        
+        self.createGlobalComponents(rootNode)
+        masterNode = rootNode.createChild('MasterScene')
+        self.createMasterScene(masterNode)
+
         return 0
 
     
@@ -118,9 +122,9 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
         rootNode.createObject('ViewerSetting', cameraMode='Perspective', resolution='1000 700', objectPickingMethod='Ray casting')
         rootNode.createObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels')
 
-        #node.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")
         rootNode.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1", computationTimeFile = self.fullFolderName + '/' + self.options['time_parameters']['computation_time_file_name'])
 
+        # filter data
         if (self.options['filtering_parameters']['filter_kind'] == 'ROUKF'):
             self.filter = rootNode.createObject('ROUKFilter', name="ROUKF", verbose="1", useUnbiasedVariance=self.options['filtering_parameters']['use_unbiased_variance'], sigmaTopology=self.options['filtering_parameters']['sigma_points_topology'], lambdaScale=self.lambdaScale)
         elif (self.options['filtering_parameters']['filter_kind'] == 'UKFSimCorr'):
@@ -129,9 +133,11 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
             self.filter = rootNode.createObject('UKFilterClassic', name="UKFClas", verbose="1", exportPrefix=self.fullFolderName, useUnbiasedVariance=self.options['filtering_parameters']['use_unbiased_variance'], sigmaTopology=self.options['filtering_parameters']['sigma_points_topology'], lambdaScale=self.lambdaScale)
         else:
             print 'Unknown filter type!'
-            
+
+        # object loader
         rootNode.createObject('MeshVTKLoader', name='loader', filename=self.options['system_parameters']['volume_file_name'])
-        
+
+        # external impact node
         impactSimu = rootNode.createChild('externalImpSimu')
         impactSimu.createObject('PreStochasticWrapper')
         impactSimu.createObject('EulerImplicitSolver')
@@ -144,9 +150,9 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
 
 
 
-    #components common for both master and slave: the simulation itself (without observations and visualizations)
+    # common components for simulation
     def createCommonComponents(self, node):
-        # node.createObject('StaticSolver', applyIncrementFactor="0")
+        # solvers
         if self.options['general_parameters']['solver_kind'] == 'Euler':
             node.createObject('EulerImplicitSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'])
         elif self.options['general_parameters']['solver_kind'] == 'Symplectic':
@@ -164,10 +170,10 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
         else:
             print 'Unknown linear solver type!'
 
-
+        # mechanical object
         self.sourcePoint = node.createObject('MechanicalObject', src="@/loader", name="Volume")
         node.createObject('TetrahedronSetTopologyContainer', name="Container", src="@/loader", tags=" ")
-        node.createObject('TetrahedronSetTopologyModifier', name="Modifier")        
+        node.createObject('TetrahedronSetTopologyModifier', name="Modifier")
         node.createObject('TetrahedronSetTopologyAlgorithms', name="TopoAlgo")
         node.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
         if 'total_mass' in self.options['general_parameters'].keys():
@@ -175,6 +181,7 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
         if 'density' in self.options['general_parameters'].keys():
             node.createObject('MeshMatrixMass', printMass='0', lumping='1', massDensity=self.options['general_parameters']['density'], name='mass')
 
+        # boundary conditions
         if 'boundary_conditions_list' in self.options['general_parameters'].keys():
             for index in range(0, len(self.options['general_parameters']['boundary_conditions_list'])):
                 bcElement = self.options['general_parameters']['boundary_conditions_list'][index]
@@ -186,11 +193,13 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
                     node.createObject('RestShapeSpringsForceField', stiffness=bcElement['spring_stiffness_values'], angularStiffness="1", points='@boundBoxes'+str(index)+'.indices')
                 else:
                     print 'Unknown type of boundary conditions'
-                    
+
+        # estimate stiffness parameters
         node.createObject('OptimParams', name="paramE", optimize="1", numParams=self.options['filtering_parameters']['optim_params_size'], template="Vector", initValue=self.options['filtering_parameters']['initial_stiffness'], minValue=self.options['filtering_parameters']['minimal_stiffness'], maxValue=self.options['filtering_parameters']['maximal_stiffness'], stdev=self.options['filtering_parameters']['initial_standart_deviation'], transformParams=self.options['filtering_parameters']['transform_parameters'])
         node.createObject('Indices2ValuesMapper', name='youngMapper', indices='1 3', values='@paramE.value', inputValues='@/loader.dataset', defaultValue='6000')
         node.createObject('TetrahedronFEMForceField', name='FEM', updateStiffness='1', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
 
+        # attachment to external impact
         node.createObject('BoxROI', name='impactBounds', box='-0.01 -0.02 0.1 0.01 -0.01 0.11', doUpdate='0')
         self.toolSprings = node.createObject('RestShapeSpringsForceField', name="impactSpring", stiffness="10000", angularStiffness='1', external_rest_shape='@/externalImpSimu/state', drawSpring='1', points='@impactBounds.indices')
 
@@ -200,10 +209,9 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
 
     def createMasterScene(self, node):
         node.createObject('StochasticStateWrapper',name="StateWrapper",verbose="1", estimatePosition=self.estimPosition, positionStdev=self.options['filtering_parameters']['positions_standart_deviation'], estimateVelocity=self.estimVelocity)
-        
         self.createCommonComponents(node)
-
-        obsNode = node.createChild('obsNode')        
+        # node with groundtruth observations
+        obsNode = node.createChild('obsNode')
         obsNode.createObject('MeshVTKLoader', name='obsLoader', filename=self.options['system_parameters']['observation_points_file_name'])
         obsNode.createObject('MechanicalObject', name='SourceMO', src="@obsLoader")
         obsNode.createObject('BarycentricMapping')
@@ -216,24 +224,16 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
 
 
 
-    def createScene(self,node):
-        # r_slaves = [] # list of created auxiliary nodes
-        self.createGlobalComponents(node)
-                
-        masterNode=node.createChild('MasterScene')
-        self.createMasterScene(masterNode)        
- 
-        return 0
-
-
     def initGraph(self,node):
         print 'Init graph called (python side)'
-        self.step    =     0
-        self.total_time =     0
-        
+        self.step = 0
+        self.total_time = 0
         # self.process.initializationObjects(node)
+
         return 0
 
+
+    # save filtering data to files
     def onEndAnimationStep(self, deltaTime):
 
         if self.options['filtering_parameters']['save_state']:
@@ -243,8 +243,8 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
                 st=self.filter.findData('state').value
 
             state = [val for sublist in st for val in sublist]
-            #print 'Reduced state:'
-            #print reducedState
+            # print 'Reduced state:'
+            # print reducedState
 
             self.stateExpValFile = self.fullFolderName + '/' + self.stateFileName
             print 'Storing to', self.stateExpValFile
@@ -259,8 +259,8 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
                 var=self.filter.findData('variance').value
 
             variance = [val for sublist in var for val in sublist]
-            #print 'Reduced variance:'
-            #print reducedVariance
+            # print 'Reduced variance:'
+            # print reducedVariance
 
             self.stateVarFile = self.fullFolderName + '/' + self.varianceFileName
             f2 = open(self.stateVarFile, "a")
@@ -274,8 +274,8 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
                 covar=self.filter.findData('covariance').value
             
             covariance = [val for sublist in covar for val in sublist]
-            #print 'Reduced Covariance:'
-            #print reducedCovariance
+            # print 'Reduced Covariance:'
+            # print reducedCovariance
 
             self.stateCovarFile = self.fullFolderName + '/' + self.covarianceFileName
             f3 = open(self.stateCovarFile, "a")
@@ -290,8 +290,8 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
                 innov=self.filter.findData('innovation').value
 
             innovation = [val for sublist in innov for val in sublist]
-            #print 'Reduced state:'
-            #print reducedState
+            # print 'Reduced state:'
+            # print reducedState
 
             self.innovationFile = self.fullFolderName + '/' + self.innovationFileName
             f4 = open(self.innovationFile, "a")
@@ -303,6 +303,7 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
 
         return 0
 
-    def onScriptEvent(self, senderNode, eventName,data):        
+
+    def onScriptEvent(self, senderNode, eventName,data):
         return 0;
 
