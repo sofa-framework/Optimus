@@ -3,8 +3,12 @@
 ---
 model:
     dt: 0.01
-    vol_mesh: '../../data/cylinder/cylinder3_770.vtk'
+    mesh_path: '../../data/cylinder/'
+    object: 'cylinder3'
+    num_el: 770
+    num_el_sda: 770
     surf_mesh: '../../data/cylinder/cylinder3_770.stl'
+    obs_points: '../../data/cylinder/cyl3_obs33.vtk'
     gravity: [0, -9.81, 0]
     #total_mass: 0.2
     density: 200
@@ -15,6 +19,9 @@ model:
     
     int:   # temporal integrator properties
         type: 'Euler'
+        lin_type: 'Pardiso' # Pardiso or CG
+        maxit: 3            #only for Newton
+        verbose: 1          #only for Newton
         first_order: 0        
         rmass: 0.1
         rstiff: 3        
@@ -30,7 +37,7 @@ model:
         pardisoFolder: ''
 
     fem:
-        method: 'large'
+        method: 'CorLarge'  #CorLarge  StVenant CorSmall
         
     plane_collision: 0
 
@@ -52,7 +59,6 @@ filter:                         # SDA only
     param_max_val: [1e10]
     param_transform: 'project'
     obs_tag: obs33
-    obs_points: '../../data/cylinder/cyl3_obs33.vtk'
     observ_stdev: 1e-3     
     sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
     sigma_points_scale: 1

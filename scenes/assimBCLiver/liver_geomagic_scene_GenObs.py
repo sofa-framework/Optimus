@@ -36,7 +36,7 @@ def createScene(rootNode):
             return
 
     if options['geomagic_parameters']['load_track'] == 0:
-        rootNode.createObject('RequiredPlugin', pluginName='Geomagic')
+        rootNode.createObject('RequiredPlugin', name='Geom', pluginName='Geomagic')
 
     if options['general_parameters']['linear_solver_kind'] == 'Pardiso':
         rootNode.createObject('RequiredPlugin', name='Pardiso', pluginName='SofaPardisoSolver')

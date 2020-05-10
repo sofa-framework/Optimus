@@ -11,6 +11,7 @@ model:
         
     int:   # temporal integrator properties
         type: 'Euler'
+        lin_type: 'Pardiso' # Pardiso or CG
         rmass: 0.1
         rstiff: 0.1
         maxit: 1

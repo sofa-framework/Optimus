@@ -7,7 +7,7 @@ model:
     object: 'cylinder2'
     num_el: 138  # 128 138 2264 13266 56360 12699 93738
     num_el_sda: 138
-    obs_id: 'mid'
+    obs_points: '../../data/cylinder/cylinder2_mid.vtk'
     gravity: [0, 0, 0]
     #total_mass: 0.2
     # density: 2000
@@ -18,12 +18,13 @@ model:
     poisson_ratio: 0.499
     
     int:   # temporal integrator properties
-        type: 'Newton'    # Newton or Euler
-        maxit: 3         #only for Newton
-        verbose: 1       #only for Newton
-        first_order: 0   #only for Euler
-        rmass: 1         #only for Euler
-        rstiff: 1        #only for Euler
+        type: 'Newton'      # Newton or Euler
+        lin_type: 'Pardiso' # Pardiso or CG
+        maxit: 3            #only for Newton
+        verbose: 1          #only for Newton
+        first_order: 0      #only for Euler
+        rmass: 1            #only for Euler
+        rstiff: 1           #only for Euler
         
     bc:
         type: 'fixed'

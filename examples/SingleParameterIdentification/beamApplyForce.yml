@@ -10,12 +10,13 @@ model:
     density: 10000
              
     int:   # temporal integrator properties
-        type: 'Newton'    # Newton or Euler
-        maxit: 5        #only for Newton
-        verbose: 0       #only for Newton
-        #first_order: 0   #only for Euler
-        #rmass: 1         #only for Euler
-        #rstiff: 1        #only for Euler
+        type: 'Newton'       # Newton or Euler
+        lin_type: 'Pardiso'  # options are 'Pardiso' and 'CG'
+        maxit: 5             # only for Newton
+        verbose: 0           # only for Newton
+        #first_order: 0      # only for Euler
+        #rmass: 1            # only for Euler
+        #rstiff: 1           # only for Euler
         
     bc:
         type: 'fixed'
@@ -32,7 +33,7 @@ model:
         pardisoFolder: ''
 
     fem:
-        method: 'StVenant' #CorLarge  StVenant CorSmall        
+        method: 'CorLarge' #CorLarge  StVenant CorSmall        
         young_modulus: 10000
         poisson_ratio: 0.49
 
@@ -46,7 +47,7 @@ io:
     
 
 filter:                         # SDA only
-    kind: 'UKFSimCorr'               # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
+    kind: 'ROUKF'               # options are "ROUKF", "UKFSimCorr", and "UKFClassic"
     nparams: 1
     param_init_exval: [5000]
     param_init_stdev: [100]
@@ -54,7 +55,7 @@ filter:                         # SDA only
     param_max_val: [1e10]
     param_transform: 'project'    
     observ_stdev: 1e-4
-    sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
+    sigma_points_topology: "Star"   # options are "Simplex" and "Star"
     sigma_points_scale: 1
     obs_added_noise_var: 0
    

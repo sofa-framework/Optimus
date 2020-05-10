@@ -191,7 +191,7 @@ class cylConstForce_SDA(Sofa.PythonScriptController):
 
     def createMasterScene(self, node):
 
-        node.createObject('StochasticStateWrapper',name="StateWrapper",verbose="1", estimatePosition=self.estimPosition, positionStdev=self.options['filtering_parameters']['positions_standart_deviation'], estimateVelocity=self.estimVelocity)
+        node.createObject('StochasticStateWrapper', name="StateWrapper", verbose="1", estimatePosition=self.estimPosition, positionStdev=self.options['filtering_parameters']['positions_standart_deviation'], estimateVelocity=self.estimVelocity)
         self.createCommonComponents(node)
 
         obsNode = node.createChild('obsNode')        

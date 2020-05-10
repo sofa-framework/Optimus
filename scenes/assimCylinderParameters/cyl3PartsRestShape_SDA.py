@@ -115,7 +115,7 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
 
     
     def createGlobalComponents(self, rootNode):
-        # scene global stuff                
+        # scene global stuff
         rootNode.findData('gravity').value = self.options['general_parameters']['gravity']
         rootNode.findData('dt').value = self.options['general_parameters']['delta_time']
 

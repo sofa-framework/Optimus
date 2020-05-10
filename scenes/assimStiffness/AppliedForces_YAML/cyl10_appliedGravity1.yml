@@ -3,8 +3,12 @@
 ---
 model:
     dt: 0.01
-    vol_mesh: '../../data/cylinder/cylinder10_4245.vtk'
+    mesh_path: '../../data/cylinder/'
+    object: 'cylinder10'
+    num_el: 4245
+    num_el_sda: 4245
     surf_mesh: '../../data/cylinder/cylinder10_4245.stl'
+    obs_points: '../../data/cylinder/cyl10_4245_obs41.vtk'
     gravity: [0, -9.81, 0]
     total_mass: 0.2
     young_modulus: [3500, 4000, 1000, 6000, 2000, 7000, 2500, 8000, 3000, 1500]
@@ -12,6 +16,9 @@ model:
         
     int:   # temporal integrator properties
         type: 'Euler'
+        lin_type: 'Pardiso' # Pardiso or CG
+        maxit: 3            #only for Newton
+        verbose: 1          #only for Newton
         first_order: 0
         rmass: 0.1
         rstiff: 3        
@@ -27,7 +34,7 @@ model:
         pardisoFolder: ''
 
     fem:
-        method: 'large'
+        method: 'CorLarge'   #CorLarge  StVenant CorSmall
         
     plane_collision: 0
 
@@ -35,7 +42,7 @@ io:
     prefix: 'cyl10gravity_'
     suffix: ''
     saveGeo: 0
-    saveObs: 0                  # GO only
+    saveObs: 1                  # GO only
     obsFileName: 'obs'
     saveEst: 1                  # SDA only
     sdaFolderSuffix: '_obsnoise05_obsStdev10'         # SDA only
@@ -49,7 +56,6 @@ filter:                         # SDA only
     param_max_val: [1e10]
     param_transform: 'project'
     obs_tag: obs41
-    obs_points: '../../data/cylinder/cyl10_4245_obs41.vtk'
     observ_stdev: 0.01
     sigma_points_topology: "Simplex"   # options are "Simplex" and "Star"
     sigma_points_scale: 1

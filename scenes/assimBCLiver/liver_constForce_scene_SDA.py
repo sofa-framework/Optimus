@@ -257,7 +257,7 @@ class liverConstForceSDA_Controller(Sofa.Core.Controller):
             elif (self.options['filtering_parameters']['filter_kind'] == 'UKFSimCorr' or self.options['filtering_parameters']['filter_kind'] == 'UKFClassic'):
                 var=self.filter.findData('variance').value
                         
-            variance = [val for val in var]        
+            variance = [val for val in var]
             # variance = [val for sublist in var for val in sublist]
             # print('Reduced variance:')
             # print(reducedVariance)
@@ -273,7 +273,7 @@ class liverConstForceSDA_Controller(Sofa.Core.Controller):
             elif (self.options['filtering_parameters']['filter_kind'] == 'UKFSimCorr' or self.options['filtering_parameters']['filter_kind'] == 'UKFClassic'):
                 covar=self.filter.findData('covariance').value
 
-            covariance = [val for val in covar]            
+            covariance = [val for val in covar]
             # covariance = [val for sublist in covar for val in sublist]
             # print('Reduced Covariance:')
             # print(reducedCovariance)
@@ -305,6 +305,6 @@ class liverConstForceSDA_Controller(Sofa.Core.Controller):
 
         return 0
 
-    def onScriptEvent(self, senderNode, eventName,data):        
+    def onScriptEvent(self, senderNode, eventName,data):
         return 0;
 

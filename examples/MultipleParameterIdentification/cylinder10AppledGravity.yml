@@ -10,9 +10,10 @@ model:
         
     int:   # temporal integrator properties
         type: 'Euler'
-        rmass: 0.1  #Euler only
-        rstiff: 3   #Euler only
-        maxit: 5   # Newton only
+        lin_type: 'Pardiso'  # options are 'Pardiso' and 'CG'
+        rmass: 0.1           # Euler only
+        rstiff: 3            # Euler only
+        maxit: 5             # Newton only
     bc:
         type: 'fixed'
         boxes: '-0.05 -0.05 -0.002   0.05 0.05 0.002   -0.05 -0.05  0.298   0.05 0.05 0.302'
