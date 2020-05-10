@@ -16,6 +16,8 @@ SOFACONFIG_DIRECTORY=$GENERAL_DIRECTORY/sofaconfig
 PARDISO_SOLVER_DIRECTORY=$GENERAL_DIRECTORY/SofaPardisoSolver
 BOUNDARY_CONDITIONS_DIRECTORY=$GENERAL_DIRECTORY/BoundaryConditions
 OPTIMUS_DIRECTORY=$GENERAL_DIRECTORY/Optimus
+PLUGIN_PYTHON3_DIRECTORY=$GENERAL_DIRECTORY/plugin.SofaPython3
+PLUGIN_PYTHON3_BUILD_DIRECTORY=$PLUGIN_PYTHON3_DIRECTORY/build_release
 
 
 ### export pardiso license
@@ -80,10 +82,32 @@ else
     echo "Clone data from Optimus repository"
 fi
 
+# checkout Python3
+if [ -d "$PLUGIN_PYTHON3_DIRECTORY" ]; then
+    echo "Update Optimus repository"
+    cd $PLUGIN_PYTHON3_DIRECTORY
+    /usr/bin/git pull --progress https://github.com/SofaDefrost/plugin.SofaPython3.git 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
+else
+    /usr/bin/git clone --progress https://github.com/SofaDefrost/plugin.SofaPython3.git $PLUGIN_PYTHON3_DIRECTORY 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
+    echo "Clone data from Optimus repository"
+fi
+
+
 ### configure and make the system
-echo "Recompile sources"
+echo "Recompile sofa sources"
 cd $BUILD_DIRECTORY
+/usr/local/bin/cmake .. 2>&1 >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
 /usr/bin/make -B -j 8 2>&1 >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
+/usr/bin/make install 2>&1 >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
+
+echo "Recompile python3 plugin"
+if ! [ -d "$PLUGIN_PYTHON3_BUILD_DIRECTORY" ]; then
+    mkdir $PLUGIN_PYTHON3_BUILD_DIRECTORY
+fi
+cd $PLUGIN_PYTHON3_BUILD_DIRECTORY
+/usr/local/bin/cmake -DCMAKE_PREFIX_PATH=$BUILD_DIRECTORY/install .. 2>&1 >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
+/usr/bin/make -B -j 8 2>&1 >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
+/usr/bin/make install 2>&1 >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
 
 
 ### verify benchmark tests
