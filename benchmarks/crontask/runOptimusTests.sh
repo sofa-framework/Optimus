@@ -86,9 +86,9 @@ fi
 if [ -d "$PLUGIN_PYTHON3_DIRECTORY" ]; then
     echo "Update Optimus repository"
     cd $PLUGIN_PYTHON3_DIRECTORY
-    /usr/bin/git pull --progress https://github.com/SofaDefrost/plugin.SofaPython3.git 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
+    /usr/bin/git pull --progress https://github.com/sofa-framework/plugin.SofaPython3.git 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
 else
-    /usr/bin/git clone --progress https://github.com/SofaDefrost/plugin.SofaPython3.git $PLUGIN_PYTHON3_DIRECTORY 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
+    /usr/bin/git clone --progress https://github.com/sofa-framework/plugin.SofaPython3.git $PLUGIN_PYTHON3_DIRECTORY 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
     echo "Clone data from Optimus repository"
 fi
 
