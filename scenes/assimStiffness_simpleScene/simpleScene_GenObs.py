@@ -46,7 +46,7 @@ class cyl10_GenObs(Sofa.PythonScriptController):
     def createGraph(self,rootNode):
 
         if self.linearSolver=='Pardiso':
-            rootNode.createObject('RequiredPlugin', pluginName='SofaPardisoSolver')
+            rootNode.createObject('RequiredPlugin', name='Pardiso', pluginName='SofaPardisoSolver')
         rootNode.createObject('VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels hideVisual')
 
         # solver

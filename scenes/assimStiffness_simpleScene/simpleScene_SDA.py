@@ -7,7 +7,7 @@ import csv
 __file = __file__.replace('\\', '/') # windows
 
 def createScene(rootNode):
-    rootNode.createObject('RequiredPlugin', pluginName='Optimus')
+    rootNode.createObject('RequiredPlugin', name='Optim', pluginName='Optimus')
     rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
     rootNode.createObject('PythonScriptController', name='SynthBCDA', filename=__file, classname='synth1_BCDA')
 
@@ -53,7 +53,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
         # create scene components
         if self.linearSolver=='Pardiso':
-            rootNode.createObject('RequiredPlugin', pluginName='SofaPardisoSolver')
+            rootNode.createObject('RequiredPlugin', name='Pardiso', pluginName='SofaPardisoSolver')
         self.createComponents(node)
   
         return 0
