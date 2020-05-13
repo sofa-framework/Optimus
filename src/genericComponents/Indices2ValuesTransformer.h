@@ -31,6 +31,8 @@
 #include <SofaBaseMechanics/MechanicalObject.h>
 #include <sofa/helper/vector.h>
 
+#include "../initOptimusPlugin.h"
+
 
 namespace sofa
 {

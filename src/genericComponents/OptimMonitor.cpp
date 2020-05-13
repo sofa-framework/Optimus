@@ -38,29 +38,16 @@ using namespace sofa::defaulttype;
 
 // Register in the Factory
 int OptimMonitorClass = core::RegisterObject("OptimMonitoring of particles")
-        #ifndef SOFA_FLOAT
-        .add< OptimMonitor<Vec3dTypes> >(true)
-        .add< OptimMonitor<Vec6dTypes> >()
-        .add< OptimMonitor<Rigid3dTypes> >()
-        #endif
-        #ifndef SOFA_DOUBLE
-        .add< OptimMonitor<Vec3fTypes> >()
-        .add< OptimMonitor<Vec6fTypes> >()
-        .add< OptimMonitor<Rigid3fTypes> >()
-        #endif
+        .add< OptimMonitor<Vec3Types> >(true)
+        .add< OptimMonitor<Vec6Types> >()
+        .add< OptimMonitor<Rigid3Types> >()
         ;
 
-#ifndef SOFA_FLOAT
-template class SOFA_VALIDATION_API OptimMonitor<Vec3dTypes>;
-template class SOFA_VALIDATION_API OptimMonitor<Vec6dTypes>;
-template class SOFA_VALIDATION_API OptimMonitor<Rigid3dTypes>;
-#endif
-#ifndef SOFA_DOUBLE
-template class SOFA_VALIDATION_API OptimMonitor<Vec3fTypes>;
-template class SOFA_VALIDATION_API OptimMonitor<Vec6fTypes>;
-template class SOFA_VALIDATION_API OptimMonitor<Rigid3fTypes>;
-#endif
+template class SOFA_OPTIMUSPLUGIN_API OptimMonitor<Vec3Types>;
+template class SOFA_OPTIMUSPLUGIN_API OptimMonitor<Vec6Types>;
+template class SOFA_OPTIMUSPLUGIN_API OptimMonitor<Rigid3Types>;
 
 } // namespace misc
 } // namespace component
 } // namespace sofa
+
