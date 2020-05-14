@@ -69,7 +69,7 @@ public:
 protected:
     //ObservationTable observationTable;
 
-    int nParticles, nObservations, dim;
+    unsigned int nParticles, nObservations, dim;
 
 public:
 
@@ -112,19 +112,19 @@ public:
         return(true);
     }
 
-    int getNParticles() {
+    unsigned int getNParticles() {
         return nParticles;
     }
 
-    int getStateSize() {
+    unsigned int getStateSize() {
         return nParticles;
     }
 
-    int getObsDimention() override {
+    unsigned int getObsDimention() override {
         return dim;
     }
 
-    int getNStates() {
+    unsigned int getNStates() {
         return nObservations;
     }
 

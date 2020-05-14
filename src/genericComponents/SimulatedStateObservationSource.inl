@@ -373,12 +373,12 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(const std::str
             std::iota(index.begin(), index.end(), 0); // fill vector with increment, from 0
 
             if (m_dim == 2) {
-                for (int i = 0; i < m_nParticles; i++)
-                    for (int d = 0; d < 2; d++)
+                for (unsigned int i = 0; i < m_nParticles; i++)
+                    for (unsigned int d = 0; d < 2; d++)
                         position[i][d] = atof(tokens[2*i+d+1].c_str());
             } else {
-                for (int i = 0; i < m_nParticles; i++)
-                    for (int d = 0; d < 3; d++)
+                for (unsigned int i = 0; i < m_nParticles; i++)
+                    for (unsigned int d = 0; d < 3; d++)
                         position[i][d] = atof(tokens[3*i+d+1].c_str());
             }
 
@@ -497,6 +497,7 @@ bool SimulatedStateObservationSource<DataTypes>::getObservation(double _time, Ve
                 PRNE("No observation for time " << _time << " , using the last one from " << m_positions.size()-1);
                 ix = m_positions.size() - 1;
             }
+
             d_actualObservation.setValue(m_positions[ix]);
             _observation = m_positions[ix];
         }
@@ -549,9 +550,10 @@ void SimulatedStateObservationSource<DataTypes>::handleEvent(core::objectmodel::
 
             helper::WriteAccessor<Data<VecCoord> > x = *mState->write(sofa::core::VecCoordId::position());
 
-            //std::cout << "Sizes: mstate: " << x.size() << " positions: " << positions[ix].size() << std::endl;
+            // std::cout << " Sizes: mstate: " << x.size() << " positions: " << m_positions[ix].size() << std::endl;
             for (size_t i = 0; i < x.size(); i++)
                 x[i] = m_positions[ix][i];
+            d_actualObservation.setValue(m_positions[ix]);
         }
     }
 }

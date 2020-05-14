@@ -59,7 +59,7 @@ namespace container
 class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationSourceBase : public BaseObject //  ObservationSource
 {
 public:
-    virtual int getObsDimention() = 0;
+    virtual unsigned int getObsDimention() = 0;
 };
 
 template<class DataTypes>
@@ -124,19 +124,19 @@ public:
     bool getObservation(double _time, VecCoord& _observation);
     bool getObservation(double _time, VecCoord& _observation, VecIndex &_index);
 
-    int getNParticles() const {
+    unsigned int getNParticles() const {
         return m_nParticles;
     }
 
-    int getStateSize() const {
+    unsigned int getStateSize() const {
         return m_nParticles;
     }
 
-    int getObsDimention() override {
+    unsigned int getObsDimention() override {
         return m_dim;
     }
 
-    int getNStates() const {
+    unsigned int getNStates() const {
         return m_nObservations;
     }
 
