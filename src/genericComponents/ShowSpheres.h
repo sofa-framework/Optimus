@@ -56,7 +56,7 @@ ShowSpheres();
 protected:    
 public:
     Data<VecCoord> _positions;
-    Data<helper::vector<int> > _indices;
+    Data<helper::vector<unsigned int> > _indices;
     Data<bool> _draw;
     Data<float> _radius;
     Data<float> _showIndicesSize;
@@ -64,7 +64,7 @@ public:
     Data<Vec4f> _indexColor;
 
 
-    void draw(const core::visual::VisualParams* vparams);
+    void draw(const core::visual::VisualParams* vparams) override;
 
 
 }; /// class

@@ -176,14 +176,14 @@ public:
     void init() override;
     void bwdInit() override;
 
-    virtual void updateState(bool addData) override;
+    virtual void updateState(bool addData = false) override;
 
     /// function to prepare data used during prediction and correction phase
     void initializeStep(size_t _stepNumber) override;
 
     /// functions calling one step of SOFA simulations in different manner given by the type of filter.
     void transformState(EVectorX& _vecX, const core::MechanicalParams* _mparams, int* _stateID) override;
-    void lastApplyOperator(EVectorX& _vecX, const core::MechanicalParams* _mparams) override;
+    void lastApplyOperator(EVectorX& /* _vecX */, const core::MechanicalParams* /* _mparams */) override;
     void computeSimulationStep(EVectorX& _state, const core::MechanicalParams* mparams,  int& _stateID) override;
 
     /// set/get of data demand

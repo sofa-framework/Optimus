@@ -134,7 +134,7 @@ void CorrectionForceField<DataTypes>::addForce(const core::MechanicalParams* /*p
         forceVal[i]=d_paramF.getValue()*d_Optimforces.getValue()[i];
     const VecIndex& indices = d_indices.getValue();
     const VecDeriv& f = d_forces.getValue();
-    unsigned int i = 0, nbForcesIn = f.size(), nbForcesOut = _f1.size();
+    unsigned int i = 0, nbForcesIn = f.size(); // nbForcesOut = _f1.size();
 
 
     if (forceVal * forceVal > 0.0)

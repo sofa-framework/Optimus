@@ -69,7 +69,7 @@ namespace stochastic
 {
 template<>
 class InternalCopy<Rigid3dTypes> {
-public :
+public:
 
     typedef typename Rigid3dTypes::VecCoord VecCoord;
 
@@ -450,7 +450,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::setSofaVelocityFromFilterVec
 
 /// function that sets SOFA state (position, velocity, parameters) from this->state (stochastic state, Eigen vector)
 template <>
-void StochasticStateWrapper<Rigid3dTypes, double>::copyStateFilter2Sofa(const core::MechanicalParams* _mechParams, bool _setVelocityFromPosition) {
+void StochasticStateWrapper<Rigid3dTypes, double>::copyStateFilter2Sofa(const core::MechanicalParams* _mechParams, bool /* _setVelocityFromPosition */) {
     typename MechanicalState::WriteVecCoord pos = mechanicalState->writePositions();
     typename MechanicalState::WriteVecDeriv vel = mechanicalState->writeVelocities();
 
@@ -928,12 +928,12 @@ typename StochasticStateWrapper<DataTypes, FilterType>::EMatrixX& StochasticStat
 template <class DataTypes, class FilterType>
 void StochasticStateWrapper<DataTypes, FilterType>::updateStateErrorVariance() {
     PRNS("Constructing state co-variance matrix")
-    size_t oldStateVarianceSize = this->stateErrorVariance.rows();
+    int oldStateVarianceSize = this->stateErrorVariance.rows();
     this->stateErrorVariance.conservativeResize(this->stateSize, this->stateSize);
 
     // set zeros to new added elements
-    for (size_t first_index = 0; first_index < this->stateErrorVariance.rows(); first_index++) {
-        for (size_t second_index = oldStateVarianceSize; second_index < this->stateErrorVariance.rows(); second_index++) {
+    for (int first_index = 0; first_index < this->stateErrorVariance.rows(); first_index++) {
+        for (int second_index = oldStateVarianceSize; second_index < this->stateErrorVariance.rows(); second_index++) {
             this->stateErrorVariance(first_index, second_index) = 0.0;
             this->stateErrorVariance(second_index, first_index) = 0.0;
         }
@@ -960,7 +960,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::updateStateErrorVariance() {
         this->vecOptimParams[opi]->getInitVariance(variance);
 
         for (size_t pi = 0; pi < this->vecOptimParams[opi]->size(); pi++, vsi++)
-            if (vsi >= oldStateVarianceSize) {
+            if (vsi >= static_cast<size_t>(oldStateVarianceSize)) {
                 this->stateErrorVariance(vsi,vsi) = variance[pi];
             }
     }
@@ -1059,12 +1059,12 @@ typename StochasticStateWrapper<DataTypes, FilterType>::EMatrixX& StochasticStat
 template <class DataTypes, class FilterType>
 void StochasticStateWrapper<DataTypes, FilterType>::updateModelErrorVariance() {
     PRNS("Constructing state co-variance matrix")
-    size_t oldModelVarianceSize = this->stateErrorVariance.rows();
+    int oldModelVarianceSize = this->stateErrorVariance.rows();
     modelErrorVariance.conservativeResize(this->stateSize, this->stateSize);
 
     // set zeros to new added elements
-    for (size_t first_index = 0; first_index < modelErrorVariance.rows(); first_index++) {
-        for (size_t second_index = oldModelVarianceSize; second_index < modelErrorVariance.rows(); second_index++) {
+    for (int first_index = 0; first_index < modelErrorVariance.rows(); first_index++) {
+        for (int second_index = oldModelVarianceSize; second_index < modelErrorVariance.rows(); second_index++) {
             modelErrorVariance(first_index, second_index) = 0.0;
             modelErrorVariance(second_index, first_index) = 0.0;
         }
@@ -1121,7 +1121,6 @@ void StochasticStateWrapper<DataTypes, FilterType>::initializeStep(size_t _stepN
 template <class DataTypes, class FilterType>
 void StochasticStateWrapper<DataTypes, FilterType>::computeSimulationStep(EVectorX &_state, const core::MechanicalParams *_mparams, int& _stateID) {
     if (this->filterKind == SIMCORR) {
-        typename MechanicalState::ReadVecCoord posT = mechanicalState->readPositions();
 
         reinitMState(_mparams);
 
@@ -1226,7 +1225,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::transformState(EVectorX &_ve
     }
 }
 template <class DataTypes, class FilterType>
-void StochasticStateWrapper<DataTypes, FilterType>::lastApplyOperator(EVectorX &_vecX, const core::MechanicalParams *_mparams) {
+void StochasticStateWrapper<DataTypes, FilterType>::lastApplyOperator(EVectorX& /* _vecX */, const core::MechanicalParams* /* _mparams */) {
     if (! (this->filterKind == CLASSIC) )
         return;
 
@@ -1422,9 +1421,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::computeSofaStepWithLM(const 
     using helper::system::thread::CTime;
     using sofa::helper::AdvancedTimer;
 
-    double time = 0.0;
-    //double timeTotal = 0.0;
-    double timeScale = 1000.0 / (double)CTime::getTicksPerSec();
+    // double timeScale = 1000.0 / (double)CTime::getTicksPerSec();
 
     // Update the BehaviorModels
     // Required to allow the RayPickInteractor interaction

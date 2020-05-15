@@ -58,13 +58,13 @@ template<class DataTypes>
 void ShowSpheres<DataTypes>::draw(const core::visual::VisualParams* vparams) {
     if (_draw.getValue() == true && vparams->displayFlags().getShowBehaviorModels()) {
         helper::ReadAccessor< Data< VecCoord > > pos = _positions;
-        helper::vector<int> ind = _indices.getValue();
+        helper::vector<unsigned int> ind = _indices.getValue();
 
         // if indices are empty, take all the nodes
         if (ind.size() == 0) {
             ind.resize(pos.size());
             for (size_t i = 0; i < ind.size(); i++)
-                ind[i] = int(i);
+                ind[i] = i;
         } else {
             for (size_t i = 0; i < ind.size(); i++) {
                 if (ind[i] >= pos.size()) {
@@ -80,7 +80,7 @@ void ShowSpheres<DataTypes>::draw(const core::visual::VisualParams* vparams) {
 
         std::vector<Vector3> points(npoints);
         std::vector<float> radii(npoints);
-        for (unsigned int i=0; i<npoints; i++)
+        for (unsigned int i = 0; i < npoints; i++)
         {
             points[i] = Vector3(pos[ind[i]][0], pos[ind[i]][1], pos[ind[i]][2]);
             radii[i] = rad;

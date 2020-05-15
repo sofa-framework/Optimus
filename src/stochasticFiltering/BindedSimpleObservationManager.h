@@ -102,9 +102,9 @@ protected:
 
     virtual bool hasObservation(double _time ) override; /// TODO
     virtual bool getInnovation(double _time, EVectorX& _state, EVectorX& _innovation) override;
-    virtual bool getRealObservation(double _time, EVectorX& _realObs) override;
+    virtual bool getRealObservation(double /* _time */, EVectorX& /* _realObs */) override;
     virtual bool getPredictedObservation(int _id, EVectorX& _predictedObservation) override;
-    virtual bool obsFunction(EVectorX& _state, EVectorX& _predictedObservation) override;
+    virtual bool obsFunction(EVectorX& /* _state */, EVectorX& /* _predictedObservation */) override;
 
     typename DataTypes1::VecCoord realObservations;
     typename helper::vector< VecCoord > modelObservations;

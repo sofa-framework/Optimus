@@ -149,7 +149,7 @@ public:
         Inherit::init();
     }
 
-    virtual void updateState(bool addData = false) { }
+    virtual void updateState(bool) { }
 
     /// function required by classical and reduced-order filters (preform simulation -> compute new sigma state)
     virtual void transformState(EVectorX& _vecX, const core::MechanicalParams* mparams,  int* _stateID = nullptr) = 0;
