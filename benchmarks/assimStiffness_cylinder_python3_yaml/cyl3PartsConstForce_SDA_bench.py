@@ -12,7 +12,7 @@ __file = __file__.replace('\\', '/') # windows
 
 def createScene(rootNode):
     rootNode.addObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
-    rootNode.addObject('RequiredPlugin', name='Python3', pluginName='SofaPython3')
+    # rootNode.addObject('RequiredPlugin', name='Python3', pluginName='SofaPython3')
 
     try:
         sys.argv[0]
@@ -31,7 +31,7 @@ def createScene(rootNode):
 
     with open(configFileName, 'r') as stream:
         try:
-            options = yaml.load(stream)            
+            options = yaml.safe_load(stream)
 
         except yaml.YAMLError as exc:
             print(exc)

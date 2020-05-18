@@ -13,7 +13,7 @@ __file = __file__.replace('\\', '/') # windows
 
 def createScene(rootNode):
     rootNode.addObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
-    rootNode.addObject('RequiredPlugin', name='Python3', pluginName='SofaPython3')
+    # rootNode.addObject('RequiredPlugin', name='Python3', pluginName='SofaPython3')
     
     try : 
         sys.argv[0]
