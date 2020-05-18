@@ -40,5 +40,3 @@ python $compareScript roukf_bench/variance_test.txt roukf_testing/variance_test.
 echo "Comparing covariance w.r.t. benchmark:"
 python $compareScript roukf_bench/covariance_test.txt roukf_testing/covariance_test.txt $numItSDA
 
-echo "Comparing innovation w.r.t. benchmark:"
-python $compareScript roukf_bench/innovation_test.txt roukf_testing/innovation_test.txt $numItSDA
