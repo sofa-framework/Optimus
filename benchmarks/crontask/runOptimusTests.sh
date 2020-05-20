@@ -23,6 +23,7 @@ PLUGIN_PYTHON3_BUILD_DIRECTORY=$PLUGIN_PYTHON3_DIRECTORY/build_release
 ### export pardiso license
 export PARDISO_LIC_PATH=$HOME_DIRECTORY/External_libraries/Pardiso
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME_DIRECTORY/External_libraries/Pardiso
+export PYTHONPATH=$PLUGIN_PYTHON3_BUILD_DIRECTORY/lib/site-packages
 
 
 ### checkout source code
