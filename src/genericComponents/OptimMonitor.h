@@ -21,7 +21,7 @@
 ******************************************************************************/
 #ifndef SOFA_COMPONENT_MISC_OPTIMMONITOR_H
 #define SOFA_COMPONENT_MISC_OPTIMMONITOR_H
-#include <SofaValidation/config.h>
+#include "initOptimusPlugin.h"
 
 #include <sofa/core/objectmodel/BaseObject.h>
 #include <sofa/core/behavior/MechanicalState.h>
