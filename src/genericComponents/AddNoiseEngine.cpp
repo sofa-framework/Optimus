@@ -46,20 +46,10 @@ SOFA_DECL_CLASS(AddNoiseEngine)
 
 // Register in the Factory
 int AddNoiseEngineClass = core::RegisterObject("AddNoiseEngine")
-        #ifndef SOFA_FLOAT
-        .add< AddNoiseEngine<defaulttype::Vec3dTypes> >(true)
-        #endif
-        #ifndef SOFA_DOUBLE
-        .add< AddNoiseEngine<defaulttype::Vec3fTypes> >()
-        #endif
+        .add< AddNoiseEngine<defaulttype::Vec3Types> >(true)
         ;
 
-#ifndef SOFA_FLOAT
-template class AddNoiseEngine<defaulttype::Vec3dTypes>;
-#endif
-#ifndef SOFA_DOUBLE
-template class AddNoiseEngine<defaulttype::Vec3fTypes>;
-#endif
+template class AddNoiseEngine<defaulttype::Vec3Types>;
 
 
 } // namespace engine

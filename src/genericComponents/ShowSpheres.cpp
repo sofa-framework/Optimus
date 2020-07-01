@@ -46,24 +46,12 @@ SOFA_DECL_CLASS(ShowSpheres)
 
 // Register in the Factory
 int ShowSpheresClass = core::RegisterObject("ShowSpheres")
-        #ifndef SOFA_FLOAT
-        .add< ShowSpheres<Vec3dTypes> >(true)
-        .add< ShowSpheres<Rigid3dTypes> >()
-        #endif
-        #ifndef SOFA_DOUBLE
-        .add< ShowSpheres<Vec3fTypes> >()
-        .add< ShowSpheres<Rigid3fTypes> >()
-        #endif
+        .add< ShowSpheres<Vec3Types> >(true)
+        .add< ShowSpheres<Rigid3Types> >()
         ;
 
-#ifndef SOFA_FLOAT
-template class  ShowSpheres<Vec3dTypes>;
-template class  ShowSpheres<Rigid3dTypes>;
-#endif
-#ifndef SOFA_DOUBLE
-template class  ShowSpheres<Vec3fTypes>;
-template class  ShowSpheres<Rigid3fTypes>;
-#endif
+template class ShowSpheres<Vec3Types>;
+template class ShowSpheres<Rigid3Types>;
 
 
 } // namespace engine
