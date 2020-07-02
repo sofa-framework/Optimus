@@ -22,7 +22,7 @@
 #ifndef SOFA_COMPONENT_MISC_StochasticPositionHandler_H
 #define SOFA_COMPONENT_MISC_StochasticPositionHandler_H
 
-#include <initOptimusPlugin.h>
+#include "initOptimusPlugin.h"
 #include <sofa/core/behavior/ForceField.h>
 #include <sofa/core/behavior/BaseMechanicalState.h>
 #include <sofa/core/objectmodel/BaseObject.h>

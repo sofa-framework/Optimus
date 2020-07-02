@@ -9,7 +9,6 @@
 
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/RigidTypes.h>
-#include <sofa/defaulttype/defaulttype.h>
 #include <sofa/core/behavior/MechanicalState.h>
 
 #include <sofa/simulation/AnimateEndEvent.h>

@@ -22,11 +22,9 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef SHOWSPHERES_INL
-#define SHOWSPHERES_INL
+#pragma once
 
 #include "ShowSpheres.h"
-
 #include <sofa/core/visual/VisualParams.h>
 
 
@@ -78,11 +76,11 @@ void ShowSpheres<DataTypes>::draw(const core::visual::VisualParams* vparams) {
         const unsigned int npoints = ind.size();
         const float rad = _radius.getValue();
 
-        std::vector<Vector3> points(npoints);
-        std::vector<float> radii(npoints);
+        helper::vector<defaulttype::Vector3> points(npoints);
+        helper::vector<float> radii(npoints);
         for (unsigned int i = 0; i < npoints; i++)
         {
-            points[i] = Vector3(pos[ind[i]][0], pos[ind[i]][1], pos[ind[i]][2]);
+            points[i] = defaulttype::Vector3(pos[ind[i]][0], pos[ind[i]][1], pos[ind[i]][2]);
             radii[i] = rad;
         }
 
@@ -96,7 +94,7 @@ void ShowSpheres<DataTypes>::draw(const core::visual::VisualParams* vparams) {
             float scale = (float)((vparams->sceneBBox().maxBBox() - vparams->sceneBBox().minBBox()).norm() * _showIndicesSize.getValue());
 
             for (size_t i = 0; i < npoints; i++) {
-                const Vector3 &p = points[i];
+                const defaulttype::Vector3 &p = points[i];
                 std::string text = std::to_string(ind[i]);
                 vparams->drawTool()->draw3DText(p, scale, indCol, text.c_str());
             }
@@ -106,19 +104,8 @@ void ShowSpheres<DataTypes>::draw(const core::visual::VisualParams* vparams) {
     }
 }
 
-//template <class DataTypes>
-//void ShowSpheres<DataTypes>::init()
-//{
-//
-//}
-//
-//template <class DataTypes>
-//void ShowSpheres<DataTypes>::reinit()
-//{
-//}
-
 } // engine
-} // component
-} // sofa
 
-#endif // SHOWSPHERES_INL
+} // component
+
+} // sofa

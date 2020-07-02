@@ -23,11 +23,13 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 
-//#define SHOWSPHERES_CPP
+#define SHOWSPHERES_CPP
 
-#include <sofa/core/ObjectFactory.h>
 #include "ShowSpheres.inl"
-//#include <sofa/helper/accessor.h>
+#include <sofa/defaulttype/VecTypes.h>
+#include <sofa/defaulttype/RigidTypes.h>
+#include <sofa/core/ObjectFactory.h>
+
 
 namespace sofa
 {
@@ -38,20 +40,18 @@ namespace component
 namespace engine
 {
 
-using namespace defaulttype;
-
-
-
 SOFA_DECL_CLASS(ShowSpheres)
 
+using namespace sofa::defaulttype;
+
 // Register in the Factory
-int ShowSpheresClass = core::RegisterObject("ShowSpheres")
+int ShowSpheresClass = core::RegisterObject("Show selected particles Spheres")
         .add< ShowSpheres<Vec3Types> >(true)
         .add< ShowSpheres<Rigid3Types> >()
         ;
 
-template class ShowSpheres<Vec3Types>;
-template class ShowSpheres<Rigid3Types>;
+template class SOFA_OPTIMUSPLUGIN_API ShowSpheres<Vec3Types>;
+template class SOFA_OPTIMUSPLUGIN_API ShowSpheres<Rigid3Types>;
 
 
 } // namespace engine

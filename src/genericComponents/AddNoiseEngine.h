@@ -29,7 +29,6 @@
 //#include <sofa/component/component.h>
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/RigidTypes.h>
-#include <sofa/defaulttype/defaulttype.h>
 #include <sofa/core/behavior/MechanicalState.h>
 #include <sofa/core/DataEngine.h>
 
@@ -57,10 +56,11 @@ namespace engine
 using namespace defaulttype;
 
 template <class DataTypes>
-class AddNoiseEngine: public sofa::core::DataEngine
+class AddNoiseEngine : public sofa::core::DataEngine
 {
 public:
-    
+    SOFA_CLASS(SOFA_TEMPLATE(AddNoiseEngine, DataTypes), core::DataEngine);
+
     typedef typename DataTypes::VecCoord VecCoord;
     typedef typename DataTypes::VecDeriv VecDeriv;
     typedef typename DataTypes::Coord Coord;
@@ -82,16 +82,16 @@ public:
 
     Coord dir, orth1, orth2;
     
-    void init();
+    void init() override;
 
-    void reinit() {
+    void reinit() override {
         doUpdate();
     }
 
     void doUpdate();
     double getRandomGauss(const double mean, const double sigma);
     
-    void handleEvent(core::objectmodel::Event *event);
+    void handleEvent(core::objectmodel::Event *event) override;
 }; /// class
 
 

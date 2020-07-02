@@ -26,7 +26,7 @@
 #define INITOptimusPlugin_H
 
 
-#include <sofa/helper/system/config.h>
+#include <sofa/helper/config.h>
 #include <pthread.h> /* pthread_t, pthread_barrier_t */
 #include <sys/errno.h>
 #include <sofa/helper/rmath.h>

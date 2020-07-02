@@ -22,13 +22,14 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef SHOWSPHERES_H_
-#define SHOWSPHERES_H_
+#pragma once
 
-#include "../initOptimusPlugin.h"
+#include "initOptimusPlugin.h"
+#include <sofa/core/objectmodel/BaseObject.h>
+#include <sofa/defaulttype/Vec.h>
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/RigidTypes.h>
-#include <sofa/defaulttype/defaulttype.h>
+#include <sofa/helper/types/RGBAColor.h>
 #include <sofa/core/behavior/MechanicalState.h>
 
 #include <sofa/simulation/AnimateEndEvent.h>
@@ -41,12 +42,12 @@ namespace component
 namespace engine
 {
 
-using namespace defaulttype;
-
 template <class DataTypes>
-class ShowSpheres: public sofa::core::objectmodel::BaseObject
+class ShowSpheres : public sofa::core::objectmodel::BaseObject
 {
 public:
+    SOFA_CLASS(SOFA_TEMPLATE(ShowSpheres, DataTypes), core::objectmodel::BaseObject);
+
     typedef typename DataTypes::VecCoord VecCoord;
     typedef defaulttype::Vec<4,float> Vec4f;
 
@@ -60,20 +61,22 @@ public:
     Data<bool> _draw;
     Data<float> _radius;
     Data<float> _showIndicesSize;
-    Data<Vec4f> _color;
-    Data<Vec4f> _indexColor;
+    Data<defaulttype::Vec4f> _color;
+    Data<defaulttype::Vec4f> _indexColor;
 
 
     void draw(const core::visual::VisualParams* vparams) override;
 
+    void init() override { }
+    void reinit() override { }
 
 }; /// class
 
+#if defined(SOFA_EXTERN_TEMPLATE) && !defined(SHOWSPHERES_CPP)
+extern template class SOFA_OPTIMUSPLUGIN_API ShowSpheres<defaulttype::Vec3Types>;
+extern template class SOFA_OPTIMUSPLUGIN_API ShowSpheres<defaulttype::Rigid3Types>;
+#endif
 
 } // engine
 } // component
 } // sofa
-
-#endif // SHOWSPHERES_H
-
-

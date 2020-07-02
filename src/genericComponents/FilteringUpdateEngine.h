@@ -27,7 +27,6 @@
 
 //#include "initPLUGIN.h"
 #include <sofa/defaulttype/VecTypes.h>
-#include <sofa/defaulttype/defaulttype.h>
 #include <sofa/core/behavior/MechanicalState.h>
 #include <sofa/core/objectmodel/BaseObject.h>
 //#include <sofa/core/DataEngine.h>

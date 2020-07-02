@@ -45,7 +45,7 @@ namespace misc
  **/
 
 template <class DataTypes>
-class OptimMonitor: public virtual core::objectmodel::BaseObject
+class OptimMonitor : public virtual core::objectmodel::BaseObject
 {
 public:
     SOFA_CLASS(SOFA_TEMPLATE(OptimMonitor, DataTypes), core::objectmodel::BaseObject);
@@ -143,16 +143,9 @@ protected:
 };
 
 #if defined(SOFA_EXTERN_TEMPLATE) && !defined(SOFA_COMPONENT_MISC_OPTIMMONITOR_CPP)
-#ifndef SOFA_FLOAT
-extern template class SOFA_OPTIMUSPLUGIN_API OptimMonitor<defaulttype::Vec3dTypes>;
-extern template class SOFA_OPTIMUSPLUGIN_API OptimMonitor<defaulttype::Vec6dTypes>;
-extern template class SOFA_OPTIMUSPLUGIN_API OptimMonitor<defaulttype::Rigid3dTypes>;
-#endif
-#ifndef SOFA_DOUBLE
-extern template class SOFA_OPTIMUSPLUGIN_API OptimMonitor<defaulttype::Vec3fTypes>;
-extern template class SOFA_OPTIMUSPLUGIN_API OptimMonitor<defaulttype::Vec6fTypes>;
-extern template class SOFA_OPTIMUSPLUGIN_API OptimMonitor<defaulttype::Rigid3fTypes>;
-#endif
+extern template class SOFA_OPTIMUSPLUGIN_API OptimMonitor<defaulttype::Vec3Types>;
+extern template class SOFA_OPTIMUSPLUGIN_API OptimMonitor<defaulttype::Vec6Types>;
+extern template class SOFA_OPTIMUSPLUGIN_API OptimMonitor<defaulttype::Rigid3Types>;
 #endif
 
 
