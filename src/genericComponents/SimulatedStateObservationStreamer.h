@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, version 1.0 RC 1        *
-*                (c) 2006-2011 MGH, INRIA, USTL, UJF, CNRS                    *
+*                (c) 2006-2020 MGH, INRIA, USTL, UJF, CNRS                    *
 *                                                                             *
 * This library is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,8 +22,7 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef SOFA_CONTAINER_SIMULATED_STATE_OBSERVATIONSTREAMER_H
-#define SOFA_CONTAINER_SIMULATED_STATE_OBSERVATIONSTREAMER_H
+#pragma once
 
 
 #include <sofa/core/objectmodel/BaseObject.h>
@@ -42,7 +41,7 @@
 #include "../initOptimusPlugin.h"
 #include "SimulatedStateObservationSource.h"
 
-using namespace sofa::core::objectmodel;
+
 
 namespace sofa
 {
@@ -53,6 +52,8 @@ namespace component
 namespace container
 {
 
+
+using namespace sofa::core::objectmodel;
 
 template<class DataTypes>
 class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationStreamer : public SimulatedStateObservationSource<DataTypes> //  ObservationSource
@@ -152,10 +153,11 @@ public:
 
 };
 
+
+
 } // namespace container
 
 } // namespace component
 
 } // namespace sofa
 
-#endif  //SOFA_CONTAINER_SIMULATED_STATE_OBSERVATIONSTREAMER_H

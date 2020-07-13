@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, version 1.0 RC 1        *
-*                (c) 2006-2011 MGH, INRIA, USTL, UJF, CNRS                    *
+*                (c) 2006-2020 MGH, INRIA, USTL, UJF, CNRS                    *
 *                                                                             *
 * This library is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -26,6 +26,8 @@
 #include "VTKExporterDA.h"
 #include "FilterEvents.h"
 
+
+
 namespace sofa
 {
 
@@ -35,10 +37,11 @@ namespace component
 namespace misc
 {
 
+
 SOFA_DECL_CLASS(VTKExporterDA)
 
 int VTKExporterClassDA = core::RegisterObject("Save geometries in VTK, compatible with Optimus data assimilation")
-        .add< VTKExporterDA >();
+    .add< VTKExporterDA >();
 
 
 void VTKExporterDA::handleEvent(sofa::core::objectmodel::Event *event)
@@ -60,8 +63,10 @@ void VTKExporterDA::handleEvent(sofa::core::objectmodel::Event *event)
 }
 
 
-}   /// misc
 
-}   /// component
+} // namespace misc
 
-}   /// sofa
+} // namespace component
+
+} // namespace sofa
+

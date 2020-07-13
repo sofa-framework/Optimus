@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, version 1.0 RC 1        *
-*                (c) 2006-2011 MGH, INRIA, USTL, UJF, CNRS                    *
+*                (c) 2006-2020 MGH, INRIA, USTL, UJF, CNRS                    *
 *                                                                             *
 * This library is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,8 +22,7 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef SOFA_CONTAINER_SIMULATED_STATE_OBSERVATIONSOURCE_H
-#define SOFA_CONTAINER_SIMULATED_STATE_OBSERVATIONSOURCE_H
+#pragma once
 
 
 #include <sofa/core/objectmodel/BaseObject.h>
@@ -42,7 +41,7 @@
 #include "../initOptimusPlugin.h"
 #include "ObservationSource.h"
 
-using namespace sofa::core::objectmodel;
+
 
 namespace sofa
 {
@@ -52,6 +51,9 @@ namespace component
 
 namespace container
 {
+
+
+using namespace sofa::core::objectmodel;
 
 /**
   Class implementing an observation source: it reads observations exported in direct simulation using OptimMonitor component and provides data to the observation manager.
@@ -76,16 +78,18 @@ public:
     typedef typename std::vector<VecCoord> VecVecCoord;
     typedef typename std::map<double, VecCoord> ObservationTable;
     typedef typename std::map<double, VecIndex > PresenceTable;
+    typedef typename std::map<double, VecIndex > CorrespondenceTable;
 
 protected:
     ObservationTable m_observationTable;
     PresenceTable m_indexTable;
-
-    std::vector<bool> m_;
+    CorrespondenceTable m_correspondentTable;
 
     unsigned int m_nParticles, m_nObservations, m_dim;
     double m_initTime, m_finalTime;
     double m_dt;
+
+    bool m_exportIndices;
 
 public:
 
@@ -96,6 +100,7 @@ public:
     Data<std::string> d_monitorPrefix;
     Data<bool> d_velocitiesData;
     Data<VecCoord> d_actualObservation;
+    Data<VecIndex> d_correspondentIndices;
     Data<SReal> d_drawSize;
     Data<bool> d_controllerMode;
     Data<VecCoord> d_trackedObservations;
@@ -105,9 +110,9 @@ public:
     /// maps:  time + vector
 
     std::vector<VecCoord> m_positions;
+    std::vector<VecIndex> m_correspondentIndices;
 
     void init() override ;
-
     void bwdInit() override {}
 
     void draw(const core::visual::VisualParams* vparams) override;
@@ -123,6 +128,7 @@ public:
 
     bool getObservation(double _time, VecCoord& _observation);
     bool getObservation(double _time, VecCoord& _observation, VecIndex &_index);
+    bool getCorrespondentIndices(double _time, VecIndex &_index);
 
     unsigned int getNParticles() const {
         return m_nParticles;
@@ -165,9 +171,12 @@ private:
 
 };
 
-extern template class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationSource<sofa::defaulttype::Vec2dTypes>;
-extern template class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationSource<sofa::defaulttype::Vec3dTypes>;
-extern template class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationSource<sofa::defaulttype::Rigid3dTypes>;
+
+extern template class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationSource<sofa::defaulttype::Vec2Types>;
+extern template class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationSource<sofa::defaulttype::Vec3Types>;
+extern template class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationSource<sofa::defaulttype::Rigid3Types>;
+
+
 
 } // namespace container
 
@@ -175,4 +184,3 @@ extern template class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationSource<sof
 
 } // namespace sofa
 
-#endif

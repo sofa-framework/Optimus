@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, version 1.0 RC 1        *
-*                (c) 2006-2011 MGH, INRIA, USTL, UJF, CNRS                    *
+*                (c) 2006-2020 MGH, INRIA, USTL, UJF, CNRS                    *
 *                                                                             *
 * This library is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,8 +22,7 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef SOFA_CONTAINER_SIMULATED_STATE_OBSERVATIONSTREAMER_INL
-#define SOFA_CONTAINER_SIMULATED_STATE_OBSERVATIONSTREAMER_INL
+#pragma once
 
 #include "SimulatedStateObservationStreamer.h"
 
@@ -35,7 +34,7 @@
 #include <iterator>
 #include <sstream>
 
-using namespace sofa::core::objectmodel;
+
 
 namespace sofa
 {
@@ -46,6 +45,8 @@ namespace component
 namespace container
 {
 
+
+using namespace sofa::core::objectmodel;
 
 template<class DataTypes>
 SimulatedStateObservationStreamer<DataTypes>::SimulatedStateObservationStreamer()
@@ -135,10 +136,10 @@ void SimulatedStateObservationStreamer<DataTypes>::handleEvent(core::objectmodel
 }
 
 
+
 } // namespace container
 
 } // namespace component
 
 } // namespace sofa
 
-#endif // SOFA_CONTAINER_SIMULATED_STATE_OBSERVATIONSTREAMER_INL

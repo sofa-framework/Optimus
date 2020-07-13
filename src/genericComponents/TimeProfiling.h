@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, version 1.0 RC 1        *
-*                (c) 2006-2011 MGH, INRIA, USTL, UJF, CNRS                    *
+*                (c) 2006-2020 MGH, INRIA, USTL, UJF, CNRS                    *
 *                                                                             *
 * This library is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,19 +22,23 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef TIMEPROFILING_H_
-#define TIMEPROFILING_H_
+#pragma once
 
 #include <sofa/core/objectmodel/DataFileName.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/date_time/gregorian/gregorian_types.hpp>
 
+
+
 namespace sofa
 {
+
 namespace component
 {
+
 namespace stochastic
 {
+
 
 class TimeProfiling
 {
@@ -120,5 +124,3 @@ protected:
 
 }   /// sofa
 
-
-#endif /// TIMEPROFILING_H_

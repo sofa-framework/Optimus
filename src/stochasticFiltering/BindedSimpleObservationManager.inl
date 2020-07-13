@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, version 1.0 RC 1        *
-*                (c) 2006-2011 MGH, INRIA, USTL, UJF, CNRS                    *
+*                (c) 2006-2020 MGH, INRIA, USTL, UJF, CNRS                    *
 *                                                                             *
 * This library is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,8 +22,7 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef BindedSimpleObservationManager_INL_
-#define BindedSimpleObservationManager_INL_
+#pragma once
 
 #include <sofa/simulation/Node.h>
 
@@ -32,8 +31,10 @@
 
 namespace sofa
 {
+
 namespace component
 {
+
 namespace stochastic
 {
 
@@ -229,10 +230,9 @@ bool BindedSimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getPredic
 }
 
 
-
-
 } // stochastic
+
 } // component
+
 } // sofa
 
-#endif // BindedSimpleObservationManager

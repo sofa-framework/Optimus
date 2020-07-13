@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2016 INRIA, USTL, UJF, CNRS, MGH                    *
+*       SOFA, Simulation Open-Framework Architecture, version 1.0 RC 1        *
+*                (c) 2006-2020 MGH, INRIA, USTL, UJF, CNRS                    *
 *                                                                             *
 * This library is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -23,42 +23,36 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 #define SOFA_COMPONENT_CONSTRAINT_PARDISOCONSTRAINTCORRECTION_CPP
+
 #include "PardisoConstraintCorrection.inl"
 #include <sofa/defaulttype/Vec3Types.h>
 #include <sofa/core/ObjectFactory.h>
 
+
 namespace sofa
 {
+
 namespace component
 {
+
 namespace constraintset
 {
+
+
 using namespace sofa::defaulttype;
 
 SOFA_DECL_CLASS(PardisoConstraintCorrection)
 
 int LinearSolverContactCorrectionClass = core::RegisterObject("")
-#ifndef SOFA_FLOAT
-        .add< PardisoConstraintCorrection<Vec3dTypes> >()
-        .add< PardisoConstraintCorrection<Vec1dTypes> >()
-        .add< PardisoConstraintCorrection<Rigid3dTypes> >()
-#endif
-#ifndef SOFA_DOUBLE
-        .add< PardisoConstraintCorrection<Vec3fTypes> >()
-        .add< PardisoConstraintCorrection<Vec1fTypes> >()
-        .add< PardisoConstraintCorrection<Rigid3fTypes> >()
-#endif
-        ;
-#ifndef SOFA_FLOAT
-template class SOFA_CONSTRAINT_API PardisoConstraintCorrection<Vec3dTypes>;
-template class SOFA_CONSTRAINT_API PardisoConstraintCorrection<Vec1dTypes>;
-template class SOFA_CONSTRAINT_API PardisoConstraintCorrection<Rigid3dTypes>;
-#endif
-#ifndef SOFA_DOUBLE
-template class SOFA_CONSTRAINT_API PardisoConstraintCorrection<Vec3fTypes>;
-template class SOFA_CONSTRAINT_API PardisoConstraintCorrection<Vec1fTypes>;
-template class SOFA_CONSTRAINT_API PardisoConstraintCorrection<Rigid3fTypes>;
-#endif
+    .add< PardisoConstraintCorrection<Vec3Types> >()
+    .add< PardisoConstraintCorrection<Vec1Types> >()
+    .add< PardisoConstraintCorrection<Rigid3Types> >()
+    ;
+
+
+template class SOFA_CONSTRAINT_API PardisoConstraintCorrection<Vec3Types>;
+template class SOFA_CONSTRAINT_API PardisoConstraintCorrection<Vec1Types>;
+template class SOFA_CONSTRAINT_API PardisoConstraintCorrection<Rigid3Types>;
 
 
 } // namespace collision
@@ -66,3 +60,4 @@ template class SOFA_CONSTRAINT_API PardisoConstraintCorrection<Rigid3fTypes>;
 } // namespace component
 
 } // namespace sofa
+

@@ -26,8 +26,7 @@
 
 #include <sofa/simulation/Node.h>
 
-#include "MappedStateObservationManager.h"
-
+#include "MappedStateUncorrespondentObservationManager.h"
 
 
 namespace sofa
@@ -39,9 +38,8 @@ namespace component
 namespace stochastic
 {
 
-
 template <class FilterType, class DataTypes1, class DataTypes2>
-MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::MappedStateObservationManager()
+MappedStateUncorrespondentObservationManager<FilterType,DataTypes1,DataTypes2>::MappedStateUncorrespondentObservationManager()
     : Inherit()
     , inputObservationData( initData (&inputObservationData, "observations", "observations read from a file") )
     , mappedObservationData( initData (&mappedObservationData, "mappedObservations", "mapped observations") )
@@ -54,7 +52,7 @@ MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::MappedStateObse
 }
 
 template <class FilterType, class DataTypes1, class DataTypes2>
-void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::init()
+void MappedStateUncorrespondentObservationManager<FilterType,DataTypes1,DataTypes2>::init()
 {
     Inherit::init();
 
@@ -110,7 +108,7 @@ void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::init()
 }
 
 template <class FilterType, class DataTypes1, class DataTypes2>
-void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::bwdInit()
+void MappedStateUncorrespondentObservationManager<FilterType,DataTypes1,DataTypes2>::bwdInit()
 {
     if (!Inherit::initialiseObservationsAtFirstStep.getValue()) {
         initializeObservationData();
@@ -120,7 +118,7 @@ void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::bwdInit()
 }
 
 template <class FilterType, class DataTypes1, class DataTypes2>
-void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::initializeObservationData()
+void MappedStateUncorrespondentObservationManager<FilterType,DataTypes1,DataTypes2>::initializeObservationData()
 {   
     masterStateSize = masterState->getSize();
     mappedStateSize = mappedState->getSize();
@@ -175,7 +173,7 @@ void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::initialize
 }
 
 template <class FilterType, class DataTypes1, class DataTypes2>
-bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::hasObservation(double _time) {
+bool MappedStateUncorrespondentObservationManager<FilterType,DataTypes1,DataTypes2>::hasObservation(double _time) {
     if (Inherit::initialiseObservationsAtFirstStep.getValue()) {
         initializeObservationData();
         Inherit::initialiseObservationsAtFirstStep.setValue(false);
@@ -228,7 +226,7 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::hasObserva
 }
 
 template <class FilterType, class DataTypes1, class DataTypes2>
-bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getPredictedObservation(int _id, EVectorX& _predictedObservation) {
+bool MappedStateUncorrespondentObservationManager<FilterType,DataTypes1,DataTypes2>::getPredictedObservation(int _id, EVectorX& _predictedObservation) {
 
 
     Data<typename DataTypes1::VecCoord> predictedMasterState;
@@ -256,20 +254,20 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getPredict
     return true;
 }
 template <class FilterType, class DataTypes1, class DataTypes2>
-bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::obsFunction(EVectorX& /* _state */, EVectorX& /* _predictedObservation */)
+bool MappedStateUncorrespondentObservationManager<FilterType,DataTypes1,DataTypes2>::obsFunction(EVectorX& /* _state */, EVectorX& /* _predictedObservation */)
 {
     return 0;
 }
 
 template <class FilterType, class DataTypes1, class DataTypes2>
-bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getRealObservation(double /* _time */, EVectorX& /* _realObs */)
+bool MappedStateUncorrespondentObservationManager<FilterType,DataTypes1,DataTypes2>::getRealObservation(double /* _time */, EVectorX& /* _realObs */)
 {
     return 0;
 }
 
 
 template <class FilterType, class DataTypes1, class DataTypes2>
-bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovation(double _time, EVectorX& _state, EVectorX& _innovation)
+bool MappedStateUncorrespondentObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovation(double _time, EVectorX& _state, EVectorX& _innovation)
 {
     if (_time != this->actualTime) {
         PRNE("Observation for time " << this->actualTime << " not prepared, call hasObservation first!");
@@ -348,13 +346,13 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovat
 
 
 //template <class DataTypes>
-//void MappedStateObservationManager<DataTypes>::init()
+//void MappedStateUncorrespondentObservationManager<DataTypes>::init()
 //{
 //
 //}
 //
 //template <class DataTypes>
-//void MappedStateObservationManager<DataTypes>::reinit()
+//void MappedStateUncorrespondentObservationManager<DataTypes>::reinit()
 //{
 //}
 

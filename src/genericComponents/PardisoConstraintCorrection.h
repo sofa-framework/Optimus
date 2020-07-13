@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2016 INRIA, USTL, UJF, CNRS, MGH                    *
+*       SOFA, Simulation Open-Framework Architecture, version 1.0 RC 1        *
+*                (c) 2006-2020 MGH, INRIA, USTL, UJF, CNRS                    *
 *                                                                             *
 * This library is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,9 +22,9 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef SOFA_CORE_COLLISION_PARDISOCONSTRAINTCORRECTION_H
-#define SOFA_CORE_COLLISION_PARDISOCONSTRAINTCORRECTION_H
-#include <SofaConstraint/config.h>
+#pragma once
+
+#include "initOptimusPlugin.h"
 
 #include <sofa/core/behavior/ConstraintCorrection.h>
 
@@ -39,6 +39,8 @@
 
 #include <SofaConstraint/LinearSolverConstraintCorrection.h>
 
+
+
 namespace sofa
 {
 
@@ -47,6 +49,7 @@ namespace component
 
 namespace constraintset
 {
+
 
 /*/// to avoid compilation problem under gcc3.3
 extern inline sofa::core::behavior::OdeSolver* getOdeSolver(sofa::core::objectmodel::BaseContext* context)
@@ -97,17 +100,10 @@ protected:
 };
 
 #if defined(SOFA_EXTERN_TEMPLATE) && !defined(SOFA_COMPONENT_CONSTRAINT_PARDISOCONSTRAINTCORRECTION_CPP)
-#ifndef SOFA_FLOAT
-extern template class SOFA_CONSTRAINT_API PardisoConstraintCorrection<sofa::defaulttype::Vec3dTypes>;
-extern template class SOFA_CONSTRAINT_API PardisoConstraintCorrection<sofa::defaulttype::Vec1dTypes>;
-extern template class SOFA_CONSTRAINT_API PardisoConstraintCorrection<sofa::defaulttype::Rigid3dTypes>;
-#endif
-#ifndef SOFA_DOUBLE
-extern template class SOFA_CONSTRAINT_API PardisoConstraintCorrection<sofa::defaulttype::Vec3fTypes>;
-extern template class SOFA_CONSTRAINT_API PardisoConstraintCorrection<sofa::defaulttype::Vec1fTypes>;
-extern template class SOFA_CONSTRAINT_API PardisoConstraintCorrection<sofa::defaulttype::Rigid3fTypes>;
-#endif
-#endif
+extern template class SOFA_OPTIMUSPLUGIN_API PardisoConstraintCorrection<sofa::defaulttype::Vec3Types>;
+extern template class SOFA_OPTIMUSPLUGIN_API PardisoConstraintCorrection<sofa::defaulttype::Vec1Types>;
+extern template class SOFA_OPTIMUSPLUGIN_API PardisoConstraintCorrection<sofa::defaulttype::Rigid3Types>;
+
 
 } // namespace collision
 
@@ -115,4 +111,3 @@ extern template class SOFA_CONSTRAINT_API PardisoConstraintCorrection<sofa::defa
 
 } // namespace sofa
 
-#endif

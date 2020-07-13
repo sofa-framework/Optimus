@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, version 1.0 RC 1        *
-*                (c) 2006-2011 MGH, INRIA, USTL, UJF, CNRS                    *
+*                (c) 2006-2020 MGH, INRIA, USTL, UJF, CNRS                    *
 *                                                                             *
 * This library is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -41,12 +41,14 @@ SOFA_DECL_CLASS(CorrectionForceField)
 
 
 int CorrectionForceFieldClass = core::RegisterObject("Simple elastic springs applied to given degrees of freedom between their current and rest shape position")
-.add< CorrectionForceField<defaulttype::Rigid3dTypes> >()
-.add< CorrectionForceField<defaulttype::Vec3dTypes> >()
-        ;
+    .add< CorrectionForceField<defaulttype::Rigid3Types> >()
+    .add< CorrectionForceField<defaulttype::Vec3Types> >()
+    ;
+
 
 } // namespace forcefield
 
 } // namespace component
 
 } // namespace sofa
+

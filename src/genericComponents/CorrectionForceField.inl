@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, version 1.0 RC 1        *
-*                (c) 2006-2011 MGH, INRIA, USTL, UJF, CNRS                    *
+*                (c) 2006-2020 MGH, INRIA, USTL, UJF, CNRS                    *
 *                                                                             *
 * This library is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,8 +22,7 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef SOFA_COMPONENT_FORCEFIELD_FACIASPRINGFORCEFIELD_INL
-#define SOFA_COMPONENT_FORCEFIELD_FACIASPRINGFORCEFIELD_INL
+#pragma once
 
 #include "genericComponents/CorrectionForceField.h"
 #include <sofa/core/visual/VisualParams.h>
@@ -37,6 +36,9 @@
 
 #include <sofa/core/objectmodel/KeypressedEvent.h>
 #include <sofa/core/objectmodel/KeyreleasedEvent.h>
+
+
+
 namespace sofa
 {
 
@@ -45,6 +47,7 @@ namespace component
 
 namespace forcefield
 {
+
 
 template<class DataTypes>
 CorrectionForceField<DataTypes>::CorrectionForceField()
@@ -213,13 +216,11 @@ void CorrectionForceField<DataTypes>::draw(const core::visual::VisualParams* /* 
 
 }
 
+
+
 } // namespace forcefield
 
 } // namespace component
 
 } // namespace sofa
-
-#endif // SOFA_COMPONENT_FORCEFIELD_RESTSHAPESPRINGFORCEFIELD_INL
-
-
 

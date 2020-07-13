@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, version 1.0 RC 1        *
-*                (c) 2006-2011 MGH, INRIA, USTL, UJF, CNRS                    *
+*                (c) 2006-2020 MGH, INRIA, USTL, UJF, CNRS                    *
 *                                                                             *
 * This library is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,8 +22,7 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef SOFASTATEWRAPPERBASE_H_
-#define SOFASTATEWRAPPERBASE_H_
+#pragma once
 
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/RigidTypes.h>
@@ -62,12 +61,17 @@
 #include "../genericComponents/OptimParams.h"
 #include <fstream>
 
+
 namespace sofa
 {
+
 namespace component
 {
+
 namespace stochastic
 {
+
+
 template<class DataTypes>
 class InternalCopy {
 public :
@@ -256,9 +260,8 @@ protected :
 
 
 } // simulation
+
 } // component
+
 } // sofa
-
-#endif // SOFASTATEWRAPPERBASE_H
-
 

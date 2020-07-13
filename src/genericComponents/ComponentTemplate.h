@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, version 1.0 RC 1        *
-*                (c) 2006-2011 MGH, INRIA, USTL, UJF, CNRS                    *
+*                (c) 2006-2020 MGH, INRIA, USTL, UJF, CNRS                    *
 *                                                                             *
 * This library is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,10 +22,8 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef TEMPLATE_H_
-#define TEMPLATE_H_
+#pragma once
 
-#include "initPLUGIN.h"
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/RigidTypes.h>
 #include <sofa/defaulttype/defaulttype.h>
@@ -34,12 +32,17 @@
 #include <sofa/simulation/common/AnimateEndEvent.h>
 #include <sofa/simulation/common/AnimateBeginEvent.h>
 
+
 namespace sofa
 {
+
 namespace component
 {
+
 namespace NAMESPACE
 {
+
+
 
 using namespace defaulttype;
 
@@ -58,10 +61,10 @@ public:
 }; /// class
 
 
+
 } // NAMESPACE
+
 } // component
+
 } // sofa
-
-#endif // TEMPLATE_H
-
 

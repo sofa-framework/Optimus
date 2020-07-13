@@ -22,16 +22,12 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#include "SimulatedStateObservationSource.inl"
+
+//#define MAPPEDSTATEOBSERVATIONMANAGER_CPP
+
 #include <sofa/core/ObjectFactory.h>
-
-#include <sofa/defaulttype/Vec3Types.h>
-#include <sofa/defaulttype/RigidTypes.h>
-
-
-using namespace sofa::defaulttype;
-
-
+#include "MappedStateUncorrespondentObservationManager.inl"
+//#include <sofa/helper/accessor.h>
 
 namespace sofa
 {
@@ -39,24 +35,37 @@ namespace sofa
 namespace component
 {
 
-namespace container
+namespace stochastic
 {
 
-SOFA_DECL_CLASS(SimulatedStateObservationSource)
-
-int SimulatedStateObservationSourceClass = core::RegisterObject("Parameters that will be adapted by ROUKF object")
-    .add< SimulatedStateObservationSource<Vec2Types> >()
-    .add< SimulatedStateObservationSource<Vec3Types> >(true)
-    .add< SimulatedStateObservationSource<Rigid3Types> >()
-    ;
-
-template class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationSource<Vec2Types>;
-template class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationSource<Vec3Types>;
-template class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationSource<Rigid3Types>;
+using namespace defaulttype;
 
 
+SOFA_DECL_CLASS(MappedStateUncorrespondentObservationManager)
 
-} // namespace container
+// Register in the Factory
+int MappedStateUncorrespondentObservationManagerClass = core::RegisterObject("MappedStateObservationManager")
+        #ifndef SOFA_FLOAT
+        .add< MappedStateUncorrespondentObservationManager<double, Vec3dTypes, Vec3dTypes> >(true)
+        //.add< MappedStateUncorrespondentObservationManager<float, Vec3dTypes, Vec3dTypes> >(true)
+        #endif
+        #ifndef SOFA_DOUBLE
+        //.add< MappedStateUncorrespondentObservationManager<double, Vec3fTypes, Vec3fTypes> >()
+        //.add< MappedStateUncorrespondentObservationManager<float, Vec3fTypes, Vec3fTypes> >(true)
+        #endif
+        ;
+
+#ifndef SOFA_FLOAT
+template class SOFA_STOCHASTIC_API MappedStateUncorrespondentObservationManager<double, Vec3dTypes, Vec3dTypes>;
+//template class SOFA_STOCHASTIC_API MappedStateUncorrespondentObservationManager<float, Vec3dTypes, Vec3dTypes>;
+#endif
+#ifndef SOFA_DOUBLE
+//template class SOFA_STOCHASTIC_API MappedStateUncorrespondentObservationManager<double, Vec3fTypes, Vec3fTypes>;
+//template class SOFA_STOCHASTIC_API MappedStateUncorrespondentObservationManager<float, Vec3fTypes, Vec3fTypes>;
+#endif
+
+
+} // namespace stochastic
 
 } // namespace component
 

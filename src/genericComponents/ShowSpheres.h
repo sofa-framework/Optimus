@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, version 1.0 RC 1        *
-*                (c) 2006-2011 MGH, INRIA, USTL, UJF, CNRS                    *
+*                (c) 2006-2020 MGH, INRIA, USTL, UJF, CNRS                    *
 *                                                                             *
 * This library is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -35,12 +35,17 @@
 #include <sofa/simulation/AnimateEndEvent.h>
 #include <sofa/simulation/AnimateBeginEvent.h>
 
+
+
 namespace sofa
 {
+
 namespace component
 {
+
 namespace engine
 {
+
 
 template <class DataTypes>
 class ShowSpheres : public sofa::core::objectmodel::BaseObject
@@ -78,5 +83,8 @@ extern template class SOFA_OPTIMUSPLUGIN_API ShowSpheres<defaulttype::Rigid3Type
 #endif
 
 } // engine
+
 } // component
+
 } // sofa
+

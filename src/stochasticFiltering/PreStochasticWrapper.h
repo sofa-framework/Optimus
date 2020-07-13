@@ -22,8 +22,7 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef PRESTOCHASTICWRAPPER_H_
-#define PRESTOCHASTICWRAPPER_H_
+#pragma once
 
 #include "initOptimusPlugin.h"
 #include <sofa/defaulttype/VecTypes.h>
@@ -35,8 +34,10 @@
 
 namespace sofa
 {
+
 namespace component
 {
+
 namespace stochastic
 {
 
@@ -64,9 +65,8 @@ public:
 
 
 } // stochastic
+
 } // component
+
 } // sofa
-
-#endif // PRESTOCHASTICWRAPPER_H
-
 

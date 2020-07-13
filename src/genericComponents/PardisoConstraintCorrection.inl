@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2016 INRIA, USTL, UJF, CNRS, MGH                    *
+*       SOFA, Simulation Open-Framework Architecture, version 1.0 RC 1        *
+*                (c) 2006-2020 MGH, INRIA, USTL, UJF, CNRS                    *
 *                                                                             *
 * This library is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,8 +22,7 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef SOFA_CORE_COLLISION_PARDISOCONSTRAINTCORRECTION_INL
-#define SOFA_CORE_COLLISION_PARDISOCONSTRAINTCORRECTION_INL
+#pragma once
 
 #include "PardisoConstraintCorrection.h"
 #include <sofa/defaulttype/RigidTypes.h>
@@ -35,6 +34,8 @@
 #include <sstream>
 #include <list>
 
+
+
 namespace sofa
 {
 
@@ -43,6 +44,7 @@ namespace component
 
 namespace constraintset
 {
+
 
 template<class DataTypes>
 PardisoConstraintCorrection<DataTypes>::PardisoConstraintCorrection(sofa::core::behavior::MechanicalState<DataTypes> *mm)
@@ -147,10 +149,11 @@ void PardisoConstraintCorrection<DataTypes>::addComplianceInConstraintSpace(cons
 
 }
 
+
+
 }   // constraintset namespace
 
 }   // component
 
 }   // sofa
 
-#endif

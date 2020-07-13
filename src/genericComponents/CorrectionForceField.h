@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, version 1.0 RC 1        *
-*                (c) 2006-2011 MGH, INRIA, USTL, UJF, CNRS                    *
+*                (c) 2006-2020 MGH, INRIA, USTL, UJF, CNRS                    *
 *                                                                             *
 * This library is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,8 +22,7 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef SOFA_COMPONENT_FORCEFIELD_FACIASPRINGFORCEFIELD_H
-#define SOFA_COMPONENT_FORCEFIELD_FACIASPRINGFORCEFIELD_H
+#pragma once
 
 #include <sofa/core/behavior/ForceField.h>
 #include <sofa/core/objectmodel/Data.h>
@@ -38,6 +37,8 @@
 #include <sofa/simulation/AnimateBeginEvent.h>
 #include <sofa/core/objectmodel/KeyreleasedEvent.h>
 
+
+
 namespace sofa
 {
 
@@ -46,6 +47,7 @@ namespace component
 
 namespace forcefield
 {
+
 
 /**
 * @brief This class describes a simple elastic springs ForceField between DOFs positions and rest positions.
@@ -114,10 +116,10 @@ public:
 };
 
 
+
 } // namespace forcefield
 
 } // namespace component
 
 } // namespace sofa
 
-#endif // SOFA_COMPONENT_FORCEFIELD_RESTSHAPESPRINGFORCEFIELD_H

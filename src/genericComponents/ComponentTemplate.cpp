@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, version 1.0 RC 1        *
-*                (c) 2006-2011 MGH, INRIA, USTL, UJF, CNRS                    *
+*                (c) 2006-2020 MGH, INRIA, USTL, UJF, CNRS                    *
 *                                                                             *
 * This library is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -28,6 +28,7 @@
 #include <sofa/core/ObjectFactory.h>
 #include "ComponentTemplate.inl"
 //#include <sofa/helper/accessor.h>
+
 
 namespace sofa
 {
@@ -63,9 +64,8 @@ template class PLUGIN_API CLASSNAME<float>;
 
 
 } // namespace NAMESPACE
+
 } // namespace component
+
 } // namespace sofa
-
-
-
 

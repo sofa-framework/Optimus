@@ -62,9 +62,8 @@ template class SOFA_STOCHASTIC_API SimpleObservationManager<double, Vec3dTypes, 
 
 
 } // namespace stochastic
+
 } // namespace component
+
 } // namespace sofa
-
-
-
 

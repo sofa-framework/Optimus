@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, version 1.0 RC 1        *
-*                (c) 2006-2011 MGH, INRIA, USTL, UJF, CNRS                    *
+*                (c) 2006-2020 MGH, INRIA, USTL, UJF, CNRS                    *
 *                                                                             *
 * This library is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,8 +22,10 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#include "OptimParams.h"
+#pragma once
 
+
+#include "OptimParams.h"
 
 #include <sofa/defaulttype/Vec.h>
 #include <sofa/defaulttype/Mat.h>
@@ -32,12 +34,17 @@
 #include <sofa/core/topology/Topology.h>
 #include <sofa/helper/fixed_array.h>
 
+
+
 namespace sofa
 {
+
 namespace component
 {
+
 namespace container
 {
+
 
 template <class DataTypes>
 OptimParams<DataTypes>::OptimParams(loader_t* mm)
@@ -114,7 +121,10 @@ void OptimParams<helper::vector<double> >::bwdInit()
 }
 
 
+
 } // container
+
 } // component
+
 } // sofa
 

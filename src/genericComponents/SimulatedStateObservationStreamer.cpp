@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, version 1.0 RC 1        *
-*                (c) 2006-2011 MGH, INRIA, USTL, UJF, CNRS                    *
+*                (c) 2006-2020 MGH, INRIA, USTL, UJF, CNRS                    *
 *                                                                             *
 * This library is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -29,7 +29,6 @@
 #include <sofa/defaulttype/RigidTypes.h>
 
 
-using namespace sofa::defaulttype;
 
 namespace sofa
 {
@@ -40,29 +39,21 @@ namespace component
 namespace container
 {
 
+
+using namespace sofa::defaulttype;
+
 SOFA_DECL_CLASS(SimulatedStateObservationStreamer)
 
 int SimulatedStateObservationStreamerClass = core::RegisterObject("Parameters that will be adapted by ROUKF object")
-//#ifndef SOFA_FLOAT
-        .add< SimulatedStateObservationStreamer<Vec2dTypes> >()
-        .add< SimulatedStateObservationStreamer<Vec3dTypes> >(true)
-        .add< SimulatedStateObservationStreamer<Rigid3dTypes> >()
+    .add< SimulatedStateObservationStreamer<Vec2Types> >()
+    .add< SimulatedStateObservationStreamer<Vec3Types> >(true)
+    .add< SimulatedStateObservationStreamer<Rigid3Types> >()
+    ;
 
-//#endif
-//#ifndef SOFA_DOUBLE
-//        .add< SimulatedStateObservationStreamer<Vec3fTypes> >()
-//#endif
-        ;
 
-//#ifndef SOFA_FLOAT
-template class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationStreamer<Vec2dTypes>;
-template class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationStreamer<Vec3dTypes>;
-template class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationStreamer<Rigid3dTypes>;
-
-//#endif
-//#ifndef SOFA_DOUBLE
-//template class SimulatedStateObservationStreamer<Vec3fTypes>;
-//#endif
+template class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationStreamer<Vec2Types>;
+template class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationStreamer<Vec3Types>;
+template class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationStreamer<Rigid3Types>;
 
 
 
@@ -71,3 +62,4 @@ template class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationStreamer<Rigid3dT
 } // namespace component
 
 } // namespace sofa
+

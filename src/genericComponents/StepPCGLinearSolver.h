@@ -1,6 +1,6 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2016 INRIA, USTL, UJF, CNRS, MGH                    *
+*       SOFA, Simulation Open-Framework Architecture, version 1.0 RC 1        *
+*                (c) 2006-2020 MGH, INRIA, USTL, UJF, CNRS                    *
 *                                                                             *
 * This library is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,8 +22,7 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef SOFA_COMPONENT_LINEARSOLVER_StepPCGLinearSolver_H
-#define SOFA_COMPONENT_LINEARSOLVER_StepPCGLinearSolver_H
+#pragma once
 
 #include <SofaCommon/config.h>
 #include <sofa/core/behavior/LinearSolver.h>
@@ -33,6 +32,8 @@
 #include "../initOptimusPlugin.h"
 
 #include <math.h>
+
+
 
 namespace sofa
 {
@@ -114,11 +115,14 @@ inline void StepPCGLinearSolver<TMatrix,TVector>::cgstep_alpha(Vector& x,Vector&
     x.peq(p,alpha);                 // x = x + alpha p
 }
 
+
 template<>
 inline void StepPCGLinearSolver<component::linearsolver::GraphScatteredMatrix,component::linearsolver::GraphScatteredVector>::cgstep_beta(Vector& p, Vector& r, double beta);
 
 template<>
 inline void StepPCGLinearSolver<component::linearsolver::GraphScatteredMatrix,component::linearsolver::GraphScatteredVector>::cgstep_alpha(Vector& x,Vector& p,double alpha);
+
+
 
 } // namespace linearsolver
 
@@ -126,4 +130,3 @@ inline void StepPCGLinearSolver<component::linearsolver::GraphScatteredMatrix,co
 
 } // namespace sofa
 
-#endif

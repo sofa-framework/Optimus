@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, version 1.0 RC 1        *
-*                (c) 2006-2011 MGH, INRIA, USTL, UJF, CNRS                    *
+*                (c) 2006-2020 MGH, INRIA, USTL, UJF, CNRS                    *
 *                                                                             *
 * This library is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,10 +22,8 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef FILTERING_UPDATE_ENGINE_H_
-#define FILTERING_UPDATE_ENGINE_H_
+#pragma once
 
-//#include "initPLUGIN.h"
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/core/behavior/MechanicalState.h>
 #include <sofa/core/objectmodel/BaseObject.h>
@@ -44,12 +42,16 @@
 #include <chrono>
 
 
+
 namespace sofa
 {
+
 namespace component
 {
+
 namespace engine
 {
+
 
 using namespace defaulttype;
 
@@ -99,10 +101,10 @@ public:
 }; /// class
 
 
+
 } // engine
+
 } // component
+
 } // sofa
-
-#endif // FILTERING_UPDATE_ENGINE_H_
-
 

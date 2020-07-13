@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, version 1.0 RC 1        *
-*                (c) 2006-2011 MGH, INRIA, USTL, UJF, CNRS                    *
+*                (c) 2006-2020 MGH, INRIA, USTL, UJF, CNRS                    *
 *                                                                             *
 * This library is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,8 +22,7 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef UKFilterSimCorr_H_
-#define UKFilterSimCorr_H_
+#pragma once
 
 #include "initOptimusPlugin.h"
 #include "StochasticFilterBase.h"
@@ -51,12 +50,16 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+
 namespace sofa
 {
+
 namespace component
 {
+
 namespace stochastic
 {
+
 
 /// to speed up, wrappers for BLAS matrix multiplications created, much faster that Eigen by default
 extern "C"{
@@ -183,10 +186,10 @@ struct WorkerThreadData
 };
 
 
+
 } // stochastic
+
 } // component
+
 } // sofa
-
-#endif // UKFilterSimCorr_H
-
 

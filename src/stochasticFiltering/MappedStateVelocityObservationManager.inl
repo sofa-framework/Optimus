@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, version 1.0 RC 1        *
-*                (c) 2006-2011 MGH, INRIA, USTL, UJF, CNRS                    *
+*                (c) 2006-2020 MGH, INRIA, USTL, UJF, CNRS                    *
 *                                                                             *
 * This library is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,20 +22,23 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef MAPPEDSTATEVELOCITYOBSERVATIONMANAGER_INL
-#define MAPPEDSTATEVELOCITYOBSERVATIONMANAGER_INL
+#pragma once
 
 #include <sofa/simulation/Node.h>
 
 #include "MappedStateVelocityObservationManager.h"
 
 
+
 namespace sofa
 {
+
 namespace component
 {
+
 namespace stochastic
 {
+
 
 template <class FilterType, class DataTypes1, class DataTypes2>
 MappedStateVelocityObservationManager<FilterType,DataTypes1,DataTypes2>::MappedStateVelocityObservationManager()
@@ -485,8 +488,10 @@ bool MappedStateVelocityObservationManager<FilterType,DataTypes1,DataTypes2>::ge
 //{
 //}
 
-} // stochastic
-} // component
-} // sofa
 
-#endif // MAPPEDSTATEVELOCITYOBSERVATIONMANAGER_INL
+} // namespace stochastic
+
+} // namespace component
+
+} // namespace sofa
+

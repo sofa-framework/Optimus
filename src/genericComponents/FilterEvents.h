@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, version 1.0 RC 1        *
-*                (c) 2006-2011 MGH, INRIA, USTL, UJF, CNRS                    *
+*                (c) 2006-2020 MGH, INRIA, USTL, UJF, CNRS                    *
 *                                                                             *
 * This library is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,18 +22,22 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef FILTEREVENTS_H_
-#define FILTEREVENTS_H_
+#pragma once
 
 #include "initOptimusPlugin.h"
 #include <sofa/core/objectmodel/Event.h>
 
+
 namespace sofa
 {
+
 namespace component
 {
+
 namespace stochastic
 {
+
+
 
 class  SOFA_STOCHASTIC_API PredictionEndEvent : public sofa::core::objectmodel::Event
 {
@@ -80,5 +84,3 @@ protected:
 
 }   /// sofa
 
-
-#endif

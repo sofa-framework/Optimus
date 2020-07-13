@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, version 1.0 RC 1        *
-*                (c) 2006-2011 MGH, INRIA, USTL, UJF, CNRS                    *
+*                (c) 2006-2020 MGH, INRIA, USTL, UJF, CNRS                    *
 *                                                                             *
 * This library is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,8 +22,8 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef SOFA_CONTAINER_SIMULATED_STATE_OBSERVATIONSOURCE_INL
-#define SOFA_CONTAINER_SIMULATED_STATE_OBSERVATIONSOURCE_INL
+#pragma once
+
 
 #include "SimulatedStateObservationSource.h"
 
@@ -38,7 +38,7 @@
 #include <numeric>
 #define ROUND 10000000.0
 
-using namespace sofa::core::objectmodel;
+
 
 namespace sofa
 {
@@ -48,6 +48,9 @@ namespace component
 
 namespace container
 {
+
+
+using namespace sofa::core::objectmodel;
 
 
 template<class DataTypes>
@@ -62,7 +65,7 @@ SimulatedStateObservationSource<DataTypes>::SimulatedStateObservationSource()
     , d_trackedObservations( initData (&d_trackedObservations, "trackedObservations", "tracked observations: temporary solution!!!") )
     , d_asynObs(initData(&d_asynObs, false, "asynObs","Asynchronous or Missing Observations"))
 {
-
+    m_exportIndices = false;
 }
 
 template<class DataTypes>
@@ -77,7 +80,7 @@ void SimulatedStateObservationSource<DataTypes>::init()
     if(d_asynObs.getValue())
         std::cout << "[SimulatedStateObservationSource] Asynchronous Observations Used "<<std::endl;
 
-     helper::ReadAccessor<Data<VecCoord> > tracObs = d_trackedObservations;
+    helper::ReadAccessor<Data<VecCoord> > tracObs = d_trackedObservations;
     /// take observations from another component (tracking)
     if (tracObs.size() > 0) {
         m_nParticles = tracObs.size();
@@ -116,6 +119,7 @@ void SimulatedStateObservationSource<DataTypes>::init()
 
 }
 
+
 /*
  * File format:
  *  time | indices | positions
@@ -143,13 +147,13 @@ void SimulatedStateObservationSource<DataTypes>::parseAsynMonitorFileVariable(co
     unsigned int maxIndex = 0;
 
     std::ifstream in(_name);
-    if(!in.good())
+    if (!in.good())
         return;
 
     std::string line;
-    while(std::getline(in, line))
+    while (std::getline(in, line))
     {
-        if(line.find("|") == std::string::npos)
+        if (line.find("|") == std::string::npos)
             continue;
 
         Real dt;
@@ -164,7 +168,7 @@ void SimulatedStateObservationSource<DataTypes>::parseAsynMonitorFileVariable(co
         std::getline(ss, substr, '|');
         std::istringstream ssI(substr);
         unsigned int index;
-        while(ssI >> index)
+        while (ssI >> index)
         {
             indices.push_back(index);
             maxIndex = std::max(index, maxIndex);
@@ -173,7 +177,7 @@ void SimulatedStateObservationSource<DataTypes>::parseAsynMonitorFileVariable(co
         std::getline(ss, substr);
         std::istringstream ssP(substr);
         Coord position;
-        while(ssP >> position)
+        while (ssP >> position)
             positions.push_back(position);
 
         vdt.push_back(dt);
@@ -318,6 +322,10 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(const std::str
             PRNE(" On line " << nLine << " in " << name);
             return;
         }
+        std::size_t found = line.find("indices monitored: 1");
+        if (found != std::string::npos) {
+            m_exportIndices = true;
+        }
 
         getline(file, line);
         nLine++;
@@ -348,6 +356,14 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(const std::str
 
         tokens=tk2;
         m_dim = (tokens.size() -1)/m_nParticles;
+        if (m_exportIndices) {
+            if ((tokens.size() - 1) % 3 == 0)
+                m_dim = 2;
+            else if ((tokens.size() - 1) % 4 == 0)
+                m_dim = 3;
+            else
+                PRNE(" Incorrect file format");
+        }
         if (m_dim == 2) {
             PRNS(" Working with 2D observations" << " dim: " << m_dim);
         }
@@ -368,27 +384,49 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(const std::str
             if (m_nObservations == 1)
                 m_dt = atof(tokens[0].c_str()) - m_dt;
 
+            // when we export points with indices we know some of them are missing
+            if (m_exportIndices) {
+                m_nParticles = m_dim == 3 ? (tokens.size() - 1) / 4 : (tokens.size() - 1) / 3;
+            }
+
             VecCoord position(m_nParticles);
             VecIndex index(position.size());
+            VecIndex correspondentIndex(position.size());
             std::iota(index.begin(), index.end(), 0); // fill vector with increment, from 0
 
             if (m_dim == 2) {
-                for (unsigned int i = 0; i < m_nParticles; i++)
-                    for (unsigned int d = 0; d < 2; d++)
-                        position[i][d] = atof(tokens[2*i+d+1].c_str());
+                for (unsigned int i = 0; i < m_nParticles; i++) {
+                    if (m_exportIndices) {
+                        correspondentIndex[i] = atoi(tokens[3*i+1].c_str());
+                        for (unsigned int d = 0; d < 2; d++)
+                            position[i][d] = atof(tokens[3*i+d+2].c_str());
+                    } else {
+                        for (unsigned int d = 0; d < 2; d++)
+                            position[i][d] = atof(tokens[2*i+d+1].c_str());
+                    }
+                }
             } else {
-                for (unsigned int i = 0; i < m_nParticles; i++)
-                    for (unsigned int d = 0; d < 3; d++)
-                        position[i][d] = atof(tokens[3*i+d+1].c_str());
+                for (unsigned int i = 0; i < m_nParticles; i++) {
+                    if (m_exportIndices) {
+                        correspondentIndex[i] = atoi(tokens[4*i+1].c_str());
+                        for (unsigned int d = 0; d < 3; d++)
+                            position[i][d] = atof(tokens[4*i+d+2].c_str());
+                    } else {
+                        for (unsigned int d = 0; d < 3; d++)
+                            position[i][d] = atof(tokens[3*i+d+1].c_str());
+                    }
+                }
             }
 
 
             m_positions.push_back(position);
-            //std::cout << "###### adding position to obsTable at " << lineTime << std::endl;
+            m_correspondentIndices.push_back(correspondentIndex);
+            // std::cout << "###### adding position to obsTable at " << lineTime << std::endl;
             m_observationTable[lineTime] = position;
             m_indexTable[lineTime] = index;
+            m_correspondentTable[lineTime] = correspondentIndex;
             m_nObservations++;
-            //std::cout << " positions size: " << positions.size() << std::endl;
+            // std::cout << " positions size: " << positions.size() << std::endl;
 
 
             getline(file, line);
@@ -478,7 +516,7 @@ bool SimulatedStateObservationSource<DataTypes>::getObservation(double _time, Ve
                 }
             }
         }
-        return(true);
+        return true;
     }
     else
     {
@@ -502,10 +540,20 @@ bool SimulatedStateObservationSource<DataTypes>::getObservation(double _time, Ve
             _observation = m_positions[ix];
         }
 
-        return(true);
+        return true;
     }
-
 }
+
+template<class DataTypes>
+bool SimulatedStateObservationSource<DataTypes>::getCorrespondentIndices(double _time, VecIndex &_index)
+{
+    size_t ix = (fabs(m_dt) < 1e-10) ? 0 : size_t(round(_time/m_dt));
+    if (m_correspondentIndices[ix].size() == 0)
+        return false;
+    _index = m_correspondentIndices[ix];
+    return true;
+}
+
 
 
 template<class DataTypes>
@@ -559,12 +607,10 @@ void SimulatedStateObservationSource<DataTypes>::handleEvent(core::objectmodel::
 }
 
 
+
 } // namespace container
 
 } // namespace component
 
 } // namespace sofa
-
-#endif
-
 

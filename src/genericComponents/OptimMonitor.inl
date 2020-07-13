@@ -1,26 +1,28 @@
 /******************************************************************************
-*       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2018 INRIA, USTL, UJF, CNRS, MGH                    *
+*       SOFA, Simulation Open-Framework Architecture, version 1.0 RC 1        *
+*                (c) 2006-2020 MGH, INRIA, USTL, UJF, CNRS                    *
 *                                                                             *
-* This program is free software; you can redistribute it and/or modify it     *
+* This library is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
 * the Free Software Foundation; either version 2.1 of the License, or (at     *
 * your option) any later version.                                             *
 *                                                                             *
-* This program is distributed in the hope that it will be useful, but WITHOUT *
+* This library is distributed in the hope that it will be useful, but WITHOUT *
 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or       *
 * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License *
 * for more details.                                                           *
 *                                                                             *
 * You should have received a copy of the GNU Lesser General Public License    *
-* along with this program. If not, see <http://www.gnu.org/licenses/>.        *
+* along with this library; if not, write to the Free Software Foundation,     *
+* Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA.          *
 *******************************************************************************
+*                               SOFA :: Modules                               *
+*                                                                             *
 * Authors: The SOFA Team and external contributors (see Authors.txt)          *
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef SOFA_COMPONENT_MISC_OPTIMMONITOR_INL
-#define SOFA_COMPONENT_MISC_OPTIMMONITOR_INL
+#pragma once
 
 #include "OptimMonitor.h"
 #include <sofa/core/visual/VisualParams.h>
@@ -38,7 +40,6 @@
 
 
 
-
 namespace sofa
 {
 
@@ -52,25 +53,27 @@ namespace misc
 ///////////////////////////// OptimMonitor /////////////////////////////////////
 template <class DataTypes>
 OptimMonitor<DataTypes>::OptimMonitor()
-    : d_indices ( initData ( &d_indices, "indices", "MechanicalObject points indices to monitor" ) )
-    , d_saveXToGnuplot ( initData ( &d_saveXToGnuplot, false, "ExportPositions", "export OptimMonitored positions as gnuplot file" ) )
-    , d_saveVToGnuplot ( initData ( &d_saveVToGnuplot, false, "ExportVelocities", "export OptimMonitored velocities as gnuplot file" ) )
-    , d_saveFToGnuplot ( initData ( &d_saveFToGnuplot, false, "ExportForces", "export OptimMonitored forces as gnuplot file" ) )
-    , d_showPositions (initData (&d_showPositions, false, "showPositions", "see the OptimMonitored positions"))
-    , d_positionsColor (initData (&d_positionsColor, "PositionsColor", "define the color of positions"))
-    , d_showVelocities (initData (&d_showVelocities, false, "showVelocities", "see the OptimMonitored velocities"))
-    , d_velocitiesColor(initData (&d_velocitiesColor, "VelocitiesColor", "define the color of velocities"))
-    , d_showForces (initData (&d_showForces, false, "showForces", "see the OptimMonitored forces"))
-    , d_forcesColor (initData (&d_forcesColor, "ForcesColor", "define the color of forces"))
-    , d_showMinThreshold (initData (&d_showMinThreshold, 0.01 ,"showMinThreshold", "under this value, vectors are not represented"))
-    , d_showTrajectories (initData (&d_showTrajectories, false ,"showTrajectories", "print the trajectory of OptimMonitored particles"))
-    , d_trajectoriesPrecision (initData (&d_trajectoriesPrecision, 0.001,"TrajectoriesPrecision", "set the dt between to save of positions"))
-    , d_trajectoriesColor(initData (&d_trajectoriesColor, "TrajectoriesColor", "define the color of the trajectories"))
-    , d_showSizeFactor(initData (&d_showSizeFactor, 1.0, "sizeFactor", "factor to multiply to arrows"))
-    , d_fileName(initData (&d_fileName, "fileName", "name of the plot files to be generated"))
-    , d_saveZeroStep(initData (&d_saveZeroStep, true, "saveZeroStep", "save positions for zero time step"))
-    , d_exportOnEvent (initData (&d_exportOnEvent, 0, "exportOnEvent", "on which event data are exported: -1: no export, 0: animate end event, 1: after prediction, 2: after correction"))
-    , d_timeShift (initData (&d_timeShift, 0.0, "timeShift", "add shift to time when exporting data"))
+    : d_indices( initData( &d_indices, "indices", "MechanicalObject points indices to monitor"))
+    , d_saveXToGnuplot( initData( &d_saveXToGnuplot, false, "ExportPositions", "export OptimMonitored positions as gnuplot file"))
+    , d_saveVToGnuplot( initData( &d_saveVToGnuplot, false, "ExportVelocities", "export OptimMonitored velocities as gnuplot file"))
+    , d_saveFToGnuplot( initData( &d_saveFToGnuplot, false, "ExportForces", "export OptimMonitored forces as gnuplot file"))
+    , d_showPositions( initData( &d_showPositions, false, "showPositions", "see the OptimMonitored positions"))
+    , d_positionsColor( initData( &d_positionsColor, "PositionsColor", "define the color of positions"))
+    , d_showVelocities( initData( &d_showVelocities, false, "showVelocities", "see the OptimMonitored velocities"))
+    , d_velocitiesColor( initData( &d_velocitiesColor, "VelocitiesColor", "define the color of velocities"))
+    , d_showForces( initData( &d_showForces, false, "showForces", "see the OptimMonitored forces"))
+    , d_forcesColor( initData( &d_forcesColor, "ForcesColor", "define the color of forces"))
+    , d_showMinThreshold( initData( &d_showMinThreshold, 0.01 ,"showMinThreshold", "under this value, vectors are not represented"))
+    , d_showTrajectories( initData( &d_showTrajectories, false ,"showTrajectories", "print the trajectory of OptimMonitored particles"))
+    , d_trajectoriesPrecision( initData( &d_trajectoriesPrecision, 0.001,"TrajectoriesPrecision", "set the dt between to save of positions"))
+    , d_trajectoriesColor( initData( &d_trajectoriesColor, "TrajectoriesColor", "define the color of the trajectories"))
+    , d_showSizeFactor( initData( &d_showSizeFactor, 1.0, "sizeFactor", "factor to multiply to arrows"))
+    , d_fileName( initData( &d_fileName, "fileName", "name of the plot files to be generated"))
+    , d_saveZeroStep( initData( &d_saveZeroStep, true, "saveZeroStep", "save positions for zero time step"))
+    , d_exportOnEvent( initData( &d_exportOnEvent, 0, "exportOnEvent", "on which event data are exported: -1: no export, 0: animate end event, 1: after prediction, 2: after correction"))
+    , d_timeShift( initData( &d_timeShift, 0.0, "timeShift", "add shift to time when exporting data"))
+    , d_exportIndices( initData( &d_exportIndices, false, "exportIndices", "flag to export correpondent point indices to mmnitor file"))
+    , d_correspondentIndices( initData( &d_correspondentIndices, "correspondentIndices", "indices correspondent to object points"))
     , m_saveGnuplotX ( NULL ), m_saveGnuplotV ( NULL ), m_saveGnuplotF ( NULL )
     , m_X (NULL), m_V(NULL), m_F(NULL)
     , m_saveDt(0.0)
@@ -306,8 +309,10 @@ void OptimMonitor<DataTypes>::initGnuplot ( const std::string path )
             if ( m_saveGnuplotX != NULL ) delete m_saveGnuplotX;
             m_saveGnuplotX = new std::ofstream ( ( path + "_x.txt" ).c_str() );
             ( *m_saveGnuplotX ) << "# Gnuplot File : positions of "
-                                << d_indices.getValue().size() << " particle(s) OptimMonitored"
-                                <<  std::endl;
+                                << d_indices.getValue().size() << " particle(s) OptimMonitored";
+            if (d_exportIndices.getValue())
+                ( *m_saveGnuplotX ) << ", indices monitored: 1";
+            ( *m_saveGnuplotX ) <<  std::endl;
             ( *m_saveGnuplotX ) << "# 1st Column : time, others : particle(s) number ";
 
             for (unsigned int i = 0; i < d_indices.getValue().size(); i++)
@@ -322,8 +327,10 @@ void OptimMonitor<DataTypes>::initGnuplot ( const std::string path )
 
             m_saveGnuplotV = new std::ofstream ( ( path + "_v.txt" ).c_str() );
             ( *m_saveGnuplotV ) << "# Gnuplot File : velocities of "
-                                << d_indices.getValue().size() << " particle(s) OptimMonitored"
-                                <<  std::endl;
+                                << d_indices.getValue().size() << " particle(s) OptimMonitored";
+            if (d_exportIndices.getValue())
+                ( *m_saveGnuplotV ) << ", indices monitored: 1";
+            ( *m_saveGnuplotV ) <<  std::endl;
             ( *m_saveGnuplotV ) << "# 1st Column : time, others : particle(s) number ";
 
             for (unsigned int i = 0; i < d_indices.getValue().size(); i++)
@@ -338,8 +345,10 @@ void OptimMonitor<DataTypes>::initGnuplot ( const std::string path )
             if ( m_saveGnuplotF != NULL ) delete m_saveGnuplotF;
             m_saveGnuplotF = new std::ofstream ( ( path + "_f.txt" ).c_str() );
             ( *m_saveGnuplotF ) << "# Gnuplot File : forces of "
-                                << d_indices.getValue().size() << " particle(s) OptimMonitored"
-                                <<  std::endl;
+                                << d_indices.getValue().size() << " particle(s) OptimMonitored";
+            if (d_exportIndices.getValue())
+                ( *m_saveGnuplotF ) << ", indices monitored: 1";
+            ( *m_saveGnuplotF ) <<  std::endl;
             ( *m_saveGnuplotF ) << "# 1st Column : time, others : particle(s) number ";
 
             for (unsigned int i = 0; i < d_indices.getValue().size(); i++)
@@ -361,16 +370,22 @@ void OptimMonitor<DataTypes>::exportGnuplot ( Real time )
     {
         ( *m_saveGnuplotX ) << (time - d_timeShift.getValue() < 1e-08 ? 0.00 : time - d_timeShift.getValue()) <<"\t";
 
-        for (unsigned int i = 0; i < d_indices.getValue().size(); i++)
+        for (unsigned int i = 0; i < d_indices.getValue().size(); i++) {
+            if (d_exportIndices.getValue())
+                ( *m_saveGnuplotX ) << d_correspondentIndices.getValue()[d_indices.getValue()[i]] << " ";
             ( *m_saveGnuplotX ) << (*m_X)[d_indices.getValue()[i]] << "\t";
+        }
         ( *m_saveGnuplotX ) << std::endl;
     }
     if ( d_saveVToGnuplot.getValue() && m_V->size()>0 )
     {
         ( *m_saveGnuplotV ) << (time - d_timeShift.getValue() < 1e-08 ? 0.00 : time - d_timeShift.getValue()) <<"\t";
 
-        for (unsigned int i = 0; i < d_indices.getValue().size(); i++)
+        for (unsigned int i = 0; i < d_indices.getValue().size(); i++) {
+            if (d_exportIndices.getValue())
+                ( *m_saveGnuplotV ) << d_correspondentIndices.getValue()[d_indices.getValue()[i]] << " ";
             ( *m_saveGnuplotV ) << (*m_V)[d_indices.getValue()[i]] << "\t";
+        }
         ( *m_saveGnuplotV ) << std::endl;
     }
 
@@ -378,8 +393,11 @@ void OptimMonitor<DataTypes>::exportGnuplot ( Real time )
     {
         ( *m_saveGnuplotF ) << (time - d_timeShift.getValue() < 1e-08 ? 0.00 : time - d_timeShift.getValue()) <<"\t";
 
-        for (unsigned int i = 0; i < d_indices.getValue().size(); i++)
+        for (unsigned int i = 0; i < d_indices.getValue().size(); i++) {
+            if (d_exportIndices.getValue())
+                ( *m_saveGnuplotF ) << d_correspondentIndices.getValue()[d_indices.getValue()[i]] << " ";
             ( *m_saveGnuplotF ) << (*m_F)[d_indices.getValue()[i]] << "\t";
+        }
         ( *m_saveGnuplotF ) << std::endl;
     }
 }
@@ -391,4 +409,3 @@ void OptimMonitor<DataTypes>::exportGnuplot ( Real time )
 
 } // namespace sofa
 
-#endif

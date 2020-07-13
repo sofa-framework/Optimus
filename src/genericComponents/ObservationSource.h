@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, version 1.0 RC 1        *
-*                (c) 2006-2011 MGH, INRIA, USTL, UJF, CNRS                    *
+*                (c) 2006-2020 MGH, INRIA, USTL, UJF, CNRS                    *
 *                                                                             *
 * This library is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,12 +22,13 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef SOFA_CONTAINER_OBSERVATIONSOURCE_H
-#define SOFA_CONTAINER_OBSERVATIONSOURCE_H
+#pragma once
 
 #include <sofa/core/objectmodel/BaseObject.h>
 
 using namespace sofa::core::objectmodel;
+
+
 
 namespace sofa
 {
@@ -37,6 +38,7 @@ namespace component
 
 namespace container
 {
+
 
 template<class DataTypes>
 class ObservationSource : public sofa::core::objectmodel::BaseObject
@@ -52,10 +54,11 @@ public:
 
 };
 
+
+
 } // namespace container
 
 } // namespace component
 
 } // namespace sofa
 
-#endif

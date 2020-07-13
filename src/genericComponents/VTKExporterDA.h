@@ -1,6 +1,6 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, version 1.0 RC 1        *
-*                (c) 2006-2011 MGH, INRIA, USTL, UJF, CNRS                    *
+*                (c) 2006-2020 MGH, INRIA, USTL, UJF, CNRS                    *
 *                                                                             *
 * This library is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
@@ -22,20 +22,17 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
+#pragma once
 
-#ifndef OPTIMPARAMS_H_
-#define OPTIMPARAMS_H_
-
-//#include <SofaExporter/config.h>
 
 #include "initOptimusPlugin.h"
 #include <sofa/core/ObjectFactory.h>
 #include <SofaExporter/VTKExporter.h>
 
-
 //#include <sofa/core/objectmodel/Event.h>
 //#include <sofa/helper/AdvancedTimer.h>
 //#include <sofa/simulation/PropagateEventVisitor.h>
+
 
 
 namespace sofa
@@ -57,11 +54,9 @@ public:
 
 };
 
-}
+} // namespace misc
 
-}
+} // namespace component
 
-}
-
-#endif
+} // namespace sofa
 
