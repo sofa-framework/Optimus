@@ -114,6 +114,8 @@ if ( ${STOCHASTIC_FILTERING} )
         src/stochasticFiltering/MappedStateObservationManager.inl
         src/stochasticFiltering/MappedStateVelocityObservationManager.h
         src/stochasticFiltering/MappedStateVelocityObservationManager.inl
+        src/stochasticFiltering/MappedStateUncorrespondentObservationManager.h
+        src/stochasticFiltering/MappedStateUncorrespondentObservationManager.inl
         src/stochasticFiltering/SimpleObservationManager.h
         src/stochasticFiltering/SimpleObservationManager.inl
         src/stochasticFiltering/BindedSimpleObservationManager.h
@@ -132,6 +134,7 @@ if ( ${STOCHASTIC_FILTERING} )
         src/stochasticFiltering/StochasticStateWrapper.cpp
         src/stochasticFiltering/MappedStateObservationManager.cpp
         src/stochasticFiltering/MappedStateVelocityObservationManager.cpp
+        src/stochasticFiltering/MappedStateUncorrespondentObservationManager.cpp
         src/stochasticFiltering/SimpleObservationManager.cpp
         src/stochasticFiltering/BindedSimpleObservationManager.cpp
         src/stochasticFiltering/PreStochasticWrapper.cpp
