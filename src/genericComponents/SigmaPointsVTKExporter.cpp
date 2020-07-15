@@ -52,7 +52,8 @@ namespace misc
 
 
 int SigmaPointsVTKExporterClass = core::RegisterObject("Save State vectors from file at each timestep")
-        .add< SigmaPointsVTKExporter >();
+    .add< SigmaPointsVTKExporter >();
+
 
 SigmaPointsVTKExporter::SigmaPointsVTKExporter()
     : stepCounter(0), outfile(NULL)

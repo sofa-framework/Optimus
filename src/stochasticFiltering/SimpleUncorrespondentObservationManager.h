@@ -39,20 +39,24 @@
 #include "../genericComponents/SimulatedStateObservationSource.h"
 #include "StochasticStateWrapper.h"
 
+
 namespace sofa
 {
+
 namespace component
 {
+
 namespace stochastic
 {
+
 
 using namespace defaulttype;
 
 template <class FilterType, class DataTypes1, class DataTypes2>
-class MappedStateUncorrespondentObservationManager: public sofa::component::stochastic::ObservationManager<FilterType>
+class SimpleUncorrespondentObservationManager: public sofa::component::stochastic::ObservationManager<FilterType>
 {
 public:
-    SOFA_CLASS(SOFA_TEMPLATE3(MappedStateUncorrespondentObservationManager, FilterType, DataTypes1, DataTypes2), SOFA_TEMPLATE(ObservationManager, FilterType));
+    SOFA_CLASS(SOFA_TEMPLATE3(SimpleUncorrespondentObservationManager, FilterType, DataTypes1, DataTypes2), SOFA_TEMPLATE(ObservationManager, FilterType));
 
     typedef typename sofa::component::stochastic::ObservationManager<FilterType> Inherit;
     //typedef typename Inherit::EVectorX EVectorX;
@@ -61,14 +65,15 @@ public:
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, 1> EVectorX;
 
     typedef typename DataTypes1::Real Real1;
+    typedef helper::vector<unsigned int> VecIndex;
     typedef core::behavior::MechanicalState<DataTypes1> MasterState;
     typedef core::behavior::MechanicalState<DataTypes2> MappedState;
     typedef sofa::core::Mapping<DataTypes1, DataTypes2> Mapping;
     typedef sofa::component::container::SimulatedStateObservationSource<DataTypes1> ObservationSource;
-    typedef StochasticStateWrapper<DataTypes1,FilterType> StateWrapper;
+    typedef StochasticStateWrapper<DataTypes1, FilterType> StateWrapper;
 
-    MappedStateUncorrespondentObservationManager();
-    ~MappedStateUncorrespondentObservationManager() {}
+    SimpleUncorrespondentObservationManager();
+    ~SimpleUncorrespondentObservationManager() {}
 
 protected:
     size_t inputVectorSize, masterVectorSize, mappedVectorSize;     /// real sizes of vectors
@@ -96,22 +101,21 @@ public:
     virtual bool obsFunction(EVectorX& /* _state */, EVectorX& /* _predictedObservation */) override;
 
     Data<typename DataTypes1::VecCoord> inputObservationData;
+    Data<VecIndex> inputIndices;
     Data<typename DataTypes2::VecCoord> mappedObservationData;
+    Data<VecIndex> mappedMask;
     Data<double> noiseStdev;
     Data<int> abberantIndex;
-    Data<bool> doNotMapObservations;
-    Data<helper::vector<int> > d_observationIndices;
-    helper::vector<int> observationIndices;
+    Data<helper::vector<unsigned int> > d_observationIndices;
+    helper::vector<unsigned int> observationIndices;
 
 
-    SingleLink<MappedStateUncorrespondentObservationManager<FilterType, DataTypes1, DataTypes2>, StateWrapper, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> stateWrapperLink;
+    SingleLink<SimpleUncorrespondentObservationManager<FilterType, DataTypes1, DataTypes2>, StateWrapper, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> stateWrapperLink;
 
     boost::mt19937* pRandGen; // I don't seed it on purpouse (it's not relevant)
     boost::normal_distribution<>* pNormDist;
     boost::variate_generator<boost::mt19937&, boost::normal_distribution<> >* pVarNorm;
     helper::vector<double> noise;
-
-
 
 }; /// class
 
@@ -121,4 +125,3 @@ public:
 } // namespace component
 
 } // namespace sofa
-

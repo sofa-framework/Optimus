@@ -285,8 +285,8 @@ void StepPCGLinearSolver<TMatrix,TVector>::solve (Matrix& M, Vector& x, Vector& 
 SOFA_DECL_CLASS(StepPCGLinearSolver)
 
 int StepPCGLinearSolverClass = core::RegisterObject("Linear system solver using the conjugate gradient iterative algorithm")
-.add< StepPCGLinearSolver<GraphScatteredMatrix,GraphScatteredVector> >(true)
-;
+    .add< StepPCGLinearSolver<GraphScatteredMatrix,GraphScatteredVector> >(true)
+    ;
 
 
 

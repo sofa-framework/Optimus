@@ -853,26 +853,18 @@ SOFA_DECL_CLASS(OptimParams)
 
 // Register in the Factory
 int OptimParamsClass = core::RegisterObject("Optimization Parameters")
-    #ifndef SOFA_FLOAT
     .add< OptimParams<double> >()
-    .add< OptimParams<Vec3d> >()
+    .add< OptimParams<Vec3> >()
     .add< OptimParams<sofa::helper::vector<double> > >()
-    .add< OptimParams<Vec3dTypes::VecDeriv> >()
-    .add< OptimParams<Rigid3dTypes::VecDeriv> >()
-    #endif
-    #ifndef SOFA_DOUBLE
-    #endif
+    .add< OptimParams<Vec3Types::VecDeriv> >()
+    .add< OptimParams<Rigid3Types::VecDeriv> >()
     ;
 
-#ifndef SOFA_FLOAT
 template class SOFA_OPTIMUSPLUGIN_API OptimParams<double>;
-template class SOFA_OPTIMUSPLUGIN_API OptimParams<Vec3d>;
+template class SOFA_OPTIMUSPLUGIN_API OptimParams<Vec3>;
 template class SOFA_OPTIMUSPLUGIN_API OptimParams<sofa::helper::vector<double> >;
-template class SOFA_OPTIMUSPLUGIN_API OptimParams<Vec3dTypes::VecDeriv>;
-template class SOFA_OPTIMUSPLUGIN_API OptimParams<Rigid3dTypes::VecDeriv>;
-#endif
-#ifndef SOFA_DOUBLE
-#endif
+template class SOFA_OPTIMUSPLUGIN_API OptimParams<Vec3Types::VecDeriv>;
+template class SOFA_OPTIMUSPLUGIN_API OptimParams<Rigid3Types::VecDeriv>;
 
 
 } // namespace container

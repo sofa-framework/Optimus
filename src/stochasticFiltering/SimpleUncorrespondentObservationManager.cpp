@@ -26,7 +26,7 @@
 //#define MAPPEDSTATEOBSERVATIONMANAGER_CPP
 
 #include <sofa/core/ObjectFactory.h>
-#include "MappedStateUncorrespondentObservationManager.inl"
+#include "SimpleUncorrespondentObservationManager.inl"
 //#include <sofa/helper/accessor.h>
 
 namespace sofa
@@ -41,28 +41,16 @@ namespace stochastic
 using namespace defaulttype;
 
 
-SOFA_DECL_CLASS(MappedStateUncorrespondentObservationManager)
+SOFA_DECL_CLASS(SimpleUncorrespondentObservationManager)
 
 // Register in the Factory
-int MappedStateUncorrespondentObservationManagerClass = core::RegisterObject("MappedStateObservationManager")
-        #ifndef SOFA_FLOAT
-        .add< MappedStateUncorrespondentObservationManager<double, Vec3dTypes, Vec3dTypes> >(true)
-        //.add< MappedStateUncorrespondentObservationManager<float, Vec3dTypes, Vec3dTypes> >(true)
-        #endif
-        #ifndef SOFA_DOUBLE
-        //.add< MappedStateUncorrespondentObservationManager<double, Vec3fTypes, Vec3fTypes> >()
-        //.add< MappedStateUncorrespondentObservationManager<float, Vec3fTypes, Vec3fTypes> >(true)
-        #endif
-        ;
+int SimpleUncorrespondentObservationManagerClass = core::RegisterObject("MappedStateObservationManager")
+    .add< SimpleUncorrespondentObservationManager<double, Vec3Types, Vec3Types> >(true)
+    //.add< SimpleUncorrespondentObservationManager<float, Vec3Types, Vec3Types> >(true)
+    ;
 
-#ifndef SOFA_FLOAT
-template class SOFA_STOCHASTIC_API MappedStateUncorrespondentObservationManager<double, Vec3dTypes, Vec3dTypes>;
-//template class SOFA_STOCHASTIC_API MappedStateUncorrespondentObservationManager<float, Vec3dTypes, Vec3dTypes>;
-#endif
-#ifndef SOFA_DOUBLE
-//template class SOFA_STOCHASTIC_API MappedStateUncorrespondentObservationManager<double, Vec3fTypes, Vec3fTypes>;
-//template class SOFA_STOCHASTIC_API MappedStateUncorrespondentObservationManager<float, Vec3fTypes, Vec3fTypes>;
-#endif
+template class SOFA_STOCHASTIC_API SimpleUncorrespondentObservationManager<double, Vec3Types, Vec3Types>;
+//template class SOFA_STOCHASTIC_API SimpleUncorrespondentObservationManager<float, Vec3Types, Vec3Types>;
 
 
 } // namespace stochastic

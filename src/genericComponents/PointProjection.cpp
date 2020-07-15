@@ -35,12 +35,7 @@ namespace sofa
 
 //SOFA_DECL_CLASS(PointProjection)
 
-#ifndef SOFA_FLOAT
 template class  PointProjection<double>;
-#endif //SOFA_FLOAT
-#ifndef SOFA_DOUBLE
-template class  PointProjection<float>;
-#endif //SOFA_DOUBLE
+//template class  PointProjection<float>;
 
 }
-

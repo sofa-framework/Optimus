@@ -45,24 +45,13 @@ SOFA_DECL_CLASS(MappedStateVelocityObservationManager)
 
 // Register in the Factory
 int MappedStateVelocityObservationManagerClass = core::RegisterObject("MappedStateVelocityObservationManager")
-        #ifndef SOFA_FLOAT
-        .add< MappedStateVelocityObservationManager<double, Vec3dTypes, Vec3dTypes> >(true)
-        //.add< MappedStateVelocityObservationManager<float, Vec3dTypes, Vec3dTypes> >(true)
-        #endif
-        #ifndef SOFA_DOUBLE
-        //.add< MappedStateVelocityObservationManager<double, Vec3fTypes, Vec3fTypes> >()
-        //.add< MappedStateVelocityObservationManager<float, Vec3fTypes, Vec3fTypes> >(true)
-        #endif
-        ;
+    .add< MappedStateVelocityObservationManager<double, Vec3Types, Vec3Types> >(true)
+    //.add< MappedStateVelocityObservationManager<float, Vec3Types, Vec3Types> >(true)
+    ;
 
-#ifndef SOFA_FLOAT
-template class SOFA_STOCHASTIC_API MappedStateVelocityObservationManager<double, Vec3dTypes, Vec3dTypes>;
-//template class SOFA_STOCHASTIC_API MappedStateVelocityObservationManager<float, Vec3dTypes, Vec3dTypes>;
-#endif
-#ifndef SOFA_DOUBLE
-//template class SOFA_STOCHASTIC_API MappedStateVelocityObservationManager<double, Vec3fTypes, Vec3fTypes>;
-//template class SOFA_STOCHASTIC_API MappedStateVelocityObservationManager<float, Vec3fTypes, Vec3fTypes>;
-#endif
+
+template class SOFA_STOCHASTIC_API MappedStateVelocityObservationManager<double, Vec3Types, Vec3Types>;
+//template class SOFA_STOCHASTIC_API MappedStateVelocityObservationManager<float, Vec3Types, Vec3Types>;
 
 
 } // namespace stochastic

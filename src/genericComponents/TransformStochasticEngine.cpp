@@ -45,6 +45,7 @@ int TransformStochasticEngineClass = core::RegisterObject("Transform position of
     .add< TransformStochasticEngine<defaulttype::Vec3Types> >(true) // default template
     ;
 
+
 template class SOFA_OPTIMUSPLUGIN_API TransformStochasticEngine<defaulttype::Vec3Types>;
 
 

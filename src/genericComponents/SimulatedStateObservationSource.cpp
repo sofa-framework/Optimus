@@ -50,6 +50,7 @@ int SimulatedStateObservationSourceClass = core::RegisterObject("Parameters that
     .add< SimulatedStateObservationSource<Rigid3Types> >()
     ;
 
+
 template class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationSource<Vec2Types>;
 template class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationSource<Vec3Types>;
 template class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationSource<Rigid3Types>;
@@ -61,4 +62,3 @@ template class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationSource<Rigid3Type
 } // namespace component
 
 } // namespace sofa
-

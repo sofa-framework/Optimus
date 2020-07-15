@@ -72,7 +72,7 @@ public:
 
     typedef SimulatedStateObservationSourceBase Inherit;
     typedef typename DataTypes::VecCoord VecCoord;
-    typedef typename helper::vector<unsigned int> VecIndex;
+    typedef helper::vector<unsigned int> VecIndex;
     typedef typename DataTypes::Coord Coord;
     typedef typename DataTypes::Real Real;
     typedef typename std::vector<VecCoord> VecVecCoord;

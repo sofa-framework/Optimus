@@ -39,12 +39,16 @@
 #include "../genericComponents/SimulatedStateObservationSource.h"
 #include "StochasticStateWrapper.h"
 
+
 namespace sofa
 {
+
 namespace component
 {
+
 namespace stochastic
 {
+
 
 using namespace defaulttype;
 
@@ -121,4 +125,3 @@ public:
 } // namespace component
 
 } // namespace sofa
-

@@ -45,23 +45,15 @@ SOFA_DECL_CLASS(MatrixCovariance)
 
 // Register in the Factory
 int MatrixCovarianceClass = core::RegisterObject("Covariance data")
-        #ifndef SOFA_FLOAT
-        .add< MatrixCovariance<double> >()
+    .add< MatrixCovariance<double> >()
+    ;
 
-        #endif
-        #ifndef SOFA_DOUBLE
-        #endif
-        ;
 
-#ifndef SOFA_FLOAT
 template class SOFA_OPTIMUSPLUGIN_API MatrixCovariance<double>;
-#endif
-#ifndef SOFA_DOUBLE
-#endif
+
 
 } // namespace container
 
 } // namespace component
 
 } // namespace sofa
-

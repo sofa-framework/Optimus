@@ -187,7 +187,7 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::hasObserva
 
     if (!hasObservation) {
         PRNE("No observation for time " << _time);
-        return(false);
+        return (false);
     }
 
     /// put the observation imported from a file via mapping  (yields actualObservation)
@@ -210,7 +210,7 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::hasObserva
         sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > mappedObsState = mappedObservationData;
         if (mappedObsState.size() != inputObsState.size()) {
             PRNE("Different mapped and input observation size: " << mappedObsState.size() << " vs " << inputObsState.size());
-            return(false);
+            return (false);
         }
 
         for (size_t i = 0; i < mappedObsState.size(); i++)
@@ -224,7 +224,7 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::hasObserva
             }
         }
     }
-    return(true);
+    return (true);
 }
 
 template <class FilterType, class DataTypes1, class DataTypes2>

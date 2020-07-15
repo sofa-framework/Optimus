@@ -238,7 +238,7 @@ bool MappedStateVelocityObservationManager<FilterType,DataTypes1,DataTypes2>::ha
 
     if (!hasObservation) {
         PRNE("No observation for time " << _time);
-        return(false);
+        return (false);
     }
 
     /// put the observation imported from a file via mapping  (yields actualObservation)
@@ -280,7 +280,7 @@ bool MappedStateVelocityObservationManager<FilterType,DataTypes1,DataTypes2>::ha
         unsigned int mappedStateSize = mappedObsState.size() / stateSizeScale;
         if (mappedStateSize != inputObsState.size()) {
             PRNE("Difference between mapped and input observation size: " << mappedObsState.size() << " vs " << inputObsState.size());
-            return(false);
+            return (false);
         }
 
         if (d_observePositions.getValue()) {
@@ -302,7 +302,7 @@ bool MappedStateVelocityObservationManager<FilterType,DataTypes1,DataTypes2>::ha
         }
 
     }
-    return(true);
+    return (true);
 }
 
 template <class FilterType, class DataTypes1, class DataTypes2>

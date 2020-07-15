@@ -45,20 +45,11 @@ using namespace sofa::defaulttype;
 SOFA_DECL_CLASS(Indices2ValuesTransformer)
 
 int Indices2ValuesTransformerClass = core::RegisterObject("?")
-#ifndef SOFA_FLOAT
-        .add< Indices2ValuesTransformer<Vec3dTypes> >(true)
-#endif //SOFA_FLOAT
-#ifndef SOFA_DOUBLE
-        .add< Indices2ValuesTransformer<Vec3fTypes> >()
-#endif //SOFA_DOUBLE
-        ;
+    .add< Indices2ValuesTransformer<Vec3Types> >(true)
+    ;
 
-#ifndef SOFA_FLOAT
-template class SOFA_OPTIMUSPLUGIN_API Indices2ValuesTransformer<Vec3dTypes>;
-#endif //SOFA_FLOAT
-#ifndef SOFA_DOUBLE
-template class SOFA_OPTIMUSPLUGIN_API Indices2ValuesTransformer<Vec3fTypes>;
-#endif //SOFA_DOUBLE
+
+template class SOFA_OPTIMUSPLUGIN_API Indices2ValuesTransformer<Vec3Types>;
 
 
 } // namespace engine
@@ -66,4 +57,3 @@ template class SOFA_OPTIMUSPLUGIN_API Indices2ValuesTransformer<Vec3fTypes>;
 } // namespace component
 
 } // namespace sofa
-

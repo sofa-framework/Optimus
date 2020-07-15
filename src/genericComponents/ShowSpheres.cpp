@@ -46,9 +46,9 @@ using namespace sofa::defaulttype;
 
 // Register in the Factory
 int ShowSpheresClass = core::RegisterObject("Show selected particles Spheres")
-        .add< ShowSpheres<Vec3Types> >(true)
-        .add< ShowSpheres<Rigid3Types> >()
-        ;
+    .add< ShowSpheres<Vec3Types> >(true)
+    .add< ShowSpheres<Rigid3Types> >()
+    ;
 
 template class SOFA_OPTIMUSPLUGIN_API ShowSpheres<Vec3Types>;
 template class SOFA_OPTIMUSPLUGIN_API ShowSpheres<Rigid3Types>;

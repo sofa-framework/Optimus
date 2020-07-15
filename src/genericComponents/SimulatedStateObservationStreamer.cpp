@@ -62,4 +62,3 @@ template class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationStreamer<Rigid3Ty
 } // namespace component
 
 } // namespace sofa
-

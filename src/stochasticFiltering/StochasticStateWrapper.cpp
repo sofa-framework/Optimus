@@ -48,8 +48,8 @@ int StochasticStateWrapperClass = core::RegisterObject("StochasticStateWrapper")
         .add< StochasticStateWrapper<Rigid3Types, double> >()
         ;
 
-template class SOFA_STOCHASTIC_API StochasticStateWrapper<Vec3dTypes, double>;
-template class SOFA_STOCHASTIC_API StochasticStateWrapper<Rigid3dTypes, double>;
+template class SOFA_STOCHASTIC_API StochasticStateWrapper<Vec3Types, double>;
+template class SOFA_STOCHASTIC_API StochasticStateWrapper<Rigid3Types, double>;
 
 } // namespace simulation
 
