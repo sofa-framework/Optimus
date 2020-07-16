@@ -22,8 +22,7 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef INITOptimusPlugin_H
-#define INITOptimusPlugin_H
+#pragma once
 
 
 #include <sofa/helper/config.h>
@@ -113,5 +112,3 @@ typedef enum FilterKind {
     REDORD = 1,
     SIMCORR = 2
 } FilterKind;
-
-#endif // INITOptimusPlugin_H

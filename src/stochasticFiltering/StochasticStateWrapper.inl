@@ -102,7 +102,7 @@ using namespace sofa::simulation;
 
 template <class DataTypes, class FilterType>
 StochasticStateWrapper<DataTypes, FilterType>::StochasticStateWrapper()
-    :Inherit()
+    : Inherit()
     , d_langrangeMultipliers( initData(&d_langrangeMultipliers, false, "langrangeMultipliers", "perform collision detection and response with Lagrange multipliers (requires constraint solver)") )
     , estimatePosition( initData(&estimatePosition, false, "estimatePosition", "estimate the position (e.g., if initial conditions with uncertainty") )
     , estimateOnlyXYZ( initData(&estimateOnlyXYZ, false, "estimateOnlyXYZ", "estimate only the X Y Z for a Rigid Body") )

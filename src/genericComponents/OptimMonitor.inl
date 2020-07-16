@@ -72,8 +72,6 @@ OptimMonitor<DataTypes>::OptimMonitor()
     , d_saveZeroStep( initData( &d_saveZeroStep, true, "saveZeroStep", "save positions for zero time step"))
     , d_exportOnEvent( initData( &d_exportOnEvent, 0, "exportOnEvent", "on which event data are exported: -1: no export, 0: animate end event, 1: after prediction, 2: after correction"))
     , d_timeShift( initData( &d_timeShift, 0.0, "timeShift", "add shift to time when exporting data"))
-    , d_exportIndices( initData( &d_exportIndices, false, "exportIndices", "flag to export correpondent point indices to mmnitor file"))
-    , d_correspondentIndices( initData( &d_correspondentIndices, "correspondentIndices", "indices correspondent to object points"))
     , m_saveGnuplotX ( NULL ), m_saveGnuplotV ( NULL ), m_saveGnuplotF ( NULL )
     , m_X (NULL), m_V(NULL), m_F(NULL)
     , m_saveDt(0.0)
@@ -309,10 +307,7 @@ void OptimMonitor<DataTypes>::initGnuplot ( const std::string path )
             if ( m_saveGnuplotX != NULL ) delete m_saveGnuplotX;
             m_saveGnuplotX = new std::ofstream ( ( path + "_x.txt" ).c_str() );
             ( *m_saveGnuplotX ) << "# Gnuplot File : positions of "
-                                << d_indices.getValue().size() << " particle(s) OptimMonitored";
-            if (d_exportIndices.getValue())
-                ( *m_saveGnuplotX ) << ", indices monitored: 1";
-            ( *m_saveGnuplotX ) <<  std::endl;
+                                << d_indices.getValue().size() << " particle(s) OptimMonitored" <<  std::endl;
             ( *m_saveGnuplotX ) << "# 1st Column : time, others : particle(s) number ";
 
             for (unsigned int i = 0; i < d_indices.getValue().size(); i++)
@@ -327,10 +322,7 @@ void OptimMonitor<DataTypes>::initGnuplot ( const std::string path )
 
             m_saveGnuplotV = new std::ofstream ( ( path + "_v.txt" ).c_str() );
             ( *m_saveGnuplotV ) << "# Gnuplot File : velocities of "
-                                << d_indices.getValue().size() << " particle(s) OptimMonitored";
-            if (d_exportIndices.getValue())
-                ( *m_saveGnuplotV ) << ", indices monitored: 1";
-            ( *m_saveGnuplotV ) <<  std::endl;
+                                << d_indices.getValue().size() << " particle(s) OptimMonitored" << std::endl;
             ( *m_saveGnuplotV ) << "# 1st Column : time, others : particle(s) number ";
 
             for (unsigned int i = 0; i < d_indices.getValue().size(); i++)
@@ -345,10 +337,7 @@ void OptimMonitor<DataTypes>::initGnuplot ( const std::string path )
             if ( m_saveGnuplotF != NULL ) delete m_saveGnuplotF;
             m_saveGnuplotF = new std::ofstream ( ( path + "_f.txt" ).c_str() );
             ( *m_saveGnuplotF ) << "# Gnuplot File : forces of "
-                                << d_indices.getValue().size() << " particle(s) OptimMonitored";
-            if (d_exportIndices.getValue())
-                ( *m_saveGnuplotF ) << ", indices monitored: 1";
-            ( *m_saveGnuplotF ) <<  std::endl;
+                                << d_indices.getValue().size() << " particle(s) OptimMonitored" << std::endl;
             ( *m_saveGnuplotF ) << "# 1st Column : time, others : particle(s) number ";
 
             for (unsigned int i = 0; i < d_indices.getValue().size(); i++)
@@ -371,8 +360,6 @@ void OptimMonitor<DataTypes>::exportGnuplot ( Real time )
         ( *m_saveGnuplotX ) << (time - d_timeShift.getValue() < 1e-08 ? 0.00 : time - d_timeShift.getValue()) <<"\t";
 
         for (unsigned int i = 0; i < d_indices.getValue().size(); i++) {
-            if (d_exportIndices.getValue())
-                ( *m_saveGnuplotX ) << d_correspondentIndices.getValue()[d_indices.getValue()[i]] << " ";
             ( *m_saveGnuplotX ) << (*m_X)[d_indices.getValue()[i]] << "\t";
         }
         ( *m_saveGnuplotX ) << std::endl;
@@ -382,8 +369,6 @@ void OptimMonitor<DataTypes>::exportGnuplot ( Real time )
         ( *m_saveGnuplotV ) << (time - d_timeShift.getValue() < 1e-08 ? 0.00 : time - d_timeShift.getValue()) <<"\t";
 
         for (unsigned int i = 0; i < d_indices.getValue().size(); i++) {
-            if (d_exportIndices.getValue())
-                ( *m_saveGnuplotV ) << d_correspondentIndices.getValue()[d_indices.getValue()[i]] << " ";
             ( *m_saveGnuplotV ) << (*m_V)[d_indices.getValue()[i]] << "\t";
         }
         ( *m_saveGnuplotV ) << std::endl;
@@ -394,8 +379,6 @@ void OptimMonitor<DataTypes>::exportGnuplot ( Real time )
         ( *m_saveGnuplotF ) << (time - d_timeShift.getValue() < 1e-08 ? 0.00 : time - d_timeShift.getValue()) <<"\t";
 
         for (unsigned int i = 0; i < d_indices.getValue().size(); i++) {
-            if (d_exportIndices.getValue())
-                ( *m_saveGnuplotF ) << d_correspondentIndices.getValue()[d_indices.getValue()[i]] << " ";
             ( *m_saveGnuplotF ) << (*m_F)[d_indices.getValue()[i]] << "\t";
         }
         ( *m_saveGnuplotF ) << std::endl;

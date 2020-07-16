@@ -130,8 +130,6 @@ public:
     Data< int > d_exportOnEvent;
     Data< double > d_timeShift;
 
-    Data< bool > d_exportIndices;
-    Data< helper::vector<unsigned int> > d_correspondentIndices;
 
 protected:
 
