@@ -139,7 +139,7 @@ void ROUKFilter<FilterType>::computeSimplexPrediction()
 
     //std::cout << "Compute star prediction" << std::endl;
 
-    TIC
+    //TIC
     EMatrixX tmpStateVarProj(stateSize, reducedStateSize);
     EMatrixX tmpStateVarProj2(stateSize, reducedStateSize);
 
@@ -210,7 +210,7 @@ void ROUKFilter<FilterType>::computeSimplexPrediction()
     masterStateWrapper->writeState(this->getTime());
 
     sofa::helper::AdvancedTimer::stepEnd("ROUKFSimplexPrediction");
-    TOCTIC(" =T= pred.post sx")
+    //TOCTIC(" =T= pred.post sx")
 }
 
 template <class FilterType>
@@ -219,7 +219,7 @@ void ROUKFilter<FilterType>::computeStarPrediction()
     //PRNS("Computing prediction, T= " << this->actualTime);
     sofa::helper::AdvancedTimer::stepBegin("ROUKFStarPrediction");
 
-    TIC
+    //TIC
     EMatrixX tmpStateVarProj(stateSize, reducedStateSize);
     EMatrixX tmpStateVarProj2(stateSize, reducedStateSize);
 
@@ -255,12 +255,12 @@ void ROUKFilter<FilterType>::computeStarPrediction()
         matXi = matXi + tmpStateVarProj2 * matI;    
     sofa::helper::AdvancedTimer::stepEnd("prediction_multiplication");
 
-    TOCTIC("=T= pred.pre st")
+    //TOCTIC("=T= pred.pre st")
     sofa::helper::AdvancedTimer::stepBegin("transform_state");    
     computePerturbedStates(vecX);    
     //asumEVec("summPred",vecX);    
     sofa::helper::AdvancedTimer::stepEnd("transform_state");
-    TOCTIC("=T= pred.sim st")
+    //TOCTIC("=T= pred.sim st")
 
     //std::cout << "\n matItrans \n " << matItrans.transpose() << std::endl;
     //std::cout << "\n tmpStateVarProj2 \n " << tmpStateVarProj2.transpose() << std::endl;
@@ -368,7 +368,7 @@ void ROUKFilter<FilterType>::computeSimplexCorrection()
     }
 
     if (observationManager->hasObservation(this->actualTime)) {
-        TIC
+        //TIC
         EVectorX vecXCol;
         EVectorX vecZCol(observationSize), vecZ(observationSize);
         EMatrixX matZItrans(sigmaPointsNum, observationSize);
@@ -553,7 +553,7 @@ void ROUKFilter<FilterType>::computeStarCorrection()
     }
 
     if (observationManager->hasObservation(this->actualTime)) {
-        TIC
+        //TIC
         EVectorX vecXCol;
         EVectorX vecZCol(observationSize), vecZ(observationSize);
         EMatrixX matZItrans(sigmaPointsNum, observationSize);

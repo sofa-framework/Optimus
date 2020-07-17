@@ -179,25 +179,20 @@ bool SimpleUncorrespondentObservationManager<FilterType, DataTypes1, DataTypes2>
     actualObservation.setZero();
 
     sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > mappedObsState = mappedObservationData;
-    if (mappedObsState.size() != inputObsState.size()) {
-        PRNE("Different mapped and input observation size: " << mappedObsState.size() << " vs " << inputObsState.size());
-        return (false);
-    }
     sofa::helper::WriteAccessor< Data<VecIndex> > vMappedMask = mappedMask;
     for (size_t i = 0; i < vMappedMask.size(); i++)
         vMappedMask[i] = 0;
 
 
     // get set of available vertices
-    for (size_t i = 0; i < mappedObsState.size(); i++) {
-        unsigned int foundIndex = 0;
+    for (size_t i = 0; i < inputObsState.size(); i++) {
         // found index in state correspondent to input
-        for ( ; foundIndex < observationIndices.size(); foundIndex++) {
-            if (inputIndexData[i] == observationIndices[foundIndex])
-                break;
+        for (unsigned int foundIndex = 0; foundIndex < observationIndices.size(); foundIndex++) {
+            if (inputIndexData[i] == observationIndices[foundIndex]) {
+                mappedObsState[foundIndex] = inputObsState[i];
+                vMappedMask[foundIndex] = 1;
+            }
         }
-        mappedObsState[foundIndex] = inputObsState[i];
-        vMappedMask[foundIndex] = 1;
     }
 
     for (size_t i = 0; i < mappedObsState.size(); i++) {

@@ -37,6 +37,7 @@
 #include <string>
 #include <numeric>
 #define ROUND 10000000.0
+#define UNCORRESPONDENT_INDEX 65535
 
 
 
@@ -60,6 +61,7 @@ SimulatedStateObservationSource<DataTypes>::SimulatedStateObservationSource()
     , d_monitorPrefix( initData(&d_monitorPrefix, std::string("monitor1"), "monitorPrefix", "prefix of the monitor-generated file") )
     , d_velocitiesData( initData(&d_velocitiesData, false, "velocitiesData", "load velocities data") )
     , d_actualObservation( initData (&d_actualObservation, "actualObservation", "actual observation") )
+    , d_correspondentIndices( initData (&d_correspondentIndices, "correspondentIndices", "correspondent index") )
     , d_drawSize( initData(&d_drawSize, SReal(0.0),"drawSize","size of observation spheres in each time step") )
     , d_controllerMode( initData(&d_controllerMode, false,"controllerMode","if true, sets the mechanical object in begin animation step") )
     , d_trackedObservations( initData (&d_trackedObservations, "trackedObservations", "tracked observations: temporary solution!!!") )
@@ -108,10 +110,17 @@ void SimulatedStateObservationSource<DataTypes>::init()
             msg_error(this) << "Could not find " << dataFile;
         }
 
-        if (m_positions.empty())
+        if (m_positions.empty()) {
             d_actualObservation.setValue(VecCoord());  // OK, since there is at least the dummy observation
-        else
+            if (m_exportIndices) {
+                d_correspondentIndices.setValue(VecIndex());
+            }
+        } else {
             d_actualObservation.setValue(m_positions[0]);  // OK, since there is at least the dummy observation
+            if (m_exportIndices) {
+                d_correspondentIndices.setValue(m_correspondentIndices[0]);
+            }
+        }
     }
 
     if (d_controllerMode.getValue())
@@ -392,6 +401,8 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(const std::str
             VecCoord position(m_nParticles);
             VecIndex index(position.size());
             VecIndex correspondentIndex(position.size());
+            for (unsigned int iter = 0; iter < position.size(); iter++)
+                correspondentIndex[iter] = UNCORRESPONDENT_INDEX;
             std::iota(index.begin(), index.end(), 0); // fill vector with increment, from 0
 
             if (m_dim == 2) {
@@ -551,6 +562,7 @@ bool SimulatedStateObservationSource<DataTypes>::getCorrespondentIndices(double 
     if (m_correspondentIndices[ix].size() == 0)
         return false;
     _index = m_correspondentIndices[ix];
+    d_correspondentIndices.setValue(m_correspondentIndices[ix]);
     return true;
 }
 
@@ -602,6 +614,9 @@ void SimulatedStateObservationSource<DataTypes>::handleEvent(core::objectmodel::
             for (size_t i = 0; i < x.size(); i++)
                 x[i] = m_positions[ix][i];
             d_actualObservation.setValue(m_positions[ix]);
+            if (m_exportIndices) {
+                d_correspondentIndices.setValue(m_correspondentIndices[ix]);
+            }
         }
     }
 }
