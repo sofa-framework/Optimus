@@ -1,0 +1,9 @@
+** Authors.txt **
+*****************
+
+- Igor Peterlik (Inria)
+- Sergei Nikolaev (Inria)
+- Stéphane Cotin (Inria)
+- Nava Schulmann (Inria)
+- Raffaella Trivisonne (Inria)
+
