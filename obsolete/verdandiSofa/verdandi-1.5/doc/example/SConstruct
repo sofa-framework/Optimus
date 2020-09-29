@@ -1,6 +1,0 @@
-import os
-
-# Put the path to Verdandi.
-verdandi_path = "../../"
-
-execfile(os.path.join(verdandi_path, "share/SConstruct"))
