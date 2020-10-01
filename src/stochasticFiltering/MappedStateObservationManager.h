@@ -21,6 +21,11 @@
 ******************************************************************************/
 #pragma once
 
+#include "initOptimusPlugin.h"
+#include "ObservationManagerBase.h"
+#include "../genericComponents/SimulatedStateObservationSource.h"
+#include "StochasticStateWrapper.h"
+
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/RigidTypes.h>
 #include <sofa/core/behavior/MechanicalState.h>
@@ -31,10 +36,6 @@
 #include <boost/random.hpp>
 #include <boost/random/normal_distribution.hpp>
 
-#include "initOptimusPlugin.h"
-#include "ObservationManagerBase.h"
-#include "../genericComponents/SimulatedStateObservationSource.h"
-#include "StochasticStateWrapper.h"
 
 
 namespace sofa

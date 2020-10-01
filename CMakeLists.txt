@@ -17,9 +17,11 @@ find_package(SofaGeneral REQUIRED)
 find_package(SofaMisc REQUIRED)
 find_package(SofaExporter REQUIRED)
 find_package(SofaGui REQUIRED)
+find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
 
-set(LINKER_DEPENDENCIES SofaCore SofaBase SofaGeneral SofaBoundaryCondition SofaBaseTopology SofaExporter SofaSimulationTree SofaUserInteraction SofaConstraint SofaMisc SofaGuiCommon blas pthread)
+include_directories(${EIGEN3_INCLUDE_DIR})
+set(LINKER_DEPENDENCIES SofaCore SofaBase SofaGeneral SofaBoundaryCondition SofaBaseTopology SofaExporter SofaSimulationTree SofaUserInteraction SofaConstraint SofaMisc SofaGuiCommon blas pthread Eigen3::Eigen)
 set(COMPILATION_FLAGS "-DSOFA_BUILD_OPTIMUS -Wno-unused-local-typedef -Wno-deprecated")
 
 set ( STOCHASTIC_FILTERING "1" CACHE BOOL "Set to activate the compilation the new filtering module replacing Verdandi" FORCE)

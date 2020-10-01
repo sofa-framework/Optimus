@@ -25,14 +25,21 @@
 
 #include <sofa/simulation/Node.h>
 
+#include <Eigen/Dense>
+
+
 namespace sofa
 {
+
 namespace component
 {
+
 namespace stochastic
 {
 
+
 using namespace defaulttype;
+
 
 class ObservationManagerBase: public sofa::core::objectmodel::BaseObject
 {
