@@ -1,0 +1,12 @@
+
+SofaSparseSolver 1.0
+SofaPreconditioner 1.0
+SofaHaptics 1.0
+SofaValidation 1.0
+SofaDenseSolver 1.0
+SofaNonUniformFem 1.0
+SofaOpenglVisual 1.0
+CImgPlugin 0.1
+SofaMiscCollision 1.0
+DiffusionSolver 0.1
+image 0.1

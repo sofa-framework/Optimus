@@ -109,6 +109,7 @@ cd $PLUGIN_PYTHON3_BUILD_DIRECTORY
 /usr/local/bin/cmake -DCMAKE_PREFIX_PATH=$BUILD_DIRECTORY/install .. 2>&1 >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
 /usr/bin/make -B -j 8 2>&1 >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
 /usr/bin/make install 2>&1 >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
+cp $OPTIMUS_DIRECTORY/benchmarks/crontask/plugin_list.conf.default $BUILD_DIRECTORY/lib/plugin_list.conf.default
 
 
 ### verify benchmark tests
