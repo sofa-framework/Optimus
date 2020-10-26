@@ -262,6 +262,7 @@ void UKFilterSimCorr<FilterType>::bwdInit() {
 
     stateSize = masterStateWrapper->getStateSize();
     PRNS("StateSize " << stateSize);
+
     /// Initialize Observation's data
     if (!initialiseObservationsAtFirstStep.getValue()) {
         observationSize = this->observationManager->getObservationSize();

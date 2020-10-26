@@ -21,7 +21,7 @@
 ******************************************************************************/
 #pragma once
 
-#include "UKFilterClassicOrig.h"
+#include "LETKFilter.h"
 #include <iostream>
 #include <fstream>
 
@@ -37,30 +37,26 @@ namespace stochastic
 
 
 template <class FilterType>
-UKFilterClassicOrig<FilterType>::UKFilterClassicOrig()
+LETKFilter<FilterType>::LETKFilter()
     : Inherit()
-    , d_exportPrefix( initData(&d_exportPrefix, "exportPrefix", "prefix for storing various quantities into files"))
-    , d_filenameCov( initData(&d_filenameCov, "filenameCov", "output file name"))
-    , d_filenameInn( initData(&d_filenameInn, "filenameInn", "output file name"))
-    , d_filenameFinalState( initData(&d_filenameFinalState, "filenameFinalState", "output file name"))
+    , d_ensembleMembersNumber(initData(&d_ensembleMembersNumber, "ensembleMemebersNumber", "number of ensemble memebrs for localized ensemble filter" ) )
     , d_state( initData(&d_state, "state", "actual expected value of reduced state (parameters) estimated by the filter" ) )
     , d_variance( initData(&d_variance, "variance", "actual variance  of reduced state (parameters) estimated by the filter" ) )
     , d_covariance( initData(&d_covariance, "covariance", "actual co-variance  of reduced state (parameters) estimated by the filter" ) )
     , d_innovation( initData(&d_innovation, "innovation", "innovation value computed by the filter" ) )
-    , d_draw(initData(&d_draw, false, "draw","Activation of draw"))
-    , d_radius_draw( initData(&d_radius_draw, (double) 0.005, "radiusDraw", "radius of the spheres") )
-    , d_MOnodes_draw( initData(&d_MOnodes_draw,(double) 1.0, "MOnodesDraw", "nodes of the mechanical object") )
 {
 
 }
 
+
+
 template <class FilterType>
-void UKFilterClassicOrig<FilterType>::computePerturbedStates()
+void LETKFilter<FilterType>::computePerturbedStates()
 {
     EVectorX xCol(stateSize);
     int currentPointID = 0;
 
-    for (size_t i = 0; i < sigmaPointsNum; i++) {
+    for (size_t i = 0; i < ensembleMembersNum; i++) {
         xCol = matXi.col(i);
         stateWrappers[0]->transformState(xCol, mechParams, &currentPointID);
         m_sigmaPointObservationIndexes[i] = currentPointID;
@@ -68,11 +64,11 @@ void UKFilterClassicOrig<FilterType>::computePerturbedStates()
     }
 }
 
-template <class FilterType>
-void UKFilterClassicOrig<FilterType>::computePrediction()
-{
-    hasObs = observationManager->hasObservation(this->actualTime);
 
+
+template <class FilterType>
+void LETKFilter<FilterType>::computePrediction()
+{
     // std::cout<<"\n HAS OBS: =" << hasObs << " COMPUTE PREDICTION" << std::endl;
     PRNS("Computing prediction, T= " << this->actualTime  << " ======");
     //std::cout << "Computing prediction, T= " << this->actualTime  << " ======" << std::endl;
@@ -81,21 +77,12 @@ void UKFilterClassicOrig<FilterType>::computePrediction()
     EMatrixX matPsqrt = lltU.matrixL();
     //std::cout << "matPsqrt: " << matPsqrt << std::endl;
 
-    ///// Computes Square Root with SVD --- Raffaella's modification instead of Cholesky factorization
-    //EMatrixX matPsqrt(stateSize,stateSize);
-    //sqrtMat(stateCovar, matPsqrt);
-    //// end of Raffaella's modification
-    ///
-
     stateExp.fill(FilterType(0.0));
     stateExp = masterStateWrapper->getState();
-    // if (!hasObs) {
-    //     masterStateWrapper->lastApplyOperator(stateExp, mechParams);
-    // }
     //std::cout << "INITIAL STATE: " << stateExp.transpose() << std::endl;
 
     /// Computes X_{n}^{(i)-} sigma points
-    for (size_t i = 0; i < sigmaPointsNum; i++) {
+    for (size_t i = 0; i < ensembleMembersNum; i++) {
         matXi.col(i) = stateExp + matPsqrt * matI.row(i).transpose();
     }
 
@@ -107,7 +94,7 @@ void UKFilterClassicOrig<FilterType>::computePrediction()
 
     /// Compute Predicted Mean
     stateExp.fill(FilterType(0.0));
-    for (size_t i = 0; i < sigmaPointsNum; i++) {
+    for (size_t i = 0; i < ensembleMembersNum; i++) {
         stateExp += matXi.col(i) * vecAlpha(i);
     }
 
@@ -120,22 +107,17 @@ void UKFilterClassicOrig<FilterType>::computePrediction()
     //EMatrixX covPxx = (centeredPxx.adjoint() * centeredPxx) / double(centeredPxx.rows() )
     stateCovar = covPxx + modelCovar;
     for (size_t i = 0; i < (size_t)stateCovar.rows(); i++) {
-        diagStateCov(i) = stateCovar(i,i);
+        diagStateCov(i)=stateCovar(i,i);
     }
 
-    if (hasObs) {
-        masterStateWrapper->setState(stateExp, mechParams);
-    } else {
-        masterStateWrapper->lastApplyOperator(stateExp, mechParams);
-    }
+    masterStateWrapper->setState(stateExp, mechParams);
     //std::cout << "PREDICTED STATE: " << stateExp.transpose() << std::endl;
-    PRNS("PREDICTED STATE X(n+1)+n: \n" << stateExp.transpose());
 }
 
 
 
 template <class FilterType>
-void UKFilterClassicOrig<FilterType>::computeCorrection()
+void LETKFilter<FilterType>::computeCorrection()
 {
     if (hasObs) {
         // std::cout<<"\n HAS OBS: =" << hasObs << " COMPUTE CORRECTION" << std::endl;
@@ -144,12 +126,12 @@ void UKFilterClassicOrig<FilterType>::computeCorrection()
         //std::cout << "======= Computing correction, T= " << this->actualTime << " ======" << std::endl;
 
         EVectorX zCol(observationSize);
-        matZmodel.resize(observationSize, sigmaPointsNum);
+        matZmodel.resize(observationSize, ensembleMembersNum);
         predObsExp.resize(observationSize);
         predObsExp.fill(FilterType(0.0));
 
         /// Compute Predicted Observations
-        for (size_t i = 0; i < sigmaPointsNum; i++) {
+        for (size_t i = 0; i < ensembleMembersNum; i++) {
             observationManager->getPredictedObservation(m_sigmaPointObservationIndexes[i],  zCol);
             //std::cout << "zCol: " << zCol << std::endl;
             matZmodel.col(i) = zCol;
@@ -194,7 +176,7 @@ void UKFilterClassicOrig<FilterType>::computeCorrection()
         stateCovar = stateCovar - matK*matPxz.transpose();
 
         for (size_t i = 0; i < (size_t)stateCovar.rows(); i++) {
-            diagStateCov(i) = stateCovar(i,i);
+            diagStateCov(i)=stateCovar(i,i);
         }
 
         //std::cout << "FINAL STATE X(n+1)+n: " << stateExp.transpose() << std::endl;
@@ -246,7 +228,7 @@ void UKFilterClassicOrig<FilterType>::computeCorrection()
 
 
 template <class FilterType>
-void UKFilterClassicOrig<FilterType>::init() {
+void LETKFilter<FilterType>::init() {
     Inherit::init();
     assert(this->gnode);
 
@@ -284,48 +266,16 @@ void UKFilterClassicOrig<FilterType>::init() {
         PRNS("found observation manager: " << observationManager->getName());
     } else
         PRNE("no observation manager found!");
-
-    /// Init for Write Function
-    exportPrefix  = d_exportPrefix.getFullPath();
-    PRNS("export prefix: " << exportPrefix)
-
-    this->saveParam = false;
-    if (!d_filenameCov.getValue().empty()) {
-        std::ofstream paramFile(d_filenameCov.getValue().c_str());
-        if (paramFile.is_open()) {
-            this->saveParam = true;
-            paramFile.close();
-        }
-    }
-    if (!d_filenameInn.getValue().empty()) {
-        std::ofstream paramFileInn(d_filenameInn.getValue().c_str());
-        if (paramFileInn .is_open()) {
-            this->saveParam = true;
-            paramFileInn.close();
-        }
-    }
-    if (!d_filenameFinalState.getValue().empty()) {
-        std::ofstream paramFileFinalState(d_filenameFinalState.getValue().c_str());
-        if (paramFileFinalState .is_open()) {
-            this->saveParam = true;
-            paramFileFinalState.close();
-        }
-    }
-    m_omega= ((double) rand() / (RAND_MAX));
-    //m_omega= 1e-5;
-
-
 }
 
 
-
 template <class FilterType>
-void UKFilterClassicOrig<FilterType>::bwdInit() {
+void LETKFilter<FilterType>::bwdInit() {
     assert(masterStateWrapper);
 
     stateSize = masterStateWrapper->getStateSize();
-    std::cout<< "[UKF] stateSize " << stateSize << std::endl;
-    //PRNS("StateSize " << stateSize);
+    std::cout<< "[LETKF] stateSize " << stateSize << std::endl;
+    PRNS("StateSize " << stateSize);
 
     /// Initialize Observation's data
     if (!initialiseObservationsAtFirstStep.getValue()) {
@@ -352,30 +302,20 @@ void UKFilterClassicOrig<FilterType>::bwdInit() {
 
     stateExp = masterStateWrapper->getState();
 
-    /// Compute Sigma Points
-    switch (this->m_sigmaTopology) {
-    case STAR:
-        computeStarSigmaPoints(matI);
-        break;
-    case SIMPLEX:
-    default:
-        computeSimplexSigmaPoints(matI);
-    }
+    helper::ReadAccessor<Data <size_t> > membersNum = d_ensembleMembersNumber;
+    ensembleMembersNum = membersNum;
 
-    sigmaPointsNum = matI.rows();
-    matXi.resize(stateSize, sigmaPointsNum);
+    matXi.resize(stateSize, ensembleMembersNum);
     matXi.setZero();
-    genMatXi.resize( sigmaPointsNum,stateSize);
+    genMatXi.resize(ensembleMembersNum, stateSize);
     genMatXi.setZero();
 
     /// Initialise State Observation Mapping for Sigma Points
-    m_sigmaPointObservationIndexes.resize(sigmaPointsNum);
+    m_sigmaPointObservationIndexes.resize(ensembleMembersNum);
 }
 
-
-
 template <class FilterType>
-void UKFilterClassicOrig<FilterType>::initializeStep(const core::ExecParams* _params, const size_t _step) {
+void LETKFilter<FilterType>::initializeStep(const core::ExecParams* _params, const size_t _step) {
     Inherit::initializeStep(_params, _step);
 
     if (initialiseObservationsAtFirstStep.getValue()) {
@@ -397,7 +337,7 @@ void UKFilterClassicOrig<FilterType>::initializeStep(const core::ExecParams* _pa
 
 
 template <class FilterType>
-void UKFilterClassicOrig<FilterType>::updateState() {
+void LETKFilter<FilterType>::updateState() {
 
     stateSize = masterStateWrapper->getStateSize();
     //std::cout<< "new [UKF] stateSize " << stateSize << std::endl;
@@ -419,30 +359,22 @@ void UKFilterClassicOrig<FilterType>::updateState() {
 
     stateExp = masterStateWrapper->getState();
 
-    /// Compute Sigma Points
-    switch (this->m_sigmaTopology) {
-    case STAR:
-        computeStarSigmaPoints(matI);
-        break;
-    case SIMPLEX:
-    default:
-        computeSimplexSigmaPoints(matI);
-    }
+    helper::ReadAccessor<Data <size_t> > membersNum = d_ensembleMembersNumber;
+    ensembleMembersNum = membersNum;
 
-    sigmaPointsNum = matI.rows();
-    matXi.resize(stateSize, sigmaPointsNum);
+    matXi.resize(stateSize, ensembleMembersNum);
     matXi.setZero();
-    genMatXi.resize( sigmaPointsNum,stateSize);
+    genMatXi.resize(ensembleMembersNum, stateSize);
     genMatXi.setZero();
 
     /// Initialise State Observation Mapping for Sigma Points
-    m_sigmaPointObservationIndexes.resize(sigmaPointsNum);
+    m_sigmaPointObservationIndexes.resize(ensembleMembersNum);
 }
 
 
 
 template <class FilterType>
-void UKFilterClassicOrig<FilterType>::stabilizeMatrix (EMatrixX& _initial, EMatrixX& _stabilized) {
+void LETKFilter<FilterType>::stabilizeMatrix (EMatrixX& _initial, EMatrixX& _stabilized) {
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(_initial, Eigen::ComputeThinU | Eigen::ComputeThinV);
     const Eigen::JacobiSVD<Eigen::MatrixXd>::SingularValuesType singVals = svd.singularValues();
     Eigen::JacobiSVD<Eigen::MatrixXd>::SingularValuesType singValsStab = singVals;
@@ -454,7 +386,7 @@ void UKFilterClassicOrig<FilterType>::stabilizeMatrix (EMatrixX& _initial, EMatr
 }
 
 template <class FilterType>
-void UKFilterClassicOrig<FilterType>::pseudoInverse( EMatrixX& M,EMatrixX& pinvM) {
+void LETKFilter<FilterType>::pseudoInverse( EMatrixX& M,EMatrixX& pinvM) {
     double epsilon= 1e-15;
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(M, Eigen::ComputeThinU | Eigen::ComputeThinV);
     const Eigen::JacobiSVD<Eigen::MatrixXd>::SingularValuesType singVals = svd.singularValues();
@@ -468,7 +400,7 @@ void UKFilterClassicOrig<FilterType>::pseudoInverse( EMatrixX& M,EMatrixX& pinvM
 }
 
 template <class FilterType>
-void UKFilterClassicOrig<FilterType>::sqrtMat(EMatrixX& A, EMatrixX& sqrtA){
+void LETKFilter<FilterType>::sqrtMat(EMatrixX& A, EMatrixX& sqrtA){
     double epsilon= 1e-15;
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(A, Eigen::ComputeThinU | Eigen::ComputeThinV);
     const Eigen::JacobiSVD<Eigen::MatrixXd>::SingularValuesType singVals = svd.singularValues();
@@ -483,7 +415,7 @@ void UKFilterClassicOrig<FilterType>::sqrtMat(EMatrixX& A, EMatrixX& sqrtA){
 }
 
 template <class FilterType>
-void UKFilterClassicOrig<FilterType>::writeValidationPlot (std::string filename ,EVectorX& state ){
+void LETKFilter<FilterType>::writeValidationPlot (std::string filename ,EVectorX& state ){
     if (this->saveParam) {
         std::ofstream paramFile(filename.c_str(), std::ios::app);
         if (paramFile.is_open()) {
@@ -495,180 +427,9 @@ void UKFilterClassicOrig<FilterType>::writeValidationPlot (std::string filename 
 }
 
 
-
-template <class FilterType>
-void UKFilterClassicOrig<FilterType>::computeSimplexSigmaPoints(EMatrixX& sigmaMat) {
-    size_t p = stateSize;
-    size_t r = stateSize + 1;
-
-    EMatrixX workingMatrix = EMatrixX::Zero(p, r);
-
-    Type scal, beta, sqrt_p;
-    beta = Type(p) / Type(p+1);
-    sqrt_p = sqrt(Type(p));
-    scal = Type(1.0)/sqrt(Type(2) * beta);
-    workingMatrix(0,0) = scal;
-    workingMatrix(0,1) = -scal;
-
-    for (size_t i = 1; i < p; i++) {
-        scal = Type(1.0) / sqrt(beta * Type(i+1) * Type(i+2));
-
-        for (size_t j = 0; j < i+1; j++)
-            workingMatrix(i,j) = -scal;
-        workingMatrix(i,i+1) = Type(i+1) * scal;
-    }
-
-
-    sigmaMat.resize(r,p);
-    for (size_t i = 0; i < r; i++)
-        sigmaMat.row(i) = workingMatrix.col(i) * sqrt_p;
-
-    vecAlpha.resize(r);
-    vecAlpha.fill(Type(1.0)/Type(r));
-    alphaConstant = true;
-    alpha = vecAlpha(0);
-
-    alphaVar = (this->useUnbiasedVariance.getValue()) ? Type(1.0)/Type(r-1) : Type(1.0)/Type(r);
-    vecAlphaVar.resize(r);
-    vecAlphaVar.fill(alphaVar);
-    //PRNS("sigmaMat: \n" << sigmaMat);
-    //PRNS("vecAlphaVar: \n" << vecAlphaVar);
-    //std::cout<< "Sigma mat: " << sigmaMat << std::endl;
-    //std::cout<< "vecAlphaVar: " << vecAlphaVar << std::endl;
-}
-
-template <class FilterType>
-void UKFilterClassicOrig<FilterType>::computeStarSigmaPoints(EMatrixX& sigmaMat) {
-    size_t p = stateSize;
-    size_t r = 2 * stateSize + 1;
-
-    EMatrixX workingMatrix = EMatrixX::Zero(p, r);
-
-    Type lambda, sqrt_vec;
-    lambda = this->lambdaScale.getValue();
-    PRNS("lambda scale equals: " << lambda);
-    sqrt_vec = sqrt(p + lambda);
-
-    for (size_t j = 0; j < p; j++) {
-        workingMatrix(j,j) = sqrt_vec;
-    }
-    for (size_t j = p; j < 2 * p; j++) {
-        workingMatrix(2*p-j-1,j) = -sqrt_vec;
-    }
-
-    sigmaMat.resize(r,p);
-    for (size_t i = 0; i < r; i++)
-        sigmaMat.row(i) = workingMatrix.col(i);
-
-    vecAlpha.resize(r);
-    vecAlpha.fill(Type(1.0)/Type(2 * (p + lambda)));
-    vecAlpha(2 * p) = Type(lambda) / Type(p + lambda);
-    alphaConstant = false;
-    alpha = vecAlpha(0);
-
-    alphaVar = (this->useUnbiasedVariance.getValue()) ? Type(1.0)/Type(2 * (p + lambda) - 1) : Type(1.0)/Type(2 * (p + lambda));
-    vecAlphaVar.resize(r);
-    vecAlphaVar.fill(alphaVar);
-    vecAlphaVar(2 * p) = Type(lambda) / Type(p + lambda);
-    //PRNS("sigmaMat: \n" << sigmaMat);
-    //PRNS("vecAlphaVar: \n" << vecAlphaVar);
-    //std::cout<< "Sigma mat: " << sigmaMat << std::endl;
-    //std::cout<< "vecAlphaVar: " << vecAlphaVar << std::endl;
-}
-
-
-
-template <class FilterType>
-void UKFilterClassicOrig<FilterType>::draw(const core::visual::VisualParams* vparams ) {
-    if(d_draw.getValue()){
-        if (vparams->displayFlags().getShowVisualModels()) {
-            std::vector<std::vector<sofa::defaulttype::Vec3d>> predpoints;
-            predpoints.resize(sigmaPointsNum);
-            for(  std::vector<std::vector<sofa::defaulttype::Vec3d>>::iterator it = predpoints.begin(); it != predpoints.end(); ++it)
-            {
-                it->resize( d_MOnodes_draw.getValue() );
-            }
-
-            for(unsigned i=0; i < sigmaPointsNum; i++){
-                EVectorX coll = genMatXi.row(i);
-
-                for (unsigned j=0; j < d_MOnodes_draw.getValue(); j++){
-                    for (unsigned k=0; k < 3; k++){
-                        if  (masterStateWrapper->estimOnlyXYZ())
-                                predpoints[i][j][k]=coll(3*j+k);
-                        else
-                            predpoints[i][j][k]=coll(6*j+k);
-                    }
-                }
-
-
-                Vec4f color;
-
-                switch (i) {
-                case 0: color = Vec4f(1.0,0.0,0.0,1.0); break;
-                case 1: color = Vec4f(0.0,1.0,0.0,1.0); break;
-                case 2: color = Vec4f(0.0,0.0,1.0,1.0); break;
-                default: color = Vec4f(0.5, 0.5, 0.5, 0.5);
-                }
-                helper::vector<double>  colorB;
-                colorB.resize(this->stateSize);
-                for(size_t i =0; i < colorB.size(); i++){
-
-                    colorB[i]= ((double) rand() / (RAND_MAX)) ;
-                }
-
-                vparams->drawTool()->drawSpheres(predpoints[i],  d_radius_draw.getValue(), sofa::defaulttype::Vec<4, float>(m_omega,0.0f,0.0f,1.0f));
-            }
-//                if (d_MOnodes_draw.getValue()>=2)
-//                    vparams->drawTool()->drawLineStrip(predpoints[i],3.0,sofa::defaulttype::Vec<4, float>(color[i],0.5f,colorB[i],1.0f));
-//          }
-
-        }
-    }
-}
-
-
-
 } // stochastic
 
 } // component
 
 } // sofa
-
-
-
-/*matPxzB.fill(FilterType(0.0));
-matPzB.fill(FilterType(0.0));
-
-EVectorX vx(stateSize), z(observationSize), vz(observationSize);
-vx.fill(FilterType(0.0));
-vz.fill(FilterType(0.0));
-z.fill(FilterType(0.0));
-for (size_t i = 0; i < sigmaPointsNum; i++) {
-   vx = matXi.col(i) - stateExp;
-   z = matZmodel.col(i);
-   vz = z - predObsExp;
-   for (size_t x = 0; x < stateSize; x++)
-       for (size_t y = 0; y < observationSize; y++)
-           matPxzB(x,y) += vx(x)*vz(y);
-
-   for (size_t x = 0; x < observationSize; x++)
-       for (size_t y = 0; y < observationSize; y++)
-           matPzB(x,y) += vz(x)*vz(y);
-}
-matPxzB = alphaVar * matPxzB;
-matPzB = alphaVar * matPzB + obsCovar;*/
-
-/*
-    stateCovar.fill(FilterType(0.0));
-    EVectorX tmpX(stateSize);
-    tmpX.fill(FilterType(0.0));
-    for (size_t i = 0; i < sigmaPointsNum; i++) {
-       tmpX = matXi.col(i) - stateExp;
-       for (size_t x = 0; x < stateSize; x++)
-           for (size_t y = 0; y < stateSize; y++)
-               stateCovar(x,y) += tmpX(x)*tmpX(y);
-    }
-    stateCovar=alphaVar*stateCovar;
-}*/
 
