@@ -24,7 +24,7 @@ In order to obtain the plugin, it is necessary to perform git clone of the plugi
 Requirements
 ------------
 
-Except for SOFA, the plugin dependencies are BLAS, Eigen (already in SOFA). It is highly recommended to use Pardiso solver with Optimus, as other solvers in SOFA are less reliable and might impact the estimation.
+Except for SOFA, the plugin dependencies are BLAS, Eigen. It is highly recommended to use Pardiso solver with Optimus, as other solvers in SOFA are less reliable and might impact the estimation.
 
 
 In-tree build
@@ -44,7 +44,7 @@ This plugin could be compiled with out-of-tree builds. You might need to add the
 
 To compile:
 
--   Add Sofa installation path to the plugin (example cmake -DCMAKE_PREFIX_PATH==$SOFA_ROOT/build/install ..)
+-   Add Sofa installation path to the plugin (example cmake -DCMAKE_PREFIX_PATH=$SOFA_ROOT/build/install ..)
 
 -   To compile the stochastic components, set STOCHASTIC_FILTERING macro.
 
