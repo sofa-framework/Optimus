@@ -108,6 +108,8 @@ if ( ${STOCHASTIC_FILTERING} )
         src/stochasticFiltering/UKFilterClassicOrig.inl
         src/stochasticFiltering/AdaptativeUKFilterClassic.h
         src/stochasticFiltering/AdaptativeUKFilterClassic.inl
+        src/stochasticFiltering/LETKFilter.h
+        src/stochasticFiltering/LETKFilter.inl
         src/stochasticFiltering/StochasticStateWrapperBase.h
         src/stochasticFiltering/StochasticStateWrapper.h
         src/stochasticFiltering/StochasticStateWrapper.inl
@@ -133,6 +135,7 @@ if ( ${STOCHASTIC_FILTERING} )
         src/stochasticFiltering/UKFilterClassic.cpp
         src/stochasticFiltering/UKFilterClassicOrig.cpp
         src/stochasticFiltering/AdaptativeUKFilterClassic.cpp
+        src/stochasticFiltering/LETKFilter.cpp
         src/stochasticFiltering/StochasticStateWrapper.cpp
         src/stochasticFiltering/MappedStateObservationManager.cpp
         src/stochasticFiltering/MappedStateVelocityObservationManager.cpp
