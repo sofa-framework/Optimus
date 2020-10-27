@@ -61,7 +61,7 @@ public:
         , useUnbiasedVariance( initData(&useUnbiasedVariance, false, "useUnbiasedVariance", "if true, the unbiased variance is computed (normalization by 1/(n-1) [not activated for UKFClassic!") )
         //, useModelIncertitude( initData(&useModelIncertitude, false, "useModelIncertitude", "if true, the state covariance is computed by adding Q") )
         , lambdaScale( initData(&lambdaScale, 0.5, "lambdaScale", "scaling for sigma points") )
-        , m_sigmaTopologyType( initData(&m_sigmaTopologyType, "sigmaTopology", "sigma topology type") )
+        , d_sigmaTopologyType( initData(&d_sigmaTopologyType, "sigmaTopology", "sigma topology type") )
         , initialiseObservationsAtFirstStep( initData(&initialiseObservationsAtFirstStep, false, "initialiseObservationsAtFirstStep", "if true initialise component during first iteration") )
     {
 
@@ -91,7 +91,7 @@ public:
     Data<bool> useUnbiasedVariance;
     //Data<bool> useModelIncertitude;
     Data<double> lambdaScale;
-    Data< std::string > m_sigmaTopologyType;
+    Data< std::string > d_sigmaTopologyType;
     Data<bool> initialiseObservationsAtFirstStep;
 
 
@@ -107,7 +107,7 @@ public:
         actualTime = 0.0;
 
         m_sigmaTopology = SIMPLEX;
-        std::string topology = m_sigmaTopologyType.getValue();
+        std::string topology = d_sigmaTopologyType.getValue();
         if (std::strcmp(topology.c_str(), "Star") == 0)
             m_sigmaTopology = STAR;
     }

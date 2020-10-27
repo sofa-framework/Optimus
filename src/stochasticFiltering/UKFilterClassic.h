@@ -103,7 +103,6 @@ protected:
     size_t sigmaPointsNum;
     bool alphaConstant;
     std::vector<int> m_sigmaPointObservationIndexes;
-    helper::vector<double> d;
 
     EVectorX vecAlpha, vecAlphaVar;
     EVectorX stateExp, predObsExp;

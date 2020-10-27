@@ -173,7 +173,7 @@ void UKFilterSimCorr<FilterType>::computeCorrection()
         //PRNS("ObsCovar: " << obsCovar);
 
         EMatrixX matK(stateSize, observationSize);
-        matK= matPxz*matPz.inverse();
+        matK = matPxz * matPz.inverse();
 
         EVectorX innovation(observationSize);
         observationManager->getInnovation(this->actualTime, predObsExp, innovation);

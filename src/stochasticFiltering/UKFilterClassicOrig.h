@@ -103,7 +103,6 @@ protected:
     size_t sigmaPointsNum;
     bool alphaConstant;
     std::vector<int> m_sigmaPointObservationIndexes;
-helper::vector<double> d;
 
     EVectorX vecAlpha, vecAlphaVar;
     EVectorX stateExp, predObsExp;
@@ -111,7 +110,7 @@ helper::vector<double> d;
     EVectorX diagStateCov;
 
     EMatrixX matItrans, matI;
-    EMatrixX matXi, matZmodel, genMatXi;
+    EMatrixX matXi, matZmodel;
 
     sofa::core::objectmodel::DataFileName d_exportPrefix;
     std::string exportPrefix;
@@ -119,6 +118,7 @@ helper::vector<double> d;
     Data< std::string > d_filenameCov, d_filenameInn, d_filenameFinalState;
     bool saveParam;
     Type alpha, alphaVar;
+    bool hasObs;
 
 
     /// structures for parallel computing:
@@ -134,11 +134,7 @@ public:
     Data<helper::vector<FilterType> > d_variance;
     Data<helper::vector<FilterType> > d_covariance;
     Data<helper::vector<FilterType> > d_innovation;
-    Data< bool  > d_draw;
-    Data< double  > d_radius_draw;
-    Data< double  > d_MOnodes_draw;
-    double m_omega;
-    bool hasObs;
+
     void init() override;
     void bwdInit() override;
 
@@ -151,9 +147,9 @@ public:
     {
         return
     }*/
-    void stabilizeMatrix (EMatrixX& _initial, EMatrixX& _stabilized);
-    void pseudoInverse (EMatrixX& M,EMatrixX& pinvM );
-    void writeValidationPlot (std::string filename ,EVectorX& state );
+    void stabilizeMatrix(EMatrixX& _initial, EMatrixX& _stabilized);
+    void pseudoInverse(EMatrixX& M, EMatrixX& pinvM );
+    void writeValidationPlot(std::string filename, EVectorX& state);
     void sqrtMat(EMatrixX& A, EMatrixX& sqrtA);
 
     virtual void computePerturbedStates();
@@ -162,7 +158,6 @@ public:
     virtual void computeCorrection() override;
 
     virtual void initializeStep(const core::ExecParams* _params, const size_t _step) override;
-    void draw(const core::visual::VisualParams* vparams) override;
 
     virtual void updateState() override;
 

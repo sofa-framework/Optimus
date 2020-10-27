@@ -94,6 +94,15 @@ protected:
     ObservationManager<FilterType>* observationManager;
     //ObservationSource *observationSource;
 
+    typedef enum InverseOption {
+        ENSEMBLE_DIMENSION = 0,
+        OBSERVATIONS_DIMENSION = 1
+    } MatrixInverseType;
+
+    sofa::helper::system::thread::CTime *timer;
+    double startTime, stopTime;
+
+    MatrixInverseType m_matrixInverse;
 
     /// vector sizes
     size_t observationSize, stateSize, reducedStateSize;
@@ -103,23 +112,15 @@ protected:
     size_t ensembleMembersNum;
     bool alphaConstant;
     std::vector<int> m_sigmaPointObservationIndexes;
-helper::vector<double> d;
 
-    EVectorX vecAlpha, vecAlphaVar;
     EVectorX stateExp, predObsExp;
-    EMatrixX stateCovar, obsCovar, modelCovar;
-    EVectorX diagStateCov;
+    EMatrixX stateCovar, obsCovarInv, obsCovar, modelCovar;
+    EVectorX diagStateCov, diagAnalysisStateCov;
 
-    EMatrixX matItrans, matI;
-    EMatrixX matXi, matZmodel, genMatXi;
+    EMatrixX stateAnalysisCovar, matI;
+    EMatrixX matXi, matZmodel, matXiPerturb;
 
-    sofa::core::objectmodel::DataFileName d_exportPrefix;
-    std::string exportPrefix;
-    std::string filenameCov, filenameInn, filenameFinalState;
-    Data< std::string > d_filenameCov, d_filenameInn, d_filenameFinalState;
     bool saveParam;
-    Type alpha, alphaVar;
-
 
     /// structures for parallel computing:
     helper::vector<size_t> sigmaPoints2WrapperIDs;
@@ -127,6 +128,7 @@ helper::vector<double> d;
 
 public:
     Data<size_t> d_ensembleMembersNumber;
+    Data< std::string > d_inverseOptionType;
     Data<helper::vector<FilterType> > d_state;
     Data<helper::vector<FilterType> > d_variance;
     Data<helper::vector<FilterType> > d_covariance;
@@ -145,9 +147,9 @@ public:
     {
         return
     }*/
-    void stabilizeMatrix (EMatrixX& _initial, EMatrixX& _stabilized);
-    void pseudoInverse (EMatrixX& M,EMatrixX& pinvM );
-    void writeValidationPlot (std::string filename ,EVectorX& state );
+    void stabilizeMatrix(EMatrixX& _initial, EMatrixX& _stabilized);
+    void pseudoInverse(EMatrixX& M,EMatrixX& pinvM );
+    void writeValidationPlot(std::string filename ,EVectorX& state );
     void sqrtMat(EMatrixX& A, EMatrixX& sqrtA);
 
     virtual void computePerturbedStates();

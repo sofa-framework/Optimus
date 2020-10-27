@@ -24,6 +24,7 @@
 #include "LETKFilter.h"
 #include <iostream>
 #include <fstream>
+#include <random>
 
 
 namespace sofa
@@ -40,6 +41,7 @@ template <class FilterType>
 LETKFilter<FilterType>::LETKFilter()
     : Inherit()
     , d_ensembleMembersNumber(initData(&d_ensembleMembersNumber, "ensembleMemebersNumber", "number of ensemble memebrs for localized ensemble filter" ) )
+    , d_inverseOptionType( initData(&d_inverseOptionType, "inverseOption", "inverse option type") )
     , d_state( initData(&d_state, "state", "actual expected value of reduced state (parameters) estimated by the filter" ) )
     , d_variance( initData(&d_variance, "variance", "actual variance  of reduced state (parameters) estimated by the filter" ) )
     , d_covariance( initData(&d_covariance, "covariance", "actual co-variance  of reduced state (parameters) estimated by the filter" ) )
@@ -56,11 +58,11 @@ void LETKFilter<FilterType>::computePerturbedStates()
     EVectorX xCol(stateSize);
     int currentPointID = 0;
 
-    for (size_t i = 0; i < ensembleMembersNum; i++) {
-        xCol = matXi.col(i);
+    for (size_t index = 0; index < ensembleMembersNum; index++) {
+        xCol = matXi.col(index);
         stateWrappers[0]->transformState(xCol, mechParams, &currentPointID);
-        m_sigmaPointObservationIndexes[i] = currentPointID;
-        matXi.col(i) = xCol;
+        m_sigmaPointObservationIndexes[index] = currentPointID;
+        matXi.col(index) = xCol;
     }
 }
 
@@ -72,42 +74,27 @@ void LETKFilter<FilterType>::computePrediction()
     // std::cout<<"\n HAS OBS: =" << hasObs << " COMPUTE PREDICTION" << std::endl;
     PRNS("Computing prediction, T= " << this->actualTime  << " ======");
     //std::cout << "Computing prediction, T= " << this->actualTime  << " ======" << std::endl;
-    /// Computes background error variance Cholesky factorization.
-    Eigen::LLT<EMatrixX> lltU(stateCovar);
-    EMatrixX matPsqrt = lltU.matrixL();
-    //std::cout << "matPsqrt: " << matPsqrt << std::endl;
 
-    stateExp.fill(FilterType(0.0));
-    stateExp = masterStateWrapper->getState();
     //std::cout << "INITIAL STATE: " << stateExp.transpose() << std::endl;
 
-    /// Computes X_{n}^{(i)-} sigma points
-    for (size_t i = 0; i < ensembleMembersNum; i++) {
-        matXi.col(i) = stateExp + matPsqrt * matI.row(i).transpose();
-    }
-
+    /// Propagate L ensemble memebers
     //std::cout << "matXi: " << matXi << std::endl;
-    /// Propagate sigma points
-    genMatXi=matXi.transpose();
     computePerturbedStates();
     //std::cout << "matXi: " << matXi << std::endl;
 
     /// Compute Predicted Mean
     stateExp.fill(FilterType(0.0));
-    for (size_t i = 0; i < ensembleMembersNum; i++) {
-        stateExp += matXi.col(i) * vecAlpha(i);
-    }
+    stateExp = matXi.rowwise().mean();
 
     /// Compute Predicted Covariance
     stateCovar.setZero();
-    EMatrixX matXiTrans= matXi.transpose();
-    EMatrixX centeredPxx = matXiTrans.rowwise() - matXiTrans.colwise().mean();
-    EMatrixX weightedCenteredPxx = centeredPxx.array().colwise() * vecAlphaVar.array();
-    EMatrixX covPxx = (centeredPxx.adjoint() * weightedCenteredPxx);
-    //EMatrixX covPxx = (centeredPxx.adjoint() * centeredPxx) / double(centeredPxx.rows() )
-    stateCovar = covPxx + modelCovar;
-    for (size_t i = 0; i < (size_t)stateCovar.rows(); i++) {
-        diagStateCov(i)=stateCovar(i,i);
+    matXiPerturb = matXi;
+    for (size_t index = 0; index < ensembleMembersNum; index++) {
+        matXiPerturb.col(index) = matXiPerturb.col(index) - stateExp;
+    }
+    stateCovar = matXiPerturb * matXiPerturb.transpose() / Type(ensembleMembersNum - 1);
+    for (size_t index = 0; index < (size_t)stateCovar.rows(); index++) {
+        diagStateCov(index) = stateCovar(index, index);
     }
 
     masterStateWrapper->setState(stateExp, mechParams);
@@ -128,61 +115,71 @@ void LETKFilter<FilterType>::computeCorrection()
         EVectorX zCol(observationSize);
         matZmodel.resize(observationSize, ensembleMembersNum);
         predObsExp.resize(observationSize);
-        predObsExp.fill(FilterType(0.0));
 
         /// Compute Predicted Observations
-        for (size_t i = 0; i < ensembleMembersNum; i++) {
-            observationManager->getPredictedObservation(m_sigmaPointObservationIndexes[i],  zCol);
+        for (size_t index = 0; index < ensembleMembersNum; index++) {
+            observationManager->getPredictedObservation(m_sigmaPointObservationIndexes[index],  zCol);
             //std::cout << "zCol: " << zCol << std::endl;
-            matZmodel.col(i) = zCol;
-            predObsExp = predObsExp + zCol * vecAlpha(i);
+            matZmodel.col(index) = zCol;
         }
 
-        /// Compute State-Observation Cross-Covariance
-        EMatrixX matPxz(stateSize, observationSize);
-        EMatrixX matPz(observationSize, observationSize);
-        EMatrixX pinvmatPz(observationSize, observationSize);
+        /// get observations perturbation
+        predObsExp.fill(FilterType(0.0));
+        predObsExp = matZmodel.rowwise().mean();
+        for (size_t index = 0; index < ensembleMembersNum; index++) {
+            matZmodel.col(index) = matZmodel.col(index) - predObsExp;
+        }
 
-
-        EMatrixX matXiTrans= matXi.transpose();
-        EMatrixX matZItrans = matZmodel.transpose();
-        EMatrixX centeredCx = matXiTrans.rowwise() - matXiTrans.colwise().mean();
-        EMatrixX centeredCz = matZItrans.rowwise() - matZItrans.colwise().mean();
-        //EMatrixX covPxz = (centeredCx.adjoint() * centeredCz) / double(centeredCx.rows() );
-        EMatrixX weightedCenteredCz = centeredCz.array().colwise() * vecAlphaVar.array();
-        EMatrixX covPxz = (centeredCx.adjoint() * weightedCenteredCz);
-        //std::cout << "covPxz: " << covPxz << std::endl;
-
-        /// Compute Observation Covariance
-        matPxz=covPxz;
-        //EMatrixX covPzz = (centeredCz.adjoint() * centeredCz) / double(centeredCz.rows() );
-        EMatrixX covPzz = (centeredCz.adjoint() * weightedCenteredCz);
-        matPz = obsCovar + covPzz;
-        //std::cout << "matPz: " << matPz << std::endl;
-
-        /// Compute Kalman Gain
-        EMatrixX matK(stateSize, observationSize);
-        pseudoInverse(matPz, pinvmatPz);
-        matK = matPxz*pinvmatPz;
+        /// Compute ensemble covariance
+        EMatrixX matA(ensembleMembersNum, ensembleMembersNum);
+        EMatrixX matYR(ensembleMembersNum, ensembleMembersNum);
+        if (m_matrixInverse == ENSEMBLE_DIMENSION) {
+            matYR = Type(ensembleMembersNum - 1) * EMatrixX::Identity(matYR.rows(), matYR.cols()) + matZmodel.transpose() * obsCovarInv * matZmodel;
+            pseudoInverse(matYR, matA);
+        } else {
+            EMatrixX matRY(observationSize, observationSize);
+            EMatrixX matRYInv(observationSize, observationSize);
+            matRY = obsCovar + matZmodel * matZmodel.transpose() * Type(ensembleMembersNum - 1);
+            pseudoInverse(matRY, matRYInv);
+            matYR = matZmodel.transpose() * matRYInv * matZmodel / Type(ensembleMembersNum - 1);
+            matA = (EMatrixX::Identity(matYR.rows(), matYR.cols()) - matYR) / Type(ensembleMembersNum - 1);
+        }
 
         /// Compute Innovation
         EVectorX innovation(observationSize);
         observationManager->getInnovation(this->actualTime, predObsExp, innovation);
         //std::cout << "Innovation: " << innovation << std::endl;
 
-        /// Compute Final State and Final Covariance
-        stateExp = stateExp + matK * innovation;
-        //std::cout << "matK: " << matK << std::endl;
-        stateCovar = stateCovar - matK*matPxz.transpose();
+        /// Compute minimization of cost function
+        EVectorX vecW(ensembleMembersNum);
+        vecW = matA * matZmodel.transpose() * obsCovarInv * innovation;
 
-        for (size_t i = 0; i < (size_t)stateCovar.rows(); i++) {
-            diagStateCov(i)=stateCovar(i,i);
+        /// Compute Final State and Final Covariance
+        stateExp = stateExp + matXiPerturb * vecW;
+
+        EMatrixX matZ(ensembleMembersNum, ensembleMembersNum);
+        EMatrixX matZsqrt(ensembleMembersNum, ensembleMembersNum);
+        matZ = matA * Type(ensembleMembersNum - 1);
+
+        /// Compute square root using Cholesky factorization.
+        Eigen::LLT<EMatrixX> lltU(matZ);
+        matZsqrt = lltU.matrixL();
+
+        stateAnalysisCovar = matZsqrt * matZsqrt.transpose() / Type(ensembleMembersNum - 1);
+        for (size_t index = 0; index < (size_t)stateAnalysisCovar.rows(); index++) {
+            diagAnalysisStateCov(index) = stateAnalysisCovar(index, index);
         }
 
         //std::cout << "FINAL STATE X(n+1)+n: " << stateExp.transpose() << std::endl;
         //std::cout << "FINAL COVARIANCE DIAGONAL P(n+1)+n: " << diagStateCov.transpose() << std::endl;
         PRNS("FINAL STATE X(n+1)+n: \n" << stateExp.transpose());
-        PRNS("FINAL COVARIANCE DIAGONAL P(n+1)+n:  \n" << diagStateCov.transpose());
+        PRNS("FINAL COVARIANCE DIAGONAL P(n+1)+n:  \n" << diagAnalysisStateCov.transpose());
+
+        /// Correct ensemble members
+        for (size_t index = 0; index < ensembleMembersNum; index++) {
+            matXi.col(index) = stateExp;
+        }
+        matXi = matXi + matXiPerturb * matZsqrt;
 
         masterStateWrapper->setState(stateExp, mechParams);
 
@@ -218,11 +215,7 @@ void LETKFilter<FilterType>::computeCorrection()
         //    ofs.open(fileName.c_str(), std::ofstream::out);
         //    ofs << stateCovar << std::endl;
         //}
-
-        writeValidationPlot(d_filenameInn.getValue(),innovation);
     }
-    writeValidationPlot(d_filenameCov.getValue(), diagStateCov);
-    writeValidationPlot(d_filenameFinalState.getValue(), stateExp);
 }
 
 
@@ -277,6 +270,13 @@ void LETKFilter<FilterType>::bwdInit() {
     std::cout<< "[LETKF] stateSize " << stateSize << std::endl;
     PRNS("StateSize " << stateSize);
 
+    /// Initialize inversion type
+    m_matrixInverse = ENSEMBLE_DIMENSION;
+    std::string inverseOption = d_inverseOptionType.getValue();
+    if (std::strcmp(inverseOption.c_str(), "ObservationsDimension") == 0)
+        m_matrixInverse = OBSERVATIONS_DIMENSION;
+
+
     /// Initialize Observation's data
     if (!initialiseObservationsAtFirstStep.getValue()) {
         observationSize = this->observationManager->getObservationSize();
@@ -284,16 +284,16 @@ void LETKFilter<FilterType>::bwdInit() {
         if (observationSize == 0) {
             PRNE("No observations available, cannot allocate the structures!");
         }
+        obsCovarInv = observationManager->getErrorVarianceInverse();
         obsCovar = observationManager->getErrorVariance();
     }
-
 
     /// Initialize Model's Error Covariance
     stateCovar = masterStateWrapper->getStateErrorVariance();
 
     diagStateCov.resize(stateCovar.rows());
     for (size_t i = 0; i < (size_t)stateCovar.rows(); i++) {
-        diagStateCov(i)=stateCovar(i,i);
+        diagStateCov(i) = stateCovar(i,i);
     }
     PRNS(" INIT COVARIANCE DIAGONAL P(n+1)+n:  \n" << diagStateCov.transpose());
 
@@ -307,8 +307,19 @@ void LETKFilter<FilterType>::bwdInit() {
 
     matXi.resize(stateSize, ensembleMembersNum);
     matXi.setZero();
-    genMatXi.resize(ensembleMembersNum, stateSize);
-    genMatXi.setZero();
+    stateAnalysisCovar.resize(ensembleMembersNum, ensembleMembersNum);
+    diagAnalysisStateCov.resize(stateAnalysisCovar.rows());
+
+    /// cretate gaussian random distribution
+    std::default_random_engine generator;
+    std::normal_distribution<double> distribution(0.0, 1.0);
+
+    /// Generate ensemble members
+    for (size_t index = 0; index < ensembleMembersNum; index++) {
+        for (size_t stateIndex = 0; stateIndex < stateSize; stateIndex++) {
+            matXi(stateIndex, index) = stateExp(stateIndex) + std::sqrt(diagStateCov(stateIndex)) * distribution(generator);
+        }
+    }
 
     /// Initialise State Observation Mapping for Sigma Points
     m_sigmaPointObservationIndexes.resize(ensembleMembersNum);
@@ -324,6 +335,7 @@ void LETKFilter<FilterType>::initializeStep(const core::ExecParams* _params, con
         if (observationSize == 0) {
             PRNE("No observations available, cannot allocate the structures!");
         }
+        obsCovarInv = observationManager->getErrorVarianceInverse();
         obsCovar = observationManager->getErrorVariance();
         initialiseObservationsAtFirstStep.setValue(false);
     }
@@ -348,7 +360,7 @@ void LETKFilter<FilterType>::updateState() {
 
     diagStateCov.resize(stateCovar.rows());
     for (size_t i = 0; i < (size_t)stateCovar.rows(); i++) {
-        diagStateCov(i)=stateCovar(i,i);
+        diagStateCov(i) = stateCovar(i,i);
     }
     //std::cout<< "INIT COVARIANCE DIAGONAL P(n+1)+n: " << diagStateCov.transpose() << std::endl;
     PRNS(" INIT COVARIANCE DIAGONAL P(n+1)+n:  \n" << diagStateCov.transpose());
@@ -364,8 +376,6 @@ void LETKFilter<FilterType>::updateState() {
 
     matXi.resize(stateSize, ensembleMembersNum);
     matXi.setZero();
-    genMatXi.resize(ensembleMembersNum, stateSize);
-    genMatXi.setZero();
 
     /// Initialise State Observation Mapping for Sigma Points
     m_sigmaPointObservationIndexes.resize(ensembleMembersNum);

@@ -47,9 +47,6 @@ UKFilterClassicOrig<FilterType>::UKFilterClassicOrig()
     , d_variance( initData(&d_variance, "variance", "actual variance  of reduced state (parameters) estimated by the filter" ) )
     , d_covariance( initData(&d_covariance, "covariance", "actual co-variance  of reduced state (parameters) estimated by the filter" ) )
     , d_innovation( initData(&d_innovation, "innovation", "innovation value computed by the filter" ) )
-    , d_draw(initData(&d_draw, false, "draw","Activation of draw"))
-    , d_radius_draw( initData(&d_radius_draw, (double) 0.005, "radiusDraw", "radius of the spheres") )
-    , d_MOnodes_draw( initData(&d_MOnodes_draw,(double) 1.0, "MOnodesDraw", "nodes of the mechanical object") )
 {
 
 }
@@ -101,7 +98,6 @@ void UKFilterClassicOrig<FilterType>::computePrediction()
 
     //std::cout << "matXi: " << matXi << std::endl;
     /// Propagate sigma points
-    genMatXi=matXi.transpose();
     computePerturbedStates();
     //std::cout << "matXi: " << matXi << std::endl;
 
@@ -311,10 +307,6 @@ void UKFilterClassicOrig<FilterType>::init() {
             paramFileFinalState.close();
         }
     }
-    m_omega= ((double) rand() / (RAND_MAX));
-    //m_omega= 1e-5;
-
-
 }
 
 
@@ -365,8 +357,6 @@ void UKFilterClassicOrig<FilterType>::bwdInit() {
     sigmaPointsNum = matI.rows();
     matXi.resize(stateSize, sigmaPointsNum);
     matXi.setZero();
-    genMatXi.resize( sigmaPointsNum,stateSize);
-    genMatXi.setZero();
 
     /// Initialise State Observation Mapping for Sigma Points
     m_sigmaPointObservationIndexes.resize(sigmaPointsNum);
@@ -432,8 +422,6 @@ void UKFilterClassicOrig<FilterType>::updateState() {
     sigmaPointsNum = matI.rows();
     matXi.resize(stateSize, sigmaPointsNum);
     matXi.setZero();
-    genMatXi.resize( sigmaPointsNum,stateSize);
-    genMatXi.setZero();
 
     /// Initialise State Observation Mapping for Sigma Points
     m_sigmaPointObservationIndexes.resize(sigmaPointsNum);
@@ -450,8 +438,8 @@ void UKFilterClassicOrig<FilterType>::stabilizeMatrix (EMatrixX& _initial, EMatr
         if ((singValsStab(i)*singValsStab(i))*(1.0/(singVals(0)*singVals(0)))< 1.0e-6) singValsStab(i)=0;
     }
     _stabilized= svd.matrixU()*singValsStab*svd.matrixV().transpose();
-
 }
+
 
 template <class FilterType>
 void UKFilterClassicOrig<FilterType>::pseudoInverse( EMatrixX& M,EMatrixX& pinvM) {
@@ -467,6 +455,7 @@ void UKFilterClassicOrig<FilterType>::pseudoInverse( EMatrixX& M,EMatrixX& pinvM
     pinvM = svd.matrixV()*S_inv* svd.matrixU().transpose();
 }
 
+
 template <class FilterType>
 void UKFilterClassicOrig<FilterType>::sqrtMat(EMatrixX& A, EMatrixX& sqrtA){
     double epsilon= 1e-15;
@@ -479,8 +468,8 @@ void UKFilterClassicOrig<FilterType>::sqrtMat(EMatrixX& A, EMatrixX& sqrtA){
     }
     Eigen::MatrixXd S_inv = sqrtSingVals.asDiagonal();
     sqrtA = svd.matrixV()*S_inv* svd.matrixU().transpose();
-
 }
+
 
 template <class FilterType>
 void UKFilterClassicOrig<FilterType>::writeValidationPlot (std::string filename ,EVectorX& state ){
@@ -574,57 +563,6 @@ void UKFilterClassicOrig<FilterType>::computeStarSigmaPoints(EMatrixX& sigmaMat)
     //PRNS("vecAlphaVar: \n" << vecAlphaVar);
     //std::cout<< "Sigma mat: " << sigmaMat << std::endl;
     //std::cout<< "vecAlphaVar: " << vecAlphaVar << std::endl;
-}
-
-
-
-template <class FilterType>
-void UKFilterClassicOrig<FilterType>::draw(const core::visual::VisualParams* vparams ) {
-    if(d_draw.getValue()){
-        if (vparams->displayFlags().getShowVisualModels()) {
-            std::vector<std::vector<sofa::defaulttype::Vec3d>> predpoints;
-            predpoints.resize(sigmaPointsNum);
-            for(  std::vector<std::vector<sofa::defaulttype::Vec3d>>::iterator it = predpoints.begin(); it != predpoints.end(); ++it)
-            {
-                it->resize( d_MOnodes_draw.getValue() );
-            }
-
-            for(unsigned i=0; i < sigmaPointsNum; i++){
-                EVectorX coll = genMatXi.row(i);
-
-                for (unsigned j=0; j < d_MOnodes_draw.getValue(); j++){
-                    for (unsigned k=0; k < 3; k++){
-                        if  (masterStateWrapper->estimOnlyXYZ())
-                                predpoints[i][j][k]=coll(3*j+k);
-                        else
-                            predpoints[i][j][k]=coll(6*j+k);
-                    }
-                }
-
-
-                Vec4f color;
-
-                switch (i) {
-                case 0: color = Vec4f(1.0,0.0,0.0,1.0); break;
-                case 1: color = Vec4f(0.0,1.0,0.0,1.0); break;
-                case 2: color = Vec4f(0.0,0.0,1.0,1.0); break;
-                default: color = Vec4f(0.5, 0.5, 0.5, 0.5);
-                }
-                helper::vector<double>  colorB;
-                colorB.resize(this->stateSize);
-                for(size_t i =0; i < colorB.size(); i++){
-
-                    colorB[i]= ((double) rand() / (RAND_MAX)) ;
-                }
-
-                vparams->drawTool()->drawSpheres(predpoints[i],  d_radius_draw.getValue(), sofa::defaulttype::Vec<4, float>(m_omega,0.0f,0.0f,1.0f));
-            }
-//                if (d_MOnodes_draw.getValue()>=2)
-//                    vparams->drawTool()->drawLineStrip(predpoints[i],3.0,sofa::defaulttype::Vec<4, float>(color[i],0.5f,colorB[i],1.0f));
-//          }
-
-        }
-    }
 }
 
 
