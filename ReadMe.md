@@ -15,6 +15,42 @@ Doxygen Optimus.doxygen.
 
 
 
+Compilation and Usage
+=====================
+
+In order to obtain the plugin, it is necessary to perform git clone of the plugin to your local PC with SOFA installed.
+
+
+Requirements
+------------
+
+Except for SOFA, the plugin dependencies are BLAS, Eigen (already in SOFA). It is highly recommended to use Pardiso solver with Optimus, as other solvers in SOFA are less reliable and might impact the estimation.
+
+
+In-tree build
+-------------
+
+To compile:
+
+-   Path to the plugin is to be added to SOFA_EXTERNAL_DIRECTORIES in SOFA Cmake configuration.
+
+-   To compile the stochastic components, set STOCHASTIC_FILTERING macro.
+
+
+Out-of-tree build
+-----------------
+
+This plugin could be compiled with out-of-tree builds. You might need to add the Sofa installation path to the CMake prefix path. If you compiled Sofa in directory $SOFA_ROOT/build, consider doing an install step (make install, ninja install, etc.).
+
+To compile:
+
+-   Add Sofa installation path to the plugin (example cmake -DCMAKE_PREFIX_PATH==$SOFA_ROOT/build/install ..)
+
+-   To compile the stochastic components, set STOCHASTIC_FILTERING macro.
+
+
+
+
 Components
 ==========
 
@@ -150,21 +186,6 @@ List of scripts:
 
 -   performance_comparison_with_parameter_2d_visu.py - an attempt to plot performance statistics for two parameters as 3d surface; json output from SOFA AdvancedTimer is needed; description are stored in performance_labels and parameter_labels variables; a special names for output folders are needed
 
-
-
-Compilation and Usage
-=====================
-
-The plugin is stored in OptimusPlugin repository gitlab.inria.fr. In order to
-obtain the plugin, it is necessary to perform git clone of the plugin to your local PC with SOFA installed. 
-
-To compile:
-
--   Path to the plugin is to be added to SOFA_EXTERNAL_DIRECTORIES in SOFA Cmake configuration. 
-
--   To compile the stochastic components, set STOCHASTIC_FILTERING macro.
-
-Except for SOFA, the plugin dependencies are BLAS, Eigen (already in SOFA). It is highly recommended to use Pardiso solver with Optimus, as other solvers in SOFA are unreliable and might impact the estimation. 
 
 
 Examples
