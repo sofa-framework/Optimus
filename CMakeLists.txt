@@ -24,7 +24,7 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 set(LINKER_DEPENDENCIES SofaCore SofaBase SofaGeneral SofaBoundaryCondition SofaBaseTopology SofaExporter SofaSimulationTree SofaUserInteraction SofaConstraint SofaMisc SofaGuiCommon blas pthread Eigen3::Eigen)
 set(COMPILATION_FLAGS "-DSOFA_BUILD_OPTIMUS -Wno-unused-local-typedef -Wno-deprecated")
 
-set ( STOCHASTIC_FILTERING "1" CACHE BOOL "Set to activate the compilation the new filtering module replacing Verdandi" FORCE)
+set(STOCHASTIC_FILTERING "1" CACHE BOOL "Set to activate the compilation of the filtering module" FORCE)
 
 set(HEADER_FILES
     src/initOptimusPlugin.h

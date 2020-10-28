@@ -169,6 +169,10 @@ void LETKFilter<FilterType>::computeCorrection()
         for (size_t index = 0; index < (size_t)stateAnalysisCovar.rows(); index++) {
             diagAnalysisStateCov(index) = stateAnalysisCovar(index, index);
         }
+        stateCovar = matXi * stateAnalysisCovar * matXi.transpose();
+        for (size_t index = 0; index < (size_t)stateCovar.rows(); index++) {
+            diagStateCov(index) = stateCovar(index, index);
+        }
 
         //std::cout << "FINAL STATE X(n+1)+n: " << stateExp.transpose() << std::endl;
         //std::cout << "FINAL COVARIANCE DIAGONAL P(n+1)+n: " << diagStateCov.transpose() << std::endl;
@@ -196,11 +200,11 @@ void LETKFilter<FilterType>::computeCorrection()
         innov.resize(observationSize);
 
         size_t gli = 0;
-        for (size_t i = 0; i < stateSize; i++) {
-            stat[i] = stateExp[i];
-            var[i] = stateCovar(i,i);
-            for (size_t j = i+1; j < stateSize; j++) {
-                covar[gli++] = stateCovar(i,j);
+        for (size_t index = 0; index < stateSize; index++) {
+            stat[index] = stateExp[index];
+            var[index] = stateCovar(index, index);
+            for (size_t j = index + 1; j < stateSize; j++) {
+                covar[gli++] = stateCovar(index, j);
             }
         }
         for (size_t index = 0; index < observationSize; index++) {
