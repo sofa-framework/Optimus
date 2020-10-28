@@ -107,5 +107,6 @@ typedef enum FilterKind {
     UNDEF = -1,
     CLASSIC = 0,
     REDORD = 1,
-    SIMCORR = 2
+    SIMCORR = 2,
+    LOCENSEMBLE = 3
 } FilterKind;

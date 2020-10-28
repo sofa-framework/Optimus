@@ -40,7 +40,7 @@ namespace stochastic
 template <class FilterType>
 LETKFilter<FilterType>::LETKFilter()
     : Inherit()
-    , d_ensembleMembersNumber(initData(&d_ensembleMembersNumber, "ensembleMemebersNumber", "number of ensemble memebrs for localized ensemble filter" ) )
+    , d_ensembleMembersNumber(initData(&d_ensembleMembersNumber, "ensembleMembersNumber", "number of ensemble memebrs for localized ensemble filter" ) )
     , d_inverseOptionType( initData(&d_inverseOptionType, "inverseOption", "inverse option type") )
     , d_state( initData(&d_state, "state", "actual expected value of reduced state (parameters) estimated by the filter" ) )
     , d_variance( initData(&d_variance, "variance", "actual variance  of reduced state (parameters) estimated by the filter" ) )
@@ -71,7 +71,7 @@ void LETKFilter<FilterType>::computePerturbedStates()
 template <class FilterType>
 void LETKFilter<FilterType>::computePrediction()
 {
-    // std::cout<<"\n HAS OBS: =" << hasObs << " COMPUTE PREDICTION" << std::endl;
+    // std::cout<<"\n COMPUTE PREDICTION" << std::endl;
     PRNS("Computing prediction, T= " << this->actualTime  << " ======");
     //std::cout << "Computing prediction, T= " << this->actualTime  << " ======" << std::endl;
 
@@ -106,8 +106,8 @@ void LETKFilter<FilterType>::computePrediction()
 template <class FilterType>
 void LETKFilter<FilterType>::computeCorrection()
 {
-    if (hasObs) {
-        // std::cout<<"\n HAS OBS: =" << hasObs << " COMPUTE CORRECTION" << std::endl;
+    if (observationManager->hasObservation(this->actualTime)) {
+        // std::cout<<"\n COMPUTE CORRECTION" << std::endl;
 
         PRNS("======= Computing correction, T= " << this->actualTime << " ======");
         //std::cout << "======= Computing correction, T= " << this->actualTime << " ======" << std::endl;
@@ -236,7 +236,7 @@ void LETKFilter<FilterType>::init() {
     size_t numMasterWrappers = 0;
     numThreads = 0;
     for (size_t i = 0; i < stateWrappers.size(); i++) {
-        stateWrappers[i]->setFilterKind(CLASSIC);
+        stateWrappers[i]->setFilterKind(LOCENSEMBLE);
         if (stateWrappers[i]->isSlave()) {
             numSlaveWrappers++;
             PRNS("found stochastic state slave wrapper: " << stateWrappers[i]->getName());

@@ -133,8 +133,7 @@ public:
     Data<helper::vector<FilterType> > d_variance;
     Data<helper::vector<FilterType> > d_covariance;
     Data<helper::vector<FilterType> > d_innovation;
-    double m_omega;
-    bool hasObs;
+
     void init() override;
     void bwdInit() override;
 

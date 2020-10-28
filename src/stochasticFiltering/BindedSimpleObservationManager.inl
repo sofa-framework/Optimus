@@ -140,7 +140,7 @@ bool BindedSimpleObservationManager<FilterType,DataTypes1,DataTypes2>::getInnova
         return(false);
     }
 
-    if ((stateWrapper->getFilterKind() == SIMCORR) || (stateWrapper->getFilterKind() == CLASSIC)) {
+    if ((stateWrapper->getFilterKind() == SIMCORR) || (stateWrapper->getFilterKind() == CLASSIC) || (stateWrapper->getFilterKind() == LOCENSEMBLE)) {
         for (size_t i = 0; i < this->observationSize; i++)
             _innovation(i) = realObservations[0](i) - _state(i);
     }
