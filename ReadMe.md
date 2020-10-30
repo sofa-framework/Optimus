@@ -24,7 +24,7 @@ In order to obtain the plugin, it is necessary to perform git clone of the plugi
 Requirements
 ------------
 
-Except for SOFA, the plugin dependencies are BLAS, Eigen. It is highly recommended to use Pardiso solver with Optimus, as other solvers in SOFA are less reliable and might impact the estimation.
+Except for SOFA, the plugin dependencies are BLAS, Eigen, pthread. It is highly recommended to use Pardiso solver with Optimus, as other solvers in SOFA are less reliable and might impact the estimation.
 
 
 In-tree build
