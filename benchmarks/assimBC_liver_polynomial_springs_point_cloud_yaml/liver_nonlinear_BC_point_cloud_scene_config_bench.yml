@@ -12,13 +12,18 @@ general_parameters:
         &time
         0.001
     solver_kind: "Euler"   # options are "Euler", "Newton", and "Symplectic"
+    linear_solver_kind: "Pardiso"   # options are "CG" and "Pardiso"
     rayleigh_mass: 0.1
     rayleigh_stiffness: 0.1
 
 obs_generating_parameters:
-    object_young_moduli: "150 300"
     save_observations: 1
     use_point_cloud: 1
+
+object_parameters:
+    young_modulus: 5000
+    poisson_ratio: 0.45
+    attachment_coordinates: "0.14 0.15 0.37 0.18 0.17 0.4"
 
 filtering_parameters:
     common_directory_prefix: "out_Liver_gen_controlPoint_2params_init30_500_3000_pointCloud_for_visualisation_"
@@ -64,6 +69,7 @@ precondition_parameters:
 
 impact_parameters:
     observation_file_name: "obs_testing/liverCPimpact"
+    init_position: "0.143369 0.156781 0.395153"
     position: "0.14 0.16 0.39"
     bounds_coordinates: "0.13 0.15 0.39 0.135 0.155 0.395"
 

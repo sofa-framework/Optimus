@@ -8,10 +8,11 @@ import yaml
 __file = __file__.replace('\\', '/') # windows
 
 
+
 def createScene(rootNode):
-    rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
     rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
     rootNode.createObject('RequiredPlugin', name='Visual', pluginName='SofaOpenglVisual')
+    rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
 
     try:
         sys.argv[0]
@@ -29,7 +30,7 @@ def createScene(rootNode):
 
     with open(configFileName, 'r') as stream:
         try:
-            options = yaml.load(stream)
+            options = yaml.safe_load(stream)
 
         except yaml.YAMLError as exc:
             print(exc)
@@ -43,7 +44,8 @@ def createScene(rootNode):
 
 
 
-class liver_geomagicControlPoint_GenObs (Sofa.PythonScriptController):
+
+class liver_geomagicControlPoint_GenObs(Sofa.PythonScriptController):
 
     def __init__(self, rootNode, options):
         self.options = options
@@ -61,12 +63,9 @@ class liver_geomagicControlPoint_GenObs (Sofa.PythonScriptController):
 
 
     def createGraph(self, rootNode):
-        nu=0.45
-        E=5000
-        
         rootNode.createObject('VisualStyle', displayFlags='showVisualModels hideBehaviorModels hideCollisionModels hideMappings showForceFields')
 
-        # node to generate external impact
+        ### node to generate external impact
         dotNode = rootNode.createChild('dotNode')
         self.dotNode = dotNode
         dotNode.createObject('EulerImplicitSolver', firstOrder='false', vdamping=self.vdamping, rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'])
@@ -84,10 +83,12 @@ class liver_geomagicControlPoint_GenObs (Sofa.PythonScriptController):
         if self.options['obs_generating_parameters']['save_observations']:
             mappingNode.createObject('BoxROI', name='dotBounds', box='-0.05 -0.05 -0.05 0.52 0.3 0.4', doUpdate='0')
             mappingNode.createObject('OptimMonitor', name='toolMonitor', template='Vec3d', showPositions='1', indices='@dotBounds.indices', ExportPositions='1', fileName=self.options['impact_parameters']['observation_file_name'])
-	
-        # general node
+
+        ### general node
         simuNode = rootNode.createChild('simuNode')
         self.simuNode = simuNode
+
+        ### solvers
         if self.options['general_parameters']['solver_kind'] == 'Euler':
             simuNode.createObject('EulerImplicitSolver', firstOrder='false', vdamping=self.vdamping, rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'])
         elif self.options['general_parameters']['solver_kind'] == 'Symplectic':
@@ -104,6 +105,7 @@ class liver_geomagicControlPoint_GenObs (Sofa.PythonScriptController):
         else:
             print 'Unknown linear solver type!'
 
+        ### object loader
         fileExtension = self.options['system_parameters']['volume_file_name']
         fileExtension = fileExtension[fileExtension.rfind('.') + 1:]
         if fileExtension == 'vtk' or fileExtension == 'vtu':
@@ -112,12 +114,33 @@ class liver_geomagicControlPoint_GenObs (Sofa.PythonScriptController):
             simuNode.createObject('MeshGmshLoader', name='loader', filename=self.options['system_parameters']['volume_file_name'])
         else:
             print 'Unknown file type!'
-        simuNode.createObject('MechanicalObject', src='@loader', name='Volume')
 
+        ### mechanical object
+        simuNode.createObject('MechanicalObject', src='@loader', name='Volume')
+        simuNode.createObject('TetrahedronSetTopologyContainer', name="Container", src="@loader", tags=" ")
+        simuNode.createObject('TetrahedronSetTopologyModifier', name="Modifier")
+        simuNode.createObject('TetrahedronSetTopologyAlgorithms', name="TopoAlgo")
+        simuNode.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
+        if 'total_mass' in self.options['general_parameters'].keys():
+            simuNode.createObject('UniformMass', totalMass=self.options['general_parameters']['total_mass'])
+        if 'density' in self.options['general_parameters'].keys():
+            simuNode.createObject('MeshMatrixMass', printMass='0', lumping='1', massDensity=self.options['general_parameters']['density'], name='mass')
+
+        ### material properties
+        # nu=0.45
+        # E=5000
+        # lamb=(E*nu)/((1+nu)*(1-2*nu))
+        # mu=E/(2+2*nu)
+        # materialParams='{} {}'.format(mu,lamb)
+        # simuNode.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=materialParams)
+        simuNode.createObject('TetrahedronFEMForceField', updateStiffness='1', name='FEM', listening='true', drawHeterogeneousTetra='1', method='large', youngModulus='5000', poissonRatio='0.45')
+
+        ### attachment to external object
         simuNode.createObject('BoxROI', name='impactBounds', box='0.14 0.15 0.37 0.18 0.17 0.4', doUpdate='0')
         simuNode.createObject('RestShapeSpringsForceField', name='Springs', stiffness='10000', angularStiffness='1', external_rest_shape='@../dotNode/mappingNode/dot', points='@impactBounds.indices')
         simuNode.createObject('GeoListener', template='Vec3d', geomagicButtonPressed='@../dotNode/GeomagicDevice.button1', geomagicSecondButtonPressed='@../dotNode/GeomagicDevice.button2', geomagicPosition='@../dotNode/GeomagicDevice.positionDevice', saveAttachmentData='true', filename='observations/listener.txt')
 
+        ### boundary conditions
         if 'boundary_conditions_list' in self.options['general_parameters'].keys():
             for index in range(0, len(self.options['general_parameters']['boundary_conditions_list'])):
                 bcElement = self.options['general_parameters']['boundary_conditions_list'][index]
@@ -130,25 +153,12 @@ class liver_geomagicControlPoint_GenObs (Sofa.PythonScriptController):
                 else:
                     print 'Unknown type of boundary conditions'
 
-        simuNode.createObject('TetrahedronSetTopologyContainer', name="Container", src="@loader", tags=" ")
-        simuNode.createObject('TetrahedronSetTopologyModifier', name="Modifier")        
-        simuNode.createObject('TetrahedronSetTopologyAlgorithms', name="TopoAlgo")
-        simuNode.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
-        if 'total_mass' in self.options['general_parameters'].keys():
-            simuNode.createObject('UniformMass', totalMass=self.options['general_parameters']['total_mass'])
-        if 'density' in self.options['general_parameters'].keys():
-            simuNode.createObject('MeshMatrixMass', printMass='0', lumping='1', massDensity=self.options['general_parameters']['density'], name='mass')
-
-        # lamb=(E*nu)/((1+nu)*(1-2*nu))
-        # mu=E/(2+2*nu)
-        # materialParams='{} {}'.format(mu,lamb)
-        # simuNode.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=materialParams)
-        simuNode.createObject('TetrahedronFEMForceField', updateStiffness='1', name='FEM', listening='true', drawHeterogeneousTetra='1', method='large', youngModulus='5000', poissonRatio='0.45')
-
+        ### saving generated observations
         if self.options['obs_generating_parameters']['save_observations']:
             simuNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1', doUpdate='0')
             simuNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.options['system_parameters']['observation_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0')
 
+        ### visualize object
         visuNode = simuNode.createChild('visu')
         visuNode.createObject('MeshObjLoader', name='visualModelLoader', filename='../../data/baseLiver/baseLiver_surface.obj')
         visuNode.createObject('OglModel', name='VisualModel', src='@visualModelLoader', material="texture Ambient 1 0.5 0.5 0.5 1.0 Diffuse 1 1.0 1.0 1.0 1.0")
@@ -159,19 +169,19 @@ class liver_geomagicControlPoint_GenObs (Sofa.PythonScriptController):
 
 
     def onEndAnimationStep(self, deltaTime):
-
+        ### modify external impact
         self.iterations = self.iterations - 1
         if self.iterations == 0:
             stiffness = self.restSpring.findData('stiffness').value
             stiffness[2][0] = 0.0
             self.restSpring.findData('stiffness').value = stiffness
-            self.iterations = 10000        
+            self.iterations = 10000
 
         return 0
 
 
 
-    def onMouseButtonLeft(self, mouseX,mouseY,isPressed):
+    def onMouseButtonLeft(self, mouseX, mouseY, isPressed):
         return 0;
 
     def onKeyReleased(self, c):
@@ -183,7 +193,7 @@ class liver_geomagicControlPoint_GenObs (Sofa.PythonScriptController):
     def onKeyPressed(self, c):
         return 0;
 
-    def onMouseWheel(self, mouseX,mouseY,wheelDelta):
+    def onMouseWheel(self, mouseX, mouseY, wheelDelta):
         return 0;
 
     def storeResetState(self):
@@ -192,7 +202,7 @@ class liver_geomagicControlPoint_GenObs (Sofa.PythonScriptController):
     def cleanup(self):
         return 0;
 
-    def onGUIEvent(self, strControlID,valueName,strValue):
+    def onGUIEvent(self, strControlID, valueName, strValue):
         return 0;
 
     def onLoaded(self, node):
@@ -201,16 +211,16 @@ class liver_geomagicControlPoint_GenObs (Sofa.PythonScriptController):
     def reset(self):
         return 0;
 
-    def onMouseButtonMiddle(self, mouseX,mouseY,isPressed):
+    def onMouseButtonMiddle(self, mouseX, mouseY, isPressed):
         return 0;
 
     def bwdInitGraph(self, node):
         return 0;
 
-    def onScriptEvent(self, senderNode, eventName,data):
+    def onScriptEvent(self, senderNode, eventName, data):
         return 0;
 
-    def onMouseButtonRight(self, mouseX,mouseY,isPressed):
+    def onMouseButtonRight(self, mouseX, mouseY, isPressed):
         return 0;
 
     def onBeginAnimationStep(self, deltaTime):

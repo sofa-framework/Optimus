@@ -6,25 +6,30 @@ import csv
 
 __file = __file__.replace('\\', '/') # windows
 
+
+
 def createScene(rootNode):
-    rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
-    rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
+    rootNode.createObject('RequiredPlugin', name='SofaMiscFem')
+    rootNode.createObject('RequiredPlugin', name='SofaGeneralEngine')
     rootNode.createObject('RequiredPlugin', name='Exporter', pluginName='SofaExporter')
     rootNode.createObject('RequiredPlugin', name='Visual', pluginName='SofaOpenglVisual')
+    rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
+    rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
 
     rootNode.createObject('PythonScriptController', name='SynthBCDA', filename=__file, classname='synth1_BCDA')
 
 
-# Class definition
+
+
 class synth1_BCDA(Sofa.PythonScriptController):
 
     def createGraph(self, node):
-        self.cameraReactivated=False
-        self.rootNode=node
+        self.cameraReactivated = False
+        self.rootNode = node
 
-        print  "Create graph called (Python side)\n"
+        print "Create graph called (Python side)\n"
 
-        # configuration
+        ### configuration
         E=5000
         nu=0.45
         lamb=(E*nu)/((1+nu)*(1-2*nu))
@@ -44,8 +49,8 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
         self.m_saveToFile = 0
         self.saveState = 1
-        self.saveToolForces=0
-        self.saveAssess=0
+        self.saveToolForces = 0
+        self.saveAssess = 0
 
         self.paramInitExp = 0.0
         self.paramInitSD = 5
@@ -56,7 +61,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
         self.suffix=''
 
-        # generate directories to export data
+        ### generate directories to export data
         if self.saveState:
             self.stateExpFile=outDir+'/state'+self.suffix+'.txt'
             self.stateVarFile=outDir+'/variance'+self.suffix+'.txt'
@@ -67,7 +72,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
                 os.system('rm '+self.stateVarFile)
             if os.path.isfile(self.stateCovarFile):
                 os.system('rm '+self.stateCovarFile)
-      
+
         if self.saveToolForces:
             self.toolForceFile=outDir+'/toolForce_'+self.suffix+'.txt'
             if os.path.isfile(self.toolForceFile):
@@ -87,30 +92,30 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
 
     def createGlobalComponents(self, node):
-        # scene global stuff
+        ### scene global stuff
         node.findData('gravity').value="0 0 0"
         node.findData('dt').value="1"
 
         node.createObject('ViewerSetting', cameraMode='Perspective', resolution='1000 700', objectPickingMethod='Ray casting')
         node.createObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels')
 
-        # filter data
+        ### filter data
         node.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")
         self.filter = node.createObject('ROUKFilter', name="ROUKF", sigmaTopology="Simplex", verbose="1", useUnbiasedVariance='0')
 
-        # models loaders
+        ### models loaders
         node.createObject('MeshVTKLoader', name='objectLoader', filename=self.volumeVTK)
         node.createObject('MeshSTLLoader', name='objectSLoader', filename=self.surfaceSTL)
         node.createObject('MeshVTKLoader', name='obsLoader', filename=self.obsVTK)
         node.createObject('MeshVTKLoader', name='toolLoader', filename=self.toolVTK)
 
         return 0
-        
 
 
-    # common components for the simulation itself
+
+    ### common components for the simulation itself
     def createCommonComponents(self, node):
-        # solvers
+        ### solvers
         if self.solver == 'Euler':
             node.createObject('EulerImplicitSolver', rayleighStiffness='0.1', rayleighMass='0.1')
         elif self.solver == 'Newton':
@@ -126,7 +131,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         else:
             print 'Unknown linear solver type'
 
-        # mechanical object
+        ### mechanical object
         node.createObject('MechanicalObject', src="@/objectLoader", name="Volume")
         node.createObject('TetrahedronSetTopologyContainer', name="Container", src="@/objectLoader", tags=" ")
         node.createObject('TetrahedronSetTopologyModifier', name="Modifier")
@@ -134,18 +139,18 @@ class synth1_BCDA(Sofa.PythonScriptController):
         node.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
         node.createObject('UniformMass', totalMass="0.2513")
 
-        # material stiffness
+        ### material stiffness
         node.createObject('TetrahedronHyperelasticityFEMForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=self.materialParams)
         # node.createObject('MJEDTetrahedralForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=self.materialParams)
         # node.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus="1e5", poissonRatio="0.45", method="large")
 
-        # boundary conditions
+        ### boundary conditions
         node.createObject('BoxROI', name='fixedBox1', box='-0.001 -0.001 -0.011 0.101 0.001 0.001', drawBoxes='1', doUpdate='0')
         self.optimParams = node.createObject('OptimParams', name="springStiffness", template="Vector", numParams="@fixedBox1.nbIndices", initValue=self.paramInitExp, stdev=self.paramInitSD, transformParams="absolute", optimize="1", printLog="1")
         node.createObject('RestShapeSpringsForceField', name="fixedSpring", points="@fixedBox1.indices", stiffness="@springStiffness.value", listening="1", drawSpring='1', printLog="0")
         node.createObject('OglColorMap',colorScheme="Blue to Red")
 
-        # impact emulator
+        ### impact emulator
         toolEmu = node.createChild('toolEmu')
         toolEmu.createObject('MechanicalObject', name="MO", src="@/toolLoader")
         print self.toolMonitorPrefix
@@ -165,7 +170,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
     def createMasterScene(self, node):
         node.createObject('StochasticStateWrapper',name="StateWrapper",verbose='1', estimatePosition='1')
         self.createCommonComponents(node)
-        # node with groundtruth observations
+        ### node with groundtruth observations
         obsNode = node.createChild('obsNode')
         obsNode.createObject('MechanicalObject', name='MO', src="@/obsLoader")
         obsNode.createObject('SphereCollisionModel', color='0.0 0.5 0.0 1', radius="0.0014", template='Vec3d')
@@ -174,7 +179,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         obsNode.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix=self.obsMonitorPrefix, drawSize="0.000")
         obsNode.createObject('ShowSpheres', position='@MOBS.observations', color='1.0 0.0 1.0 1', radius="0.0012")
 
-        # visual node
+        ### visual node
         visNode = node.createChild('ObjectVisualization')
         visNode.createObject('VisualStyle', displayFlags='showVisual showBehavior showCollision hideMapping showWireframe hideNormals')
         visNode.createObject('MechanicalObject',src="@/objectSLoader", name="Surface")
@@ -197,7 +202,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         return 0
 
 
-    # save filtering data to files
+    ### save filtering data to files
     def onEndAnimationStep(self, deltaTime):
 
         if self.saveState:
@@ -247,10 +252,10 @@ class synth1_BCDA(Sofa.PythonScriptController):
             f5.write('\n')
             f5.close()
 
-        #print self.basePoints.findData('indices_position').value
+        # print self.basePoints.findData('indices_position').value
 
         return 0
 
-    def onScriptEvent(self, senderNode, eventName,data):
+    def onScriptEvent(self, senderNode, eventName, data):
         return 0;
 

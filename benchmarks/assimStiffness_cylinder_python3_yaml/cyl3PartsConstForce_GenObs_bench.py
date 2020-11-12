@@ -12,7 +12,9 @@ import yaml
 __file = __file__.replace('\\', '/') # windows
 
 
+
 def createScene(rootNode):
+    rootNode.addObject('RequiredPlugin', name='SofaGeneralEngine')
     rootNode.addObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
     # rootNode.addObject('RequiredPlugin', name='Python3', pluginName='SofaPython3')
 
@@ -46,6 +48,8 @@ def createScene(rootNode):
     return 0;
 
 
+
+
 class cyl3PartsConstForceGenObs_Controller(Sofa.Core.Controller):
 
     def __init__(self, *args, **kwargs):
@@ -67,15 +71,15 @@ class cyl3PartsConstForceGenObs_Controller(Sofa.Core.Controller):
 
     def createGraph(self, rootNode):
         self.iterations = 0
-        
-        # rootNode
+
+        ### rootNode
         rootNode.addObject('VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels hideVisual')
 
-        # general node
+        ### general node
         simuNode = rootNode.addChild('simuNode')
         self.simuNode = simuNode
 
-        # solvers
+        ### solvers
         if self.options['general_parameters']['solver_kind'] == 'Euler':
             simuNode.addObject('EulerImplicitSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'])
         elif self.options['general_parameters']['solver_kind'] == 'Symplectic':
@@ -92,11 +96,11 @@ class cyl3PartsConstForceGenObs_Controller(Sofa.Core.Controller):
         else:
             print('Unknown linear solver type!')
 
-        # mechanical object
+        ### mechanical object
         simuNode.addObject('MeshVTKLoader', name='loader', filename=self.options['system_parameters']['volume_file_name'])
         simuNode.addObject('MechanicalObject', src='@loader', name='Volume')
         simuNode.addObject('TetrahedronSetTopologyContainer', name="Container", src="@loader", tags=" ")
-        simuNode.addObject('TetrahedronSetTopologyModifier', name="Modifier")        
+        simuNode.addObject('TetrahedronSetTopologyModifier', name="Modifier")
         simuNode.addObject('TetrahedronSetTopologyAlgorithms', name="TopoAlgo")
         simuNode.addObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
         if 'total_mass' in self.options['general_parameters'].keys():
@@ -104,10 +108,11 @@ class cyl3PartsConstForceGenObs_Controller(Sofa.Core.Controller):
         if 'density' in self.options['general_parameters'].keys():
             simuNode.addObject('MeshMatrixMass', printMass='0', lumping='1', massDensity=self.options['general_parameters']['density'], name='mass')
 
+        ### material properties
         simuNode.addObject('Indices2ValuesMapper', indices='1 2 3 4 5 6 7 8 9 10', values=self.options['obs_generating_parameters']['object_young_moduli'], name='youngMapper', inputValues='@loader.dataset')
         simuNode.addObject('TetrahedronFEMForceField', updateStiffness='1', name='FEM', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
 
-        # boundary conditions
+        ### boundary conditions
         if 'boundary_conditions_list' in self.options['general_parameters'].keys():
             for index in range(0, len(self.options['general_parameters']['boundary_conditions_list'])):
                 bcElement = self.options['general_parameters']['boundary_conditions_list'][index]
@@ -119,12 +124,12 @@ class cyl3PartsConstForceGenObs_Controller(Sofa.Core.Controller):
                 else:
                     print('Unknown type of boundary conditions')
 
-        # saving generated observations
+        ### saving generated observations
         if self.options['obs_generating_parameters']['save_observations']:
             simuNode.addObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1', doUpdate='0')
             simuNode.addObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.options['system_parameters']['observation_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0')
 
-        # applied forces
+        ### add external impact
         self.forceIndex = 1
         simuNode.addObject('BoxROI', name='forceBounds', box=self.options['impact_parameters']['external_force_bound'], doUpdate='0')
         self.constantForce = simuNode.addObject('ConstantForceField', name='appliedForce', indices='@forceBounds.indices', totalForce='0.0 0.0 0.0')
@@ -136,7 +141,7 @@ class cyl3PartsConstForceGenObs_Controller(Sofa.Core.Controller):
 
 
     def onAnimateEndEvent(self, eventType):
-        # modify applied force
+        ### modify applied force
         self.iterations = self.iterations + 1
         if self.iterations == 80:
             self.forceIndex = (self.forceIndex + 1) % 2
@@ -146,13 +151,13 @@ class cyl3PartsConstForceGenObs_Controller(Sofa.Core.Controller):
             elif self.forceIndex == 1:
                 self.constantForce.findData('totalForce').value = [0.0, 0.0, 0.0]
                 self.oppositeConstantForce.findData('totalForce').value = [0.0, 1.0, 0.0]
-            
             self.iterations = 0
 
         return 0
 
 
-    def onMouseButtonLeft(self, mouseX,mouseY,isPressed):
+
+    def onMouseButtonLeft(self, mouseX, mouseY, isPressed):
         return 0;
 
     def onKeyReleased(self, c):
@@ -164,7 +169,7 @@ class cyl3PartsConstForceGenObs_Controller(Sofa.Core.Controller):
     def onKeyPressed(self, c):
         return 0;
 
-    def onMouseWheel(self, mouseX,mouseY,wheelDelta):
+    def onMouseWheel(self, mouseX, mouseY, wheelDelta):
         return 0;
 
     def storeResetState(self):
@@ -173,7 +178,7 @@ class cyl3PartsConstForceGenObs_Controller(Sofa.Core.Controller):
     def cleanup(self):
         return 0;
 
-    def onGUIEvent(self, strControlID,valueName,strValue):
+    def onGUIEvent(self, strControlID, valueName, strValue):
         return 0;
 
     def onLoaded(self, node):
@@ -182,16 +187,16 @@ class cyl3PartsConstForceGenObs_Controller(Sofa.Core.Controller):
     def reset(self):
         return 0;
 
-    def onMouseButtonMiddle(self, mouseX,mouseY,isPressed):
+    def onMouseButtonMiddle(self, mouseX, mouseY, isPressed):
         return 0;
 
     def bwdInitGraph(self, node):
         return 0;
 
-    def onScriptEvent(self, senderNode, eventName,data):
+    def onScriptEvent(self, senderNode, eventName, data):
         return 0;
 
-    def onMouseButtonRight(self, mouseX,mouseY,isPressed):
+    def onMouseButtonRight(self, mouseX, mouseY, isPressed):
         return 0;
 
     def onBeginAnimationStep(self, deltaTime):

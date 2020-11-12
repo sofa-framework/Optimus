@@ -102,6 +102,7 @@ class cyl3PartsGeomagic_GenObs(Sofa.PythonScriptController):
         else:
             print 'Unknown linear solver type!'
 
+        ### object loader
         fileExtension = self.options['system_parameters']['volume_file_name']
         fileExtension = fileExtension[fileExtension.rfind('.') + 1:]
         if fileExtension == 'vtk' or fileExtension == 'vtu':
