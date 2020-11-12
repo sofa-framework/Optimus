@@ -14,7 +14,6 @@ __file = __file__.replace('\\', '/') # windows
 def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
     rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
-    rootNode.createObject('RequiredPlugin', name='BoundaryConditions', pluginName="BoundaryConditionsPlugin")
 
     try:
         sys.argv[0]
@@ -209,21 +208,21 @@ class liver_controlPoint_SDA(Sofa.PythonScriptController):
         if 'boundary_conditions_list' in self.options['boundary_parameters'].keys():
             for index in range(0, len(self.options['boundary_parameters']['boundary_conditions_list'])):
                 bcElement = self.options['boundary_parameters']['boundary_conditions_list'][index]
-                node.createObject('BCBoxROI', box=bcElement['boxes_coordinates'], name='boundBoxes'+str(index), doUpdate='0')
+                node.createObject('BoxROI', box=bcElement['boxes_coordinates'], name='boundBoxes'+str(index), doUpdate='0')
                 if bcElement['condition_type'] == 'fixed':
                     node.createObject('FixedConstraint', indices='@boundBoxes'+str(index)+'.indices')
                 elif bcElement['condition_type'] == 'elastic':
                     if self.options['boundary_parameters']['spring_type'] == 'PolynomialRestshape':
-                        node.createObject('PolynomialRestShapeSpringsForceField', polynomialStiffness='@paramE.value', showIndicesScale='0', springThickness="3", listening="1", updateStiffness="1", printLog="0", points='@boundBoxes'+str(index)+'.indices', initialLength=self.options['boundary_parameters']['initial_length'], polynomialDegree=bcElement['polynomial_degrees'], directionScale=self.options['boundary_parameters']['direction_scale'], drawSpring='1')
+                        node.createObject('PolynomialRestShapeSpringsForceField', listening="1", printLog="0", points='@boundBoxes'+str(index)+'.indices', initialLength=self.options['boundary_parameters']['initial_length'], polynomialDegree=bcElement['polynomial_degrees'], polynomialStiffness='@paramE.value', drawSpring='1')
                     elif self.options['boundary_parameters']['spring_type'] == 'Polynomial':
-                        node.createObject('PolynomialRestShapeSpringsInitLengthForceField', polynomialStiffness='@paramE.value', showIndicesScale='0', springThickness="3", listening="1", updateStiffness="1", printLog="0", points='@boundBoxes'+str(index)+'.indices', polynomialDegree=bcElement['polynomial_degrees'], external_rest_shape='../fixNode/fixElements', external_points=self.options['boundary_parameters']['external_indices'])
+                        node.createObject('PolynomialSpringsForceField', listening="1", printLog="0", object1='@.', firstObjectPoints='@boundBoxes'+str(index)+'.indices', object2='@../fixNode/fixElements', secondObjectPoints=self.options['boundary_parameters']['external_indices'], polynomialDegree=bcElement['polynomial_degrees'], polynomialStiffness='@paramE.value', drawMode='1')
                     else:
                         node.createObject('RestShapeSpringForceField', stiffness='@paramE.value', listening="1", angularStiffness="1", printLog="0", points='@boundBoxes'+str(index)+'.indices')
                 else:
                     print 'Unknown type of boundary conditions'
 
         ### attachment to external object
-        node.createObject('BCBoxROI', name='impactBounds', box=self.options['object_parameters']['attachment_coordinates'], doUpdate='0')
+        node.createObject('BoxROI', name='impactBounds', box=self.options['object_parameters']['attachment_coordinates'], doUpdate='0')
         self.toolSprings = node.createObject('RestShapeSpringsForceField', name="impactSpring", stiffness="10000", angularStiffness='1', external_rest_shape='@../externalImpSimu/state', points='@impactBounds.indices')
 
         return 0

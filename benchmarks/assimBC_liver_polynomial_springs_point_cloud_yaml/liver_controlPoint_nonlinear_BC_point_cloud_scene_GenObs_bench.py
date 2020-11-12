@@ -12,7 +12,6 @@ __file = __file__.replace('\\', '/') # windows
 def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
     rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
-    rootNode.createObject('RequiredPlugin', name='BoundaryConditions', pluginName="BoundaryConditionsPlugin")
 
     try:
         sys.argv[0]
@@ -75,7 +74,7 @@ class liver_controlPoint_GenObs(Sofa.PythonScriptController):
         self.impactPoint = dotNode.createObject('MechanicalObject', template='Vec3d', name='dot', showObject='true', position=self.options['impact_parameters']['init_position'])
         dotNode.createObject('ShowSpheres', position='@dot.position', color='1.0 0.0 1.0 1', radius="0.01", showIndicesScale='0.0')
         if self.options['obs_generating_parameters']['save_observations'] and self.scenario_type == 'Generate_data':
-            dotNode.createObject('BCBoxROI', name='dotBounds', box='0.14 0.15 0.37 0.18 0.17 0.4', doUpdate='0')
+            dotNode.createObject('BoxROI', name='dotBounds', box='0.14 0.15 0.37 0.18 0.17 0.4', doUpdate='0')
             dotNode.createObject('OptimMonitor', name='toolMonitor', template='Vec3d', showPositions='1', indices='@dotBounds.indices', ExportPositions='1', fileName = self.options['impact_parameters']['observation_file_name'])
         self.index = 0
 
@@ -134,21 +133,21 @@ class liver_controlPoint_GenObs(Sofa.PythonScriptController):
         if 'boundary_conditions_list' in self.options['boundary_parameters'].keys():
             for index in range(0, len(self.options['boundary_parameters']['boundary_conditions_list'])):
                 bcElement = self.options['boundary_parameters']['boundary_conditions_list'][index]
-                simuNode.createObject('BCBoxROI', box=bcElement['boxes_coordinates'], name='boundBoxes'+str(index), drawBoxes='0', doUpdate='0')
+                simuNode.createObject('BoxROI', box=bcElement['boxes_coordinates'], name='boundBoxes'+str(index), drawBoxes='0', doUpdate='0')
                 if bcElement['condition_type'] == 'fixed':
                     simuNode.createObject('FixedConstraint', indices='@boundBoxes'+str(index)+'.indices')
                 elif bcElement['condition_type'] == 'elastic':
                     if self.options['boundary_parameters']['spring_type'] == 'PolynomialRestshape':
-                        simuNode.createObject('PolynomialRestShapeSpringsForceField', polynomialStiffness=bcElement['polynomial_stiffness_values'], showIndicesScale='0', springThickness="3", listening="1", updateStiffness="1", printLog="0", points='@boundBoxes'+str(index)+'.indices', initialLength=self.options['boundary_parameters']['initial_length'], polynomialDegree=bcElement['polynomial_degrees'], directionScale=self.options['boundary_parameters']['direction_scale'])
+                        simuNode.createObject('PolynomialRestShapeSpringsForceField', listening="1", printLog="0", points='@boundBoxes'+str(index)+'.indices', initialLength=self.options['boundary_parameters']['initial_length'], polynomialDegree=bcElement['polynomial_degrees'], polynomialStiffness=bcElement['polynomial_stiffness_values'], drawMode='1')
                     elif self.options['boundary_parameters']['spring_type'] == 'Polynomial':
-                        simuNode.createObject('PolynomialRestShapeSpringsInitLengthForceField', polynomialStiffness=bcElement['polynomial_stiffness_values'], showIndicesScale='0', springThickness="3", listening="1", updateStiffness="1", printLog="0", points='@boundBoxes'+str(index)+'.indices', polynomialDegree=bcElement['polynomial_degrees'], external_rest_shape='../fixNode/fixElements', external_points=self.options['boundary_parameters']['external_indices'])
+                        simuNode.createObject('PolynomialSpringsForceField', listening="1", printLog="0", object1='@.', firstObjectPoints='@boundBoxes'+str(index)+'.indices', object2='@../fixNode/fixElements', secondObjectPoints=self.options['boundary_parameters']['external_indices'], polynomialDegree=bcElement['polynomial_degrees'], polynomialStiffness=bcElement['polynomial_stiffness_values'], drawMode='1')
                     else:
                         simuNode.createObject('RestShapeSpringForceField', stiffness=bcElement['spring_stiffness_values'], angularStiffness="1", points='@boundBoxes'+str(index)+'.indices')
                 else:
                     print 'Unknown type of boundary conditions'
 
         ### attachment to external object
-        simuNode.createObject('BCBoxROI', name='impactBounds', box=self.options['object_parameters']['attachment_coordinates'], doUpdate='0')
+        simuNode.createObject('BoxROI', name='impactBounds', box=self.options['object_parameters']['attachment_coordinates'], doUpdate='0')
         simuNode.createObject('RestShapeSpringsForceField', name='Springs', stiffness='10000', angularStiffness='1', external_rest_shape='@../dotNode/dot', points='@impactBounds.indices')
 
         ### saving generated observations
@@ -161,10 +160,10 @@ class liver_controlPoint_GenObs(Sofa.PythonScriptController):
 
         if self.options['obs_generating_parameters']['save_observations'] and self.scenario_type == 'Generate_data':
             if 'use_point_cloud' in self.options['obs_generating_parameters'] and self.options['obs_generating_parameters']['save_observations']:
-                pointCloudNode.createObject('BCBoxROI', name='observationBox', box='-1 -1 -1 1 1 1', doUpdate='0')
+                pointCloudNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1', doUpdate='0')
                 pointCloudNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName = self.options['system_parameters']['observation_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0')
             else:
-                simuNode.createObject('BCBoxROI', name='observationBox', box='-1 -1 -1 1 1 1', doUpdate='0')
+                simuNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1', doUpdate='0')
                 simuNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName = self.options['system_parameters']['observation_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0', saveZeroStep='0')
 
         ### validation grid
@@ -178,7 +177,7 @@ class liver_controlPoint_GenObs(Sofa.PythonScriptController):
                     obsGrid.createObject('BarycentricMapping')
                     obsGrid.createObject('ShowSpheres', position='@MO'+str(index)+'.position', color='0.0 0.5 0.0 1', radius="0.0054", showIndicesScale='0.0')
                     if self.options['obs_generating_parameters']['save_observations']:
-                        obsGrid.createObject('BCBoxROI', name='gridBox'+str(index), box='-1 -1 -1 1 1 1', doUpdate='0')
+                        obsGrid.createObject('BoxROI', name='gridBox'+str(index), box='-1 -1 -1 1 1 1', doUpdate='0')
                         obsGrid.createObject('OptimMonitor', name='GridMonitor'+str(index), indices='@gridBox'+str(index)+'.indices', fileName = gridElement['grid_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0')
 
         return 0
