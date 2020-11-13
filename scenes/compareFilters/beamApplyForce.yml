@@ -11,6 +11,7 @@ model:
              
     int:   # temporal integrator properties
         type: 'Newton'    # Newton or Euler
+        lin_type: 'Pardiso' # Pardiso or CG
         maxit: 5        #only for Newton
         verbose: 0       #only for Newton
         #first_order: 0   #only for Euler

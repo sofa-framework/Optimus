@@ -12,9 +12,9 @@ __file = __file__.replace('\\', '/') # windows
 
 
 def createScene(rootNode):
-    rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
-    rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
     rootNode.createObject('RequiredPlugin', name='Visual', pluginName='SofaOpenglVisual')
+    rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
+    rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
 
     try:
         sys.argv[0]
@@ -96,6 +96,7 @@ class AppliedForces_GenObs(Sofa.PythonScriptController):
 
 
     def createGraph(self, rootNode):
+        ### scene global stuff
         self.step = 0
         rootNode.findData('dt').value = self.opt['model']['dt']
         rootNode.findData('gravity').value = self.opt['model']['gravity']
@@ -135,6 +136,8 @@ class AppliedForces_GenObs(Sofa.PythonScriptController):
         elif intType == 'Newton':
             maxIt = self.opt['model']['int']['maxit']
             simuNode.createObject('StaticSolver', name="NewtonStatic", correction_tolerance_threshold="1e-8", residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1",  newton_iterations=maxIt, printLog=self.opt['model']['int']['verbose'])
+        else:
+            print 'Unknown solver type!'
 
         linType = self.opt['model']['int']['lin_type']
         if linType == 'Pardiso':
@@ -143,7 +146,8 @@ class AppliedForces_GenObs(Sofa.PythonScriptController):
             simuNode.createObject('CGLinearSolver', name='lsolverit', tolerance='1e-10', threshold='1e-10', iterations='500', verbose='0')
             simuNode.createObject('StepPCGLinearSolver', name='lsolverit', precondOnTimeStep='0', use_precond='1', tolerance='1e-10', iterations='500', verbose='0', update_step='10', listening='1', preconditioners='lsolver')
             # simuNode.createObject('ShewchukPCGLinearSolver', name='lsolverit', iterations='500', use_precond='1', tolerance='1e-10', preconditioners='lsolver')
-
+        else:
+            print 'Unknown linear solver type!'
 
         ### mechanical object
         simuNode.createObject('MeshVTKLoader', name='loader', filename=self.meshFile+'.vtk')
@@ -172,7 +176,7 @@ class AppliedForces_GenObs(Sofa.PythonScriptController):
         elif method == 'StVenant':
             poissonRatii = poissonRatio * np.ones([1,len(youngModuli)])
             simuNode.createObject('Indices2ValuesTransformer', name='paramMapper', indices=indices, values1=youngModuli, values2=poissonRatii, inputValues='@loader.dataset', transformation='ENu2MuLambda')
-            simuNode.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet='@paramMapper.outputValues', drawHeterogeneousTetra='1')
+            simuNode.createObject('TetrahedronHyperelasticityFEMForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet='@paramMapper.outputValues', drawHeterogeneousTetra='1')
 
         ### boundary conditions
         simuNode.createObject('BoxROI', box=self.opt['model']['bc']['boxes'], name='fixedBox', drawBoxes='1')
@@ -194,7 +198,7 @@ class AppliedForces_GenObs(Sofa.PythonScriptController):
 
         if 'prescribed_displacement' in self.opt['model'].keys():
             simuNode.createObject('BoxROI', name='prescDispBox', box=self.opt['model']['prescribed_displacement']['boxes'])
-            simuNode.createObject('ExtendedRestShapeSpringForceField', numStepsSpringOn='10000', stiffness=self.opt['model']['prescribed_displacement']['spring_stiffness'], name='toolSpring', springColor='0 1 0 1', drawSpring='1', updateStiffness='1', printLog='0', listening='1', angularStiffness='0', startTimeSpringOn='0', external_rest_shape='/phant/MO', points='@prescDispBox.indices', external_points='@prescDispBox.indices')
+            simuNode.createObject('RestShapeSpringForceField', name='toolSpring', stiffness=self.opt['model']['prescribed_displacement']['spring_stiffness'], springColor='0 1 0 1', drawSpring='1', printLog='0', listening='1', angularStiffness='0', external_rest_shape='/phant/MO', points='@prescDispBox.indices', external_points='@prescDispBox.indices')
 
         ### export data
         if self.saveGeo:

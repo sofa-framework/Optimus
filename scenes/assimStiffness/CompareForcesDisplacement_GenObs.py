@@ -132,12 +132,6 @@ class AppliedForces_GenObs(Sofa.PythonScriptController):
         indices = range(1, len(youngModuli)+1)
         simuNode.createObject('Indices2ValuesMapper', indices=indices, values=youngModuli, name='youngMapper', inputValues='@loader.dataset')
         simuNode.createObject('TetrahedronFEMForceField', updateStiffness='1', name='FEM', listening='true', drawHeterogeneousTetra='1', method=self.opt['model']['fem_method'], poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
-        # E=4000
-        # nu=0.45
-        # lamb=(E*nu)/((1+nu)*(1-2*nu))
-        # mu=E/(2+2*nu)
-        # materialParams='{} {}'.format(mu,lamb)
-        # simuNode.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=materialParams)
 
         ### boundary conditions
         simuNode.createObject('BoxROI', box=self.opt['model']['bc']['boxes'], name='fixedBox', drawBoxes='1')

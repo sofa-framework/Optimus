@@ -10,7 +10,7 @@ model:
     obs_id: 'obs2'    
     gravity: [0, 0, 0]    
     density: 10000
-    plane_collision: 0
+    plane_collision: 1
     
     fem:
         method: 'StVenant' #CorLarge  StVenant CorSmall
@@ -35,6 +35,7 @@ model:
 
     int:   # temporal integrator properties
         type: 'Newton'    # Newton or Euler
+        lin_type: 'Pardiso' # Pardiso or CG
         maxit: 10        #only for Newton
         verbose: 0       #only for Newton
         #first_order: 0   #only for Euler

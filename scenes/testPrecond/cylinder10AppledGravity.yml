@@ -4,14 +4,15 @@
 model:
     dt: 0.01
     vol_mesh: '../../data/cylinder/cylinder1_72k.vtk'
-    # surf_mesh: '../../data/cylinder/cylinder10_4245.stl'
+    surf_mesh: '../../data/cylinder/cylinder10_4245.stl'
     gravity: [0, 0, 0]
     total_mass: 0.2    
         
     int:   # temporal integrator properties
         type: 'Newton'
-        # rmass: 0.1  #Euler only
-        # rstiff: 0.1   #Euler only
+        lin_type: 'Pardiso'      # options are "Pardiso" and "CG"
+        rmass: 0.1  # Euler only
+        rstiff: 0.1   # Euler only
         maxit: 1   # Newton only
     bc:
         type: 'fixed'
@@ -26,9 +27,8 @@ model:
         pardisoFolder: ''
 
     fem:
-        method: StVenant
-        # young_modulus: [3500, 4000, 1000, 6000, 2000, 7000, 2500, 8000, 3000, 1500]
-        young_modulus: [4000]
+        method: Corotational # StVenant
+        young_modulus: [4000] # [3500, 4000, 1000, 6000, 2000, 7000, 2500, 8000, 3000, 1500]
         poisson_ratio: 0.49
 
     applied_periodic_force:
@@ -44,7 +44,7 @@ io:
     prefix: 'cyl10PF19kHomog_'
     suffix: '_per200_ampMY0002'
     saveGeo: 0
-    saveObs: 0                  # GO only
+    saveObs: 1                  # GO only
     obsFileName: 'pos33'
     saveEst: 1                  # SDA only
     sda_suffix: '_star_sd100_pcgAdapt5_OMP1_NOGUI'         # SDA only

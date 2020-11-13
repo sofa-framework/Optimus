@@ -149,6 +149,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         ### general node
         modelNode=rootNode.createChild('ModelNode')
 
+        ### collision handler
         if self.planeCollision == 1:
             modelNode.createObject('GenericConstraintSolver', maxIterations='1000', tolerance='1e-6', printLog='0', allVerified='0')
             modelNode.createObject('DefaultPipeline', depth="6", verbose="0", draw="0")
@@ -188,6 +189,8 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         elif intType == 'Newton':
             maxIt = self.opt['model']['int']['maxit']
             simuNode.createObject('StaticSolver', name="NewtonStatic", correction_tolerance_threshold="1e-8", residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1",  newton_iterations=maxIt, printLog='1')
+        else:
+            print 'Unknown solver type!'
 
         linType = self.opt['model']['int']['lin_type']
         if linType == 'Pardiso':
@@ -196,6 +199,8 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             simuNode.createObject('CGLinearSolver', name='lsolverit', tolerance='1e-10', threshold='1e-10', iterations='500', verbose='0')
             if self.opt['model']['linsol']['usePCG']:
                 simuNode.createObject('StepPCGLinearSolver', name='lsolverit', precondOnTimeStep='1', use_precond='1', tolerance='1e-10', iterations='500', verbose='1', listening='1', update_step=self.opt['model']['linsol']['PCGUpdateSteps'], preconditioners='lsolver')
+        else:
+            print 'Unknown linear solver type!'
 
         ### mechanical object
         simuNode.createObject('MechanicalObject', src="@/loader", name="Volume")
@@ -211,7 +216,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         if 'density' in self.opt['model'].keys():
             simuNode.createObject('MeshMatrixMass', printMass='0', lumping='1', massDensity=self.opt['model']['density'], name='mass')
 
-        ### material and elasticiy properties
+        ### estimate material properties
         simuNode.createObject('OptimParams', name="paramE", optimize="1", template="Vector",
             numParams=self.opt['filter']['nparams'], transformParams=self.opt['filter']['param_transform'],
             initValue=self.opt['filter']['param_init_exval'], stdev=self.opt['filter']['param_init_stdev'],
@@ -227,7 +232,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         elif method == 'StVenant':
             poissonRatii = poissonRatio * np.ones([1,len(youngModuli)])
             simuNode.createObject('Indices2ValuesTransformer', name='paramMapper', indices=indices, values1='@paramE.value', values2=poissonRatii, inputValues='@loader.dataset', transformation='ENu2MuLambda')
-            simuNode.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet='@paramMapper.outputValues', drawHeterogeneousTetra='1')
+            simuNode.createObject('TetrahedronHyperelasticityFEMForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet='@paramMapper.outputValues', drawHeterogeneousTetra='1')
 
         ### boundary conditions
         simuNode.createObject('BoxROI', box=self.opt['model']['bc']['boxes'], name='fixedBox')
@@ -281,7 +286,6 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         obsNode.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix=self.obsFile)
         obsNode.createObject('ShowSpheres', name="estimated", radius="0.002", color="1 0 0 1", position='@SourceMO.position')
         obsNode.createObject('ShowSpheres', name="groundTruth", radius="0.0015", color="1 1 0 1", position='@MOBS.mappedObservations')
-
 
         ### visual node
         oglNode = simuNode.createChild('visualization')
