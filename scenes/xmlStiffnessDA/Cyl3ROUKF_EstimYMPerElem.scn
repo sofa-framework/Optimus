@@ -23,12 +23,8 @@
 		<include href="Objects/TetrahedronSetTopology.xml" src="@loader" />
 		<UniformMass totalMass="0.2513" />
 
-		<BoxROI name="fixedBox1" box="-0.05 -0.05 -0.002   0.05 0.05 0.002"/>
-		<BoxROI name="fixedBox2" box="-0.05 -0.05  0.238   0.05 0.05 0.242"/>
-
-		<MergeSets name="mergeIndices" in1="@fixedBox1.indices" in2="@fixedBox2.indices"/>
-
-		<FixedConstraint indices="@mergeIndices.out" />
+		<BoxROI name="fixedBox" box="-0.05 -0.05 -0.002 0.05 0.05 0.002  -0.05 -0.05  0.238 0.05 0.05 0.242"/>
+		<FixedConstraint indices="@fixedBox.indices" />
 
 		<!-- 	<BoxROI name="fixedBox2" box="-0.05 -0.05 0.176   0.05 0.05 0.180"/> -->
 		<!-- 	<FixedConstraint indices="@fixedBox2.indices" /> -->

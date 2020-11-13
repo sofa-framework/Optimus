@@ -30,12 +30,6 @@ class synth1_BCDA(Sofa.PythonScriptController):
         print "Create graph called (Python side)\n"
 
         ### configuration
-        E=5000
-        nu=0.45
-        lamb=(E*nu)/((1+nu)*(1-2*nu))
-        mu=E/(2+2*nu)
-        self.materialParams='{} {}'.format(mu,lamb)
-
         self.ogridID=4
         inputDir='obs_testing'
         outDir='roukf_testing'
@@ -83,6 +77,8 @@ class synth1_BCDA(Sofa.PythonScriptController):
             if os.path.isfile(self.assessFile):
                 os.system('rm '+self.assessFile)
 
+        if self.linearSolver == 'Pardiso':
+            node.createObject('RequiredPlugin', name='Pardiso', pluginName='SofaPardisoSolver')
 
         self.createGlobalComponents(node)
         masterNode = node.createChild('MasterScene')
@@ -140,8 +136,12 @@ class synth1_BCDA(Sofa.PythonScriptController):
         node.createObject('UniformMass', totalMass="0.2513")
 
         ### material stiffness
+        E=5000
+        nu=0.45
+        lamb=(E*nu)/((1+nu)*(1-2*nu))
+        mu=E/(2+2*nu)
+        self.materialParams='{} {}'.format(mu,lamb)
         node.createObject('TetrahedronHyperelasticityFEMForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=self.materialParams)
-        # node.createObject('MJEDTetrahedralForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=self.materialParams)
         # node.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus="1e5", poissonRatio="0.45", method="large")
 
         ### boundary conditions

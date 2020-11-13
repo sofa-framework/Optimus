@@ -1,60 +1,53 @@
 <?xml version="1.0" ?>
 <Node name="root" dt="0.01" showBoundingTree="0" gravity="0 0 0">
 	<RequiredPlugin pluginName="Optimus"/>
-	<RequiredPlugin pluginName="SofaPardisoSolver"/>
-	<RequiredPlugin pluginName="ImageMeshAux"/>
-    <RequiredPlugin pluginName="SofaMJEDFEM"/>
 	<VisualStyle displayFlags="showBehaviorModels showForceFields showCollisionModels" />
 
-    <MeshVTKLoader filename="../../data/beam/beamA1_1635.vtk" name="loader" />
+        <MeshVTKLoader filename="../../data/beam/beamA1_1635.vtk" name="loader" />
 
         <Node name="toolEmu">
-            <MechanicalObject name="MO" position="0.16 0.06 0.01  0.16 0.06 0.025  0.16 0.06 0.040  0.16 0.06 0.055   0.16 0.06 0.070   0.175 0.06 0.01  0.175 0.06 0.025  0.175 0.06 0.040  0.175 0.06 0.055   0.175 0.06 0.070"/>
-            <LinearMotionStateController indices="0 1 2 3 4 5 6 7 8 9" keyDisplacements="0 0 0    0.05 0.05 0" keyTimes="0 2"/>
+            <StaticSolver name="NewtonStatic" printLog="1" correction_tolerance_threshold="1e-8" residual_tolerance_threshold="1e-8" should_diverge_when_residual_is_growing="1" newton_iterations="1"/>
+            <CGLinearSolver name="lsolver" iterations="100" tolerance="1e-20" threshold="1e-20"/>
+            <PointSetTopologyContainer name='pointTopo' position='0.16 0.06 0.01  0.16 0.06 0.025  0.16 0.06 0.040  0.16 0.06 0.055   0.16 0.06 0.070   0.175 0.06 0.01  0.175 0.06 0.025  0.175 0.06 0.040  0.175 0.06 0.055   0.175 0.06 0.070'/>
+            <MechanicalObject name="MO" position="@pointTopo.position"/>
+            <LinearMovementConstraint indices="0 1 2 3 4 5 6 7 8 9" keyDisplacements="0 0 0    0.05 0.05 0" keyTimes="0 2"/>
             <!-- <MechanicalObject src="@/loader" name="MO" /> -->
-            <!-- <LinearMotionStateController indices="2 4 17 18 62 63 64 65 66 67 68 249 251 252 266 267 273 275 294 299 301" keyDisplacements="0 0 0    0.05 0.05 0" keyTimes="0 2"/> -->
-            <Sphere radius="0.002"/>
+            <!-- <LinearMovementConstraint indices="2 4 17 18 62 63 64 65 66 67 68 249 251 252 266 267 273 275 294 299 301" keyDisplacements="0 0 0    0.05 0.05 0" keyTimes="0 2"/> -->
+            <SphereCollisionModel radius="0.002"/>
         </Node>
         
         <Node name="defObject">
             <OptimParams name="springStiffness" template="Vector" optimize="0" numParams="15" initValue="1e4" printLog="1" />
 <!--                          prescribedParamKeys="0.0 10000 2000 8000  5.0 10000 2000 8000" exportParamFile=""/> -->
 <!--             <EulerImplicit name="odeSolver" printLog="false" rayleighStiffness="0.1"/> -->
-            <!-- <StaticSolver applyIncrementFactor="0"/>	 -->
-            <NewtonStaticSolver name="NewtonStatic" printLog="1" correctionTolerance="1e-8" residualTolerance="1e-8" convergeOnResidual="1" maxIt="1"/>   
+            <StaticSolver name="NewtonStatic" printLog="1" correction_tolerance_threshold="1e-8" residual_tolerance_threshold="1e-8" should_diverge_when_residual_is_growing="1" newton_iterations="1"/>
             <StepPCGLinearSolver name="StepPCG" iterations="10000" tolerance="1e-12" preconditioners="precond" verbose="1" precondOnTimeStep="0"/>
-            <!-- <SparsePARDISOSolver name="precond" symmetric="1"/> -->
-            <!-- <SparsePARDISOSolver symmetric="2"/> -->
-            <SparsePARDISOSolver name="precond" symmetric="1" exportDataToDir="" iterativeSolverNumbering="1"/>
+            <CGLinearSolver name="lsolver" iterations="100" tolerance="1e-20" threshold="1e-20"/>
             
             <MechanicalObject src="@/loader" name="Volume" />
             <WriteState filename="states/beamA1_1635_A.state"/>
 
-            
             <BoxROI name="allDOFs" box="-1 -1 -1 1 1 1"/>
-            <!-- <Monitor name="../obsBoundaryDA/beam1635_A_new" indices="@allDOFs.indices" ExportPositions="1" ExportVelocities="1" ExportForces="1"/> -->
+            <!-- <OptimMonitor name="../obsBoundaryDA/beam1635_A_new" indices="@allDOFs.indices" ExportPositions="1" ExportVelocities="1" ExportForces="1"/> -->
             
             <include href="Objects/TetrahedronSetTopology.xml" src="@/loader" />
             <UniformMass totalMass="0.2513"/>
 
             <BoxROI name="fixedBox1" box="-0.001 -0.001 -0.001   0.02 0.001 0.08"/>
-            <ExtendedRestShapeSpringForceField name="fixedSpring" printLog="1" points="@fixedBox1.indices" angularStiffness="0" stiffness="@springStiffness.value" springThickness="1" listening="1" forceDir="springForces"/>
+            <RestShapeSpringsForceField name="fixedSpring" printLog="1" points="@fixedBox1.indices" angularStiffness="0" stiffness="@springStiffness.value" listening="1" forceDir="springForces"/>
             <!-- <FixedConstraint indices="@fixedBox1.indices" /> -->
                                     
     <!-- 	<BoxROI name="fixedBox2" box="-0.05 -0.05 0.176   0.05 0.05 0.180"/> -->
     <!-- 	<FixedConstraint indices="@fixedBox2.indices" /> -->
 <!--             <Indices2ValuesMapper name="youngMapper" inputValues="@loader.dataset" indices="1 2 3" values="@paramE.value"/> -->
             <TetrahedronFEMForceField name="FEM" listening="true" updateStiffness="1"  youngModulus="1e5" poissonRatio="0.45" method="large"  computeVonMisesStress="0" drawHeterogeneousTetra="1" printLog="0"/>
-
-            <!-- <MJEDTetrahedralForceField materialName="StVenantKirchhoff" ParameterSet="3.4483e+04 3.1034e+05"/> -->
-
     <!-- 	<TetrahedronFEMForceField name="FEM" listening="true" updateStiffness="1"  youngModulus="@paramE.value" poissonRatio="0.45" method="large"  computeVonMisesStress="0" drawHeterogeneousTetra="1"/> -->
     <!-- 	<VTKExporter filename="cylinder.vtk" XMLformat="true" listening="true" edges="0" triangles="0" quads="0" tetras="1" exportAtEnd="true"/> -->
 
             <Node>
                 <MeshSubsetEngine name="subset" inputPosition="@/loader.position" indices="@../fixedBox1.indices"/>
                 <MechanicalObject src="@./subset" name="Volume" />
-                <Sphere radius="0.001"/>
+                <SphereCollisionModel radius="0.001"/>
             </Node>
             
     <!-- 	<Node name="obsNode" activated="1"> -->
@@ -75,21 +68,19 @@
                     <MeshSTLLoader filename="../../data/beam/beamA1_1635.stl" name="loader" />
                     <include href="Objects/TriangleSetTopology.xml" src="@loader" />
                     <MechanicalObject src="@loader" name="Surface"/>
-                    <Line color="0 0 0 1"/>
-                    <Triangle color="1 0 0 1"/>
+                    <LineCollisionModel color="0 0 0 1"/>
+                    <TriangleCollisionModel color="1 0 0 1"/>
                     <BarycentricMapping/>
                     <!-- <VTKExporter filename="vtkExp/beam" XMLformat="true" listening="true" edges="0" triangles="1" quads="0" tetras="0" exportAtEnd="0" exportEveryNumberOfSteps="1"/> -->
             </Node>
 
-          <!--   <ExtendedRestShapeSpringForceField name="toolSpring" angularStiffness="0" stiffness="1e5" external_rest_shape="../toolEmu/MO" startTimeSpringOn="0" numStepsSpringOn="10000" drawSpring="1" listening="1" updateStiffness="1" springColor="0 1 0 1"
-            points="2 4 17 18 62 63 64 65 66 67 68 249 251 252 266 267 273 275 294 299 301 " 
-            external_points="2 4 17 18 62 63 64 65 66 67 68 249 251 252 266 267 273 275 294 299 301"/> -->
+          <!--   <RestShapeSpringsForceField name="toolSpring" angularStiffness="0" stiffness="1e5" external_rest_shape="@../toolEmu/MO" drawSpring="1" listening="1" springColor="0 1 0 1"
+            points="2 4 17 18 62 63 64 65 66 67 68 249 251 252 266 267 273 275 294 299 301" external_points="2 4 17 18 62 63 64 65 66 67 68 249 251 252 266 267 273 275 294 299 301"/> -->
             
-            <Mapped3DoFForceField mappedFEM="mappedTool/toolSpring" mappedMechObject="mappedTool/MO" mapping="mappedTool/baryMapping" printLog="0"/>
             <Node name="mappedTool">
                 <MechanicalObject name="MO" position="0.16 0.06 0.01  0.16 0.06 0.025  0.16 0.06 0.040  0.16 0.06 0.055   0.16 0.06 0.070   0.175 0.06 0.01  0.175 0.06 0.025  0.175 0.06 0.040  0.175 0.06 0.055   0.175 0.06 0.070"/>            
-                <ExtendedRestShapeSpringForceField name="toolSpring" angularStiffness="0" stiffness="1e5" external_rest_shape="../../toolEmu/MO" startTimeSpringOn="0" numStepsSpringOn="10000" drawSpring="1" listening="1" updateStiffness="1" springColor="0 1 0 1" printLog="0" />
-                <Sphere radius="0.002" color="0 0 1 1"/> 
+                <RestShapeSpringsForceField name="toolSpring" angularStiffness="0" stiffness="1e5" external_rest_shape="@../../toolEmu/MO" drawSpring="1" listening="1" springColor="0 1 0 1" printLog="0" />
+                <SphereCollisionModel radius="0.002" color="0 0 1 1"/>
                 <BarycentricMapping name="baryMapping"/>
             </Node>
         </Node>

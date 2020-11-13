@@ -90,6 +90,7 @@ class synth1_GenObs(Sofa.PythonScriptController):
         simuNode.createObject('MechanicalObject', src='@loader', showIndicesScale='0.00025', name='MO', template='Vec3d', showIndices='0')
         simuNode.createObject('UniformMass', totalMass='0.01')
 
+        ### material parameters
         lamb=(E*nu)/((1+nu)*(1-2*nu))
         mu=E/(2+2*nu)
         materialParams='{} {}'.format(mu,lamb)
@@ -101,6 +102,7 @@ class synth1_GenObs(Sofa.PythonScriptController):
         simuNode.createObject('RestShapeSpringsForceField', name='fixingSpring', stiffness='1e5', points='@FROI1.indices', springColor='0 1 0 1')
         simuNode.createObject('PointsFromIndices', template='Vec3d', name='FixedPoints', indices='@FROI1.indices')
 
+        ### export observations
         if saveObservations:
             simuNode.createObject('VTKExporter', name='ObsExp', position="@MO.position", listening="1" , XMLformat='0', exportAtBegin="1", exportAtEnd='0', exportEveryNumberOfSteps="0", filename=outputDir+'/object.vtk', tetras='1', edges='0')
 

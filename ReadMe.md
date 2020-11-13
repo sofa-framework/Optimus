@@ -198,24 +198,20 @@ Examples are given folder examples:
 
 `SingleParameterIdentification`
 
--   An example showing stochastic identification of Young's modulus of a homogeneous beam subjected to gravity. 
+-   An example showing stochastic identification of Young's modulus of a homogeneous beam subjected to gravity.
 
 -   It's necessary to generate observations first: runSofa identify1YoungMod_GenObs.py --argv beamApplyForce.yml
 
 -   The data assimilation is exectued by running: runSofa identify1YoungMod_SDA.py --argv beamApplyForce.yml
 
--   The example requires Pardiso plugin and ImageMeshAux plugin.
-
 
 `MultipleParameterIdentification`
 
--	An example similar to previous, but estimated 10 Young's moduli of a heterogeneous cylinder under gravity. 
+-   An example similar to previous, but estimated 10 Young's moduli of a heterogeneous cylinder under gravity.
 
 -   It's necessary to generate observations first: runSofa identify10YoungMods_GenObs.py --argv cylinder10AppliedGravity.yml
 
 -   The data assimilation is exectued by running: runSofa identify10YoungMods_SDA.py --argv cylinder10AppliedGravity.yml
-
--   The example requires Pardiso plugin and ImageMeshAux plugin.
 
 
 More examples will be added soon. 
