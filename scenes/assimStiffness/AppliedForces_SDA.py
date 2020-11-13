@@ -9,11 +9,13 @@ import numpy as np
 
 __file = __file__.replace('\\', '/') # windows
 
+
+
 def createScene(rootNode):
-    rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
-    rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
     rootNode.createObject('RequiredPlugin', name='Exporter', pluginName='SofaExporter')
     rootNode.createObject('RequiredPlugin', name='Visual', pluginName='SofaOpenglVisual')
+    rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
+    rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
 
     try:
         sys.argv[0]
@@ -22,17 +24,15 @@ def createScene(rootNode):
     else:
         commandLineArguments = sys.argv
 
-
     if len(commandLineArguments) > 1:
         configFileName = commandLineArguments[1]
     else:
         print 'ERROR: Must supply a yaml config file as an argument!'
         return
 
-
     with open(configFileName, 'r') as stream:
         try:
-            options = yaml.load(stream)            
+            options = yaml.safe_load(stream)
 
         except yaml.YAMLError as exc:
             print(exc)
@@ -46,6 +46,8 @@ def createScene(rootNode):
     return 0;
 
 
+
+
 class AppliedForces_SDA(Sofa.PythonScriptController):
 
     def __init__(self, rootNode, opt):
@@ -54,7 +56,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         pp = pprint.PrettyPrinter(indent=4)
         pp.pprint(opt)
 
-        # extarct configuration data
+        ### extract configuration data
         self.planeCollision = opt['model']['plane_collision']
         self.saveEst = opt['io']['saveEst']
         self.saveGeo = opt["io"]["saveGeo"]
@@ -73,10 +75,10 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         elif 'prescribed_displacement' in self.opt['model'].keys():
             self.excitation = 'displ'
 
-        # generate output folders
+        ### generate output folders
         self.mainFolder = object + '_' + str(opt['model']['num_el']) + '_' + self.excitation + '_' + opt['model']['fem']['method'] + '_' +  opt['model']['int']['type'] + str(opt['model']['int']['maxit']) + '_' + str(opt['io']['suffix'])
 
-        print 'Reading observations from ',self.mainFolder
+        print 'Reading observations from ', self.mainFolder
         self.obsFile = self.mainFolder + '/obs'
         self.estFolder = self.mainFolder + '/' + opt['filter']['kind'] + '_' + str(opt['model']['num_el_sda']) + '_' + opt['io']['sdaFolderSuffix']
 
@@ -91,7 +93,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             os.system('rm '+self.stateVarFile)
             os.system('rm '+self.stateCovarFile)
 
-            # create file with parameters and additional information
+            ### create file with parameters and additional information
             self.opt['visual_parameters'] = {}
             self.opt['visual_parameters']['state_file_name'] = self.stateExpFile[self.stateExpFile.rfind('/') + 1:]
             self.opt['visual_parameters']['variance_file_name'] = self.stateVarFile[self.stateVarFile.rfind('/') + 1:]
@@ -99,7 +101,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             self.informationFileName = self.estFolder + '/daconfig.yml'
             with open(self.informationFileName, 'w') as stream:
                 try:
-                    yaml.dump(self.opt, stream, default_flow_style=False)
+                    yaml.dump(self.opt, stream, default_flow_style = False)
                 except yaml.YAMLError as exc:
                     print(exc)
 
@@ -107,15 +109,16 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             self.geoFolder = self.estFolder + '/VTK'
             os.system('mkdir -p '+self.geoFolder)
 
-
         self.createGraph(rootNode)
         if opt['time']['time_profiling']:
             self.createTimeProfiler()
 
         return
 
+
+
     def createGraph(self, rootNode):
-        # scene global stuff
+        ### scene global stuff
         self.step = 0
         self.rootNode = rootNode
         self.iterations = 0
@@ -127,7 +130,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
 
         rootNode.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1", printLog='1')
 
-        # filter data
+        ### filter data
         self.filterKind = self.opt['filter']['kind']
         if self.filterKind == 'ROUKF':
             self.filter = rootNode.createObject('ROUKFilter', name="ROUKF", verbose="1", useBlasToMultiply='1', sigmaTopology=self.opt['filter']['sigma_points_topology'])
@@ -139,11 +142,11 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             self.filter = rootNode.createObject('UKFilterClassic', name="UKFClas", printLog='1', verbose="1", sigmaTopology=self.opt['filter']['sigma_points_topology'], exportPrefix=self.estFolder)
             estimatePosition = 1
 
-        # object loader
+        ### object loader
         rootNode.createObject('MeshVTKLoader', name='loader', filename=self.meshFile+'.vtk')
         rootNode.createObject('MeshSTLLoader', name='sloader', filename=self.meshFile+'.stl')
 
-        # general node
+        ### general node
         modelNode=rootNode.createChild('ModelNode')
 
         if self.planeCollision == 1:
@@ -153,7 +156,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             modelNode.createObject('LocalMinDistance', name="Proximity",  alarmDistance='0.002', contactDistance='0.001',  angleCone='90.0', filterIntersection='0')
             modelNode.createObject('DefaultContactManager', name="Response", response="FrictionContact", responseParams='mu=0')
 
-        # node to generate external displacement
+        ### node to generate external displacement
         if 'prescribed_displacement' in self.opt['model'].keys():
             phant = modelNode.createChild('phant')
             phant.createObject('PreStochasticWrapper')
@@ -164,7 +167,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             phant.createObject('ShowSpheres', position='@MO.position', color='0 0 1 1', radius='0.001')
             # phant.createObject('VTKExporterDA', filename=self.geoFolder+'/objectPhant.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="1", exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1", printLog='0')
 
-        # object node
+        ### object node
         simuNode=modelNode.createChild('cylinder')
 
         if self.filterKind == 'UKFClassic':
@@ -175,7 +178,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         else:
             simuNode.createObject('StochasticStateWrapper',name="StateWrapper",verbose='1', printLog='1', langrangeMultipliers=self.planeCollision, estimatePosition=estimatePosition, estimateVelocity='0', draw='1', radiusDraw='0.0002')
 
-        # solvers
+        ### solvers
         intType = self.opt['model']['int']['type']
         if intType == 'Euler':
             firstOrder = self.opt['model']['int']['first_order']
@@ -186,7 +189,6 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             maxIt = self.opt['model']['int']['maxit']
             simuNode.createObject('StaticSolver', name="NewtonStatic", correction_tolerance_threshold="1e-8", residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1",  newton_iterations=maxIt, printLog='1')
 
-
         linType = self.opt['model']['int']['lin_type']
         if linType == 'Pardiso':
             simuNode.createObject('SparsePARDISOSolver', name='lsolver', verbose='0', pardisoSchurComplement=self.planeCollision, symmetric=self.opt['model']['linsol']['pardisoSym'], exportDataToFolder=self.opt['model']['linsol']['pardisoFolder'])
@@ -195,7 +197,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             if self.opt['model']['linsol']['usePCG']:
                 simuNode.createObject('StepPCGLinearSolver', name='lsolverit', precondOnTimeStep='1', use_precond='1', tolerance='1e-10', iterations='500', verbose='1', listening='1', update_step=self.opt['model']['linsol']['PCGUpdateSteps'], preconditioners='lsolver')
 
-        # mechanical object
+        ### mechanical object
         simuNode.createObject('MechanicalObject', src="@/loader", name="Volume")
         simuNode.createObject('TetrahedronSetTopologyContainer', name="Container", src="@/loader", tags=" ")
         simuNode.createObject('TetrahedronSetTopologyModifier', name="Modifier")
@@ -209,7 +211,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         if 'density' in self.opt['model'].keys():
             simuNode.createObject('MeshMatrixMass', printMass='0', lumping='1', massDensity=self.opt['model']['density'], name='mass')
 
-        # material and elasticiy properties
+        ### material and elasticiy properties
         simuNode.createObject('OptimParams', name="paramE", optimize="1", template="Vector",
             numParams=self.opt['filter']['nparams'], transformParams=self.opt['filter']['param_transform'],
             initValue=self.opt['filter']['param_init_exval'], stdev=self.opt['filter']['param_init_stdev'],
@@ -227,11 +229,11 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             simuNode.createObject('Indices2ValuesTransformer', name='paramMapper', indices=indices, values1='@paramE.value', values2=poissonRatii, inputValues='@loader.dataset', transformation='ENu2MuLambda')
             simuNode.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet='@paramMapper.outputValues', drawHeterogeneousTetra='1')
 
-        # boundary conditions
+        ### boundary conditions
         simuNode.createObject('BoxROI', box=self.opt['model']['bc']['boxes'], name='fixedBox')
         simuNode.createObject('FixedConstraint', indices='@fixedBox.indices')
 
-        # external impact
+        ### external impact
         if 'applied_force' in self.opt['model'].keys():
             simuNode.createObject('BoxROI', name='forceBox', box=self.opt['model']['applied_force']['boxes'])
             self.appliedForce = simuNode.createObject('ConstantForceField', force=self.opt['model']['applied_force']['initial_force'], indices='@forceBox.indices')
@@ -247,16 +249,14 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
 
         if 'prescribed_displacement' in self.opt['model'].keys():
             simuNode.createObject('BoxROI', name='prescDispBox', box=self.opt['model']['prescribed_displacement']['boxes'])
-            simuNode.createObject('ExtendedRestShapeSpringForceField', numStepsSpringOn='10000', stiffness=self.opt['model']['prescribed_displacement']['spring_stiffness'], name='toolSpring', 
-                springColor='0 1 0 1', drawSpring='1', updateStiffness='1', printLog='0', listening='1', angularStiffness='0', startTimeSpringOn='0',
-                external_rest_shape='../phant/MO', points='@prescDispBox.indices', external_points='@prescDispBox.indices', springThickness=4, showIndicesScale=0.0)
+            simuNode.createObject('RestShapeSpringForceField', stiffness=self.opt['model']['prescribed_displacement']['spring_stiffness'], name='toolSpring', springColor='0 1 0 1', drawMode='1', printLog='0', listening='1', external_rest_shape='../phant/MO', points='@prescDispBox.indices', external_points='@prescDispBox.indices', showIndicesScale=0.0)
 
-        # export data
+        ### export data
         if self.saveGeo:
             simuNode.createObject('VTKExporterDA', filename=self.geoFolder+'/object.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="1", exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1", printLog='0')
 
 
-        # process collision data
+        ### process collision data
         if self.planeCollision == 1:
             # simuNode.createObject('LinearSolverConstraintCorrection')
             simuNode.createObject('PardisoConstraintCorrection', solverName='lsolver', schurSolverName='lsolver')
@@ -271,7 +271,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             surface.createObject('PointCollisionModel', color='1 0 0 1', group=0)
             surface.createObject('BarycentricMapping', name='bpmapping')
 
-        # node with groundtruth observations
+        ### node with groundtruth observations
         obsNode = simuNode.createChild('observations')
         obsNode.createObject('MeshVTKLoader', name='obsloader', filename=self.obsPoints)
         obsNode.createObject('MechanicalObject', name='SourceMO', position='@obsloader.position')
@@ -283,12 +283,12 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         obsNode.createObject('ShowSpheres', name="groundTruth", radius="0.0015", color="1 1 0 1", position='@MOBS.mappedObservations')
 
 
-        # visual node
+        ### visual node
         oglNode = simuNode.createChild('visualization')
         oglNode.createObject('OglModel', color='1 0 0 1')
         oglNode.createObject('BarycentricMapping')
 
-        # plane floor for collision
+        ### plane floor for collision
         if self.planeCollision == 1:
             floor = modelNode.createChild('floor')
             floor.createObject('RegularGrid', nx="2", ny="2", nz="2", xmin="-0.1", xmax="0.1",  ymin="-0.059", ymax="-0.061", zmin="0.0", zmax="0.3")
@@ -300,14 +300,14 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         return 0
 
 
-    def initGraph(self,node):
+    def initGraph(self, node):
         return 0
 
     def bwdInitGraph(self, node):
     	self.exportStochasticState()
     	return 0
 
-    # apply external impact
+    ### apply external impact
     def onBeginAnimationStep(self, deltaTime):
         self.step += 1
         if self.opt['time']['time_profiling']:
@@ -341,11 +341,11 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         return 0
 
 
-    # export time statistics
+    ### export time statistics
     def createTimeProfiler(self):
         print 'Time statistics file: ' + self.estFolder + '/' + self.opt['time']['time_statistics_file']
-        Sofa.timerSetInterval(self.opt['time']['timer_name'], self.opt['time']['iterations_interval'])    # Set the number of steps neded to compute the timer
-        Sofa.timerSetOutputType(self.opt['time']['timer_name'], 'json')    # Set output file format
+        Sofa.timerSetInterval(self.opt['time']['timer_name'], self.opt['time']['iterations_interval'])    ### Set the number of steps neded to compute the timer
+        Sofa.timerSetOutputType(self.opt['time']['timer_name'], 'json')    ### Set output file format
         with open(self.estFolder + '/' + self.opt['time']['time_statistics_file'], "a") as outputFile:
             outputFile.write('{')
             outputFile.close()
@@ -361,7 +361,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
                     with open(self.estFolder + '/' + self.opt['time']['time_statistics_file'], "a") as outputFile:
                         outputFile.write(result + ",")
                         outputFile.close()
-            # replace last symbol
+            ### replace last symbol
             if self.iterations == self.opt['time']['iteration_amount']:
                 with open(self.estFolder + '/' + self.opt['time']['time_statistics_file'], "a") as outputFile:
                     outputFile.seek(-1, os.SEEK_END)
@@ -372,7 +372,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         return 0
 
 
-    # save filtering data to files
+    ### save filtering data to files
     def exportStochasticState(self):
         if self.saveEst:
             stateName = 'reducedState' if self.filterKind == 'ROUKF' else 'state'
@@ -402,10 +402,9 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
 
             rcv=self.filter.findData(covarName).value
             covariance = [val for sublist in rcv for val in sublist]
-            #print 'Covariance:', covariance
+            # print 'Covariance:', covariance
             estStd = np.sqrt(variance)
             print 'Correlation: ', covariance[0]/(np.prod(estStd))
-
 
             f3 = open(self.stateCovarFile, "a")
             f3.write(" ".join(map(lambda x: str(x), covariance)))
@@ -424,6 +423,6 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
 
         return 0;
 
-    def onScriptEvent(self, senderNode, eventName,data):
+    def onScriptEvent(self, senderNode, eventName, data):
         return 0;
 

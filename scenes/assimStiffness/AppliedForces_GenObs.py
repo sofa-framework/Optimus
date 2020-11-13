@@ -9,6 +9,8 @@ import numpy as np
 
 __file = __file__.replace('\\', '/') # windows
 
+
+
 def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
     rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
@@ -21,17 +23,15 @@ def createScene(rootNode):
     else:
         commandLineArguments = sys.argv
 
-
     if len(commandLineArguments) > 1:
         configFileName = commandLineArguments[1]
     else:
         print 'ERROR: Must supply a yaml config file as an argument!'
         return
 
-
     with open(configFileName, 'r') as stream:
         try:
-            options = yaml.load(stream)
+            options = yaml.safe_load(stream)
 
         except yaml.YAMLError as exc:
             print(exc)
@@ -45,6 +45,8 @@ def createScene(rootNode):
     return 0;
 
 
+
+
 class AppliedForces_GenObs(Sofa.PythonScriptController):
 
     def __init__(self, rootNode, opt):
@@ -53,7 +55,7 @@ class AppliedForces_GenObs(Sofa.PythonScriptController):
         pp = pprint.PrettyPrinter(indent=4)
         pp.pprint(opt)
 
-        # extract configuration data
+        ### extract configuration data
         self.saveObs = opt['io']['saveObs']
         self.saveGeo = opt["io"]["saveGeo"]
         self.planeCollision = opt['model']['plane_collision']
@@ -67,7 +69,7 @@ class AppliedForces_GenObs(Sofa.PythonScriptController):
         elif 'prescribed_displacement' in self.opt['model'].keys():
             self.excitation = 'displ'
 
-        # generate output folders
+        ### generate output folders
         if self.saveObs or self.saveGeo:
             object = opt['model']['object']
             if self.planeCollision:
@@ -78,7 +80,6 @@ class AppliedForces_GenObs(Sofa.PythonScriptController):
 
             os.system('mv '+self.mainFolder+' '+self.mainFolder+'_arch')
             os.system('mkdir '+self.mainFolder)
-
 
         if self.saveObs:
             self.obsPoints = opt['model']['obs_points']
@@ -92,7 +93,9 @@ class AppliedForces_GenObs(Sofa.PythonScriptController):
 
         return None;
 
-    def createGraph(self,rootNode):
+
+
+    def createGraph(self, rootNode):
         self.step = 0
         rootNode.findData('dt').value = self.opt['model']['dt']
         rootNode.findData('gravity').value = self.opt['model']['gravity']
@@ -102,13 +105,12 @@ class AppliedForces_GenObs(Sofa.PythonScriptController):
         if self.planeCollision == 1:
             rootNode.createObject('FreeMotionAnimationLoop')
             rootNode.createObject('GenericConstraintSolver', maxIterations='1000', tolerance='1e-6', printLog='0', allVerified='0')
-
             rootNode.createObject('DefaultPipeline', depth="6", verbose="0", draw="0")
             rootNode.createObject('BruteForceDetection', name="N2")
             rootNode.createObject('LocalMinDistance', name="Proximity",  alarmDistance='0.002', contactDistance='0.001',  angleCone='90.0', filterIntersection='0')
             rootNode.createObject('DefaultContactManager', name="Response", response="FrictionContact", responseParams='mu=0')
 
-        # node to generate external displacement
+        ### node to generate external displacement
         if 'prescribed_displacement' in self.opt['model'].keys():
             phant = rootNode.createChild('phant')
             phant.createObject('MeshVTKLoader', name='loader', filename=self.meshFile+'.vtk')
@@ -118,18 +120,17 @@ class AppliedForces_GenObs(Sofa.PythonScriptController):
             # phant.createObject('ShowSpheres', position='@MO.position', color='0 0 1 1', radius='0.001')
             phant.createObject('Mesh', src='@loader')
             # phant.createObject('VTKExporter', filename=self.geoFolder+'/objectPhant.vtk', XMLformat='0', listening='1', edges="0", triangles="0", quads="0", tetras="1", exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1", printLog='0')
-    
 
-        # general node
+        ### general node
         simuNode = rootNode.createChild('simuNode')
         self.simuNode = simuNode
 
-        # solvers
+        ### solvers
         intType = self.opt['model']['int']['type']
         if intType == 'Euler':
             firstOrder = self.opt['model']['int']['first_order']
             rmass = self.opt['model']['int']['rmass']
-            rstiff = self.opt['model']['int']['rstiff']        
+            rstiff = self.opt['model']['int']['rstiff']
             simuNode.createObject('EulerImplicitSolver', firstOrder = firstOrder, rayleighStiffness=rstiff, rayleighMass=rmass)
         elif intType == 'Newton':
             maxIt = self.opt['model']['int']['maxit']
@@ -144,7 +145,7 @@ class AppliedForces_GenObs(Sofa.PythonScriptController):
             # simuNode.createObject('ShewchukPCGLinearSolver', name='lsolverit', iterations='500', use_precond='1', tolerance='1e-10', preconditioners='lsolver')
 
 
-        # mechanical object
+        ### mechanical object
         simuNode.createObject('MeshVTKLoader', name='loader', filename=self.meshFile+'.vtk')
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')
         simuNode.createObject('TetrahedronSetTopologyContainer', name="Container", src="@loader", tags=" ")
@@ -159,7 +160,7 @@ class AppliedForces_GenObs(Sofa.PythonScriptController):
         if 'density' in self.opt['model'].keys():
             simuNode.createObject('MeshMatrixMass', printMass='0', lumping='1', massDensity=self.opt['model']['density'], name='mass')
 
-        # material and elasticiy properties
+        ### material and elasticiy properties
         youngModuli=self.opt['model']['young_modulus']
         poissonRatio = self.opt['model']['poisson_ratio']
         indices = range(1, len(youngModuli)+1)
@@ -173,11 +174,11 @@ class AppliedForces_GenObs(Sofa.PythonScriptController):
             simuNode.createObject('Indices2ValuesTransformer', name='paramMapper', indices=indices, values1=youngModuli, values2=poissonRatii, inputValues='@loader.dataset', transformation='ENu2MuLambda')
             simuNode.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet='@paramMapper.outputValues', drawHeterogeneousTetra='1')
 
-        # boundary conditions
+        ### boundary conditions
         simuNode.createObject('BoxROI', box=self.opt['model']['bc']['boxes'], name='fixedBox', drawBoxes='1')
         simuNode.createObject('FixedConstraint', indices='@fixedBox.indices')
 
-        # external impact
+        ### external impact
         if 'applied_force' in self.opt['model'].keys():
             simuNode.createObject('BoxROI', name='forceBox', box=self.opt['model']['applied_force']['boxes'])
             self.appliedForce = simuNode.createObject('ConstantForceField', force=self.opt['model']['applied_force']['initial_force'], indices='@forceBox.indices')
@@ -195,12 +196,10 @@ class AppliedForces_GenObs(Sofa.PythonScriptController):
             simuNode.createObject('BoxROI', name='prescDispBox', box=self.opt['model']['prescribed_displacement']['boxes'])
             simuNode.createObject('ExtendedRestShapeSpringForceField', numStepsSpringOn='10000', stiffness=self.opt['model']['prescribed_displacement']['spring_stiffness'], name='toolSpring', springColor='0 1 0 1', drawSpring='1', updateStiffness='1', printLog='0', listening='1', angularStiffness='0', startTimeSpringOn='0', external_rest_shape='/phant/MO', points='@prescDispBox.indices', external_points='@prescDispBox.indices')
 
-
-        # export data
+        ### export data
         if self.saveGeo:
             expField='youngMapper.outputValues'
             simuNode.createObject('VTKExporter', filename=self.geoFolder+'/object.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="1", exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1", cellsDataFields=expField, printLog='0')
-
 
         if self.saveObs:
             obsNode = simuNode.createChild('obsNode')
@@ -211,14 +210,11 @@ class AppliedForces_GenObs(Sofa.PythonScriptController):
             obsNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.obsFile, ExportPositions='1', ExportVelocities='0', ExportForces='0')
             obsNode.createObject('ShowSpheres', radius="0.002", color="1 0 0 1", position='@MO.position')
 
-
-        # add collision data
+        ### add collision data
         if self.planeCollision:
             simuNode.createObject('PardisoConstraintCorrection', solverName='lsolver', schurSolverName='lsolver')
             # simuNode.createObject('LinearSolverConstraintCorrection')
 
-
-        if self.planeCollision:
             surface=simuNode.createChild('collision')
             surface.createObject('MeshSTLLoader', name='sloader', filename=self.opt['model']['surf_mesh'])
             surface.createObject('TriangleSetTopologyContainer', position='@sloader.position', name='TriangleContainer', triangles='@sloader.triangles')
@@ -229,7 +225,6 @@ class AppliedForces_GenObs(Sofa.PythonScriptController):
             surface.createObject('PointCollisionModel', color='1 0 0 1', group=0)
             surface.createObject('BarycentricMapping', name='bpmapping')
 
-        if self.planeCollision:
             floor = simuNode.createChild('floor')
             floor.createObject('RegularGrid', nx="2", ny="2", nz="2", xmin="-0.1", xmax="0.1",  ymin="-0.059", ymax="-0.061", zmin="0.0", zmax="0.3")
             floor.createObject('MechanicalObject', template="Vec3d")
@@ -237,7 +232,7 @@ class AppliedForces_GenObs(Sofa.PythonScriptController):
             floor.createObject('LineCollisionModel', simulated="false", bothSide="true", contactFriction="0.0")
             floor.createObject('PointCollisionModel', simulated="false", bothSide="true", contactFriction="0.0")
 
-        # visual node
+        ### visual node
         oglNode = simuNode.createChild('oglNode')
         oglNode.createObject('OglModel')
         oglNode.createObject('BarycentricMapping')
@@ -245,7 +240,7 @@ class AppliedForces_GenObs(Sofa.PythonScriptController):
         return 0;
 
 
-    # apply external impact
+    ### apply external impact
     def onBeginAnimationStep(self, deltaTime):
         self.step += 1
         if 'applied_force' in self.opt['model'].keys():
@@ -275,8 +270,6 @@ class AppliedForces_GenObs(Sofa.PythonScriptController):
         return 0;
 
     def cleanup(self):
-        if self.saveObs or self.saveGeo:
-            print 'Observations saved to '+self.mainFolder
         return 0;
 
     def onEndAnimationStep(self, deltaTime):
@@ -291,6 +284,6 @@ class AppliedForces_GenObs(Sofa.PythonScriptController):
     def bwdInitGraph(self, node):
         return 0;
 
-    def onScriptEvent(self, senderNode, eventName,data):
+    def onScriptEvent(self, senderNode, eventName, data):
         return 0;
 

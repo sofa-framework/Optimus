@@ -6,6 +6,8 @@ import csv
 
 __file = __file__.replace('\\', '/') # windows
 
+
+
 def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
     rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
@@ -13,12 +15,12 @@ def createScene(rootNode):
 
 
 
-# Class definition 
+
 class synth1_BCDA(Sofa.PythonScriptController):
 
     def createGraph(self, node):
-        self.cameraReactivated=False
-        self.rootNode=node
+        self.cameraReactivated = False
+        self.rootNode = node
 
         print "Create graph called (Python side)\n"
 
@@ -74,16 +76,16 @@ class synth1_BCDA(Sofa.PythonScriptController):
         # self.obsInitSD = 1e-4
 
         os.system('mkdir -p outCyl10plane')
-        self.createGlobalComponents(node)                
+        self.createGlobalComponents(node)
         masterNode = node.createChild('SimulationScene')
-        self.createMasterScene(masterNode)        
+        self.createMasterScene(masterNode)
 
         return 0
 
 
-    
+
     def createGlobalComponents(self, node):
-        # scene global stuff
+        ### scene global stuff
         node.findData('gravity').value=self.gravity
         node.findData('dt').value=self.dt
 
@@ -92,13 +94,13 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
         node.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")
 
-        # filter data
+        ### filter data
         if self.filterKind == 'ROUKF':
             self.filter = node.createObject('ROUKFilter', name="ROUKF", verbose="1")
         elif self.filterKind == 'UKFSimCorr':
             self.filter = node.createObject('UKFilterSimCorr', name="UKFSC", verbose="1")
 
-        # object loader
+        ### object loader
         node.createObject('MeshVTKLoader', name='loader', filename=self.volumeFileName)
         node.createObject('MeshSTLLoader', name='sloader', filename=self.surfaceFileName)
 
@@ -121,10 +123,10 @@ class synth1_BCDA(Sofa.PythonScriptController):
         return 0
 
 
-    # common components for simulation
+    ### common components for simulation
     def createDeformableBody(self, parentNode):
         node=parentNode.createChild('cylinder')
-        # solvers
+        ### solvers
         if self.integration == 'Euler':
             node.createObject('EulerImplicitSolver', rayleighStiffness=self.rayleighStiffness, rayleighMass=self.rayleighMass)
         elif self.integration == 'Newton':
@@ -138,7 +140,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
             node.createObject('CGLinearSolver', name='lsolverit', tolerance='1e-10', threshold='1e-10', iterations='500', verbose='0')
             #node.createObject('StepPCGLinearSolver', name='lsolverit', precondOnTimeStep='1', use_precond='1', tolerance='1e-15', iterations='500', verbose='0', update_step='10', listening='1', preconditioners='lsolver')
 
-        # mechanical object
+        ### mechanical object
         node.createObject('MechanicalObject', src="@/loader", name="Volume")
         node.createObject('TetrahedronSetTopologyContainer', name="Container", src="@/loader", tags=" ")
         node.createObject('TetrahedronSetTopologyModifier', name="Modifier")
@@ -146,11 +148,11 @@ class synth1_BCDA(Sofa.PythonScriptController):
         node.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
         node.createObject('UniformMass', totalMass=self.totalMass)
 
-        # boundary conditions
+        ### boundary conditions
         node.createObject('BoxROI', box='-0.05 -0.05 -0.002 0.05 0.05 0.002  -0.05 -0.05  0.298 0.05 0.05 0.302', name='fixedBox', doUpdate='0')
         node.createObject('FixedConstraint', indices='@fixedBox.indices')
 
-        # stiffness estimation
+        ### stiffness estimation
         node.createObject('OptimParams', name="paramE", optimize="1", numParams='10', template="Vector", initValue="6000", stdev="1000", transformParams="absolute")
         node.createObject('Indices2ValuesMapper', name='youngMapper', indices='1 2 3 4 5 6 7 8 9 10', values='@paramE.value', inputValues='@/loader.dataset')
         node.createObject('TetrahedronFEMForceField', name='FEM', updateStiffness='1', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
@@ -159,8 +161,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
             node.createObject('PardisoConstraintCorrection', solverName='lsolver', schurSolverName='lsolver')
             # node.createObject('LinearSolverConstraintCorrection')
 
-        # create collision model
-        if self.planeCollision == 1:
+            ### create collision model
             surface=node.createChild('collision')
             surface.createObject('TriangleSetTopologyContainer', position='@/sloader.position', name='TriangleContainer', triangles='@/sloader.triangles')
             surface.createObject('TriangleSetTopologyModifier', name='Modifier')
@@ -170,7 +171,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
             surface.createObject('PointCollisionModel', color='1 0 0 1', group=0)
             surface.createObject('BarycentricMapping', name='bpmapping')
 
-        # node with groundtruth observations
+        ### node with groundtruth observations
         obsNode = node.createChild('observations')
         obsNode.createObject('MeshVTKLoader', name='obsLoader', filename=self.observationPointsFileName)
         obsNode.createObject('MechanicalObject', name='SourceMO', src="@obsLoader")
@@ -180,8 +181,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         obsNode.createObject('ShowSpheres', name="estimated", radius="0.002", color="1 0 0 1", position='@SourceMO.position')
         obsNode.createObject('ShowSpheres', name="groundTruth", radius="0.0015", color="1 1 0 1", position='@MOBS.mappedObservations')
 
-
-        # visual mode
+        ### visual mode
         oglNode = node.createChild('visualization')
         oglNode.createObject('OglModel', color='1 0 0 1')
         oglNode.createObject('BarycentricMapping')
@@ -189,19 +189,19 @@ class synth1_BCDA(Sofa.PythonScriptController):
         return 0
 
 
-    def createObstacle(self, node): 
+    def createObstacle(self, node):
         if self.planeCollision == 1:
             floor = node.createChild('floor')
             floor.createObject('RegularGrid', nx="2", ny="2", nz="2", xmin="-0.1", xmax="0.1",  ymin="-0.059", ymax="-0.061", zmin="0.0", zmax="0.3")
             floor.createObject('MechanicalObject', template="Vec3d")
             floor.createObject('Triangle',simulated="false", bothSide="true", contactFriction="0.00", color="1 1 0 1")
             floor.createObject('Line', simulated="false", bothSide="true", contactFriction="0.0", color="1 1 0 1")
-            floor.createObject('Point', simulated="false", bothSide="true", contactFriction="0.0", color="1 1 0 1")                                 
+            floor.createObject('Point', simulated="false", bothSide="true", contactFriction="0.0", color="1 1 0 1")
         return
 
 
 
-    def initGraph(self,node):
+    def initGraph(self, node):
         print 'Init graph called (python side)'
         self.step = 0
         self.total_time = 0
@@ -210,7 +210,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         return 0
 
 
-    # save filtering data to files
+    ### save filtering data to files
     def onEndAnimationStep(self, deltaTime):
 
         stateName = 'reducedState' if self.filterKind == 'ROUKF' else 'state'
@@ -253,6 +253,6 @@ class synth1_BCDA(Sofa.PythonScriptController):
         return 0
 
 
-    def onScriptEvent(self, senderNode, eventName,data):
+    def onScriptEvent(self, senderNode, eventName, data):
         return 0;
 
