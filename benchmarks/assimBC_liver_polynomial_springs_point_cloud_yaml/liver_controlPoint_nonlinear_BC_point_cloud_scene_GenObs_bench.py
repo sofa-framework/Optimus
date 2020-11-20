@@ -12,7 +12,6 @@ __file = __file__.replace('\\', '/') # windows
 def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
     rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
-    rootNode.createObject('RequiredPlugin', name='BoundaryConditions', pluginName="BoundaryConditionsPlugin")
 
     try:
         sys.argv[0]
@@ -49,6 +48,8 @@ class liver_controlPoint_GenObs(Sofa.PythonScriptController):
 
     def __init__(self, rootNode, options):
         self.options = options
+        if not os.path.isdir('obs_testing'):
+            os.mkdir('obs_testing')
         self.scenario_type = 'Generate_data'
         if 'scenario_type' in self.options['general_parameters'].keys() and self.options['general_parameters']['scenario_type'] == 'Validate_estimations':
             self.scenario_type = 'Validate_estimations'
@@ -141,8 +142,7 @@ class liver_controlPoint_GenObs(Sofa.PythonScriptController):
                     if self.options['boundary_parameters']['spring_type'] == 'PolynomialRestshape':
                         simuNode.createObject('PolynomialRestShapeSpringsForceField', listening="1", printLog="0", points='@boundBoxes'+str(index)+'.indices', initialLength=self.options['boundary_parameters']['initial_length'], polynomialDegree=bcElement['polynomial_degrees'], polynomialStiffness=bcElement['polynomial_stiffness_values'], drawMode='1')
                     elif self.options['boundary_parameters']['spring_type'] == 'Polynomial':
-                        simuNode.createObject('PolynomialRestShapeSpringsInitLengthForceField', polynomialStiffness=bcElement['polynomial_stiffness_values'], howIndicesScale='0', springThickness="3", listening="1", updateStiffness="1", printLog="0", points='@boundBoxes'+str(index)+'.indices', polynomialDegree=bcElement['polynomial_degrees'], external_rest_shape='../fixNode/fixElements', external_points=self.options['boundary_parameters']['external_indices'])
-                        #simuNode.createObject('PolynomialSpringsForceField', listening="1", printLog="0", object1='@.', firstObjectPoints='@boundBoxes'+str(index)+'.indices', object2='@../fixNode/fixElements', secondObjectPoints=self.options['boundary_parameters']['external_indices'], polynomialDegree=bcElement['polynomial_degrees'], polynomialStiffness=bcElement['polynomial_stiffness_values'], drawMode='1')
+                        simuNode.createObject('PolynomialSpringsForceField', listening="1", printLog="0", object1='@.', firstObjectPoints='@boundBoxes'+str(index)+'.indices', object2='@../fixNode/fixElements', secondObjectPoints=self.options['boundary_parameters']['external_indices'], polynomialDegree=bcElement['polynomial_degrees'], polynomialStiffness=bcElement['polynomial_stiffness_values'], drawMode='1')
                     else:
                         simuNode.createObject('RestShapeSpringForceField', stiffness=bcElement['spring_stiffness_values'], angularStiffness="1", points='@boundBoxes'+str(index)+'.indices')
                 else:
