@@ -9,6 +9,8 @@ import numpy as np
 
 __file = __file__.replace('\\', '/') # windows
 
+
+
 def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
     rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
@@ -22,13 +24,11 @@ def createScene(rootNode):
     else:
         commandLineArguments = sys.argv
 
-
     if len(commandLineArguments) > 1:
         configFileName = commandLineArguments[1]
     else:
         print 'ERROR: Must supply a yaml config file as an argument!'
         return
-
 
     with open(configFileName, 'r') as stream:
         try:
@@ -46,6 +46,8 @@ def createScene(rootNode):
     return 0;
 
 
+
+
 class AppliedForces_SDA(Sofa.PythonScriptController):
 
     def __init__(self, rootNode, opt):
@@ -54,7 +56,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         pp = pprint.PrettyPrinter(indent=4)
         pp.pprint(opt)
 
-        # extarct configuration data
+        ### extract configuration data
         self.planeCollision = opt['model']['plane_collision']
         self.saveEst = opt['io']['saveEst']
         self.saveGeo = opt["io"]["saveGeo"]
@@ -80,6 +82,27 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             self.geoFolder = self.estFolder + '/VTK'
             os.system('mkdir -p '+self.geoFolder)
 
+        ### create file with parameters and additional information
+        self.opt['visual_parameters'] = {}
+        self.stateFileName = 'state.txt'
+        self.opt['visual_parameters']['state_file_name'] = self.stateFileName
+        self.varianceFileName = 'variance.txt'
+        self.opt['visual_parameters']['variance_file_name'] = self.varianceFileName
+        self.covarianceFileName = 'covariance.txt'
+        self.opt['visual_parameters']['covariance_file_name'] = self.covarianceFileName
+        self.innovationFileName = 'innovation.txt'
+        self.opt['visual_parameters']['innovation_file_name'] = self.innovationFileName
+
+        self.informationFileName = self.estFolder + '/daconfig.yml'
+
+        with open(self.informationFileName, 'w') as stream:
+            try:
+                yaml.dump(self.opt, stream, default_flow_style = False)
+
+            except yaml.YAMLError as exc:
+                print(exc)
+                return
+
         self.createGraph(rootNode)
 
         return
@@ -87,16 +110,16 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
 
 
     def createGraph(self, rootNode):
-        self.rootNode=rootNode
+        self.rootNode = rootNode
 
-        # scene global stuff
+        ### scene global stuff
         rootNode.findData('dt').value = self.opt['model']['dt']
         rootNode.findData('gravity').value = self.opt['model']['gravity']
         rootNode.createObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels hideVisualModels')
 
         rootNode.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")
 
-        # filter data
+        ### filter data
         self.filterKind = self.opt['filter']['kind']
         if self.filterKind == 'ROUKF':
             self.filter = rootNode.createObject('ROUKFilter', name="ROUKF", verbose="1", useBlasToMultiply='0', printLog='1', sigmaTopology=self.opt['filter']['sigma_points_topology'])
@@ -105,13 +128,13 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             self.filter = rootNode.createObject('UKFilterSimCorr', name="UKFSC", verbose="1")
             estimatePosition = 0
 
-        # object loader
+        ### object loader
         rootNode.createObject('MeshVTKLoader', name='loader', filename=self.opt['model']['vol_mesh'])
         rootNode.createObject('MeshSTLLoader', name='sloader', filename=self.opt['model']['surf_mesh'])
-    
-        # general node
+
+        ### general node
         modelNode = rootNode.createChild('ModelNode')
-        modelNode.createObject('StochasticStateWrapper',name="StateWrapper",verbose='1', langrangeMultipliers=self.planeCollision, estimatePosition=estimatePosition)
+        modelNode.createObject('StochasticStateWrapper', name="StateWrapper", verbose='1', langrangeMultipliers=self.planeCollision, estimatePosition=estimatePosition)
 
         if self.planeCollision == 1:
             modelNode.createObject('GenericConstraintSolver', maxIterations='1000', tolerance='1e-6', printLog='0', allVerified='0')
@@ -120,10 +143,10 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             modelNode.createObject('LocalMinDistance', name="Proximity",  alarmDistance='0.002', contactDistance='0.001',  angleCone='90.0', filterIntersection='0')
             modelNode.createObject('DefaultContactManager', name="Response", response="FrictionContact", responseParams='mu=0')
 
-        # object node
+        ### object node
         simuNode = modelNode.createChild('cylinder')
 
-        # solvers
+        ### solvers
         intType = self.opt['model']['int']['type']
         if intType == 'Euler':
             rmass = self.opt['model']['int']['rmass']
@@ -142,7 +165,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             if lsconf['usePCG'] == 1:
                 simuNode.createObject('StepPCGLinearSolver', name='lsolverit', precondOnTimeStep='1', use_precond='1', tolerance=lsconf['pcgTol'], iterations=lsconf['pcgIt'], verbose=lsconf['pcgVerb'], update_step=lsconf['pcgUpdateStep'], numIterationsToRefactorize=lsconf['pcgAdaptiveThreshold'], listening='1', preconditioners='lsolver')
 
-        # mechanical object
+        ### mechanical object
         simuNode.createObject('MechanicalObject', src="@/loader", name="Volume")
         simuNode.createObject('TetrahedronSetTopologyContainer', name="Container", src="@/loader", tags=" ")
         simuNode.createObject('TetrahedronSetTopologyModifier', name="Modifier")
@@ -155,10 +178,10 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         if 'density' in self.opt['model'].keys():
             simuNode.createObject('MeshMatrixMass', printMass='0', lumping='1', massDensity=self.opt['model']['density'], name='mass')
 
-        # elasticiy properties estimation
+        ### elasticiy properties estimation
         simuNode.createObject('OptimParams', name="paramE", optimize="1", template="Vector", numParams=self.opt['filter']['nparams'], transformParams=self.opt['filter']['param_transform'], initValue=self.opt['filter']['param_init_exval'], stdev=self.opt['filter']['param_init_stdev'])
 
-        youngModuli=self.opt['model']['fem']['young_modulus']
+        youngModuli=self.opt['model']['fem']['young_moduli']
         poissonRatio = self.opt['model']['fem']['poisson_ratio']
         indices = range(1, len(youngModuli)+1)
         method = self.opt['model']['fem']['method']
@@ -170,17 +193,16 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             simuNode.createObject('Indices2ValuesTransformer', name='paramMapper', indices=indices, values1='@paramE.value', values2=poissonRatii, inputValues='@loader.dataset', transformation='ENu2MuLambda')
             simuNode.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet='@paramMapper.outputValues', drawHeterogeneousTetra='1')
 
-        # boundary conditions
+        ### boundary conditions
         simuNode.createObject('BoxROI', box=self.opt['model']['bc']['boxes'], name='fixedBox')
         simuNode.createObject('FixedConstraint', indices='@fixedBox.indices')
 
-
-        # export estimated mesh
+        ### export estimated mesh
         if self.saveGeo:
-            simuNode.createObject('VTKExporterDA', filename=self.geoFolder+'/object.vtk', XMLformat='0',listening='1',edges="0",triangles="0",quads="0",tetras="1", exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1")
+            simuNode.createObject('VTKExporterDA', filename=self.geoFolder+'/object.vtk', XMLformat='0', listening='1', edges="0", triangles="0", quads="0", tetras="1",  exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1")
 
 
-        # process collision data
+        ### process collision data
         if self.planeCollision == 1:
             # simuNode.createObject('LinearSolverConstraintCorrection')
             simuNode.createObject('PardisoConstraintCorrection', solverName='lsolver', schurSolverName='lsolver')
@@ -195,7 +217,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             surface.createObject('PointCollisionModel', color='1 0 0 1', group=0)
             surface.createObject('BarycentricMapping', name='bpmapping')
 
-        # node with groundtruth observations
+        ### node with groundtruth observations
         obsNode = simuNode.createChild('observations')
         obsNode.createObject('MeshVTKLoader', name='obsloader', filename=self.opt['filter']['obs_points'])
         obsNode.createObject('MechanicalObject', name='SourceMO', position='@obsloader.position')
@@ -206,12 +228,12 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         obsNode.createObject('ShowSpheres', name="estimated", radius="0.002", color="1 0 0 1", position='@SourceMO.position')
         obsNode.createObject('ShowSpheres', name="groundTruth", radius="0.0015", color="1 1 0 1", position='@MOBS.mappedObservations')
 
-        # visual node
+        ### visual node
         oglNode = simuNode.createChild('visualization')
         oglNode.createObject('OglModel', color='1 0 0 1')
         oglNode.createObject('BarycentricMapping')
 
-        # collision plane
+        ### collision plane
         if self.planeCollision == 1:
             floor = modelNode.createChild('floor')
             floor.createObject('RegularGrid', nx="2", ny="2", nz="2", xmin="-0.1", xmax="0.1",  ymin="-0.059", ymax="-0.061", zmin="0.0", zmax="0.3")
@@ -223,14 +245,14 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         return 0
 
 
-    def initGraph(self,node):
+    def initGraph(self, node):
         print 'Init graph called (python side)'
         self.step = 0
         self.total_time = 0
         return 0
 
 
-    # save filtering data to files
+    ### save filtering data to files
     def onEndAnimationStep(self, deltaTime):
 
         if self.saveEst:
@@ -240,7 +262,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
 
             rs=self.filter.findData(stateName).value
             state = [val for sublist in rs for val in sublist]
-            print 'State:',state
+            print 'State:', state
             # print reducedState
 
             f1 = open(self.stateExpFile, "a")

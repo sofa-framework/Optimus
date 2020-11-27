@@ -6,32 +6,26 @@ import csv
 
 __file = __file__.replace('\\', '/') # windows
 
+
+
 def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', pluginName='Optimus')
     rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
     rootNode.createObject('RequiredPlugin', name='Exporter', pluginName='SofaExporter')
     rootNode.createObject('RequiredPlugin', name='Visual', pluginName='SofaOpenglVisual')
-
     rootNode.createObject('PythonScriptController', name='SynthBCDA', filename=__file, classname='synth1_BCDA')
 
 
 
-# Class definition
+
 class synth1_BCDA(Sofa.PythonScriptController):
 
-    def createGraph(self,node):
+    def createGraph(self, node):
         self.cameraReactivated=False
         self.rootNode=node
-
         print  "Create graph called (Python side)\n"
 
-        # configuration
-        E=5000
-        nu=0.45
-        lamb=(E*nu)/((1+nu)*(1-2*nu))
-        mu=E/(2+2*nu)
-        self.materialParams='{} {}'.format(mu,lamb)
-
+        ### configuration
         self.ogridID=4
         inputDir='observations'
         outDir='roukf_testing'
@@ -47,8 +41,8 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
         self.m_saveToFile = 0
         self.saveState = 1
-        self.saveToolForces=0
-        self.saveAssess=0
+        self.saveToolForces = 0
+        self.saveAssess = 0
 
         self.paramInitExp = 0.0
         self.paramInitSD = 5
@@ -56,10 +50,9 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
         self.solver = 'Newton' # options are 'Newton' and 'Euler'
         self.linearSolver = 'CG' # options are 'Pardiso' and 'CG'
-
         self.suffix=''
 
-        # generate directories to export data
+        ### generate directories to export data
         if self.saveState:
             self.stateExpFile=outDir+'/state'+self.suffix+'.txt'
             self.stateVarFile=outDir+'/variance'+self.suffix+'.txt'
@@ -87,19 +80,21 @@ class synth1_BCDA(Sofa.PythonScriptController):
         return 0
 
 
+
+
     def createGlobalComponents(self, node):
-        # scene global stuff
+        ### scene global stuff
         node.findData('gravity').value="0 0 0"
         node.findData('dt').value="1"
 
         node.createObject('ViewerSetting', cameraMode='Perspective', resolution='1000 700', objectPickingMethod='Ray casting')
         node.createObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels')
 
-        # filter data
+        ### filter data
         node.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")
         self.filter = node.createObject('ROUKFilter', name="ROUKF", sigmaTopology="Simplex", verbose="1", useUnbiasedVariance='0')
 
-        # models loaders
+        ### models loaders
         node.createObject('MeshVTKLoader', name='objectLoader', filename=self.volumeVTK)
         node.createObject('MeshSTLLoader', name='objectSLoader', filename=self.surfaceSTL)
         node.createObject('MeshVTKLoader', name='obsLoader', filename=self.obsVTK)
@@ -109,9 +104,9 @@ class synth1_BCDA(Sofa.PythonScriptController):
 
 
 
-    # common components for the simulation itself
+    ### common components for the simulation scene
     def createCommonComponents(self, node):
-        # solvers
+        ### solvers
         if self.solver == 'Euler':
             node.createObject('EulerImplicitSolver', rayleighStiffness='0.1', rayleighMass='0.1')
         elif self.solver == 'Newton':
@@ -127,7 +122,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         else:
             print 'Unknown linear solver type'
 
-        # mechanical object
+        ### mechanical object
         node.createObject('MechanicalObject', src="@/objectLoader", name="Volume")
         node.createObject('TetrahedronSetTopologyContainer', name="Container", src="@/objectLoader", tags=" ")
         node.createObject('TetrahedronSetTopologyModifier', name="Modifier")
@@ -135,28 +130,31 @@ class synth1_BCDA(Sofa.PythonScriptController):
         node.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
         node.createObject('UniformMass', totalMass="0.2513")
 
-        # material stiffness
+        ### material and elasticiy properties
+        E=5000
+        nu=0.45
+        lamb=(E*nu)/((1+nu)*(1-2*nu))
+        mu=E/(2+2*nu)
+        self.materialParams='{} {}'.format(mu,lamb)
         node.createObject('TetrahedronHyperelasticityFEMForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=self.materialParams)
-        #node.createObject('MJEDTetrahedralForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet=self.materialParams)
         # node.createObject('TetrahedronFEMForceField', name="FEM", listening="true", updateStiffness="1", youngModulus="1e5", poissonRatio="0.45", method="large")
 
-        # boundary conditions
+        ### boundary conditions
         node.createObject('BoxROI', name='fixedBox1', box='-0.001 -0.001 -0.011 0.101 0.001 0.001', drawBoxes='1', doUpdate='0')
         self.optimParams = node.createObject('OptimParams', name="springStiffness", template="Vector", numParams="@fixedBox1.nbIndices", initValue=self.paramInitExp, stdev=self.paramInitSD, transformParams="absolute", optimize="1", printLog="1")
         node.createObject('RestShapeSpringsForceField', name="fixedSpring", drawSpring='1', points="@fixedBox1.indices", stiffness="@springStiffness.value", listening="1", printLog="0")
         node.createObject('OglColorMap',colorScheme="Blue to Red")
 
-        # impact emulator
+        ### impact emulator
         toolEmu = node.createChild('toolEmu')
-        toolEmu.createObject('MechanicalObject',name="MO",src="@/toolLoader")
-        print self.toolMonitorPrefix
-        toolEmu.createObject('SimulatedStateObservationSource', name="ToolA",printLog="1", monitorPrefix=self.toolMonitorPrefix, drawSize="0.0015",controllerMode="1")
+        toolEmu.createObject('MechanicalObject', name="MO", src="@/toolLoader")
+        toolEmu.createObject('SimulatedStateObservationSource', name="ToolA", printLog="1", monitorPrefix=self.toolMonitorPrefix, drawSize="0.0015", controllerMode="1")
 
         if self.linearSolver == 'Pardiso':
             node.createObject('Mapped3DoFForceField', mappedFEM="mappedTool/toolSpring", mappedMechObject="mappedTool/MO", mapping="mappedTool/baryMapping", printLog="0")
 
         toolMapped = node.createChild('mappedTool');
-        toolMapped.createObject('MechanicalObject',name="MO",src="@/toolLoader")
+        toolMapped.createObject('MechanicalObject', name="MO", src="@/toolLoader")
         self.toolSprings=toolMapped.createObject('RestShapeSpringsForceField', name="toolSpring", stiffness="1e5", external_rest_shape="@../toolEmu/MO", listening="1", springColor="0 1 0 1")
         toolMapped.createObject('OglColorMap', colorScheme="Blue to Red")
         toolMapped.createObject('SphereCollisionModel', radius="0.002", color="0 0 1 1")
@@ -169,16 +167,16 @@ class synth1_BCDA(Sofa.PythonScriptController):
     def createMasterScene(self, node):
         node.createObject('StochasticStateWrapper',name="StateWrapper",verbose='1', estimatePosition='1')
         self.createCommonComponents(node)
-        # node with groundtruth observations
+        ### node with groundtruth observations
         obsNode = node.createChild('obsNode')
         obsNode.createObject('MechanicalObject', name='MO', src="@/obsLoader")
         obsNode.createObject('SphereCollisionModel', color='0.0 0.5 0.0 1', radius="0.0014", template='Vec3d')
         obsNode.createObject('BarycentricMapping')
-        obsNode.createObject('MappedStateObservationManager', name="MOBS", observationStdev=self.obsInitSD, listening="1", stateWrapper="@../StateWrapper",doNotMapObservations="1",verbose="1")
+        obsNode.createObject('MappedStateObservationManager', name="MOBS", observationStdev=self.obsInitSD, listening="1", stateWrapper="@../StateWrapper", doNotMapObservations="1", verbose="1")
         obsNode.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix=self.obsMonitorPrefix, drawSize="0.000")
         obsNode.createObject('ShowSpheres', position='@MOBS.observations',color='1.0 0.0 1.0 1', radius="0.0012")
 
-        # visual node
+        ### visual node
         visNode = node.createChild('ObjectVisualization')
         visNode.createObject('VisualStyle', displayFlags='showVisual showBehavior showCollision hideMapping showWireframe hideNormals')
         visNode.createObject('MechanicalObject',src="@/objectSLoader",name="Surface")
@@ -203,7 +201,7 @@ class synth1_BCDA(Sofa.PythonScriptController):
         return 0
 
 
-    # save filtering data to files
+    ### save filtering data to files
     def onEndAnimationStep(self, deltaTime):
 
         if self.saveState:
@@ -243,8 +241,8 @@ class synth1_BCDA(Sofa.PythonScriptController):
             f4.write(" ".join(map(lambda x: str(x), tsp[0])))
             f4.write('\n')
             f4.close()
-            #print 'Tool forces:'
-            #print tsp
+            # print 'Tool forces:'
+            # print tsp
 
         if self.saveAssess:
             tsp=self.asMO.findData('position').value
@@ -253,10 +251,10 @@ class synth1_BCDA(Sofa.PythonScriptController):
             f5.write('\n')
             f5.close()
 
-        #print self.basePoints.findData('indices_position').value
+        # print self.basePoints.findData('indices_position').value
 
         return 0
 
-    def onScriptEvent(self, senderNode, eventName,data):
+    def onScriptEvent(self, senderNode, eventName, data):
         return 0;
 

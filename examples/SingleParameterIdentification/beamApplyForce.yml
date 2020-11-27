@@ -33,8 +33,8 @@ model:
         pardisoFolder: ''
 
     fem:
-        method: 'CorLarge' #CorLarge  StVenant CorSmall        
-        young_modulus: 10000
+        method: 'CorLarge' # options are 'CorLarge', 'StVenant', and 'CorSmall'
+        young_moduli: 10000
         poisson_ratio: 0.49
 
 io: 

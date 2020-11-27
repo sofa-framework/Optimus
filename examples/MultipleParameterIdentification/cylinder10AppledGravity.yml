@@ -30,7 +30,7 @@ model:
 
     fem:
         method: CorLarge
-        young_modulus: [3500, 4000, 1000, 6000, 2000, 7000, 2500, 8000, 3000, 1500]
+        young_moduli: [3500, 4000, 1000, 6000, 2000, 7000, 2500, 8000, 3000, 1500]
         poisson_ratio: 0.49
 
 

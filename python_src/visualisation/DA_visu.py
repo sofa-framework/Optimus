@@ -59,7 +59,11 @@ rng=[i*options['model']['dt'] for i in rng]
 
 cmap = plt.cm.get_cmap('hsv', nparams+1)
 
-groundTruthValues = options['model']['young_moduli']
+groundTruthValues = []
+if 'fem' in options['model']:
+    groundTruthValues = options['model']['fem']['young_moduli']
+else:
+    groundTruthValues = options['model']['young_moduli']
 data = numpy.ones(nsteps);
 
 for i in range(0, nparams):
@@ -104,7 +108,7 @@ spl1.grid(color='k', linestyle=':', linewidth=1)
 spl1.set_title('Params '+folder)
 
 # plot innovation values
-if options['filter']['save_internal_data'] == 1:
+if 'save_internal_data' in options['filter'] and options['filter']['save_internal_data'] == 1:
     innovationVal = loader.loadDataFromFilterFile(folder+'/'+options['visual_parameters']['innovation_file_name'])
 
     fig2 = plt.figure(2)
@@ -124,9 +128,9 @@ if options['filter']['save_internal_data'] == 1:
         innov = innovationVal[:,i]
         spl2.plot(rng, innov, color=cmap(i),  linestyle='solid')
 
-     spl2.set_xlabel('iterations')
-     spl2.set_ylabel('innovation values')
-     spl2.set_title('Innovation '+folder)
+    spl2.set_xlabel('iterations')
+    spl2.set_ylabel('innovation values')
+    spl2.set_title('Innovation '+folder)
     
 plt.show()
 
