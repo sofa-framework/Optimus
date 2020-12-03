@@ -128,10 +128,6 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             self.filter = rootNode.createObject('UKFilterSimCorr', name="UKFSC", verbose="1")
             estimatePosition = 0
 
-        ### object loader
-        rootNode.createObject('MeshVTKLoader', name='loader', filename=self.opt['model']['vol_mesh'])
-        rootNode.createObject('MeshSTLLoader', name='sloader', filename=self.opt['model']['surf_mesh'])
-
         ### general node
         modelNode = rootNode.createChild('ModelNode')
         modelNode.createObject('StochasticStateWrapper', name="StateWrapper", verbose='1', langrangeMultipliers=self.planeCollision, estimatePosition=estimatePosition)
@@ -165,9 +161,13 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
             if lsconf['usePCG'] == 1:
                 simuNode.createObject('StepPCGLinearSolver', name='lsolverit', precondOnTimeStep='1', use_precond='1', tolerance=lsconf['pcgTol'], iterations=lsconf['pcgIt'], verbose=lsconf['pcgVerb'], update_step=lsconf['pcgUpdateStep'], numIterationsToRefactorize=lsconf['pcgAdaptiveThreshold'], listening='1', preconditioners='lsolver')
 
+        ### object loader
+        simuNode.createObject('MeshVTKLoader', name='loader', filename=self.opt['model']['vol_mesh'])
+        simuNode.createObject('MeshSTLLoader', name='sloader', filename=self.opt['model']['surf_mesh'])
+
         ### mechanical object
-        simuNode.createObject('MechanicalObject', src="@/loader", name="Volume")
-        simuNode.createObject('TetrahedronSetTopologyContainer', name="Container", src="@/loader", tags=" ")
+        simuNode.createObject('MechanicalObject', src="@loader", name="Volume")
+        simuNode.createObject('TetrahedronSetTopologyContainer', name="Container", src="@loader", tags=" ")
         simuNode.createObject('TetrahedronSetTopologyModifier', name="Modifier")
         simuNode.createObject('TetrahedronSetTopologyAlgorithms', name="TopoAlgo")
         simuNode.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
@@ -209,7 +209,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
 
         if self.planeCollision == 1:
             surface=simuNode.createChild('collision')
-            surface.createObject('TriangleSetTopologyContainer', position='@/sloader.position', name='TriangleContainer', triangles='@/sloader.triangles')
+            surface.createObject('TriangleSetTopologyContainer', position='@sloader.position', name='TriangleContainer', triangles='@sloader.triangles')
             surface.createObject('TriangleSetTopologyModifier', name='Modifier')
             surface.createObject('MechanicalObject', showIndices='false', name='mstate')
             surface.createObject('TriangleCollisionModel', color='1 0 0 1', group=0)
