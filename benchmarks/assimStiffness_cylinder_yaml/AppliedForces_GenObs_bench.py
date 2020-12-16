@@ -150,8 +150,13 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
         if self.saveGeo:
             simuNode.createObject('VTKExporter', filename=self.geoFolder+'/object.vtk', XMLformat='0', listening='1', edges="0", triangles="0", quads="0", tetras="1", exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1")
         if self.saveObs:
-            simuNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1')
-            simuNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.obsFile, ExportPositions='1', ExportVelocities='0', ExportForces='0')
+            obsNode = simuNode.createChild('obsNode')
+            obsNode.createObject('MeshVTKLoader', name='obsloader', filename=self.opt['filter']['obs_points'])
+            obsNode.createObject('MechanicalObject', name='observations', position='@obsloader.position')
+            obsNode.createObject('BarycentricMapping')
+            obsNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1')
+            obsNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.obsFile, ExportPositions='1', ExportVelocities='0', ExportForces='0')
+            obsNode.createObject('ShowSpheres', name="obsVisu", radius="0.002", color="1 0 0 1", position='@observations.position')
 
 
         ### data for contact model

@@ -158,20 +158,23 @@ class liver_controlPoint_GenObs(Sofa.PythonScriptController):
         simuNode.createObject('RestShapeSpringsForceField', name='Springs', stiffness='10000', angularStiffness='1', external_rest_shape='@../dotNode/dot', points='@impactBounds.indices')
 
         ### saving generated observations
-        if 'use_point_cloud' in self.options['obs_generating_parameters'] and self.options['obs_generating_parameters']['save_observations'] and self.scenario_type == 'Generate_data':
-            pointCloudNode = simuNode.createChild('pointCloud')
-            pointCloudNode.createObject('MeshObjLoader', name="pcloader", filename=self.options['point_cloud_parameters']['mesh_file'])
-            pointCloudNode.createObject('MechanicalObject', src='@pcloader', name='PointCloud')
-            pointCloudNode.createObject('BarycentricMapping', name='VisualMapping', input='@../Volume', output='@PointCloud')
-            pointCloudNode.createObject('ShowSpheres', position='@PointCloud.position', color='0.0 0.5 0.0 1', radius="0.0014", showIndicesScale='0.0')
-
         if self.options['obs_generating_parameters']['save_observations'] and self.scenario_type == 'Generate_data':
-            if 'use_point_cloud' in self.options['obs_generating_parameters'] and self.options['obs_generating_parameters']['save_observations']:
+            if 'use_point_cloud' in self.options['obs_generating_parameters']:
+                pointCloudNode = simuNode.createChild('pointCloud')
+                pointCloudNode.createObject('MeshObjLoader', name="pcloader", filename=self.options['point_cloud_parameters']['mesh_file'])
+                pointCloudNode.createObject('MechanicalObject', src='@pcloader', name='PointCloud')
+                pointCloudNode.createObject('BarycentricMapping', name='VisualMapping', input='@../Volume', output='@PointCloud')
+                pointCloudNode.createObject('ShowSpheres', position='@PointCloud.position', color='0.0 0.5 0.0 1', radius="0.0014", showIndicesScale='0.0')
                 pointCloudNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1', doUpdate='0')
                 pointCloudNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName = self.options['system_parameters']['observation_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0')
             else:
-                simuNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1', doUpdate='0')
-                simuNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName = self.options['system_parameters']['observation_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0', saveZeroStep='0')
+                obsNode = simuNode.createChild('obsNode')
+                obsNode.createObject('MeshVTKLoader', name='obsloader', filename=self.options['system_parameters']['observation_points_file_name'])
+                obsNode.createObject('MechanicalObject', name='observations', position='@obsloader.position')
+                obsNode.createObject('BarycentricMapping')
+                obsNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1', doUpdate='0')
+                obsNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName = self.options['system_parameters']['observation_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0', saveZeroStep='0')
+                obsNode.createObject('ShowSpheres', name="obsVisu", radius="0.002", color="1 0 0 1", position='@observations.position')
 
         ### validation grid
         if self.scenario_type == 'Validate_estimations':

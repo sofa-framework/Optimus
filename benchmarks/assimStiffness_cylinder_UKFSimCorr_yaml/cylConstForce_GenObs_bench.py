@@ -123,8 +123,13 @@ class cylConstForce_GenObs (Sofa.PythonScriptController):
 
         ### saving generated observations
         if self.options['obs_generating_parameters']['save_observations']:
-            simuNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1', doUpdate='0')
-            simuNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.options['system_parameters']['observation_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0')
+            obsNode = simuNode.createChild('obsNode')
+            obsNode.createObject('MeshVTKLoader', name='obsloader', filename=self.options['system_parameters']['observation_points_file_name'])
+            obsNode.createObject('MechanicalObject', name='observations', position='@obsloader.position')
+            obsNode.createObject('BarycentricMapping')
+            obsNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1', doUpdate='0')
+            obsNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.options['system_parameters']['observation_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0')
+            obsNode.createObject('ShowSpheres', name="obsVisu", radius="0.002", color="1 0 0 1", position='@observations.position')
 
         ### add external impact
         self.forceIndex = 1

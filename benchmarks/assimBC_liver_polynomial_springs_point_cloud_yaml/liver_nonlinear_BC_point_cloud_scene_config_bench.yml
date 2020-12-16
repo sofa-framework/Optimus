@@ -2,7 +2,7 @@
 system_parameters:
     volume_file_name: "../../../Optimus/data/baseLiver/baseLiver.msh"
     observation_file_name: "obs_testing/liverControlPoint"
-    observation_points_file_name: "../../../Optimus/data/baseLiver/baseLiverGen_obs_pointcloud.vtk"
+    observation_points_file_name: "../../../Optimus/data/baseLiver/baseLiverGen_obs10_variant1.vtk"
 
 general_parameters:
     scenario_type: "Generate_data"    # options are "Generate_data" and "Validate_estimations"
@@ -18,7 +18,6 @@ general_parameters:
 
 obs_generating_parameters:
     save_observations: 1
-    use_point_cloud: 1
 
 object_parameters:
     young_modulus: 5000

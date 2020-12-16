@@ -117,7 +117,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         rootNode.createObject('MeshVTKLoader', name='loader', filename=self.opt['model']['vol_mesh'])
         rootNode.createObject('MeshSTLLoader', name='sloader', filename=self.opt['model']['surf_mesh'])
 
-       ### common components for simulation
+        ### common components for simulation
         modelNode=rootNode.createChild('ModelNode')
         modelNode.createObject('StochasticStateWrapper', name="StateWrapper", verbose='1', langrangeMultipliers=self.planeCollision, estimatePosition=estimatePosition)
 
@@ -200,7 +200,7 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
         obsNode.createObject('MechanicalObject', name='SourceMO', position='@obsloader.position')
         obsNode.createObject('VTKExporter', name='temporaryExporter', filename='tempObs.vtk', XMLformat='0', listening='1', edges="0", triangles="0", quads="0", tetras="0", exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="0", position='@SourceMO.position')
         obsNode.createObject('BarycentricMapping')
-        obsNode.createObject('MappedStateObservationManager', name="MOBS", listening="1", stateWrapper="@../../StateWrapper", verbose="1", observationStdev=self.opt['filter']['observ_stdev'], noiseStdev='0.0')
+        obsNode.createObject('MappedStateObservationManager', name="MOBS", listening="1", stateWrapper="@../../StateWrapper", verbose="1", observationStdev=self.opt['filter']['observ_stdev'], doNotMapObservations="1", noiseStdev='0.0')
         obsNode.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix=self.obsFile)
         obsNode.createObject('ShowSpheres', name="estimated", radius="0.002", color="1 0 0 1", position='@SourceMO.position')
         obsNode.createObject('ShowSpheres', name="groundTruth", radius="0.0015", color="1 1 0 1", position='@MOBS.mappedObservations')
