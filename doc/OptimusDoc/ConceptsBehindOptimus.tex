@@ -138,7 +138,7 @@ For this reason, a new component \ssw\  was created: it serves as a wrapper of a
 
 This part is also the trickiest one in terms of the implementation as the SOFA components are usually not implemented with the idea of total independence on the software.
 
-The forward stage is computationally  expensive mainly due to multiple evaluation of the model; the subsequent manipulation with \sstate\ are rather cheap. At the same time, the execution of the operator is embarrassingly parallel. However, the main issue is that for a parallelization on $N$ threads, $N$ independent copies of the SOFA world would have to be created (TODO, with python maybe? ).
+The forward stage is computationally  expensive mainly due to multiple evaluation of the model; the subsequent manipulation with \sstate\ are rather cheap. At the same time, the execution of the operator is embarrassingly parallel. However, the main issue is that for a parallelization on $N$ threads, $N$ independent copies of the SOFA world would have to be created.
 
 
 \subsection{Correction: \texttt{Analyze}}
@@ -180,19 +180,25 @@ So far we are using \texttt{SimulationStateObservationSource} in order to read t
 \medskip
 {\large \ukf}
 \begin{itemize}
-\item Unscented Kalman Filter proposed by Julier and Uhlman (1997). Implementation performed according to code in Reduced order Kalman filter implemented according to Moireau, Philippe, and Dominique Chapelle. "Reduced-order Unscented Kalman Filtering with application to parameter identification in large-dimensional systems."
+\item Unscented Kalman Filter proposed by Julier and Uhlman (1997)~\cite{JulierUnscentedKF1995, JulierKalmanFExtension1997}.
 \item Main methods are initializeStep(), computePrediction() and computeCorrection(), all called by the \al.
 \end{itemize}
 \medskip
 {\large \roukf}
 \begin{itemize}
-\item Reduced order Kalman filter implemented according to Moireau, Philippe, and Dominique Chapelle. "Reduced-order Unscented Kalman Filtering with application to parameter identification in large-dimensional systems."
+\item Reduced order Kalman filter implemented according to Moireau, Philippe, and Dominique Chapelle~\cite{MoireauReducedOrder2011}.
 \item Main methods are initializeStep(), computePrediction() and computeCorrection(), all called by the \al.
 \end{itemize}
 \medskip
 {\large \ukfsc}
 \begin{itemize}
-\item Special version of UKF filter purely for data assimilation. Currently being studied.
+\item Special version of UKF filter purely for data assimilation~\cite{EbrahimianExtendedKalmanFilterForMaterialParameterEstimationInNonlinearStructuralFiniteElementModels2015}.
+\item Main methods are initializeStep(), computePrediction() and computeCorrection(), all called by the \al.
+\end{itemize}
+\medskip
+{\large \letkf}
+\begin{itemize}
+\item Local Ensemble Transform Kalman filter described in~\cite{HuttDivergenceOfTheEnsembleTransformKalmanFilter2020}. Instead of sigma points the transformation are performed with Ensemble members.
 \item Main methods are initializeStep(), computePrediction() and computeCorrection(), all called by the \al.
 \end{itemize}
 \medskip
@@ -479,8 +485,8 @@ the final approximation is even more precise that in the static case.
 \end{itemize}
 
 
-
-
+\bibliographystyle{unsrt}
+\bibliography{references}
 
 
 \end{document}
