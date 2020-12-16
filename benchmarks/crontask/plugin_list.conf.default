@@ -1,4 +1,13 @@
 
+SofaSimpleFem 20.06.99
+SofaRigid 20.06.99
+SofaDeformable 20.06.99
+SofaObjectInteraction 20.06.99
+SofaMeshCollision 20.06.99
+SofaEngine 20.06.99
+SofaExplicitOdeSolver 20.06.99
+SofaImplicitOdeSolver 20.06.99
+SofaLoader 20.06.99
 SofaGeneralVisual 20.06.99
 SofaGraphComponent 20.06.99
 SofaGeneralMeshCollision 20.06.99
@@ -14,6 +23,9 @@ SofaGeneralObjectInteraction 20.06.99
 SofaGeneralSimpleFem 20.06.99
 SofaGeneralTopology 20.06.99
 SofaTopologyMapping 20.06.99
+SofaUserInteraction 20.06.99
+SofaConstraint 20.06.99
+SofaGeneralLoader 20.06.99
 SofaSparseSolver 20.06.99
 SofaPreconditioner 20.06.99
 SofaHaptics 20.06.99
