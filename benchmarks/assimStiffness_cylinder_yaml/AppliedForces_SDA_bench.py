@@ -76,7 +76,8 @@ class AppliedForces_SDA(Sofa.PythonScriptController):
 
         if self.saveEst:
             #os.system('mv '+self.estFolder+' '+self.estFolder+'_arch')
-            #os.system('mkdir '+self.estFolder)
+            if not os.path.isdir(self.estFolder):
+                os.system('mkdir '+self.estFolder)
 
             self.stateExpFile=self.estFolder+'/state.txt'
             self.stateVarFile=self.estFolder+'/variance.txt'

@@ -70,7 +70,8 @@ class AppliedForces_GenObs (Sofa.PythonScriptController):
             self.mainFolder = 'obs_testing' # prefix + opt['model']['int']['type'] + str(opt['model']['int']['maxit']) + suffix
 
             #os.system('mv '+self.mainFolder+' '+self.mainFolder+'_arch')
-            #os.system('mkdir '+self.mainFolder)
+            if not os.path.isdir(self.mainFolder):
+                os.system('mkdir '+self.mainFolder)
 
         if self.saveObs:
             self.obsFile = self.mainFolder + '/' + opt['io']['obsFileName']
