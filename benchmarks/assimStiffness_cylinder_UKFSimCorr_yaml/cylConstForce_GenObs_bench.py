@@ -9,7 +9,13 @@ __file = __file__.replace('\\', '/') # windows
 
 
 def createScene(rootNode):
-    rootNode.createObject('RequiredPlugin', name='SofaGeneralEngine')
+    rootNode.createObject('RequiredPlugin', name='Engine', pluginName='SofaEngine')
+    rootNode.createObject('RequiredPlugin', name='GeneralEngine', pluginName='SofaGeneralEngine')
+    rootNode.createObject('RequiredPlugin', name='ImplicitOdeSolver', pluginName='SofaImplicitOdeSolver')
+    rootNode.createObject('RequiredPlugin', name='BoundaryCondition', pluginName='SofaBoundaryCondition')
+    rootNode.createObject('RequiredPlugin', name='Loader', pluginName='SofaLoader')
+    rootNode.createObject('RequiredPlugin', name='MiscForceField', pluginName='SofaMiscForceField')
+    rootNode.createObject('RequiredPlugin', name='SimpleFem', pluginName='SofaSimpleFem')
     rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
     rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
 
@@ -92,7 +98,6 @@ class cylConstForce_GenObs (Sofa.PythonScriptController):
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')
         simuNode.createObject('TetrahedronSetTopologyContainer', name="Container", src="@loader", tags=" ")
         simuNode.createObject('TetrahedronSetTopologyModifier', name="Modifier")
-        simuNode.createObject('TetrahedronSetTopologyAlgorithms', name="TopoAlgo")
         simuNode.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
         if 'total_mass' in self.options['general_parameters'].keys():
             simuNode.createObject('UniformMass', totalMass=self.options['general_parameters']['total_mass'])

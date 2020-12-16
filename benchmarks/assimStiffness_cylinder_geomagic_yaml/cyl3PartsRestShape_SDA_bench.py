@@ -12,8 +12,17 @@ __file = __file__.replace('\\', '/') # windows
 
 
 def createScene(rootNode):
-    rootNode.createObject('RequiredPlugin', name='SofaGeneralImplicitOdeSolver')
-    rootNode.createObject('RequiredPlugin', name='SofaGeneralEngine')
+    rootNode.createObject('RequiredPlugin', name='Deformable', pluginName='SofaDeformable')
+    rootNode.createObject('RequiredPlugin', name='Engine', pluginName='SofaEngine')
+    rootNode.createObject('RequiredPlugin', name='GeneralEngine', pluginName='SofaGeneralEngine')
+    rootNode.createObject('RequiredPlugin', name='ImplicitOdeSolver', pluginName='SofaImplicitOdeSolver')
+    rootNode.createObject('RequiredPlugin', name='GeneralImplicitOdeSolver', pluginName='SofaGeneralImplicitOdeSolver')
+    rootNode.createObject('RequiredPlugin', name='BoundaryCondition', pluginName='SofaBoundaryCondition')
+    rootNode.createObject('RequiredPlugin', name='Loader', pluginName='SofaLoader')
+    rootNode.createObject('RequiredPlugin', name='MiscForceField', pluginName='SofaMiscForceField')
+    rootNode.createObject('RequiredPlugin', name='Rigid', pluginName='SofaRigid')
+    rootNode.createObject('RequiredPlugin', name='SimpleFem', pluginName='SofaSimpleFem')
+    rootNode.createObject('RequiredPlugin', name='GraphComponent', pluginName='SofaGraphComponent')
     rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
     rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
 
@@ -169,7 +178,6 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
         self.sourcePoint = node.createObject('MechanicalObject', src="@/loader", name="Volume")
         node.createObject('TetrahedronSetTopologyContainer', name="Container", src="@/loader", tags=" ")
         node.createObject('TetrahedronSetTopologyModifier', name="Modifier")
-        node.createObject('TetrahedronSetTopologyAlgorithms', name="TopoAlgo")
         node.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
         if 'total_mass' in self.options['general_parameters'].keys():
             node.createObject('UniformMass', totalMass=self.options['general_parameters']['total_mass'])

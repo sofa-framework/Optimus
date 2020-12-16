@@ -172,7 +172,6 @@ class cylConstForceSDA_Controller(Sofa.Core.Controller):
         node.addObject('MechanicalObject', src="@/loader", name="Volume")
         node.addObject('TetrahedronSetTopologyContainer', name="Container", src="@/loader", tags=" ")
         node.addObject('TetrahedronSetTopologyModifier', name="Modifier")
-        node.addObject('TetrahedronSetTopologyAlgorithms', name="TopoAlgo")
         node.addObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
         if 'total_mass' in self.options['general_parameters'].keys():
             node.addObject('UniformMass', totalMass=self.options['general_parameters']['total_mass'])

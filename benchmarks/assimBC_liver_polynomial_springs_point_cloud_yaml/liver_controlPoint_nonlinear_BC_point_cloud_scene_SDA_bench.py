@@ -12,6 +12,13 @@ __file = __file__.replace('\\', '/') # windows
 
 
 def createScene(rootNode):
+    rootNode.createObject('RequiredPlugin', name='Engine', pluginName='SofaEngine')
+    rootNode.createObject('RequiredPlugin', name='ImplicitOdeSolver', pluginName='SofaImplicitOdeSolver')
+    rootNode.createObject('RequiredPlugin', name='Loader', pluginName='SofaLoader')
+    rootNode.createObject('RequiredPlugin', name='MiscForceField', pluginName='SofaMiscForceField')
+    rootNode.createObject('RequiredPlugin', name='SimpleFem', pluginName='SofaSimpleFem')
+    rootNode.createObject('RequiredPlugin', name='Deformable', pluginName='SofaDeformable')
+    rootNode.createObject('RequiredPlugin', name='GraphComponent', pluginName='SofaGraphComponent')
     rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
     rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
 
@@ -119,7 +126,7 @@ class liver_controlPoint_SDA(Sofa.PythonScriptController):
         rootNode.findData('dt').value = self.options['general_parameters']['delta_time']
 
         rootNode.createObject('ViewerSetting', cameraMode='Perspective', resolution='1000 700', objectPickingMethod='Ray casting')
-        rootNode.createObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels')
+        rootNode.createObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels showInteractionForceFields')
 
         rootNode.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")
 
@@ -187,7 +194,6 @@ class liver_controlPoint_SDA(Sofa.PythonScriptController):
         node.createObject('MechanicalObject', src="@/loader", name="Volume")
         node.createObject('TetrahedronSetTopologyContainer', name="Container", src="@/loader", tags=" ")
         node.createObject('TetrahedronSetTopologyModifier', name="Modifier")
-        node.createObject('TetrahedronSetTopologyAlgorithms', name="TopoAlgo")
         node.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
         if 'total_mass' in self.options['general_parameters'].keys():
             node.createObject('UniformMass', totalMass=self.options['general_parameters']['total_mass'])

@@ -101,7 +101,6 @@ class cyl3PartsConstForceGenObs_Controller(Sofa.Core.Controller):
         simuNode.addObject('MechanicalObject', src='@loader', name='Volume')
         simuNode.addObject('TetrahedronSetTopologyContainer', name="Container", src="@loader", tags=" ")
         simuNode.addObject('TetrahedronSetTopologyModifier', name="Modifier")
-        simuNode.addObject('TetrahedronSetTopologyAlgorithms', name="TopoAlgo")
         simuNode.addObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
         if 'total_mass' in self.options['general_parameters'].keys():
             simuNode.addObject('UniformMass', totalMass=self.options['general_parameters']['total_mass'])

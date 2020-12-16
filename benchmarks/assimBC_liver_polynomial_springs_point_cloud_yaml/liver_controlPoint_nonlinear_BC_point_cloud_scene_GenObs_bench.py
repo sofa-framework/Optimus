@@ -10,6 +10,12 @@ __file = __file__.replace('\\', '/') # windows
 
 
 def createScene(rootNode):
+    rootNode.createObject('RequiredPlugin', name='Engine', pluginName='SofaEngine')
+    rootNode.createObject('RequiredPlugin', name='ImplicitOdeSolver', pluginName='SofaImplicitOdeSolver')
+    rootNode.createObject('RequiredPlugin', name='Loader', pluginName='SofaLoader')
+    rootNode.createObject('RequiredPlugin', name='MiscForceField', pluginName='SofaMiscForceField')
+    rootNode.createObject('RequiredPlugin', name='SimpleFem', pluginName='SofaSimpleFem')
+    rootNode.createObject('RequiredPlugin', name='Deformable', pluginName='SofaDeformable')
     rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
     rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
 
@@ -64,7 +70,7 @@ class liver_controlPoint_GenObs(Sofa.PythonScriptController):
 
     def createGraph(self, rootNode):
         ### rootNode
-        rootNode.createObject('VisualStyle', displayFlags='hideVisualModels showBehaviorModels hideCollisionModels hideMappings showForceFields')
+        rootNode.createObject('VisualStyle', displayFlags='hideVisualModels showBehaviorModels hideCollisionModels hideMappings showForceFields showInteractionForceFields')
 
         ### fixed nodes
         fixNode = rootNode.createChild('fixNode')
@@ -115,7 +121,6 @@ class liver_controlPoint_GenObs(Sofa.PythonScriptController):
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')
         simuNode.createObject('TetrahedronSetTopologyContainer', name="Container", src="@loader", tags=" ")
         simuNode.createObject('TetrahedronSetTopologyModifier', name="Modifier")
-        simuNode.createObject('TetrahedronSetTopologyAlgorithms', name="TopoAlgo")
         simuNode.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
         if 'total_mass' in self.options['general_parameters'].keys():
             simuNode.createObject('UniformMass', totalMass=self.options['general_parameters']['total_mass'])

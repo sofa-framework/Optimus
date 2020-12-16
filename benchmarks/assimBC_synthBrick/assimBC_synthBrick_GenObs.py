@@ -6,8 +6,14 @@ __file = __file__.replace('\\', '/') # windows
 
 
 def createScene(rootNode):
-    rootNode.createObject('RequiredPlugin', name='SofaMiscFem')
-    rootNode.createObject('RequiredPlugin', name='SofaGeneralEngine')
+    rootNode.createObject('RequiredPlugin', name='MiscFem', pluginName='SofaMiscFem')
+    rootNode.createObject('RequiredPlugin', name='GeneralEngine', pluginName='SofaGeneralEngine')
+    rootNode.createObject('RequiredPlugin', name='Engine', pluginName='SofaEngine')
+    rootNode.createObject('RequiredPlugin', name='BoundaryCondition', pluginName='SofaBoundaryCondition')
+    rootNode.createObject('RequiredPlugin', name='ImplicitOdeSolver', pluginName='SofaImplicitOdeSolver')
+    rootNode.createObject('RequiredPlugin', name='Deformable', pluginName='SofaDeformable')
+    rootNode.createObject('RequiredPlugin', name='MeshCollision', pluginName='SofaMeshCollision')
+    rootNode.createObject('RequiredPlugin', name='Loader', pluginName='SofaLoader')
     rootNode.createObject('RequiredPlugin', name='Exporter', pluginName='SofaExporter')
     rootNode.createObject('RequiredPlugin', name='Visual', pluginName='SofaOpenglVisual')
     rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
@@ -84,7 +90,6 @@ class synth1_GenObs(Sofa.PythonScriptController):
         simuNode.createObject('MeshVTKLoader', name='loader', filename=volumeFileName)
         simuNode.createObject('TetrahedronSetTopologyContainer', name='Container', src="@loader")
         simuNode.createObject('TetrahedronSetTopologyModifier', name='Modifier')
-        simuNode.createObject('TetrahedronSetTopologyAlgorithms', name='TopoAlgs')
         simuNode.createObject('TetrahedronSetGeometryAlgorithms', name='GeomAlgs')
 
         simuNode.createObject('MechanicalObject', src='@loader', showIndicesScale='0.00025', name='MO', template='Vec3d', showIndices='0')
