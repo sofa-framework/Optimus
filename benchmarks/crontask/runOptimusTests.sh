@@ -13,7 +13,6 @@ fi
 SOFA_DIRECTORY=$GENERAL_DIRECTORY/sofa
 BUILD_DIRECTORY=$GENERAL_DIRECTORY/sofa/build_release
 SOFACONFIG_DIRECTORY=$GENERAL_DIRECTORY/sofaconfig
-PARDISO_SOLVER_DIRECTORY=$GENERAL_DIRECTORY/SofaPardisoSolver
 OPTIMUS_DIRECTORY=$GENERAL_DIRECTORY/Optimus
 PLUGIN_PYTHON3_DIRECTORY=$GENERAL_DIRECTORY/plugin.SofaPython3
 PLUGIN_PYTHON3_BUILD_DIRECTORY=$PLUGIN_PYTHON3_DIRECTORY/build_release
@@ -44,9 +43,9 @@ fi
 if [ -d "$OPTIMUS_DIRECTORY" ]; then
     echo "Update Optimus repository"
     cd $OPTIMUS_DIRECTORY
-    /usr/bin/git pull --progress https://gitlab.inria.fr/mimesis/Optimus.git 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
+    /usr/bin/git pull --progress https://github.com/sofa-framework/Optimus.git 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
 else
-    /usr/bin/git clone --progress https://gitlab.inria.fr/mimesis/Optimus.git $OPTIMUS_DIRECTORY 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
+    /usr/bin/git clone --progress https://github.com/sofa-framework/Optimus.git $OPTIMUS_DIRECTORY 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
     echo "Clone data from Optimus repository"
 fi
 
@@ -68,6 +67,8 @@ cd $BUILD_DIRECTORY
 /usr/local/bin/cmake -DSOFA_BUILD_TESTS=ON -DSOFAGUI_BUILD_TESTS=ON -DSOFA_EXTERNAL_DIRECTORIES=/home/sergei/Optimus_test/sofaconfig/sergei .. 2>&1 >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
 /usr/bin/make -B -j 8 2>&1 >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
 /usr/bin/make install 2>&1 >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
+
+### remove SofaPython plugin from the plugins default list (use local version of list)
 cp $OPTIMUS_DIRECTORY/benchmarks/crontask/plugin_list.conf.default $BUILD_DIRECTORY/lib/plugin_list.conf.default
 
 
