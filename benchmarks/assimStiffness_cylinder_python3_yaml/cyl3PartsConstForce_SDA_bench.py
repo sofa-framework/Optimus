@@ -214,7 +214,7 @@ class cylConstForceSDA_Controller(Sofa.Core.Controller):
         obsNode.addObject('MeshVTKLoader', name='obsLoader', filename=self.options['system_parameters']['observation_points_file_name'])
         obsNode.addObject('MechanicalObject', name='SourceMO', src="@obsLoader")
         obsNode.addObject('BarycentricMapping')
-        obsNode.addObject('MappedStateObservationManager', name="MOBS", observationStdev=self.options['filtering_parameters']['observation_noise_standart_deviation'], noiseStdev="0.0", listening="1", stateWrapper="@../StateWrapper", doNotMapObservations="1", verbose="1")
+        obsNode.addObject('MappedStateObservationManager', name="MOBS", observationStdev=self.options['filtering_parameters']['observation_noise_standart_deviation'], noiseStdev="0.0", listening="1", stateWrapper="@../StateWrapper", verbose="1")
         obsNode.addObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix = self.generalFolderName + '/' + self.options['system_parameters']['observation_file_name'])
         obsNode.addObject('ShowSpheres', name="estimated", radius="0.002", color="1 0 0 1", position='@SourceMO.position')
         obsNode.addObject('ShowSpheres', name="groundTruth", radius="0.0015", color="1 1 0 1", position='@MOBS.mappedObservations')

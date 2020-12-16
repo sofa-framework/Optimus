@@ -125,12 +125,8 @@ class cyl3PartsConstForceGenObs_Controller(Sofa.Core.Controller):
 
         ### saving generated observations
         if self.options['obs_generating_parameters']['save_observations']:
-            obsNode = simuNode.addChild('obsNode')
-            obsNode.addObject('MeshVTKLoader', name='obsloader', filename=self.options['system_parameters']['observation_points_file_name'])
-            obsNode.addObject('MechanicalObject', name='observations', position='@obsloader.position')
-            obsNode.addObject('BarycentricMapping')
-            obsNode.addObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1', doUpdate='0')
-            obsNode.addObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.options['system_parameters']['observation_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0')
+            simuNode.addObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1', doUpdate='0')
+            simuNode.addObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', fileName=self.options['system_parameters']['observation_file_name'], ExportPositions='1', ExportVelocities='0', ExportForces='0')
 
         ### add external impact
         self.forceIndex = 1
