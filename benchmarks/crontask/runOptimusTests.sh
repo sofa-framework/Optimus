@@ -14,14 +14,16 @@ SOFA_DIRECTORY=$GENERAL_DIRECTORY/sofa
 BUILD_DIRECTORY=$GENERAL_DIRECTORY/sofa/build_release
 SOFACONFIG_DIRECTORY=$GENERAL_DIRECTORY/sofaconfig
 OPTIMUS_DIRECTORY=$GENERAL_DIRECTORY/Optimus
-PLUGIN_PYTHON3_DIRECTORY=$GENERAL_DIRECTORY/plugin.SofaPython3
-PLUGIN_PYTHON3_BUILD_DIRECTORY=$PLUGIN_PYTHON3_DIRECTORY/build_release
+OPTIMUS_BUILD_DIRECTORY=$GENERAL_DIRECTORY/Optimus/build_release
+SOFA_PYTHON3_DIRECTORY=$GENERAL_DIRECTORY/SofaPython3
+SOFA_PYTHON3_BUILD_DIRECTORY=$SOFA_PYTHON3_DIRECTORY/build_release
 
 
 ### export pardiso license
 export PARDISO_LIC_PATH=$HOME_DIRECTORY/External_libraries/Pardiso
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME_DIRECTORY/External_libraries/Pardiso
-export PYTHONPATH=$PLUGIN_PYTHON3_BUILD_DIRECTORY/lib/site-packages
+export PYTHONPATH=$SOFA_PYTHON3_BUILD_DIRECTORY/lib/site-packages
+export SOFA_PLUGIN_PATH=$OPTIMUS_BUILD_DIRECTORY
 
 
 ### checkout source code
@@ -39,6 +41,16 @@ if ! [ -d "$BUILD_DIRECTORY" ]; then
     mkdir $BUILD_DIRECTORY
 fi
 
+### checkout Python3
+if [ -d "$SOFA_PYTHON3_DIRECTORY" ]; then
+    echo "Update Python3 repository"
+    cd $SOFA_PYTHON3_DIRECTORY
+    /usr/bin/git pull --progress https://github.com/sofa-framework/SofaPython3.git 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
+else
+    /usr/bin/git clone --progress https://github.com/sofa-framework/SofaPython3.git $SOFA_PYTHON3_DIRECTORY 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
+    echo "Clone data from Python3 repository"
+fi
+
 ### checkout Optimus
 if [ -d "$OPTIMUS_DIRECTORY" ]; then
     echo "Update Optimus repository"
@@ -46,16 +58,6 @@ if [ -d "$OPTIMUS_DIRECTORY" ]; then
     /usr/bin/git pull --progress https://github.com/sofa-framework/Optimus.git 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
 else
     /usr/bin/git clone --progress https://github.com/sofa-framework/Optimus.git $OPTIMUS_DIRECTORY 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
-    echo "Clone data from Optimus repository"
-fi
-
-### checkout Python3
-if [ -d "$PLUGIN_PYTHON3_DIRECTORY" ]; then
-    echo "Update Optimus repository"
-    cd $PLUGIN_PYTHON3_DIRECTORY
-    /usr/bin/git pull --progress https://github.com/sofa-framework/plugin.SofaPython3.git 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
-else
-    /usr/bin/git clone --progress https://github.com/sofa-framework/plugin.SofaPython3.git $PLUGIN_PYTHON3_DIRECTORY 2>> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
     echo "Clone data from Optimus repository"
 fi
 
@@ -68,15 +70,26 @@ cd $BUILD_DIRECTORY
 /usr/bin/make -B -j 8 2>&1 >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
 /usr/bin/make install 2>&1 >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
 
-### remove SofaPython plugin from the plugins default list (use local version of list)
+### remove SofaPython plugin with python2 from the plugins default list (use local version of list)
 cp $OPTIMUS_DIRECTORY/benchmarks/crontask/plugin_list.conf.default $BUILD_DIRECTORY/lib/plugin_list.conf.default
+cp $OPTIMUS_DIRECTORY/benchmarks/crontask/plugin_list.conf.default $BUILD_DIRECTORY/install/lib/plugin_list.conf.default
 
 
 echo "Recompile python3 plugin"
-if ! [ -d "$PLUGIN_PYTHON3_BUILD_DIRECTORY" ]; then
-    mkdir $PLUGIN_PYTHON3_BUILD_DIRECTORY
+if ! [ -d "$SOFA_PYTHON3_BUILD_DIRECTORY" ]; then
+    mkdir $SOFA_PYTHON3_BUILD_DIRECTORY
 fi
-cd $PLUGIN_PYTHON3_BUILD_DIRECTORY
+cd $SOFA_PYTHON3_BUILD_DIRECTORY
+/usr/bin/make clean
+/usr/local/bin/cmake -DSP3_BUILD_TEST=OFF -DCMAKE_PREFIX_PATH=$BUILD_DIRECTORY/install .. 2>&1 >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
+/usr/bin/make -B -j 8 2>&1 >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
+/usr/bin/make install 2>&1 >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
+
+echo "Recompile Optimus plugin"
+if ! [ -d "$OPTIMUS_BUILD_DIRECTORY" ]; then
+    mkdir $OPTIMUS_BUILD_DIRECTORY
+fi
+cd $OPTIMUS_BUILD_DIRECTORY
 /usr/bin/make clean
 /usr/local/bin/cmake -DCMAKE_PREFIX_PATH=$BUILD_DIRECTORY/install .. 2>&1 >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
 /usr/bin/make -B -j 8 2>&1 >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt

@@ -63,8 +63,8 @@ public:
     Data<bool> _draw;
     Data<float> _radius;
     Data<float> _showIndicesSize;
-    Data<defaulttype::Vec4f> _color;
-    Data<defaulttype::Vec4f> _indexColor;
+    Data<helper::types::RGBAColor> _color;
+    Data<helper::types::RGBAColor> _indexColor;
 
 
     void draw(const core::visual::VisualParams* vparams) override;

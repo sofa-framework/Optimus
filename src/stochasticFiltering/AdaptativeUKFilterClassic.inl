@@ -575,13 +575,13 @@ void AdaptativeUKFilterClassic<FilterType>::draw(const core::visual::VisualParam
                 }
 
 
-                Vec4f color;
+                helper::types::RGBAColor color;
 
                 switch (i) {
-                case 0: color = Vec4f(1.0,0.0,0.0,1.0); break;
-                case 1: color = Vec4f(0.0,1.0,0.0,1.0); break;
-                case 2: color = Vec4f(0.0,0.0,1.0,1.0); break;
-                default: color = Vec4f(0.5, 0.5, 0.5, 0.5);
+                case 0: color = helper::types::RGBAColor(1.0,0.0,0.0,1.0); break;
+                case 1: color = helper::types::RGBAColor(0.0,1.0,0.0,1.0); break;
+                case 2: color = helper::types::RGBAColor(0.0,0.0,1.0,1.0); break;
+                default: color = helper::types::RGBAColor(0.5, 0.5, 0.5, 0.5);
                 }
                 helper::vector<double>  colorB;
                 colorB.resize(this->stateSize);
@@ -590,7 +590,7 @@ void AdaptativeUKFilterClassic<FilterType>::draw(const core::visual::VisualParam
                     colorB[i]= ((double) rand() / (RAND_MAX)) ;
                 }
 
-                vparams->drawTool()->drawSpheres(predpoints[i],  d_radius_draw.getValue(), sofa::defaulttype::Vec<4, float>(m_omega,0.0f,0.0f,1.0f)); }
+                vparams->drawTool()->drawSpheres(predpoints[i],  d_radius_draw.getValue(), helper::types::RGBAColor(m_omega,0.0f,0.0f,1.0f)); }
             //                if (d_MOnodes_draw.getValue()>=2)
             //                    vparams->drawTool()->drawLineStrip(predpoints[i],3.0,sofa::defaulttype::Vec<4, float>(color[i],0.5f,colorB[i],1.0f));            }
 

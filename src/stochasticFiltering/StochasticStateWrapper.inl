@@ -1265,20 +1265,20 @@ void StochasticStateWrapper<DataTypes, FilterType>::draw(const core::visual::Vis
                     points[j][2]=pts[j][2];
                 }
 
-                Vec4f color;
+                helper::types::RGBAColor color;
 
                 switch (i) {
-                case 0: color = Vec4f(1.0,0.0,0.0,1.0); break;
-                case 1: color = Vec4f(0.0,1.0,0.0,1.0); break;
-                case 2: color = Vec4f(0.0,0.0,1.0,1.0); break;
-                default: color = Vec4f(0.5, 0.5, 0.5, 0.5);
+                case 0: color = helper::types::RGBAColor(1.0,0.0,0.0,1.0); break;
+                case 1: color = helper::types::RGBAColor(0.0,1.0,0.0,1.0); break;
+                case 2: color = helper::types::RGBAColor(0.0,0.0,1.0,1.0); break;
+                default: color = helper::types::RGBAColor(0.5, 0.5, 0.5, 0.5);
                 }
 
                 vparams->drawTool()->setPolygonMode(0,vparams->displayFlags().getShowWireFrame());
                 vparams->drawTool()->setLightingEnabled(true); //Enable lightning
                 vparams->drawTool()->drawSpheres(points, d_radius_draw.getValue(), color); // sofa::defaulttype::Vec<4, float>(color[i],0.8f,colorB[i],1.0f));
                 vparams->drawTool()->setPolygonMode(0,false);
-                vparams->drawTool()->drawLineStrip(points,3.0,sofa::defaulttype::Vec<4, float>(color[i],0.8f,colorB[i],1.0f));
+                vparams->drawTool()->drawLineStrip(points, 3.0, helper::types::RGBAColor(color[i],0.8f,colorB[i],1.0f));
 
             }
         }
