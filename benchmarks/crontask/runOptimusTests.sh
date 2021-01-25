@@ -106,7 +106,7 @@ do
     cd $FOLDER
     if [ -f $FOLDER/verify.sh ]; then
         echo "Perform test: $FOLDER"
-        if [[ *"python3"* == "$FOLDER" ]]; then
+        if [[ "$FOLDER" == *"python3"* ]]; then
             $FOLDER/verify.sh $BUILD_DIRECTORY/bin/runSofa $SOFA_PYTHON3_BUILD_DIRECTORY/lib >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
         else
             $FOLDER/verify.sh $BUILD_DIRECTORY/bin/runSofa $BUILD_DIRECTORY/lib >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt

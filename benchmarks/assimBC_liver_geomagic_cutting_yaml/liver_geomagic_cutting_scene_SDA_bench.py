@@ -21,7 +21,7 @@ def createScene(rootNode):
     rootNode.createObject('RequiredPlugin', name='SimpleFem', pluginName='SofaSimpleFem')
     rootNode.createObject('RequiredPlugin', name='GraphComponent', pluginName='SofaGraphComponent')
     rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
-    rootNode.createObject('RequiredPlugin', pluginName='Optimus')
+    rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
 
     try:
         sys.argv[0]
