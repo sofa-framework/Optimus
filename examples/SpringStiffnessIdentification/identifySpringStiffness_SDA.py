@@ -9,10 +9,22 @@ __file = __file__.replace('\\', '/') # windows
 
 
 def createScene(rootNode):
-    rootNode.createObject('RequiredPlugin', pluginName='Optimus')
-    rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
-    rootNode.createObject('RequiredPlugin', name='Exporter', pluginName='SofaExporter')
+    rootNode.createObject('RequiredPlugin', name='Deformable', pluginName='SofaDeformable')
+    rootNode.createObject('RequiredPlugin', name='Engine', pluginName='SofaEngine')
+    rootNode.createObject('RequiredPlugin', name='GeneralEngine', pluginName='SofaGeneralEngine')
+    rootNode.createObject('RequiredPlugin', name='ImplicitOdeSolver', pluginName='SofaImplicitOdeSolver')
+    rootNode.createObject('RequiredPlugin', name='Loader', pluginName='SofaLoader')
+    rootNode.createObject('RequiredPlugin', name='MiscForceField', pluginName='SofaMiscForceField')
+    rootNode.createObject('RequiredPlugin', name='Rigid', pluginName='SofaRigid')
+    rootNode.createObject('RequiredPlugin', name='SimpleFem', pluginName='SofaSimpleFem')
+    rootNode.createObject('RequiredPlugin', name='MiscFem', pluginName='SofaMiscFem')
+    rootNode.createObject('RequiredPlugin', name='MeshCollision', pluginName='SofaMeshCollision')
+    rootNode.createObject('RequiredPlugin', name='GraphComponent', pluginName='SofaGraphComponent')
+    rootNode.createObject('RequiredPlugin', name='BoundaryCondition', pluginName='SofaBoundaryCondition')
     rootNode.createObject('RequiredPlugin', name='Visual', pluginName='SofaOpenglVisual')
+    rootNode.createObject('RequiredPlugin', name='Exporter', pluginName='SofaExporter')
+    rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
+    rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
     rootNode.createObject('PythonScriptController', name='SynthBCDA', filename=__file, classname='synth1_BCDA')
 
 
@@ -126,7 +138,6 @@ class synth1_BCDA(Sofa.PythonScriptController):
         node.createObject('MechanicalObject', src="@/objectLoader", name="Volume")
         node.createObject('TetrahedronSetTopologyContainer', name="Container", src="@/objectLoader", tags=" ")
         node.createObject('TetrahedronSetTopologyModifier', name="Modifier")
-        node.createObject('TetrahedronSetTopologyAlgorithms', name="TopoAlgo")
         node.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
         node.createObject('UniformMass', totalMass="0.2513")
 

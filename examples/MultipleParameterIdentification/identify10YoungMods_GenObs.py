@@ -12,10 +12,17 @@ __file = __file__.replace('\\', '/') # windows
 
 
 def createScene(rootNode):
-    rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
-    rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
+    rootNode.createObject('RequiredPlugin', name='Engine', pluginName='SofaEngine')
+    rootNode.createObject('RequiredPlugin', name='GeneralEngine', pluginName='SofaGeneralEngine')
+    rootNode.createObject('RequiredPlugin', name='ImplicitOdeSolver', pluginName='SofaImplicitOdeSolver')
+    rootNode.createObject('RequiredPlugin', name='BoundaryCondition', pluginName='SofaBoundaryCondition')
+    rootNode.createObject('RequiredPlugin', name='Loader', pluginName='SofaLoader')
+    rootNode.createObject('RequiredPlugin', name='MiscForceField', pluginName='SofaMiscForceField')
+    rootNode.createObject('RequiredPlugin', name='SimpleFem', pluginName='SofaSimpleFem')
     rootNode.createObject('RequiredPlugin', name='Exporter', pluginName='SofaExporter')
     rootNode.createObject('RequiredPlugin', name='Visual', pluginName='SofaOpenglVisual')
+    rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
+    rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
 
     try:
         sys.argv[0]
@@ -131,7 +138,6 @@ class AppliedForces_GenObs(Sofa.PythonScriptController):
         simuNode.createObject('MechanicalObject', src='@loader', name='Volume')
         simuNode.createObject('TetrahedronSetTopologyContainer', name="Container", src="@loader", tags=" ")
         simuNode.createObject('TetrahedronSetTopologyModifier', name="Modifier")
-        simuNode.createObject('TetrahedronSetTopologyAlgorithms', name="TopoAlgo")
         simuNode.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
 
         if 'total_mass' in self.opt['model'].keys():

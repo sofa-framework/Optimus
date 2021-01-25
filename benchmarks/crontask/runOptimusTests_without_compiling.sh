@@ -15,11 +15,15 @@ BUILD_DIRECTORY=$GENERAL_DIRECTORY/sofa/build_release
 SOFACONFIG_DIRECTORY=$GENERAL_DIRECTORY/sofaconfig
 PARDISO_SOLVER_DIRECTORY=$GENERAL_DIRECTORY/SofaPardisoSolver
 OPTIMUS_DIRECTORY=$GENERAL_DIRECTORY/Optimus
+OPTIMUS_BUILD_DIRECTORY=$GENERAL_DIRECTORY/Optimus/build_release
+SOFA_PYTHON3_DIRECTORY=$GENERAL_DIRECTORY/SofaPython3
+SOFA_PYTHON3_BUILD_DIRECTORY=$SOFA_PYTHON3_DIRECTORY/build_release
 
 ### export pardiso license
 export PARDISO_LIC_PATH=$HOME_DIRECTORY/External_libraries/Pardiso
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME_DIRECTORY/External_libraries/Pardiso
-export PYTHONPATH=$PLUGIN_PYTHON3_BUILD_DIRECTORY/lib/site-packages
+export PYTHONPATH=$SOFA_PYTHON3_BUILD_DIRECTORY/lib/site-packages
+export SOFA_PLUGIN_PATH=$OPTIMUS_BUILD_DIRECTORY
 
 
 ### verify benchmark tests
@@ -31,7 +35,11 @@ do
     cd $FOLDER
     if [ -f $FOLDER/verify.sh ]; then
         echo "Perform test: $FOLDER"
-        $FOLDER/verify.sh $BUILD_DIRECTORY/bin/runSofa >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
+        if [[ "$FOLDER" == *"python3"* ]]; then
+            $FOLDER/verify.sh $BUILD_DIRECTORY/bin/runSofa $SOFA_PYTHON3_BUILD_DIRECTORY/lib >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
+        else
+            $FOLDER/verify.sh $BUILD_DIRECTORY/bin/runSofa $BUILD_DIRECTORY/lib >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
+        fi
     fi
 done
 echo "All tests have been executed"

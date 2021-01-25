@@ -21,7 +21,6 @@
 ******************************************************************************/
 #define SOFA_COMPONENT_ENGINE_INDICES2VALUESTRANSFORMER_CPP
 
-#include <SofaGeneral/config.h>
 #include "Indices2ValuesTransformer.inl"
 #include <sofa/core/objectmodel/BaseObject.h>
 #include <sofa/core/ObjectFactory.h>

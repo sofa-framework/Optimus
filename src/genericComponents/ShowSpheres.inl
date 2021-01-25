@@ -44,7 +44,7 @@ ShowSpheres<DataTypes>::ShowSpheres()
     , _radius( initData(&_radius, "radius", "radius of the spheres") )
     , _showIndicesSize( initData(&_showIndicesSize, float(0.0), "showIndicesScale", "size of indices") )
     , _color( initData(&_color, "color", "color of the spheres") )
-    , _indexColor( initData(&_indexColor, Vec4f(0.0,0.0,0.0,1.0), "indexColor", "color of the indices") )
+    , _indexColor( initData(&_indexColor, helper::types::RGBAColor(0.0,0.0,0.0,1.0), "indexColor", "color of the indices") )
 {    
 }
 
@@ -91,7 +91,7 @@ void ShowSpheres<DataTypes>::draw(const core::visual::VisualParams* vparams) {
         vparams->drawTool()->setPolygonMode(0,false);
 
         if (_showIndicesSize.getValue() > 0) {
-            const Vec4f indCol = _indexColor.getValue();
+            const helper::types::RGBAColor indCol = _indexColor.getValue();
             float scale = (float)((vparams->sceneBBox().maxBBox() - vparams->sceneBBox().minBBox()).norm() * _showIndicesSize.getValue());
 
             for (size_t i = 0; i < npoints; i++) {
