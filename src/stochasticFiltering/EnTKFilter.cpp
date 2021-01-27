@@ -21,7 +21,7 @@
 ******************************************************************************/
 
 #include <sofa/core/ObjectFactory.h>
-#include "LETKFilter.inl"
+#include "EnTKFilter.inl"
 //#include <sofa/helper/accessor.h>
 
 
@@ -38,24 +38,24 @@ using namespace defaulttype;
 
 
 
-SOFA_DECL_CLASS(LETKFilter)
+SOFA_DECL_CLASS(EnTKFilter)
 
 // Register in the Factory
-int LETKFilterClass = core::RegisterObject("UKFilterClassicOrig")
+int EnTKFilterClass = core::RegisterObject("UKFilterClassicOrig")
         #ifndef SOFA_FLOAT
-        .add< LETKFilter<double> >()
+        .add< EnTKFilter<double> >()
 
         #endif
         #ifndef SOFA_DOUBLE
-        // .add< LETKFilter<float> >()
+        // .add< EnTKFilter<float> >()
         #endif
         ;
 
 #ifndef SOFA_FLOAT
-template class SOFA_STOCHASTIC_API LETKFilter<double>;
+template class SOFA_STOCHASTIC_API EnTKFilter<double>;
 #endif
 #ifndef SOFA_DOUBLE
-//template class SOFA_STOCHASTIC_API LETKFilter<float>;
+//template class SOFA_STOCHASTIC_API EnTKFilter<float>;
 #endif
 
 

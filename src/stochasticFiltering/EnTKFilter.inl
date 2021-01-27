@@ -21,7 +21,7 @@
 ******************************************************************************/
 #pragma once
 
-#include "LETKFilter.h"
+#include "EnTKFilter.h"
 #include <iostream>
 #include <fstream>
 #include <random>
@@ -38,9 +38,10 @@ namespace stochastic
 
 
 template <class FilterType>
-LETKFilter<FilterType>::LETKFilter()
+EnTKFilter<FilterType>::EnTKFilter()
     : Inherit()
     , d_ensembleMembersNumber(initData(&d_ensembleMembersNumber, "ensembleMembersNumber", "number of ensemble memebrs for localized ensemble filter" ) )
+    , d_additiveNoise( initData(&d_additiveNoise, false, "additiveNoise", "add noise for ensemble members" ) )
     , d_inverseOptionType( initData(&d_inverseOptionType, "inverseOption", "inverse option type") )
     , d_state( initData(&d_state, "state", "actual expected value of reduced state (parameters) estimated by the filter" ) )
     , d_variance( initData(&d_variance, "variance", "actual variance  of reduced state (parameters) estimated by the filter" ) )
@@ -53,7 +54,7 @@ LETKFilter<FilterType>::LETKFilter()
 
 
 template <class FilterType>
-void LETKFilter<FilterType>::computePerturbedStates()
+void EnTKFilter<FilterType>::computePerturbedStates()
 {
     EVectorX xCol(stateSize);
     int currentPointID = 0;
@@ -69,7 +70,7 @@ void LETKFilter<FilterType>::computePerturbedStates()
 
 
 template <class FilterType>
-void LETKFilter<FilterType>::computePrediction()
+void EnTKFilter<FilterType>::computePrediction()
 {
     // std::cout<<"\n COMPUTE PREDICTION" << std::endl;
     PRNS("Computing prediction, T= " << this->actualTime  << " ======");
@@ -81,6 +82,13 @@ void LETKFilter<FilterType>::computePrediction()
     //std::cout << "matXi: " << matXi << std::endl;
     computePerturbedStates();
     //std::cout << "matXi: " << matXi << std::endl;
+
+    /// add inflation noise if needed
+    if (d_additiveNoise.getValue() == true) {
+        for (size_t index = 0; index < ensembleMembersNum; index++) {
+            matXi.col(index) = matXi.col(index) + modelNoise;
+        }
+    }
 
     /// Compute Predicted Mean
     stateExp.fill(FilterType(0.0));
@@ -104,7 +112,7 @@ void LETKFilter<FilterType>::computePrediction()
 
 
 template <class FilterType>
-void LETKFilter<FilterType>::computeCorrection()
+void EnTKFilter<FilterType>::computeCorrection()
 {
     if (observationManager->hasObservation(this->actualTime)) {
         // std::cout<<"\n COMPUTE CORRECTION" << std::endl;
@@ -225,7 +233,7 @@ void LETKFilter<FilterType>::computeCorrection()
 
 
 template <class FilterType>
-void LETKFilter<FilterType>::init() {
+void EnTKFilter<FilterType>::init() {
     Inherit::init();
     assert(this->gnode);
 
@@ -267,7 +275,7 @@ void LETKFilter<FilterType>::init() {
 
 
 template <class FilterType>
-void LETKFilter<FilterType>::bwdInit() {
+void EnTKFilter<FilterType>::bwdInit() {
     assert(masterStateWrapper);
 
     stateSize = masterStateWrapper->getStateSize();
@@ -301,8 +309,8 @@ void LETKFilter<FilterType>::bwdInit() {
     }
     PRNS(" INIT COVARIANCE DIAGONAL P(n+1)+n:  \n" << diagStateCov.transpose());
 
-    modelCovar = masterStateWrapper->getModelErrorVariance();
-    PRNS(" INIT COVARIANCE DIAGONAL P(n+1)+n:  \n" << modelCovar);
+    modelNoise = masterStateWrapper->getModelElementNoise();
+    PRNS(" INIT COVARIANCE DIAGONAL P(n+1)+n:  \n" << modelNoise);
 
     stateExp = masterStateWrapper->getState();
 
@@ -330,7 +338,7 @@ void LETKFilter<FilterType>::bwdInit() {
 }
 
 template <class FilterType>
-void LETKFilter<FilterType>::initializeStep(const core::ExecParams* _params, const size_t _step) {
+void EnTKFilter<FilterType>::initializeStep(const core::ExecParams* _params, const size_t _step) {
     Inherit::initializeStep(_params, _step);
 
     if (initialiseObservationsAtFirstStep.getValue()) {
@@ -353,7 +361,7 @@ void LETKFilter<FilterType>::initializeStep(const core::ExecParams* _params, con
 
 
 template <class FilterType>
-void LETKFilter<FilterType>::updateState() {
+void EnTKFilter<FilterType>::updateState() {
 
     stateSize = masterStateWrapper->getStateSize();
     //std::cout<< "new [UKF] stateSize " << stateSize << std::endl;
@@ -369,9 +377,9 @@ void LETKFilter<FilterType>::updateState() {
     //std::cout<< "INIT COVARIANCE DIAGONAL P(n+1)+n: " << diagStateCov.transpose() << std::endl;
     PRNS(" INIT COVARIANCE DIAGONAL P(n+1)+n:  \n" << diagStateCov.transpose());
 
-    modelCovar = masterStateWrapper->getModelErrorVariance();
-    //std::cout<< "Model covariance: " << modelCovar << std::endl;
-    PRNS(" INIT COVARIANCE DIAGONAL P(n+1)+n:  \n" << modelCovar);
+    modelNoise = masterStateWrapper->getModelElementNoise();
+    //std::cout<< "Model covariance: " << modelNoise << std::endl;
+    PRNS(" INIT COVARIANCE DIAGONAL P(n+1)+n:  \n" << modelNoise);
 
     stateExp = masterStateWrapper->getState();
 
@@ -388,7 +396,7 @@ void LETKFilter<FilterType>::updateState() {
 
 
 template <class FilterType>
-void LETKFilter<FilterType>::stabilizeMatrix (EMatrixX& _initial, EMatrixX& _stabilized) {
+void EnTKFilter<FilterType>::stabilizeMatrix (EMatrixX& _initial, EMatrixX& _stabilized) {
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(_initial, Eigen::ComputeThinU | Eigen::ComputeThinV);
     const Eigen::JacobiSVD<Eigen::MatrixXd>::SingularValuesType singVals = svd.singularValues();
     Eigen::JacobiSVD<Eigen::MatrixXd>::SingularValuesType singValsStab = singVals;
@@ -400,7 +408,7 @@ void LETKFilter<FilterType>::stabilizeMatrix (EMatrixX& _initial, EMatrixX& _sta
 }
 
 template <class FilterType>
-void LETKFilter<FilterType>::pseudoInverse( EMatrixX& M,EMatrixX& pinvM) {
+void EnTKFilter<FilterType>::pseudoInverse( EMatrixX& M,EMatrixX& pinvM) {
     double epsilon= 1e-15;
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(M, Eigen::ComputeThinU | Eigen::ComputeThinV);
     const Eigen::JacobiSVD<Eigen::MatrixXd>::SingularValuesType singVals = svd.singularValues();
@@ -414,7 +422,7 @@ void LETKFilter<FilterType>::pseudoInverse( EMatrixX& M,EMatrixX& pinvM) {
 }
 
 template <class FilterType>
-void LETKFilter<FilterType>::sqrtMat(EMatrixX& A, EMatrixX& sqrtA){
+void EnTKFilter<FilterType>::sqrtMat(EMatrixX& A, EMatrixX& sqrtA){
     double epsilon= 1e-15;
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(A, Eigen::ComputeThinU | Eigen::ComputeThinV);
     const Eigen::JacobiSVD<Eigen::MatrixXd>::SingularValuesType singVals = svd.singularValues();
@@ -429,7 +437,7 @@ void LETKFilter<FilterType>::sqrtMat(EMatrixX& A, EMatrixX& sqrtA){
 }
 
 template <class FilterType>
-void LETKFilter<FilterType>::writeValidationPlot (std::string filename ,EVectorX& state ){
+void EnTKFilter<FilterType>::writeValidationPlot (std::string filename ,EVectorX& state ){
     if (this->saveParam) {
         std::ofstream paramFile(filename.c_str(), std::ios::app);
         if (paramFile.is_open()) {

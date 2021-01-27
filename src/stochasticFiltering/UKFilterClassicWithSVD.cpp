@@ -21,7 +21,7 @@
 ******************************************************************************/
 
 #include <sofa/core/ObjectFactory.h>
-#include "UKFilterClassicOrig.inl"
+#include "UKFilterClassicWithSVD.inl"
 //#include <sofa/helper/accessor.h>
 
 
@@ -34,28 +34,28 @@ namespace component
 namespace stochastic
 {
 
+
 using namespace defaulttype;
 
 
 
-SOFA_DECL_CLASS(UKFilterClassicOrig)
+SOFA_DECL_CLASS(UKFilterClassicWithSVD)
 
 // Register in the Factory
-int UKFilterClassicOrigClass = core::RegisterObject("UKFilterClassicOrig")
+int UKFilterClassicWithSVDClass = core::RegisterObject("UKFilterClassic")
         #ifndef SOFA_FLOAT
-        .add< UKFilterClassicOrig<double> >()
-
+        .add< UKFilterClassicWithSVD<double> >()
         #endif
         #ifndef SOFA_DOUBLE
-        //.add< UKFilterClassicOrig<float> >()
+        //.add< UKFilterClassicWithSVD<float> >()
         #endif
         ;
 
 #ifndef SOFA_FLOAT
-template class SOFA_STOCHASTIC_API UKFilterClassicOrig<double>;
+template class SOFA_STOCHASTIC_API UKFilterClassicWithSVD<double>;
 #endif
 #ifndef SOFA_DOUBLE
-//template class SOFA_STOCHASTIC_API UKFilterClassicOrig<float>;
+//template class SOFA_STOCHASTIC_API UKFilterClassicWithSVD<float>;
 #endif
 
 

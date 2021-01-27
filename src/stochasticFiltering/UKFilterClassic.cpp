@@ -34,7 +34,6 @@ namespace component
 namespace stochastic
 {
 
-
 using namespace defaulttype;
 
 
@@ -42,7 +41,7 @@ using namespace defaulttype;
 SOFA_DECL_CLASS(UKFilterClassic)
 
 // Register in the Factory
-int UKFilterClassicClass = core::RegisterObject("UKFilterClassic")
+int UKFilterClassicClass = core::RegisterObject("UKFilterClassicOrig")
         #ifndef SOFA_FLOAT
         .add< UKFilterClassic<double> >()
 

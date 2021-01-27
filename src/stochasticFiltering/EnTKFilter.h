@@ -74,10 +74,10 @@ extern "C"{
 using namespace defaulttype;
 
 template <class FilterType>
-class UKFilterClassicOrig: public sofa::component::stochastic::StochasticFilterBase
+class EnTKFilter : public sofa::component::stochastic::StochasticFilterBase
 {
 public:
-    SOFA_CLASS(SOFA_TEMPLATE(UKFilterClassicOrig, FilterType), StochasticFilterBase);
+    SOFA_CLASS(SOFA_TEMPLATE(EnTKFilter, FilterType), StochasticFilterBase);
 
     typedef sofa::component::stochastic::StochasticFilterBase Inherit;
     typedef FilterType Type;
@@ -85,8 +85,8 @@ public:
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, Eigen::Dynamic> EMatrixX;
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, 1> EVectorX;
 
-UKFilterClassicOrig();
-~UKFilterClassicOrig() {}
+EnTKFilter();
+~EnTKFilter() {}
 
 protected:
     StochasticStateWrapperBaseT<FilterType>* masterStateWrapper;
@@ -94,42 +94,42 @@ protected:
     ObservationManager<FilterType>* observationManager;
     //ObservationSource *observationSource;
 
+    typedef enum InverseOption {
+        ENSEMBLE_DIMENSION = 0,
+        OBSERVATIONS_DIMENSION = 1
+    } MatrixInverseType;
+
+    sofa::helper::system::thread::CTime *timer;
+    double startTime, stopTime;
+
+    MatrixInverseType m_matrixInverse;
 
     /// vector sizes
     size_t observationSize, stateSize, reducedStateSize;
     size_t numThreads;
 
-    /// number of sigma points (according to the filter type)
-    size_t sigmaPointsNum;
+    /// number of ensemble memebers (instead of sigma points)
+    size_t ensembleMembersNum;
     bool alphaConstant;
     std::vector<int> m_sigmaPointObservationIndexes;
 
-    EVectorX vecAlpha, vecAlphaVar;
     EVectorX stateExp, predObsExp;
-    EMatrixX stateCovar, obsCovar, modelCovar;
-    EVectorX diagStateCov;
+    EMatrixX stateCovar, obsCovarInv, obsCovar;
+    EVectorX diagStateCov, diagAnalysisStateCov, modelNoise;
 
-    EMatrixX matItrans, matI;
-    EMatrixX matXi, matZmodel;
+    EMatrixX stateAnalysisCovar, matI;
+    EMatrixX matXi, matZmodel, matXiPerturb;
 
-    sofa::core::objectmodel::DataFileName d_exportPrefix;
-    std::string exportPrefix;
-    std::string filenameCov, filenameInn, filenameFinalState;
-    Data< std::string > d_filenameCov, d_filenameInn, d_filenameFinalState;
     bool saveParam;
-    Type alpha, alphaVar;
-    bool hasObs;
-
 
     /// structures for parallel computing:
     helper::vector<size_t> sigmaPoints2WrapperIDs;
     helper::vector<helper::vector<size_t> > wrapper2SigmaPointsIDs;
 
-    /// functions_initial
-    void computeSimplexSigmaPoints(EMatrixX& sigmaMat);
-    void computeStarSigmaPoints(EMatrixX& sigmaMat);
-
-public:    
+public:
+    Data<size_t> d_ensembleMembersNumber;
+    Data<bool> d_additiveNoise;
+    Data< std::string > d_inverseOptionType;
     Data<helper::vector<FilterType> > d_state;
     Data<helper::vector<FilterType> > d_variance;
     Data<helper::vector<FilterType> > d_covariance;
@@ -148,8 +148,8 @@ public:
         return
     }*/
     void stabilizeMatrix(EMatrixX& _initial, EMatrixX& _stabilized);
-    void pseudoInverse(EMatrixX& M, EMatrixX& pinvM );
-    void writeValidationPlot(std::string filename, EVectorX& state);
+    void pseudoInverse(EMatrixX& M,EMatrixX& pinvM );
+    void writeValidationPlot(std::string filename ,EVectorX& state );
     void sqrtMat(EMatrixX& A, EMatrixX& sqrtA);
 
     virtual void computePerturbedStates();

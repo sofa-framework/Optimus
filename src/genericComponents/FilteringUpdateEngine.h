@@ -31,7 +31,7 @@
 
 #include <sofa/simulation/Node.h>
 
-#include "../stochasticFiltering/UKFilterClassicOrig.h"
+#include "../stochasticFiltering/UKFilterClassic.h"
 #include "../stochasticFiltering/StochasticStateWrapperBase.h"
 #include "OptimParams.h"
 
@@ -67,7 +67,7 @@ public:
     Data<size_t> d_addData;
     Data<size_t> d_updateData;
 
-    component::stochastic::UKFilterClassicOrig<DataTypes>* filter;
+    component::stochastic::UKFilterClassic<DataTypes>* filter;
     helper::vector<component::stochastic::StochasticStateWrapperBaseT<DataTypes>*> stateWrappers;
     helper::vector<component::container::OptimParamsBase*> vecOptimParams;
     
