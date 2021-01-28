@@ -201,7 +201,7 @@ List of scripts:
 Examples
 --------
 
-In general, Optimus scenes are written in Python (occasionally in XML). It is highly recommended to use YAML (Python module) to define parameters of scenes. 
+In general, Optimus scenes are written in Python(3) (occasionally in XML). It is recommended to use YAML (Python module) to define parameters of scenes.
 Enormously increases the efficiency and avoids mishaps. 
 
 Examples are given folder examples:
@@ -224,7 +224,15 @@ Examples are given folder examples:
 -   The data assimilation is exectued by running: runSofa identify10YoungMods_SDA.py --argv cylinder10AppliedGravity.yml
 
 
-More examples will be added soon. 
+`SpringStiffnessIdentification`
+
+-   An example showing stochastic identification of spring stiffnesses for a brick deformed due to constraint movement.
+
+-   It's necessary to generate observations first: runSofa identifySpringStiffness_GenObs.py
+
+-   The data assimilation is exectued by running: runSofa identifySpringStiffness_SDA.py
+
+
 
 
 
@@ -236,16 +244,17 @@ The goal of these is to verify that the functionality of Optimus has not been ch
 compare results of simulations to previously generated reliable data. If the comparison shows important difference, it is necesary 
 to identify the source of this change which probably indicates a serious issue either in Optimus or in SOFA itself.
 
-Currently, six benchmarks have been implemented: *** assimStiffness_cylinder_yaml *** , *** assimStiffness_cylinder_UKFSimCorr_yaml *** , *** assimBC_synthBrick *** , *** assimStiffness_cylinder_geomagic_yaml *** , *** assimBC_liver_geomagic_cutting_yaml *** , and *** assimBC_liver_polynomial_springs_point_cloud_yaml ***
-
-`assimStiffness_cylinder_yaml`
-
--   ROUKF-based identification of 10 values of Young's modulus of a heterogeneous cylinder subjected to gravity. See Peterlík and A. Klíma.Towards an efficient data assimilation in physically-based medical simulations, 2015.
+Currently, seven benchmarks have been implemented: *** assimBC_liver_geomagic_cutting_yaml *** , *** assimBC_liver_polynomial_springs_point_cloud_yaml *** , *** assimBC_synthBrick *** , *** assimStiffness_cylinder_geomagic_yaml *** , *** assimStiffness_cylinder_python3_yaml *** , *** assimStiffness_cylinder_UKFSimCorr_yaml *** , and *** assimStiffness_cylinder_yaml ***
 
 
-`assimStiffness_cylinder_UKFSimCorr_yaml`
+`assimBC_liver_geomagic_cutting_yaml`
 
--   UKFSimCorr-based identification of 2 values of Young's modulus of a heterogeneous cylinder subjected to gravity.
+-   ROUKF-based identification of 3 values of spring stiffnesses for a deformation of a liver model. The liver is deformed following the recorded manipulation of GeoMagic device. At some moment the simulation of ligament cutting is performed, see S. Nikolaev, I. Peterlik, S. Cotin. Stochastic Correction of Boundary Conditions during Liver Surgery, 2018.
+
+
+`assimBC_liver_polynomial_springs_point_cloud_yaml`
+
+-   ROUKF-based identification of 6 coefficients of 2 two polynomial springs.
 
 
 `assimBC_synthBrick`
@@ -260,14 +269,17 @@ All benchmarks are executed using script verify.sh which runs the observation ge
 -   ROUKF-based identification of 2 values of Young's modulus of a heterogeneous cylinder. The cylinder is deformed following the recorded manipulation of GeoMagic device.
 
 
-`assimBC_liver_geomagic_cutting_yaml`
+`assimStiffness_cylinder_python3_yaml`
 
--   ROUKF-based identification of 3 values of spring stiffnesses for a deformation of a liver model. The liver is deformed following the recorded manipulation of GeoMagic device. At some moment the simulation of ligament cutting is performed, see S. Nikolaev, I. Peterlik, S. Cotin. Stochastic Correction of Boundary COnditions during Liver Surgery, 2018.
-
-
-`assimBC_liver_polynomial_springs_point_cloud_yaml`
-
--   ROUKF-based identification of 6 coefficients of 2 two polynomial springs.
+-   ROUKF-based identification of 3 values of Young's modulus of a heterogeneous cylinder subjected to periodic force. A Python3 compatible scene to verify also the functionality of python3 components
 
 
+`assimStiffness_cylinder_UKFSimCorr_yaml`
+
+-   UKFSimCorr-based identification of 2 values of Young's modulus of a heterogeneous cylinder subjected to gravity.
+
+
+`assimStiffness_cylinder_yaml`
+
+-   ROUKF-based identification of 10 values of Young's modulus of a heterogeneous cylinder subjected to gravity. See Peterlík and A. Klíma. Towards an efficient data assimilation in physically-based medical simulations, 2015.
 
