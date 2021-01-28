@@ -74,12 +74,12 @@ void dgemv_(char* TRANS, const int* M, const int* N,
 using namespace defaulttype;
 
 template <class FilterType>
-class UKFilterClassicWithSVD : public sofa::component::stochastic::StochasticFilterBase
+class UKFilterClassicWithSVD : public sofa::component::stochastic::StochasticUnscentedFilterBase
 {
 public:
-    SOFA_CLASS(SOFA_TEMPLATE(UKFilterClassicWithSVD, FilterType), StochasticFilterBase);
+    SOFA_CLASS(SOFA_TEMPLATE(UKFilterClassicWithSVD, FilterType), StochasticUnscentedFilterBase);
 
-    typedef sofa::component::stochastic::StochasticFilterBase Inherit;
+    typedef sofa::component::stochastic::StochasticUnscentedFilterBase Inherit;
     typedef FilterType Type;
 
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, Eigen::Dynamic> EMatrixX;

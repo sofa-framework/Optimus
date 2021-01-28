@@ -82,12 +82,12 @@ extern "C"{
 using namespace defaulttype;
 
 template <class FilterType>
-class UKFilterSimCorr: public sofa::component::stochastic::StochasticFilterBase
+class UKFilterSimCorr: public sofa::component::stochastic::StochasticUnscentedFilterBase
 {
 public:
-    SOFA_CLASS(SOFA_TEMPLATE(UKFilterSimCorr, FilterType), StochasticFilterBase);
+    SOFA_CLASS(SOFA_TEMPLATE(UKFilterSimCorr, FilterType), StochasticUnscentedFilterBase);
 
-    typedef sofa::component::stochastic::StochasticFilterBase Inherit;
+    typedef sofa::component::stochastic::StochasticUnscentedFilterBase Inherit;
     typedef FilterType Type;
 
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, Eigen::Dynamic> EMatrixX;
