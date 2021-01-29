@@ -130,6 +130,7 @@ protected:
     EVectorX positionVariance;
     EVectorX velocityVariance;
     EMatrixX modelErrorVariance;
+    EVectorX modelElementNoise;
 
     /// decomposed variance in reduced-order filtering
     EMatrixX stateErrorVarianceReduced;
@@ -195,6 +196,9 @@ public:
     }
     virtual EMatrixX& getModelErrorVariance() {
         return modelErrorVariance;
+    }
+    virtual EVectorX& getModelElementNoise() {
+        return modelElementNoise;
     }
 
     virtual EMatrixX& getStateErrorVarianceDevUKF() {

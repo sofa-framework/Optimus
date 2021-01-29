@@ -59,34 +59,34 @@ namespace stochastic
 
 
 extern "C"{
-    // product C= alphaA.B + betaC
-   void dgemm_(char* TRANSA, char* TRANSB, const int* M,
-               const int* N, const int* K, double* alpha, double* A,
-               const int* LDA, double* B, const int* LDB, double* beta,
-               double* C, const int* LDC);
-    // product Y= alphaA.X + betaY
-   void dgemv_(char* TRANS, const int* M, const int* N,
-               double* alpha, double* A, const int* LDA, double* X,
-               const int* INCX, double* beta, double* C, const int* INCY);
-   }
+// product C= alphaA.B + betaC
+void dgemm_(char* TRANSA, char* TRANSB, const int* M,
+            const int* N, const int* K, double* alpha, double* A,
+            const int* LDA, double* B, const int* LDB, double* beta,
+            double* C, const int* LDC);
+// product Y= alphaA.X + betaY
+void dgemv_(char* TRANS, const int* M, const int* N,
+            double* alpha, double* A, const int* LDA, double* X,
+            const int* INCX, double* beta, double* C, const int* INCY);
+}
 
 
 using namespace defaulttype;
 
 template <class FilterType>
-class LETKFilter : public sofa::component::stochastic::StochasticFilterBase
+class UKFilterClassicWithSVD : public sofa::component::stochastic::StochasticUnscentedFilterBase
 {
 public:
-    SOFA_CLASS(SOFA_TEMPLATE(LETKFilter, FilterType), StochasticFilterBase);
+    SOFA_CLASS(SOFA_TEMPLATE(UKFilterClassicWithSVD, FilterType), StochasticUnscentedFilterBase);
 
-    typedef sofa::component::stochastic::StochasticFilterBase Inherit;
+    typedef sofa::component::stochastic::StochasticUnscentedFilterBase Inherit;
     typedef FilterType Type;
 
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, Eigen::Dynamic> EMatrixX;
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, 1> EVectorX;
 
-LETKFilter();
-~LETKFilter() {}
+    UKFilterClassicWithSVD();
+    ~UKFilterClassicWithSVD() {}
 
 protected:
     StochasticStateWrapperBaseT<FilterType>* masterStateWrapper;
@@ -94,46 +94,49 @@ protected:
     ObservationManager<FilterType>* observationManager;
     //ObservationSource *observationSource;
 
-    typedef enum InverseOption {
-        ENSEMBLE_DIMENSION = 0,
-        OBSERVATIONS_DIMENSION = 1
-    } MatrixInverseType;
-
-    sofa::helper::system::thread::CTime *timer;
-    double startTime, stopTime;
-
-    MatrixInverseType m_matrixInverse;
 
     /// vector sizes
     size_t observationSize, stateSize, reducedStateSize;
     size_t numThreads;
 
-    /// number of ensemble memebers (instead of sigma points)
-    size_t ensembleMembersNum;
+    /// number of sigma points (according to the filter type)
+    size_t sigmaPointsNum;
     bool alphaConstant;
     std::vector<int> m_sigmaPointObservationIndexes;
 
+    EVectorX vecAlpha, vecAlphaVar;
     EVectorX stateExp, predObsExp;
-    EMatrixX stateCovar, obsCovarInv, obsCovar, modelCovar;
-    EVectorX diagStateCov, diagAnalysisStateCov;
+    EMatrixX stateCovar, obsCovar, modelCovar;
 
-    EMatrixX stateAnalysisCovar, matI;
-    EMatrixX matXi, matZmodel, matXiPerturb;
+    EMatrixX matItrans, matI;
+    EMatrixX matXi, matZmodel, genMatXi;
 
+    sofa::core::objectmodel::DataFileName d_exportPrefix;
+    std::string exportPrefix;
+    std::string  filenameFinalState;
+    Data< std::string >  d_filenameFinalState;
     bool saveParam;
+    Type alpha, alphaVar;
+
 
     /// structures for parallel computing:
     helper::vector<size_t> sigmaPoints2WrapperIDs;
     helper::vector<helper::vector<size_t> > wrapper2SigmaPointsIDs;
 
-public:
-    Data<size_t> d_ensembleMembersNumber;
-    Data< std::string > d_inverseOptionType;
+    /// functions_initial
+    void computeSimplexSigmaPoints(EMatrixX& sigmaMat);
+    void computeStarSigmaPoints(EMatrixX& sigmaMat);
+
+public:    
     Data<helper::vector<FilterType> > d_state;
     Data<helper::vector<FilterType> > d_variance;
     Data<helper::vector<FilterType> > d_covariance;
     Data<helper::vector<FilterType> > d_innovation;
-
+    Data< bool  > d_draw;
+    Data< double  > d_radius_draw;
+    Data< double  > d_MOnodes_draw;
+    double m_omega;
+    bool hasObs;
     void init() override;
     void bwdInit() override;
 
@@ -146,19 +149,19 @@ public:
     {
         return
     }*/
-    void stabilizeMatrix(EMatrixX& _initial, EMatrixX& _stabilized);
-    void pseudoInverse(EMatrixX& M,EMatrixX& pinvM );
-    void writeValidationPlot(std::string filename ,EVectorX& state );
-    void sqrtMat(EMatrixX& A, EMatrixX& sqrtA);
-
+    void stabilizeMatrix (EMatrixX& _initial, EMatrixX& _stabilized);
+    void pseudoInverse (EMatrixX& M,EMatrixX& pinvM );
+    void writeValidationPlot (std::string filename ,EVectorX& state );
+void sqrtMat(EMatrixX& A, EMatrixX& sqrtA);
     virtual void computePerturbedStates();
 
     virtual void computePrediction() override; // Compute perturbed state included in computeprediction
     virtual void computeCorrection() override;
 
     virtual void initializeStep(const core::ExecParams* _params, const size_t _step) override;
+    void draw(const core::visual::VisualParams* vparams) override;
 
-    virtual void updateState() override;
+    virtual void updateState() override { }
 
 }; /// class
 

@@ -204,6 +204,7 @@ public:
     virtual EMatrixX& getStateErrorVariance() override;
     void updateStateErrorVariance();
     virtual EMatrixX& getModelErrorVariance() override;
+    virtual EVectorX& getModelElementNoise() override;
     void updateModelErrorVariance();
 
     /// get the state error variant for the reduced order filters (stdev^2 of the parameters being estimated)

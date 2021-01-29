@@ -59,34 +59,34 @@ namespace stochastic
 
 
 extern "C"{
-// product C= alphaA.B + betaC
-void dgemm_(char* TRANSA, char* TRANSB, const int* M,
-            const int* N, const int* K, double* alpha, double* A,
-            const int* LDA, double* B, const int* LDB, double* beta,
-            double* C, const int* LDC);
-// product Y= alphaA.X + betaY
-void dgemv_(char* TRANS, const int* M, const int* N,
-            double* alpha, double* A, const int* LDA, double* X,
-            const int* INCX, double* beta, double* C, const int* INCY);
-}
+    // product C= alphaA.B + betaC
+   void dgemm_(char* TRANSA, char* TRANSB, const int* M,
+               const int* N, const int* K, double* alpha, double* A,
+               const int* LDA, double* B, const int* LDB, double* beta,
+               double* C, const int* LDC);
+    // product Y= alphaA.X + betaY
+   void dgemv_(char* TRANS, const int* M, const int* N,
+               double* alpha, double* A, const int* LDA, double* X,
+               const int* INCX, double* beta, double* C, const int* INCY);
+   }
 
 
 using namespace defaulttype;
 
 template <class FilterType>
-class UKFilterClassic: public sofa::component::stochastic::StochasticFilterBase
+class UKFilterClassic : public sofa::component::stochastic::StochasticUnscentedFilterBase
 {
 public:
-    SOFA_CLASS(SOFA_TEMPLATE(UKFilterClassic, FilterType), StochasticFilterBase);
+    SOFA_CLASS(SOFA_TEMPLATE(UKFilterClassic, FilterType), StochasticUnscentedFilterBase);
 
-    typedef sofa::component::stochastic::StochasticFilterBase Inherit;
+    typedef sofa::component::stochastic::StochasticUnscentedFilterBase Inherit;
     typedef FilterType Type;
 
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, Eigen::Dynamic> EMatrixX;
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, 1> EVectorX;
 
-    UKFilterClassic();
-    ~UKFilterClassic() {}
+UKFilterClassic();
+~UKFilterClassic() {}
 
 protected:
     StochasticStateWrapperBaseT<FilterType>* masterStateWrapper;
@@ -107,16 +107,18 @@ protected:
     EVectorX vecAlpha, vecAlphaVar;
     EVectorX stateExp, predObsExp;
     EMatrixX stateCovar, obsCovar, modelCovar;
+    EVectorX diagStateCov;
 
     EMatrixX matItrans, matI;
-    EMatrixX matXi, matZmodel, genMatXi;
+    EMatrixX matXi, matZmodel;
 
     sofa::core::objectmodel::DataFileName d_exportPrefix;
     std::string exportPrefix;
-    std::string  filenameFinalState;
-    Data< std::string >  d_filenameFinalState;
+    std::string filenameCov, filenameInn, filenameFinalState;
+    Data< std::string > d_filenameCov, d_filenameInn, d_filenameFinalState;
     bool saveParam;
     Type alpha, alphaVar;
+    bool hasObs;
 
 
     /// structures for parallel computing:
@@ -132,11 +134,7 @@ public:
     Data<helper::vector<FilterType> > d_variance;
     Data<helper::vector<FilterType> > d_covariance;
     Data<helper::vector<FilterType> > d_innovation;
-    Data< bool  > d_draw;
-    Data< double  > d_radius_draw;
-    Data< double  > d_MOnodes_draw;
-    double m_omega;
-    bool hasObs;
+
     void init() override;
     void bwdInit() override;
 
@@ -149,19 +147,19 @@ public:
     {
         return
     }*/
-    void stabilizeMatrix (EMatrixX& _initial, EMatrixX& _stabilized);
-    void pseudoInverse (EMatrixX& M,EMatrixX& pinvM );
-    void writeValidationPlot (std::string filename ,EVectorX& state );
-void sqrtMat(EMatrixX& A, EMatrixX& sqrtA);
+    void stabilizeMatrix(EMatrixX& _initial, EMatrixX& _stabilized);
+    void pseudoInverse(EMatrixX& M, EMatrixX& pinvM );
+    void writeValidationPlot(std::string filename, EVectorX& state);
+    void sqrtMat(EMatrixX& A, EMatrixX& sqrtA);
+
     virtual void computePerturbedStates();
 
     virtual void computePrediction() override; // Compute perturbed state included in computeprediction
     virtual void computeCorrection() override;
 
     virtual void initializeStep(const core::ExecParams* _params, const size_t _step) override;
-    void draw(const core::visual::VisualParams* vparams) override;
 
-    virtual void updateState() override { }
+    virtual void updateState() override;
 
 }; /// class
 

@@ -83,12 +83,12 @@ using namespace defaulttype;
 
 
 template <class FilterType>
-class ROUKFilter: public sofa::component::stochastic::StochasticFilterBase
+class ROUKFilter: public sofa::component::stochastic::StochasticUnscentedFilterBase
 {
 public:
-    SOFA_CLASS(SOFA_TEMPLATE(ROUKFilter, FilterType), StochasticFilterBase);
+    SOFA_CLASS(SOFA_TEMPLATE(ROUKFilter, FilterType), StochasticUnscentedFilterBase);
 
-    typedef sofa::component::stochastic::StochasticFilterBase Inherit;
+    typedef sofa::component::stochastic::StochasticUnscentedFilterBase Inherit;
     typedef FilterType Type;
 
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, Eigen::Dynamic> EMatrixX;

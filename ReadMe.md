@@ -109,6 +109,7 @@ Compilation of these components must be activated by CMake macro STOCHASTIC_FILT
 
 
 `StochasticStateWrapper`
+
 -   Wrapper of model provided by SOFA. This wrapper implements the interface between the stochastic components (filters) and SOFA simulation. 
 
 -   Must be placed inside the SOFA subnode containing the physical simulation components. 
@@ -123,32 +124,41 @@ Compilation of these components must be activated by CMake macro STOCHASTIC_FILT
 -   Typical example is an obstacle which displays a physical behaviour, however, none of its features is directly involved in the estimation.
 
 
-`UKFilter`
+`MappedStateObservationManager`
 
--   Unscented Kalman Filter proposed by Julier and Uhlman (1997). Implementation performed according to code in Reduced order Kalman filter implemented according to Moireau, Philippe, and Dominique Chapelle. "Reduced-order Unscented Kalman Filtering with application to parameter identification in large-dimensional systems."
+-   One instance of observation manager which handles the observations and provides them to the filter via computation of innovation.
+
+-   Assumes that the predicted observations are mapped to the main mechanical object (associated with StochasticStateWrapper).
+
+
+
+`UKFilterClassic`
+
+-   Unscented Kalman Filter proposed by Julier and Uhlman (1997).
 
 -   Main methods are initializeStep(), computePrediction() and computeCorrection(), all called by the FilteringAnimationLoop.
 
 
 `ROUKFilter`
 
--   Reduced order Kalman filter implemented according to Moireau, Philippe, and Dominique Chapelle. "Reduced-order Unscented Kalman Filtering with application to parameter identification in large-dimensional systems."
+-   Reduced order Kalman filter implemented according to Philippe Moireau and Dominique Chapelle "Reduced-order Unscented Kalman Filtering with application to parameter identification in large-dimensional systems."
 
 -   Main methods are initializeStep(), computePrediction() and computeCorrection(), all called by the FilteringAnimationLoop.
 
 
 `UKFilterSimCorr`
 
--   Special version of UKF filter purely for data assimilation. Currently being studied.
+-   Special version of UKF filter purely for data assimilation.
 
 -   Main methods are initializeStep(), computePrediction() and computeCorrection(), all called by the FilteringAnimationLoop.
 
 
-`MappedStateObservationManager`
+`EnTKFilter`
 
--   One instance of observation manager which handles the observations and provides them to the filter via computation of innovation.
+-   Ensemble Transform Kalman filter. Its description is given in Axel Hutt (2020) "Divergence of the ensemble transform kalman filter by nonlocal observations". Instead of sigma points the transformation are performed with Ensemble members.
 
--   Assumes that the predicted observations are mapped to the main mechanical object (associated with StochasticStateWrapper). 
+-   Main methods are initializeStep(), computePrediction() and computeCorrection(), all called by the FilteringAnimationLoop.
+
 
 
 
@@ -191,7 +201,7 @@ List of scripts:
 Examples
 --------
 
-In general, Optimus scenes are written in Python (occasionally in XML). It is highly recommended to use YAML (Python module) to define parameters of scenes. 
+In general, Optimus scenes are written in Python(3) (occasionally in XML). It is recommended to use YAML (Python module) to define parameters of scenes.
 Enormously increases the efficiency and avoids mishaps. 
 
 Examples are given folder examples:
@@ -214,7 +224,15 @@ Examples are given folder examples:
 -   The data assimilation is exectued by running: runSofa identify10YoungMods_SDA.py --argv cylinder10AppliedGravity.yml
 
 
-More examples will be added soon. 
+`SpringStiffnessIdentification`
+
+-   An example showing stochastic identification of spring stiffnesses for a brick deformed due to constraint movement.
+
+-   It's necessary to generate observations first: runSofa identifySpringStiffness_GenObs.py
+
+-   The data assimilation is exectued by running: runSofa identifySpringStiffness_SDA.py
+
+
 
 
 
@@ -226,16 +244,17 @@ The goal of these is to verify that the functionality of Optimus has not been ch
 compare results of simulations to previously generated reliable data. If the comparison shows important difference, it is necesary 
 to identify the source of this change which probably indicates a serious issue either in Optimus or in SOFA itself.
 
-Currently, six benchmarks have been implemented: *** assimStiffness_cylinder_yaml *** , *** assimStiffness_cylinder_UKFSimCorr_yaml *** , *** assimBC_synthBrick *** , *** assimStiffness_cylinder_geomagic_yaml *** , *** assimBC_liver_geomagic_cutting_yaml *** , and *** assimBC_liver_polynomial_springs_point_cloud_yaml ***
-
-`assimStiffness_cylinder_yaml`
-
--   ROUKF-based identification of 10 values of Young's modulus of a heterogeneous cylinder subjected to gravity. See Peterlík and A. Klíma.Towards an efficient data assimilation in physically-based medical simulations, 2015.
+Currently, seven benchmarks have been implemented: *** assimBC_liver_geomagic_cutting_yaml *** , *** assimBC_liver_polynomial_springs_point_cloud_yaml *** , *** assimBC_synthBrick *** , *** assimStiffness_cylinder_geomagic_yaml *** , *** assimStiffness_cylinder_python3_yaml *** , *** assimStiffness_cylinder_UKFSimCorr_yaml *** , and *** assimStiffness_cylinder_yaml ***
 
 
-`assimStiffness_cylinder_UKFSimCorr_yaml`
+`assimBC_liver_geomagic_cutting_yaml`
 
--   UKFSimCorr-based identification of 2 values of Young's modulus of a heterogeneous cylinder subjected to gravity.
+-   ROUKF-based identification of 3 values of spring stiffnesses for a deformation of a liver model. The liver is deformed following the recorded manipulation of GeoMagic device. At some moment the simulation of ligament cutting is performed, see S. Nikolaev, I. Peterlik, S. Cotin. Stochastic Correction of Boundary Conditions during Liver Surgery, 2018.
+
+
+`assimBC_liver_polynomial_springs_point_cloud_yaml`
+
+-   ROUKF-based identification of 6 coefficients of 2 two polynomial springs.
 
 
 `assimBC_synthBrick`
@@ -250,14 +269,17 @@ All benchmarks are executed using script verify.sh which runs the observation ge
 -   ROUKF-based identification of 2 values of Young's modulus of a heterogeneous cylinder. The cylinder is deformed following the recorded manipulation of GeoMagic device.
 
 
-`assimBC_liver_geomagic_cutting_yaml`
+`assimStiffness_cylinder_python3_yaml`
 
--   ROUKF-based identification of 3 values of spring stiffnesses for a deformation of a liver model. The liver is deformed following the recorded manipulation of GeoMagic device. At some moment the simulation of ligament cutting is performed, see S. Nikolaev, I. Peterlik, S. Cotin. Stochastic Correction of Boundary COnditions during Liver Surgery, 2018.
-
-
-`assimBC_liver_polynomial_springs_point_cloud_yaml`
-
--   ROUKF-based identification of 6 coefficients of 2 two polynomial springs.
+-   ROUKF-based identification of 3 values of Young's modulus of a heterogeneous cylinder subjected to periodic force. A Python3 compatible scene to verify also the functionality of python3 components
 
 
+`assimStiffness_cylinder_UKFSimCorr_yaml`
+
+-   UKFSimCorr-based identification of 2 values of Young's modulus of a heterogeneous cylinder subjected to gravity.
+
+
+`assimStiffness_cylinder_yaml`
+
+-   ROUKF-based identification of 10 values of Young's modulus of a heterogeneous cylinder subjected to gravity. See Peterlík and A. Klíma. Towards an efficient data assimilation in physically-based medical simulations, 2015.
 
