@@ -1,7 +1,7 @@
 import Sofa
+import sys
 import math
 import os
-import sys
 import csv
 import yaml
 import pprint
@@ -13,19 +13,17 @@ __file = __file__.replace('\\', '/') # windows
 
 
 def createScene(rootNode):
-    rootNode.createObject('RequiredPlugin', name='Engine', pluginName='SofaEngine')
-    rootNode.createObject('RequiredPlugin', name='GeneralEngine', pluginName='SofaGeneralEngine')
-    rootNode.createObject('RequiredPlugin', name='ImplicitOdeSolver', pluginName='SofaImplicitOdeSolver')
-    rootNode.createObject('RequiredPlugin', name='BoundaryCondition', pluginName='SofaBoundaryCondition')
-    rootNode.createObject('RequiredPlugin', name='Loader', pluginName='SofaLoader')
-    rootNode.createObject('RequiredPlugin', name='MiscForceField', pluginName='SofaMiscForceField')
-    rootNode.createObject('RequiredPlugin', name='SimpleFem', pluginName='SofaSimpleFem')
-    rootNode.createObject('RequiredPlugin', name='Exporter', pluginName='SofaExporter')
-    rootNode.createObject('RequiredPlugin', name='Visual', pluginName='SofaOpenglVisual')
-    rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
-    rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
+    rootNode.addObject('RequiredPlugin', name='Engine', pluginName='SofaEngine')
+    rootNode.addObject('RequiredPlugin', name='GeneralEngine', pluginName='SofaGeneralEngine')
+    rootNode.addObject('RequiredPlugin', name='ImplicitOdeSolver', pluginName='SofaImplicitOdeSolver')
+    rootNode.addObject('RequiredPlugin', name='BoundaryCondition', pluginName='SofaBoundaryCondition')
+    rootNode.addObject('RequiredPlugin', name='Loader', pluginName='SofaLoader')
+    rootNode.addObject('RequiredPlugin', name='MiscForceField', pluginName='SofaMiscForceField')
+    rootNode.addObject('RequiredPlugin', name='SimpleFem', pluginName='SofaSimpleFem')
+    rootNode.addObject('RequiredPlugin', name='Visual', pluginName='SofaOpenglVisual')
+    # rootNode.addObject('RequiredPlugin', name='Python3', pluginName='SofaPython3')
+    rootNode.addObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
 
-    ### load YAML configuration given as argument via --argv name.yaml
     try:
         sys.argv[0]
     except:
@@ -33,40 +31,45 @@ def createScene(rootNode):
     else:
         commandLineArguments = sys.argv
 
-    if len(commandLineArguments) > 1:
-        configFileName = commandLineArguments[1]
-    else:
-        print 'ERROR: Must supply a yaml config file as an argument!'
-        return
+    # if len(commandLineArguments) > 1:
+    #     configFileName = commandLineArguments[1]
+    configFileName = "beamApplyForce.yml"
+    # else:
+    #     print 'ERROR: Must supply a yaml config file as an argument!'
+    #     return
 
     with open(configFileName, 'r') as stream:
         try:
-            options = yaml.load(stream)
+            options = yaml.safe_load(stream)
 
         except yaml.YAMLError as exc:
             print(exc)
             return
 
     if options['model']['int']['lin_type'] == 'Pardiso':
-        rootNode.createObject('RequiredPlugin', name='Pardiso', pluginName='SofaPardisoSolver')
+        rootNode.addObject('RequiredPlugin', name='Pardiso', pluginName='SofaPardisoSolver')
 
-    AppStiff_GenObs(rootNode, options)
+    rootNode.addObject(AppStiffGenObs_Controller(name="AppStiff_GenObs", node=rootNode, opt=options))
 
     return 0;
 
 
 
 
-class AppStiff_GenObs(Sofa.PythonScriptController):
+class AppStiffGenObs_Controller(Sofa.Core.Controller):
 
-    def __init__(self, rootNode, opt):
-        self.opt = opt
+    def __init__(self, *args, **kwargs):
+        ### These are needed (and the normal way to override from a python class)
+        Sofa.Core.Controller.__init__(self, *args, **kwargs)
+        self.rootNode = kwargs["node"]
+        self.opt = kwargs["opt"]
 
+        ### print options
         pp = pprint.PrettyPrinter(indent=4)
-        pp.pprint(opt)
+        pp.pprint(self.opt)
 
         ### set configuration
-        self.folder = opt['io']['folder']
+        self.folder = self.opt['io']['folder']
 
         ### create folder to save the observations; back-up if the folder exists already
         stamp='_'+str(int(time.time()))
@@ -75,11 +78,11 @@ class AppStiff_GenObs(Sofa.PythonScriptController):
         os.system('mkdir -p '+self.folder)
 
         ### create folder to save the VTK geometry
-        if opt['io']['saveGeo']:
+        if self.opt['io']['saveGeo']:
             self.geoFolder = self.folder+'/obsGeometry'
             os.system('mkdir -p '+self.geoFolder)
 
-        self.createGraph(rootNode)
+        self.createGraph(self.rootNode)
 
         return None;
 
@@ -92,77 +95,77 @@ class AppStiff_GenObs(Sofa.PythonScriptController):
         rootNode.findData('dt').value = self.opt['model']['dt']
         rootNode.findData('gravity').value = self.opt['model']['gravity']
 
-        rootNode.createObject('VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels hideVisual')
+        rootNode.addObject('VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels hideVisual')
 
         ### general node
-        simuNode = rootNode.createChild('simuNode')
+        simuNode = rootNode.addChild('simuNode')
 
         ### integration in time
         intType = self.opt['model']['int']['type']
         if intType == 'Euler':
-            simuNode.createObject('EulerImplicitSolver', firstOrder = self.opt['model']['int']['first_order'], rayleighStiffness=self.opt['model']['int']['rstiff'], rayleighMass=self.opt['model']['int']['rmass'])
+            simuNode.addObject('EulerImplicitSolver', firstOrder = self.opt['model']['int']['first_order'], rayleighStiffness=self.opt['model']['int']['rstiff'], rayleighMass=self.opt['model']['int']['rmass'])
         elif intType == 'Newton':
-            simuNode.createObject('StaticSolver', name="NewtonStatic", correction_tolerance_threshold="1e-8", residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations=self.opt['model']['int']['maxit'], printLog=self.opt['model']['int']['verbose'])
+            simuNode.addObject('StaticSolver', name="NewtonStatic", correction_tolerance_threshold="1e-8", residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations=self.opt['model']['int']['maxit'], printLog=self.opt['model']['int']['verbose'])
 
         linType = self.opt['model']['int']['lin_type']
         if linType == 'Pardiso':
-            simuNode.createObject('SparsePARDISOSolver', name='lsolver', verbose='0', symmetric=self.opt['model']['linsol']['pardisoSym'], exportDataToFolder=self.opt['model']['linsol']['pardisoFolder'])
+            simuNode.addObject('SparsePARDISOSolver', name='lsolver', verbose='0', symmetric=self.opt['model']['linsol']['pardisoSym'], exportDataToFolder=self.opt['model']['linsol']['pardisoFolder'])
         elif linType == 'CG':
-            simuNode.createObject('CGLinearSolver', name='lsolverit', tolerance='1e-10', threshold='1e-10', iterations='500', verbose='0')
+            simuNode.addObject('CGLinearSolver', name='lsolverit', tolerance='1e-10', threshold='1e-10', iterations='500', verbose='0')
 
         ### mechanical object
-        simuNode.createObject('MeshVTKLoader', name='loader', filename=self.opt['model']['volumeMesh'])
-        simuNode.createObject('MechanicalObject', src='@loader', name='Volume')
-        simuNode.createObject('TetrahedronSetTopologyContainer', name="Container", src="@loader", tags=" ")
-        simuNode.createObject('TetrahedronSetTopologyModifier', name="Modifier")
-        simuNode.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
+        simuNode.addObject('MeshVTKLoader', name='loader', filename=self.opt['model']['volumeMesh'])
+        simuNode.addObject('MechanicalObject', src='@loader', name='Volume')
+        simuNode.addObject('TetrahedronSetTopologyContainer', name="Container", src="@loader", tags=" ")
+        simuNode.addObject('TetrahedronSetTopologyModifier', name="Modifier")
+        simuNode.addObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
 
-        simuNode.createObject('MeshMatrixMass', printMass='0', lumping='1', massDensity=self.opt['model']['density'], name='mass')
+        simuNode.addObject('MeshMatrixMass', printMass='0', lumping='1', massDensity=self.opt['model']['density'], name='mass')
 
         ### material and elasticiy properties
         method = self.opt['model']['fem']['method']
         E = self.opt['model']['fem']['young_moduli']
         nu = self.opt['model']['fem']['poisson_ratio']
         if  method[0:3] == 'Cor':
-            simuNode.createObject('TetrahedronFEMForceField', name='FEM', method=method[3:].lower(), listening='true', drawHeterogeneousTetra='1', poissonRatio=nu, youngModulus=E, updateStiffness='1')
+            simuNode.addObject('TetrahedronFEMForceField', name='FEM', method=method[3:].lower(), listening='true', drawHeterogeneousTetra='1', poissonRatio=nu, youngModulus=E, updateStiffness='1')
         elif method == 'StVenant':
-            simuNode.createObject('Indices2ValuesTransformer', name='pm', indices=[1], values1=E, values2=nu, inputValues='@loader.dataset', transformation='ENu2MuLambda')
-            simuNode.createObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet='@pm.outputValues')
+            simuNode.addObject('Indices2ValuesTransformer', name='pm', indices=[1], values1=E, values2=nu, inputValues='@loader.dataset', transformation='ENu2MuLambda')
+            simuNode.addObject('TetrahedralTotalLagrangianForceField', name='FEM', materialName='StVenantKirchhoff', ParameterSet='@pm.outputValues')
 
         ### boundary conditions
-        simuNode.createObject('BoxROI', box=self.opt['model']['bc']['boxes'], name='fixedBox', drawBoxes='1')
-        simuNode.createObject('FixedConstraint', indices='@fixedBox.indices')
+        simuNode.addObject('BoxROI', box=self.opt['model']['bc']['boxes'], name='fixedBox', drawBoxes='1')
+        simuNode.addObject('FixedConstraint', indices='@fixedBox.indices')
 
         ### applied force
-        simuNode.createObject('BoxROI', name='forceBox', box=self.opt['model']['applied_force']['boxes'], drawBoxes='1')
-        self.appliedForce = simuNode.createObject('ConstantForceField', force=self.opt['model']['applied_force']['initial_force'], indices='@forceBox.indices')
+        simuNode.addObject('BoxROI', name='forceBox', box=self.opt['model']['applied_force']['boxes'], drawBoxes='1')
+        self.appliedForce = simuNode.addObject('ConstantForceField', force=self.opt['model']['applied_force']['initial_force'], indices='@forceBox.indices')
 
         ### export geometry in VTK files in each step
         if self.opt['io']['saveGeo']:
-            simuNode.createObject('VTKExporter', filename=self.geoFolder+'/object.vtk', XMLformat='0', listening='1', edges="0", triangles="0", quads="0", tetras="1", exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1", printLog='0')
+            simuNode.addObject('VTKExporter', filename=self.geoFolder+'/object.vtk', XMLformat='0', listening='1', edges="0", triangles="0", quads="0", tetras="1", exportAtBegin="1", exportAtEnd="0", exportEveryNumberOfSteps="1", printLog='0')
 
         ### export observations
-        obsNode = simuNode.createChild('obsNode')
-        obsNode.createObject('MeshVTKLoader', name='obsloader', filename=self.opt['model']['observationPoints'])
-        obsNode.createObject('MechanicalObject', src='@obsloader', name='MO')
-        obsNode.createObject('BarycentricMapping')
-        obsNode.createObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1')
-        obsNode.createObject('ShowSpheres', radius="0.002", color="1 0 0 1", position='@MO.position')
+        obsNode = simuNode.addChild('obsNode')
+        obsNode.addObject('MeshVTKLoader', name='obsloader', filename=self.opt['model']['observationPoints'])
+        obsNode.addObject('MechanicalObject', src='@obsloader', name='MO')
+        obsNode.addObject('BarycentricMapping')
+        obsNode.addObject('BoxROI', name='observationBox', box='-1 -1 -1 1 1 1')
+        obsNode.addObject('ShowSpheres', radius="0.002", color="1 0 0 1", position='@MO.position')
         if self.opt['io']['saveObs']:
             obsFile = self.folder + '/' + self.opt['io']['obsFile']
-            obsNode.createObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', ExportPositions='1', fileName=obsFile, ExportVelocities='0', ExportForces='0')
+            obsNode.addObject('OptimMonitor', name='ObservationMonitor', indices='@observationBox.indices', ExportPositions='1', fileName=obsFile, ExportVelocities='0', ExportForces='0')
 
         ### visual node
-        oglNode = simuNode.createChild('oglNode')
-        oglNode.createObject('MeshSTLLoader', name='objectSLoader', filename=self.opt['model']['surfaceMesh'])
-        oglNode.createObject('OglModel', color='0 0 1 1')
-        oglNode.createObject('BarycentricMapping')
+        oglNode = simuNode.addChild('oglNode')
+        oglNode.addObject('MeshSTLLoader', name='objectSLoader', filename=self.opt['model']['surfaceMesh'])
+        oglNode.addObject('OglModel', color='0 0 1 1')
+        oglNode.addObject('BarycentricMapping')
 
         return 0;
 
 
 
-    def onBeginAnimationStep(self, deltaTime):
+    def onAnimateBeginEvent(self, deltaTime):
         self.step += 1
         ### modify applied force
         if 'applied_force' in self.opt['model'].keys():
@@ -170,12 +173,12 @@ class AppStiff_GenObs(Sofa.PythonScriptController):
             delta = np.array(self.opt['model']['applied_force']['delta'])
             if self.step < maxTS:
                 fc = np.array(self.appliedForce.findData('force').value)
-                fc[0] += delta
+                fc += delta
                 self.appliedForce.findData('force').value = fc.tolist()
 
         return 0
 
 
-    def onEndAnimationStep(self, deltaTime):
+    def onAnimateEndEvent(self, deltaTime):
         return 0;
 

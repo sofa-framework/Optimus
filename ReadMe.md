@@ -204,24 +204,24 @@ Examples
 In general, Optimus scenes are written in Python(3) (occasionally in XML). It is recommended to use YAML (Python module) to define parameters of scenes.
 Enormously increases the efficiency and avoids mishaps. 
 
-Examples are given folder examples:
+Examples are given in folder examples:
 
 `SingleParameterIdentification`
 
 -   An example showing stochastic identification of Young's modulus of a homogeneous beam subjected to gravity.
 
--   It's necessary to generate observations first: runSofa identify1YoungMod_GenObs.py --argv beamApplyForce.yml
+-   It's necessary to generate observations first: runSofa identify1YoungMod_GenObs.py
 
--   The data assimilation is exectued by running: runSofa identify1YoungMod_SDA.py --argv beamApplyForce.yml
+-   The data assimilation is exectued by running: runSofa identify1YoungMod_SDA.py
 
 
 `MultipleParameterIdentification`
 
 -   An example similar to previous, but estimated 10 Young's moduli of a heterogeneous cylinder under gravity.
 
--   It's necessary to generate observations first: runSofa identify10YoungMods_GenObs.py --argv cylinder10AppliedGravity.yml
+-   It's necessary to generate observations first: runSofa identify10YoungMods_GenObs.py
 
--   The data assimilation is exectued by running: runSofa identify10YoungMods_SDA.py --argv cylinder10AppliedGravity.yml
+-   The data assimilation is exectued by running: runSofa identify10YoungMods_SDA.py
 
 
 `SpringStiffnessIdentification`

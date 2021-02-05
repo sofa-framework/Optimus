@@ -198,6 +198,6 @@ class cyl3PartsConstForceGenObs_Controller(Sofa.Core.Controller):
     def onMouseButtonRight(self, mouseX, mouseY, isPressed):
         return 0;
 
-    def onBeginAnimationStep(self, deltaTime):
+    def onAnimateBeginEvent(self, deltaTime):
         return 0;
 
