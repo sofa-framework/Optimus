@@ -41,7 +41,7 @@ template <class FilterType>
 EnTKFilter<FilterType>::EnTKFilter()
     : Inherit()
     , d_ensembleMembersNumber(initData(&d_ensembleMembersNumber, "ensembleMembersNumber", "number of ensemble memebrs for localized ensemble filter" ) )
-    , d_additiveNoise( initData(&d_additiveNoise, false, "additiveNoise", "add noise for ensemble members" ) )
+    , d_additiveNoiseType( initData(&d_additiveNoiseType, size_t(0), "additiveNoiseType", "add noise for ensemble members: 0 - no noise, 1 - after prediction, 2 -- after correction" ) )
     , d_inverseOptionType( initData(&d_inverseOptionType, "inverseOption", "inverse option type") )
     , d_state( initData(&d_state, "state", "actual expected value of reduced state (parameters) estimated by the filter" ) )
     , d_variance( initData(&d_variance, "variance", "actual variance  of reduced state (parameters) estimated by the filter" ) )
@@ -83,11 +83,12 @@ void EnTKFilter<FilterType>::computePrediction()
     computePerturbedStates();
     //std::cout << "matXi: " << matXi << std::endl;
 
-    /// add inflation noise if needed
-    if (d_additiveNoise.getValue() == true) {
+    ///// add inflation noise if needed
+    if (d_additiveNoiseType.getValue() == 1) {
         for (size_t index = 0; index < ensembleMembersNum; index++) {
             matXi.col(index) = matXi.col(index) + modelNoise;
         }
+        //std::cout << "We are in prediction" << std::endl;
     }
 
     /// Compute Predicted Mean
@@ -192,6 +193,14 @@ void EnTKFilter<FilterType>::computeCorrection()
             matXi.col(index) = stateExp;
         }
         matXi = matXi + matXiPerturb * matZsqrt;
+
+        /// add inflation noise if needed
+        if (d_additiveNoiseType.getValue() == 2) {
+            for (size_t index = 0; index < ensembleMembersNum; index++) {
+                matXi.col(index) = matXi.col(index) + modelNoise;
+            }
+            //std::cout << "We are in correction" << std::endl;
+        }
 
         masterStateWrapper->setState(stateExp, mechParams);
 
