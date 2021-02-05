@@ -128,7 +128,7 @@ protected:
 
 public:
     Data<size_t> d_ensembleMembersNumber;
-    Data<bool> d_additiveNoise;
+    Data<size_t> d_additiveNoiseType;
     Data< std::string > d_inverseOptionType;
     Data<helper::vector<FilterType> > d_state;
     Data<helper::vector<FilterType> > d_variance;
