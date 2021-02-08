@@ -6,7 +6,7 @@ system_parameters:
 
 general_parameters:
     scenario_type: "Generate_data"    # options are "Generate_data" and "Validate_estimations"
-    gravity: "0 0 0"
+    gravity: [0.0, 0.0, 0.0]
     density: 200    # total_mass: 0.2
     delta_time:
         &time

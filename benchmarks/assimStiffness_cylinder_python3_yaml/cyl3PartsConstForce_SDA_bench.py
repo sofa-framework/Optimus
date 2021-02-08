@@ -233,7 +233,7 @@ class cylConstForceSDA_Controller(Sofa.Core.Controller):
 
 
 
-    def onAnimateEndEvent(self, eventType):
+    def onAnimateEndEvent(self, deltaTime):
         ### modify apllied force
         self.iterations = self.iterations + 1
         if self.iterations == 80:

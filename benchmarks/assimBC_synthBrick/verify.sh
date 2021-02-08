@@ -1,11 +1,11 @@
 #!/bin/bash
 
 if [ $# == "2" ]; then
-        SOFA_EXEC="$1 -l $2/libSofaPython.so -l $2/libSofaExporter.so"
+        SOFA_EXEC="$1 -l $2/libSofaPython3.so"
 elif [ $# == "1" ]; then
-        SOFA_EXEC="$1 -l libSofaPython.so -l libSofaExporter.so"
+        SOFA_EXEC="$1 -l libSofaPython3.so"
 else
-        SOFA_EXEC="runSofa -l libSofaPython.so -l libSofaExporter.so"
+        SOFA_EXEC="runSofa -l libSofaPython3.so"
 fi
 echo "Using SOFA executable: " $SOFA_EXEC
 

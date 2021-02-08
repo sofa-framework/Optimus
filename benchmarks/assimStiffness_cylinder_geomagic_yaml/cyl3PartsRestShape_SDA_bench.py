@@ -1,7 +1,7 @@
 import Sofa
+import sys
 import math
 import os
-import sys
 import csv
 import yaml
 sys.path.append(os.getcwd() + '/../../python_src/utils')
@@ -12,19 +12,19 @@ __file = __file__.replace('\\', '/') # windows
 
 
 def createScene(rootNode):
-    rootNode.createObject('RequiredPlugin', name='Deformable', pluginName='SofaDeformable')
-    rootNode.createObject('RequiredPlugin', name='Engine', pluginName='SofaEngine')
-    rootNode.createObject('RequiredPlugin', name='GeneralEngine', pluginName='SofaGeneralEngine')
-    rootNode.createObject('RequiredPlugin', name='ImplicitOdeSolver', pluginName='SofaImplicitOdeSolver')
-    rootNode.createObject('RequiredPlugin', name='GeneralImplicitOdeSolver', pluginName='SofaGeneralImplicitOdeSolver')
-    rootNode.createObject('RequiredPlugin', name='BoundaryCondition', pluginName='SofaBoundaryCondition')
-    rootNode.createObject('RequiredPlugin', name='Loader', pluginName='SofaLoader')
-    rootNode.createObject('RequiredPlugin', name='MiscForceField', pluginName='SofaMiscForceField')
-    rootNode.createObject('RequiredPlugin', name='Rigid', pluginName='SofaRigid')
-    rootNode.createObject('RequiredPlugin', name='SimpleFem', pluginName='SofaSimpleFem')
-    rootNode.createObject('RequiredPlugin', name='GraphComponent', pluginName='SofaGraphComponent')
-    rootNode.createObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
-    rootNode.createObject('RequiredPlugin', name='Python', pluginName='SofaPython')
+    rootNode.addObject('RequiredPlugin', name='Deformable', pluginName='SofaDeformable')
+    rootNode.addObject('RequiredPlugin', name='Engine', pluginName='SofaEngine')
+    rootNode.addObject('RequiredPlugin', name='GeneralEngine', pluginName='SofaGeneralEngine')
+    rootNode.addObject('RequiredPlugin', name='ImplicitOdeSolver', pluginName='SofaImplicitOdeSolver')
+    rootNode.addObject('RequiredPlugin', name='GeneralImplicitOdeSolver', pluginName='SofaGeneralImplicitOdeSolver')
+    rootNode.addObject('RequiredPlugin', name='BoundaryCondition', pluginName='SofaBoundaryCondition')
+    rootNode.addObject('RequiredPlugin', name='Loader', pluginName='SofaLoader')
+    rootNode.addObject('RequiredPlugin', name='MiscForceField', pluginName='SofaMiscForceField')
+    rootNode.addObject('RequiredPlugin', name='Rigid', pluginName='SofaRigid')
+    rootNode.addObject('RequiredPlugin', name='SimpleFem', pluginName='SofaSimpleFem')
+    rootNode.addObject('RequiredPlugin', name='GraphComponent', pluginName='SofaGraphComponent')
+    # rootNode.addObject('RequiredPlugin', name='Python3', pluginName='SofaPython3')
+    rootNode.addObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
 
     try:
         sys.argv[0]
@@ -33,12 +33,13 @@ def createScene(rootNode):
     else:
         commandLineArguments = sys.argv
 
-    if len(commandLineArguments) > 1:
-        configFileName = commandLineArguments[1]
-    else:
-        print 'ERROR: Must supply a yaml config file as an argument!'
-        return
-    print "Command line arguments for python : " + str(commandLineArguments)
+    # if len(commandLineArguments) > 1:
+    #     configFileName = commandLineArguments[1]
+    configFileName = "cyl3PartsRestShape_scene_config_bench.yml"
+    # else:
+    #     print('ERROR: Must supply a yaml config file as an argument!')
+    #     return
+    print("Command line arguments for python : " + str(commandLineArguments))
 
     with open(configFileName, 'r') as stream:
         try:
@@ -49,20 +50,23 @@ def createScene(rootNode):
             return
 
     if options['general_parameters']['linear_solver_kind'] == 'Pardiso':
-        rootNode.createObject('RequiredPlugin', name='PardisoSolver', pluginName='SofaPardisoSolver')
+        rootNode.addObject('RequiredPlugin', name='PardisoSolver', pluginName='SofaPardisoSolver')
 
-    cyl3PartsRestShape_SDA(rootNode, options, configFileName)
+    rootNode.addObject(Cylinder3PartsRestShapeSDA_Controller(name="Cylinder3PartsRestShape_SDA", node=rootNode, opt=options))
     return 0
 
 
 
 
-class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
+class Cylinder3PartsRestShapeSDA_Controller(Sofa.Core.Controller):
 
-    def __init__(self, rootNode, options, configFileName):
-        self.options = options
+    def __init__(self, *args, **kwargs):
+        # These are needed (and the normal way to override from a python class)
+        Sofa.Core.Controller.__init__(self, *args, **kwargs)
+
+        self.rootNode = kwargs["node"]
+        self.options = kwargs["opt"]
         self.cameraReactivated = False
-        self.rootNode = rootNode
 
         self.generalFolderName = '.'
         self.folderName = 'roukf_testing'
@@ -90,14 +94,14 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
                 print(exc)
                 return
 
-        self.createGraph(rootNode)
+        self.createGraph(self.rootNode)
 
 
 
     def createGraph(self, rootNode):
 
         self.rootNode = rootNode
-        print "Create graph called (Python side)\n"
+        print("Create graph called (Python side)\n")
 
         self.lambdaScale = 1.0
         if self.options['filtering_parameters']['filter_kind'] == 'ROUKF':
@@ -112,8 +116,8 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
             self.estimPosition='1'
             self.estimVelocity='0'
 
-        self.createGlobalComponents(rootNode)
-        masterNode = rootNode.createChild('MasterScene')
+        self.createGlobalComponents(self.rootNode)
+        masterNode = self.rootNode.addChild('MasterScene')
         self.createMasterScene(masterNode)
 
         return 0
@@ -125,32 +129,32 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
         rootNode.findData('gravity').value = self.options['general_parameters']['gravity']
         rootNode.findData('dt').value = self.options['general_parameters']['delta_time']
 
-        rootNode.createObject('ViewerSetting', cameraMode='Perspective', resolution='1000 700', objectPickingMethod='Ray casting')
-        rootNode.createObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels')
+        rootNode.addObject('ViewerSetting', cameraMode='Perspective', resolution='1000 700', objectPickingMethod='Ray casting')
+        rootNode.addObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels')
 
-        rootNode.createObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1", computationTimeFile=self.folderName+'/'+self.options['time_parameters']['computation_time_file_name'])
+        rootNode.addObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1", computationTimeFile=self.folderName+'/'+self.options['time_parameters']['computation_time_file_name'])
 
         ### filter data
         if (self.options['filtering_parameters']['filter_kind'] == 'ROUKF'):
-            self.filter = rootNode.createObject('ROUKFilter', name="ROUKF", verbose="1", useUnbiasedVariance=self.options['filtering_parameters']['use_unbiased_variance'], sigmaTopology=self.options['filtering_parameters']['sigma_points_topology'], lambdaScale=self.lambdaScale)
+            self.filter = rootNode.addObject('ROUKFilter', name="ROUKF", verbose="1", useUnbiasedVariance=self.options['filtering_parameters']['use_unbiased_variance'], sigmaTopology=self.options['filtering_parameters']['sigma_points_topology'], lambdaScale=self.lambdaScale)
         elif (self.options['filtering_parameters']['filter_kind'] == 'UKFSimCorr'):
-            self.filter = rootNode.createObject('UKFilterSimCorr', name="UKF", verbose="1", useUnbiasedVariance=self.options['filtering_parameters']['use_unbiased_variance'], sigmaTopology=self.options['filtering_parameters']['sigma_points_topology'], lambdaScale=self.lambdaScale)
+            self.filter = rootNode.addObject('UKFilterSimCorr', name="UKF", verbose="1", useUnbiasedVariance=self.options['filtering_parameters']['use_unbiased_variance'], sigmaTopology=self.options['filtering_parameters']['sigma_points_topology'], lambdaScale=self.lambdaScale)
         elif (self.options['filtering_parameters']['filter_kind'] == 'UKFClassic'):
-            self.filter = rootNode.createObject('UKFilterClassic', name="UKFClas", verbose="1", exportPrefix=self.folderName, useUnbiasedVariance=self.options['filtering_parameters']['use_unbiased_variance'], sigmaTopology=self.options['filtering_parameters']['sigma_points_topology'], lambdaScale=self.lambdaScale)
+            self.filter = rootNode.addObject('UKFilterClassic', name="UKFClas", verbose="1", exportPrefix=self.folderName, useUnbiasedVariance=self.options['filtering_parameters']['use_unbiased_variance'], sigmaTopology=self.options['filtering_parameters']['sigma_points_topology'], lambdaScale=self.lambdaScale)
         else:
-            print 'Unknown filter type!'
+            print('Unknown filter type!')
 
         ### object loader
-        rootNode.createObject('MeshVTKLoader', name='loader', filename=self.options['system_parameters']['volume_file_name'])
+        rootNode.addObject('MeshVTKLoader', name='loader', filename=self.options['system_parameters']['volume_file_name'])
 
         ### external impact node
-        impactSimu = rootNode.createChild('externalImpSimu')
-        impactSimu.createObject('PreStochasticWrapper')
-        impactSimu.createObject('EulerImplicitSolver')
-        impactSimu.createObject('CGLinearSolver')
-        self.targetPoint = impactSimu.createObject('MechanicalObject', name="state", template='Vec3d', useTopology='false', position=self.options['impact_parameters']['position'])
-        impactSimu.createObject('SimulatedStateObservationSource', name="ImpactSim", template='Vec3d', printLog="1", monitorPrefix=self.options['impact_parameters']['observation_file_name'], drawSize="0.0015", controllerMode="1")
-        impactSimu.createObject('ShowSpheres', name="externImp", radius='0.005', color='1 0 1 1', position='@state.position')
+        impactSimu = rootNode.addChild('externalImpSimu')
+        impactSimu.addObject('PreStochasticWrapper')
+        impactSimu.addObject('EulerImplicitSolver')
+        impactSimu.addObject('CGLinearSolver')
+        self.targetPoint = impactSimu.addObject('MechanicalObject', name="state", template='Vec3d', useTopology='false', position=self.options['impact_parameters']['position'])
+        impactSimu.addObject('SimulatedStateObservationSource', name="ImpactSim", template='Vec3d', printLog="1", monitorPrefix=self.options['impact_parameters']['observation_file_name'], drawSize="0.0015", controllerMode="1")
+        impactSimu.addObject('ShowSpheres', name="externImp", radius='0.005', color='1 0 1 1', position='@state.position')
 
         return 0
 
@@ -160,75 +164,74 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
     def createCommonComponents(self, node):
         ### solvers
         if self.options['general_parameters']['da_solver_kind'] == 'Euler':
-            node.createObject('EulerImplicitSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'])
+            node.addObject('EulerImplicitSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'])
         elif self.options['general_parameters']['da_solver_kind'] == 'Symplectic':
-            node.createObject('VariationalSymplecticSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'], newtonError='1e-12', steps='1', verbose='0')
+            node.addObject('VariationalSymplecticSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'], newtonError='1e-12', steps='1', verbose='0')
         elif self.options['general_parameters']['da_solver_kind'] == 'Newton':
-            node.createObject('StaticSolver', name="NewtonStatic", printLog="0", correction_tolerance_threshold="1e-8", residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations="2")
+            node.addObject('StaticSolver', name="NewtonStatic", printLog="0", correction_tolerance_threshold="1e-8", residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations="2")
 
         if self.options['general_parameters']['linear_solver_kind'] == 'Pardiso':
-            node.createObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
+            node.addObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
         elif self.options['general_parameters']['linear_solver_kind'] == 'CG':
-            node.createObject('CGLinearSolver', iterations="20", tolerance="1e-12", threshold="1e-12")
-            # node.createObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
+            node.addObject('CGLinearSolver', iterations="20", tolerance="1e-12", threshold="1e-12")
+            # node.addObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
         else:
-            print 'Unknown linear solver type!'
+            print('Unknown linear solver type!')
 
         ### mechanical object
-        self.sourcePoint = node.createObject('MechanicalObject', src="@/loader", name="Volume")
-        node.createObject('TetrahedronSetTopologyContainer', name="Container", src="@/loader", tags=" ")
-        node.createObject('TetrahedronSetTopologyModifier', name="Modifier")
-        node.createObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
+        node.addObject('MechanicalObject', src="@/loader", name="Volume")
+        node.addObject('TetrahedronSetTopologyContainer', name="Container", src="@/loader", tags=" ")
+        node.addObject('TetrahedronSetTopologyModifier', name="Modifier")
+        node.addObject('TetrahedronSetGeometryAlgorithms', name="GeomAlgo")
         if 'total_mass' in self.options['general_parameters'].keys():
-            node.createObject('UniformMass', totalMass=self.options['general_parameters']['total_mass'])
+            node.addObject('UniformMass', totalMass=self.options['general_parameters']['total_mass'])
         if 'density' in self.options['general_parameters'].keys():
-            node.createObject('MeshMatrixMass', printMass='0', lumping='1', massDensity=self.options['general_parameters']['density'], name='mass')
+            node.addObject('MeshMatrixMass', printMass='0', lumping='1', massDensity=self.options['general_parameters']['density'], name='mass')
 
         ### estimate stiffness
-        node.createObject('OptimParams', name="paramE", optimize="1", numParams=self.options['filtering_parameters']['optim_params_size'], template="Vector", initValue=self.options['filtering_parameters']['initial_stiffness'], minValue=self.options['filtering_parameters']['minimal_stiffness'], maxValue=self.options['filtering_parameters']['maximal_stiffness'], stdev=self.options['filtering_parameters']['initial_standart_deviation'], transformParams=self.options['filtering_parameters']['transform_parameters'])
-        node.createObject('Indices2ValuesMapper', name='youngMapper', indices='1 3', values='@paramE.value', inputValues='@/loader.dataset', defaultValue='6000')
-        node.createObject('TetrahedronFEMForceField', name='FEM', updateStiffness='1', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
+        node.addObject('OptimParams', name="paramE", optimize="1", numParams=self.options['filtering_parameters']['optim_params_size'], template="Vector", initValue=self.options['filtering_parameters']['initial_stiffness'], minValue=self.options['filtering_parameters']['minimal_stiffness'], maxValue=self.options['filtering_parameters']['maximal_stiffness'], stdev=self.options['filtering_parameters']['initial_standart_deviation'], transformParams=self.options['filtering_parameters']['transform_parameters'])
+        node.addObject('Indices2ValuesMapper', name='youngMapper', indices='1 3', values='@paramE.value', inputValues='@/loader.dataset', defaultValue='6000')
+        node.addObject('TetrahedronFEMForceField', name='FEM', updateStiffness='1', listening='true', drawHeterogeneousTetra='1', method='large', poissonRatio='0.45', youngModulus='@youngMapper.outputValues')
 
         ### boundary conditions
         if 'boundary_conditions_list' in self.options['general_parameters'].keys():
             for index in range(0, len(self.options['general_parameters']['boundary_conditions_list'])):
                 bcElement = self.options['general_parameters']['boundary_conditions_list'][index]
-                print bcElement
-                node.createObject('BoxROI', box=bcElement['boxes_coordinates'], name='boundBoxes'+str(index), drawBoxes='0', doUpdate='0')
+                node.addObject('BoxROI', box=bcElement['boxes_coordinates'], name='boundBoxes'+str(index), drawBoxes='0', doUpdate='0')
                 if bcElement['condition_type'] == 'fixed':
-                    node.createObject('FixedConstraint', indices='@boundBoxes'+str(index)+'.indices')
+                    node.addObject('FixedConstraint', indices='@boundBoxes'+str(index)+'.indices')
                 elif bcElement['condition_type'] == 'elastic':
-                    node.createObject('RestShapeSpringsForceField', stiffness=bcElement['spring_stiffness_values'], angularStiffness="1", points='@boundBoxes'+str(index)+'.indices')
+                    node.addObject('RestShapeSpringsForceField', stiffness=bcElement['spring_stiffness_values'], angularStiffness="1", points='@boundBoxes'+str(index)+'.indices')
                 else:
-                    print 'Unknown type of boundary conditions'
+                    print('Unknown type of boundary conditions')
 
         ### attachment to external object
-        node.createObject('BoxROI', name='impactBounds', box=self.options['impact_parameters']['bound'], doUpdate='0')
-        self.toolSprings = node.createObject('RestShapeSpringsForceField', name="impactSpring", stiffness="10000", angularStiffness='1', external_rest_shape='@/externalImpSimu/state', drawSpring='1', points='@impactBounds.indices')
+        node.addObject('BoxROI', name='impactBounds', box=self.options['impact_parameters']['bound'], doUpdate='0')
+        self.toolSprings = node.addObject('RestShapeSpringsForceField', name="impactSpring", stiffness="10000", angularStiffness='1', external_rest_shape='@/externalImpSimu/state', drawSpring='1', points='@impactBounds.indices')
 
         return 0
 
 
 
     def createMasterScene(self, node):
-        node.createObject('StochasticStateWrapper', name="StateWrapper", verbose="1", estimatePosition=self.estimPosition, positionStdev=self.options['filtering_parameters']['positions_standart_deviation'], estimateVelocity=self.estimVelocity)
+        node.addObject('StochasticStateWrapper', name="StateWrapper", verbose="1", estimatePosition=self.estimPosition, positionStdev=self.options['filtering_parameters']['positions_standart_deviation'], estimateVelocity=self.estimVelocity)
         self.createCommonComponents(node)
         ### node with groundtruth observations
-        obsNode = node.createChild('obsNode')
-        obsNode.createObject('MeshVTKLoader', name='obsLoader', filename=self.options['system_parameters']['observation_points_file_name'])
-        obsNode.createObject('MechanicalObject', name='SourceMO', src="@obsLoader")
-        obsNode.createObject('BarycentricMapping')
-        obsNode.createObject('MappedStateObservationManager', name="MOBS", observationStdev=self.options['filtering_parameters']['observation_noise_standart_deviation'], noiseStdev="0.0", listening="1", stateWrapper="@../StateWrapper", doNotMapObservations="1", verbose="1")
-        obsNode.createObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix=self.options['system_parameters']['observation_file_name'])
-        obsNode.createObject('ShowSpheres', name="estimated", radius="0.002", color="1 0 0 1", position='@SourceMO.position')
-        obsNode.createObject('ShowSpheres', name="groundTruth", radius="0.0015", color="1 1 0 1", position='@MOBS.mappedObservations')
+        obsNode = node.addChild('obsNode')
+        obsNode.addObject('MeshVTKLoader', name='obsLoader', filename=self.options['system_parameters']['observation_points_file_name'])
+        obsNode.addObject('MechanicalObject', name='SourceMO', src="@obsLoader")
+        obsNode.addObject('BarycentricMapping')
+        obsNode.addObject('MappedStateObservationManager', name="MOBS", observationStdev=self.options['filtering_parameters']['observation_noise_standart_deviation'], noiseStdev="0.0", listening="1", stateWrapper="@../StateWrapper", doNotMapObservations="1", verbose="1")
+        obsNode.addObject('SimulatedStateObservationSource', name="ObsSource", monitorPrefix=self.options['system_parameters']['observation_file_name'])
+        obsNode.addObject('ShowSpheres', name="estimated", radius="0.002", color="1 0 0 1", position='@SourceMO.position')
+        obsNode.addObject('ShowSpheres', name="groundTruth", radius="0.0015", color="1 1 0 1", position='@MOBS.mappedObservations')
 
         return 0
 
 
 
     def initGraph(self, node):
-        print 'Init graph called (python side)'
+        print('Init graph called (python side)')
         self.step = 0
         self.total_time = 0
         # self.process.initializationObjects(node)
@@ -237,33 +240,33 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
 
 
 
-    def onEndAnimationStep(self, deltaTime):
+    def onAnimateEndEvent(self, deltaTime):
         ### save filtering data to files
         if self.options['filtering_parameters']['save_state']:
             if (self.options['filtering_parameters']['filter_kind'] == 'ROUKF'):
-                st=self.filter.findData('reducedState').value
+                st = self.filter.findData('reducedState').value
             elif (self.options['filtering_parameters']['filter_kind'] == 'UKFSimCorr' or self.options['filtering_parameters']['filter_kind'] == 'UKFClassic'):
-                st=self.filter.findData('state').value
+                st = self.filter.findData('state').value
 
-            state = [val for sublist in st for val in sublist]
-            # print 'Reduced state:'
-            # print reducedState
+            state = [val for val in st]
+            # print('Reduced state:')
+            # print(reducedState)
 
             self.stateExpValFile = self.folderName + '/' + self.stateFileName
-            print 'Storing to', self.stateExpValFile
+            print('Storing to' + self.stateExpValFile)
             f1 = open(self.stateExpValFile, "a")
             f1.write(" ".join(map(lambda x: str(x), state)))
             f1.write('\n')
             f1.close()
 
             if (self.options['filtering_parameters']['filter_kind'] == 'ROUKF'):
-                var=self.filter.findData('reducedVariance').value
+                var = self.filter.findData('reducedVariance').value
             elif (self.options['filtering_parameters']['filter_kind'] == 'UKFSimCorr' or self.options['filtering_parameters']['filter_kind'] == 'UKFClassic'):
-                var=self.filter.findData('variance').value
+                var = self.filter.findData('variance').value
                                 
-            variance = [val for sublist in var for val in sublist]
-            # print 'Reduced variance:'
-            # print reducedVariance
+            variance = [val for val in var]
+            # print('Reduced variance:')
+            # print(reducedVariance)
 
             self.stateVarFile = self.folderName + '/' + self.varianceFileName
             f2 = open(self.stateVarFile, "a")
@@ -272,13 +275,13 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
             f2.close()
 
             if (self.options['filtering_parameters']['filter_kind'] == 'ROUKF'):
-                covar=self.filter.findData('reducedCovariance').value
+                covar = self.filter.findData('reducedCovariance').value
             elif (self.options['filtering_parameters']['filter_kind'] == 'UKFSimCorr' or self.options['filtering_parameters']['filter_kind'] == 'UKFClassic'):
-                covar=self.filter.findData('covariance').value
+                covar = self.filter.findData('covariance').value
 
-            covariance = [val for sublist in covar for val in sublist]
-            # print 'Reduced Covariance:'
-            # print reducedCovariance
+            covariance = [val for val in covar]
+            # print('Reduced Covariance:')
+            # print(reducedCovariance)
 
             self.stateCovarFile = self.folderName + '/' + self.covarianceFileName
             f3 = open(self.stateCovarFile, "a")
@@ -288,13 +291,13 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
 
         if self.options['filtering_parameters']['save_internal_data']:
             if (self.options['filtering_parameters']['filter_kind'] == 'ROUKF'):
-                innov=self.filter.findData('reducedInnovation').value
+                innov = self.filter.findData('reducedInnovation').value
             elif (self.options['filtering_parameters']['filter_kind'] == 'UKFSimCorr' or self.options['filtering_parameters']['filter_kind'] == 'UKFClassic'):
-                innov=self.filter.findData('innovation').value
+                innov = self.filter.findData('innovation').value
 
-            innovation = [val for sublist in innov for val in sublist]
-            # print 'Reduced state:'
-            # print reducedState
+            innovation = [val for val in innov]
+            # print('Innovation:')
+            # print(innovation)
 
             self.innovationFile = self.folderName + '/' + self.innovationFileName
             f4 = open(self.innovationFile, "a")
@@ -302,7 +305,7 @@ class cyl3PartsRestShape_SDA(Sofa.PythonScriptController):
             f4.write('\n')
             f4.close()
 
-        # print self.basePoints.findData('indices_position').value
+        # print(self.basePoints.findData('indices_position').value)
 
         return 0
 
