@@ -31,7 +31,7 @@ jobs:
         run: |
           sudo apt install -qq libeigen3-dev libboost-all-dev libpthread-stubs0-dev libblas-dev
           python3 -m pip install --upgrade pip
-          python3 -m pip install numpy python-yaml
+          python3 -m pip install numpy pyyaml
 
       - name: Build pybind11
         run: git clone -b v2.4 --depth 1 https://github.com/pybind/pybind11.git /tmp/pybind11 && cd /tmp/pybind11 && cmake -DPYBIND11_TEST=OFF . && cmake -DPYBIND11_TEST=OFF . && make
