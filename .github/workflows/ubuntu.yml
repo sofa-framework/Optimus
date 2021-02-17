@@ -40,13 +40,13 @@ jobs:
         run: cd /tmp/pybind11  && sudo make install
 
       - name: Build SOFA
-        run: git clone -branch v20.12 https://github.com/sofa-framework/sofa.git $SOFA_ROOT && mkdir $SOFA_BUILD && cd $SOFA_BUILD && cmake .. && make -j 8
+        run: git clone --branch v20.12 https://github.com/sofa-framework/sofa.git $SOFA_ROOT && mkdir $SOFA_BUILD && cd $SOFA_BUILD && cmake .. && make -j 8
 
       - name: Install SOFA
         run:  cd $SOFA_BUILD && sudo make install
 
       - name: Build python3 plugin
-        run: git clone -branch v20.12 https://github.com/sofa-framework/SofaPython3.git $SOFA_PYTHON3_DIRECTORY && mkdir $SOFA_PYTHON3_BUILD_DIRECTORY && cd $SOFA_PYTHON3_BUILD_DIRECTORY && cmake -DCMAKE_PREFIX_PATH=$SOFA_BUILD/install .. && make -j 8
+        run: git clone --branch v20.12 https://github.com/sofa-framework/SofaPython3.git $SOFA_PYTHON3_DIRECTORY && mkdir $SOFA_PYTHON3_BUILD_DIRECTORY && cd $SOFA_PYTHON3_BUILD_DIRECTORY && cmake -DCMAKE_PREFIX_PATH=$SOFA_BUILD/install .. && make -j 8
 
       - name: Install python3 plugin
         run: cd $SOFA_PYTHON3_BUILD_DIRECTORY && sudo make install
