@@ -40,7 +40,7 @@ jobs:
         run: cd /tmp/pybind11  && sudo make install
 
       - name: Build SOFA
-        run: git clone --branch v20.12 https://github.com/sofa-framework/sofa.git $SOFA_ROOT && mkdir $SOFA_BUILD && cd $SOFA_BUILD && cmake .. && make -j 8
+        run: git clone --branch v20.12 https://github.com/sofa-framework/sofa.git $SOFA_ROOT && mkdir $SOFA_BUILD && cd $SOFA_BUILD && cmake -DSOFAGUI_QGLVIEWER=OFF -DSOFAGUI_QT=OFF -DSOFAGUI_QTVIEWER=OFF .. && make -j 8
 
       - name: Install SOFA
         run:  cd $SOFA_BUILD && sudo make install
