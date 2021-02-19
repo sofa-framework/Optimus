@@ -112,10 +112,10 @@ jobs:
         run: |
           export LD_LIBRARY_PATH=$GITHUB_WORKSPACE/build_release/install/lib
           TEST_FOLDERS=$GITHUB_WORKSPACE/benchmarks/*
-          for FOLDER in $TEST_FOLDERS
-          do
-              cd $FOLDER
+          echo "$TEST_FOLDERS"
+          for FOLDER in $TEST_FOLDERS; do
               if [ -f $FOLDER/verify.sh ]; then
+                  cd $FOLDER
                   echo "Perform test: $FOLDER"
                   $FOLDER/verify.sh $BUILD_DIRECTORY/bin/runSofa $SOFA_PYTHON3_BUILD_DIRECTORY/lib
               fi
