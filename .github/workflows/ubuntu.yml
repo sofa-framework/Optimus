@@ -4,6 +4,8 @@ on:
   schedule:
     - cron:  '00 2 * * *'
 
+  workflow_dispatch:
+
 jobs:
   build:
     name: Building on ${{ matrix.os }}
