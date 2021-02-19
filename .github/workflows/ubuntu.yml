@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build)and_test:
     name: Building on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -85,27 +85,6 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/build_release
           sudo make install
-
-
-  tests:
-    name: Testing on ${{ matrix.os }}
-    needs: [build]
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-18.04]
-        python-version: [3.7]
-    env:
-      SOFA_ROOT: /opt/sofa
-      SOFA_BUILD: /opt/sofa/build_release
-      SOFA_PYTHON3_DIRECTORY: /opt/SofaPython3
-      SOFA_PYTHON3_BUILD_DIRECTORY: /opt/SofaPython3/build_release
-
-    steps:
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
 
       - name: Optimus tests
         if: ${{ always() }}
