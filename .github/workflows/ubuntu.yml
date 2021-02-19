@@ -31,6 +31,7 @@ jobs:
  
       - name: Install requirements
         run: |
+          echo "$GITHUB_WORKSPACE/benchmarks/*"
           sudo apt install -qq libeigen3-dev libboost-all-dev libpthread-stubs0-dev libblas-dev freeglut3 freeglut3-dev libglew-dev
           python3 -m pip install --upgrade pip
           python3 -m pip install numpy pyyaml
