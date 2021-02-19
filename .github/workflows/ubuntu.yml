@@ -31,10 +31,6 @@ jobs:
  
       - name: Install requirements
         run: |
-          FOLDER_LIST=`find $GITHUB_WORKSPACE/benchmarks -maxdepth 1`
-          for FOLDER in $FOLDER_LIST; do
-              echo "$FOLDER"
-          done
           sudo apt install -qq libeigen3-dev libboost-all-dev libpthread-stubs0-dev libblas-dev freeglut3 freeglut3-dev libglew-dev
           python3 -m pip install --upgrade pip
           python3 -m pip install numpy pyyaml
@@ -114,12 +110,9 @@ jobs:
       - name: Optimus tests
         if: ${{ always() }}
         run: |
-          export LD_LIBRARY_PATH=$GITHUB_WORKSPACE/build_release/install/lib
-          cd $GITHUB_WORKSPACE/benchmarks
-          # TEST_FOLDERS='$GITHUB_WORKSPACE/benchmarks/*'
-          # echo "$TEST_FOLDERS"
-          # for FOLDER in $TEST_FOLDERS; do
-          for FOLDER in `ls $GITHUB_WORKSPACE/benchmarks`; do
+          export LD_LIBRARY_PATH=$GITHUB_WORKSPACE/build_release/lib
+          FOLDER_LIST=`find $GITHUB_WORKSPACE/benchmarks -maxdepth 1`
+          for FOLDER in $FOLDER_LIST; do
               echo "$FOLDER"
               if [ -f $FOLDER/verify.sh ]; then
                   cd $FOLDER
