@@ -111,7 +111,7 @@ jobs:
         if: ${{ always() }}
         run: |
           export LD_LIBRARY_PATH=$GITHUB_WORKSPACE/build_release/install/lib
-          TEST_FOLDERS=$GITHUB_WORKSPACE/benchmarks/*
+          TEST_FOLDERS='$GITHUB_WORKSPACE/benchmarks/*'
           echo "$TEST_FOLDERS"
           for FOLDER in $TEST_FOLDERS; do
               if [ -f $FOLDER/verify.sh ]; then
