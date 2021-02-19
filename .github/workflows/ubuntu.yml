@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build)and_test:
+  build_and_test:
     name: Building on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -87,7 +87,6 @@ jobs:
           sudo make install
 
       - name: Optimus tests
-        if: ${{ always() }}
         run: |
           export LD_LIBRARY_PATH=$GITHUB_WORKSPACE/build_release/lib
           FOLDER_LIST=`find $GITHUB_WORKSPACE/benchmarks -maxdepth 1`
