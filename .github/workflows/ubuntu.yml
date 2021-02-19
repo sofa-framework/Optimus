@@ -29,33 +29,60 @@ jobs:
  
       - name: Install requirements
         run: |
-          sudo apt install -qq libeigen3-dev libboost-all-dev libpthread-stubs0-dev libblas-dev
+          sudo apt install -qq libeigen3-dev libboost-all-dev libpthread-stubs0-dev libblas-dev freeglut3 freeglut3-dev
           python3 -m pip install --upgrade pip
           python3 -m pip install numpy pyyaml
 
       - name: Build pybind11
-        run: git clone -b v2.4 --depth 1 https://github.com/pybind/pybind11.git /tmp/pybind11 && cd /tmp/pybind11 && cmake -DPYBIND11_TEST=OFF . && cmake -DPYBIND11_TEST=OFF . && make
+        run: |
+          git clone -b v2.4 --depth 1 https://github.com/pybind/pybind11.git /tmp/pybind11
+          cd /tmp/pybind11
+          cmake -DPYBIND11_TEST=OFF .
+          cmake -DPYBIND11_TEST=OFF .
+          make
 
       - name: Install pybind11
-        run: cd /tmp/pybind11  && sudo make install
+        run: |
+          cd /tmp/pybind11
+          sudo make install
 
       - name: Build SOFA
-        run: git clone --branch v20.12 https://github.com/sofa-framework/sofa.git $SOFA_ROOT && mkdir $SOFA_BUILD && cd $SOFA_BUILD && cmake -DSOFAGUI_QGLVIEWER=OFF -DSOFAGUI_QT=OFF -DSOFAGUI_QTVIEWER=OFF .. && make -j 8
+        run: |
+          git clone --branch v20.12 https://github.com/sofa-framework/sofa.git $SOFA_ROOT
+          mkdir $SOFA_BUILD
+          cd $SOFA_BUILD
+          cmake -DSOFAGUI_QGLVIEWER=OFF -DSOFAGUI_QT=OFF -DSOFAGUI_QTVIEWER=OFF ..
+          make -j 8
 
       - name: Install SOFA
-        run:  cd $SOFA_BUILD && sudo make install
+        run: |
+          cd $SOFA_BUILD
+          sudo make install
 
       - name: Build python3 plugin
-        run: git clone --branch v20.12 https://github.com/sofa-framework/SofaPython3.git $SOFA_PYTHON3_DIRECTORY && mkdir $SOFA_PYTHON3_BUILD_DIRECTORY && cd $SOFA_PYTHON3_BUILD_DIRECTORY && cmake -DCMAKE_PREFIX_PATH=$SOFA_BUILD/install .. && make -j 8
+        run: |
+          git clone --branch v20.12 https://github.com/sofa-framework/SofaPython3.git $SOFA_PYTHON3_DIRECTORY
+          mkdir $SOFA_PYTHON3_BUILD_DIRECTORY
+          cd $SOFA_PYTHON3_BUILD_DIRECTORY
+          cmake -DCMAKE_PREFIX_PATH=$SOFA_BUILD/install ..
+          make -j 8
 
       - name: Install python3 plugin
-        run: cd $SOFA_PYTHON3_BUILD_DIRECTORY && sudo make install
+        run: |
+          cd $SOFA_PYTHON3_BUILD_DIRECTORY
+          sudo make install
       
       - name: Build Optimus
-        run: mkdir $GITHUB_WORKSPACE/build_release && cd $GITHUB_WORKSPACE/build_release && cmake -DCMAKE_PREFIX_PATH=$SOFA_BUILD/install .. && make -j 8
+        run: |
+          mkdir $GITHUB_WORKSPACE/build_release
+          cd $GITHUB_WORKSPACE/build_release
+          cmake -DCMAKE_PREFIX_PATH=$SOFA_BUILD/install ..
+          make -j 8
         
       - name: Install Optimus
-        run: cd $GITHUB_WORKSPACE/build_release && sudo make install
+        run: |
+          cd $GITHUB_WORKSPACE/build_release
+          sudo make install
 
 
   tests:
