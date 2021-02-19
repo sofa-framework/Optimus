@@ -111,9 +111,11 @@ jobs:
         if: ${{ always() }}
         run: |
           export LD_LIBRARY_PATH=$GITHUB_WORKSPACE/build_release/install/lib
-          TEST_FOLDERS='$GITHUB_WORKSPACE/benchmarks/*'
-          echo "$TEST_FOLDERS"
-          for FOLDER in $TEST_FOLDERS; do
+          # TEST_FOLDERS='$GITHUB_WORKSPACE/benchmarks/*'
+          # echo "$TEST_FOLDERS"
+          # for FOLDER in $TEST_FOLDERS; do
+          for FOLDER in `ls $GITHUB_WORKSPACE/benchmarks`; do
+              echo "$FOLDER"
               if [ -f $FOLDER/verify.sh ]; then
                   cd $FOLDER
                   echo "Perform test: $FOLDER"
