@@ -88,10 +88,10 @@ jobs:
 
       - name: Optimus tests
         run: |
-          export LD_LIBRARY_PATH=$GITHUB_WORKSPACE/build_release/lib
+          export LD_LIBRARY_PATH=$GITHUB_WORKSPACE/build_release
+          export SOFA_PLUGIN_PATH=$GITHUB_WORKSPACE/build_release
           FOLDER_LIST=`find $GITHUB_WORKSPACE/benchmarks -maxdepth 1`
           for FOLDER in $FOLDER_LIST; do
-              echo "$FOLDER"
               if [ -f $FOLDER/verify.sh ]; then
                   cd $FOLDER
                   echo "Perform test: $FOLDER"
