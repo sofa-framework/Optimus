@@ -15,8 +15,8 @@ jobs:
         os: [ubuntu-18.04]
         python-version: [3.7]
     env:
-      SOFA_ROOT: /opt/sofa
-      SOFA_BUILD: /opt/sofa/build_release
+      SOFA_ROOT_DIRECTORY: /opt/sofa
+      SOFA_BUILD_DIRECTORY: /opt/sofa/build_release
       SOFA_PYTHON3_DIRECTORY: /opt/SofaPython3
       SOFA_PYTHON3_BUILD_DIRECTORY: /opt/SofaPython3/build_release
 
@@ -50,15 +50,15 @@ jobs:
 
       - name: Build SOFA
         run: |
-          git clone --branch v20.12 https://github.com/sofa-framework/sofa.git $SOFA_ROOT
-          mkdir $SOFA_BUILD
-          cd $SOFA_BUILD
+          git clone --branch v20.12 https://github.com/sofa-framework/sofa.git $SOFA_ROOT_DIRECTORY
+          mkdir $SOFA_BUILD_DIRECTORY
+          cd $SOFA_BUILD_DIRECTORY
           cmake -DSOFAGUI_QGLVIEWER=OFF -DSOFAGUI_QT=OFF -DSOFAGUI_QTVIEWER=OFF ..
           make -j 8
 
       - name: Install SOFA
         run: |
-          cd $SOFA_BUILD
+          cd $SOFA_BUILD_DIRECTORY
           sudo make install
 
       - name: Build python3 plugin
@@ -66,7 +66,7 @@ jobs:
           git clone --branch v20.12 https://github.com/sofa-framework/SofaPython3.git $SOFA_PYTHON3_DIRECTORY
           mkdir $SOFA_PYTHON3_BUILD_DIRECTORY
           cd $SOFA_PYTHON3_BUILD_DIRECTORY
-          cmake -DCMAKE_PREFIX_PATH=$SOFA_BUILD/install ..
+          cmake -DCMAKE_PREFIX_PATH=$SOFA_BUILD_DIRECTORY/install ..
           make -j 8
 
       - name: Install python3 plugin
@@ -78,7 +78,7 @@ jobs:
         run: |
           mkdir $GITHUB_WORKSPACE/build_release
           cd $GITHUB_WORKSPACE/build_release
-          cmake -DCMAKE_PREFIX_PATH=$SOFA_BUILD/install ..
+          cmake -DCMAKE_PREFIX_PATH=$SOFA_BUILD_DIRECTORY/install ..
           make -j 8
         
       - name: Install Optimus
@@ -95,7 +95,7 @@ jobs:
               if [ -f $FOLDER/verify.sh ]; then
                   cd $FOLDER
                   echo "Perform test: $FOLDER"
-                  $FOLDER/verify.sh $BUILD_DIRECTORY/bin/runSofa $SOFA_PYTHON3_BUILD_DIRECTORY/lib
+                  $FOLDER/verify.sh $SOFA_BUILD_DIRECTORY/bin/runSofa $SOFA_PYTHON3_BUILD_DIRECTORY/lib
               fi
           done
           echo "All tests have been executed"
