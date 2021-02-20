@@ -12,7 +12,7 @@ general_parameters:
         &time
         0.001
     solver_kind: "Euler"   # options are "Euler", "Newton", and "Symplectic"
-    linear_solver_kind: "Pardiso"   # options are "CG", "Pardiso", and "LDL"
+    linear_solver_kind: "LDL"   # options are "CG", "Pardiso", and "LDL"
     rayleigh_mass: 0.1
     rayleigh_stiffness: 0.1
 

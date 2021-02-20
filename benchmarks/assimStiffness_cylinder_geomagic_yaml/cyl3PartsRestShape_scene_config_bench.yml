@@ -10,7 +10,7 @@ general_parameters:
     delta_time: 0.01
     solver_kind: "Symplectic"   # options are "Euler", "Newton", and "Symplectic"
     da_solver_kind: "Euler"   # options are "Euler", "Newton", and "Symplectic"
-    linear_solver_kind: "Pardiso"   # options are "CG", "Pardiso", and "LDL"
+    linear_solver_kind: "LDL"   # options are "CG", "Pardiso", and "LDL"
     rayleigh_mass: 0.1
     rayleigh_stiffness: 0.1
     boundary_conditions_list:
