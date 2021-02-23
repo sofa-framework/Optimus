@@ -12,6 +12,7 @@ def createScene(rootNode):
     rootNode.addObject('RequiredPlugin', name='Engine', pluginName='SofaEngine')
     rootNode.addObject('RequiredPlugin', name='GeneralEngine', pluginName='SofaGeneralEngine')
     rootNode.addObject('RequiredPlugin', name='ImplicitOdeSolver', pluginName='SofaImplicitOdeSolver')
+    rootNode.addObject('RequiredPlugin', name='SparseSolver', pluginName='SofaSparseSolver')
     rootNode.addObject('RequiredPlugin', name='BoundaryCondition', pluginName='SofaBoundaryCondition')
     rootNode.addObject('RequiredPlugin', name='SLoader', pluginName='SofaLoader')
     rootNode.addObject('RequiredPlugin', name='MiscForceField', pluginName='SofaMiscForceField')
@@ -93,6 +94,8 @@ class CylinderConstForceGenObs_Controller(Sofa.Core.Controller):
 
         if self.options['general_parameters']['linear_solver_kind'] == 'Pardiso':
             simuNode.addObject('SparsePARDISOSolver', name='LDLsolver', verbose='0', symmetric='2', exportDataToFolder='')
+        elif self.options['general_parameters']['linear_solver_kind'] == 'LDL':
+            simuNode.addObject('SparseLDLSolver', printLog="0")
         elif self.options['general_parameters']['linear_solver_kind'] == 'CG':
             simuNode.addObject('CGLinearSolver', iterations="20", tolerance="1e-12", threshold="1e-12")
         else:

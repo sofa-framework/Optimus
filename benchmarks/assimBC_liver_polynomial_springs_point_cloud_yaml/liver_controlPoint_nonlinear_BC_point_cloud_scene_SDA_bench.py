@@ -14,6 +14,7 @@ __file = __file__.replace('\\', '/') # windows
 def createScene(rootNode):
     rootNode.addObject('RequiredPlugin', name='Engine', pluginName='SofaEngine')
     rootNode.addObject('RequiredPlugin', name='ImplicitOdeSolver', pluginName='SofaImplicitOdeSolver')
+    rootNode.addObject('RequiredPlugin', name='SparseSolver', pluginName='SofaSparseSolver')
     rootNode.addObject('RequiredPlugin', name='Loader', pluginName='SofaLoader')
     rootNode.addObject('RequiredPlugin', name='MiscForceField', pluginName='SofaMiscForceField')
     rootNode.addObject('RequiredPlugin', name='SimpleFem', pluginName='SofaSimpleFem')
@@ -187,6 +188,8 @@ class LiverControlPointSDA_Controller(Sofa.Core.Controller):
 
         if self.options['general_parameters']['linear_solver_kind'] == 'Pardiso':
             node.addObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
+        elif self.options['general_parameters']['linear_solver_kind'] == 'LDL':
+            node.addObject('SparseLDLSolver', printLog="0")
         elif self.options['general_parameters']['linear_solver_kind'] == 'CG':
             if self.options['precondition_parameters']['usePCG']:
                 node.addObject('StepPCGLinearSolver', name='lsolverit', precondOnTimeStep='1', use_precond='1', tolerance='1e-10', iterations='500', verbose='1', listening='1', update_step=self.options['precondition_parameters']['PCGUpdateSteps'], preconditioners='precond')
