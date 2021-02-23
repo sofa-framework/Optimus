@@ -13,6 +13,7 @@ def createScene(rootNode):
     rootNode.addObject('RequiredPlugin', name='Deformable', pluginName='SofaDeformable')
     rootNode.addObject('RequiredPlugin', name='Engine', pluginName='SofaEngine')
     rootNode.addObject('RequiredPlugin', name='ImplicitOdeSolver', pluginName='SofaImplicitOdeSolver')
+    rootNode.addObject('RequiredPlugin', name='SparseSolver', pluginName='SofaSparseSolver')
     rootNode.addObject('RequiredPlugin', name='Loader', pluginName='SofaLoader')
     rootNode.addObject('RequiredPlugin', name='MiscForceField', pluginName='SofaMiscForceField')
     rootNode.addObject('RequiredPlugin', name='Rigid', pluginName='SofaRigid')
@@ -112,6 +113,8 @@ class LiverGeomagicControlPointGenObs_Controller(Sofa.Core.Controller):
 
         if self.options['general_parameters']['linear_solver_kind'] == 'Pardiso':
             simuNode.addObject('SparsePARDISOSolver', name='LDLsolver', verbose='0', symmetric='1', exportDataToFolder='')
+        elif self.options['general_parameters']['linear_solver_kind'] == 'LDL':
+            simuNode.addObject('SparseLDLSolver', printLog="0")
         elif self.options['general_parameters']['linear_solver_kind'] == 'CG':
             simuNode.addObject('CGLinearSolver', iterations="20", tolerance="1e-12", threshold="1e-12")
         else:
