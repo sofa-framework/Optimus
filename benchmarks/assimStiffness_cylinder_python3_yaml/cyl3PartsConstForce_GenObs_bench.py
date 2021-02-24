@@ -1,8 +1,6 @@
 # this scene is compatible with python3
 import Sofa
 import sys
-# temporary hack for compatibility with miniconda and python2
-sys.path.append("/home/sergei/miniconda3/lib/python3.7/lib-dynload")
 import math
 import os
 import sys
