@@ -1,4 +1,4 @@
-name: ubuntu
+name: Benchmark_tests_Ubuntu
 
 on:
   schedule:
