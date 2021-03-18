@@ -556,6 +556,11 @@ template<class DataTypes>
 bool SimulatedStateObservationSource<DataTypes>::getCorrespondentIndices(double _time, VecIndex &_index)
 {
     size_t ix = (fabs(m_dt) < 1e-10) ? 0 : size_t(round(_time/m_dt));
+    if (ix >= size_t(m_correspondentIndices.size()))
+    {
+        //PRNE("No observation for time " << _time << " , using the last one from " << m_positions.size()-1);
+        ix = m_correspondentIndices.size() - 1;
+    }
     if (m_correspondentIndices[ix].size() == 0)
         return false;
     _index = m_correspondentIndices[ix];
