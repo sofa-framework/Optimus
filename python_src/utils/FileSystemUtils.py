@@ -62,21 +62,18 @@ class DataLoader:
     ###
     def loadDataFromMonitorFile(self, File):
         fo = open(File, 'r')
-        # throw out first line
+        ### throw out first lines
         fo.readline()
         fo.readline()
+        data_list = []
         line = fo.readline()
-
-        tokens = line.split()
-        tokens = [float(elem) for elem in tokens]
-        data_array = numpy.empty((0, len(tokens) - 1))
         while line:
             tokens = line.split()
             tokens = [float(elem) for elem in tokens]
-            data_array = numpy.append(data_array, [tokens[1:]], axis=0)
+            data_list.append(tokens[1:])
             line = fo.readline()
 
-        return numpy.matrix(data_array)
+        return numpy.matrix(data_list)
 
 
 
@@ -86,7 +83,7 @@ class DataLoader:
     def loadDataFromComputationalFile(self, File):
         fo = open(File, 'r')
         timeLine = []
-        # throw out first line
+        ### throw out first line
         fo.readline()
         line = fo.readline()
         line = fo.readline()
