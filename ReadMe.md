@@ -153,7 +153,7 @@ Compilation of these components must be activated by CMake macro STOCHASTIC_FILT
 -   Main methods are initializeStep(), computePrediction() and computeCorrection(), all called by the FilteringAnimationLoop.
 
 
-`EnTKFilter`
+`ETKFilter`
 
 -   Ensemble Transform Kalman filter. Its description is given in Axel Hutt (2020) "Divergence of the ensemble transform kalman filter by nonlocal observations". Instead of sigma points the transformation are performed with Ensemble members.
 
