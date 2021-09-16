@@ -9,7 +9,7 @@ general_parameters:
     density: 200 # total_mass: 0.2
     delta_time: 0.01
     solver_kind: "Euler"   # options are "Euler", "Newton", and "Symplectic"
-    linear_solver_kind: "Pardiso"   # options are "CG", "Pardiso", and "LDL"
+    linear_solver_kind: "LDL"   # options are "CG", "Pardiso", and "LDL"
     rayleigh_mass: 0.12
     rayleigh_stiffness: 0.1
     boundary_conditions_list:

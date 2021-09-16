@@ -11,7 +11,7 @@ model:
         
     int:   # temporal integrator properties
         type: 'Euler'
-        linear_type: "Pardiso"   # options are "CG", "Pardiso", and "LDL"
+        linear_type: "LDL"   # options are "CG", "Pardiso", and "LDL"
         rmass: 0.1
         rstiff: 3
         maxit: 1
