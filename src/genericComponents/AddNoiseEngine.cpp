@@ -27,6 +27,7 @@
 //#include <sofa/helper/accessor.h>
 
 
+
 namespace sofa
 {
 
@@ -35,8 +36,6 @@ namespace component
 
 namespace engine
 {
-
-using namespace defaulttype;
 
 
 
@@ -48,6 +47,7 @@ int AddNoiseEngineClass = core::RegisterObject("AddNoiseEngine")
     ;
 
 template class AddNoiseEngine<defaulttype::Vec3Types>;
+
 
 
 } // namespace engine

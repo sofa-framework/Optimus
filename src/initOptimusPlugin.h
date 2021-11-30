@@ -21,9 +21,12 @@
 ******************************************************************************/
 #pragma once
 
+/**
+  *  This plugin contains a set of Optimization Methods (initially mainly Bayesian Filtering techniques)
+  */
 
 #include <sofa/helper/config.h>
-#include <pthread.h> /* pthread_t, pthread_barrier_t */
+//#include <pthread.h> /* pthread_t, pthread_barrier_t */
 #include <sys/errno.h>
 #include <sofa/helper/rmath.h>
 
@@ -36,7 +39,6 @@ typedef struct
     int count;
     int tripCount;
 } pthread_barrier_t;
-
 #endif
 
 //#define SQR(ARG) ((ARG)*(ARG))
@@ -62,14 +64,6 @@ typedef struct
 //#define PRNE(ARG) std::cerr << "[" << this->getName() << "] ERROR: " << ARG << std::endl;
 //#define PRNS(ARG) if (this->verbose.getValue()) { std::cout << "[" << this->getName() << "]: " << ARG << std::endl; }
 //#define PRNSC(ARG) if (this->verbose.getValue()) { std::cout << "[" << this->getName() << "]: " << ARG; }
-
-#define TIC this->startTime = double(this->timer->getTime());
-#define TOC(arg) this->stopTime = double(this->timer->getTime()); \
-                 std::cout <<  "[" << this->getName() << "] WTIME: " << arg << " " << this->stopTime - this->startTime << std::endl;
-
-#define TOCTIC(arg) this->stopTime = double(this->timer->getTime()); \
-                 std::cout << "[" << this->getName() << "] WTIME: " << arg << " " << this->stopTime - this->startTime << std::endl; \
-                 this->startTime = double(this->timer->getTime());
 
 #define SHOW_SIZE(name, A) std::cout << "Size of " << name << ": " << A.rows() << " x " << A.cols() << std::endl;
 
@@ -98,10 +92,6 @@ for (size_t i = 0; i < MAT.rows(); i++) \
         sm += fabs(VEC(i)); \
     std::cout << "@@@ ABS. SUM OF " << NAME << ": " << sm << std::endl; \
 } \
-
-/** \mainpage
-  This plugin contains a set of Optimization Methods (initially mainly Bayesian Filtering techniques)
-  */
 
 typedef enum FilterKind {
     UNDEF = -1,

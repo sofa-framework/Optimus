@@ -27,8 +27,8 @@
 #include <SofaBaseMechanics/MechanicalObject.h>
 
 #include <sofa/core/visual/VisualParams.h>
-#include <sofa/helper/gl/template.h>
-#include <sofa/helper/gl/BasicShapes.h>
+#include <sofa/gl/template.h>
+#include <sofa/gl/BasicShapes.h>
 
 #include <sofa/simulation/AnimateBeginEvent.h>
 #include <sofa/simulation/AnimateEndEvent.h>
@@ -53,23 +53,26 @@ namespace container
 using namespace sofa::core::objectmodel;
 
 /**
-  Class implementing an observation source: it reads observations exported in direct simulation using OptimMonitor component and provides data to the observation manager.
-*/
-class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationSourceBase : public BaseObject //  ObservationSource
+ *  Class implementing an observation source:
+ *      it reads observations exported in direct simulation using OptimMonitor component and provides data to the observation manager.
+ */
+class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationSourceBase : public BaseObject
 {
 public:
     virtual unsigned int getObsDimention() = 0;
 };
 
+
+
 template<class DataTypes>
-class SimulatedStateObservationSource : public SimulatedStateObservationSourceBase //  ObservationSource
+class SimulatedStateObservationSource : public SimulatedStateObservationSourceBase
 {
 public:
     SOFA_CLASS(SOFA_TEMPLATE(SimulatedStateObservationSource, DataTypes) , SimulatedStateObservationSourceBase);
 
     typedef SimulatedStateObservationSourceBase Inherit;
     typedef typename DataTypes::VecCoord VecCoord;
-    typedef helper::vector<unsigned int> VecIndex;
+    typedef type::vector<unsigned int> VecIndex;
     typedef typename DataTypes::Coord Coord;
     typedef typename DataTypes::Real Real;
     typedef typename std::vector<VecCoord> VecVecCoord;
@@ -88,8 +91,11 @@ protected:
 
     bool m_exportIndices;
 
-public:
+    static constexpr double ROUND = 10000000.0;
+    static constexpr unsigned int UNCORRESPONDENT_INDEX = 65535;
 
+
+public:
     SimulatedStateObservationSource();
     virtual ~SimulatedStateObservationSource() override;
 
@@ -102,7 +108,6 @@ public:
     Data<bool> d_controllerMode;
     Data<VecCoord> d_trackedObservations;
     Data< bool  > d_asynObs;
-
 
     /// maps:  time + vector
 
@@ -163,9 +168,6 @@ public:
     {
         return DataTypes::Name();
     }
-
-private:
-
 };
 
 

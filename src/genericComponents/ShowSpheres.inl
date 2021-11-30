@@ -57,7 +57,7 @@ template<class DataTypes>
 void ShowSpheres<DataTypes>::draw(const core::visual::VisualParams* vparams) {
     if (_draw.getValue() == true && vparams->displayFlags().getShowBehaviorModels()) {
         helper::ReadAccessor< Data< VecCoord > > pos = _positions;
-        helper::vector<unsigned int> ind = _indices.getValue();
+        type::vector<unsigned int> ind = _indices.getValue();
 
         // if indices are empty, take all the nodes
         if (ind.size() == 0) {
@@ -77,11 +77,11 @@ void ShowSpheres<DataTypes>::draw(const core::visual::VisualParams* vparams) {
         const unsigned int npoints = ind.size();
         const float rad = _radius.getValue();
 
-        helper::vector<defaulttype::Vector3> points(npoints);
-        helper::vector<float> radii(npoints);
+        type::vector<type::Vector3> points(npoints);
+        type::vector<float> radii(npoints);
         for (unsigned int i = 0; i < npoints; i++)
         {
-            points[i] = defaulttype::Vector3(pos[ind[i]][0], pos[ind[i]][1], pos[ind[i]][2]);
+            points[i] = type::Vector3(pos[ind[i]][0], pos[ind[i]][1], pos[ind[i]][2]);
             radii[i] = rad;
         }
 
@@ -95,7 +95,7 @@ void ShowSpheres<DataTypes>::draw(const core::visual::VisualParams* vparams) {
             float scale = (float)((vparams->sceneBBox().maxBBox() - vparams->sceneBBox().minBBox()).norm() * _showIndicesSize.getValue());
 
             for (size_t i = 0; i < npoints; i++) {
-                const defaulttype::Vector3 &p = points[i];
+                const type::Vector3 &p = points[i];
                 std::string text = std::to_string(ind[i]);
                 vparams->drawTool()->draw3DText(p, scale, indCol, text.c_str());
             }

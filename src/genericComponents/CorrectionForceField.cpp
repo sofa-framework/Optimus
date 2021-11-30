@@ -21,8 +21,10 @@
 ******************************************************************************/
 
 #include "genericComponents/CorrectionForceField.inl"
-#include <sofa/core/visual/DrawTool.h>
+#include <sofa/helper/visual/DrawTool.h>
 #include <sofa/core/ObjectFactory.h>
+
+
 
 namespace sofa
 {
@@ -36,11 +38,11 @@ namespace forcefield
 
 SOFA_DECL_CLASS(CorrectionForceField)
 
-
 int CorrectionForceFieldClass = core::RegisterObject("Simple elastic springs applied to given degrees of freedom between their current and rest shape position")
     .add< CorrectionForceField<defaulttype::Rigid3Types> >()
     .add< CorrectionForceField<defaulttype::Vec3Types> >()
     ;
+
 
 
 } // namespace forcefield

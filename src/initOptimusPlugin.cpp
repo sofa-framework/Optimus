@@ -21,14 +21,15 @@
 ******************************************************************************/
 #include "initOptimusPlugin.h"
 
+
+
 namespace sofa
 {
 
 namespace component
 {
 
-	//Here are just several convenient functions to help user to know what contains the plugin
-
+    //Here are just several convenient functions to help user to know what contains the plugin
 	extern "C" {
                 SOFA_OPTIMUSPLUGIN_API void initExternalModule();
                 SOFA_OPTIMUSPLUGIN_API const char* getModuleName();
@@ -37,7 +38,8 @@ namespace component
                 SOFA_OPTIMUSPLUGIN_API const char* getModuleDescription();
                 SOFA_OPTIMUSPLUGIN_API const char* getModuleComponentList();
 	}
-	
+
+
 	void initExternalModule()
 	{
 		static bool first = true;
@@ -47,15 +49,18 @@ namespace component
 		}
 	}
 
+
 	const char* getModuleName()
 	{
-    return "Extended Kalman filter";
+        return "Extended Kalman filter";
 	}
+
 
 	const char* getModuleVersion()
 	{
         return "0.1";
 	}
+
 
 	const char* getModuleLicense()
 	{
@@ -68,16 +73,18 @@ namespace component
         return "Bayesian Filtering is a probabilistic technique for data fusion. The technique combines a concise mathematical formulation of a system with observations of that system. Probabilities are used to represent the state of a system, and likelihood functions to represent their relationships";
 	}
 
+
 	const char* getModuleComponentList()
 	{
-    return "Filter_exception; ";
+        return "Filter_exception";
 	}
 
 
+} // namespace component
 
-} 
+} // na,espace sofa
 
-} 
+
 
 #ifdef __APPLE__
 int pthread_barrier_init(pthread_barrier_t *barrier, const pthread_barrierattr_t *attr, unsigned int count)
@@ -137,17 +144,18 @@ SOFA_LINK_CLASS(OptimParams)
 //SOFA_LINK_CLASS(TestingParams)
 //SOFA_LINK_CLASS(BubblePackingForceField)
 
-#ifdef SOFA_HAVE_VERDANDI
-SOFA_LINK_CLASS(VerdandiAnimationLoop)
-SOFA_LINK_CLASS(SofaModelWrapper)
+//#ifdef SOFA_HAVE_VERDANDI
+//SOFA_LINK_CLASS(VerdandiAnimationLoop)
+//SOFA_LINK_CLASS(SofaModelWrapper)
 
-SOFA_LINK_CLASS(SofaLinearObservationManager)
-SOFA_LINK_CLASS(MappedPointsObservationManager)
-SOFA_LINK_CLASS(ARObservationManager)
+//SOFA_LINK_CLASS(SofaLinearObservationManager)
+//SOFA_LINK_CLASS(MappedPointsObservationManager)
+//SOFA_LINK_CLASS(ARObservationManager)
 
-SOFA_LINK_CLASS(SimulatedStateObservationSource)
+//SOFA_LINK_CLASS(SimulatedStateObservationSource)
 
-SOFA_LINK_CLASS(SofaReducedOrderUKF)
-SOFA_LINK_CLASS(SofaUnscentedKalmanFilter)
-SOFA_LINK_CLASS(SofaForwardDriver)
-#endif
+//SOFA_LINK_CLASS(SofaReducedOrderUKF)
+//SOFA_LINK_CLASS(SofaUnscentedKalmanFilter)
+//SOFA_LINK_CLASS(SofaForwardDriver)
+//#endif
+

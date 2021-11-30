@@ -19,7 +19,6 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-//
 // Copyright: See COPYING file that comes with this distribution
 #include <sofa/core/objectmodel/BaseContext.h>
 #include <sofa/core/behavior/LinearSolver.h>
@@ -27,7 +26,6 @@
 #include <SofaBaseLinearSolver/FullMatrix.h>
 #include <SofaBaseLinearSolver/SparseMatrix.h>
 #include <sofa/simulation/MechanicalVisitor.h>
-#include <sofa/helper/system/thread/CTime.h>
 #include <sofa/helper/AdvancedTimer.h>
 #include <SofaBaseLinearSolver/MatrixLinearSolver.h>
 #include <sofa/simulation/AnimateBeginEvent.h>
@@ -48,14 +46,15 @@ namespace linearsolver
 {
 
 
+
 using namespace sofa::defaulttype;
 using namespace sofa::core::behavior;
 using namespace sofa::simulation;
 using namespace sofa::core::objectmodel;
-using sofa::helper::system::thread::CTime;
-using sofa::helper::system::thread::ctime_t;
 using std::cerr;
 using std::endl;
+
+
 
 template<class TMatrix, class TVector>
 StepPCGLinearSolver<TMatrix,TVector>::StepPCGLinearSolver()
@@ -73,10 +72,12 @@ StepPCGLinearSolver<TMatrix,TVector>::StepPCGLinearSolver()
     , verbose( initData(&verbose, false, "verbose", "print tracing informations") )
 {
     f_graph.setWidget("graph");
-//    f_graph.setReadOnly(true);
+    // f_graph.setReadOnly(true);
     first = true;
     this->f_listening.setValue(true);
 }
+
+
 
 template<class TMatrix, class TVector>
 void StepPCGLinearSolver<TMatrix,TVector>::init()
@@ -101,6 +102,8 @@ void StepPCGLinearSolver<TMatrix,TVector>::init()
     f_iterationsNeeded.setValue(100000);
 }
 
+
+
 template<class TMatrix, class TVector>
 void StepPCGLinearSolver<TMatrix,TVector>::setSystemMBKMatrix(const core::MechanicalParams* mparams)
 {    
@@ -119,7 +122,6 @@ void StepPCGLinearSolver<TMatrix,TVector>::setSystemMBKMatrix(const core::Mechan
          f_forceFactorization.getValue() ||                                              // forcing in any case
          (f_precondOnTimeStep.getValue() && firstTemporalInvocation) )                   // only in first temporal invocation
     {
-
         sofa::helper::AdvancedTimer::valSet("PCG::PrecondBuildMBK", 1);
         sofa::helper::AdvancedTimer::stepBegin("PCG::PrecondSetSystemMBKMatrix");
         PRNS("Invoking LDL in first simulation in given time step!");
@@ -149,9 +151,10 @@ void StepPCGLinearSolver<TMatrix,TVector>::setSystemMBKMatrix(const core::Mechan
             sofa::helper::AdvancedTimer::stepEnd("PCG::PrecondSetSystemMBKMatrix");
         }
     }*/
-
     preconditioners->updateSystemMatrix();
 }
+
+
 
 template<>
 inline void StepPCGLinearSolver<component::linearsolver::GraphScatteredMatrix,component::linearsolver::GraphScatteredVector>::cgstep_beta(Vector& p, Vector& r, double beta)
@@ -159,18 +162,23 @@ inline void StepPCGLinearSolver<component::linearsolver::GraphScatteredMatrix,co
     p.eq(r,p,beta); // p = p*beta + r
 }
 
+
+
 template<>
 inline void StepPCGLinearSolver<component::linearsolver::GraphScatteredMatrix,component::linearsolver::GraphScatteredVector>::cgstep_alpha(Vector& x, Vector& p, double alpha)
 {
     x.peq(p,alpha);                 // x = x + alpha p
 }
 
+
+
 template<class Matrix, class Vector>
-void StepPCGLinearSolver<Matrix,Vector>::handleEvent(sofa::core::objectmodel::Event* event) {
+void StepPCGLinearSolver<Matrix, Vector>::handleEvent(sofa::core::objectmodel::Event* event)
+{
     /// this event shoul be launch before the addKToMatrix
     if (sofa::simulation::AnimateBeginEvent::checkEventType(event)) {
         newton_iter = 0;
-        std::map < std::string, sofa::helper::vector<double> >& graph = * f_graph.beginEdit();
+        std::map < std::string, sofa::type::vector<double> >& graph = * f_graph.beginEdit();
         graph.clear();
 
         double actualTime = gnode->getTime();        
@@ -183,10 +191,10 @@ void StepPCGLinearSolver<Matrix,Vector>::handleEvent(sofa::core::objectmodel::Ev
 
             if (next_refresh_step == 1)
                 firstTemporalInvocation = true;
-
         }
     }
 }
+
 
 
 template<class TMatrix, class TVector>
@@ -194,13 +202,13 @@ void StepPCGLinearSolver<TMatrix,TVector>::solve (Matrix& M, Vector& x, Vector& 
 {
     sofa::helper::AdvancedTimer::stepBegin("PCGLinearSolver::solve");    
 
-    std::map < std::string, sofa::helper::vector<double> >& graph = * f_graph.beginEdit();
-//    sofa::helper::vector<double>& graph_error = graph["Error"];
+    std::map < std::string, sofa::type::vector<double> >& graph = *f_graph.beginEdit();
+    //  sofa::helper::vector<double>& graph_error = graph["Error"];
 
     newton_iter++;
     char name[256];
-    sprintf(name,"Error %d",newton_iter);
-    sofa::helper::vector<double>& graph_error = graph[std::string(name)];
+    sprintf(name, "Error %d", newton_iter);
+    sofa::type::vector<double>& graph_error = graph[std::string(name)];
 
     const core::ExecParams* params = core::ExecParams::defaultInstance();
     typename Inherit::TempVectorContainer vtmp(this, params, M, x, b);
@@ -215,7 +223,7 @@ void StepPCGLinearSolver<TMatrix,TVector>::solve (Matrix& M, Vector& x, Vector& 
     //PRNS("M : " << M.colSize() << " x " << M.rowSize());
 
     r = M * x;
-    cgstep_beta(r,b,-1);// r = -1 * r + b  =   b - (M * x)
+    cgstep_beta(r, b, -1);// r = -1 * r + b  =   b - (M * x)
 
     if (apply_precond) {
         sofa::helper::AdvancedTimer::stepBegin("PCGLinearSolver::apply Precond");
@@ -238,8 +246,8 @@ void StepPCGLinearSolver<TMatrix,TVector>::solve (Matrix& M, Vector& x, Vector& 
         double dtq = w.dot(s);
         double alpha = r_norm / dtq;
 
-        cgstep_alpha(x,w,alpha);//for(int i=0; i<n; i++) x[i] += alpha * d[i];
-        cgstep_alpha(r,s,-alpha);//for (int i=0; i<n; i++) r[i] = r[i] - alpha * q[i];
+        cgstep_alpha(x, w, alpha);//for(int i=0; i<n; i++) x[i] += alpha * d[i];
+        cgstep_alpha(r, s, -alpha);//for (int i=0; i<n; i++) r[i] = r[i] - alpha * q[i];
 
         if (apply_precond) {
             sofa::helper::AdvancedTimer::stepBegin("PCGLinearSolver::apply Precond");
@@ -254,11 +262,11 @@ void StepPCGLinearSolver<TMatrix,TVector>::solve (Matrix& M, Vector& x, Vector& 
 
         double deltaOld = r_norm;
         r_norm = r.dot(s);
-        graph_error.push_back(r_norm/b_norm);
+        graph_error.push_back(r_norm / b_norm);
 
         double beta = r_norm / deltaOld;
 
-        cgstep_beta(w,s,beta);//for (int i=0; i<n; i++) d[i] = r[i] + beta * d[i];
+        cgstep_beta(w, s, beta);//for (int i=0; i<n; i++) d[i] = r[i] + beta * d[i];
 
         iter++;
     }
@@ -277,6 +285,7 @@ void StepPCGLinearSolver<TMatrix,TVector>::solve (Matrix& M, Vector& x, Vector& 
     sofa::helper::AdvancedTimer::valSet("PCG iterations", iter);
     sofa::helper::AdvancedTimer::stepEnd("PCGLinearSolver::solve");
 }
+
 
 
 SOFA_DECL_CLASS(StepPCGLinearSolver)

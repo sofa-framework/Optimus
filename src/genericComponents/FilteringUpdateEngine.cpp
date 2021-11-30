@@ -35,6 +35,7 @@ namespace engine
 {
 
 
+
 SOFA_DECL_CLASS(FilteringUpdateEngine)
 
 // Register in the Factory
@@ -53,6 +54,7 @@ template class FilteringUpdateEngine<double>;
 #ifndef SOFA_DOUBLE
 template class FilteringUpdateEngine<float>;
 #endif
+
 
 
 } // namespace engine

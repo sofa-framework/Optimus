@@ -24,10 +24,9 @@
 
 #include "OptimParams.h"
 
-#include <sofa/defaulttype/Vec.h>
-#include <sofa/defaulttype/Mat.h>
+#include <sofa/type/Vec.h>
+#include <sofa/type/Mat.h>
 #include <sofa/core/loader/BaseLoader.h>
-#include <sofa/core/loader/PrimitiveGroup.h>
 #include <sofa/core/topology/Topology.h>
 #include <sofa/helper/fixed_array.h>
 
@@ -81,7 +80,7 @@ void OptimParams<DataTypes>::reinit()
 
 
 template<>
-void OptimParams<helper::vector<double> >::bwdInit()
+void OptimParams<type::vector<double> >::bwdInit()
 {
     loader_t* myLoader = m_loader.get();
     if (myLoader)
@@ -91,11 +90,11 @@ void OptimParams<helper::vector<double> >::bwdInit()
         std::cout<<"Optim params <"<<getName()<<"> found loader <"<<myLoader->getName()<<"> with "<<count<<" elements.\n";
 
 
-        sofa::helper::WriteAccessor< Data<helper::vector<double> > > initValues = m_initVal;
-        sofa::helper::WriteAccessor< Data<helper::vector<double> > > values = m_val;
-        sofa::helper::WriteAccessor< Data<helper::vector<double> > > min = m_minVal;
-        sofa::helper::WriteAccessor< Data<helper::vector<double> > > max = m_maxVal;
-        sofa::helper::WriteAccessor< Data<helper::vector<double> > > stdev = m_stdev;
+        sofa::helper::WriteAccessor< Data<type::vector<double> > > initValues = m_initVal;
+        sofa::helper::WriteAccessor< Data<type::vector<double> > > values = m_val;
+        sofa::helper::WriteAccessor< Data<type::vector<double> > > min = m_minVal;
+        sofa::helper::WriteAccessor< Data<type::vector<double> > > max = m_maxVal;
+        sofa::helper::WriteAccessor< Data<type::vector<double> > > stdev = m_stdev;
 
 
         initValues.resize(count);

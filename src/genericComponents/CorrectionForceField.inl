@@ -26,7 +26,7 @@
 #include <sofa/helper/config.h>
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/RigidTypes.h>
-#include <sofa/helper/gl/template.h>
+#include <sofa/gl/template.h>
 #include <assert.h>
 #include <iostream>
 #include <sofa/core/objectmodel/Event.h>
@@ -49,20 +49,12 @@ namespace forcefield
 template<class DataTypes>
 CorrectionForceField<DataTypes>::CorrectionForceField()
     : d_force(initData(&d_force, "force","applied forces at each point"))
-
-    , d_indices(initData(&d_indices, "indices",
-                         "indices where the forces are applied"))
-
-    , d_forces(initData(&d_forces, "forces",
-                        "applied forces at each point"))
-    , d_Optimforces(initData(&d_Optimforces, "optimForces",
-                             "applied forces at each point"))
-    , d_delta(initData(&d_delta, "delta","translation rotation vector"))
-
-    , d_paramF(initData(&d_paramF, "paramF",
-                             "parameter modeling force uncertainty"))
-{
-}
+    , d_indices(initData(&d_indices, "indices", "indices where the forces are applied"))
+    , d_forces(initData(&d_forces, "forces", "applied forces at each point"))
+    , d_Optimforces(initData(&d_Optimforces, "optimForces", "applied forces at each point"))
+    , d_delta(initData(&d_delta, "delta", "translation rotation vector"))
+    , d_paramF(initData(&d_paramF, "paramF", "parameter modeling force uncertainty"))
+{ }
 
 
 template<class DataTypes>
@@ -72,6 +64,7 @@ void CorrectionForceField<DataTypes>::bwdInit()
     this->f_listening.setValue(true);
 
 }
+
 
 template<class DataTypes>
 void CorrectionForceField<DataTypes>::plusF() {
@@ -90,22 +83,24 @@ void CorrectionForceField<DataTypes>::plusF() {
     std::cout<<"newForc: "<< d_Optimforces.getValue() <<std::endl;
 }
 
+
 template<class DataTypes>
 void CorrectionForceField<DataTypes>::minusF() {
 
     double temp = d_Optimforces.getValue()[0];
-    temp-= d_delta.getValue();
-    helper::vector<double> T;
+    temp -= d_delta.getValue();
+    type::vector<double> T;
     T.resize(d_Optimforces.getValue().size());
 
-    T[0]=d_Optimforces.getValue()[0];
+    T[0] = d_Optimforces.getValue()[0];
 
-    T[1]=temp;
-    for (unsigned int i=2; i<T.size();i++)
-        T[i]=d_Optimforces.getValue()[i];
+    T[1] = temp;
+    for (unsigned int i = 2; i < T.size(); i++)
+        T[i] = d_Optimforces.getValue()[i];
 
-    d_Optimforces=T;
+    d_Optimforces = T;
 }
+
 
 template<class DataTypes>
 void CorrectionForceField<DataTypes>::handleEvent(sofa::core::objectmodel::Event *event)
@@ -118,6 +113,7 @@ void CorrectionForceField<DataTypes>::handleEvent(sofa::core::objectmodel::Event
         }
     }
 }
+
 
 template<class DataTypes>
 void CorrectionForceField<DataTypes>::addForce(const core::MechanicalParams* /*params*/,
@@ -184,6 +180,7 @@ void CorrectionForceField<DataTypes>::addKToMatrix(const core::MechanicalParams*
     //    }
 }
 
+
 template<class DataTypes>
 void CorrectionForceField<DataTypes>::draw(const core::visual::VisualParams* /* vparams */) {
 
@@ -210,7 +207,6 @@ void CorrectionForceField<DataTypes>::draw(const core::visual::VisualParams* /* 
 
     //    glPointSize(1);
     //    glLineWidth(1);
-
 }
 
 

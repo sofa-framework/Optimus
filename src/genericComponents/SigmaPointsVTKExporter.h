@@ -22,7 +22,6 @@
 /*
  * SigmaPointsVTKExporter.h
  */
-
 #pragma once
 
 
@@ -54,23 +53,6 @@ class SOFA_OPTIMUSPLUGIN_API SigmaPointsVTKExporter : public core::objectmodel::
 public:
     SOFA_CLASS(SigmaPointsVTKExporter,core::objectmodel::BaseObject);
 
-protected:
-    sofa::core::topology::BaseMeshTopology* topology;
-    sofa::core::behavior::BaseMechanicalState* mstate;
-    unsigned int stepCounter;
-
-    std::ofstream* outfile;
-
-    void fetchDataFields(const helper::vector<std::string>& strData, helper::vector<std::string>& objects, helper::vector<std::string>& fields, helper::vector<std::string>& names);
-    void writeVTKSimple();
-    void writeVTKXML();
-    void writeData(const helper::vector<std::string>& objects, const helper::vector<std::string>& fields, const helper::vector<std::string>& names);
-    void writeDataArray(const helper::vector<std::string>& objects, const helper::vector<std::string>& fields, const helper::vector<std::string>& names);
-    std::string segmentString(std::string str, unsigned int n);
-
-    sofa::simulation::Node* gnode;
-
-public:
     sofa::core::objectmodel::DataFileName vtkFilename;
     Data<bool> fileFormat;	///< 0 for Simple Legacy Formats, 1 for XML File Format
     Data<defaulttype::Vec3Types::VecCoord> position; ///< points position (will use points from topology or mechanical state if this is empty)
@@ -79,8 +61,8 @@ public:
     Data<bool> writeQuads; ///< write quad topology
     Data<bool> writeTetras; ///< write tetra topology
     Data<bool> writeHexas; ///< write hexa topology
-    Data<helper::vector<std::string> > dPointsDataFields; ///< Data to visualize (on points)
-    Data<helper::vector<std::string> > dCellsDataFields; ///< Data to visualize (on cells)
+    Data<type::vector<std::string> > dPointsDataFields; ///< Data to visualize (on points)
+    Data<type::vector<std::string> > dCellsDataFields; ///< Data to visualize (on cells)
     Data<unsigned int> exportEveryNbSteps; ///< export file only at specified number of steps (0=disable)
     Data<bool> exportAtBegin; ///< export file at the initialization
     Data<bool> exportAtEnd; ///< export file when the simulation is finished
@@ -91,21 +73,39 @@ public:
 
     double lastTime;
 
-    helper::vector<std::string> pointsDataObject;
-    helper::vector<std::string> pointsDataField;
-    helper::vector<std::string> pointsDataName;
+    type::vector<std::string> pointsDataObject;
+    type::vector<std::string> pointsDataField;
+    type::vector<std::string> pointsDataName;
 
-    helper::vector<std::string> cellsDataObject;
-    helper::vector<std::string> cellsDataField;
-    helper::vector<std::string> cellsDataName;
+    type::vector<std::string> cellsDataObject;
+    type::vector<std::string> cellsDataField;
+    type::vector<std::string> cellsDataName;
+
+
 protected:
+    sofa::core::topology::BaseMeshTopology* topology;
+    sofa::core::behavior::BaseMechanicalState* mstate;
+    unsigned int stepCounter;
+
+    std::ofstream* outfile;
+
+    void fetchDataFields(const type::vector<std::string>& strData, type::vector<std::string>& objects, type::vector<std::string>& fields, type::vector<std::string>& names);
+    void writeVTKSimple();
+    void writeVTKXML();
+    void writeData(const type::vector<std::string>& objects, const type::vector<std::string>& fields, const type::vector<std::string>& names);
+    void writeDataArray(const type::vector<std::string>& objects, const type::vector<std::string>& fields, const type::vector<std::string>& names);
+    std::string segmentString(std::string str, unsigned int n);
+
+    sofa::simulation::Node* gnode;
+
     SigmaPointsVTKExporter();
     virtual ~SigmaPointsVTKExporter();
+
+
 public:
     void init() override;
     void cleanup() override;
     void bwdInit() override;
-
     void handleEvent(sofa::core::objectmodel::Event *) override;
 };
 

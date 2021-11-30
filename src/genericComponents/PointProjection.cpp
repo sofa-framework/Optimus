@@ -27,12 +27,17 @@
 #include "PointProjection.inl"
 //#include <sofa/core/ObjectFactory.h>
 
+
+
 namespace sofa
 {
+
 
 //SOFA_DECL_CLASS(PointProjection)
 
 template class  PointProjection<double>;
 //template class  PointProjection<float>;
 
-}
+
+} // namespace sofa
+

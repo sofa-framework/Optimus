@@ -26,6 +26,7 @@
 #include "FilterEvents.h"
 
 
+
 namespace sofa
 {
 
@@ -34,6 +35,7 @@ namespace component
 
 namespace stochastic
 {
+
 
 
 SOFA_EVENT_CPP( PredictionEndEvent )
@@ -64,9 +66,9 @@ CorrectionEndEvent::~CorrectionEndEvent()
 
 
 
-}  /// sofa
+} // namespace stochastic
 
-}  /// component
+} // namespace component
 
-}  /// stochastic
+} // namespace sofa
 

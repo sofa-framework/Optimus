@@ -78,12 +78,12 @@ void Indices2ValuesTransformer<DataTypes>::doUpdate()
 {
     cleanDirty();
 
-    helper::ReadAccessor< Data< helper::vector<Real> > > inputValues = f_inputValues;
-    helper::ReadAccessor< Data< helper::vector<Real> > > indices = f_indices;
-    helper::ReadAccessor< Data< helper::vector<Real> > > values1 = f_values1;
-    helper::ReadAccessor< Data< helper::vector<Real> > > values2 = f_values2;
+    helper::ReadAccessor< Data< type::vector<Real> > > inputValues = f_inputValues;
+    helper::ReadAccessor< Data< type::vector<Real> > > indices = f_indices;
+    helper::ReadAccessor< Data< type::vector<Real> > > values1 = f_values1;
+    helper::ReadAccessor< Data< type::vector<Real> > > values2 = f_values2;
 
-    helper::WriteAccessor< Data< helper::vector<Real> > > outputValues = f_outputValues;
+    helper::WriteAccessor< Data< type::vector<Real> > > outputValues = f_outputValues;
 
     const Real& defaultValue = p_defaultValue.getValue();
 

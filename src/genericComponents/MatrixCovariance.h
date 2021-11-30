@@ -48,6 +48,14 @@ class MatrixCovariance : public sofa::core::objectmodel::BaseObject
 public:
     SOFA_CLASS(SOFA_TEMPLATE(MatrixCovariance, DataTypes), BaseObject);
 
+protected:
+    Data<type::vector<DataTypes>> d_val;    // real actual value of parameters
+    Data<unsigned int> d_rows;                // amount of rows for covariance matrix
+    Data<unsigned int> d_columns;             // amount of columns for covariance matrix
+
+    virtual void handleEvent(core::objectmodel::Event */*event*/) override {}
+
+public:
     MatrixCovariance();
     ~MatrixCovariance();
     void init() override;
@@ -56,15 +64,7 @@ public:
 
     unsigned int Rows() { return d_rows.getValue(); }
     unsigned int Columns() { return d_columns.getValue(); }
-    const helper::vector<DataTypes>& GetData() { return d_val.getValue(); }
-
-protected:
-    Data<helper::vector<DataTypes>> d_val;    // real actual value of parameters
-    Data<unsigned int> d_rows;                // amount of rows for covariance matrix
-    Data<unsigned int> d_columns;             // amount of columns for covariance matrix
-
-    virtual void handleEvent(core::objectmodel::Event */*event*/) override {}
-
+    const type::vector<DataTypes>& GetData() { return d_val.getValue(); }
 };
 
 

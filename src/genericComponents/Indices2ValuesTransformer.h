@@ -27,7 +27,7 @@
 
 #include <sofa/core/DataEngine.h>
 #include <SofaBaseMechanics/MechanicalObject.h>
-#include <sofa/helper/vector.h>
+#include <sofa/type/vector.h>
 
 #include "../initOptimusPlugin.h"
 
@@ -51,13 +51,26 @@ public:
     typedef typename DataTypes::Coord Coord;
     typedef typename DataTypes::VecCoord VecCoord;
     typedef typename DataTypes::Real Real;
-    typedef sofa::defaulttype::Vec<3,Real> Vec3;
+    typedef sofa::type::Vec<3,Real> Vec3;
     typedef unsigned int Index;
 
-protected:
+    //Input
+    Data<sofa::type::vector<Real> > f_inputValues; ///< Already existing values (can be empty)
+    Data<sofa::type::vector<Real> > f_indices; ///< Indices to map value on
+    Data<sofa::type::vector<Real> > f_values1, f_values2; ///< Values to map indices on
 
+    //Output
+    Data<sofa::type::vector<Real> > f_outputValues; ///< New map between indices and values
+
+    //Parameter
+    Data<Real> p_defaultValue; ///< Default value for indices without any value
+    Data<std::string> d_transformation;
+
+
+protected:
     Indices2ValuesTransformer();
     ~Indices2ValuesTransformer() {}
+
 public:
     void init() override;
     void reinit() override;
@@ -72,28 +85,11 @@ public:
     {
         return DataTypes::Name();
     }
-
-    //Input
-    Data<sofa::helper::vector<Real> > f_inputValues; ///< Already existing values (can be empty) 
-    Data<sofa::helper::vector<Real> > f_indices; ///< Indices to map value on 
-    Data<sofa::helper::vector<Real> > f_values1, f_values2; ///< Values to map indices on
-
-    //Output
-    Data<sofa::helper::vector<Real> > f_outputValues; ///< New map between indices and values
-
-    //Parameter
-    Data<Real> p_defaultValue; ///< Default value for indices without any value
-    Data<std::string> d_transformation;
-
 };
 
+
 #if defined(SOFA_EXTERN_TEMPLATE) && !defined(SOFA_COMPONENT_ENGINE_INDICES2VALUESTRANSFORMER_CPP)
-#ifndef SOFA_FLOAT
-extern template class SOFA_GENERAL_ENGINE_API Indices2ValuesTransformer<sofa::defaulttype::Vec3dTypes>;
-#endif //SOFA_FLOAT
-#ifndef SOFA_DOUBLE
-extern template class SOFA_GENERAL_ENGINE_API Indices2ValuesTransformer<sofa::defaulttype::Vec3fTypes>;
-#endif //SOFA_DOUBLE
+extern template class SOFA_OPTIMUSPLUGIN_API Indices2ValuesTransformer<sofa::defaulttype::Vec3Types>;
 #endif
 
 

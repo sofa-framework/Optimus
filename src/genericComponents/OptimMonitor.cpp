@@ -49,9 +49,11 @@ int OptimMonitorClass = core::RegisterObject("OptimMonitoring of particles")
     .add< OptimMonitor<Rigid3Types> >()
     ;
 
+
 template class SOFA_OPTIMUSPLUGIN_API OptimMonitor<Vec3Types>;
 template class SOFA_OPTIMUSPLUGIN_API OptimMonitor<Vec6Types>;
 template class SOFA_OPTIMUSPLUGIN_API OptimMonitor<Rigid3Types>;
+
 
 
 } // namespace misc

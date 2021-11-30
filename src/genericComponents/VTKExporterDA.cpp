@@ -35,10 +35,12 @@ namespace misc
 {
 
 
+
 SOFA_DECL_CLASS(VTKExporterDA)
 
 int VTKExporterClassDA = core::RegisterObject("Save geometries in VTK, compatible with Optimus data assimilation")
     .add< VTKExporterDA >();
+
 
 
 void VTKExporterDA::handleEvent(sofa::core::objectmodel::Event *event)

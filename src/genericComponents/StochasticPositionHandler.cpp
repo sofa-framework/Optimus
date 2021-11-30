@@ -20,6 +20,8 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 #include <genericComponents/StochasticPositionHandler.inl>
+#include <sofa/core/behavior/OdeSolver.h>
+#include <sofa/core/BaseMapping.h>
 #include <sofa/core/ObjectFactory.h>
 
 
@@ -34,11 +36,10 @@ namespace misc
 {
 
 
-SOFA_DECL_CLASS(StochasticPositionHandler)
 
 using namespace defaulttype;
 
-
+SOFA_DECL_CLASS(StochasticPositionHandler)
 
 int StochasticPositionHandlerClass = core::RegisterObject("Write State vectors to file at each timestep")
     .add< StochasticPositionHandler >();
@@ -51,8 +52,7 @@ StochasticPositionHandlerCreator::StochasticPositionHandlerCreator(const core::E
     , recordV(true)
     , createInMapping(false)
     , counterStochasticPositionHandler(0)
-{
-}
+{ }
 
 StochasticPositionHandlerCreator::StochasticPositionHandlerCreator(const core::ExecParams* params, const std::string &n, bool _recordX, bool _recordV, bool _recordF, bool _createInMapping, int c)
     :simulation::Visitor(params)
@@ -62,18 +62,20 @@ StochasticPositionHandlerCreator::StochasticPositionHandlerCreator(const core::E
     , recordF(_recordF)
     , createInMapping(_createInMapping)
     , counterStochasticPositionHandler(c)
-{
-}
+{ }
+
 
 
 //Create a Write State component each time a mechanical state is found
 simulation::Visitor::Result StochasticPositionHandlerCreator::processNodeTopDown( simulation::Node* gnode)
 {
-    sofa::core::behavior::BaseMechanicalState * mstate=gnode->mechanicalState;
-    if (!mstate)   return simulation::Visitor::RESULT_CONTINUE;
-    core::behavior::OdeSolver *isSimulated;
+    sofa::core::behavior::BaseMechanicalState* mstate = gnode->mechanicalState;
+    if (!mstate)
+        return simulation::Visitor::RESULT_CONTINUE;
+    core::behavior::OdeSolver* isSimulated;
     mstate->getContext()->get(isSimulated);
-    if (!isSimulated) return simulation::Visitor::RESULT_CONTINUE;
+    if (!isSimulated)
+        return simulation::Visitor::RESULT_CONTINUE;
 
     //We have a mechanical state
     addStochasticPositionHandler(mstate, gnode);
@@ -81,10 +83,11 @@ simulation::Visitor::Result StochasticPositionHandlerCreator::processNodeTopDown
 }
 
 
+
 void StochasticPositionHandlerCreator::addStochasticPositionHandler(sofa::core::behavior::BaseMechanicalState *ms, simulation::Node* gnode)
 {
     sofa::core::objectmodel::BaseContext* context = gnode->getContext();
-    sofa::core::BaseMapping *mapping;
+    sofa::core::BaseMapping* mapping;
     context->get(mapping);
     if ( createInMapping || mapping == NULL)
     {
@@ -106,7 +109,6 @@ void StochasticPositionHandlerCreator::addStochasticPositionHandler(sofa::core::
         ws->f_filename.setValue(ofilename.str()); ws->init(); ws->f_listening.setValue(true);  //Activated at init
 
         ++counterStochasticPositionHandler;
-
     }
 }
 
@@ -115,10 +117,12 @@ void StochasticPositionHandlerCreator::addStochasticPositionHandler(sofa::core::
 //if state is true, we activate all the write states present in the scene.
 simulation::Visitor::Result StochasticPositionHandlerActivator::processNodeTopDown( simulation::Node* gnode)
 {
-    sofa::component::misc::StochasticPositionHandler *ws = gnode->get< sofa::component::misc::StochasticPositionHandler >(this->subsetsToManage);
+    sofa::component::misc::StochasticPositionHandler* ws = gnode->get< sofa::component::misc::StochasticPositionHandler >(this->subsetsToManage);
     if (ws != NULL) { changeStateWriter(ws);}
     return simulation::Visitor::RESULT_CONTINUE;
 }
+
+
 
 void StochasticPositionHandlerActivator::changeStateWriter(sofa::component::misc::StochasticPositionHandler*ws)
 {

@@ -47,9 +47,8 @@ public:
     SOFA_CLASS(VTKExporterDA,VTKExporter);
 
     void handleEvent(sofa::core::objectmodel::Event *) override;
-
-
 };
+
 
 } // namespace misc
 

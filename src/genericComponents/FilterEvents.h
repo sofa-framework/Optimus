@@ -38,8 +38,10 @@ namespace stochastic
 
 class  SOFA_STOCHASTIC_API PredictionEndEvent : public sofa::core::objectmodel::Event
 {
-public:
+protected:
+    SReal dt;
 
+public:
     SOFA_EVENT_H( PredictionEndEvent )
 
     PredictionEndEvent( SReal dt );
@@ -49,16 +51,15 @@ public:
     SReal getDt() const { return dt; }
 
     inline static const char* GetClassName() { return "AssimilationEndEvent"; }
-
-protected:
-    SReal dt;
 };
 
 
 class SOFA_STOCHASTIC_API CorrectionEndEvent : public sofa::core::objectmodel::Event
 {
-public:
+protected:
+    SReal dt;
 
+public:
     SOFA_EVENT_H( CorrectionEndEvent )
 
     CorrectionEndEvent( SReal dt );
@@ -68,16 +69,13 @@ public:
     SReal getDt() const { return dt; }
 
     inline static const char* GetClassName() { return "AssimilationEndEvent"; }
-
-protected:
-    SReal dt;
 };
 
 
 
-}   /// stochastic
+} // stochastic
 
-}   /// components
+} // components
 
-}   /// sofa
+} // sofa
 

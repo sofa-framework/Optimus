@@ -23,7 +23,7 @@
 
 #include "initOptimusPlugin.h"
 #include <sofa/core/objectmodel/BaseObject.h>
-#include <sofa/defaulttype/Vec.h>
+#include <sofa/type/Vec.h>
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/RigidTypes.h>
 #include <sofa/helper/types/RGBAColor.h>
@@ -51,33 +51,31 @@ public:
     SOFA_CLASS(SOFA_TEMPLATE(ShowSpheres, DataTypes), core::objectmodel::BaseObject);
 
     typedef typename DataTypes::VecCoord VecCoord;
-    typedef defaulttype::Vec<4,float> Vec4f;
+    typedef type::Vec<4,float> Vec4f;
 
-ShowSpheres();
-~ShowSpheres();
-
-protected:    
-public:
     Data<VecCoord> _positions;
-    Data<helper::vector<unsigned int> > _indices;
+    Data<type::vector<unsigned int> > _indices;
     Data<bool> _draw;
     Data<float> _radius;
     Data<float> _showIndicesSize;
     Data<helper::types::RGBAColor> _color;
     Data<helper::types::RGBAColor> _indexColor;
 
+    ShowSpheres();
+    ~ShowSpheres();
 
     void draw(const core::visual::VisualParams* vparams) override;
 
     void init() override { }
     void reinit() override { }
+};
 
-}; /// class
 
 #if defined(SOFA_EXTERN_TEMPLATE) && !defined(SHOWSPHERES_CPP)
 extern template class SOFA_OPTIMUSPLUGIN_API ShowSpheres<defaulttype::Vec3Types>;
 extern template class SOFA_OPTIMUSPLUGIN_API ShowSpheres<defaulttype::Rigid3Types>;
 #endif
+
 
 } // engine
 

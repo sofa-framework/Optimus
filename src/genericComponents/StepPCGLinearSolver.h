@@ -24,9 +24,9 @@
 #include <sofa/core/behavior/LinearSolver.h>
 #include <SofaBaseLinearSolver/MatrixLinearSolver.h>
 #include <sofa/helper/map.h>
+#include <sofa/simulation/Node.h>
 
 #include "../initOptimusPlugin.h"
-
 #include <math.h>
 
 
@@ -43,14 +43,14 @@ namespace linearsolver
 
 /// Linear system solver using the conjugate gradient iterative algorithm
 template<class TMatrix, class TVector>
-class StepPCGLinearSolver : public sofa::component::linearsolver::MatrixLinearSolver<TMatrix,TVector>
+class StepPCGLinearSolver : public sofa::component::linearsolver::MatrixLinearSolver<TMatrix, TVector>
 {
 public:
-    SOFA_CLASS(SOFA_TEMPLATE2(StepPCGLinearSolver,TMatrix,TVector),SOFA_TEMPLATE2(sofa::component::linearsolver::MatrixLinearSolver,TMatrix,TVector));
+    SOFA_CLASS(SOFA_TEMPLATE2(StepPCGLinearSolver, TMatrix, TVector),SOFA_TEMPLATE2(sofa::component::linearsolver::MatrixLinearSolver, TMatrix, TVector));
 
     typedef TMatrix Matrix;
     typedef TVector Vector;
-    typedef sofa::component::linearsolver::MatrixLinearSolver<TMatrix,TVector> Inherit;
+    typedef sofa::component::linearsolver::MatrixLinearSolver<TMatrix, TVector> Inherit;
 
     Data<unsigned> f_maxIter;
     Data<double> f_tolerance;
@@ -62,41 +62,42 @@ public:
     Data<int> f_iterationsNeeded;
     Data<int> f_numIterationsToRefactorize;
     Data< std::string > f_preconditioners;
-    Data<std::map < std::string, sofa::helper::vector<double> > > f_graph;
+    Data<std::map < std::string, sofa::type::vector<double> > > f_graph;
     Data<bool> verbose;
 
 
 protected:
-    StepPCGLinearSolver();
+     StepPCGLinearSolver();
+
+    /// This method is separated from the rest to be able to use custom/optimized versions depending on the types of vectors.
+    /// It computes: p = p*beta + r
+    inline void cgstep_beta(Vector& p, Vector& r, double beta);
+    /// This method is separated from the rest to be able to use custom/optimized versions depending on the types of vectors.
+    /// It computes: x += p*alpha, r -= q*alpha
+    inline void cgstep_alpha(Vector& x, Vector& p, double alpha);
+
+    void handleEvent(sofa::core::objectmodel::Event* event) override;
+
+    sofa::simulation::Node* gnode;
+    double firstTemporalInvocation;
+
+
+private:
+    unsigned next_refresh_step;
+    sofa::core::behavior::LinearSolver* preconditioners;
+    bool first;
+    int newton_iter;
+    double lastTime;
+
 public:
     void solve (Matrix& M, Vector& x, Vector& b) override;
     void init() override;
     void setSystemMBKMatrix(const core::MechanicalParams* mparams) override;
     //void setSystemRHVector(VecId v);
     //void setSystemLHVector(VecId v);
-
-private :
-    unsigned next_refresh_step;
-    sofa::core::behavior::LinearSolver* preconditioners;
-    bool first;
-    int newton_iter;
-
-    double lastTime;
-
-protected:
-    /// This method is separated from the rest to be able to use custom/optimized versions depending on the types of vectors.
-    /// It computes: p = p*beta + r
-    inline void cgstep_beta(Vector& p, Vector& r, double beta);
-    /// This method is separated from the rest to be able to use custom/optimized versions depending on the types of vectors.
-    /// It computes: x += p*alpha, r -= q*alpha
-    inline void cgstep_alpha(Vector& x,Vector& p,double alpha);
-
-    void handleEvent(sofa::core::objectmodel::Event* event) override;
-
-
-    sofa::simulation::Node* gnode;
-    double firstTemporalInvocation;
 };
+
+
 
 template<class TMatrix, class TVector>
 inline void StepPCGLinearSolver<TMatrix,TVector>::cgstep_beta(Vector& p, Vector& r, double beta)
@@ -105,18 +106,23 @@ inline void StepPCGLinearSolver<TMatrix,TVector>::cgstep_beta(Vector& p, Vector&
     p += r; //z;
 }
 
+
+
 template<class TMatrix, class TVector>
-inline void StepPCGLinearSolver<TMatrix,TVector>::cgstep_alpha(Vector& x,Vector& p,double alpha)
+inline void StepPCGLinearSolver<TMatrix,TVector>::cgstep_alpha(Vector& x, Vector& p, double alpha)
 {
     x.peq(p,alpha);                 // x = x + alpha p
 }
 
 
+
 template<>
 inline void StepPCGLinearSolver<component::linearsolver::GraphScatteredMatrix,component::linearsolver::GraphScatteredVector>::cgstep_beta(Vector& p, Vector& r, double beta);
 
+
+
 template<>
-inline void StepPCGLinearSolver<component::linearsolver::GraphScatteredMatrix,component::linearsolver::GraphScatteredVector>::cgstep_alpha(Vector& x,Vector& p,double alpha);
+inline void StepPCGLinearSolver<component::linearsolver::GraphScatteredMatrix,component::linearsolver::GraphScatteredVector>::cgstep_alpha(Vector& x, Vector& p, double alpha);
 
 
 

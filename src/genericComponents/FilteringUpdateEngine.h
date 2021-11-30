@@ -26,12 +26,12 @@
 #include <sofa/core/objectmodel/BaseObject.h>
 //#include <sofa/core/DataEngine.h>
 
-#include <sofa/defaulttype/Mat.h>
-#include <sofa/defaulttype/Vec.h>
+#include <sofa/type/Mat.h>
+#include <sofa/type/Vec.h>
 
 #include <sofa/simulation/Node.h>
 
-#include "../stochasticFiltering/UKFilterClassic.h"
+#include "../stochasticFiltering/StochasticFilterBase.h"
 #include "../stochasticFiltering/StochasticStateWrapperBase.h"
 #include "OptimParams.h"
 
@@ -59,7 +59,7 @@ public:
     SOFA_CLASS(FilteringUpdateEngine, core::objectmodel::BaseObject);
 
     typedef core::objectmodel::BaseObject Inherit;
-    typedef typename sofa::defaulttype::Vec3d Vector3;
+    typedef typename sofa::type::Vec3d Vector3;
     
     FilteringUpdateEngine();
     ~FilteringUpdateEngine() {}
@@ -67,9 +67,9 @@ public:
     Data<size_t> d_addData;
     Data<size_t> d_updateData;
 
-    component::stochastic::UKFilterClassic<DataTypes>* filter;
-    helper::vector<component::stochastic::StochasticStateWrapperBaseT<DataTypes>*> stateWrappers;
-    helper::vector<component::container::OptimParamsBase*> vecOptimParams;
+    component::stochastic::StochasticFilterBase* filter;
+    type::vector<component::stochastic::StochasticStateWrapperBaseT<DataTypes>*> stateWrappers;
+    type::vector<component::container::OptimParamsBase*> vecOptimParams;
     
 
     // found planes
@@ -94,8 +94,7 @@ public:
     //{
     //    return "double";
     //}
-    
-}; /// class
+};
 
 
 
