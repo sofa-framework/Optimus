@@ -36,14 +36,18 @@
 #include "../genericComponents/SimulatedStateObservationSource.h"
 #include "StochasticStateWrapper.h"
 
+
+
 namespace sofa
 {
+
 namespace component
 {
+
 namespace stochastic
 {
 
-using namespace defaulttype;
+
 
 template <class FilterType, class DataTypes1, class DataTypes2>
 class BindedSimpleObservationManager: public sofa::component::stochastic::ObservationManager<FilterType>
@@ -65,33 +69,33 @@ public:
     typedef typename DataTypes2::VecCoord VecCoord;
     typedef typename DataTypes2::VecDeriv VecDeriv;
 
-    Data<bool> d_use2dObservations;
-    Data<Mat3x4d> d_projectionMatrix;
-    Data<double> d_proj_dist;
+    Data< bool > d_use2dObservations;
+    Data< sofa::type::Mat3x4d > d_projectionMatrix;
+    Data< double > d_proj_dist;
 
-    Data<helper::vector<int>> d_bindId;
+    Data< type::vector<int> > d_bindId;
     SingleLink<BindedSimpleObservationManager<FilterType, DataTypes1, DataTypes2>, StateWrapper, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> stateWrapperLink;
     typedef core::behavior::MechanicalState<defaulttype::Vec3dTypes> MappState;
-    Data <std::string> d_mappedStatePath;
+    Data < std::string > d_mappedStatePath;
 
-
-
-    BindedSimpleObservationManager();
-    ~BindedSimpleObservationManager() {}
 
 protected:
-
     MasterState* masterState;
-    ObservationSource *observationSource;
+    ObservationSource* observationSource;
     StateWrapper* stateWrapper;
 
     double actualObservationTime;
 
-    helper::vector<int> bindId;
+    type::vector<int> bindId;
 
     MappState* mappedState;
 
-    public:
+
+public:
+    BindedSimpleObservationManager();
+    ~BindedSimpleObservationManager() {}
+
+
     void init() override;
     void bwdInit() override;
 
@@ -102,9 +106,7 @@ protected:
     virtual bool obsFunction(EVectorX& /* _state */, EVectorX& /* _predictedObservation */) override;
 
     typename DataTypes1::VecCoord realObservations;
-    typename helper::vector< VecCoord > modelObservations;
-
-
+    typename type::vector< VecCoord > modelObservations;
 
 
     /// Pre-construction check method called by ObjectFactory.
@@ -112,7 +114,7 @@ protected:
     template<class T>
     static bool canCreate(T*& obj, core::objectmodel::BaseContext* context, core::objectmodel::BaseObjectDescription* arg)
     {
-        //        if (dynamic_cast<MState *>(context->getMechanicalState()) == NULL) return false;
+        // if (dynamic_cast<MState *>(context->getMechanicalState()) == NULL) return false;
         return sofa::core::objectmodel::BaseObject::canCreate(obj, context, arg);
     }
 
@@ -125,8 +127,7 @@ protected:
     {
         return DataTypes1::Name()+ std::string(",") + DataTypes2::Name();
     }
-
-}; /// class
+};
 
 
 } // stochastic

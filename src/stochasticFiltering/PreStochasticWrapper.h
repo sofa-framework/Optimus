@@ -29,6 +29,8 @@
 #include <sofa/simulation/AnimateEndEvent.h>
 #include <sofa/simulation/AnimateBeginEvent.h>
 
+
+
 namespace sofa
 {
 
@@ -38,27 +40,23 @@ namespace component
 namespace stochastic
 {
 
-using namespace defaulttype;
 
-class PreStochasticWrapper: public sofa::core::objectmodel::BaseObject
+
+class PreStochasticWrapper : public sofa::core::objectmodel::BaseObject
 {
 public:
     SOFA_CLASS(PreStochasticWrapper,sofa::core::objectmodel::BaseObject);
+
+    Data<bool> verbose;
+    sofa::simulation::Node* gnode;
 
     PreStochasticWrapper();
     ~PreStochasticWrapper() {}
 
     virtual void step(const core::ExecParams* _params, const size_t _step);
     void init() override;
+};
 
-protected:    
-
-public:
-    Data<bool> verbose;
-    sofa::simulation::Node* gnode;
-
-
-}; /// class
 
 
 } // stochastic

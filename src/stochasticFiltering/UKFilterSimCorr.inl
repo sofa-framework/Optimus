@@ -26,6 +26,7 @@
 #include <fstream>
 
 
+
 namespace sofa
 {
 
@@ -36,39 +37,39 @@ namespace stochastic
 {
 
 
+
 template <class FilterType>
 UKFilterSimCorr<FilterType>::UKFilterSimCorr()
     : Inherit()
-    , d_filename( initData(&d_filename, "filename", "output file name"))
-    , outfile(NULL)
     , d_state( initData(&d_state, "state", "actual expected value of reduced state (parameters) estimated by the filter" ) )
     , d_variance( initData(&d_variance, "variance", "actual variance  of reduced state (parameters) estimated by the filter" ) )
     , d_covariance( initData(&d_covariance, "covariance", "actual co-variance  of reduced state (parameters) estimated by the filter" ) )
-    , d_innovation( initData(&d_innovation, "innovation", "innovation value computed by the filter" ) )    
-{
+    , d_innovation( initData(&d_innovation, "innovation", "innovation value computed by the filter" ) )
+    , d_filename( initData(&d_filename, "filename", "output file name"))
+    , outfile(NULL)
+{ }
 
-}
 
 
 template <class FilterType>
 void UKFilterSimCorr<FilterType>::computePrediction()
 {    
-    //PRNS("Computing prediction, T= " << this->actualTime  << " ======");
+    //  PRNS("Computing prediction, T= " << this->actualTime  << " ======");
     /// Computes background error variance Cholesky factorization.
     Eigen::LLT<EMatrixX> lltU(stateCovar);
     EMatrixX matPsqrt = lltU.matrixL();
 
-    //PRNS("matPsqrt: " << matPsqrt);
+    //  PRNS("matPsqrt: " << matPsqrt);
 
     stateExp = masterStateWrapper->getState();
-    //PRNS("X(n): \n" << stateExp.transpose());
-    //PRNS("P(n): \n" << stateCovar);
+    //  PRNS("X(n): \n" << stateExp.transpose());
+    //  PRNS("P(n): \n" << stateCovar);
 
     /// Computes X_{n}^{(i)-} sigma points        
     for (size_t i = 0; i < sigmaPointsNum; i++) {
         matXi.col(i) = stateExp + matPsqrt * matI.row(i).transpose();
     }
-    //PRNS("MatXi: \n" << matXi);
+    //  PRNS("MatXi: \n" << matXi);
 
     /// There's no dynamics => the state is not changed
 
@@ -87,22 +88,25 @@ void UKFilterSimCorr<FilterType>::computePrediction()
     ////           for (size_t y = 0; y < stateSize; y++)
     ////               stateCovar(x,y) += vecAlphaVar(i) * tmpX(x)*tmpX(y);
     ////    }
-    EMatrixX matXiTrans= matXi.transpose();
+    EMatrixX matXiTrans = matXi.transpose();
     EMatrixX centeredPxx = matXiTrans.rowwise() - matXiTrans.colwise().mean();
     EMatrixX weightedCenteredPxx = centeredPxx.array().colwise() * vecAlphaVar.array();
     EMatrixX covPxx = (centeredPxx.adjoint() * weightedCenteredPxx);
-    //EMatrixX covPxx = (centeredPxx.adjoint() * centeredPxx) / double(centeredPxx.rows() )
+    //  EMatrixX covPxx = (centeredPxx.adjoint() * centeredPxx) / double(centeredPxx.rows() )
     stateCovar = covPxx;
     // stateCovar = alphaVar*stateCovar;
 
-    //PRNS("X(n+1)-: " << stateExp.transpose());
-    //PRNS("P(n+1)-: \n" << stateCovar);
+    //  PRNS("X(n+1)-: " << stateExp.transpose());
+    //  PRNS("P(n+1)-: \n" << stateCovar);
 }
+
+
 
 template <class FilterType>
 void UKFilterSimCorr<FilterType>::computeCorrection()
 {            
-    if (observationManager->hasObservation(this->actualTime)) {
+    if (observationManager->hasObservation(this->actualTime))
+    {
         //PRNS("======= Computing correction, T= " << this->actualTime << " ======");
 
         /// Compute variance factorization
@@ -147,7 +151,7 @@ void UKFilterSimCorr<FilterType>::computeCorrection()
         EMatrixX centeredCz = matZItrans.rowwise() - matZItrans.colwise().mean();
         EMatrixX weightedCenteredCz = centeredCz.array().colwise() * vecAlphaVar.array();
         EMatrixX covPxz = (centeredCx.adjoint() * weightedCenteredCz);
-        matPxz=covPxz;
+        matPxz = covPxz;
         EMatrixX covPzz = (centeredCz.adjoint() * weightedCenteredCz);
         matPz = obsCovar + covPzz;
 
@@ -186,10 +190,10 @@ void UKFilterSimCorr<FilterType>::computeCorrection()
         //PRNS("X(n+1)+: \n" << stateExp.transpose());
         //PRNS("P(n+1)+n: \n" << stateCovar);
 
-        helper::WriteAccessor<Data <helper::vector<FilterType> > > stat = d_state;
-        helper::WriteAccessor<Data <helper::vector<FilterType> > > var = d_variance;
-        helper::WriteAccessor<Data <helper::vector<FilterType> > > covar = d_covariance;
-        helper::WriteAccessor<Data <helper::vector<FilterType> > > innov = d_innovation;
+        helper::WriteAccessor<Data< type::vector<FilterType> > > stat = d_state;
+        helper::WriteAccessor<Data< type::vector<FilterType> > > var = d_variance;
+        helper::WriteAccessor<Data< type::vector<FilterType> > > covar = d_covariance;
+        helper::WriteAccessor<Data< type::vector<FilterType> > > innov = d_innovation;
 
         stat.resize(stateSize);
         var.resize(stateSize);
@@ -201,19 +205,21 @@ void UKFilterSimCorr<FilterType>::computeCorrection()
         for (size_t i = 0; i < stateSize; i++) {
             stat[i] = stateExp[i];
             var[i] = stateCovar(i,i);
-            for (size_t j = i+1; j < stateSize; j++) {
+            for (size_t j = i + 1; j < stateSize; j++) {
                 covar[gli++] = stateCovar(i,j);
             }
         }
         for (size_t index = 0; index < observationSize; index++) {
             innov[index] = innovation[index];
         }
-
     }
 }
 
+
+
 template <class FilterType>
-void UKFilterSimCorr<FilterType>::init() {
+void UKFilterSimCorr<FilterType>::init()
+{
     Inherit::init();
     assert(this->gnode);    
 
@@ -244,7 +250,7 @@ void UKFilterSimCorr<FilterType>::init() {
         PRNS("number of slave wrappers: " << numThreads-1);
         /// slaves + master
     }
-    numThreads=numSlaveWrappers+numMasterWrappers;
+    numThreads = numSlaveWrappers + numMasterWrappers;
 
     this->gnode->get(observationManager, core::objectmodel::BaseContext::SearchDown);
     if (observationManager) {
@@ -256,8 +262,11 @@ void UKFilterSimCorr<FilterType>::init() {
     outfile = new std::ofstream(filename.c_str());
 }
 
+
+
 template <class FilterType>
-void UKFilterSimCorr<FilterType>::bwdInit() {
+void UKFilterSimCorr<FilterType>::bwdInit()
+{
     assert(masterStateWrapper);
 
     stateSize = masterStateWrapper->getStateSize();
@@ -291,9 +300,9 @@ void UKFilterSimCorr<FilterType>::bwdInit() {
     matXi.setZero();    
 
     /// copy state (exp, covariance) to SOFA data for exporting
-    helper::WriteAccessor<Data <helper::vector<FilterType> > > dstate = this->d_state;
-    helper::WriteAccessor<Data <helper::vector<FilterType> > > dvar = this->d_variance;
-    helper::WriteAccessor<Data <helper::vector<FilterType> > > dcovar = this->d_covariance;
+    helper::WriteAccessor<Data< type::vector<FilterType> > > dstate = this->d_state;
+    helper::WriteAccessor<Data< type::vector<FilterType> > > dvar = this->d_variance;
+    helper::WriteAccessor<Data< type::vector<FilterType> > > dcovar = this->d_covariance;
 
     dstate.resize(stateSize);
     dvar.resize(stateSize);
@@ -304,11 +313,13 @@ void UKFilterSimCorr<FilterType>::bwdInit() {
     for (size_t i = 0; i < stateSize; i++) {
         dstate[i] = stateExp(i);
         dvar[i] = stateCovar(i);
-        for (size_t j = i+1; j < stateSize; j++) {
+        for (size_t j = i + 1; j < stateSize; j++) {
             dcovar[gli++] = stateCovar(i,j);
         }
     }
 }
+
+
 
 template <class FilterType>
 void UKFilterSimCorr<FilterType>::initializeStep(const core::ExecParams* _params, const size_t _step) {
@@ -331,8 +342,11 @@ void UKFilterSimCorr<FilterType>::initializeStep(const core::ExecParams* _params
     observationManager->initializeStep(stepNumber);
 }
 
+
+
 template <class FilterType>
-void UKFilterSimCorr<FilterType>::computeSimplexSigmaPoints(EMatrixX& sigmaMat) {
+void UKFilterSimCorr<FilterType>::computeSimplexSigmaPoints(EMatrixX& sigmaMat)
+{
     size_t p = stateSize;
     size_t r = stateSize + 1;
 
@@ -341,38 +355,39 @@ void UKFilterSimCorr<FilterType>::computeSimplexSigmaPoints(EMatrixX& sigmaMat) 
     Type scal, beta, sqrt_p;
     beta = Type(p) / Type(p+1);
     sqrt_p = sqrt(Type(p));
-    scal = Type(1.0)/sqrt(Type(2) * beta);
-    workingMatrix(0,0) = -scal;
-    workingMatrix(0,1) = scal;
+    scal = Type(1.0) / sqrt(Type(2) * beta);
+    workingMatrix(0, 0) = -scal;
+    workingMatrix(0, 1) = scal;
 
     for (size_t i = 1; i < p; i++) {
-        scal = Type(1.0) / sqrt(beta * Type(i+1) * Type(i+2));
+        scal = Type(1.0) / sqrt(beta * Type(i + 1) * Type(i + 2));
 
         for (size_t j = 0; j < i+1; j++)
-            workingMatrix(i,j) = scal;
-        workingMatrix(i,i+1) = -Type(i+1) * scal;
+            workingMatrix(i, j) = scal;
+        workingMatrix(i, i + 1) = -Type(i+1) * scal;
     }
 
-
-    sigmaMat.resize(r,p);
+    sigmaMat.resize(r, p);
     for (size_t i = 0; i < r; i++)
         sigmaMat.row(i) = workingMatrix.col(i) * sqrt_p;
 
     vecAlpha.resize(r);
-    vecAlpha.fill(Type(1.0)/Type(r));
+    vecAlpha.fill(Type(1.0) / Type(r));
     alphaConstant = true;
     alpha = vecAlpha(0);
 
     alphaVar = (this->useUnbiasedVariance.getValue()) ? Type(1.0)/Type(r-1) : Type(1.0)/Type(r);
     vecAlphaVar.resize(r);
     vecAlphaVar.fill(alphaVar);
-    //PRNS("sigmaMat: \n" << sigmaMat);
-    //PRNS("vecAlphaVar: \n" << vecAlphaVar);
+    //  PRNS("sigmaMat: \n" << sigmaMat);
+    //  PRNS("vecAlphaVar: \n" << vecAlphaVar);
 }
 
 
+
 template <class FilterType>
-void UKFilterSimCorr<FilterType>::computeStarSigmaPoints(EMatrixX& sigmaMat) {
+void UKFilterSimCorr<FilterType>::computeStarSigmaPoints(EMatrixX& sigmaMat)
+{
     size_t p = stateSize;
     size_t r = 2 * stateSize + 1;
 
@@ -384,13 +399,13 @@ void UKFilterSimCorr<FilterType>::computeStarSigmaPoints(EMatrixX& sigmaMat) {
     sqrt_vec = sqrt(p + lambda);
 
     for (size_t j = 0; j < p; j++) {
-        workingMatrix(j,j) = sqrt_vec;
+        workingMatrix(j, j) = sqrt_vec;
     }
     for (size_t j = p; j < 2 * p; j++) {
-        workingMatrix(2*p-j-1,j) = -sqrt_vec;
+        workingMatrix(2 * p - j - 1, j) = -sqrt_vec;
     }
 
-    sigmaMat.resize(r,p);
+    sigmaMat.resize(r, p);
     for (size_t i = 0; i < r; i++)
         sigmaMat.row(i) = workingMatrix.col(i);
 

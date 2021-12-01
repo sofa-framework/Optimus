@@ -36,17 +36,21 @@
 #include "../genericComponents/SimulatedStateObservationSource.h"
 #include "StochasticStateWrapper.h"
 
+
+
 namespace sofa
 {
+
 namespace component
 {
+
 namespace stochastic
 {
 
-using namespace defaulttype;
+
 
 template <class FilterType, class DataTypes1, class DataTypes2>
-class SimpleObservationManager: public sofa::component::stochastic::ObservationManager<FilterType>
+class SimpleObservationManager : public sofa::component::stochastic::ObservationManager<FilterType>
 {
 public:
     SOFA_CLASS(SOFA_TEMPLATE3(SimpleObservationManager, FilterType, DataTypes1, DataTypes2), SOFA_TEMPLATE(ObservationManager, FilterType));
@@ -58,43 +62,37 @@ public:
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, 1> EVectorX;
 
     typedef typename DataTypes1::Real Real1;
-    typedef core::behavior::MechanicalState<DataTypes2> MasterState;
-    typedef sofa::component::container::SimulatedStateObservationSource<DataTypes1> ObservationSource;
-    typedef StochasticStateWrapper<DataTypes2,FilterType> StateWrapper; ///Before it was DataTypes1
-
     typedef typename DataTypes2::VecCoord VecCoord;
     typedef typename DataTypes2::VecDeriv VecDeriv;
 
+    typedef core::behavior::MechanicalState<DataTypes2> MasterState;
+    typedef sofa::component::container::SimulatedStateObservationSource<DataTypes1> ObservationSource;
+    typedef StochasticStateWrapper<DataTypes2,FilterType> StateWrapper; ///Before it was DataTypes1
+    typename DataTypes1::VecCoord realObservations;
+    typename type::vector< VecCoord > modelObservations;
 
+    Data< sofa::type::Mat3x4d > d_projectionMatrix;
+    SingleLink<SimpleObservationManager<FilterType, DataTypes1, DataTypes2>, StateWrapper, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> stateWrapperLink;
+
+
+protected:
+    MasterState* masterState;
+    ObservationSource* observationSource;
+    StateWrapper* stateWrapper;
+    double actualObservationTime;
+
+public:
     SimpleObservationManager();
     virtual ~SimpleObservationManager() override {}
 
-protected:
-
-    MasterState* masterState;
-    ObservationSource *observationSource;
-    StateWrapper* stateWrapper;
-
-    double actualObservationTime;
-
-
-
-public:
     void init() override;
     void bwdInit() override;
 
-    virtual bool hasObservation(double _time) override; /// TODO
+    virtual bool hasObservation(double _time) override;
     virtual bool getInnovation(double _time, EVectorX& _state, EVectorX& _innovation) override;
     virtual bool getRealObservation(double _time, EVectorX& _realObs) override;
     virtual bool obsFunction(EVectorX& _state, EVectorX& _predictedObservation) override;
     virtual bool getPredictedObservation(int _id, EVectorX& _predictedObservation) override;
-
-    typename DataTypes1::VecCoord realObservations;
-    typename helper::vector< VecCoord > modelObservations;
-
-    Data<Mat3x4d> d_projectionMatrix;
-
-    SingleLink<SimpleObservationManager<FilterType, DataTypes1, DataTypes2>, StateWrapper, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> stateWrapperLink;
 
     /// Pre-construction check method called by ObjectFactory.
     /// Check that DataTypes matches the MechanicalState.
@@ -114,14 +112,14 @@ public:
     {
         return DataTypes1::Name()+ std::string(",") + DataTypes2::Name();
     }
+};
 
 
-}; /// class
+extern template class SOFA_STOCHASTIC_API SimpleObservationManager<double, defaulttype::Vec3Types, defaulttype::Vec3Types>;
+extern template class SOFA_STOCHASTIC_API SimpleObservationManager<double, defaulttype::Vec2Types, defaulttype::Vec3Types>;
+extern template class SOFA_STOCHASTIC_API SimpleObservationManager<double, defaulttype::Vec2Types, defaulttype::Rigid3Types>;
+extern template class SOFA_STOCHASTIC_API SimpleObservationManager<double, defaulttype::Vec3Types, defaulttype::Rigid3Types>;
 
-extern template class SOFA_STOCHASTIC_API SimpleObservationManager<double, Vec3dTypes, Vec3dTypes>;
-extern template class SOFA_STOCHASTIC_API SimpleObservationManager<double, Vec2dTypes, Vec3dTypes>;
-extern template class SOFA_STOCHASTIC_API SimpleObservationManager<double, Vec2dTypes, Rigid3dTypes>;
-extern template class SOFA_STOCHASTIC_API SimpleObservationManager<double, Vec3dTypes, Rigid3dTypes>;
 
 
 } // stochastic

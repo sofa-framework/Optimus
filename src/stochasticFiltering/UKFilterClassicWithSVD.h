@@ -34,10 +34,6 @@
 #include <sofa/simulation/AnimateEndEvent.h>
 #include <sofa/simulation/AnimateBeginEvent.h>
 
-#ifdef Success
-#undef Success // dirty workaround to cope with the (dirtier) X11 define. See http://eigen.tuxfamily.org/bz/show_bug.cgi?id=253
-#endif
-#include <Eigen/Dense>
 #include <iostream>
 #include <fstream>
 //#include <Accelerate/Accelerate.h>
@@ -46,6 +42,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+
+#include <Eigen/Dense>
+
 
 
 namespace sofa
@@ -58,7 +57,8 @@ namespace stochastic
 {
 
 
-extern "C"{
+
+extern "C" {
 // product C= alphaA.B + betaC
 void dgemm_(char* TRANSA, char* TRANSB, const int* M,
             const int* N, const int* K, double* alpha, double* A,
@@ -71,7 +71,6 @@ void dgemv_(char* TRANS, const int* M, const int* N,
 }
 
 
-using namespace defaulttype;
 
 template <class FilterType>
 class UKFilterClassicWithSVD : public sofa::component::stochastic::StochasticUnscentedFilterBase
@@ -81,19 +80,25 @@ public:
 
     typedef sofa::component::stochastic::StochasticUnscentedFilterBase Inherit;
     typedef FilterType Type;
-
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, Eigen::Dynamic> EMatrixX;
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, 1> EVectorX;
 
-    UKFilterClassicWithSVD();
-    ~UKFilterClassicWithSVD() {}
+    Data< type::vector<FilterType> > d_state;
+    Data< type::vector<FilterType> > d_variance;
+    Data< type::vector<FilterType> > d_covariance;
+    Data< type::vector<FilterType> > d_innovation;
+    Data< bool > d_draw;
+    Data< double > d_radius_draw;
+    Data< double > d_MOnodes_draw;
+    double m_omega;
+    bool hasObs;
+
 
 protected:
     StochasticStateWrapperBaseT<FilterType>* masterStateWrapper;
-    helper::vector<StochasticStateWrapperBaseT<FilterType>*> stateWrappers;
+    type::vector<StochasticStateWrapperBaseT<FilterType>*> stateWrappers;
     ObservationManager<FilterType>* observationManager;
     //ObservationSource *observationSource;
-
 
     /// vector sizes
     size_t observationSize, stateSize, reducedStateSize;
@@ -118,25 +123,19 @@ protected:
     bool saveParam;
     Type alpha, alphaVar;
 
-
     /// structures for parallel computing:
-    helper::vector<size_t> sigmaPoints2WrapperIDs;
-    helper::vector<helper::vector<size_t> > wrapper2SigmaPointsIDs;
+    type::vector<size_t> sigmaPoints2WrapperIDs;
+    type::vector<type::vector<size_t> > wrapper2SigmaPointsIDs;
 
     /// functions_initial
     void computeSimplexSigmaPoints(EMatrixX& sigmaMat);
     void computeStarSigmaPoints(EMatrixX& sigmaMat);
 
-public:    
-    Data<helper::vector<FilterType> > d_state;
-    Data<helper::vector<FilterType> > d_variance;
-    Data<helper::vector<FilterType> > d_covariance;
-    Data<helper::vector<FilterType> > d_innovation;
-    Data< bool  > d_draw;
-    Data< double  > d_radius_draw;
-    Data< double  > d_MOnodes_draw;
-    double m_omega;
-    bool hasObs;
+
+public:
+    UKFilterClassicWithSVD();
+    ~UKFilterClassicWithSVD() {}
+
     void init() override;
     void bwdInit() override;
 
@@ -152,7 +151,7 @@ public:
     void stabilizeMatrix (EMatrixX& _initial, EMatrixX& _stabilized);
     void pseudoInverse (EMatrixX& M,EMatrixX& pinvM );
     void writeValidationPlot (std::string filename ,EVectorX& state );
-void sqrtMat(EMatrixX& A, EMatrixX& sqrtA);
+    void sqrtMat(EMatrixX& A, EMatrixX& sqrtA);
     virtual void computePerturbedStates();
 
     virtual void computePrediction() override; // Compute perturbed state included in computeprediction
@@ -162,8 +161,7 @@ void sqrtMat(EMatrixX& A, EMatrixX& sqrtA);
     void draw(const core::visual::VisualParams* vparams) override;
 
     virtual void updateState() override { }
-
-}; /// class
+};
 
 
 

@@ -26,6 +26,8 @@
 #include "ROUKFilter.inl"
 //#include <sofa/helper/accessor.h>
 
+
+
 namespace sofa
 {
 
@@ -35,9 +37,9 @@ namespace component
 namespace stochastic
 {
 
+
+
 using namespace defaulttype;
-
-
 
 SOFA_DECL_CLASS(ROUKFilter)
 
@@ -51,12 +53,14 @@ int ROUKFilterClass = core::RegisterObject("ROUKFilter")
         #endif
         ;
 
+
 #ifndef SOFA_FLOAT
 template class SOFA_STOCHASTIC_API ROUKFilter<double>;
 #endif
 #ifndef SOFA_DOUBLE
 //template class SOFA_STOCHASTIC_API ROUKFilter<float>;
 #endif
+
 
 
 } // namespace stochastic

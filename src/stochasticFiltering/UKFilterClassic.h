@@ -21,6 +21,7 @@
 ******************************************************************************/
 #pragma once
 
+/* include files */
 #include "initOptimusPlugin.h"
 #include "StochasticFilterBase.h"
 #include "StochasticStateWrapper.h"
@@ -34,10 +35,6 @@
 #include <sofa/simulation/AnimateEndEvent.h>
 #include <sofa/simulation/AnimateBeginEvent.h>
 
-#ifdef Success
-#undef Success // dirty workaround to cope with the (dirtier) X11 define. See http://eigen.tuxfamily.org/bz/show_bug.cgi?id=253
-#endif
-#include <Eigen/Dense>
 #include <iostream>
 #include <fstream>
 //#include <Accelerate/Accelerate.h>
@@ -46,6 +43,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+
+#include <Eigen/Dense>
+
 
 
 namespace sofa
@@ -58,7 +58,8 @@ namespace stochastic
 {
 
 
-extern "C"{
+
+extern "C" {
     // product C= alphaA.B + betaC
    void dgemm_(char* TRANSA, char* TRANSB, const int* M,
                const int* N, const int* K, double* alpha, double* A,
@@ -68,10 +69,9 @@ extern "C"{
    void dgemv_(char* TRANS, const int* M, const int* N,
                double* alpha, double* A, const int* LDA, double* X,
                const int* INCX, double* beta, double* C, const int* INCY);
-   }
+}
 
 
-using namespace defaulttype;
 
 template <class FilterType>
 class UKFilterClassic : public sofa::component::stochastic::StochasticUnscentedFilterBase
@@ -81,19 +81,19 @@ public:
 
     typedef sofa::component::stochastic::StochasticUnscentedFilterBase Inherit;
     typedef FilterType Type;
-
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, Eigen::Dynamic> EMatrixX;
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, 1> EVectorX;
 
-UKFilterClassic();
-~UKFilterClassic() {}
+    Data<type::vector<FilterType> > d_state;
+    Data<type::vector<FilterType> > d_variance;
+    Data<type::vector<FilterType> > d_covariance;
+    Data<type::vector<FilterType> > d_innovation;
 
 protected:
     StochasticStateWrapperBaseT<FilterType>* masterStateWrapper;
-    helper::vector<StochasticStateWrapperBaseT<FilterType>*> stateWrappers;
+    type::vector<StochasticStateWrapperBaseT<FilterType>*> stateWrappers;
     ObservationManager<FilterType>* observationManager;
     //ObservationSource *observationSource;
-
 
     /// vector sizes
     size_t observationSize, stateSize, reducedStateSize;
@@ -122,18 +122,17 @@ protected:
 
 
     /// structures for parallel computing:
-    helper::vector<size_t> sigmaPoints2WrapperIDs;
-    helper::vector<helper::vector<size_t> > wrapper2SigmaPointsIDs;
+    type::vector<size_t> sigmaPoints2WrapperIDs;
+    type::vector<type::vector<size_t> > wrapper2SigmaPointsIDs;
 
     /// functions_initial
     void computeSimplexSigmaPoints(EMatrixX& sigmaMat);
     void computeStarSigmaPoints(EMatrixX& sigmaMat);
 
+
 public:    
-    Data<helper::vector<FilterType> > d_state;
-    Data<helper::vector<FilterType> > d_variance;
-    Data<helper::vector<FilterType> > d_covariance;
-    Data<helper::vector<FilterType> > d_innovation;
+    UKFilterClassic();
+    ~UKFilterClassic() {}
 
     void init() override;
     void bwdInit() override;
@@ -160,8 +159,7 @@ public:
     virtual void initializeStep(const core::ExecParams* _params, const size_t _step) override;
 
     virtual void updateState() override;
-
-}; /// class
+};
 
 
 

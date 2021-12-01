@@ -22,8 +22,8 @@
 #pragma once
 
 #include <sofa/simulation/Node.h>
-
 #include "SimpleUncorrespondentObservationManager.h"
+
 
 
 namespace sofa
@@ -35,21 +35,24 @@ namespace component
 namespace stochastic
 {
 
+
+
 template <class FilterType, class DataTypes1, class DataTypes2>
 SimpleUncorrespondentObservationManager<FilterType,DataTypes1,DataTypes2>::SimpleUncorrespondentObservationManager()
     : Inherit()
     , inputObservationData( initData (&inputObservationData, "observations", "observations read from a file") )
-    , inputIndices( initData (&inputIndices, "indices", "indices read from a file") )
     , mappedObservationData( initData (&mappedObservationData, "mappedObservations", "mapped observations") )
+    , inputIndices( initData (&inputIndices, "indices", "indices read from a file") )
     , noiseStdev( initData(&noiseStdev, double(0.0), "noiseStdev", "standard deviation of generated noise") )
     , abberantIndex( initData(&abberantIndex, int(-1), "abberantIndex", "index of an aberrant point") )
     , d_observationIndices( initData(&d_observationIndices, "observationIndices", "take these indices from vector of observations (implies not using mapping)") )
     , stateWrapperLink(initLink("stateWrapper", "link to the state wrapper needed to perform apply (perhaps to be changed)"))
-{    
-}
+{ }
+
+
 
 template <class FilterType, class DataTypes1, class DataTypes2>
-void SimpleUncorrespondentObservationManager<FilterType,DataTypes1,DataTypes2>::init()
+void SimpleUncorrespondentObservationManager<FilterType, DataTypes1, DataTypes2>::init()
 {
     Inherit::init();
 
@@ -103,8 +106,9 @@ void SimpleUncorrespondentObservationManager<FilterType,DataTypes1,DataTypes2>::
 }
 
 
+
 template <class FilterType, class DataTypes1, class DataTypes2>
-void SimpleUncorrespondentObservationManager<FilterType,DataTypes1,DataTypes2>::bwdInit()
+void SimpleUncorrespondentObservationManager<FilterType, DataTypes1, DataTypes2>::bwdInit()
 {
     if (!Inherit::initialiseObservationsAtFirstStep.getValue()) {
         initializeObservationData();
@@ -112,6 +116,8 @@ void SimpleUncorrespondentObservationManager<FilterType,DataTypes1,DataTypes2>::
 
     Inherit::bwdInit();
 }
+
+
 
 template <class FilterType, class DataTypes1, class DataTypes2>
 void SimpleUncorrespondentObservationManager<FilterType, DataTypes1, DataTypes2>::initializeObservationData()
@@ -154,6 +160,8 @@ void SimpleUncorrespondentObservationManager<FilterType, DataTypes1, DataTypes2>
 
     Inherit::initializeObservationData();
 }
+
+
 
 template <class FilterType, class DataTypes1, class DataTypes2>
 bool SimpleUncorrespondentObservationManager<FilterType, DataTypes1, DataTypes2>::hasObservation(double _time) {
@@ -204,10 +212,10 @@ bool SimpleUncorrespondentObservationManager<FilterType, DataTypes1, DataTypes2>
 }
 
 
+
 template <class FilterType, class DataTypes1, class DataTypes2>
-bool SimpleUncorrespondentObservationManager<FilterType, DataTypes1, DataTypes2>::getPredictedObservation(int _id, EVectorX& _predictedObservation) {
-
-
+bool SimpleUncorrespondentObservationManager<FilterType, DataTypes1, DataTypes2>::getPredictedObservation(int _id, EVectorX& _predictedObservation)
+{
     Data<typename DataTypes1::VecCoord> predictedMasterState;
     Data<typename DataTypes2::VecCoord> predictedMappedState;
 
@@ -222,27 +230,33 @@ bool SimpleUncorrespondentObservationManager<FilterType, DataTypes1, DataTypes2>
     sofa::core::MechanicalParams mp;
 
     //sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > masterState = predictedMasterState;
-
     mapping->apply(&mp, predictedMappedState, predictedMasterState);
 
     _predictedObservation.resize(this->observationSize);
-    for (size_t i = 0; i < predictedMappedStateEdit.size(); i++)
+    for (size_t i = 0; i < predictedMappedStateEdit.size(); i++) {
         for (size_t d = 0; d < DataTypes1::spatial_dimensions; d++)
             _predictedObservation(DataTypes1::spatial_dimensions * i + d) = predictedMappedStateEdit[i][d];
+    }
 
     return true;
 }
+
+
+
 template <class FilterType, class DataTypes1, class DataTypes2>
 bool SimpleUncorrespondentObservationManager<FilterType, DataTypes1, DataTypes2>::obsFunction(EVectorX& /* _state */, EVectorX& /* _predictedObservation */)
 {
     return 0;
 }
 
+
+
 template <class FilterType, class DataTypes1, class DataTypes2>
 bool SimpleUncorrespondentObservationManager<FilterType, DataTypes1, DataTypes2>::getRealObservation(double /* _time */, EVectorX& /* _realObs */)
 {
     return 0;
 }
+
 
 
 template <class FilterType, class DataTypes1, class DataTypes2>
@@ -287,7 +301,6 @@ bool SimpleUncorrespondentObservationManager<FilterType, DataTypes1, DataTypes2>
 
     return (true);
 
-
     /*
     //std::cout << this->getName() << ": size of mapped state: " << mappedState.size() << std::endl;
     this->innovation_.Reallocate(mappedState.size()*DataTypes1::spatial_dimensions);
@@ -320,21 +333,18 @@ bool SimpleUncorrespondentObservationManager<FilterType, DataTypes1, DataTypes2>
 
     return this->innovation_;
     */
-
 }
 
 
 
-//template <class DataTypes>
-//void MappedStateUncorrespondentObservationManager<DataTypes>::init()
-//{
+//  template <class DataTypes>
+//  void MappedStateUncorrespondentObservationManager<DataTypes>::init()
+//  { }
 //
-//}
-//
-//template <class DataTypes>
-//void MappedStateUncorrespondentObservationManager<DataTypes>::reinit()
-//{
-//}
+//  template <class DataTypes>
+//  void MappedStateUncorrespondentObservationManager<DataTypes>::reinit()
+//  { }
+
 
 
 } // namespace stochastic

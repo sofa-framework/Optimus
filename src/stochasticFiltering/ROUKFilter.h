@@ -35,17 +35,16 @@
 
 #include <sofa/helper/AdvancedTimer.h>
 
-#ifdef Success
-#undef Success // dirty workaround to cope with the (dirtier) X11 define. See http://eigen.tuxfamily.org/bz/show_bug.cgi?id=253
-#endif
-#include <Eigen/Dense>
-
 //#include <Accelerate/Accelerate.h>
 #include <fstream>
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+
+#include <Eigen/Dense>
+
+
 
 namespace sofa
 {
@@ -57,8 +56,9 @@ namespace stochastic
 {
 
 
+
 /// to speed up, wrappers for BLAS matrix multiplications created, much faster that Eigen by default
-extern "C"{
+extern "C" {
     // product C= alphaA.B + betaC
    void dgemm_(char* TRANSA, char* TRANSB, const int* M,
                const int* N, const int* K, double* alpha, double* A,
@@ -68,9 +68,8 @@ extern "C"{
    void dgemv_(char* TRANS, const int* M, const int* N,
                double* alpha, double* A, const int* LDA, double* X,
                const int* INCX, double* beta, double* C, const int* INCY);
-   }
+}
 
-using namespace defaulttype;
 
 
 /**
@@ -80,10 +79,8 @@ using namespace defaulttype;
  * Naming conventions inspired by Verdandi library, corresponds to symbols used in the paper.
  * Filter requires StochasticStateWrapper which provides the interface with SOFA.
  */
-
-
 template <class FilterType>
-class ROUKFilter: public sofa::component::stochastic::StochasticUnscentedFilterBase
+class ROUKFilter : public sofa::component::stochastic::StochasticUnscentedFilterBase
 {
 public:
     SOFA_CLASS(SOFA_TEMPLATE(ROUKFilter, FilterType), StochasticUnscentedFilterBase);
@@ -94,12 +91,21 @@ public:
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, Eigen::Dynamic> EMatrixX;
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, 1> EVectorX;
 
-ROUKFilter();
-~ROUKFilter();
+
+    Data< std::string > observationErrorVarianceType;
+    Data< bool > useBlasToMultiply;
+    Data< type::vector<FilterType> > reducedState;
+    Data< type::vector<FilterType> > reducedVariance;
+    Data< type::vector<FilterType> > reducedCovariance;
+    Data< type::vector<FilterType> > d_reducedInnovation;
+    Data< type::vector<FilterType> > d_state;
+    Data< type::vector<FilterType> > d_variance;
+    Data< type::vector<FilterType> > d_covariance;
+    Data< bool > d_executeSimulationForCorrectedData;
 
 protected:
     StochasticStateWrapperBaseT<FilterType>* masterStateWrapper;
-    helper::vector<StochasticStateWrapperBaseT<FilterType>*> stateWrappers;
+    type::vector<StochasticStateWrapperBaseT<FilterType>*> stateWrappers;
     ObservationManager<FilterType>* observationManager;
 
     /// vector sizes
@@ -118,8 +124,8 @@ protected:
     Type alpha, alphaVar;
 
     /// structures for parallel computing:
-    helper::vector<size_t> sigmaPoints2WrapperIDs;
-    helper::vector<helper::vector<size_t> > wrapper2SigmaPointsIDs;
+    type::vector<size_t> sigmaPoints2WrapperIDs;
+    type::vector<type::vector<size_t> > wrapper2SigmaPointsIDs;
     size_t numThreads;
 
     /// functions
@@ -134,17 +140,8 @@ protected:
     void computeStarCorrection();
 
 public:
-    Data<std::string> observationErrorVarianceType;
-    Data<bool> useBlasToMultiply;
-    Data<helper::vector<FilterType> > reducedState;
-    Data<helper::vector<FilterType> > reducedVariance;
-    Data<helper::vector<FilterType> > reducedCovariance;
-    Data<helper::vector<FilterType> > d_reducedInnovation;
-    Data<helper::vector<FilterType> > d_state;
-    Data<helper::vector<FilterType> > d_variance;
-    Data<helper::vector<FilterType> > d_covariance;
-    Data<bool> d_executeSimulationForCorrectedData;
-
+    ROUKFilter();
+    ~ROUKFilter();
 
     void init() override;
     void bwdInit() override;
@@ -156,13 +153,14 @@ public:
     virtual void computeCorrection() override;
 
     virtual void updateState() override { }
+};
 
-}; /// class
+
+
 
 /**
  * Code necessary for parallelization. Not tested since longer time.
  */
-
 template <class FilterType>
 struct WorkerThreadData
 {
@@ -170,12 +168,12 @@ struct WorkerThreadData
 
     StochasticStateWrapperBaseT<FilterType>* wrapper;
     size_t threadID;
-    helper::vector<size_t>* sigmaIDs;
+    type::vector<size_t>* sigmaIDs;
     EMatrixX* stateMatrix;
     const core::ExecParams* execParams;
     bool saveLog;
 
-    void set(size_t _threadID,StochasticStateWrapperBaseT<FilterType>* _wrapper,  helper::vector<size_t> *_sigID,
+    void set(size_t _threadID,StochasticStateWrapperBaseT<FilterType>* _wrapper,  type::vector<size_t> *_sigID,
              EMatrixX* _stateMat, const core::ExecParams* _execParams, bool _saveLog) {
         threadID=_threadID;
         sigmaIDs=_sigID;
@@ -186,12 +184,14 @@ struct WorkerThreadData
     }
 };
 
+
+
 template <class FilterType>
 void* threadFunction(void* inArgs) {
     char name[100];
     std::ofstream fd;
     WorkerThreadData<FilterType>* threadData = reinterpret_cast<WorkerThreadData<FilterType>* >(inArgs);
-    helper::vector<size_t>& sigIDs = *(threadData->sigmaIDs);
+    type::vector<size_t>& sigIDs = *(threadData->sigmaIDs);
     size_t id = threadData->threadID;
     StochasticStateWrapperBaseT<FilterType>* wrapper = threadData->wrapper;
 
@@ -224,6 +224,8 @@ void* threadFunction(void* inArgs) {
     delete mechParams;
     return nullptr;
 }
+
+
 
 } // stochastic
 

@@ -30,6 +30,8 @@
 #include <sofa/defaulttype/BaseVector.h>
 #include <sofa/defaulttype/Vec.h>
 
+
+
 namespace sofa
 {
 
@@ -39,29 +41,31 @@ namespace core
 namespace behavior
 {
 
+
+
 /**
- *  \brief Component to allow for computing of the sensitivity matrix of a model (probably force field)
- *
+ *  Component to allow for computing of the sensitivity matrix of a model (probably force field)
  */
 class SOFA_CORE_API ForceFieldSensitivity : public virtual objectmodel::BaseObject
 {
 public:
     SOFA_ABSTRACT_CLASS(ForceFieldSensitivity, objectmodel::BaseObject);
     SOFA_BASE_CAST_IMPLEMENTATION(ForceFieldSensitivity)
+
 protected:
     ForceFieldSensitivity();
     virtual ~ForceFieldSensitivity() {}
 
 private:
-    BaseForceField(const ForceFieldSensitivity& n) ;
-    BaseForceField& operator=(const ForceFieldSensitivity& n) ;
+    BaseForceField(const ForceFieldSensitivity& n);
+    BaseForceField& operator=(const ForceFieldSensitivity& n);
+};
 
 
-};  /// class
 
-} /// namespace behaviour
+} // namespace behaviour
 
-} /// namespace core
+} // namespace core
 
-} /// namespace sofa
+} // namespace sofa
 

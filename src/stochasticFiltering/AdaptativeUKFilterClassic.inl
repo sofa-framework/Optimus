@@ -26,12 +26,17 @@
 #include <iostream>
 #include <fstream>
 
+
+
 namespace sofa
 {
+
 namespace component
 {
+
 namespace stochastic
 {
+
 
 template <class FilterType>
 AdaptativeUKFilterClassic<FilterType>::AdaptativeUKFilterClassic()
@@ -46,11 +51,9 @@ AdaptativeUKFilterClassic<FilterType>::AdaptativeUKFilterClassic()
     , d_paramA( initData(&d_paramA,  "paramA", "nodes of the mechanical object") )
     , d_paramB( initData(&d_paramB, "paramB", "nodes of the mechanical object") )
     , d_chiSquared( initData(&d_chiSquared,"chiSquared", "nodes of the mechanical object") )
+{ }
 
 
-{
-
-}
 
 template <class FilterType>
 void AdaptativeUKFilterClassic<FilterType>::computePerturbedStates()
@@ -66,6 +69,8 @@ void AdaptativeUKFilterClassic<FilterType>::computePerturbedStates()
     }
 }
 
+
+
 template <class FilterType>
 void AdaptativeUKFilterClassic<FilterType>::computePrediction()
 {
@@ -76,7 +81,6 @@ void AdaptativeUKFilterClassic<FilterType>::computePrediction()
         /// Computes Square Root with SVD
         EMatrixX matPsqrt(stateSize,stateSize);
         sqrtMat(stateCovar, matPsqrt);
-
 
 
         stateExp.fill(FilterType(0.0));
@@ -107,7 +111,7 @@ void AdaptativeUKFilterClassic<FilterType>::computePrediction()
         masterStateWrapper->setState(stateExp, mechParams);
         predState=stateExp;
 
-    }else{
+    } else {
         //        std::cout<<"\n HAS OBS: =" << hasObs << " COMPUTE ONLY PREDICTION" << std::endl;
 
         //        stateExp.fill(FilterType(0.0));
@@ -116,7 +120,6 @@ void AdaptativeUKFilterClassic<FilterType>::computePrediction()
 
         EMatrixX matPsqrt(stateSize,stateSize);
         sqrtMat(stateCovar, matPsqrt);
-
 
 
         stateExp.fill(FilterType(0.0));
@@ -128,7 +131,7 @@ void AdaptativeUKFilterClassic<FilterType>::computePrediction()
         }
 
         /// Propagate sigma points
-        genMatXi=matXi.transpose();
+        genMatXi = matXi.transpose();
         computePerturbedStates();
 
         /// Compute Predicted Mean
@@ -138,24 +141,24 @@ void AdaptativeUKFilterClassic<FilterType>::computePrediction()
         }
 
         /// Compute Predicted Covariance
-        EMatrixX matXiTrans= matXi.transpose();
+        EMatrixX matXiTrans = matXi.transpose();
         EMatrixX centeredPxx = matXiTrans.rowwise() - matXiTrans.colwise().mean();
         EMatrixX weightedCenteredPxx = centeredPxx.array().colwise() * vecAlphaVar.array();
         EMatrixX covPxx = (centeredPxx.adjoint() * weightedCenteredPxx);
         stateCovar = covPxx + modelCovar;
 
         masterStateWrapper->setState(stateExp, mechParams);
-
     }
 }
+
+
 
 template <class FilterType>
 void AdaptativeUKFilterClassic<FilterType>::computeCorrection()
 {
-
     if (hasObs) {
-        //        std::cout<<"\n HAS OBS: =" << hasObs << " COMPUTE CORRECTION" << std::endl;
 
+        //  std::cout<<"\n HAS OBS: =" << hasObs << " COMPUTE CORRECTION" << std::endl;
         PRNS("======= Computing correction, T= " << this->actualTime << " ======");
         EVectorX zCol(observationSize);
         matZmodel.resize(observationSize, sigmaPointsNum);
@@ -193,7 +196,7 @@ void AdaptativeUKFilterClassic<FilterType>::computeCorrection()
 
         /// Compute Kalman Gain
         EMatrixX matK(stateSize, observationSize);
-        matK =matPxz*pinvmatPz;
+        matK = matPxz * pinvmatPz;
 
         /// Compute Innovation
         EVectorX innovation(observationSize);
@@ -201,48 +204,48 @@ void AdaptativeUKFilterClassic<FilterType>::computeCorrection()
 
         /// Compute Final State and Final Covariance
         stateExp = stateExp + matK * innovation;
-        stateCovar = stateCovar - matK*matPxz.transpose();
+        stateCovar = stateCovar - matK * matPxz.transpose();
 
         masterStateWrapper->setState(stateExp, mechParams);
-
 
         /// ADAPTIVE ADJUSTMENT
         computeAdaptiveParameters(mu,epsilon,stateExp,predState);
         double delta;
         double lambda;
-        double D =(phi - d_paramA.getValue()*d_chiSquared.getValue())*(1.0/phi);
-        if (D> d_delta_0.getValue()) delta=D;
-        else delta=d_delta_0.getValue();
-        std::cout<<"delta_0    "<< d_delta_0.getValue()<< "   " <<  " D   " << D << "    " << " delta  " << delta <<std::endl;
+        double D = (phi - d_paramA.getValue() * d_chiSquared.getValue()) * (1.0 / phi);
+        if (D > d_delta_0.getValue()) {
+            delta = D;
+        } else {
+            delta=d_delta_0.getValue();
+        }
+        std::cout<< "delta_0    " << d_delta_0.getValue() << "   " <<  " D   " << D << "    " << " delta  " << delta <<std::endl;
 
-        double L =(phi - d_paramB.getValue()*d_chiSquared.getValue())*(1.0/phi);
-        if (L> d_lambda_0.getValue()) lambda=L;
-        else lambda=d_lambda_0.getValue();
-        std::cout<<"lambda_0    "<< d_lambda_0.getValue()<< "   " <<  " L   " << L << "    " << " lambda  " << lambda <<std::endl;
+        double L = (phi - d_paramB.getValue() * d_chiSquared.getValue()) * (1.0 / phi);
+        if (L > d_lambda_0.getValue()) {
+            lambda = L;
+        } else {
+            lambda = d_lambda_0.getValue();
+        }
+        std::cout << "lambda_0    " << d_lambda_0.getValue() << "   " <<  " L   " << L << "    " << " lambda  " << lambda <<std::endl;
 
-        phi=innovation.transpose()*pinvmatPz*innovation;
-        std::cout<<"phi  "<< phi << std::endl;
+        phi = innovation.transpose() * pinvmatPz * innovation;
+        std::cout << "phi  " << phi << std::endl;
 
-        if(phi > d_chiSquared.getValue()){
+        if (phi > d_chiSquared.getValue()) {
             /// Update Noise Covariance Matrices ZHENG 2018
-            std::cout<<"Update Noise Covariance Matrices" << std::endl;
+            std::cout << "Update Noise Covariance Matrices" << std::endl;
 
-            modelCovar=(1-lambda)*modelCovar +lambda*(matK*mu*mu.transpose()*matK.transpose());
-            obsCovar=(1-delta)*obsCovar +delta*(epsilon*epsilon.transpose()+covPzz);
-
+            modelCovar = (1 - lambda) * modelCovar + lambda * (matK * mu * mu.transpose() * matK.transpose());
+            obsCovar = (1 - delta) * obsCovar + delta * (epsilon * epsilon.transpose() + covPzz);
 
             /// Correct State Estimations
             matPz = obsCovar + covPzz;
-            matK =matPxz*pinvmatPz;
+            matK = matPxz * pinvmatPz;
 
             stateExp = stateExp + matK * innovation;
-            stateCovar = stateCovar - matK*matPxz.transpose();
+            stateCovar = stateCovar - matK * matPxz.transpose();
             masterStateWrapper->setState(stateExp, mechParams);
-
-
         }
-
-
     }
 
     /// Write Some File for Validation
@@ -256,13 +259,13 @@ void AdaptativeUKFilterClassic<FilterType>::computeCorrection()
     }
 
     writeValidationPlot(d_filenameFinalState.getValue() ,stateExp);
-
 }
+
+
 
 template <class FilterType>
 void AdaptativeUKFilterClassic<FilterType>::computeAdaptiveParameters( EVectorX& _mu,  EVectorX& _epsilon, EVectorX& _stateExp, EVectorX& _predState)
 {
-
     EVectorX _realObs(observationSize);
     EVectorX _HpredState(observationSize);
     EVectorX _HstateExp(observationSize);
@@ -273,18 +276,19 @@ void AdaptativeUKFilterClassic<FilterType>::computeAdaptiveParameters( EVectorX&
 
     _mu=_realObs - _HpredState; /// innovation
     _epsilon= _realObs - _HstateExp;
-
 }
 
 
+
 template <class FilterType>
-void AdaptativeUKFilterClassic<FilterType>::init() {
+void AdaptativeUKFilterClassic<FilterType>::init()
+{
     Inherit::init();
     assert(this->gnode);
 
     this->gnode->template get<StochasticStateWrapperBaseT<FilterType> >(&stateWrappers, this->getTags(), sofa::core::objectmodel::BaseContext::SearchDown);
     PRNS("found " << stateWrappers.size() << " state wrappers");
-    masterStateWrapper=NULL;
+    masterStateWrapper = NULL;
     size_t numSlaveWrappers = 0;
     size_t numMasterWrappers = 0;
     numThreads = 0;
@@ -305,26 +309,25 @@ void AdaptativeUKFilterClassic<FilterType>::init() {
         return;
     }
 
-
     /// Init for Adaptive Tuning Parameters
-    if (d_lambda_0.isSet()  == 0){
+    if (d_lambda_0.isSet() == 0){
         serr << "No parameter *lambda_0* initialized for Adaptive Adjustment of Q" << sendl;
         return;
     }
 
-    if (d_delta_0.isSet()  == 0 ){
+    if (d_delta_0.isSet() == 0 ){
         serr << "No parameter *delta_0* initialized for Adaptive Adjustment of R" << sendl;
         return;
     }
-    if (d_paramA.isSet()  == 0 ){
+    if (d_paramA.isSet() == 0 ){
         serr << "No parameter *paramA* initialized for Adaptive Adjustment of Q" << sendl;
         return;
     }
-    if (d_paramB.isSet()  == 0 ){
+    if (d_paramB.isSet() == 0 ){
         serr << "No *paramB* initialized for Adaptive Adjustment of R" << sendl;
         return;
     }
-    if (d_chiSquared.isSet()  == 0 ){
+    if (d_chiSquared.isSet() == 0 ){
         serr << "No *chiSquared* initialized for Adaptive Adjustment of R" << sendl;
         return;
     }
@@ -336,38 +339,38 @@ void AdaptativeUKFilterClassic<FilterType>::init() {
         PRNS("number of slave wrappers: " << numThreads-1);
         /// slaves + master
     }
-    numThreads=numSlaveWrappers+numMasterWrappers;
+    numThreads = numSlaveWrappers + numMasterWrappers;
 
     this->gnode->get(observationManager, core::objectmodel::BaseContext::SearchDown);
     if (observationManager) {
         PRNS("found observation manager: " << observationManager->getName());
-    } else
+    } else {
         PRNE("no observation manager found!");
-
+    }
 
     /// Init for Write Function
-    exportPrefix  = d_exportPrefix.getFullPath();
+    exportPrefix = d_exportPrefix.getFullPath();
 
     this->saveParam = false;
     if (!d_filenameFinalState.getValue().empty()) {
         std::ofstream paramFileFinalState(d_filenameFinalState.getValue().c_str());
-        if (paramFileFinalState .is_open()) {
+        if (paramFileFinalState.is_open()) {
             this->saveParam = true;
             paramFileFinalState.close();
         }
     }
-    m_omega= ((double) rand() / (RAND_MAX));
-
-
+    m_omega = ((double) rand() / (RAND_MAX));
 }
 
+
+
 template <class FilterType>
-void AdaptativeUKFilterClassic<FilterType>::bwdInit() {
+void AdaptativeUKFilterClassic<FilterType>::bwdInit()
+{
     assert(masterStateWrapper);
 
     stateSize = masterStateWrapper->getStateSize();
-    std::cout<< "[UKF] stateSize " << stateSize << std::endl;
-
+    std::cout << "[UKF] stateSize " << stateSize << std::endl;
 
     /// Initialize Observation's data
     if (!initialiseObservationsAtFirstStep.getValue()) {
@@ -378,7 +381,6 @@ void AdaptativeUKFilterClassic<FilterType>::bwdInit() {
         }
         obsCovar = observationManager->getErrorVariance();
     }
-
 
     /// Initialize Model's Error Covariance
     stateCovar = masterStateWrapper->getStateErrorVariance();
@@ -397,12 +399,13 @@ void AdaptativeUKFilterClassic<FilterType>::bwdInit() {
 
     sigmaPointsNum = matI.rows();
     matXi.resize(stateSize, sigmaPointsNum);
-    genMatXi.resize( sigmaPointsNum,stateSize);
+    genMatXi.resize( sigmaPointsNum, stateSize);
 
     /// Init State Observation Mapping for Sigma Points
     m_sigmaPointObservationIndexes.resize(sigmaPointsNum);
-
 }
+
+
 
 template <class FilterType>
 void AdaptativeUKFilterClassic<FilterType>::initializeStep(const core::ExecParams* _params, const size_t _step) {
@@ -424,51 +427,66 @@ void AdaptativeUKFilterClassic<FilterType>::initializeStep(const core::ExecParam
     observationManager->initializeStep(stepNumber);
 }
 
+
+
 template <class FilterType>
-void AdaptativeUKFilterClassic<FilterType>::stabilizeMatrix (EMatrixX& _initial, EMatrixX& _stabilized) {
+void AdaptativeUKFilterClassic<FilterType>::stabilizeMatrix(EMatrixX& _initial, EMatrixX& _stabilized)
+{
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(_initial, Eigen::ComputeThinU | Eigen::ComputeThinV);
     const Eigen::JacobiSVD<Eigen::MatrixXd>::SingularValuesType singVals = svd.singularValues();
     Eigen::JacobiSVD<Eigen::MatrixXd>::SingularValuesType singValsStab = singVals;
-    for (int i=0; i < singVals.rows(); i++ ){
-        if ((singValsStab(i)*singValsStab(i))*(1.0/(singVals(0)*singVals(0)))< 1.0e-6) singValsStab(i)=0;
+    for (int i = 0; i < singVals.rows(); i++) {
+        if ((singValsStab(i) * singValsStab(i)) * (1.0 / (singVals(0) * singVals(0))) < 1.0e-6)
+            singValsStab(i) = 0;
     }
-    _stabilized= svd.matrixU()*singValsStab*svd.matrixV().transpose();
-
+    _stabilized = svd.matrixU() * singValsStab * svd.matrixV().transpose();
 }
 
+
+
 template <class FilterType>
-void AdaptativeUKFilterClassic<FilterType>::pseudoInverse( EMatrixX& M,EMatrixX& pinvM) {
-    double epsilon= 1e-15;
+void AdaptativeUKFilterClassic<FilterType>::pseudoInverse( EMatrixX& M, EMatrixX& pinvM)
+{
+    double epsilon = 1e-15;
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(M, Eigen::ComputeThinU | Eigen::ComputeThinV);
     const Eigen::JacobiSVD<Eigen::MatrixXd>::SingularValuesType singVals = svd.singularValues();
     Eigen::JacobiSVD<Eigen::MatrixXd>::SingularValuesType invSingVals = singVals;
-    for(int i=0; i<singVals.rows(); i++) {
-        if(singVals(i)*singVals(i) <= epsilon*epsilon) invSingVals(i) = 0.0;
-        else invSingVals(i) = 1.0 / invSingVals(i);
+    for (int i = 0; i < singVals.rows(); i++) {
+        if(singVals(i) * singVals(i) <= epsilon * epsilon) {
+            invSingVals(i) = 0.0;
+        } else {
+            invSingVals(i) = 1.0 / invSingVals(i);
+        }
     }
     Eigen::MatrixXd S_inv = invSingVals.asDiagonal();
-    pinvM = svd.matrixV()*S_inv* svd.matrixU().transpose();
+    pinvM = svd.matrixV() * S_inv * svd.matrixU().transpose();
 }
 
 
+
 template <class FilterType>
-void AdaptativeUKFilterClassic<FilterType>::sqrtMat(EMatrixX& A, EMatrixX& sqrtA){
-    double epsilon= 1e-15;
+void AdaptativeUKFilterClassic<FilterType>::sqrtMat(EMatrixX& A, EMatrixX& sqrtA)
+{
+    double epsilon = 1e-15;
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(A, Eigen::ComputeThinU | Eigen::ComputeThinV);
     const Eigen::JacobiSVD<Eigen::MatrixXd>::SingularValuesType singVals = svd.singularValues();
     Eigen::JacobiSVD<Eigen::MatrixXd>::SingularValuesType sqrtSingVals = singVals;
-    for(int i=0; i<singVals.rows(); i++) {
-        if(singVals(i)*singVals(i) <= epsilon*epsilon) sqrtSingVals(i) = 0.0;
-        else sqrtSingVals(i) = sqrt(sqrtSingVals(i));
+    for(int i = 0; i < singVals.rows(); i++) {
+        if(singVals(i) * singVals(i) <= epsilon * epsilon) {
+            sqrtSingVals(i) = 0.0;
+        } else {
+            sqrtSingVals(i) = sqrt(sqrtSingVals(i));
+        }
     }
     Eigen::MatrixXd S_inv = sqrtSingVals.asDiagonal();
-    sqrtA = svd.matrixV()*S_inv* svd.matrixU().transpose();
-
+    sqrtA = svd.matrixV() * S_inv * svd.matrixU().transpose();
 }
 
 
+
 template <class FilterType>
-void AdaptativeUKFilterClassic<FilterType>::writeValidationPlot (std::string filename ,EVectorX& state ){
+void AdaptativeUKFilterClassic<FilterType>::writeValidationPlot(std::string filename, EVectorX& state)
+{
     if (this->saveParam) {
         std::ofstream paramFile(filename.c_str(), std::ios::app);
         if (paramFile.is_open()) {
@@ -479,35 +497,40 @@ void AdaptativeUKFilterClassic<FilterType>::writeValidationPlot (std::string fil
     }
 }
 
+
+
 template <class FilterType>
-void AdaptativeUKFilterClassic<FilterType>::computeSimplexSigmaPoints(EMatrixX& sigmaMat) {
+void AdaptativeUKFilterClassic<FilterType>::computeSimplexSigmaPoints(EMatrixX& sigmaMat)
+{
     size_t p = stateSize;
     size_t r = stateSize + 1;
 
     EMatrixX workingMatrix = EMatrixX::Zero(p, r);
 
     Type scal, beta, sqrt_p;
-    beta = Type(p) / Type(p+1);
+    beta = Type(p) / Type(p + 1);
     sqrt_p = sqrt(Type(p));
-    scal = Type(1.0)/sqrt(Type(2) * beta);
-    workingMatrix(0,0) = scal;
-    workingMatrix(0,1) = -scal;
+    scal = Type(1.0) / sqrt(Type(2) * beta);
+    workingMatrix(0, 0) = scal;
+    workingMatrix(0, 1) = -scal;
 
     for (size_t i = 1; i < p; i++) {
         scal = Type(1.0) / sqrt(beta * Type(i+1) * Type(i+2));
 
-        for (size_t j = 0; j < i+1; j++)
-            workingMatrix(i,j) = -scal;
-        workingMatrix(i,i+1) = Type(i+1) * scal;
+        for (size_t j = 0; j < i + 1; j++) {
+            workingMatrix(i, j) = -scal;
+        }
+        workingMatrix(i, i+1) = Type(i+1) * scal;
     }
 
 
-    sigmaMat.resize(r,p);
-    for (size_t i = 0; i < r; i++)
+    sigmaMat.resize(r, p);
+    for (size_t i = 0; i < r; i++) {
         sigmaMat.row(i) = workingMatrix.col(i) * sqrt_p;
+    }
 
     vecAlpha.resize(r);
-    vecAlpha.fill(Type(1.0)/Type(r));
+    vecAlpha.fill(Type(1.0) / Type(r));
     alphaConstant = true;
     alpha = vecAlpha(0);
 
@@ -516,8 +539,11 @@ void AdaptativeUKFilterClassic<FilterType>::computeSimplexSigmaPoints(EMatrixX& 
     vecAlphaVar.fill(alphaVar);
 }
 
+
+
 template <class FilterType>
-void AdaptativeUKFilterClassic<FilterType>::computeStarSigmaPoints(EMatrixX& sigmaMat) {
+void AdaptativeUKFilterClassic<FilterType>::computeStarSigmaPoints(EMatrixX& sigmaMat)
+{
     size_t p = stateSize;
     size_t r = 2 * stateSize + 1;
 
@@ -529,18 +555,18 @@ void AdaptativeUKFilterClassic<FilterType>::computeStarSigmaPoints(EMatrixX& sig
     sqrt_vec = sqrt(p + lambda);
 
     for (size_t j = 0; j < p; j++) {
-        workingMatrix(j,j) = sqrt_vec;
+        workingMatrix(j, j) = sqrt_vec;
     }
     for (size_t j = p; j < 2 * p; j++) {
-        workingMatrix(2*p-j-1,j) = -sqrt_vec;
+        workingMatrix(2 * p - j - 1, j) = -sqrt_vec;
     }
 
-    sigmaMat.resize(r,p);
+    sigmaMat.resize(r, p);
     for (size_t i = 0; i < r; i++)
         sigmaMat.row(i) = workingMatrix.col(i);
 
     vecAlpha.resize(r);
-    vecAlpha.fill(Type(1.0)/Type(2 * (p + lambda)));
+    vecAlpha.fill(Type(1.0) / Type(2 * (p + lambda)));
     vecAlpha(2 * p) = Type(lambda) / Type(p + lambda);
     alphaConstant = false;
     alpha = vecAlpha(0);
@@ -551,55 +577,57 @@ void AdaptativeUKFilterClassic<FilterType>::computeStarSigmaPoints(EMatrixX& sig
     vecAlphaVar(2 * p) = Type(lambda) / Type(p + lambda);
 }
 
+
+
 template <class FilterType>
-void AdaptativeUKFilterClassic<FilterType>::draw(const core::visual::VisualParams* vparams ) {
-    if(d_draw.getValue()){
+void AdaptativeUKFilterClassic<FilterType>::draw(const core::visual::VisualParams* vparams)
+{
+    if( d_draw.getValue() ) {
         if (vparams->displayFlags().getShowVisualModels()) {
-            std::vector<std::vector<sofa::defaulttype::Vec3d>> predpoints;
+            std::vector<std::vector<sofa::type::Vec3d>> predpoints;
             predpoints.resize( sigmaPointsNum );
-            for(  std::vector<std::vector<sofa::defaulttype::Vec3d>>::iterator it = predpoints.begin(); it != predpoints.end(); ++it)
-            {
+            for (std::vector<std::vector<sofa::type::Vec3d>>::iterator it = predpoints.begin(); it != predpoints.end(); ++it) {
                 it->resize( d_MOnodes_draw.getValue() );
             }
 
-            for(unsigned i=0; i < sigmaPointsNum; i++){
+            for(unsigned i = 0; i < sigmaPointsNum; i++) {
                 EVectorX coll = genMatXi.row(i);
 
-                for (unsigned j=0; j < d_MOnodes_draw.getValue(); j++){
-                    for (unsigned k=0; k < 3; k++){
-                        if  (masterStateWrapper->estimOnlyXYZ())
-                            predpoints[i][j][k]=coll(3*j+k);
-                        else
-                            predpoints[i][j][k]=coll(6*j+k);
+                for (unsigned j = 0; j < d_MOnodes_draw.getValue(); j++){
+                    for (unsigned k = 0; k < 3; k++){
+                        if (masterStateWrapper->estimOnlyXYZ()) {
+                            predpoints[i][j][k] = coll(3*j+k);
+                        } else {
+                            predpoints[i][j][k] = coll(6*j+k);
+                        }
                     }
                 }
 
 
-                helper::types::RGBAColor color;
+                sofa::type::RGBAColor color;
 
                 switch (i) {
-                case 0: color = helper::types::RGBAColor(1.0,0.0,0.0,1.0); break;
-                case 1: color = helper::types::RGBAColor(0.0,1.0,0.0,1.0); break;
-                case 2: color = helper::types::RGBAColor(0.0,0.0,1.0,1.0); break;
-                default: color = helper::types::RGBAColor(0.5, 0.5, 0.5, 0.5);
+                case 0: color = sofa::type::RGBAColor(1.0,0.0,0.0,1.0); break;
+                case 1: color = sofa::type::RGBAColor(0.0,1.0,0.0,1.0); break;
+                case 2: color = sofa::type::RGBAColor(0.0,0.0,1.0,1.0); break;
+                default: color = sofa::type::RGBAColor(0.5, 0.5, 0.5, 0.5);
                 }
-                helper::vector<double>  colorB;
+                type::vector<double> colorB;
                 colorB.resize(this->stateSize);
-                for(size_t i =0; i < colorB.size(); i++){
-
-                    colorB[i]= ((double) rand() / (RAND_MAX)) ;
+                for(size_t i = 0; i < colorB.size(); i++) {
+                    colorB[i] = ((double) rand() / (RAND_MAX));
                 }
 
-                vparams->drawTool()->drawSpheres(predpoints[i],  d_radius_draw.getValue(), helper::types::RGBAColor(m_omega,0.0f,0.0f,1.0f)); }
-            //                if (d_MOnodes_draw.getValue()>=2)
-            //                    vparams->drawTool()->drawLineStrip(predpoints[i],3.0,sofa::defaulttype::Vec<4, float>(color[i],0.5f,colorB[i],1.0f));            }
-
+                vparams->drawTool()->drawSpheres(predpoints[i], d_radius_draw.getValue(), sofa::type::RGBAColor(m_omega,0.0f,0.0f,1.0f));
+            }
+            //  if (d_MOnodes_draw.getValue()>=2)
+            //      vparams->drawTool()->drawLineStrip(predpoints[i],3.0,sofa::defaulttype::Vec<4, float>(color[i],0.5f,colorB[i],1.0f));
+            //  }
         }
     }
-
-
-
 }
+
+
 
 } // stochastic
 
@@ -608,37 +636,37 @@ void AdaptativeUKFilterClassic<FilterType>::draw(const core::visual::VisualParam
 } // sofa
 
 
-/*matPxzB.fill(FilterType(0.0));
-matPzB.fill(FilterType(0.0));
 
-EVectorX vx(stateSize), z(observationSize), vz(observationSize);
-vx.fill(FilterType(0.0));
-vz.fill(FilterType(0.0));
-z.fill(FilterType(0.0));
-for (size_t i = 0; i < sigmaPointsNum; i++) {
-   vx = matXi.col(i) - stateExp;
-   z = matZmodel.col(i);
-   vz = z - predObsExp;
-   for (size_t x = 0; x < stateSize; x++)
-       for (size_t y = 0; y < observationSize; y++)
-           matPxzB(x,y) += vx(x)*vz(y);
+//  matPxzB.fill(FilterType(0.0));
+//  matPzB.fill(FilterType(0.0));
+//
+//  EVectorX vx(stateSize), z(observationSize), vz(observationSize);
+//  vx.fill(FilterType(0.0));
+//  vz.fill(FilterType(0.0));
+//  z.fill(FilterType(0.0));
+//  for (size_t i = 0; i < sigmaPointsNum; i++) {
+//      vx = matXi.col(i) - stateExp;
+//      z = matZmodel.col(i);
+//      vz = z - predObsExp;
+//      for (size_t x = 0; x < stateSize; x++)
+//          for (size_t y = 0; y < observationSize; y++)
+//              matPxzB(x, y) += vx(x) * vz(y);
+//
+//      for (size_t x = 0; x < observationSize; x++)
+//          for (size_t y = 0; y < observationSize; y++)
+//              matPzB(x, y) += vz(x) * vz(y);
+//  }
+//  matPxzB = alphaVar * matPxzB;
+//  matPzB = alphaVar * matPzB + obsCovar;*/
 
-   for (size_t x = 0; x < observationSize; x++)
-       for (size_t y = 0; y < observationSize; y++)
-           matPzB(x,y) += vz(x)*vz(y);
-}
-matPxzB = alphaVar * matPxzB;
-matPzB = alphaVar * matPzB + obsCovar;*/
-
-/*
-    stateCovar.fill(FilterType(0.0));
-    EVectorX tmpX(stateSize);
-    tmpX.fill(FilterType(0.0));
-    for (size_t i = 0; i < sigmaPointsNum; i++) {
-       tmpX = matXi.col(i) - stateExp;
-       for (size_t x = 0; x < stateSize; x++)
-           for (size_t y = 0; y < stateSize; y++)
-               stateCovar(x,y) += tmpX(x)*tmpX(y);
-    }
-    stateCovar=alphaVar*stateCovar;
-}*/
+//  stateCovar.fill(FilterType(0.0));
+//  EVectorX tmpX(stateSize);
+//  tmpX.fill(FilterType(0.0));
+//  for (size_t i = 0; i < sigmaPointsNum; i++) {
+//      tmpX = matXi.col(i) - stateExp;
+//      for (size_t x = 0; x < stateSize; x++)
+//          for (size_t y = 0; y < stateSize; y++)
+//              stateCovar(x,y) += tmpX(x)*tmpX(y);
+//    }
+//    stateCovar = alphaVar * stateCovar;
+//}

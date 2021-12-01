@@ -37,11 +37,15 @@
 
 
 
-namespace sofa {
+namespace sofa
+{
 
-namespace component {
+namespace component
+{
 
-namespace behavior {
+namespace behavior
+{
+
 
 
 /**
@@ -51,8 +55,8 @@ namespace behavior {
  *       class to emulate button
  *       pressing on geomagic device
  */
-class GeoEmulator : public core::objectmodel::BaseObject {
-
+class GeoEmulator : public core::objectmodel::BaseObject
+{
 public:
     SOFA_CLASS(GeoEmulator, core::objectmodel::BaseObject);
 
@@ -79,9 +83,9 @@ protected:
     sofa::core::objectmodel::DataFileName d_positionSourceFilename;
     sofa::core::objectmodel::DataFileName d_buttonSourceFilename;
 
-    Data<helper::vector<double>> timeData;
-    helper::vector<int> m_deviceSecondButton;
-    helper::vector< helper::vector<Coord> > m_devicePositions;
+    Data< type::vector<double> > timeData;
+    type::vector<int> m_deviceSecondButton;
+    type::vector< type::vector<Coord> > m_devicePositions;
 
     size_t m_currentIndex;
 
@@ -90,8 +94,11 @@ protected:
     void parseSourceButtonFile();
 };
 
+
+
 } // namespace behavior
 
 } // namespace component
 
 } // namespace sofa
+

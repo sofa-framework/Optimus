@@ -25,6 +25,7 @@
 //#include <sofa/helper/accessor.h>
 
 
+
 namespace sofa
 {
 
@@ -34,9 +35,9 @@ namespace component
 namespace stochastic
 {
 
+
+
 using namespace defaulttype;
-
-
 
 SOFA_DECL_CLASS(EnTKFilter)
 
@@ -57,6 +58,7 @@ template class SOFA_STOCHASTIC_API EnTKFilter<double>;
 #ifndef SOFA_DOUBLE
 //template class SOFA_STOCHASTIC_API EnTKFilter<float>;
 #endif
+
 
 
 } // namespace stochastic

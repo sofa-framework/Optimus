@@ -30,12 +30,15 @@
 
 
 
+namespace sofa
+{
 
-namespace sofa {
+namespace component
+{
 
-namespace component {
+namespace behavior
+{
 
-namespace behavior {
 
 
 /**
@@ -126,13 +129,13 @@ void GeoEmulator::bwdInit()
  */
 void GeoEmulator::parseSourcePositionsFile()
 {
-    helper::WriteAccessor<Data<helper::vector<double>>> time = timeData;
+    helper::WriteAccessor<Data< type::vector<double>> > time = timeData;
 
-#ifdef __APPLE__
-    setlocale(LC_ALL, "C");
-#else
-    std::setlocale(LC_ALL, "C");
-#endif
+    #ifdef __APPLE__
+        setlocale(LC_ALL, "C");
+    #else
+        std::setlocale(LC_ALL, "C");
+    #endif
 
     time.clear();
     m_devicePositions.clear();
@@ -173,14 +176,13 @@ void GeoEmulator::parseSourcePositionsFile()
         dataSize = tokens.size();
         dimension = (tokens.size() - 1) / nParticles;
 
-
         while (dataSize > 1) {
 
             double dt;
             dt = atof(tokens[0].c_str());
             time.push_back(dt);
 
-            helper::vector<Coord> position(nParticles);
+            type::vector<Coord> position(nParticles);
             for (size_t i = 0; i < nParticles; i++) {
                 for (size_t d = 0; d < dimension; d++) {
                     position[i][d] = atof(tokens[dimension*i+d+1].c_str());
@@ -221,13 +223,13 @@ void GeoEmulator::parseSourcePositionsFile()
  */
 void GeoEmulator::parseSourceButtonFile()
 {
-    helper::ReadAccessor<Data<helper::vector<double>>> time = timeData;
+    helper::ReadAccessor<Data< type::vector<double>> > time = timeData;
 
-#ifdef __APPLE__
-    setlocale(LC_ALL, "C");
-#else
-    std::setlocale(LC_ALL, "C");
-#endif
+    #ifdef __APPLE__
+        setlocale(LC_ALL, "C");
+    #else
+        std::setlocale(LC_ALL, "C");
+    #endif
 
     m_deviceSecondButton.clear();
 
@@ -263,7 +265,6 @@ void GeoEmulator::parseSourceButtonFile()
                 timePosition++;
             }
 
-
             std::getline(buttonFile, line);
             nLine++;
 
@@ -298,7 +299,7 @@ void GeoEmulator::parseSourceButtonFile()
 void GeoEmulator::handleEvent(sofa::core::objectmodel::Event* event)
 {
     if (sofa::simulation::AnimateEndEvent::checkEventType(event)) {
-        helper::ReadAccessor<Data<helper::vector<double>>> time = timeData;
+        helper::ReadAccessor<Data< type::vector<double>> > time = timeData;
 
         sofa::core::objectmodel::BaseContext* currentContext = this->getContext();
         double currentTime = currentContext->getTime();
@@ -370,3 +371,4 @@ GeoEmulator::~GeoEmulator()
 } // namespace component
 
 } // namespace sofa
+

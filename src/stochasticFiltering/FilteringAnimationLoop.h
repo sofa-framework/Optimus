@@ -44,20 +44,28 @@
 #include "../genericComponents/FilterEvents.h"
 #include "../genericComponents/TimeProfiling.h"
 
+
+
 namespace sofa
 {
+
 namespace component
 {
+
 namespace stochastic
 {
 
-using namespace defaulttype;
+
 
 class SingleLevelEventVisitor : public sofa::simulation::Visitor
 {
+protected:
+    sofa::core::objectmodel::Event* m_event;
+    sofa::simulation::Node* m_node;
+
+
 public:
     SingleLevelEventVisitor(const core::ExecParams* params, sofa::core::objectmodel::Event* e, sofa::simulation::Node* node);
-
     ~SingleLevelEventVisitor();
 
     Visitor::Result processNodeTopDown(sofa::simulation::Node* node);
@@ -65,17 +73,15 @@ public:
 
     virtual const char* getClassName() const { return "PropagateEventVisitor"; }
     virtual std::string getInfos() const { return std::string(m_event->getClassName());  }
-protected:
-    sofa::core::objectmodel::Event* m_event;
-    sofa::simulation::Node* m_node;
 };
+
+
 
 /** Class which implements the main loop of SOFA simulation: requires stochastic filter that will be called
  *  It requires filter component on the same level (only one filter is supposed in the scene for now.
  *  The filter API is defined in StochasticFilterBase.
  */
-
-class FilteringAnimationLoop: public sofa::core::behavior::BaseAnimationLoop
+class FilteringAnimationLoop : public sofa::core::behavior::BaseAnimationLoop
 {
 public:
     SOFA_CLASS(FilteringAnimationLoop,sofa::core::behavior::BaseAnimationLoop);
@@ -83,21 +89,12 @@ public:
     typedef sofa::core::behavior::BaseAnimationLoop Inherit;
     typedef sofa::component::stochastic::StochasticFilterBase StochasticFilterBase;
 
-    ~FilteringAnimationLoop() {}
-
-    FilteringAnimationLoop();
-    FilteringAnimationLoop(sofa::simulation::Node* _gnode);
-
-
-virtual void step(const core::ExecParams* _params, SReal _dt) override;
-
 protected:    
     sofa::helper::system::thread::CTime *timer;
     double startTime, stopTime;
 
     size_t actualStep;
-    helper::vector<stochastic::PreStochasticWrapper*> preStochasticWrappers;
-
+    type::vector<stochastic::PreStochasticWrapper*> preStochasticWrappers;
 
     int numStep;
     sofa::component::stochastic::TimeProfiling m_timeProfiler;
@@ -109,13 +106,16 @@ public:
     Data<bool> verbose;
     core::objectmodel::DataFileName d_timeDataFile;
 
+    FilteringAnimationLoop();
+    FilteringAnimationLoop(sofa::simulation::Node* _gnode);
+    ~FilteringAnimationLoop() {}
+
+    virtual void step(const core::ExecParams* _params, SReal _dt) override;
+
     void init() override;
     void bwdInit() override;
+};
 
-
-
-
-}; /// class
 
 
 } // stochastic

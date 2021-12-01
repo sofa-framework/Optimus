@@ -24,6 +24,8 @@
 #include "AdaptativeUKFilterClassic.inl"
 //#include <sofa/helper/accessor.h>
 
+
+
 namespace sofa
 {
 
@@ -33,9 +35,9 @@ namespace component
 namespace stochastic
 {
 
+
+
 using namespace defaulttype;
-
-
 
 SOFA_DECL_CLASS(AdaptativeUKFilterClassic)
 
@@ -50,12 +52,14 @@ int AdaptativeUKFilterClassicClass = core::RegisterObject("AdaptativeUKFilterCla
     #endif
     ;
 
+
 #ifndef SOFA_FLOAT
 template class SOFA_STOCHASTIC_API AdaptativeUKFilterClassic<double>;
 #endif
 #ifndef SOFA_DOUBLE
 //template class SOFA_STOCHASTIC_API AdaptativeUKFilterClassic<float>;
 #endif
+
 
 
 } // namespace stochastic

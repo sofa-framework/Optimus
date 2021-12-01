@@ -31,6 +31,8 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/date_time/gregorian/gregorian_types.hpp>
 
+
+
 namespace sofa
 {
 
@@ -40,19 +42,23 @@ namespace component
 namespace stochastic
 {
 
+
+
 SOFA_DECL_CLASS(FilteringAnimationLoop)
 
 int FilteringAnimationLoopClass = core::RegisterObject("Animation loop for stochastic filtering, requires a filter")
         .add< FilteringAnimationLoop >()
         ;
 
+
+
 FilteringAnimationLoop::FilteringAnimationLoop()
     : Inherit()
     , gnode(0)
     , verbose( initData(&verbose, false, "verbose", "print out traces") )
     , d_timeDataFile( initData(&d_timeDataFile, std::string(""), "computationTimeFile", "file to save computation results") )
-{
-}
+{ }
+
 
 
 FilteringAnimationLoop::FilteringAnimationLoop(sofa::simulation::Node* _gnode)
@@ -64,7 +70,10 @@ FilteringAnimationLoop::FilteringAnimationLoop(sofa::simulation::Node* _gnode)
     assert(gnode);
 }
 
-void FilteringAnimationLoop::init() {
+
+
+void FilteringAnimationLoop::init()
+{
     Inherit::init();
 
     if (!gnode)
@@ -93,16 +102,24 @@ void FilteringAnimationLoop::init() {
     m_timeProfiler.init(d_timeDataFile);
 }
 
-void FilteringAnimationLoop::bwdInit() {
-    //PRNS("bwdInit");
+
+
+void FilteringAnimationLoop::bwdInit()
+{
+    // PRNS("bwdInit");
 }
 
-/// function called in every step of SOFA loop: calls initialization, prediction and correction which must be implemented by the filter component
-void FilteringAnimationLoop::step(const core::ExecParams* _params, SReal /*_dt*/) {    
+
+
+/**
+ *  function called in every step of SOFA loop: calls initialization, prediction and correction which must be implemented by the filter component
+ */
+void FilteringAnimationLoop::step(const core::ExecParams* _params, SReal /*_dt*/)
+{
     SReal dt = gnode->getDt();
     sofa::simulation::AnimateBeginEvent ev(dt);
-    SingleLevelEventVisitor act ( _params, &ev, gnode );
-    gnode->execute ( act );
+    SingleLevelEventVisitor act( _params, &ev, gnode );
+    gnode->execute( act );
 
     actualStep++;
     if (verbose.getValue()) {
@@ -120,23 +137,20 @@ void FilteringAnimationLoop::step(const core::ExecParams* _params, SReal /*_dt*/
     m_timeProfiler.SaveStartTime();
 
     filter->initializeStep(_params, actualStep);
-    TIC
     sofa::helper::AdvancedTimer::stepBegin("KalmanFilterPrediction");
     //std::cout << "Start filter prediction" << std::endl;
     filter->computePrediction();
     sofa::helper::AdvancedTimer::stepEnd("KalmanFilterPrediction");
     //std::cout << "End filter prediction" << std::endl;
-    PredictionEndEvent predEvent ( dt );
-    sofa::simulation::PropagateEventVisitor predEVisitor ( _params, &predEvent );
-    gnode->execute ( predEVisitor );
-    TOCTIC("== prediction total");
+    PredictionEndEvent predEvent( dt );
+    sofa::simulation::PropagateEventVisitor predEVisitor( _params, &predEvent );
+    gnode->execute( predEVisitor );
 
     sofa::helper::AdvancedTimer::stepBegin("KalmanFilterCorrection");
     filter->computeCorrection();
     CorrectionEndEvent corrEvent ( dt );
-    sofa::simulation::PropagateEventVisitor corrEVisitor ( _params, &corrEvent );
-    gnode->execute ( corrEVisitor );
-    TOC("== correction total");
+    sofa::simulation::PropagateEventVisitor corrEVisitor( _params, &corrEvent );
+    gnode->execute( corrEVisitor );
 
     // compute signle iteration step
     sofa::helper::AdvancedTimer::stepEnd("KalmanFilterCorrection");
@@ -144,10 +158,11 @@ void FilteringAnimationLoop::step(const core::ExecParams* _params, SReal /*_dt*/
 
     /// this should be probably removed:
     sofa::simulation::AnimateEndEvent ev2(dt);
-    SingleLevelEventVisitor act2 ( _params, &ev2, gnode );
-    gnode->execute ( act2 );
-
+    SingleLevelEventVisitor act2( _params, &ev2, gnode );
+    gnode->execute( act2 );
 }
+
+
 
 SingleLevelEventVisitor::SingleLevelEventVisitor(const core::ExecParams* params, sofa::core::objectmodel::Event* e, sofa::simulation::Node* node)
     : sofa::simulation::Visitor(params)
@@ -156,8 +171,11 @@ SingleLevelEventVisitor::SingleLevelEventVisitor(const core::ExecParams* params,
 {}
 
 
+
 SingleLevelEventVisitor::~SingleLevelEventVisitor()
 {}
+
+
 
 sofa::simulation::Visitor::Result SingleLevelEventVisitor::processNodeTopDown(sofa::simulation::Node* node)
 {
@@ -168,15 +186,20 @@ sofa::simulation::Visitor::Result SingleLevelEventVisitor::processNodeTopDown(so
             return Visitor::RESULT_PRUNE;
         else
             return Visitor::RESULT_CONTINUE;
-    } else
+    } else {
         return Visitor::RESULT_PRUNE;
+    }
 }
+
+
 
 void SingleLevelEventVisitor::processObject(sofa::simulation::Node*, core::objectmodel::BaseObject* obj)
 {
-    if( obj->f_listening.getValue()==true )
+    if( obj->f_listening.getValue() == true )
         obj->handleEvent( m_event );
 }
+
+
 
 } // namespace stochastic
 

@@ -24,6 +24,7 @@
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/RigidTypes.h>
 #include <sofa/core/behavior/MechanicalState.h>
+#include <sofa/core/Mapping.h>
 
 #include <sofa/simulation/AnimateEndEvent.h>
 #include <sofa/simulation/AnimateBeginEvent.h>
@@ -47,10 +48,9 @@ namespace stochastic
 {
 
 
-using namespace defaulttype;
 
 template <class FilterType, class DataTypes1, class DataTypes2>
-class SimpleUncorrespondentObservationManager: public sofa::component::stochastic::ObservationManager<FilterType>
+class SimpleUncorrespondentObservationManager : public sofa::component::stochastic::ObservationManager<FilterType>
 {
 public:
     SOFA_CLASS(SOFA_TEMPLATE3(SimpleUncorrespondentObservationManager, FilterType, DataTypes1, DataTypes2), SOFA_TEMPLATE(ObservationManager, FilterType));
@@ -62,15 +62,29 @@ public:
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, 1> EVectorX;
 
     typedef typename DataTypes1::Real Real1;
-    typedef helper::vector<unsigned int> VecIndex;
+    typedef type::vector<unsigned int> VecIndex;
     typedef core::behavior::MechanicalState<DataTypes1> MasterState;
     typedef core::behavior::MechanicalState<DataTypes2> MappedState;
     typedef sofa::core::Mapping<DataTypes1, DataTypes2> Mapping;
     typedef sofa::component::container::SimulatedStateObservationSource<DataTypes1> ObservationSource;
     typedef StochasticStateWrapper<DataTypes1, FilterType> StateWrapper;
 
-    SimpleUncorrespondentObservationManager();
-    ~SimpleUncorrespondentObservationManager() {}
+    Data< typename DataTypes1::VecCoord > inputObservationData;
+    Data< typename DataTypes2::VecCoord > mappedObservationData;
+    Data< VecIndex > inputIndices;
+    Data< VecIndex > mappedMask;
+    Data< double > noiseStdev;
+    Data< int > abberantIndex;
+    Data< type::vector<unsigned int> > d_observationIndices;
+    type::vector<unsigned int> observationIndices;
+
+    SingleLink<SimpleUncorrespondentObservationManager<FilterType, DataTypes1, DataTypes2>, StateWrapper, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> stateWrapperLink;
+
+    boost::mt19937* pRandGen; // I don't seed it on purpouse (it's not relevant)
+    boost::normal_distribution<>* pNormDist;
+    boost::variate_generator<boost::mt19937&, boost::normal_distribution<> >* pVarNorm;
+    type::vector<double> noise;
+
 
 protected:
     size_t inputVectorSize, masterVectorSize, mappedVectorSize;     /// real sizes of vectors
@@ -87,34 +101,20 @@ protected:
 
 
 public:
+    SimpleUncorrespondentObservationManager();
+    ~SimpleUncorrespondentObservationManager() {}
+
     void init() override;
     void bwdInit() override;
     void initializeObservationData();
 
-    virtual bool hasObservation(double _time) override; /// TODO
+    virtual bool hasObservation(double _time) override;
     virtual bool getInnovation(double _time, EVectorX& _state, EVectorX& _innovation) override;
     virtual bool getRealObservation(double /* _time */, EVectorX& /* _realObs */) override;
     virtual bool getPredictedObservation(int _id, EVectorX& _predictedObservation) override;
     virtual bool obsFunction(EVectorX& /* _state */, EVectorX& /* _predictedObservation */) override;
+};
 
-    Data<typename DataTypes1::VecCoord> inputObservationData;
-    Data<VecIndex> inputIndices;
-    Data<typename DataTypes2::VecCoord> mappedObservationData;
-    Data<VecIndex> mappedMask;
-    Data<double> noiseStdev;
-    Data<int> abberantIndex;
-    Data<helper::vector<unsigned int> > d_observationIndices;
-    helper::vector<unsigned int> observationIndices;
-
-
-    SingleLink<SimpleUncorrespondentObservationManager<FilterType, DataTypes1, DataTypes2>, StateWrapper, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> stateWrapperLink;
-
-    boost::mt19937* pRandGen; // I don't seed it on purpouse (it's not relevant)
-    boost::normal_distribution<>* pNormDist;
-    boost::variate_generator<boost::mt19937&, boost::normal_distribution<> >* pVarNorm;
-    helper::vector<double> noise;
-
-}; /// class
 
 
 } // namespace stochastic
@@ -122,3 +122,4 @@ public:
 } // namespace component
 
 } // namespace sofa
+

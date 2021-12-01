@@ -26,6 +26,8 @@
 #include "MappedStateVelocityObservationManager.inl"
 //#include <sofa/helper/accessor.h>
 
+
+
 namespace sofa
 {
 
@@ -35,8 +37,9 @@ namespace component
 namespace stochastic
 {
 
-using namespace defaulttype;
 
+
+using namespace defaulttype;
 
 SOFA_DECL_CLASS(MappedStateVelocityObservationManager)
 
@@ -49,6 +52,7 @@ int MappedStateVelocityObservationManagerClass = core::RegisterObject("MappedSta
 
 template class SOFA_STOCHASTIC_API MappedStateVelocityObservationManager<double, Vec3Types, Vec3Types>;
 //template class SOFA_STOCHASTIC_API MappedStateVelocityObservationManager<float, Vec3Types, Vec3Types>;
+
 
 
 } // namespace stochastic
