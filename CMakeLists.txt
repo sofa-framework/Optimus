@@ -36,7 +36,7 @@ find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
 
 include_directories(${EIGEN3_INCLUDE_DIR})
-set(LINKER_DEPENDENCIES SofaCore SofaBase SofaGeneralAnimationLoop SofaGeneralEngine SofaImplicitOdeSolver SofaGeneralLinearSolver SofaGeneralRigid SofaBoundaryCondition SofaBaseTopology SofaExporter SofaUserInteraction SofaConstraint SofaSimpleFem SofaGeneralTopology SofaTopologyMapping SofaUserInteraction SofaConstraint SofaGeneralLoader SofaMiscEngine SofaMiscFem SofaMiscForceField SofaMiscMapping SofaMiscSolver SofaMiscTopology SofaGuiCommon blas pthread Eigen3::Eigen)
+set(LINKER_DEPENDENCIES SofaCore SofaBase SofaGeneralAnimationLoop SofaGeneralEngine SofaImplicitOdeSolver SofaGeneralLinearSolver SofaGeneralRigid SofaBoundaryCondition SofaBaseTopology SofaExporter SofaUserInteraction SofaConstraint SofaSimpleFem SofaGeneralTopology SofaTopologyMapping SofaUserInteraction SofaConstraint SofaGeneralLoader SofaMiscEngine SofaMiscFem SofaMiscForceField SofaMiscMapping SofaMiscSolver SofaMiscTopology SofaGuiCommon blas Eigen3::Eigen)
 set(COMPILATION_FLAGS "-DSOFA_BUILD_OPTIMUS -Wno-unused-local-typedef -Wno-deprecated")
 
 set(STOCHASTIC_FILTERING "1" CACHE BOOL "Set to activate the compilation of the filtering module" FORCE)
@@ -168,7 +168,7 @@ add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${README_FILE
 if(SofaPardisoSolver_FOUND)
     set(LINKER_DEPENDENCIES ${LINKER_DEPENDENCIES} SofaPardisoSolver)
 else()
-    message("SofaPardisoSolver not found, some scenes may not work")
+    message("SofaPardisoSolver not found, PardisoSolver component will not work")
 endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
