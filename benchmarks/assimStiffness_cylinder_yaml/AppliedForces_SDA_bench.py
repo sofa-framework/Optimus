@@ -17,6 +17,7 @@ def createScene(rootNode):
     rootNode.addObject('RequiredPlugin', name='BoundaryCondition', pluginName='SofaBoundaryCondition')
     rootNode.addObject('RequiredPlugin', name='SLoader', pluginName='SofaLoader')
     rootNode.addObject('RequiredPlugin', name='SimpleFem', pluginName='SofaSimpleFem')
+    rootNode.addObject('RequiredPlugin', name='Exporter', pluginName='SofaExporter')
     rootNode.addObject('RequiredPlugin', name='GraphComponent', pluginName='SofaGraphComponent')
     # rootNode.addObject('RequiredPlugin', name='Python3', pluginName='SofaPython3')
     rootNode.addObject('RequiredPlugin', name='Optimus', pluginName='Optimus')

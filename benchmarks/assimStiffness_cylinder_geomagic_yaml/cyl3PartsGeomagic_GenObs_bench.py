@@ -17,7 +17,7 @@ def createScene(rootNode):
     rootNode.addObject('RequiredPlugin', name='GeneralImplicitOdeSolver', pluginName='SofaGeneralImplicitOdeSolver')
     rootNode.addObject('RequiredPlugin', name='SparseSolver', pluginName='SofaSparseSolver')
     rootNode.addObject('RequiredPlugin', name='BoundaryCondition', pluginName='SofaBoundaryCondition')
-    rootNode.addObject('RequiredPlugin', name='Loader', pluginName='SofaLoader')
+    rootNode.addObject('RequiredPlugin', name='DataLoader', pluginName='SofaLoader')
     rootNode.addObject('RequiredPlugin', name='MiscForceField', pluginName='SofaMiscForceField')
     rootNode.addObject('RequiredPlugin', name='Rigid', pluginName='SofaRigid')
     rootNode.addObject('RequiredPlugin', name='SimpleFem', pluginName='SofaSimpleFem')

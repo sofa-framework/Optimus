@@ -12,7 +12,16 @@ __file = __file__.replace('\\', '/') # windows
 
 
 def createScene(rootNode):
-    rootNode.addObject('RequiredPlugin', name='SofaGeneralEngine')
+    rootNode.addObject('RequiredPlugin', name='GeneralEngine', pluginName='SofaGeneralEngine')
+    rootNode.addObject('RequiredPlugin', name='Engine', pluginName='SofaEngine')
+    rootNode.addObject('RequiredPlugin', name='BoundaryCondition', pluginName='SofaBoundaryCondition')
+    rootNode.addObject('RequiredPlugin', name='ImplicitOdeSolver', pluginName='SofaImplicitOdeSolver')
+    rootNode.addObject('RequiredPlugin', name='SparseSolver', pluginName='SofaSparseSolver')
+    rootNode.addObject('RequiredPlugin', name='MiscForceField', pluginName='SofaMiscForceField')
+    rootNode.addObject('RequiredPlugin', name='SimpleFem', pluginName='SofaSimpleFem')
+    rootNode.addObject('RequiredPlugin', name='Deformable', pluginName='SofaDeformable')
+    rootNode.addObject('RequiredPlugin', name='Loader', pluginName='SofaLoader')
+    rootNode.addObject('RequiredPlugin', name='Visual', pluginName='SofaOpenglVisual')
     rootNode.addObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
     # rootNode.addObject('RequiredPlugin', name='Python3', pluginName='SofaPython3')
 

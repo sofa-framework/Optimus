@@ -52,19 +52,19 @@ namespace component
 
 	const char* getModuleName()
 	{
-        return "Extended Kalman filter";
+        return "Optimus";
 	}
 
 
 	const char* getModuleVersion()
 	{
-        return "0.1";
+        return "1.0";
 	}
 
 
 	const char* getModuleLicense()
 	{
-		return "LGPL";
+		return "GPL";
 	}
 
 
