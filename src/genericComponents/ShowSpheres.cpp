@@ -28,6 +28,7 @@
 #include <sofa/core/ObjectFactory.h>
 
 
+
 namespace sofa
 {
 
@@ -36,6 +37,8 @@ namespace component
 
 namespace engine
 {
+
+
 
 SOFA_DECL_CLASS(ShowSpheres)
 
@@ -49,6 +52,7 @@ int ShowSpheresClass = core::RegisterObject("Show selected particles Spheres")
 
 template class SOFA_OPTIMUSPLUGIN_API ShowSpheres<Vec3Types>;
 template class SOFA_OPTIMUSPLUGIN_API ShowSpheres<Rigid3Types>;
+
 
 
 } // namespace engine

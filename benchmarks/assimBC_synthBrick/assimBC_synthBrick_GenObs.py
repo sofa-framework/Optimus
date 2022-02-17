@@ -15,6 +15,7 @@ def createScene(rootNode):
     rootNode.addObject('RequiredPlugin', name='Deformable', pluginName='SofaDeformable')
     rootNode.addObject('RequiredPlugin', name='MeshCollision', pluginName='SofaMeshCollision')
     rootNode.addObject('RequiredPlugin', name='Loader', pluginName='SofaLoader')
+    rootNode.addObject('RequiredPlugin', name='Exporter', pluginName='SofaExporter')
     rootNode.addObject('RequiredPlugin', name='Visual', pluginName='SofaOpenglVisual')
     # rootNode.addObject('RequiredPlugin', name='Python3', pluginName='SofaPython3')
     rootNode.addObject('RequiredPlugin', name='Optimus', pluginName='Optimus')

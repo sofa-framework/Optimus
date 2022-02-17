@@ -33,8 +33,6 @@
 #include <iostream>
 #include <string>
 #include <numeric>
-#define ROUND 10000000.0
-#define UNCORRESPONDENT_INDEX 65535
 
 
 
@@ -67,10 +65,13 @@ SimulatedStateObservationSource<DataTypes>::SimulatedStateObservationSource()
     m_exportIndices = false;
 }
 
+
+
 template<class DataTypes>
 SimulatedStateObservationSource<DataTypes>::~SimulatedStateObservationSource()
 {
 }
+
 
 
 template<class DataTypes>
@@ -126,6 +127,7 @@ void SimulatedStateObservationSource<DataTypes>::init()
 }
 
 
+
 /*
  * File format:
  *  time | indices | positions
@@ -147,9 +149,9 @@ void SimulatedStateObservationSource<DataTypes>::parseAsynMonitorFileVariable(co
     m_nObservations = 0;
 
     //info to fill
-    helper::vector<Real> vdt;
-    helper::vector<helper::vector<unsigned int> > vindices;
-    helper::vector<helper::vector<Coord> > vpositions;
+    type::vector<Real> vdt;
+    type::vector<type::vector<unsigned int> > vindices;
+    type::vector<type::vector<Coord> > vpositions;
     unsigned int maxIndex = 0;
 
     std::ifstream in(_name);
@@ -163,8 +165,8 @@ void SimulatedStateObservationSource<DataTypes>::parseAsynMonitorFileVariable(co
             continue;
 
         Real dt;
-        helper::vector<unsigned int> indices;
-        helper::vector<Coord> positions;
+        type::vector<unsigned int> indices;
+        type::vector<Coord> positions;
 
         std::istringstream ss(line);
         std::string substr;
@@ -199,7 +201,7 @@ void SimulatedStateObservationSource<DataTypes>::parseAsynMonitorFileVariable(co
     {
         VecCoord position(m_nParticles);
 
-        const helper::vector<unsigned int>& indices = vindices[i];
+        const type::vector<unsigned int>& indices = vindices[i];
         for(unsigned int j=0 ; j<indices.size() ; j++)
         {
             position[j] = vpositions[i][j];
@@ -212,16 +214,18 @@ void SimulatedStateObservationSource<DataTypes>::parseAsynMonitorFileVariable(co
     }
 }
 
+
+
 template<class DataTypes>
 void SimulatedStateObservationSource<DataTypes>::parseAsynMonitorFile(const std::string& _name)
 {
     m_observationTable.clear();
     m_indexTable.clear();
-#ifdef __APPLE__
-    setlocale(LC_ALL, "C");
-#else
-    std::setlocale(LC_ALL, "C");
-#endif
+    #ifdef __APPLE__
+        setlocale(LC_ALL, "C");
+    #else
+        std::setlocale(LC_ALL, "C");
+    #endif
 
     std::ifstream file(_name.c_str());
 
@@ -289,26 +293,25 @@ void SimulatedStateObservationSource<DataTypes>::parseAsynMonitorFile(const std:
     {
         sout << "Valid observations available: #observations: " << m_nObservations << " #particles: " << m_nParticles << std::endl;
     }
-#ifdef __APPLE__
-    setlocale(LC_ALL, "C");
-#else
-    std::setlocale(LC_ALL, "C");
-#endif
-
-
+    #ifdef __APPLE__
+        setlocale(LC_ALL, "C");
+    #else
+        std::setlocale(LC_ALL, "C");
+    #endif
 }
+
+
 
 template<class DataTypes>
 void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(const std::string &_name)
 {
     m_observationTable.clear();
     m_indexTable.clear();
-#ifdef __APPLE__
-    setlocale(LC_ALL, "C");
-#else
-    std::setlocale(LC_ALL, "C");
-#endif
-
+    #ifdef __APPLE__
+        setlocale(LC_ALL, "C");
+    #else
+        std::setlocale(LC_ALL, "C");
+    #endif
 
     std::ifstream file(_name.c_str());
 
@@ -374,10 +377,10 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(const std::str
             PRNS(" Working with 2D observations" << " dim: " << m_dim);
         }
         while (tokens.size() > 1) {
-//            if (dim != 3) {
-//                PRNE(" On line " << nLine << " dim: " << dim);
-//                return;
-//            }
+        //    if (dim != 3) {
+        //        PRNE(" On line " << nLine << " dim: " << dim);
+        //        return;
+        //    }
 
             double lineTime = atof(tokens[0].c_str()) ;
             if (m_initTime < 0.0)
@@ -467,14 +470,14 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(const std::str
             std::cout << "OBSERVATION FATAL ERROR: no positions and no particles, adding dummy zero observation vector of length 1000!" << std::endl;
         }
     }*/
-#ifdef __APPLE__
-    setlocale(LC_ALL, "C");
-#else
-    std::setlocale(LC_ALL, "C");
-#endif
-
-
+    #ifdef __APPLE__
+        setlocale(LC_ALL, "C");
+    #else
+        std::setlocale(LC_ALL, "C");
+    #endif
 }
+
+
 
 template<class DataTypes>
 bool SimulatedStateObservationSource<DataTypes>::getObservation(double _time, VecCoord& _observation)
@@ -482,6 +485,8 @@ bool SimulatedStateObservationSource<DataTypes>::getObservation(double _time, Ve
     VecIndex index;
     return getObservation(_time, _observation, index);
 }
+
+
 
 template<class DataTypes>
 bool SimulatedStateObservationSource<DataTypes>::getObservation(double _time, VecCoord& _observation, VecIndex& _index)
@@ -536,7 +541,7 @@ bool SimulatedStateObservationSource<DataTypes>::getObservation(double _time, Ve
         }
         else
         {
-            size_t ix = (fabs(m_dt) < 1e-10) ? 0 : size_t(round(_time/m_dt));
+            size_t ix = (fabs(m_dt) < 1e-10) ? 0 : size_t(round(_time / m_dt));
             //PRNS("Getting observation for time " << _time << " index: " << ix);
             if (ix >= size_t(m_positions.size()))
             {
@@ -552,10 +557,12 @@ bool SimulatedStateObservationSource<DataTypes>::getObservation(double _time, Ve
     }
 }
 
+
+
 template<class DataTypes>
 bool SimulatedStateObservationSource<DataTypes>::getCorrespondentIndices(double _time, VecIndex &_index)
 {
-    size_t ix = (fabs(m_dt) < 1e-10) ? 0 : size_t(round(_time/m_dt));
+    size_t ix = (fabs(m_dt) < 1e-10) ? 0 : size_t(round(_time / m_dt));
     if (ix >= size_t(m_correspondentIndices.size()))
     {
         //PRNE("No observation for time " << _time << " , using the last one from " << m_positions.size()-1);
@@ -594,6 +601,8 @@ void SimulatedStateObservationSource<DataTypes>::draw(const core::visual::Visual
 
     //    vparams->drawTool()->drawSpheres(points, float(m_drawSize.getValue()), sofa::defaulttype::Vec<4, float> (0.0f, 0.0f, 1.0f, 1.0f));
 }
+
+
 
 template<class DataTypes>
 void SimulatedStateObservationSource<DataTypes>::handleEvent(core::objectmodel::Event *event)

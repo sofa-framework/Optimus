@@ -26,6 +26,7 @@
 #include <sofa/core/ObjectFactory.h>
 
 
+
 namespace sofa
 {
 
@@ -35,17 +36,17 @@ namespace component
 namespace engine
 {
 
-using namespace sofa;
-using namespace sofa::defaulttype;
+
 
 SOFA_DECL_CLASS(Indices2ValuesTransformer)
 
 int Indices2ValuesTransformerClass = core::RegisterObject("?")
-    .add< Indices2ValuesTransformer<Vec3Types> >(true)
+    .add< Indices2ValuesTransformer<defaulttype::Vec3Types> >(true)
     ;
 
 
-template class SOFA_OPTIMUSPLUGIN_API Indices2ValuesTransformer<Vec3Types>;
+template class SOFA_OPTIMUSPLUGIN_API Indices2ValuesTransformer<defaulttype::Vec3Types>;
+
 
 
 } // namespace engine
@@ -53,3 +54,4 @@ template class SOFA_OPTIMUSPLUGIN_API Indices2ValuesTransformer<Vec3Types>;
 } // namespace component
 
 } // namespace sofa
+

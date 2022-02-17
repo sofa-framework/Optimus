@@ -32,14 +32,19 @@
 #include <sofa/defaulttype/TemplatesAliases.h>
 
 
-namespace sofa {
 
-namespace component {
+namespace sofa
+{
 
-namespace behavior {
+namespace component
+{
+
+namespace behavior
+{
+
+
 
 using namespace sofa::defaulttype;
-
 
 SOFA_DECL_CLASS(GeomagicDeviceListener)
 
@@ -49,12 +54,16 @@ int GeomagicDeviceListenerClass = core::RegisterObject("Geomagic device manipula
         .add< GeoListener<Rigid3Types> >()
         ;
 
+
 template class GeoListener<Vec3Types>;
 template class GeoListener<Vec6Types>;
 template class GeoListener<Rigid3Types>;
+
+
 
 } // namespace bahavior
 
 } // namespace component
 
 } // namespace sofa
+

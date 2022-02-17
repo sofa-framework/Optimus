@@ -25,7 +25,7 @@
 
 #include <sofa/core/objectmodel/BaseObject.h>
 #include <sofa/core/behavior/MechanicalState.h>
-#include <sofa/defaulttype/Vec.h>
+#include <sofa/type/Vec.h>
 #include <sofa/helper/types/RGBAColor.h>
 #include <sofa/core/objectmodel/DataFileName.h>
 
@@ -40,12 +40,12 @@ namespace component
 namespace misc
 {
 
+
 /**
  * Class which replaces the default monitor in SOFA. Differences:
  * 1. Export on special Optimus events (see initialization according to d_exportOnEvent
  * 2. Reinitialize pointers to mechanical object data everytime before the export (needed for some Python scenes)
  **/
-
 template <class DataTypes>
 class OptimMonitor : public virtual core::objectmodel::BaseObject
 {
@@ -60,47 +60,9 @@ public:
     typedef typename DataTypes::Coord Coord;
     typedef typename DataTypes::Deriv Deriv;
 
-protected:
-    OptimMonitor ();
-    ~OptimMonitor ();
-public:
-    /// init data
-    virtual void init () override;
-
-    /// reset OptimMonitored values
-    virtual void reset () override;
-
-    /** initialize gnuplot files
-        * called when ExportGnuplot box is checked
-    */
-    virtual void reinit() override;
-
-    /** function called at every step of simulation;
-        * store mechanical state vectors (forces, positions, velocities) into
-        * the OptimMonitorData nested class. The filter (which position(s), velocity(ies) or *force(s) are displayed) is made in the gui
-    */
-    virtual void handleEvent( core::objectmodel::Event* ev ) override;
-
-    virtual void draw (const core::visual::VisualParams* vparams) override;
-
-    /// create gnuplot files
-    virtual void initGnuplot ( const std::string path );
-
-    /// write in gnuplot files the OptimMonitored desired data (velocities,positions,forces)
-    virtual void exportGnuplot ( Real time );
-
-    virtual std::string getTemplateName() const override
-    {
-        return templateName(this);
-    }
-
-    static std::string templateName(const OptimMonitor<DataTypes>* = NULL)
-    {
-        return DataTypes::Name();
-    }
 
     /// Editable Data
-    Data< helper::vector<unsigned int> > d_indices;
+    Data< type::vector<unsigned int> > d_indices;
 
     Data< bool > d_saveXToGnuplot; ///< export OptimMonitored positions as gnuplot file
     Data< bool > d_saveVToGnuplot; ///< export OptimMonitored velocities as gnuplot file
@@ -129,7 +91,6 @@ public:
 
 
 protected:
-
     std::ofstream* m_saveGnuplotX;
     std::ofstream* m_saveGnuplotV;
     std::ofstream* m_saveGnuplotF;
@@ -142,8 +103,49 @@ protected:
     double m_saveDt; ///< use for trajectoriesPrecision (save to file value only if trajectoriesPrecision <= internalDt)
     double m_internalDt; ///< use for trajectoriesPrecision (save value only if trajectoriesPrecision <= internalDt)
 
-    sofa::helper::vector < sofa::helper::vector<Coord> > m_savedPos; ///< store all the monitored positions, for trajectories display
+    sofa::type::vector < sofa::type::vector<Coord> > m_savedPos; ///< store all the monitored positions, for trajectories display
+
+
+    OptimMonitor();
+    ~OptimMonitor();
+
+public:
+    /// init data
+    virtual void init() override;
+
+    /// reset OptimMonitored values
+    virtual void reset() override;
+
+    /** initialize gnuplot files
+        * called when ExportGnuplot box is checked
+    */
+    virtual void reinit() override;
+
+    /** function called at every step of simulation;
+        * store mechanical state vectors (forces, positions, velocities) into
+        * the OptimMonitorData nested class. The filter (which position(s), velocity(ies) or *force(s) are displayed) is made in the gui
+    */
+    virtual void handleEvent(core::objectmodel::Event* ev) override;
+
+    virtual void draw(const core::visual::VisualParams* vparams) override;
+
+    /// create gnuplot files
+    virtual void initGnuplot(const std::string path);
+
+    /// write in gnuplot files the OptimMonitored desired data (velocities,positions,forces)
+    virtual void exportGnuplot(Real time);
+
+    virtual std::string getTemplateName() const override
+    {
+        return templateName(this);
+    }
+
+    static std::string templateName(const OptimMonitor<DataTypes>* = NULL)
+    {
+        return DataTypes::Name();
+    }
 };
+
 
 #if defined(SOFA_EXTERN_TEMPLATE) && !defined(SOFA_COMPONENT_MISC_OPTIMMONITOR_CPP)
 extern template class SOFA_OPTIMUSPLUGIN_API OptimMonitor<defaulttype::Vec3Types>;

@@ -27,6 +27,7 @@
 #include <random>
 
 
+
 namespace sofa
 {
 
@@ -35,6 +36,7 @@ namespace component
 
 namespace stochastic
 {
+
 
 
 template <class FilterType>
@@ -47,9 +49,7 @@ EnTKFilter<FilterType>::EnTKFilter()
     , d_variance( initData(&d_variance, "variance", "actual variance  of reduced state (parameters) estimated by the filter" ) )
     , d_covariance( initData(&d_covariance, "covariance", "actual co-variance  of reduced state (parameters) estimated by the filter" ) )
     , d_innovation( initData(&d_innovation, "innovation", "innovation value computed by the filter" ) )
-{
-
-}
+{ }
 
 
 
@@ -205,10 +205,10 @@ void EnTKFilter<FilterType>::computeCorrection()
         masterStateWrapper->setState(stateExp, mechParams);
 
         /// Write Some Data for Validation
-        helper::WriteAccessor<Data <helper::vector<FilterType> > > stat = d_state;
-        helper::WriteAccessor<Data <helper::vector<FilterType> > > var = d_variance;
-        helper::WriteAccessor<Data <helper::vector<FilterType> > > covar = d_covariance;
-        helper::WriteAccessor<Data <helper::vector<FilterType> > > innov = d_innovation;
+        helper::WriteAccessor< Data< type::vector<FilterType> > > stat = d_state;
+        helper::WriteAccessor< Data< type::vector<FilterType> > > var = d_variance;
+        helper::WriteAccessor< Data< type::vector<FilterType> > > covar = d_covariance;
+        helper::WriteAccessor< Data< type::vector<FilterType> > > innov = d_innovation;
 
         stat.resize(stateSize);
         var.resize(stateSize);
@@ -242,7 +242,8 @@ void EnTKFilter<FilterType>::computeCorrection()
 
 
 template <class FilterType>
-void EnTKFilter<FilterType>::init() {
+void EnTKFilter<FilterType>::init()
+{
     Inherit::init();
     assert(this->gnode);
 
@@ -273,22 +274,25 @@ void EnTKFilter<FilterType>::init() {
         PRNS("number of slave wrappers: " << numThreads-1);
         /// slaves + master
     }
-    numThreads=numSlaveWrappers+numMasterWrappers;
+    numThreads = numSlaveWrappers + numMasterWrappers;
 
     this->gnode->get(observationManager, core::objectmodel::BaseContext::SearchDown);
     if (observationManager) {
         PRNS("found observation manager: " << observationManager->getName());
-    } else
+    } else {
         PRNE("no observation manager found!");
+    }
 }
 
 
+
 template <class FilterType>
-void EnTKFilter<FilterType>::bwdInit() {
+void EnTKFilter<FilterType>::bwdInit()
+{
     assert(masterStateWrapper);
 
     stateSize = masterStateWrapper->getStateSize();
-    std::cout<< "[LETKF] stateSize " << stateSize << std::endl;
+    std::cout << "[LETKF] stateSize " << stateSize << std::endl;
     PRNS("StateSize " << stateSize);
 
     /// Initialize inversion type
@@ -346,8 +350,11 @@ void EnTKFilter<FilterType>::bwdInit() {
     m_sigmaPointObservationIndexes.resize(ensembleMembersNum);
 }
 
+
+
 template <class FilterType>
-void EnTKFilter<FilterType>::initializeStep(const core::ExecParams* _params, const size_t _step) {
+void EnTKFilter<FilterType>::initializeStep(const core::ExecParams* _params, const size_t _step)
+{
     Inherit::initializeStep(_params, _step);
 
     if (initialiseObservationsAtFirstStep.getValue()) {
@@ -370,11 +377,11 @@ void EnTKFilter<FilterType>::initializeStep(const core::ExecParams* _params, con
 
 
 template <class FilterType>
-void EnTKFilter<FilterType>::updateState() {
-
+void EnTKFilter<FilterType>::updateState()
+{
     stateSize = masterStateWrapper->getStateSize();
-    //std::cout<< "new [UKF] stateSize " << stateSize << std::endl;
-    //PRNS("StateSize " << stateSize);
+    // std::cout<< "new [UKF] stateSize " << stateSize << std::endl;
+    // PRNS("StateSize " << stateSize);
 
     /// Initialize Model's Error Covariance
     stateCovar = masterStateWrapper->getStateErrorVariance();
@@ -383,11 +390,11 @@ void EnTKFilter<FilterType>::updateState() {
     for (size_t i = 0; i < (size_t)stateCovar.rows(); i++) {
         diagStateCov(i) = stateCovar(i,i);
     }
-    //std::cout<< "INIT COVARIANCE DIAGONAL P(n+1)+n: " << diagStateCov.transpose() << std::endl;
+    // std::cout<< "INIT COVARIANCE DIAGONAL P(n+1)+n: " << diagStateCov.transpose() << std::endl;
     PRNS(" INIT COVARIANCE DIAGONAL P(n+1)+n:  \n" << diagStateCov.transpose());
 
     modelNoise = masterStateWrapper->getModelElementNoise();
-    //std::cout<< "Model covariance: " << modelNoise << std::endl;
+    // std::cout<< "Model covariance: " << modelNoise << std::endl;
     PRNS(" INIT COVARIANCE DIAGONAL P(n+1)+n:  \n" << modelNoise);
 
     stateExp = masterStateWrapper->getState();
@@ -405,48 +412,64 @@ void EnTKFilter<FilterType>::updateState() {
 
 
 template <class FilterType>
-void EnTKFilter<FilterType>::stabilizeMatrix (EMatrixX& _initial, EMatrixX& _stabilized) {
+void EnTKFilter<FilterType>::stabilizeMatrix(EMatrixX& _initial, EMatrixX& _stabilized)
+{
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(_initial, Eigen::ComputeThinU | Eigen::ComputeThinV);
     const Eigen::JacobiSVD<Eigen::MatrixXd>::SingularValuesType singVals = svd.singularValues();
     Eigen::JacobiSVD<Eigen::MatrixXd>::SingularValuesType singValsStab = singVals;
-    for (int i=0; i < singVals.rows(); i++ ){
-        if ((singValsStab(i)*singValsStab(i))*(1.0/(singVals(0)*singVals(0)))< 1.0e-6) singValsStab(i)=0;
+    for (int i = 0; i < singVals.rows(); i++ ){
+        if ((singValsStab(i) * singValsStab(i)) * (1.0 / (singVals(0) * singVals(0))) < 1.0e-6) {
+            singValsStab(i) = 0;
+        }
     }
-    _stabilized= svd.matrixU()*singValsStab*svd.matrixV().transpose();
-
+    _stabilized = svd.matrixU() * singValsStab * svd.matrixV().transpose();
 }
 
+
+
 template <class FilterType>
-void EnTKFilter<FilterType>::pseudoInverse( EMatrixX& M,EMatrixX& pinvM) {
+void EnTKFilter<FilterType>::pseudoInverse(EMatrixX& M, EMatrixX& pinvM)
+{
     double epsilon= 1e-15;
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(M, Eigen::ComputeThinU | Eigen::ComputeThinV);
     const Eigen::JacobiSVD<Eigen::MatrixXd>::SingularValuesType singVals = svd.singularValues();
     Eigen::JacobiSVD<Eigen::MatrixXd>::SingularValuesType invSingVals = singVals;
-    for(int i=0; i<singVals.rows(); i++) {
-        if(singVals(i)*singVals(i) <= epsilon*epsilon) invSingVals(i) = 0.0;
-        else invSingVals(i) = 1.0 / invSingVals(i);
+    for (int i = 0; i < singVals.rows(); i++) {
+        if (singVals(i) * singVals(i) <= epsilon * epsilon) {
+            invSingVals(i) = 0.0;
+        } else {
+            invSingVals(i) = 1.0 / invSingVals(i);
+        }
     }
     Eigen::MatrixXd S_inv = invSingVals.asDiagonal();
-    pinvM = svd.matrixV()*S_inv* svd.matrixU().transpose();
+    pinvM = svd.matrixV() * S_inv * svd.matrixU().transpose();
 }
 
+
+
 template <class FilterType>
-void EnTKFilter<FilterType>::sqrtMat(EMatrixX& A, EMatrixX& sqrtA){
-    double epsilon= 1e-15;
+void EnTKFilter<FilterType>::sqrtMat(EMatrixX& A, EMatrixX& sqrtA)
+{
+    double epsilon = 1e-15;
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(A, Eigen::ComputeThinU | Eigen::ComputeThinV);
     const Eigen::JacobiSVD<Eigen::MatrixXd>::SingularValuesType singVals = svd.singularValues();
     Eigen::JacobiSVD<Eigen::MatrixXd>::SingularValuesType sqrtSingVals = singVals;
-    for(int i=0; i<singVals.rows(); i++) {
-        if(singVals(i)*singVals(i) <= epsilon*epsilon) sqrtSingVals(i) = 0.0;
-        else sqrtSingVals(i) = sqrt(sqrtSingVals(i));
+    for (int i = 0; i < singVals.rows(); i++) {
+        if (singVals(i) * singVals(i) <= epsilon * epsilon) {
+            sqrtSingVals(i) = 0.0;
+        } else {
+            sqrtSingVals(i) = sqrt(sqrtSingVals(i));
+        }
     }
     Eigen::MatrixXd S_inv = sqrtSingVals.asDiagonal();
-    sqrtA = svd.matrixV()*S_inv* svd.matrixU().transpose();
-
+    sqrtA = svd.matrixV() * S_inv * svd.matrixU().transpose();
 }
 
+
+
 template <class FilterType>
-void EnTKFilter<FilterType>::writeValidationPlot (std::string filename ,EVectorX& state ){
+void EnTKFilter<FilterType>::writeValidationPlot (std::string filename ,EVectorX& state )
+{
     if (this->saveParam) {
         std::ofstream paramFile(filename.c_str(), std::ios::app);
         if (paramFile.is_open()) {
@@ -456,6 +479,7 @@ void EnTKFilter<FilterType>::writeValidationPlot (std::string filename ,EVectorX
         }
     }
 }
+
 
 
 } // stochastic

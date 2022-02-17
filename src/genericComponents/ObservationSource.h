@@ -43,12 +43,8 @@ class ObservationSource : public sofa::core::objectmodel::BaseObject
 public:
     typedef sofa::core::objectmodel::BaseObject Inherit;
 
-    ObservationSource()
-        : Inherit()
-    {}
-
+    ObservationSource() : Inherit() {}
     virtual void getObservation(double _time) = 0;
-
 };
 
 

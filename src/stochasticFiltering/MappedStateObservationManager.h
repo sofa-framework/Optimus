@@ -29,6 +29,7 @@
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/RigidTypes.h>
 #include <sofa/core/behavior/MechanicalState.h>
+#include <sofa/core/Mapping.h>
 
 #include <sofa/simulation/AnimateEndEvent.h>
 #include <sofa/simulation/AnimateBeginEvent.h>
@@ -48,7 +49,6 @@ namespace stochastic
 {
 
 
-using namespace defaulttype;
 
 template <class FilterType, class DataTypes1, class DataTypes2>
 class MappedStateObservationManager: public sofa::component::stochastic::ObservationManager<FilterType>
@@ -69,8 +69,22 @@ public:
     typedef sofa::component::container::SimulatedStateObservationSource<DataTypes1> ObservationSource;
     typedef StochasticStateWrapper<DataTypes1,FilterType> StateWrapper;
 
-    MappedStateObservationManager();
-    ~MappedStateObservationManager() {}
+
+    Data< typename DataTypes1::VecCoord > inputObservationData;
+    Data< typename DataTypes2::VecCoord > mappedObservationData;
+    Data< double > noiseStdev;
+    Data< int > abberantIndex;
+    Data< bool > doNotMapObservations;
+    Data< type::vector<int> > d_observationIndices;
+    type::vector<int> observationIndices;
+
+    SingleLink<MappedStateObservationManager<FilterType, DataTypes1, DataTypes2>, StateWrapper, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> stateWrapperLink;
+
+    boost::mt19937* pRandGen; // I don't seed it on purpouse (it's not relevant)
+    boost::normal_distribution<>* pNormDist;
+    boost::variate_generator<boost::mt19937&, boost::normal_distribution<> >* pVarNorm;
+    type::vector<double> noise;
+
 
 protected:
     size_t inputVectorSize, masterVectorSize, mappedVectorSize;     /// real sizes of vectors
@@ -87,6 +101,9 @@ protected:
 
 
 public:
+    MappedStateObservationManager();
+    ~MappedStateObservationManager() {}
+
     void init() override;
     void bwdInit() override;
     void initializeObservationData();
@@ -96,26 +113,8 @@ public:
     virtual bool getRealObservation(double /* _time */, EVectorX& /* _realObs */) override;
     virtual bool getPredictedObservation(int _id, EVectorX& _predictedObservation) override;
     virtual bool obsFunction(EVectorX& /* _state */, EVectorX& /* _predictedObservation */) override;
+};
 
-    Data<typename DataTypes1::VecCoord> inputObservationData;
-    Data<typename DataTypes2::VecCoord> mappedObservationData;
-    Data<double> noiseStdev;
-    Data<int> abberantIndex;
-    Data<bool> doNotMapObservations;
-    Data<helper::vector<int> > d_observationIndices;
-    helper::vector<int> observationIndices;
-
-
-    SingleLink<MappedStateObservationManager<FilterType, DataTypes1, DataTypes2>, StateWrapper, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> stateWrapperLink;
-
-    boost::mt19937* pRandGen; // I don't seed it on purpouse (it's not relevant)
-    boost::normal_distribution<>* pNormDist;
-    boost::variate_generator<boost::mt19937&, boost::normal_distribution<> >* pVarNorm;
-    helper::vector<double> noise;
-
-
-
-}; /// class
 
 
 } // namespace stochastic
@@ -123,3 +122,4 @@ public:
 } // namespace component
 
 } // namespace sofa
+

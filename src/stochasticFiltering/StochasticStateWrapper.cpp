@@ -26,6 +26,8 @@
 #include "StochasticStateWrapper.inl"
 //#include <sofa/helper/accessor.h>
 
+
+
 namespace sofa
 {
 
@@ -34,6 +36,8 @@ namespace component
 
 namespace stochastic
 {
+
+
 
 using namespace defaulttype;
 
@@ -45,8 +49,11 @@ int StochasticStateWrapperClass = core::RegisterObject("StochasticStateWrapper")
         .add< StochasticStateWrapper<Rigid3Types, double> >()
         ;
 
+
 template class SOFA_STOCHASTIC_API StochasticStateWrapper<Vec3Types, double>;
 template class SOFA_STOCHASTIC_API StochasticStateWrapper<Rigid3Types, double>;
+
+
 
 } // namespace simulation
 

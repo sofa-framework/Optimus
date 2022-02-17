@@ -22,7 +22,8 @@ SOFA_PYTHON3_BUILD_DIRECTORY=$SOFA_PYTHON3_DIRECTORY/build_release
 ### export pardiso license
 export PARDISO_LIC_PATH=$HOME_DIRECTORY/External_libraries/Pardiso
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME_DIRECTORY/External_libraries/Pardiso
-export PYTHONPATH=$SOFA_PYTHON3_BUILD_DIRECTORY/lib/site-packages
+export SOFA_ROOT=$BUILD_DIRECTORY/install
+export PYTHONPATH=$SOFA_PYTHON3_BUILD_DIRECTORY/lib/python3/site-packages
 export SOFA_PLUGIN_PATH=$OPTIMUS_BUILD_DIRECTORY
 
 
@@ -66,14 +67,9 @@ fi
 echo "Recompile sofa sources"
 cd $BUILD_DIRECTORY
 /usr/bin/make clean
-/usr/local/bin/cmake -DSOFA_BUILD_TESTS=ON -DSOFAGUI_BUILD_TESTS=ON -DSOFA_EXTERNAL_DIRECTORIES=/home/sergei/Optimus_test/sofaconfig/sergei .. 2>&1 >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
+/usr/local/bin/cmake .. 2>&1 >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
 /usr/bin/make -B -j 8 2>&1 >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
 /usr/bin/make install 2>&1 >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
-
-### remove SofaPython plugin with python2 from the plugins default list (use local version of list)
-cp $OPTIMUS_DIRECTORY/benchmarks/crontask/plugin_list.conf.default $BUILD_DIRECTORY/lib/plugin_list.conf.default
-cp $OPTIMUS_DIRECTORY/benchmarks/crontask/plugin_list.conf.default $BUILD_DIRECTORY/install/lib/plugin_list.conf.default
-
 
 echo "Recompile python3 plugin"
 if ! [ -d "$SOFA_PYTHON3_BUILD_DIRECTORY" ]; then
@@ -106,7 +102,7 @@ do
     cd $FOLDER
     if [ -f $FOLDER/verify.sh ]; then
         echo "Perform test: $FOLDER"
-        $FOLDER/verify.sh $BUILD_DIRECTORY/bin/runSofa $SOFA_PYTHON3_BUILD_DIRECTORY/lib >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
+        $FOLDER/verify.sh $BUILD_DIRECTORY/install/bin/runSofa $SOFA_PYTHON3_BUILD_DIRECTORY/lib >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
     fi
 done
 echo "All tests have been executed"

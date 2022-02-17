@@ -22,7 +22,6 @@
 #pragma once
 
 #include <sofa/simulation/Node.h>
-
 #include "MappedStateObservationManager.h"
 
 
@@ -47,8 +46,9 @@ MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::MappedStateObse
     , doNotMapObservations( initData(&doNotMapObservations, false, "doNotMapObservations", "if real observations are read from a file (not the mechanical object)") )
     , d_observationIndices( initData(&d_observationIndices, "observationIndices", "take these indices from vector of observations (implies not using mapping)") )
     , stateWrapperLink(initLink("stateWrapper", "link to the state wrapper needed to perform apply (perhaps to be changed)"))
-{    
-}
+{ }
+
+
 
 template <class FilterType, class DataTypes1, class DataTypes2>
 void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::init()
@@ -103,8 +103,9 @@ void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::init()
         PRNS("Found indices which will be taken as observations: " << observationIndices);
         doNotMapObservations.setValue(true);
     }
-
 }
+
+
 
 template <class FilterType, class DataTypes1, class DataTypes2>
 void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::bwdInit()
@@ -116,8 +117,10 @@ void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::bwdInit()
     Inherit::bwdInit();
 }
 
+
+
 template <class FilterType, class DataTypes1, class DataTypes2>
-void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::initializeObservationData()
+void MappedStateObservationManager<FilterType, DataTypes1, DataTypes2>::initializeObservationData()
 {   
     masterStateSize = masterState->getSize();
     mappedStateSize = mappedState->getSize();
@@ -171,8 +174,11 @@ void MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::initialize
     Inherit::initializeObservationData();
 }
 
+
+
 template <class FilterType, class DataTypes1, class DataTypes2>
-bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::hasObservation(double _time) {
+bool MappedStateObservationManager<FilterType, DataTypes1, DataTypes2>::hasObservation(double _time)
+{
     if (Inherit::initialiseObservationsAtFirstStep.getValue()) {
         initializeObservationData();
         Inherit::initialiseObservationsAtFirstStep.setValue(false);
@@ -200,7 +206,7 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::hasObserva
             for (size_t d = 0; d < 3; d++) {
                 if (noiseStdev.getValue() != 0.0)
                     mappedObsState[i][d] += (*pVarNorm)();
-                actualObservation(3*i+d) = mappedObsState[i][d];                
+                actualObservation(3 * i + d) = mappedObsState[i][d];
             }
         }
     } else {
@@ -217,17 +223,18 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::hasObserva
             for (size_t d = 0; d < 3; d++) {
                 if (noiseStdev.getValue() != 0.0)
                     mappedObsState[i][d] += (*pVarNorm)();
-                actualObservation(3*i+d) = mappedObsState[i][d];                
+                actualObservation(3 * i + d) = mappedObsState[i][d];
             }
         }
     }
     return (true);
 }
 
+
+
 template <class FilterType, class DataTypes1, class DataTypes2>
-bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getPredictedObservation(int _id, EVectorX& _predictedObservation) {
-
-
+bool MappedStateObservationManager<FilterType, DataTypes1, DataTypes2>::getPredictedObservation(int _id, EVectorX& _predictedObservation)
+{
     Data<typename DataTypes1::VecCoord> predictedMasterState;
     Data<typename DataTypes2::VecCoord> predictedMappedState;
 
@@ -252,21 +259,27 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getPredict
 
     return true;
 }
+
+
+
 template <class FilterType, class DataTypes1, class DataTypes2>
-bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::obsFunction(EVectorX& /* _state */, EVectorX& /* _predictedObservation */)
+bool MappedStateObservationManager<FilterType, DataTypes1, DataTypes2>::obsFunction(EVectorX& /* _state */, EVectorX& /* _predictedObservation */)
 {
     return 0;
 }
 
+
+
 template <class FilterType, class DataTypes1, class DataTypes2>
-bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getRealObservation(double /* _time */, EVectorX& /* _realObs */)
+bool MappedStateObservationManager<FilterType, DataTypes1, DataTypes2>::getRealObservation(double /* _time */, EVectorX& /* _realObs */)
 {
     return 0;
 }
 
 
+
 template <class FilterType, class DataTypes1, class DataTypes2>
-bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovation(double _time, EVectorX& _state, EVectorX& _innovation)
+bool MappedStateObservationManager<FilterType, DataTypes1, DataTypes2>::getInnovation(double _time, EVectorX& _state, EVectorX& _innovation)
 {
     if (_time != this->actualTime) {
         PRNE("Observation for time " << this->actualTime << " not prepared, call hasObservation first!");
@@ -295,7 +308,7 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovat
 
         for (size_t i = 0; i < predictedMappedStateEdit.size(); i++)
             for (size_t d = 0; d < 3; d++)
-                _innovation(3*i+d) = actualObservation(3*i+d) - predictedMappedStateEdit[i][d];
+                _innovation(3 * i + d) = actualObservation(3 * i + d) - predictedMappedStateEdit[i][d];
     }
 
     /// TEMPORARY: _state here is the predicted observation computed before
@@ -339,21 +352,16 @@ bool MappedStateObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovat
 
     return this->innovation_;
     */
-
 }
 
 
-
-//template <class DataTypes>
-//void MappedStateObservationManager<DataTypes>::init()
-//{
+//  template <class DataTypes>
+//  void MappedStateObservationManager<DataTypes>::init()
+//  { }
 //
-//}
-//
-//template <class DataTypes>
-//void MappedStateObservationManager<DataTypes>::reinit()
-//{
-//}
+//  template <class DataTypes>
+//  void MappedStateObservationManager<DataTypes>::reinit()
+//  { }
 
 
 } // namespace stochastic

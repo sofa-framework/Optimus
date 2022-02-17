@@ -26,6 +26,8 @@
 #include "MappedStateObservationManager.inl"
 //#include <sofa/helper/accessor.h>
 
+
+
 namespace sofa
 {
 
@@ -35,8 +37,9 @@ namespace component
 namespace stochastic
 {
 
-using namespace defaulttype;
 
+
+using namespace defaulttype;
 
 SOFA_DECL_CLASS(MappedStateObservationManager)
 
@@ -50,10 +53,10 @@ template class SOFA_STOCHASTIC_API MappedStateObservationManager<double, Vec3Typ
 //template class SOFA_STOCHASTIC_API MappedStateObservationManager<float, Vec3Types, Vec3Types>;
 
 
+
 } // namespace stochastic
+
 } // namespace component
+
 } // namespace sofa
-
-
-
 

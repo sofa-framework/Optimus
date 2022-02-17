@@ -37,6 +37,7 @@ namespace container
 {
 
 
+
 using namespace sofa::defaulttype;
 
 SOFA_DECL_CLASS(SimulatedStateObservationStreamer)
@@ -59,3 +60,4 @@ template class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationStreamer<Rigid3Ty
 } // namespace component
 
 } // namespace sofa
+

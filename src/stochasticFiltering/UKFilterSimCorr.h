@@ -34,10 +34,6 @@
 #include <sofa/simulation/AnimateEndEvent.h>
 #include <sofa/simulation/AnimateBeginEvent.h>
 
-#ifdef Success
-#undef Success // dirty workaround to cope with the (dirtier) X11 define. See http://eigen.tuxfamily.org/bz/show_bug.cgi?id=253
-#endif
-#include <Eigen/Dense>
 #include <iostream>
 #include <fstream>
 //#include <Accelerate/Accelerate.h>
@@ -46,6 +42,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+
+#include <Eigen/Dense>
+
 
 
 namespace sofa
@@ -58,18 +57,21 @@ namespace stochastic
 {
 
 
+
 /// to speed up, wrappers for BLAS matrix multiplications created, much faster that Eigen by default
-extern "C"{
+extern "C" {
     // product C= alphaA.B + betaC
-   void dgemm_(char* TRANSA, char* TRANSB, const int* M,
+    void dgemm_(char* TRANSA, char* TRANSB, const int* M,
                const int* N, const int* K, double* alpha, double* A,
                const int* LDA, double* B, const int* LDB, double* beta,
                double* C, const int* LDC);
     // product Y= alphaA.X + betaY
-   void dgemv_(char* TRANS, const int* M, const int* N,
+    void dgemv_(char* TRANS, const int* M, const int* N,
                double* alpha, double* A, const int* LDA, double* X,
                const int* INCX, double* beta, double* C, const int* INCY);
-   }
+}
+
+
 
 /**
  * Class implementing a special version of the unscented Kalman filter for data assimilation.
@@ -78,27 +80,26 @@ extern "C"{
  * This version keeps _only_ the parameters in the stochastic state.
  * Filter requires StochasticStateWrapper which provides the interface with SOFA.
  */
-
-using namespace defaulttype;
-
 template <class FilterType>
-class UKFilterSimCorr: public sofa::component::stochastic::StochasticUnscentedFilterBase
+class UKFilterSimCorr : public sofa::component::stochastic::StochasticUnscentedFilterBase
 {
 public:
     SOFA_CLASS(SOFA_TEMPLATE(UKFilterSimCorr, FilterType), StochasticUnscentedFilterBase);
 
     typedef sofa::component::stochastic::StochasticUnscentedFilterBase Inherit;
     typedef FilterType Type;
-
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, Eigen::Dynamic> EMatrixX;
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, 1> EVectorX;
 
-UKFilterSimCorr();
-~UKFilterSimCorr() {}
+    Data<type::vector<FilterType> > d_state;
+    Data<type::vector<FilterType> > d_variance;
+    Data<type::vector<FilterType> > d_covariance;
+    Data<type::vector<FilterType> > d_innovation;
+
 
 protected:
     StochasticStateWrapperBaseT<FilterType>* masterStateWrapper;
-    helper::vector<StochasticStateWrapperBaseT<FilterType>*> stateWrappers;
+    type::vector<StochasticStateWrapperBaseT<FilterType>*> stateWrappers;
     ObservationManager<FilterType>* observationManager;    
 
     /// vector sizes
@@ -124,18 +125,17 @@ protected:
 
 
     /// structures for parallel computing:
-    helper::vector<size_t> sigmaPoints2WrapperIDs;
-    helper::vector<helper::vector<size_t> > wrapper2SigmaPointsIDs;
+    type::vector<size_t> sigmaPoints2WrapperIDs;
+    type::vector< type::vector<size_t> > wrapper2SigmaPointsIDs;
 
     /// functions
     void computeSimplexSigmaPoints(EMatrixX& sigmaMat);
     void computeStarSigmaPoints(EMatrixX& sigmaMat);
 
-public:    
-    Data<helper::vector<FilterType> > d_state;
-    Data<helper::vector<FilterType> > d_variance;
-    Data<helper::vector<FilterType> > d_covariance;
-    Data<helper::vector<FilterType> > d_innovation;    
+
+public:
+    UKFilterSimCorr();
+    ~UKFilterSimCorr() {}
 
     void init() override;
     void bwdInit() override;
@@ -156,30 +156,6 @@ public:
     virtual void initializeStep(const core::ExecParams* _params, const size_t _step) override;
 
     virtual void updateState() override { }
-
-}; /// class
-
-template <class FilterType>
-struct WorkerThreadData
-{
-    typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, Eigen::Dynamic> EMatrixX;
-
-    StochasticStateWrapperBaseT<FilterType>* wrapper;
-    size_t threadID;
-    helper::vector<size_t>* sigmaIDs;
-    EMatrixX* stateMatrix;
-    const core::ExecParams* execParams;
-    bool saveLog;
-
-    void set(size_t _threadID,StochasticStateWrapperBaseT<FilterType>* _wrapper,  helper::vector<size_t> *_sigID,
-             EMatrixX* _stateMat, const core::ExecParams* _execParams, bool _saveLog) {
-        threadID=_threadID;
-        sigmaIDs=_sigID;
-        stateMatrix=_stateMat;
-        saveLog = _saveLog;
-        wrapper = _wrapper;
-        execParams = _execParams;
-    }
 };
 
 

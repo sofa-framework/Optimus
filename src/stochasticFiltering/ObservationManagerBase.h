@@ -22,10 +22,9 @@
 #pragma once
 
 #include "initOptimusPlugin.h"
-
 #include <sofa/simulation/Node.h>
-
 #include <Eigen/Dense>
+
 
 
 namespace sofa
@@ -38,21 +37,12 @@ namespace stochastic
 {
 
 
-using namespace defaulttype;
 
-
-class ObservationManagerBase: public sofa::core::objectmodel::BaseObject
+class ObservationManagerBase : public sofa::core::objectmodel::BaseObject
 {
 public:
     SOFA_ABSTRACT_CLASS(ObservationManagerBase, BaseObject);
-
     typedef sofa::core::objectmodel::BaseObject Inherit;
-    ObservationManagerBase()
-        : Inherit()
-        , verbose( initData(&verbose, false, "verbose", "print tracing informations") )
-    {}
-
-    ~ObservationManagerBase() {}
 
 protected:    
     sofa::simulation::Node* gnode;
@@ -61,6 +51,13 @@ protected:
 
 public:
     Data<bool> verbose;
+
+    ObservationManagerBase()
+        : Inherit()
+        , verbose( initData(&verbose, false, "verbose", "print tracing informations") )
+    {}
+
+    ~ObservationManagerBase() {}
 
     void init() override {
         Inherit::init();
@@ -76,9 +73,8 @@ public:
         stepNumber = _stepNumber;
         actualTime = double(stepNumber)*gnode->getDt();
     }
+};
 
-
-}; /// class
 
 
 template <class FilterType>
@@ -91,24 +87,22 @@ public:
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, Eigen::Dynamic> EMatrixX;
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, 1> EVectorX;
 
-    ObservationManager()
-        :Inherit()
-        , observationStdev( initData(&observationStdev, FilterType(0.0), "observationStdev", "standard deviation in observations") )
-        , initialiseObservationsAtFirstStep( initData(&initialiseObservationsAtFirstStep, false, "initialiseObservationsAtFirstStep", "if true initialise component during first iteration") )
-    {}
-
-    ~ObservationManager() {}
+    Data<FilterType> observationStdev;
+    Data<bool> initialiseObservationsAtFirstStep;
 
 protected:
-    size_t observationSize;     /// size of the observation vector
-
+    size_t observationSize;               /// size of the observation vector
     FilterType errorVarianceValue;
     EMatrixX errorVariance;
     EMatrixX errorVarianceInverse;
 
 public:
-    Data<FilterType> observationStdev;
-    Data<bool> initialiseObservationsAtFirstStep;
+    ObservationManager()
+        :Inherit()
+        , observationStdev( initData(&observationStdev, FilterType(0.0), "observationStdev", "standard deviation in observations") )
+        , initialiseObservationsAtFirstStep( initData(&initialiseObservationsAtFirstStep, false, "initialiseObservationsAtFirstStep", "if true initialise component during first iteration") )
+    {}
+    ~ObservationManager() {}
 
     virtual bool hasObservation(double _time) = 0;
     virtual bool getInnovation(double _time, EVectorX& _state, EVectorX& _innovation) = 0;
@@ -116,19 +110,23 @@ public:
     virtual bool obsFunction(EVectorX& _state, EVectorX& _predictedObservation) = 0;
     virtual bool getPredictedObservation(int _id, EVectorX& _predictedObservation) = 0;
 
-    size_t getObservationSize() {
+    size_t getObservationSize()
+    {
         return observationSize;
     }
 
-    virtual EMatrixX& getErrorVariance() {
+    virtual EMatrixX& getErrorVariance()
+    {
         return errorVariance;
     }
 
-    virtual EMatrixX& getErrorVarianceInverse() {
+    virtual EMatrixX& getErrorVarianceInverse()
+    {
         return errorVarianceInverse;
     }
 
-    void init() override {
+    void init() override
+    {
         Inherit::init();
 
         gnode = dynamic_cast<sofa::simulation::Node*>(this->getContext());
@@ -138,7 +136,8 @@ public:
         }
     }
 
-    void bwdInit() override {
+    void bwdInit() override
+    {
         Inherit::bwdInit();
 
         if (!initialiseObservationsAtFirstStep.getValue()) {
@@ -146,7 +145,8 @@ public:
         }
     }
 
-    void initializeObservationData() {
+    void initializeObservationData()
+    {
         if (observationSize == 0) {
             PRNE("No observations available, cannot allocate the structures!");
         }
@@ -156,8 +156,8 @@ public:
         errorVariance = EMatrixX::Identity(observationSize, observationSize) * errorVarianceValue;
         errorVarianceInverse = EMatrixX::Identity(observationSize, observationSize) / errorVarianceValue;
     }
+};
 
-}; /// class
 
 
 } // stochastic
@@ -165,3 +165,4 @@ public:
 } // component
 
 } // sofa
+

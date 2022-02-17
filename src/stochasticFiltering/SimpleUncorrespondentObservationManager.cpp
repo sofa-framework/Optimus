@@ -26,6 +26,8 @@
 #include "SimpleUncorrespondentObservationManager.inl"
 //#include <sofa/helper/accessor.h>
 
+
+
 namespace sofa
 {
 
@@ -35,8 +37,9 @@ namespace component
 namespace stochastic
 {
 
-using namespace defaulttype;
 
+
+using namespace defaulttype;
 
 SOFA_DECL_CLASS(SimpleUncorrespondentObservationManager)
 
@@ -48,6 +51,7 @@ int SimpleUncorrespondentObservationManagerClass = core::RegisterObject("MappedS
 
 template class SOFA_STOCHASTIC_API SimpleUncorrespondentObservationManager<double, Vec3Types, Vec3Types>;
 //template class SOFA_STOCHASTIC_API SimpleUncorrespondentObservationManager<float, Vec3Types, Vec3Types>;
+
 
 
 } // namespace stochastic

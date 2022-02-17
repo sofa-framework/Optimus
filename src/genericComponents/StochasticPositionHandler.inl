@@ -100,12 +100,15 @@ void StochasticPositionHandler::init()
     }
 }
 
+
 void StochasticPositionHandler::reinit(){
     if (outfile)
         delete outfile;
 
     init();
 }
+
+
 void StochasticPositionHandler::reset()
 {
     nextTime = 0;
@@ -115,43 +118,42 @@ void StochasticPositionHandler::reset()
 
 void StochasticPositionHandler::handleEvent(sofa::core::objectmodel::Event* event)
 {
-        if (/* simulation::AnimateBeginEvent* ev = */simulation::AnimateEndEvent::checkEventType(event))
-
-//    if (sofa::component::stochastic::CorrectionEndEvent::checkEventType(event))
+    if (/* simulation::AnimateBeginEvent* ev = */simulation::AnimateEndEvent::checkEventType(event))
+    // if (sofa::component::stochastic::CorrectionEndEvent::checkEventType(event))
     {
-
-            double time = getContext()->getTime();
-            if (d_groundTruth.getValue())
-                time=time+this->getContext()->getDt();
-            if (!mmodel) return;
-            if (outfile)
-            {
-                if (d_observations.getValue()){
-                        (*outfile) << time << "  ";
-                        if (f_writeX.getValue())
-                        {
-                            mmodel->writeVec(core::VecId::position(), *outfile);
-                            (*outfile) << "\n";
-                        }
-                        if (f_writeV.getValue())
-                        {
-                            mmodel->writeVec(core::VecId::velocity(), *outfile);
-                            (*outfile) << "\n";
-                        }
-                } else {
-                    // write the X state
-                    (*outfile) << "T= "<< time << "\n";
-                    if (f_writeX.getValue())
-                    {
-                        (*outfile) << "  X= ";
-                        mmodel->writeVec(core::VecId::position(), *outfile);
-                        (*outfile) << "\n";
-                    }
+        double time = getContext()->getTime();
+        if (d_groundTruth.getValue())
+            time = time + this->getContext()->getDt();
+        if (!mmodel) return;
+        if (outfile)
+        {
+            if (d_observations.getValue()){
+                (*outfile) << time << "  ";
+                if (f_writeX.getValue())
+                {
+                    mmodel->writeVec(core::VecId::position(), *outfile);
+                    (*outfile) << "\n";
                 }
-                outfile->flush();
+                if (f_writeV.getValue())
+                {
+                    mmodel->writeVec(core::VecId::velocity(), *outfile);
+                    (*outfile) << "\n";
+                }
+            } else {
+                // write the X state
+                (*outfile) << "T= "<< time << "\n";
+                if (f_writeX.getValue())
+                {
+                    (*outfile) << "  X= ";
+                    mmodel->writeVec(core::VecId::position(), *outfile);
+                    (*outfile) << "\n";
+                }
+            }
+            outfile->flush();
         }
     }
 }
+
 
 //void StochasticPositionHandler::handleEvent(sofa::core::objectmodel::Event* event)
 //{

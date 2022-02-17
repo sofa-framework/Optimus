@@ -25,8 +25,8 @@
 #pragma once
 
 /* include files */
-#include <SofaDeformable/config.h>
 #include <cstdint>
+#include <SofaDeformable/config.h>
 #include "../initOptimusPlugin.h"
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/RigidTypes.h>
@@ -42,11 +42,15 @@
 
 
 
-namespace sofa {
+namespace sofa
+{
 
-namespace component {
+namespace component
+{
 
-namespace behavior {
+namespace behavior
+{
+
 
 
 /**
@@ -57,14 +61,13 @@ namespace behavior {
  *       events from geomagic device
  */
 template <class DataTypes>
-class GeoListener : public core::objectmodel::BaseObject {
-
+class GeoListener : public core::objectmodel::BaseObject
+{
 public:
     SOFA_CLASS(SOFA_TEMPLATE(GeoListener, DataTypes), core::objectmodel::BaseObject);
 
     // updating and accumulating Von Mises stress
     void handleEvent(sofa::core::objectmodel::Event* event) override;
-
 
     // constructor and destructor
     GeoListener();
@@ -97,12 +100,12 @@ protected:
     Data<bool> d_savePression;
     sofa::core::objectmodel::DataFileName d_pressFilename;
 
-
     // geometry data for visualisation
     core::behavior::MechanicalState<DataTypes>* m_mstate;
     forcefield::RestShapeSpringsForceField<DataTypes>* m_spring;
     component::mapping::BarycentricMapping<defaulttype::Vec3dTypes, DataTypes>* m_mapping;
 };
+
 
 #if defined(SOFA_EXTERN_TEMPLATE) && !defined(SOFA_COMPONENT_GEOMAGIC_DEVICE_LISTENER_CPP)
 extern template class GeoListener<defaulttype::Vec3Types>;
@@ -110,8 +113,11 @@ extern template class GeoListener<defaulttype::Vec6Types>;
 extern template class GeoListener<defaulttype::Rigid3Types>;
 #endif
 
+
+
 } // namespace behavior
 
 } // namespace component
 
 } // namespace sofa
+

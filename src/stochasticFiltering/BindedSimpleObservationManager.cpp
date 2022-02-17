@@ -26,6 +26,8 @@
 #include "BindedSimpleObservationManager.inl"
 //#include <sofa/helper/accessor.h>
 
+
+
 namespace sofa
 {
 
@@ -35,8 +37,9 @@ namespace component
 namespace stochastic
 {
 
-using namespace defaulttype;
 
+
+using namespace defaulttype;
 
 SOFA_DECL_CLASS(BindedSimpleObservationManager)
 
@@ -52,6 +55,7 @@ template class SOFA_STOCHASTIC_API BindedSimpleObservationManager<double, Vec2Ty
 template class SOFA_STOCHASTIC_API BindedSimpleObservationManager<double, Vec3Types, Vec3Types>;
 //template class SOFA_STOCHASTIC_API BindedSimpleObservationManager<double, Rigid3Types, Rigid3Types>;
 //template class SOFA_STOCHASTIC_API BindedSimpleObservationManager<float, Vec3Types, Vec3Types>;
+
 
 
 } // namespace stochastic

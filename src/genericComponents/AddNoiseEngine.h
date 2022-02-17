@@ -30,12 +30,12 @@
 #include <sofa/simulation/AnimateEndEvent.h>
 #include <sofa/simulation/AnimateBeginEvent.h>
 
-#include <sofa/defaulttype/Mat.h>
-#include <sofa/defaulttype/Vec.h>
+#include <sofa/type/Mat.h>
+#include <sofa/type/Vec.h>
 
 #include <sofa/core/topology/Topology.h>
 #include <sofa/helper/AdvancedTimer.h>
-#include <sofa/helper/gl/template.h>
+#include <sofa/gl/template.h>
 
 #include <random>
 #include <chrono>
@@ -64,7 +64,7 @@ public:
     typedef typename DataTypes::Coord Coord;
     typedef typename DataTypes::Deriv Deriv;
     typedef typename DataTypes::Real Real;
-    typedef typename sofa::defaulttype::Vec3d Vector3;
+    typedef typename sofa::type::Vec3d Vector3;
     typedef sofa::core::topology::Topology::Edge Edge;
     
     AddNoiseEngine();

@@ -34,9 +34,6 @@
 #include <sofa/simulation/AnimateEndEvent.h>
 #include <sofa/simulation/AnimateBeginEvent.h>
 
-#ifdef Success
-#undef Success // dirty workaround to cope with the (dirtier) X11 define. See http://eigen.tuxfamily.org/bz/show_bug.cgi?id=253
-#endif
 #include <Eigen/Dense>
 
 
@@ -57,105 +54,105 @@ using namespace defaulttype;
 template <class DataTypes>
 struct templateName
 {
-    std::string operator ()(void) { return("generic"); }
+    std::string operator()(void) { return("generic"); }
 };
 
 template<>
 struct templateName<Vec3dTypes::VecDeriv>
 {
-    std::string operator ()(void) { return("VecDeriv3d"); }
+    std::string operator()(void) { return("VecDeriv3d"); }
 };
 
 template<>
 struct templateName<Rigid3dTypes::VecDeriv>
 {
-    std::string operator ()(void) { return("RigidDeriv3d"); }
+    std::string operator()(void) { return("RigidDeriv3d"); }
 };
 
 
 template<>
 struct templateName<double>
 {
-    std::string operator ()(void) { return("double"); }
+    std::string operator()(void) { return("double"); }
 };
 
 
 template<>
 struct templateName<sofa::defaulttype::RigidCoord<3,double> >
 {
-    std::string operator ()(void) { return("Rigid3d"); }
+    std::string operator()(void) { return("Rigid3d"); }
 };
 
 
 template<>
 struct templateName<sofa::defaulttype::RigidCoord<2,double> >
 {
-    std::string operator ()(void) { return("Rigid2d"); }
+    std::string operator()(void) { return("Rigid2d"); }
 };
 
 template<>
-struct templateName<sofa::defaulttype::Vec3d>
+struct templateName<sofa::type::Vec3d>
 {
-    std::string operator ()(void) { return("Vec3d"); }
-};
-
-
-template<>
-struct templateName<sofa::defaulttype::Vec2d>
-{
-    std::string operator ()(void) { return("Vec2d"); }
+    std::string operator()(void) { return("Vec3d"); }
 };
 
 
 template<>
-struct templateName<sofa::defaulttype::Vec1d>
+struct templateName<sofa::type::Vec2d>
 {
-    std::string operator ()(void) { return("Vec1d"); }
+    std::string operator()(void) { return("Vec2d"); }
+};
+
+
+template<>
+struct templateName<sofa::type::Vec1d>
+{
+    std::string operator()(void) { return("Vec1d"); }
 };
 
 template<>
-struct templateName<sofa::helper::vector<double> >
+struct templateName<sofa::type::vector<double> >
 {
-    std::string operator ()(void) { return("Vector"); }
+    std::string operator()(void) { return("Vector"); }
 };
 
 template<>
-struct templateName<sofa::helper::vector<float> >
+struct templateName<sofa::type::vector<float> >
 {
-    std::string operator ()(void) { return("Vector"); }
+    std::string operator()(void) { return("Vector"); }
 };
 
 /**
  * Parent class for OptimParams (see below)
  */
-
 class OptimParamsBase : public sofa::core::objectmodel::BaseObject
 {
 public:
     SOFA_ABSTRACT_CLASS(OptimParamsBase, BaseObject);
 
-    typedef helper::vector<double> DVec;
-    typedef helper::vector<size_t> IVec;
+    typedef type::vector<double> DVec;
+    typedef type::vector<size_t> IVec;
 
     typedef Eigen::Matrix<float, Eigen::Dynamic, 1> VectorXf;
     typedef Eigen::Matrix<double, Eigen::Dynamic, 1> VectorXd;
 
+
 protected:    
     size_t m_dim;
     size_t mstate_dim;
-    Data< bool > m_optimize;            ///if OptimParams component are used in Verdandi optimization
+    Data< bool > m_optimize;            ///  if OptimParams component are used in Verdandi optimization
     Data< size_t > m_numParams;
     Data< std::string > m_transformParams;
-    Data< helper::vector<double> > m_prescribedParamKeys;
+    Data< type::vector<double> > m_prescribedParamKeys;
     Data< std::string > m_exportParamFile;
     Data< bool> m_interpolateSmooth;
     bool saveParam;
     int transParamType;
 
-    IVec paramIndices;  /// mapping of parameters stored in m_val to Verdandi state vector
+    IVec paramIndices;                   /// mapping of parameters stored in m_val to Verdandi state vector
+
 
 public:
-    
     //virtual void rawVectorToParams(const double* _vector) = 0;  /// copy values from a input vector into parameters at correct positions
     //virtual void paramsToRawVector(double* _vector) = 0;  /// copy values from parameters to the output vector at correct positions
 
@@ -205,7 +202,6 @@ public:
 
         if (std::strcmp(transf.c_str(), "project") == 0)
             transParamType = 4;
-
     }
 
     size_t size() {
@@ -223,11 +219,13 @@ public:
     bool isOptimized()  {
         return(m_optimize.getValue());
     }
-    void setOptimize(bool value)
-    {
+
+    void setOptimize(bool value) {
         m_optimize.setValue(value);
     }
 };
+
+
 
 /**
  * Class used as a container of stochastic values. Gaussian distribution is assumed, thus a variable is represented by expected value and standard deviation.
@@ -272,7 +270,12 @@ public:
     {
         return templateName(this);
     }
-    static std::string templateName(const OptimParams<DataTypes>* = NULL) { std::string name = sofa::component::container::templateName<DataTypes>()(); return(name); }
+
+    static std::string templateName(const OptimParams<DataTypes>* = NULL)
+    {
+        std::string name = sofa::component::container::templateName<DataTypes>()();
+        return(name);
+    }
 
     Data< DataTypes > m_addedVal;      /// added parameters
     Data< DataTypes > m_addedMinVal;   /// added minimal bound for parameters

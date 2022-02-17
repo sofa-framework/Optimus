@@ -22,7 +22,6 @@
 #pragma once
 
 #include <sofa/simulation/Node.h>
-
 #include "MappedStateVelocityObservationManager.h"
 
 
@@ -37,8 +36,9 @@ namespace stochastic
 {
 
 
+
 template <class FilterType, class DataTypes1, class DataTypes2>
-MappedStateVelocityObservationManager<FilterType,DataTypes1,DataTypes2>::MappedStateVelocityObservationManager()
+MappedStateVelocityObservationManager<FilterType, DataTypes1, DataTypes2>::MappedStateVelocityObservationManager()
     : Inherit()
     , inputObservationData( initData (&inputObservationData, "observations", "observations read from a file") )
     , inputVelocityObservationData( initData (&inputVelocityObservationData, "velocityObservations", "velocity observations read from a file") )
@@ -51,11 +51,12 @@ MappedStateVelocityObservationManager<FilterType,DataTypes1,DataTypes2>::MappedS
     , d_velocityObservationStdev( initData(&d_velocityObservationStdev, FilterType(0.0), "velocityObservationStdev", "standard deviation in velocity observations") )
     , d_observationIndices( initData(&d_observationIndices, "observationIndices", "take these indices from vector of observations (implies not using mapping)") )
     , stateWrapperLink(initLink("stateWrapper", "link to the state wrapper needed to perform apply (perhaps to be changed)"))
-{    
-}
+{ }
+
+
 
 template <class FilterType, class DataTypes1, class DataTypes2>
-void MappedStateVelocityObservationManager<FilterType,DataTypes1,DataTypes2>::init()
+void MappedStateVelocityObservationManager<FilterType, DataTypes1, DataTypes2>::init()
 {
     Inherit::init();
 
@@ -110,11 +111,12 @@ void MappedStateVelocityObservationManager<FilterType,DataTypes1,DataTypes2>::in
         PRNS("Found indices which will be taken as observations: " << observationIndices);
         doNotMapObservations.setValue(true);
     }
-
 }
 
+
+
 template <class FilterType, class DataTypes1, class DataTypes2>
-void MappedStateVelocityObservationManager<FilterType,DataTypes1,DataTypes2>::bwdInit()
+void MappedStateVelocityObservationManager<FilterType, DataTypes1, DataTypes2>::bwdInit()
 {
     if (!Inherit::initialiseObservationsAtFirstStep.getValue()) {
         initializeObservationData();
@@ -123,8 +125,10 @@ void MappedStateVelocityObservationManager<FilterType,DataTypes1,DataTypes2>::bw
     Inherit::bwdInit();
 }
 
+
+
 template <class FilterType, class DataTypes1, class DataTypes2>
-void MappedStateVelocityObservationManager<FilterType,DataTypes1,DataTypes2>::initializeObservationData()
+void MappedStateVelocityObservationManager<FilterType, DataTypes1, DataTypes2>::initializeObservationData()
 {   
     masterStateSize = masterState->getSize();
     mappedStateSize = mappedState->getSize();
@@ -214,8 +218,11 @@ void MappedStateVelocityObservationManager<FilterType,DataTypes1,DataTypes2>::in
     Inherit::initializeObservationData();
 }
 
+
+
 template <class FilterType, class DataTypes1, class DataTypes2>
-bool MappedStateVelocityObservationManager<FilterType,DataTypes1,DataTypes2>::hasObservation(double _time) {
+bool MappedStateVelocityObservationManager<FilterType, DataTypes1, DataTypes2>::hasObservation(double _time)
+{
     if (Inherit::initialiseObservationsAtFirstStep.getValue()) {
         initializeObservationData();
         Inherit::initialiseObservationsAtFirstStep.setValue(false);
@@ -302,9 +309,11 @@ bool MappedStateVelocityObservationManager<FilterType,DataTypes1,DataTypes2>::ha
     return (true);
 }
 
-template <class FilterType, class DataTypes1, class DataTypes2>
-bool MappedStateVelocityObservationManager<FilterType,DataTypes1,DataTypes2>::getPredictedObservation(int _id, EVectorX& _predictedObservation) {
 
+
+template <class FilterType, class DataTypes1, class DataTypes2>
+bool MappedStateVelocityObservationManager<FilterType, DataTypes1, DataTypes2>::getPredictedObservation(int _id, EVectorX& _predictedObservation)
+{
     sofa::core::MechanicalParams mp;
     size_t mappedStateShift = 0;
 
@@ -323,9 +332,9 @@ bool MappedStateVelocityObservationManager<FilterType,DataTypes1,DataTypes2>::ge
 
         stateWrapper->getActualPosition(_id, predictedMasterStateEdit);
         std::cout << "Predicted state: " << predictedMasterState << std::endl;
-        //stateWrapper->setSofaVectorFromFilterVector(_state, predictedMasterStateEdit);
 
-        //sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > masterState = predictedMasterState;
+        //  stateWrapper->setSofaVectorFromFilterVector(_state, predictedMasterStateEdit);
+        //  sofa::helper::WriteAccessor< Data<typename DataTypes1::VecCoord> > masterState = predictedMasterState;
 
         mapping->apply(&mp, predictedMappedState, predictedMasterState);
 
@@ -333,9 +342,10 @@ bool MappedStateVelocityObservationManager<FilterType,DataTypes1,DataTypes2>::ge
             for (size_t d = 0; d < 3; d++)
                 _predictedObservation(3*i+d) = predictedMappedStateEdit[i][d];
     }
+
     if (d_observeVelocities.getValue()) {
-        Data<typename DataTypes1::VecDeriv> predictedMasterVelocity;
-        Data<typename DataTypes2::VecDeriv> predictedMappedVelocity;
+        Data< typename DataTypes1::VecDeriv > predictedMasterVelocity;
+        Data< typename DataTypes2::VecDeriv > predictedMappedVelocity;
 
         typename DataTypes1::VecDeriv& predictedMasterVelocityEdit = *predictedMasterVelocity.beginEdit();
         typename DataTypes2::VecDeriv& predictedMappedVelocityEdit = *predictedMappedVelocity.beginEdit();
@@ -360,11 +370,16 @@ bool MappedStateVelocityObservationManager<FilterType,DataTypes1,DataTypes2>::ge
 
     return true;
 }
+
+
+
 template <class FilterType, class DataTypes1, class DataTypes2>
 bool MappedStateVelocityObservationManager<FilterType,DataTypes1,DataTypes2>::obsFunction(EVectorX& /* _state */, EVectorX& /* _predictedObservation */)
 {
     return false;
 }
+
+
 
 template <class FilterType, class DataTypes1, class DataTypes2>
 bool MappedStateVelocityObservationManager<FilterType,DataTypes1,DataTypes2>::getRealObservation(double /* _time */, EVectorX& /* _realObs */)
@@ -373,8 +388,9 @@ bool MappedStateVelocityObservationManager<FilterType,DataTypes1,DataTypes2>::ge
 }
 
 
+
 template <class FilterType, class DataTypes1, class DataTypes2>
-bool MappedStateVelocityObservationManager<FilterType,DataTypes1,DataTypes2>::getInnovation(double _time, EVectorX& _state, EVectorX& _innovation)
+bool MappedStateVelocityObservationManager<FilterType, DataTypes1, DataTypes2>::getInnovation(double _time, EVectorX& _state, EVectorX& _innovation)
 {
     if (_time != this->actualTime) {
         PRNE("Observation for time " << this->actualTime << " not prepared, call hasObservation first!");
@@ -436,7 +452,6 @@ bool MappedStateVelocityObservationManager<FilterType,DataTypes1,DataTypes2>::ge
 
     return(true);
 
-
     /*
     //std::cout << this->getName() << ": size of mapped state: " << mappedState.size() << std::endl;
     this->innovation_.Reallocate(mappedState.size()*3);
@@ -469,21 +484,17 @@ bool MappedStateVelocityObservationManager<FilterType,DataTypes1,DataTypes2>::ge
 
     return this->innovation_;
     */
-
 }
 
 
+//  template <class DataTypes>
+//  void MappedStateObservationManager<DataTypes>::init()
+//  { }
+//
+//  template <class DataTypes>
+//  void MappedStateObservationManager<DataTypes>::reinit()
+//  { }
 
-//template <class DataTypes>
-//void MappedStateObservationManager<DataTypes>::init()
-//{
-//
-//}
-//
-//template <class DataTypes>
-//void MappedStateObservationManager<DataTypes>::reinit()
-//{
-//}
 
 
 } // namespace stochastic

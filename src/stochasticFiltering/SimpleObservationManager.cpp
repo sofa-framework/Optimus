@@ -26,6 +26,8 @@
 #include "SimpleObservationManager.inl"
 //#include <sofa/helper/accessor.h>
 
+
+
 namespace sofa
 {
 
@@ -35,8 +37,9 @@ namespace component
 namespace stochastic
 {
 
-using namespace defaulttype;
 
+
+using namespace defaulttype;
 
 SOFA_DECL_CLASS(SimpleObservationManager)
 

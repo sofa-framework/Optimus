@@ -26,9 +26,6 @@
 #include <sofa/defaulttype/RigidTypes.h>
 
 
-using namespace sofa::defaulttype;
-
-
 
 namespace sofa
 {
@@ -38,6 +35,10 @@ namespace component
 
 namespace container
 {
+
+
+
+using namespace sofa::defaulttype;
 
 SOFA_DECL_CLASS(SimulatedStateObservationSource)
 
@@ -59,3 +60,4 @@ template class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationSource<Rigid3Type
 } // namespace component
 
 } // namespace sofa
+

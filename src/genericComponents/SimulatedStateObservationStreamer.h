@@ -27,8 +27,8 @@
 #include <SofaBaseMechanics/MechanicalObject.h>
 
 #include <sofa/core/visual/VisualParams.h>
-#include <sofa/helper/gl/template.h>
-#include <sofa/helper/gl/BasicShapes.h>
+#include <sofa/gl/template.h>
+#include <sofa/gl/BasicShapes.h>
 
 #include <sofa/simulation/AnimateBeginEvent.h>
 #include <sofa/simulation/AnimateEndEvent.h>
@@ -53,7 +53,7 @@ namespace container
 using namespace sofa::core::objectmodel;
 
 template<class DataTypes>
-class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationStreamer : public SimulatedStateObservationSource<DataTypes> //  ObservationSource
+class SOFA_OPTIMUSPLUGIN_API SimulatedStateObservationStreamer : public SimulatedStateObservationSource<DataTypes>
 {
 public:
     SOFA_CLASS(SOFA_TEMPLATE(SimulatedStateObservationStreamer, DataTypes) , SOFA_TEMPLATE(SimulatedStateObservationSource, DataTypes));
@@ -64,12 +64,6 @@ public:
     typedef typename std::vector<VecCoord> VecVecCoord;
     //typedef typename std::map<double, VecCoord> ObservationTable;
 
-protected:
-    //ObservationTable observationTable;
-
-    unsigned int nParticles, nObservations, dim;
-
-public:
 
     SimulatedStateObservationStreamer();
     ~SimulatedStateObservationStreamer();
@@ -147,6 +141,9 @@ public:
         return DataTypes::Name();
     }
 
+protected:
+    //ObservationTable observationTable;
+    unsigned int nParticles, nObservations, dim;
 
 };
 

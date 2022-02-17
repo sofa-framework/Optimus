@@ -34,9 +34,10 @@ namespace sofa
 {
 
 
+
 template <class Real>
 void PointProjection<Real>::ProjectPoint(Vec3 &baryCoords, Coord &projectedCoord, Index &triangleID,
-    const Vec3 &point, const VecVec3 &x)
+                                         const Vec3 &point, const VecVec3 &x)
 {
     Index closestVertex, closestEdge, closestTriangle;
     Real minVertex, minEdge, minTriangle;
@@ -59,10 +60,12 @@ void PointProjection<Real>::ProjectPoint(Vec3 &baryCoords, Coord &projectedCoord
         minVertex, minEdge, minTriangle);
 }
 
+
+
 // --------------------------------------------------------------------------------------
 template <class Real>
 void PointProjection<Real>::ProjectPoint(Vec3 &baryCoords, Coord &projectedCoord, Index &triangleID,
-    const Vec3 &point, const VecVec3 &x, const VecIndex &triangleList)
+                                         const Vec3 &point, const VecVec3 &x, const VecIndex &triangleList)
 {
     Index closestVertex=InvalidID, closestEdge=InvalidID, closestTriangle=InvalidID;
     Real minVertex, minEdge=1e12, minTriangle;
@@ -125,16 +128,16 @@ void PointProjection<Real>::ProjectPoint(Vec3 &baryCoords, Coord &projectedCoord
         minVertex, minEdge, minTriangle);
 }
 
-// -----------------------------------------------------------------------------
 
+
+// -----------------------------------------------------------------------------
 // Do some magic to constraint the coordinates inside the triangle
 // the requirements are:
 //    coef_a, coef_b, coef_c ≥ 0
 //    coef_a + coef_b + coef_c = 1
 template <class Real>
 //void ConstraintBaryCoords(Real &coef_a, Real &coef_b, Real &coef_c)
-void ConstraintBaryCoords(sofa::defaulttype::Vec<3, Real> &baryCoords)
-
+void ConstraintBaryCoords(sofa::type::Vec<3, Real> &baryCoords)
 {
     if (baryCoords[0] < 0.0) baryCoords[0] = 0.0;
     if (baryCoords[1] < 0.0) baryCoords[1] = 0.0;
@@ -161,38 +164,38 @@ void ConstraintBaryCoords(sofa::defaulttype::Vec<3, Real> &baryCoords)
 }
 
 
+
 // --------------------------------------------------------------------------------------
 template <class Real>
-void PointProjection<Real>::ComputeBaryCoords(
-    Vec3 &baryCoords,
-    const Vec3 &p, const Vec3 &a, const Vec3 &b, const Vec3 &c, bool bConstraint)
+void PointProjection<Real>::ComputeBaryCoords(Vec3 &baryCoords, const Vec3 &p,
+                                              const Vec3 &a, const Vec3 &b, const Vec3 &c, bool bConstraint)
 {
     const double ZERO = 1e-20;
 
     Vec3 M = (Vec3) (b-a).cross(c-a);
-    double norm2_M = M*(M);
+    double norm2_M = M * (M);
 
     double coef_a, coef_b, coef_c;
 
     if(norm2_M < ZERO) // triangle (a,b,c) is flat
     {
-        coef_a = (double) (1.0/3.0);
-        coef_b = (double) (1.0/3.0);
+        coef_a = (double) (1.0 / 3.0);
+        coef_b = (double) (1.0 / 3.0);
         coef_c = (double) (1.0 - (coef_a + coef_b));
     }
     else
     {
-        Vec3 N =  M/norm2_M;
+        Vec3 N =  M / norm2_M;
 
-        coef_a = N*((b-p).cross(c-p));
-        coef_b = N*((c-p).cross(a-p));
+        coef_a = N * ((b - p).cross(c - p));
+        coef_b = N * ((c - p).cross(a - p));
         if (bConstraint)
         {
             coef_c = 1.0 - (coef_a + coef_b);
         }
         else
         {
-            coef_c = N*((a-p).cross(b-p));
+            coef_c = N * ((a - p).cross(b - p));
         }
     }
 
@@ -205,11 +208,12 @@ void PointProjection<Real>::ComputeBaryCoords(
     }
 }
 
+
+
 // -----------------------------------------------------------------------------
 template <class Real>
-void PointProjection<Real>::ComputeBaryCoords(
-    Vec3 &baryCoords,
-    const Vec2 &p, const Vec2 &a, const Vec2 &b, const Vec2 &c, bool bConstraint)
+void PointProjection<Real>::ComputeBaryCoords(Vec3 &baryCoords, const Vec2 &p,
+                                              const Vec2 &a, const Vec2 &b, const Vec2 &c, bool bConstraint)
 {
     Mat33 m;
     m(0,0) = 1;    m(0,1) = 1;    m(0,2) = 1;
@@ -225,13 +229,15 @@ void PointProjection<Real>::ComputeBaryCoords(
     }        
 }
 
+
+
 // -----------------------------------------------------------------------------
 template <class Real>
 Real PointProjection<Real>::FindClosestPoint(Index& closestVertex,
-    const Vec3& point, const VecVec3 &inVertices)
+                                             const Vec3& point, const VecVec3 &inVertices)
 {
     Real minimumDistance = 10e12;
-    for (unsigned int v=0; v<inVertices.size(); v++)
+    for (unsigned int v = 0; v < inVertices.size(); v++)
     {
         Real distance = (inVertices[v] - point).norm2();
 
@@ -249,26 +255,27 @@ Real PointProjection<Real>::FindClosestPoint(Index& closestVertex,
 }
 
 
+
 // -----------------------------------------------------------------------------
 template <class Real>
-Real PointProjection<Real>::FindClosestEdge(Index& closestEdge,
-    const Vec3& point, const VecVec3 &inVertices, const SeqEdges &inEdges)
+Real PointProjection<Real>::FindClosestEdge(Index& closestEdge, const Vec3& point,
+                                            const VecVec3 &inVertices, const SeqEdges &inEdges)
 {
     Real minimumDistance = 10e12;
-    for (unsigned int e=0; e<inEdges.size(); e++)
+    for (unsigned int e = 0; e < inEdges.size(); e++)
     {
         Vec3 pointEdge1 = inVertices[ inEdges[e][0] ];
         Vec3 pointEdge2 = inVertices[ inEdges[e][1] ];
 
-        const Vec3 AB = pointEdge2-pointEdge1;
-        const Vec3 AP = point-pointEdge1;
+        const Vec3 AB = pointEdge2 - pointEdge1;
+        const Vec3 AP = point - pointEdge1;
 
         double A;
         double b;
-        A = AB*AB;
-        b = AP*AB;
+        A = AB * AB;
+        b = AP * AB;
 
-        double alpha = b/A;
+        double alpha = b / A;
 
         // If the point is on the edge
         if (alpha >= 0 && alpha <= 1)
@@ -276,7 +283,7 @@ Real PointProjection<Real>::FindClosestEdge(Index& closestEdge,
             Vec3 P, Q, PQ;
             P = point;
             Q = pointEdge1 + AB * alpha;
-            PQ = Q-P;
+            PQ = Q - P;
 
             Real distance = PQ.norm2();
             if (distance < minimumDistance)
@@ -287,33 +294,32 @@ Real PointProjection<Real>::FindClosestEdge(Index& closestEdge,
                 // Updates the minimum's value
                 minimumDistance = distance;
             }
-            }
         }
+    }
 
     return minimumDistance;
 }
 
 
+
 // -----------------------------------------------------------------------------
 template <class Real>
-Real PointProjection<Real>::FindClosestTriangle(Index& closestTriangle,
-    const Vec3& point, const VecVec3 &inVertices,
-    const SeqTriangles &inTriangles)
+Real PointProjection<Real>::FindClosestTriangle(Index& closestTriangle, const Vec3& point,
+                                                const VecVec3 &inVertices, const SeqTriangles &inTriangles)
 {
     Real minimumDistance = 10e12;
-    for (unsigned int t=0; t<inTriangles.size(); t++)
+    for (unsigned int t = 0; t < inTriangles.size(); t++)
     {
         Vec3 pointTriangle1 = inVertices[ inTriangles[t][0] ];
         Vec3 pointTriangle2 = inVertices[ inTriangles[t][1] ];
         Vec3 pointTriangle3 = inVertices[ inTriangles[t][2] ];
 
-        const Vec3 AB = pointTriangle2-pointTriangle1;
-        const Vec3 AC = pointTriangle3-pointTriangle1;
+        const Vec3 AB = pointTriangle2 - pointTriangle1;
+        const Vec3 AC = pointTriangle3 - pointTriangle1;
 
         Vec3 bary;
-        ComputeBaryCoords(
-            bary, point,
-            pointTriangle1, pointTriangle2, pointTriangle3, false);
+        ComputeBaryCoords(bary, point, pointTriangle1, pointTriangle2, pointTriangle3, false);
+
         if ((bary[0] < 0.0) || (bary[1] < 0.0) || (bary[2] < 0.0) ||
             (helper::rabs(1.0 - (bary[0] + bary[1] + bary[2])) > 1e-10)) {
             // Point projected onto the plane of the triangle lies outside
@@ -340,12 +346,14 @@ Real PointProjection<Real>::FindClosestTriangle(Index& closestTriangle,
     return minimumDistance;
 }
 
+
+
 // -----------------------------------------------------------------------------
 template <class Real>
 void PointProjection<Real>::ProjectPoint(Vec3 &baryCoords, Index &triangleID, Coord &projectedCoord,
-    const Vec3 &point, const VecVec3 &x,
-    Index closestVertex, Index closestEdge, Index closestTriangle,
-    Real minVertex, Real minEdge, Real minTriangle)
+                                         const Vec3 &point, const VecVec3 &x,
+                                         Index closestVertex, Index closestEdge, Index closestTriangle,
+                                         Real minVertex, Real minEdge, Real minTriangle)
 {
     const SeqTriangles &triangles = topology.getTriangles();
 
@@ -400,14 +408,14 @@ void PointProjection<Real>::ProjectPoint(Vec3 &baryCoords, Index &triangleID, Co
     if (triangleID != InvalidID)
     {
         // Computes barycentric coordinates within the triangle
-        ComputeBaryCoords(baryCoords, point,
-            x[ triangles[triangleID][0] ],
-            x[ triangles[triangleID][1] ],
-            x[ triangles[triangleID][2] ]);
+        ComputeBaryCoords(baryCoords, point, x[ triangles[triangleID][0] ],
+                          x[ triangles[triangleID][1] ], x[ triangles[triangleID][2] ]);
     }
 
-    projectedCoord = x[triangles[triangleID][0]]*baryCoords[0] + x[triangles[triangleID][1]]*baryCoords[1] + x[triangles[triangleID][2]]*baryCoords[2];
+    projectedCoord = x[triangles[triangleID][0]] * baryCoords[0] + x[triangles[triangleID][1]] * baryCoords[1] +
+                     x[triangles[triangleID][2]] * baryCoords[2];
 }
+
 
 
 } // namespace sofa

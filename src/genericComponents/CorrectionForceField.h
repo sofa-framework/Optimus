@@ -65,8 +65,8 @@ public:
     typedef typename DataTypes::CPos CPos;
     typedef typename DataTypes::Deriv Deriv;
     typedef typename DataTypes::Real Real;
-    typedef helper::vector< unsigned int > VecIndex;
-    typedef helper::vector< Real >	 VecReal;
+    typedef type::vector< unsigned int > VecIndex;
+    typedef type::vector< Real > VecReal;
     typedef sofa::component::topology::PointSubsetData< VecIndex > SetIndex;
 
     typedef core::objectmodel::Data<VecCoord> DataVecCoord;
@@ -74,15 +74,18 @@ public:
 
 
     Data< Deriv > d_force;
-    SetIndex                   d_indices;
-    Data< VecDeriv >           d_forces;
-    Data<helper::vector<double>> d_Optimforces;
-    Data<double>         d_delta;
-    Data<double>         d_paramF;
+    SetIndex d_indices;
+    Data< VecDeriv > d_forces;
+    Data< type::vector<double> > d_Optimforces;
+    Data< double > d_delta;
+    Data< double > d_paramF;
+
+    type::vector<bool> m_active;
 
 
-    protected:
-        CorrectionForceField();
+protected:
+    CorrectionForceField();
+
 public:
     /// BaseObject initialization method.
     void bwdInit() override;
@@ -101,15 +104,10 @@ public:
         return 0.0;
     }
 
-
     virtual void draw(const core::visual::VisualParams* /* vparams */) override;
-     void plusF();
-     void minusF();
+    void plusF();
+    void minusF();
     void handleEvent(sofa::core::objectmodel::Event *event) override;
-
-    helper::vector<bool> m_active;
-
-
 };
 
 

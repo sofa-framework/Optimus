@@ -21,16 +21,16 @@
 ******************************************************************************/
 #pragma once
 
-#include <sofa/core/objectmodel/BaseObject.h>
-#include <sofa/simulation/Node.h>
 #include <fstream>
+#include <sofa/core/objectmodel/BaseObject.h>
+#include <sofa/core/objectmodel/DataFileName.h>
+#include <sofa/helper/system/thread/CTime.h>
+#include <sofa/simulation/Node.h>
 
 #include "initOptimusPlugin.h"
 
-#ifdef Success
-#undef Success // dirty workaround to cope with the (dirtier) X11 define. See http://eigen.tuxfamily.org/bz/show_bug.cgi?id=253
-#endif
 #include <Eigen/Dense>
+
 
 
 namespace sofa
@@ -43,19 +43,18 @@ namespace stochastic
 {
 
 
-class StochasticStateWrapperBase: public sofa::core::objectmodel::BaseObject
+
+class StochasticStateWrapperBase : public sofa::core::objectmodel::BaseObject
 {
 public:
-    SOFA_ABSTRACT_CLASS(StochasticStateWrapperBase, BaseObject);
+    SOFA_ABSTRACT_CLASS(StochasticStateWrapperBase, core::objectmodel::BaseObject);
     typedef sofa::core::objectmodel::BaseObject Inherit;
 
-    StochasticStateWrapperBase()
-        : Inherit()
-        , verbose( initData(&verbose, false, "verbose", "print tracing informations") )
-        , slave( initData(&slave, false, "slave", "slave wrapper (needed only for parallelization") )
-        , writeStateFile( initData(&writeStateFile, "writeStateFile", "write state at the end of the correction (writeState mode)") )
-    {
-    }
+    Data<bool> verbose;
+    Data<bool> slave;
+    sofa::core::objectmodel::DataFileName writeStateFile;
+    std::fstream stateFile;
+
 
 protected:
     sofa::simulation::Node* gnode;
@@ -66,12 +65,15 @@ protected:
     double startTime, stopTime;
 
 public:
-    Data<bool> verbose;
-    Data<bool> slave;
-    sofa::core::objectmodel::DataFileName writeStateFile;
-    std::fstream stateFile;
+    StochasticStateWrapperBase()
+        : Inherit()
+        , verbose( initData(&verbose, false, "verbose", "print tracing informations") )
+        , slave( initData(&slave, false, "slave", "slave wrapper (needed only for parallelization") )
+        , writeStateFile( initData(&writeStateFile, "writeStateFile", "write state at the end of the correction (writeState mode)") )
+    { }
 
-    void init() override {
+    void init() override
+    {
         Inherit::init();
 
         gnode = dynamic_cast<sofa::simulation::Node*>(this->getContext());
@@ -88,36 +90,33 @@ public:
         }
     }
 
-    virtual void initializeStep(size_t _stepNumber) {
+    virtual void initializeStep(size_t _stepNumber)
+    {
         stepNumber = _stepNumber;
         actualTime = double(stepNumber)*gnode->getDt();
         //PRNS("========= Initialize DA step T = " << actualTime);
     }
 
-    bool isSlave() {
+    bool isSlave()
+    {
         return slave.getValue();
     }
 
-    virtual void writeState(double) {
-    }
-}; /// class
+    virtual void writeState(double) { }
+};
+
+
 
 template <class FilterType>
-class StochasticStateWrapperBaseT: public sofa::component::stochastic::StochasticStateWrapperBase
+class StochasticStateWrapperBaseT : public sofa::component::stochastic::StochasticStateWrapperBase
 {
 public:
     SOFA_CLASS(SOFA_TEMPLATE(StochasticStateWrapperBaseT, FilterType), StochasticStateWrapperBase);
 
     typedef sofa::component::stochastic::StochasticStateWrapperBase Inherit;
-
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, Eigen::Dynamic> EMatrixX;
     typedef typename Eigen::Matrix<FilterType, Eigen::Dynamic, 1> EVectorX;
 
-
-    StochasticStateWrapperBaseT()
-        : Inherit()
-        , filterKind(UNDEF) {
-    }
 
 protected:
     /// stochastic state
@@ -145,15 +144,23 @@ protected:
     /// size of the associated mechanical state
     size_t mStateSize;  /// size of the mechanical state
     size_t mappedMStateSize; /// size of the mapped mechanical state
+
+
 public:
-    void init() override {
+    StochasticStateWrapperBaseT()
+        : Inherit()
+        , filterKind(UNDEF)
+    { }
+
+    void init() override
+    {
         Inherit::init();
     }
 
     virtual void updateState(bool) { }
 
     /// function required by classical and reduced-order filters (preform simulation -> compute new sigma state)
-    virtual void transformState(EVectorX& _vecX, const core::MechanicalParams* mparams,  int* _stateID = nullptr) = 0;
+    virtual void transformState(EVectorX& _vecX, const core::MechanicalParams* mparams, int* _stateID = nullptr) = 0;
     virtual void lastApplyOperator(EVectorX& _vecX, const core::MechanicalParams* mparams) = 0;
 
     /// function required by sim-corr filters (perform simulation -> store results internally to compute the observation)
@@ -161,68 +168,89 @@ public:
 
     /// function to be executed at the beginning of the time step    
 
-    virtual void setFilterKind(FilterKind _kind) {
+    virtual void setFilterKind(FilterKind _kind)
+    {
         filterKind = _kind;
     }
 
-    virtual FilterType getFilterKind() {
+    virtual FilterType getFilterKind()
+    {
         return filterKind;
     }
 
-    virtual EVectorX& getState() {
+    virtual EVectorX& getState()
+    {
         return state;
     }
 
-    virtual void setState(EVectorX& _state, const core::MechanicalParams* /*_mparams*/) {
+    virtual void setState(EVectorX& _state, const core::MechanicalParams* /*_mparams*/)
+    {
         state = _state;
     }
 
-    size_t getStateSize() {
+    size_t getStateSize()
+    {
         return state.rows();
     }
-    virtual bool& estimPosition() {
-        return EstimatePOSITION ;
-    }
-    virtual bool& estimOnlyXYZ() {
-        return EstimateONLYXYZ ;
+
+    virtual bool& estimPosition()
+    {
+        return EstimatePOSITION;
     }
 
-    virtual bool& declaredMapState() {
+    virtual bool& estimOnlyXYZ()
+    {
+        return EstimateONLYXYZ;
+    }
+
+    virtual bool& declaredMapState()
+    {
         return declaredMappedState;
     }
 
-    virtual EMatrixX& getStateErrorVariance() {
+    virtual EMatrixX& getStateErrorVariance()
+    {
         return stateErrorVariance;
     }
-    virtual EMatrixX& getModelErrorVariance() {
+
+    virtual EMatrixX& getModelErrorVariance()
+    {
         return modelErrorVariance;
     }
-    virtual EVectorX& getModelElementNoise() {
+
+    virtual EVectorX& getModelElementNoise()
+    {
         return modelElementNoise;
     }
 
-    virtual EMatrixX& getStateErrorVarianceDevUKF() {
+    virtual EMatrixX& getStateErrorVarianceDevUKF()
+    {
         return stateErrorVariance;
     }
 
-    virtual EMatrixX& getStateErrorVarianceUKF() {
+    virtual EMatrixX& getStateErrorVarianceUKF()
+    {
         return stateErrorVariance;
     }
 
     /// for reduced-order filtering
-    virtual void setStateErrorVarianceProjector(EMatrixX& _mat) {
+    virtual void setStateErrorVarianceProjector(EMatrixX& _mat)
+    {
         stateErrorVarianceProjector = _mat;
     }
 
-    virtual EMatrixX& getStateErrorVarianceProjector()  {
+    virtual EMatrixX& getStateErrorVarianceProjector()
+    {
         return stateErrorVarianceProjector;
     }
 
-    virtual EMatrixX& getStateErrorVarianceReduced() {
+    virtual EMatrixX& getStateErrorVarianceReduced()
+    {
         return stateErrorVarianceReduced;
     }
 
-    virtual void writeState(double timeStep) override {
+    virtual void writeState(double timeStep) override
+    {
         if (this->stateFile.is_open()) {
             this->stateFile << "T= " << timeStep << std::endl << "  X= ";
             for (size_t i = 0; i < reducedStateIndex; i++)
@@ -239,8 +267,8 @@ public:
     //    stateErrorVarianceRow = stateErrorVariance.row(rowIndex);
     //    return stateErrorVarianceRow;
     //}
+};
 
-}; /// class
 
 
 } // stochastic

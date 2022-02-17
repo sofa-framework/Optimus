@@ -26,6 +26,8 @@
 #include <sofa/core/ObjectFactory.h>
 #include "MatrixCovariance.inl"
 
+
+
 namespace sofa
 {
 
@@ -36,7 +38,6 @@ namespace container
 {
 
 
-/// DECLARATIONS
 
 SOFA_DECL_CLASS(MatrixCovariance)
 
@@ -49,8 +50,10 @@ int MatrixCovarianceClass = core::RegisterObject("Covariance data")
 template class SOFA_OPTIMUSPLUGIN_API MatrixCovariance<double>;
 
 
+
 } // namespace container
 
 } // namespace component
 
 } // namespace sofa
+

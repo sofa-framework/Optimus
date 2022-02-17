@@ -52,13 +52,15 @@ SimulatedStateObservationStreamer<DataTypes>::SimulatedStateObservationStreamer(
     , m_actualTime( initData (&m_actualTime, "actualTime", "actual iteration time") )
     , m_prevTime( initData (&m_prevTime, "previousTime", "previous iteration time") )
 {
-
 }
+
+
 
 template<class DataTypes>
 SimulatedStateObservationStreamer<DataTypes>::~SimulatedStateObservationStreamer()
 {
 }
+
 
 
 template<class DataTypes>
@@ -103,6 +105,8 @@ void SimulatedStateObservationStreamer<DataTypes>::draw(const core::visual::Visu
 
 //    vparams->drawTool()->drawSpheres(points, float(m_drawSize.getValue()), sofa::defaulttype::Vec<4, float> (0.0f, 0.0f, 1.0f, 1.0f));
 }
+
+
 
 template<class DataTypes>
 void SimulatedStateObservationStreamer<DataTypes>::handleEvent(core::objectmodel::Event *event)

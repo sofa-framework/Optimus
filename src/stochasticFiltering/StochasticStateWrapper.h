@@ -38,9 +38,9 @@
 #include <sofa/simulation/UpdateMappingEndEvent.h>
 #include <sofa/simulation/UpdateBoundingBoxVisitor.h>
 #include <SofaBaseTopology/EdgeSetTopologyContainer.h>
-#include <sofa/helper/AdvancedTimer.h>
 #include <sofa/simulation/IntegrateBeginEvent.h>
 #include <sofa/simulation/IntegrateEndEvent.h>
+#include <sofa/core/visual/VisualParams.h>
 
 #include <SofaConstraint/LCPConstraintSolver.h>
 
@@ -49,14 +49,13 @@
 #include <sofa/core/ObjectFactory.h>
 #include <sofa/core/VecId.h>
 
-
-
 #include <Eigen/Dense>
 
 #include "initOptimusPlugin.h"
 #include "StochasticStateWrapperBase.h"
 #include "../genericComponents/OptimParams.h"
 #include <fstream>
+
 
 
 namespace sofa
@@ -69,30 +68,25 @@ namespace stochastic
 {
 
 
+
 template<class DataTypes>
 class InternalCopy {
-public :
-
+public:
     typedef typename DataTypes::VecCoord VecCoord;
-
-    void copyStateToFilter(helper::vector<std::pair<size_t, size_t> > & pairs, const VecCoord & ) {}
-
-    void copyFilterToSofa(helper::vector<std::pair<size_t, size_t> > & pairs, VecCoord & ) {}
-
+    void copyStateToFilter(type::vector<std::pair<size_t, size_t> >& pairs, const VecCoord& ) {}
+    void copyFilterToSofa(type::vector<std::pair<size_t, size_t> >& pairs, VecCoord& ) {}
     void stateDim() {}
-
 };
 
-using namespace defaulttype;
+
 
 /**
  * Class which implements an interface between a filter (working with Eigen vectors and matrices) and SOFA and its own data types as Vec3d, Rigid3d etc.).
  * Presence of the component StochasticStateWrapper in a SOFA scene node indicates that the physical simulation is employed for predictions.
  * It closely interacts with mechanical state (set/get mechanism) and OptimParams which is a container for storing stochastic quantities.
  */
-
 template <class DataTypes, class FilterType>
-class StochasticStateWrapper: public sofa::component::stochastic::StochasticStateWrapperBaseT<FilterType>
+class StochasticStateWrapper : public sofa::component::stochastic::StochasticStateWrapperBaseT<FilterType>
 {
 public:
     SOFA_CLASS(SOFA_TEMPLATE2(StochasticStateWrapper, DataTypes, FilterType), SOFA_TEMPLATE(StochasticStateWrapperBaseT, FilterType));
@@ -102,6 +96,7 @@ public:
     typedef typename DataTypes::VecDeriv VecDeriv;
     typedef typename DataTypes::Coord Coord;
     typedef typename DataTypes::Coord Deriv;
+    typedef typename DataTypes::Real Real;
     typedef FilterType Type;
 
     typedef typename sofa::component::linearsolver::FullMatrix<FilterType> FullMatrix;
@@ -110,23 +105,41 @@ public:
 
 
     typedef typename core::behavior::MechanicalState<DataTypes> MechanicalState;
-    typedef typename core::behavior::MechanicalState<Vec3dTypes> MappedMechanicalState;
+    typedef typename core::behavior::MechanicalState<sofa::defaulttype::Vec3dTypes> MappedMechanicalState;
     typedef typename component::projectiveconstraintset::FixedConstraint<DataTypes> FixedConstraint;
     typedef sofa::component::container::OptimParamsBase OptimParamsBase;
 
     typedef typename Inherit::EMatrixX EMatrixX;
     typedef typename Inherit::EVectorX EVectorX;
 
-    typedef defaulttype::Vec<4,float> Vec4f;
+    typedef type::Vec<4,float> Vec4f;
 
-    StochasticStateWrapper();
-    ~StochasticStateWrapper();
+
+    Data< bool > d_langrangeMultipliers;
+    Data< bool > estimatePosition;
+    Data< bool > estimateOnlyXYZ;
+
+    Data< bool > estimateVelocity;
+    Data< type::vector<FilterType> >  posModelStdev, velModelStdev;
+    Data< type::vector<FilterType> > paramModelStdev;
+    Data< type::vector<double> > d_positionStdev;  /// standart deviation for positions
+    Data< type::vector<double> > d_velocityStdev;  /// standart deviation for velocities
+    Data< std::string > d_mappedStatePath;
+    Data< bool > d_draw;
+    Data< double > d_radius_draw;
+    Data< FullMatrix > d_fullMatrix;
+    Data< bool > m_solveVelocityConstraintFirst;
+
+    EMatrixX modelErrorVariance;
+    EMatrixX modelErrorVarianceInverse;
+    FilterType modelErrorVarianceValue;
+
 
 protected:
-    MechanicalState *mechanicalState;
-    MappedMechanicalState *mappedState;
+    MechanicalState* mechanicalState;
+    MappedMechanicalState* mappedState;
     FixedConstraint* fixedConstraint;
-    helper::vector<OptimParamsBase*> vecOptimParams;
+    type::vector<OptimParamsBase*> vecOptimParams;
     InternalCopy<DataTypes> m_internalCopy;
     size_t posDim;
     size_t velDim;
@@ -135,42 +148,28 @@ protected:
 
     VecCoord beginTimeStepPos;
     VecDeriv beginTimeStepVel;
-    Vec3dTypes::VecCoord beginTimeStepMappedPos;
+    sofa::defaulttype::Vec3dTypes::VecCoord beginTimeStepMappedPos;
 
-    helper::vector<VecCoord> sigmaStatePos;
-    helper::vector<VecDeriv> sigmaStateVel;
-    helper::vector<Vec3dTypes::VecCoord> sigmaMappedStatePos;
-    helper::vector<double> color,colorB;
+    type::vector<VecCoord> sigmaStatePos;
+    type::vector<VecDeriv> sigmaStateVel;
+    type::vector<sofa::defaulttype::Vec3dTypes::VecCoord> sigmaMappedStatePos;
+    type::vector<double> color, colorB;
 
     bool valid;
-    helper::vector<size_t> fixedNodes, freeNodes;
-    helper::vector<std::pair<size_t, size_t> > positionPairs;
-    helper::vector<std::pair<size_t, size_t> > velocityPairs;
+    type::vector< size_t > fixedNodes, freeNodes;
+    type::vector< std::pair<size_t, size_t> > positionPairs;
+    type::vector< std::pair<size_t, size_t> > velocityPairs;
 
-    void copyStateFilter2Sofa(const core::MechanicalParams *_mechParams, bool _setVelocityFromPosition = false);  // copy actual DA state to SOFA state and propagate to mappings
+    /// copy actual DA state to SOFA state and propagate to mappings
+    void copyStateFilter2Sofa(const core::MechanicalParams *_mechParams, bool _setVelocityFromPosition = false);
     void copyStateSofa2Filter();  // copy the actual SOFA state to DA state
     void computeSofaStep(const core::ExecParams* execParams, bool _updateTime);
     void computeSofaStepWithLM(const core::ExecParams* params);
 
+
 public:
-    Data<bool> d_langrangeMultipliers;
-    Data<bool> estimatePosition;
-    Data<bool> estimateOnlyXYZ;
-
-    Data<bool> estimateVelocity;
-    Data<helper::vector<FilterType>>  posModelStdev, velModelStdev;
-    Data<helper::vector<FilterType>> paramModelStdev;
-    Data<helper::vector<double>> d_positionStdev;  /// standart deviation for positions
-    Data<helper::vector<double>> d_velocityStdev;  /// standart deviation for velocities
-    Data <std::string> d_mappedStatePath;
-    Data< bool  > d_draw;
-    Data< double  > d_radius_draw;
-    Data<FullMatrix> d_fullMatrix;
-    Data<bool> m_solveVelocityConstraintFirst;
-
-    EMatrixX modelErrorVariance;
-    EMatrixX modelErrorVarianceInverse;
-    FilterType modelErrorVarianceValue;
+    StochasticStateWrapper();
+    ~StochasticStateWrapper();
 
     /// initialization before the data assimilation starts
     void init() override;
@@ -194,11 +193,12 @@ public:
     void getPos(EVectorX& _state, VecCoord& actualPos);
 
     void getActualVelocity(int _id, VecDeriv& _vel);
-    void getActualMappedPosition(int _id, Vec3dTypes::VecCoord& _mapPos);    
+    void getActualMappedPosition(int _id, sofa::defaulttype::Vec3dTypes::VecCoord& _mapPos);
     void setState(EVectorX& _state, const core::MechanicalParams* _mparams) override;
 
     void setSofaVectorFromFilterVector(EVectorX& _state, typename DataTypes::VecCoord& _vec);
     void setSofaVelocityFromFilterVector(EVectorX& _state, typename DataTypes::VecDeriv& _vel);
+
 
     /// get the variance of error of the state
     virtual EMatrixX& getStateErrorVariance() override;
@@ -213,8 +213,8 @@ public:
 
     void draw(const core::visual::VisualParams* vparams) override;
 
-    /// SOFA-imposed methods for object factory
 
+    /// SOFA-imposed methods for object factory
     template<class T>
     static bool canCreate(T*& obj, core::objectmodel::BaseContext* context, core::objectmodel::BaseObjectDescription* arg)
     {
@@ -231,11 +231,10 @@ public:
         return DataTypes::Name();
     }
 
-protected :
 
+protected:
     sofa::core::behavior::ConstraintSolver *constraintSolver;
     component::constraintset::LCPConstraintSolver::SPtr defaultSolver;
-
 
     /****** ADDED FOR COLLISIONS  *****/
     /// Activate collision pipeline
@@ -243,7 +242,6 @@ protected :
 
     /// Activate OdeSolvers
     virtual void integrate(const core::ExecParams* params, SReal dt);
-
 
     //typedef simulation::Node::Sequence<core::behavior::OdeSolver> Solvers;
     //typedef core::collision::Pipeline Pipeline;
@@ -253,8 +251,8 @@ protected :
     // This pointer is initialized one time at the construction, avoiding dynamic_cast<Node*>(context) every time step
     //simulation::Node* gnode;
     /****** ADDED FOR COLLISIONS  *****/
+};
 
-}; /// class
 
 
 } // simulation

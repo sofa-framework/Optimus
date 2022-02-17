@@ -24,6 +24,7 @@
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/RigidTypes.h>
 #include <sofa/core/behavior/MechanicalState.h>
+#include <sofa/core/MechanicalParams.h>
 
 #include <sofa/simulation/AnimateEndEvent.h>
 #include <sofa/simulation/AnimateBeginEvent.h>
@@ -36,6 +37,8 @@
 #include "StochasticStateWrapperBase.h"
 #include "ObservationManagerBase.h"
 
+
+
 namespace sofa
 {
 
@@ -45,27 +48,22 @@ namespace component
 namespace stochastic
 {
 
-using namespace defaulttype;
 
-/// ganaeral filter interface
+
+/**
+ *  general filter interface
+ */
 class StochasticFilterBase : public sofa::core::objectmodel::BaseObject
 {
 public:
     SOFA_ABSTRACT_CLASS(StochasticFilterBase, BaseObject);
     typedef sofa::core::objectmodel::BaseObject Inherit;
 
-    StochasticFilterBase()
-        : Inherit()        
-        , mechParams(0)
-        , verbose( initData(&verbose, false, "verbose", "print tracing informations") )
-        , useUnbiasedVariance( initData(&useUnbiasedVariance, false, "useUnbiasedVariance", "if true, the unbiased variance is computed (normalization by 1/(n-1) [not activated for UKFClassic!") )
-        //, useModelIncertitude( initData(&useModelIncertitude, false, "useModelIncertitude", "if true, the state covariance is computed by adding Q") )
-        , initialiseObservationsAtFirstStep( initData(&initialiseObservationsAtFirstStep, false, "initialiseObservationsAtFirstStep", "if true initialise component during first iteration") )
-    {
+    Data< bool > verbose;
+    Data< bool > useUnbiasedVariance;
+    // Data< bool > useModelIncertitude;
+    Data< bool > initialiseObservationsAtFirstStep;
 
-    }
-
-    ~StochasticFilterBase() {}
 
 protected:
     sofa::helper::system::thread::CTime *timer;
@@ -78,13 +76,19 @@ protected:
     const core::MechanicalParams* mechParams;
 
 public:
-    Data<bool> verbose;
-    Data<bool> useUnbiasedVariance;
-    //Data<bool> useModelIncertitude;
-    Data<bool> initialiseObservationsAtFirstStep;
+    StochasticFilterBase()
+        : Inherit()
+        , verbose( initData(&verbose, false, "verbose", "print tracing informations") )
+        , useUnbiasedVariance( initData(&useUnbiasedVariance, false, "useUnbiasedVariance", "if true, the unbiased variance is computed (normalization by 1/(n-1) [not activated for UKFClassic!") )
+        //, useModelIncertitude( initData(&useModelIncertitude, false, "useModelIncertitude", "if true, the state covariance is computed by adding Q") )
+        , initialiseObservationsAtFirstStep( initData(&initialiseObservationsAtFirstStep, false, "initialiseObservationsAtFirstStep", "if true initialise component during first iteration") )
+        , mechParams(0)
+    { }
 
+    ~StochasticFilterBase() {}
 
-    void init() override {
+    void init() override
+    {
         Inherit::init();
         gnode = dynamic_cast<sofa::simulation::Node*>(this->getContext());
 
@@ -96,12 +100,14 @@ public:
         actualTime = 0.0;
     }
 
-    virtual void initializeStep(const core::ExecParams* _params, const size_t _step) {
-        if (mechParams==0)
+    virtual void initializeStep(const core::ExecParams* _params, const size_t _step)
+    {
+        if (mechParams == 0) {
             mechParams = new core::MechanicalParams(*_params);
-        execParams=_params;
-        stepNumber=_step;
-        actualTime = double(stepNumber)*gnode->getDt();
+        }
+        execParams = _params;
+        stepNumber = _step;
+        actualTime = double(stepNumber) * gnode->getDt();
         this->gnode->setTime(this->actualTime);
         this->gnode->execute< sofa::simulation::UpdateSimulationContextVisitor >(execParams);
     }
@@ -111,27 +117,23 @@ public:
 
     // change filter state
     virtual void updateState() = 0;
+};
 
-}; /// class
 
 
-/// ganeral interface for uncertain filter types
+/**
+ * general interface for uncertain filter types
+ */
 class StochasticUnscentedFilterBase : public StochasticFilterBase
 {
 public:
     SOFA_ABSTRACT_CLASS(StochasticUnscentedFilterBase, StochasticFilterBase);
     typedef StochasticFilterBase Inherit;
 
-    StochasticUnscentedFilterBase()
-        : Inherit()
-        , reducedOrder( initData(&reducedOrder, false, "reducedOrder", "reduced order type of the filter") )
-        , lambdaScale( initData(&lambdaScale, 0.5, "lambdaScale", "scaling for sigma points") )
-        , d_sigmaTopologyType( initData(&d_sigmaTopologyType, "sigmaTopology", "sigma topology type") )
-    {
+    Data< bool > reducedOrder;
+    Data< double > lambdaScale;
+    Data< std::string > d_sigmaTopologyType;
 
-    }
-
-    ~StochasticUnscentedFilterBase() {}
 
 protected:
     typedef enum SigmaTopology {
@@ -141,31 +143,40 @@ protected:
 
     SigmaTopologyType m_sigmaTopology;
 
-public:
-    Data<bool> reducedOrder;
-    Data<double> lambdaScale;
-    Data< std::string > d_sigmaTopologyType;
 
-    void init() override {
+public:
+    StochasticUnscentedFilterBase()
+        : Inherit()
+        , reducedOrder( initData(&reducedOrder, false, "reducedOrder", "reduced order type of the filter") )
+        , lambdaScale( initData(&lambdaScale, 0.5, "lambdaScale", "scaling for sigma points") )
+        , d_sigmaTopologyType( initData(&d_sigmaTopologyType, "sigmaTopology", "sigma topology type") )
+    { }
+
+    ~StochasticUnscentedFilterBase() {}
+
+    void init() override
+    {
         Inherit::init();
 
         m_sigmaTopology = SIMPLEX;
         std::string topology = d_sigmaTopologyType.getValue();
-        if (std::strcmp(topology.c_str(), "Star") == 0)
+        if (std::strcmp(topology.c_str(), "Star") == 0) {
             m_sigmaTopology = STAR;
+        }
     }
 
-    virtual void initializeStep(const core::ExecParams* _params, const size_t _step) {
+    virtual void initializeStep(const core::ExecParams* _params, const size_t _step) override
+    {
         Inherit::initializeStep(_params, _step);
     }
 
-    virtual void computePrediction() = 0;
-    virtual void computeCorrection() = 0;
+    virtual void computePrediction() override = 0;
+    virtual void computeCorrection() override = 0;
 
     // change filter state
-    virtual void updateState() = 0;
+    virtual void updateState() override = 0;
+};
 
-}; /// class
 
 
 } // stochastic

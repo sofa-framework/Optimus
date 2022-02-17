@@ -39,13 +39,14 @@ namespace container
 {
 
 
-using namespace defaulttype;
 
+using namespace defaulttype;
 
 /// SPECIALIZATIONS FOR vector<double>
 
 template<>
-void OptimParams<sofa::helper::vector<double> >::getInitVariance(DVec& _variance) {
+void OptimParams<sofa::type::vector<double> >::getInitVariance(DVec& _variance)
+{
     _variance.resize(m_stdev.getValue().size());
 
     switch (transParamType) {
@@ -59,38 +60,41 @@ void OptimParams<sofa::helper::vector<double> >::getInitVariance(DVec& _variance
     }
 }
 
+
+
 template<>
-void OptimParams<sofa::helper::vector<double> >::vectorToParams(VectorXd& _vector) {    
-    helper::WriteAccessor<Data<helper::vector<double> > > val = m_val;
-    helper::ReadAccessor<Data<helper::vector<double> > > minVal = m_minVal;
-    helper::ReadAccessor<Data<helper::vector<double> > > maxVal = m_maxVal;
+void OptimParams<sofa::type::vector<double> >::vectorToParams(VectorXd& _vector)
+{
+    helper::WriteAccessor< Data< type::vector<double> > > val = m_val;
+    helper::ReadAccessor< Data< type::vector<double> > > minVal = m_minVal;
+    helper::ReadAccessor< Data< type::vector<double> > > maxVal = m_maxVal;
 
     switch (transParamType) {
     case 1:
         for (size_t i = 0; i < this->paramIndices.size(); i++) {
-            val[i]=fabs(_vector[this->paramIndices[i]]);
+            val[i] = fabs(_vector[this->paramIndices[i]]);
         }
         break;
     case 2:
         // std::cout << "backward step " << std::endl;
         for (size_t i = 0; i < this->paramIndices.size(); i++) {
-            val[i]=sigmoid(_vector[this->paramIndices[i]], maxVal[i], minVal[i]);
-            //std::cout << val[i] << std::endl;
+            val[i] = sigmoid(_vector[this->paramIndices[i]], maxVal[i], minVal[i]);
+            // std::cout << val[i] << std::endl;
         }
         break;
     case 3:
         for (size_t i = 0; i < this->paramIndices.size(); i++) {
-            val[i]=exp(_vector[this->paramIndices[i]]);
-            //std::cout << val[i] << std::endl;
+            val[i] = exp(_vector[this->paramIndices[i]]);
+            // std::cout << val[i] << std::endl;
         }
         break;
     case 4:
         for (size_t i = 0; i < this->paramIndices.size(); i++) {
             double inVal = _vector[this->paramIndices[i]];
-            //std::cout << "HERE: " << inVal << " vs " << minVal[i] << " " <<(inVal < minVal[i]) << std::endl;
+            // std::cout << "HERE: " << inVal << " vs " << minVal[i] << " " <<(inVal < minVal[i]) << std::endl;
             val[i] = (inVal < minVal[i]) ? minVal[i] : inVal;
             val[i] = (val[i] > maxVal[i]) ? maxVal[i] : val[i];
-            //std::cout <<  "  val: " << val[i] << std::endl;
+            // std::cout <<  "  val: " << val[i] << std::endl;
         }
         break;
     default:
@@ -98,35 +102,37 @@ void OptimParams<sofa::helper::vector<double> >::vectorToParams(VectorXd& _vecto
             val[i] = _vector[this->paramIndices[i]];
     }
 
-    /*std::cout <<"Values used in SOFA:" << std::endl;
-    for (size_t i = 0; i < this->paramIndices.size(); i++) {
-        std::cout <<  " " << val[i];
-    }
-    std::cout << std::endl;*/
+    //  std::cout <<"Values used in SOFA:" << std::endl;
+    //  for (size_t i = 0; i < this->paramIndices.size(); i++) {
+    //      std::cout <<  " " << val[i];
+    //  }
+    //  std::cout << std::endl;
 }
 
 
+
 template<>
-void OptimParams<sofa::helper::vector<double> >::vectorToParams(VectorXf& _vector) {    
-    helper::WriteAccessor<Data<helper::vector<double> > > val = m_val;
-    helper::ReadAccessor<Data<helper::vector<double> > > minVal = m_minVal;
-    helper::ReadAccessor<Data<helper::vector<double> > > maxVal = m_maxVal;
+void OptimParams<sofa::type::vector<double> >::vectorToParams(VectorXf& _vector)
+{
+    helper::WriteAccessor< Data< type::vector<double> > > val = m_val;
+    helper::ReadAccessor< Data< type::vector<double> > > minVal = m_minVal;
+    helper::ReadAccessor< Data< type::vector<double> > > maxVal = m_maxVal;
 
     switch (transParamType) {
     case 1:
         for (size_t i = 0; i < this->paramIndices.size(); i++) {
-            val[i]=double(fabs(_vector[this->paramIndices[i]]));
+            val[i] = double(fabs(_vector[this->paramIndices[i]]));
         }
         break;
     case 2:
         for (size_t i = 0; i < this->paramIndices.size(); i++) {
-            val[i]=sigmoid(_vector[this->paramIndices[i]], maxVal[i], minVal[i]);
+            val[i] = sigmoid(_vector[this->paramIndices[i]], maxVal[i], minVal[i]);
         }
         break;
     case 3:
         for (size_t i = 0; i < this->paramIndices.size(); i++) {
-            val[i]=exp(_vector[this->paramIndices[i]]);
-            //std::cout << val[i] << std::endl;
+            val[i] = exp(_vector[this->paramIndices[i]]);
+            // std::cout << val[i] << std::endl;
         }
         break;
     case 4:
@@ -143,9 +149,11 @@ void OptimParams<sofa::helper::vector<double> >::vectorToParams(VectorXf& _vecto
 }
 
 
+
 template<>
-void OptimParams<sofa::helper::vector<double> >::paramsToVector(VectorXd& _vector) {
-    helper::ReadAccessor<Data<helper::vector<double> > > val = m_val; // real values of parameters
+void OptimParams<sofa::type::vector<double> >::paramsToVector(VectorXd& _vector)
+{
+    helper::ReadAccessor< Data< type::vector<double> > > val = m_val; // real values of parameters
 
     switch (transParamType) {
     case 1:
@@ -156,25 +164,28 @@ void OptimParams<sofa::helper::vector<double> >::paramsToVector(VectorXd& _vecto
         // std::cout << "forward step " << std::endl;
         for (size_t i = 0; i < this->paramIndices.size(); i++) {
             _vector[paramIndices[i]] = double(logit(val[i], m_maxVal.getValue()[i], m_minVal.getValue()[i]));
-            //std::cout << val[i] << " " << logit(val[i], m_maxVal.getValue()[i], m_minVal.getValue()[i]) << std::endl;
+            // std::cout << val[i] << " " << logit(val[i], m_maxVal.getValue()[i], m_minVal.getValue()[i]) << std::endl;
         }
         break;
     case 3:
         for (size_t i = 0; i < this->paramIndices.size(); i++) {
             _vector[paramIndices[i]] = double(log(val[i]));
-            //std::cout << val[i] << std::endl;
+            // std::cout << val[i] << std::endl;
         }
         break;
     default:
         for (size_t i = 0; i < paramIndices.size(); i++)
             _vector[paramIndices[i]] = val[i];
     }
-    //std::cout << "paramsToVector raVal\n" << _vector << std::endl;
+    // std::cout << "paramsToVector raVal\n" << _vector << std::endl;
 }
 
+
+
 template<>
-void OptimParams<sofa::helper::vector<double> >::paramsToVector(VectorXf& _vector) {
-    helper::ReadAccessor<Data<helper::vector<double> > > val = m_val; // real values of parameters
+void OptimParams<sofa::type::vector<double> >::paramsToVector(VectorXf& _vector)
+{
+    helper::ReadAccessor< Data< type::vector<double> > > val = m_val; // real values of parameters
 
     switch (transParamType) {
     case 1:
@@ -189,7 +200,7 @@ void OptimParams<sofa::helper::vector<double> >::paramsToVector(VectorXf& _vecto
     case 3:
         for (size_t i = 0; i < this->paramIndices.size(); i++) {
             _vector[paramIndices[i]] = float(log(val[i]));
-            //std::cout << val[i] << std::endl;
+            // std::cout << val[i] << std::endl;
         }
         break;
     default:
@@ -199,14 +210,17 @@ void OptimParams<sofa::helper::vector<double> >::paramsToVector(VectorXf& _vecto
 }
 
 
+
 template<>
-void OptimParams<sofa::helper::vector<double> >::init() {    
+void OptimParams<sofa::type::vector<double> >::init()
+{
     Inherit::init();
     m_dim = 1;
 
     /// take the initial value and initial stdev
-    if (!this->m_prescribedParamKeys.getValue().empty()) {
-        helper::ReadAccessor<Data<helper::vector<double> > >keys = m_prescribedParamKeys;
+    if ( !this->m_prescribedParamKeys.getValue().empty() )
+    {
+        helper::ReadAccessor< Data< type::vector<double> > >keys = m_prescribedParamKeys;
 
         size_t numParams = this->m_dim * this->m_numParams.getValue();
         size_t numKeyValues = keys.size();
@@ -222,9 +236,9 @@ void OptimParams<sofa::helper::vector<double> >::init() {
 
             for (size_t i = 0; i < numKeys; i++) {
                 m_paramKeys[i].first = keys[i*(numParams+1)];
-                helper::vector<double> v(numParams);
+                type::vector<double> v(numParams);
                 for (size_t j = 0; j < numParams; j++)
-                    v[j] = keys[i*(numParams+1)+j+1];
+                    v[j] = keys[i * (numParams + 1) + j + 1];
                 m_paramKeys[i].second = v;
             }
 
@@ -235,14 +249,14 @@ void OptimParams<sofa::helper::vector<double> >::init() {
                 std::cout << std::endl;
             }*/
 
-            helper::WriteAccessor<Data<sofa::helper::vector<double> > > initVal = m_initVal;
+            helper::WriteAccessor< Data< sofa::type::vector<double> > > initVal = m_initVal;
             initVal.resize(numParams);
             for (size_t i = 0; i < numParams; i++)
                 initVal[i] = m_paramKeys[0].second[i];
         }
     }
 
-    helper::ReadAccessor<Data<sofa::helper::vector<double> > > initVal = m_initVal;
+    helper::ReadAccessor<Data<sofa::type::vector<double> > > initVal = m_initVal;
     size_t nInitVal = initVal.size();
 
     if ( (m_numParams.getValue() == 0 && nInitVal > 0) || m_numParams.getValue() == nInitVal) {
@@ -255,7 +269,7 @@ void OptimParams<sofa::helper::vector<double> >::init() {
             double value = initVal[0];
 
             sout << this->getName() << ": Resizing init value vector to " << nInitVal << sendl;
-            helper::WriteAccessor<Data<sofa::helper::vector<double> > > wInitVal = m_initVal;
+            helper::WriteAccessor<Data<sofa::type::vector<double> > > wInitVal = m_initVal;
             wInitVal.wref().resize(nInitVal);
             for (size_t i = 0; i < nInitVal; i++)
                 wInitVal[i] = value;
@@ -268,7 +282,7 @@ void OptimParams<sofa::helper::vector<double> >::init() {
     size_t numParams = m_numParams.getValue();
     if (numParams > 1 && m_maxVal.getValue().size() == 1) {
         const double val = m_maxVal.getValue()[0];
-        helper::WriteAccessor<Data<sofa::helper::vector<double> > > wMaxVal = m_maxVal;
+        helper::WriteAccessor<Data<sofa::type::vector<double> > > wMaxVal = m_maxVal;
         wMaxVal.resize(numParams, val);
         for (size_t i = 0; i < numParams; i++)
             wMaxVal[i] = val;
@@ -276,35 +290,35 @@ void OptimParams<sofa::helper::vector<double> >::init() {
 
     if (numParams > 1 && m_minVal.getValue().size() == 1) {
         const double val = m_minVal.getValue()[0];
-        helper::WriteAccessor<Data<sofa::helper::vector<double> > > wMinVal = m_minVal;
+        helper::WriteAccessor<Data<sofa::type::vector<double> > > wMinVal = m_minVal;
         wMinVal.resize(numParams, val);
         for (size_t i = 0; i < numParams; i++)
             wMinVal[i] = val;
     }
 
     if (nInitVal != 0) {
-        helper::WriteAccessor<Data<sofa::helper::vector<double> > > val = m_val;
+        helper::WriteAccessor<Data<sofa::type::vector<double> > > val = m_val;
         if (val.size() == 0) {
             val.resize(nInitVal);
             for (size_t i = 0; i < nInitVal; i++)
                 val[i] = initVal[i];
         }
 
-        helper::WriteAccessor<Data<sofa::helper::vector<double> > > minVal = m_minVal;
+        helper::WriteAccessor<Data<sofa::type::vector<double> > > minVal = m_minVal;
         if (minVal.size() == 0) {
             minVal.resize(nInitVal);
             for (size_t i = 0; i < nInitVal; i++)
                 minVal[i] = initVal[i];
         }
 
-        helper::WriteAccessor<Data<sofa::helper::vector<double> > > maxVal = m_maxVal;
+        helper::WriteAccessor<Data<sofa::type::vector<double> > > maxVal = m_maxVal;
         if (maxVal.size() == 0) {
             maxVal.resize(nInitVal);
             for (size_t i = 0; i < nInitVal; i++)
                 maxVal[i] = initVal[i];
         }
 
-        helper::WriteAccessor<Data<sofa::helper::vector<double> > > stdev = m_stdev;        
+        helper::WriteAccessor<Data<sofa::type::vector<double> > > stdev = m_stdev;
         if (stdev.size() == 0) {
             stdev.resize(nInitVal, 0.0);
             PRNW("Standard deviation not used, setting to 0!")
@@ -327,43 +341,44 @@ void OptimParams<sofa::helper::vector<double> >::init() {
 }
 
 
+
 template<>
-void OptimParams<helper::vector<double> >::appendParameters()
+void OptimParams<type::vector<double> >::appendParameters()
 {
     size_t numParams = this->m_dim * this->m_numParams.getValue();
     std::cout << "Old number of parameters: " << numParams << std::endl;
 
     // read added parameters
-    helper::ReadAccessor<Data<sofa::helper::vector<double> > > addedVal = m_addedVal;
-    helper::ReadAccessor<Data<sofa::helper::vector<double> > > addedMinVal = m_addedMinVal;
-    helper::ReadAccessor<Data<sofa::helper::vector<double> > > addedMaxVal = m_addedMaxVal;
-    helper::ReadAccessor<Data<sofa::helper::vector<double> > > addedStd = m_addedStd;
+    helper::ReadAccessor< Data< sofa::type::vector<double> > > addedVal = m_addedVal;
+    helper::ReadAccessor< Data< sofa::type::vector<double> > > addedMinVal = m_addedMinVal;
+    helper::ReadAccessor< Data< sofa::type::vector<double> > > addedMaxVal = m_addedMaxVal;
+    helper::ReadAccessor< Data< sofa::type::vector<double> > > addedStd = m_addedStd;
 
     size_t newNumParams = addedVal.size() + this->m_dim * this->m_numParams.getValue();
     std::cout << "Added values size: " << addedVal.size() << std::endl;
     std::cout << "New number of parameters: " << newNumParams << std::endl;
 
-    helper::WriteAccessor<Data<sofa::helper::vector<double> > > val = m_val;
+    helper::WriteAccessor<Data<sofa::type::vector<double> > > val = m_val;
     val.resize(newNumParams);
     for (size_t i = numParams; i < newNumParams; i++)
         val[i] = addedVal[i - numParams];
 
-    helper::WriteAccessor<Data<sofa::helper::vector<double> > > initVal = m_initVal;
+    helper::WriteAccessor<Data<sofa::type::vector<double> > > initVal = m_initVal;
     initVal.resize(newNumParams);
     for (size_t i = numParams; i < newNumParams; i++)
         initVal[i] = addedVal[i - numParams];
 
-    helper::WriteAccessor<Data<sofa::helper::vector<double> > > minVal = m_minVal;
+    helper::WriteAccessor<Data<sofa::type::vector<double> > > minVal = m_minVal;
     minVal.resize(newNumParams);
     for (size_t i = numParams; i < newNumParams; i++)
         minVal[i] = addedMinVal[i - numParams];
 
-    helper::WriteAccessor<Data<sofa::helper::vector<double> > > maxVal = m_maxVal;
+    helper::WriteAccessor<Data<sofa::type::vector<double> > > maxVal = m_maxVal;
     maxVal.resize(newNumParams);
     for (size_t i = numParams; i < newNumParams; i++)
         maxVal[i] = addedMaxVal[i - numParams];
 
-    helper::WriteAccessor<Data<sofa::helper::vector<double> > > stdev = m_stdev;
+    helper::WriteAccessor<Data<sofa::type::vector<double> > > stdev = m_stdev;
     stdev.resize(newNumParams);
     for (size_t i = numParams; i < newNumParams; i++)
         stdev[i] = addedStd[i - numParams];
@@ -371,14 +386,22 @@ void OptimParams<helper::vector<double> >::appendParameters()
     m_numParams.setValue(newNumParams);
 }
 
+
+
 template<>
 void OptimParams<double>::appendParameters() { }
 
+
+
 template<>
-void OptimParams<Vec3d>::appendParameters() { }
+void OptimParams<type::Vec3d>::appendParameters() { }
+
+
 
 template<>
 void OptimParams<Vec3dTypes::VecDeriv>::appendParameters() { }
+
+
 
 template<>
 void OptimParams<Rigid3dTypes::VecDeriv>::appendParameters() { }
@@ -386,7 +409,8 @@ void OptimParams<Rigid3dTypes::VecDeriv>::appendParameters() { }
 
 
 template<>
-void OptimParams<sofa::helper::vector<double> >::handleEvent(core::objectmodel::Event *event) {
+void OptimParams<sofa::type::vector<double> >::handleEvent(core::objectmodel::Event *event)
+{
     if (dynamic_cast<sofa::simulation::AnimateBeginEvent *>(event))
     {
         //if (!this->m_optimize.getValue()) {
@@ -396,14 +420,14 @@ void OptimParams<sofa::helper::vector<double> >::handleEvent(core::objectmodel::
             int timeSlot = -1;
 
             for (size_t i = 1; i < m_paramKeys.size() && timeSlot < 0; i++) {
-                if (m_paramKeys[i-1].first <= actTime && actTime < m_paramKeys[i].first) {
-                    timeSlot = i-1;
+                if (m_paramKeys[i - 1].first <= actTime && actTime < m_paramKeys[i].first) {
+                    timeSlot = i - 1;
                 }
             }           
 
             if (timeSlot == -1) {
                 if (actTime >= m_paramKeys.back().first) {
-                    helper::WriteAccessor<Data<sofa::helper::vector<double> > > val = m_val;
+                    helper::WriteAccessor<Data<sofa::type::vector<double> > > val = m_val;
                     std::cout << "Const val: ";
                     for (size_t i = 0; i < val.size(); i++) {
                         val[i] = m_paramKeys.back().second[i];
@@ -416,49 +440,48 @@ void OptimParams<sofa::helper::vector<double> >::handleEvent(core::objectmodel::
             } else {
                 double t1 = m_paramKeys[timeSlot].first;
                 double t2 = m_paramKeys[timeSlot+1].first;
-                double r1 = (actTime-t1)/(t2-t1);
-                double r2 = (t2-actTime)/(t2-t1);
+                double r1 = (actTime - t1) / (t2 - t1);
+                double r2 = (t2 - actTime) / (t2 - t1);
 
                 //std::cout << "Time slot: " << timeSlot << " actual time: " << actTime << " ratii: " << r1 << " " << r2 << std::endl;
 
-                helper::WriteAccessor<Data<sofa::helper::vector<double> > > val = m_val;
+                helper::WriteAccessor<Data<sofa::type::vector<double> > > val = m_val;
                 std::cout << "Value: ";
                 for (size_t i = 0; i < val.size(); i++) {
-                    double v1=m_paramKeys[timeSlot].second[i];
-                    double v2=m_paramKeys[timeSlot+1].second[i];
+                    double v1 = m_paramKeys[timeSlot].second[i];
+                    double v2 = m_paramKeys[timeSlot + 1].second[i];
 
-                    /// (y2-y1)*(tanh(3.5*(a-(t0+t1)/2))+1)/2+y1
-                    if (this->m_interpolateSmooth.getValue())
-                        val[i] =  (v2-v1)*(tanh(2*(actTime-(t1+t2)/2))+1)/2+v1;
-                    else
-                        val[i] = r2*v1 + r1*v2;
+                    // (y2 - y1) * (tanh(3.5 * (a - (t0 + t1) / 2)) + 1) / 2 + y1
+                    if (this->m_interpolateSmooth.getValue()) {
+                        val[i] = (v2 - v1) * (tanh(2 * (actTime - (t1 + t2) / 2)) + 1) / 2 + v1;
+                    } else {
+                        val[i] = r2 * v1 + r1 * v2;
+                    }
                     std::cout << " " << val[i];
                 }
                 std::cout << std::endl;
-
-            //}
-
-        }
+            }
+        // }
 
         if (this->saveParam) {
             std::ofstream paramFile(m_exportParamFile.getValue().c_str(), std::ios::app);
             if (paramFile.is_open()) {
-                helper::ReadAccessor<Data<sofa::helper::vector<double> > > val = m_val;
+                helper::ReadAccessor< Data< sofa::type::vector<double> > > val = m_val;
                 for (size_t i = 0; i < val.size(); i++)
                     paramFile << val[i] << " ";
                 paramFile << '\n';
                 paramFile.close();
             }
         }
-
     }
 }
 
 
-/// SPECIALIZATIONS FOR VecCoord3D
 
+/// SPECIALIZATIONS FOR VecCoord3D
 template<>
-void OptimParams<Vec3dTypes::VecDeriv>::init() {
+void OptimParams<Vec3dTypes::VecDeriv>::init()
+{
     Inherit::init();
     this->m_dim = 3;
 
@@ -499,8 +522,10 @@ void OptimParams<Vec3dTypes::VecDeriv>::init() {
 }
 
 
+
 template<>
-void OptimParams<Vec3dTypes::VecDeriv>::vectorToParams(VectorXd& _vector) {
+void OptimParams<Vec3dTypes::VecDeriv>::vectorToParams(VectorXd& _vector)
+{
     helper::WriteAccessor<Data<Vec3dTypes::VecDeriv> > waVal = m_val;
 
     size_t numParams = m_numParams.getValue();
@@ -510,8 +535,11 @@ void OptimParams<Vec3dTypes::VecDeriv>::vectorToParams(VectorXd& _vector) {
             waVal[i][j] = _vector[paramIndices[i*m_dim+j]];
 }
 
+
+
 template<>
-void OptimParams<Vec3dTypes::VecDeriv>::paramsToVector(VectorXd& _vector) {
+void OptimParams<Vec3dTypes::VecDeriv>::paramsToVector(VectorXd& _vector)
+{
     helper::ReadAccessor<Data<Vec3dTypes::VecCoord> > raVal = m_val;
     size_t k = 0;
     size_t numParams = this->m_numParams.getValue();
@@ -521,8 +549,11 @@ void OptimParams<Vec3dTypes::VecDeriv>::paramsToVector(VectorXd& _vector) {
             _vector[paramIndices[i*m_dim+j]]=raVal[i][j];
 }
 
+
+
 template<>
-void OptimParams<Vec3dTypes::VecDeriv>::getInitVariance(DVec& _variance) {
+void OptimParams<Vec3dTypes::VecDeriv>::getInitVariance(DVec& _variance)
+{
     size_t numParams = this->m_numParams.getValue();
     _variance.resize(numParams*m_dim);
     size_t ij = 0;
@@ -534,54 +565,56 @@ void OptimParams<Vec3dTypes::VecDeriv>::getInitVariance(DVec& _variance) {
 }
 
 
+
 template<>
-void OptimParams<Vec3dTypes::VecDeriv>::handleEvent(core::objectmodel::Event *event) {
+void OptimParams<Vec3dTypes::VecDeriv>::handleEvent(core::objectmodel::Event *event)
+{
     if (dynamic_cast<sofa::simulation::AnimateBeginEvent *>(event))
     {
-            double actTime = this->getTime() + this->getContext()->getDt(); /// the time has not been increased yet
-            std::cout << "[" << this->getName() << "] begin event at time: " << actTime << std::endl;
+        double actTime = this->getTime() + this->getContext()->getDt(); /// the time has not been increased yet
+        std::cout << "[" << this->getName() << "] begin event at time: " << actTime << std::endl;
 
-            int timeSlot = -1;
+        int timeSlot = -1;
 
-            for (size_t i = 1; i < m_paramKeys.size() && timeSlot < 0; i++) {
-                if (m_paramKeys[i-1].first <= actTime && actTime < m_paramKeys[i].first) {
-                    timeSlot = i-1;
-                }
+        for (size_t i = 1; i < m_paramKeys.size() && timeSlot < 0; i++) {
+            if (m_paramKeys[i-1].first <= actTime && actTime < m_paramKeys[i].first) {
+                timeSlot = i - 1;
             }
-            if (timeSlot == -1) {
-                if (actTime >= m_paramKeys.back().first) {
-                    helper::WriteAccessor<Data<Vec3dTypes::VecDeriv> > val = m_val;
-                    std::cout << "["  << this->getName() << "] const val: ";
-                    for (size_t i = 0; i < val.size(); i++) {
-                        val[i] = m_paramKeys.back().second[i];
-                        std::cout << " " << val[i];
-                    }
-                    std::cout << std::endl;
-                } else {
-                    std::cerr << this->getName() << " ERROR: no slot found for time " << actTime << std::endl;
-                }
-            } else {
-                double t1 = m_paramKeys[timeSlot].first;
-                double t2 = m_paramKeys[timeSlot+1].first;
-                double r1 = (actTime-t1)/(t2-t1);
-                double r2 = (t2-actTime)/(t2-t1);
-
-                helper::WriteAccessor<Data<Vec3dTypes::VecDeriv > > val = m_val;
-                std::cout << "[" << this->getName() << "] Value: ";
+        }
+        if (timeSlot == -1) {
+            if (actTime >= m_paramKeys.back().first) {
+                helper::WriteAccessor<Data<Vec3dTypes::VecDeriv> > val = m_val;
+                std::cout << "["  << this->getName() << "] const val: ";
                 for (size_t i = 0; i < val.size(); i++) {
-                    Vec3dTypes::Coord v1=m_paramKeys[timeSlot].second[i];
-                    Vec3dTypes::Coord v2=m_paramKeys[timeSlot+1].second[i];
-
-                    /// (y2-y1)*(tanh(3.5*(a-(t0+t1)/2))+1)/2+y1
-                    if (this->m_interpolateSmooth.getValue())
-                        val[i] =  (v2-v1)*(tanh(2*(actTime-(t1+t2)/2))+1)/2+v1;
-                    else
-                        val[i] = r2*v1 + r1*v2;
+                    val[i] = m_paramKeys.back().second[i];
                     std::cout << " " << val[i];
                 }
                 std::cout << std::endl;
-
+            } else {
+                std::cerr << this->getName() << " ERROR: no slot found for time " << actTime << std::endl;
             }
+        } else {
+            double t1 = m_paramKeys[timeSlot].first;
+            double t2 = m_paramKeys[timeSlot + 1].first;
+            double r1 = (actTime - t1) / (t2 - t1);
+            double r2 = (t2 - actTime) / (t2 - t1);
+
+            helper::WriteAccessor< Data< Vec3dTypes::VecDeriv > > val = m_val;
+            std::cout << "[" << this->getName() << "] Value: ";
+            for (size_t i = 0; i < val.size(); i++) {
+                Vec3dTypes::Coord v1 = m_paramKeys[timeSlot].second[i];
+                Vec3dTypes::Coord v2 = m_paramKeys[timeSlot+1].second[i];
+
+                // (y2 - y1) * (tanh(3.5 * (a - (t0 + t1) / 2)) + 1) / 2 + y1
+                if (this->m_interpolateSmooth.getValue()) {
+                    val[i] = (v2 - v1) * (tanh(2 * (actTime - (t1 + t2) / 2)) + 1) / 2 + v1;
+                } else {
+                    val[i] = r2 * v1 + r1 * v2;
+                }
+                std::cout << " " << val[i];
+            }
+            std::cout << std::endl;
+        }
 
         if (this->saveParam) {
             std::ofstream paramFile(m_exportParamFile.getValue().c_str(), std::ios::app);
@@ -593,30 +626,27 @@ void OptimParams<Vec3dTypes::VecDeriv>::handleEvent(core::objectmodel::Event *ev
                 paramFile.close();
             }
         }
-
     }
 }
 
 
-/// Specialization for RigidDeriv3d
 
+/// Specialization for RigidDeriv3d
 template<>
-void OptimParams<Rigid3dTypes::VecDeriv>::init() {
+void OptimParams<Rigid3dTypes::VecDeriv>::init()
+{
     Inherit1::init();
     paramMOrigid = m_paramMOLinkrigid.get();
 
-    if (paramMOrigid == NULL)
+    if (paramMOrigid == NULL) {
         std::cerr << "WARNING: cannot find the parametric mechanical state, assuming no mechanical state is associated with the parameters" << std::endl;
-    else {
+    } else {
         std::cout << "Mechanical state associated with the parameters: " << paramMOrigid->getName() << std::endl;
-
         typename MechStateRigid3d::ReadVecCoord moPos = paramMOrigid->readPositions();
         mstate_dim = moPos.size();
-
     }
     helper::ReadAccessor<Data<Rigid3dTypes::VecDeriv> >initVal = m_initVal;
     size_t nInitVal = initVal.size();
-
 
     if (nInitVal != mstate_dim ){
         PRNE ("Wrong values of parameter \"initValue\" in OptimParams. \nRESET it consistent with dimension of "<< paramMOrigid->getName())
@@ -634,7 +664,7 @@ void OptimParams<Rigid3dTypes::VecDeriv>::init() {
             return;
         }
     }
-    if (nInitVal != 0 || nInitVal==mstate_dim) {
+    if (nInitVal != 0 || nInitVal == mstate_dim) {
         helper::WriteAccessor<Data<Rigid3dTypes::VecDeriv> > val = m_val;
 
         if (val.size() == 0) {
@@ -653,25 +683,30 @@ void OptimParams<Rigid3dTypes::VecDeriv>::init() {
             for (size_t i = 1; i < nInitVal; i++)
                 stdev[i] = stdev[0];
         }
-    }else{
+    } else {
          PRNE ("Wrong initValue. Must be consistent with "<< paramMOrigid->getName() << "dimensions. ")
     }
 }
 
 
+
 template<>
-void OptimParams<Rigid3dTypes::VecDeriv>::vectorToParams(VectorXd& _vector) {
+void OptimParams<Rigid3dTypes::VecDeriv>::vectorToParams(VectorXd& _vector)
+{
     helper::WriteAccessor<Data<Rigid3dTypes::VecDeriv> > waVal = m_val;
 
     size_t numParams = mstate_dim;
     size_t k = 0;
     for (size_t i = 0; i < numParams; i++)
-        for (size_t j = 0;  k < this->paramIndices.size() ; j++, k++)
+        for (size_t j = 0;  k < this->paramIndices.size(); j++, k++)
             waVal[i][j] = _vector[paramIndices[k]];
 }
 
+
+
 template<>
-void OptimParams<Rigid3dTypes::VecDeriv>::paramsToVector(VectorXd& _vector) {
+void OptimParams<Rigid3dTypes::VecDeriv>::paramsToVector(VectorXd& _vector)
+{
     helper::ReadAccessor<Data<Rigid3dTypes::VecDeriv> > raVal = m_val;
     size_t k = 0;
 
@@ -681,64 +716,68 @@ void OptimParams<Rigid3dTypes::VecDeriv>::paramsToVector(VectorXd& _vector) {
 }
 
 
+
 template<>
-void OptimParams<Rigid3dTypes::VecDeriv>::getInitVariance(DVec& _variance) {
+void OptimParams<Rigid3dTypes::VecDeriv>::getInitVariance(DVec& _variance)
+{
     size_t numParams = this->m_numParams.getValue();
     _variance.resize(numParams);
     size_t ij = 0;
     for (size_t i = 0; i < mstate_dim; i++)
         for (size_t j = 0; j < 6; j++, ij++)
             _variance[ij] = helper::SQR(m_stdev.getValue()[i][j]);
-
 }
 
+
+
 template<>
-void OptimParams<Rigid3dTypes::VecDeriv>::handleEvent(core::objectmodel::Event *event) {
+void OptimParams<Rigid3dTypes::VecDeriv>::handleEvent(core::objectmodel::Event *event)
+{
     if (dynamic_cast<sofa::simulation::AnimateBeginEvent *>(event))
     {
-            double actTime = this->getTime() + this->getContext()->getDt(); /// the time has not been increased yet
-            std::cout << "[" << this->getName() << "] begin event at time: " << actTime << std::endl;
+        double actTime = this->getTime() + this->getContext()->getDt(); /// the time has not been increased yet
+        std::cout << "[" << this->getName() << "] begin event at time: " << actTime << std::endl;
 
-            int timeSlot = -1;
+        int timeSlot = -1;
 
-            for (size_t i = 1; i < m_paramKeys.size() && timeSlot < 0; i++) {
-                if (m_paramKeys[i-1].first <= actTime && actTime < m_paramKeys[i].first) {
-                    timeSlot = i-1;
-                }
+        for (size_t i = 1; i < m_paramKeys.size() && timeSlot < 0; i++) {
+            if (m_paramKeys[i - 1].first <= actTime && actTime < m_paramKeys[i].first) {
+                timeSlot = i - 1;
             }
-            if (timeSlot == -1) {
-                if (actTime >= m_paramKeys.back().first) {
-                    helper::WriteAccessor<Data<Rigid3dTypes::VecDeriv> > val = m_val;
-                    std::cout << "["  << this->getName() << "] const val: ";
-                    for (size_t i = 0; i < val.size(); i++) {
-                        val[i] = m_paramKeys.back().second[i];
-                        std::cout << " " << val[i];
-                    }
-                    std::cout << std::endl;
-                } else {
-                    std::cerr << this->getName() << " ERROR: no slot found for time " << actTime << std::endl;
-                }
-            } else {
-                double t1 = m_paramKeys[timeSlot].first;
-                double t2 = m_paramKeys[timeSlot+1].first;
-//                double r1 = (actTime-t1)/(t2-t1);
-//                double r2 = (t2-actTime)/(t2-t1);
-
-                helper::WriteAccessor<Data<Rigid3dTypes::VecDeriv > > val = m_val;
-                std::cout << "[" << this->getName() << "] Value: ";
+        }
+        if (timeSlot == -1) {
+            if (actTime >= m_paramKeys.back().first) {
+                helper::WriteAccessor<Data<Rigid3dTypes::VecDeriv> > val = m_val;
+                std::cout << "["  << this->getName() << "] const val: ";
                 for (size_t i = 0; i < val.size(); i++) {
-                    Rigid3dTypes::Deriv v1=m_paramKeys[timeSlot].second[i];
-                    Rigid3dTypes::Deriv v2=m_paramKeys[timeSlot+1].second[i];
-
-                    /// (y2-y1)*(tanh(3.5*(a-(t0+t1)/2))+1)/2+y1
-                    if (this->m_interpolateSmooth.getValue())
-                        val[i] =  (v2-v1)*(tanh(2*(actTime-(t1+t2)/2))+1)/2+v1;
-//                    else
-//                        val[i] = r2*v1 + r1*v2;
-//                    std::cout << " " << val[i];
+                    val[i] = m_paramKeys.back().second[i];
+                    std::cout << " " << val[i];
                 }
                 std::cout << std::endl;
+            } else {
+                std::cerr << this->getName() << " ERROR: no slot found for time " << actTime << std::endl;
             }
+        } else {
+            double t1 = m_paramKeys[timeSlot].first;
+            double t2 = m_paramKeys[timeSlot + 1].first;
+            //  double r1 = (actTime - t1) / (t2 - t1);
+            //  double r2 = (t2 - actTime) / (t2 - t1);
+
+            helper::WriteAccessor<Data<Rigid3dTypes::VecDeriv > > val = m_val;
+            std::cout << "[" << this->getName() << "] Value: ";
+            for (size_t i = 0; i < val.size(); i++) {
+                Rigid3dTypes::Deriv v1 = m_paramKeys[timeSlot].second[i];
+                Rigid3dTypes::Deriv v2 = m_paramKeys[timeSlot + 1].second[i];
+
+                // (y2 - y1) * (tanh(3.5 * (a - (t0 + t1) / 2)) + 1) / 2 + y1
+                if (this->m_interpolateSmooth.getValue())
+                    val[i] = (v2 - v1) * (tanh(2 * (actTime - (t1 + t2) / 2)) + 1) / 2 + v1;
+                //  else
+                //      val[i] = r2 * v1 + r1 * v2;
+                //  std::cout << " " << val[i];
+            }
+            std::cout << std::endl;
+        }
 
         if (this->saveParam) {
             std::ofstream paramFile(m_exportParamFile.getValue().c_str(), std::ios::app);
@@ -754,16 +793,17 @@ void OptimParams<Rigid3dTypes::VecDeriv>::handleEvent(core::objectmodel::Event *
 }
 
 
-/// Specialization for double
 
+/// Specialization for double
 template<>
-void OptimParams<double>::init() {
+void OptimParams<double>::init()
+{
     Inherit::init();
     m_dim = 1;
 
     /// take the initial value and initial stdev
     if (!this->m_prescribedParamKeys.getValue().empty()) {
-        helper::ReadAccessor<Data<helper::vector<double> > >keys = m_prescribedParamKeys;
+        helper::ReadAccessor< Data< type::vector<double> > >keys = m_prescribedParamKeys;
 
         size_t numKeyValues = keys.size();
 
@@ -777,8 +817,8 @@ void OptimParams<double>::init() {
             m_paramKeys.resize(numKeys);
 
             for (size_t i = 0; i < numKeys; i++) {
-                m_paramKeys[i].first = keys[2*i];
-                m_paramKeys[i].second = keys[2*i+1];
+                m_paramKeys[i].first = keys[2 * i];
+                m_paramKeys[i].second = keys[2 * i + 1];
             }
 
             /*for (size_t i = 0; i < m_paramKeys.size(); i++) {
@@ -794,74 +834,78 @@ void OptimParams<double>::init() {
 }
 
 
+
 template<>
-void OptimParams<double>::handleEvent(core::objectmodel::Event *event) {
+void OptimParams<double>::handleEvent(core::objectmodel::Event *event)
+{
     if (dynamic_cast<sofa::simulation::AnimateBeginEvent *>(event))
     {
-        //if (!this->m_optimize.getValue()) {
-            double actTime = this->getTime() + this->getContext()->getDt(); /// the time has not been increased yet
-            std::cout << "[" << this->getName() << "] begin event at time: " << actTime << std::endl;
+        // if (!this->m_optimize.getValue()) {
+        double actTime = this->getTime() + this->getContext()->getDt(); /// the time has not been increased yet
+        std::cout << "[" << this->getName() << "] begin event at time: " << actTime << std::endl;
 
-            int timeSlot = -1;
+        int timeSlot = -1;
 
-            std::cout << "Keys size: " << m_paramKeys.size() << std::endl;
-            for (size_t i = 1; i < m_paramKeys.size() && timeSlot < 0; i++) {
-                if (m_paramKeys[i-1].first <= actTime && actTime < m_paramKeys[i].first) {
-                    timeSlot = i-1;
-                }
+        std::cout << "Keys size: " << m_paramKeys.size() << std::endl;
+        for (size_t i = 1; i < m_paramKeys.size() && timeSlot < 0; i++) {
+            if (m_paramKeys[i - 1].first <= actTime && actTime < m_paramKeys[i].first) {
+                timeSlot = i - 1;
             }
-            if (timeSlot == -1) {
-                if (actTime >= m_paramKeys.back().first) {
-                    //helper::WriteAccessor<Data<double> > val = m_val;
-                    double val = m_paramKeys.back().second;
-                    std::cout << "["  << this->getName() << "] const val: " << val << std::endl;
-                    m_val.setValue(val);
-                } else {
-                    std::cerr << this->getName() << " ERROR: no slot found for time " << actTime << std::endl;
-                }
-            } else {
-                double t1 = m_paramKeys[timeSlot].first;
-                double t2 = m_paramKeys[timeSlot+1].first;
-                double r1 = (actTime-t1)/(t2-t1);
-                double r2 = (t2-actTime)/(t2-t1);
-
-                //std::cout << "Time slot: " << timeSlot << " actual time: " << actTime << " ratii: " << r1 << " " << r2 << std::endl;
-
-                //helper::WriteAccessor<Data<double > > val = m_val;
-                double val;
-                double v1=m_paramKeys[timeSlot].second;
-                double v2=m_paramKeys[timeSlot+1].second;
-
-                /// (y2-y1)*(tanh(3.5*(a-(t0+t1)/2))+1)/2+y1
-                if (this->m_interpolateSmooth.getValue())
-                    val =  (v2-v1)*(tanh(2*(actTime-(t1+t2)/2))+1)/2+v1;
-                else
-                    val = r2*v1 + r1*v2;
-                std::cout << "[" << this->getName() << "] Value: " << val << std::endl;
+        }
+        if (timeSlot == -1) {
+            if (actTime >= m_paramKeys.back().first) {
+                // helper::WriteAccessor<Data<double> > val = m_val;
+                double val = m_paramKeys.back().second;
+                std::cout << "["  << this->getName() << "] const val: " << val << std::endl;
                 m_val.setValue(val);
+            } else {
+                std::cerr << this->getName() << " ERROR: no slot found for time " << actTime << std::endl;
             }
+        } else {
+            double t1 = m_paramKeys[timeSlot].first;
+            double t2 = m_paramKeys[timeSlot + 1].first;
+            double r1 = (actTime - t1) / (t2 - t1);
+            double r2 = (t2 - actTime) / (t2 - t1);
+
+            // std::cout << "Time slot: " << timeSlot << " actual time: " << actTime << " ratii: " << r1 << " " << r2 << std::endl;
+
+            // helper::WriteAccessor<Data<double > > val = m_val;
+            double val;
+            double v1 = m_paramKeys[timeSlot].second;
+            double v2 = m_paramKeys[timeSlot + 1].second;
+
+            // (y2 - y1) * (tanh(3.5 * (a - (t0 + t1) / 2)) + 1) / 2 + y1
+            if (this->m_interpolateSmooth.getValue()) {
+                val = (v2 - v1) * (tanh(2 * (actTime - (t1 + t2) / 2)) + 1) / 2 + v1;
+            } else {
+                val = r2 * v1 + r1 * v2;
+            }
+            std::cout << "[" << this->getName() << "] Value: " << val << std::endl;
+            m_val.setValue(val);
+        }
     }
 }
+
+
+
 /// DECLARATIONS
-
-
-
 SOFA_DECL_CLASS(OptimParams)
 
 // Register in the Factory
 int OptimParamsClass = core::RegisterObject("Optimization Parameters")
     .add< OptimParams<double> >()
-    .add< OptimParams<Vec3> >()
-    .add< OptimParams<sofa::helper::vector<double> > >()
+    .add< OptimParams<type::Vec3> >()
+    .add< OptimParams<sofa::type::vector<double> > >()
     .add< OptimParams<Vec3Types::VecDeriv> >()
     .add< OptimParams<Rigid3Types::VecDeriv> >()
     ;
 
 template class SOFA_OPTIMUSPLUGIN_API OptimParams<double>;
-template class SOFA_OPTIMUSPLUGIN_API OptimParams<Vec3>;
-template class SOFA_OPTIMUSPLUGIN_API OptimParams<sofa::helper::vector<double> >;
+template class SOFA_OPTIMUSPLUGIN_API OptimParams<type::Vec3>;
+template class SOFA_OPTIMUSPLUGIN_API OptimParams<sofa::type::vector<double> >;
 template class SOFA_OPTIMUSPLUGIN_API OptimParams<Vec3Types::VecDeriv>;
 template class SOFA_OPTIMUSPLUGIN_API OptimParams<Rigid3Types::VecDeriv>;
+
 
 
 } // namespace container

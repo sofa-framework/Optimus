@@ -52,9 +52,9 @@ int SigmaPointsVTKExporterClass = core::RegisterObject("Save State vectors from 
     .add< SigmaPointsVTKExporter >();
 
 
+
 SigmaPointsVTKExporter::SigmaPointsVTKExporter()
-    : stepCounter(0), outfile(NULL)
-    , vtkFilename( initData(&vtkFilename, "filename", "output VTK file name"))
+    : vtkFilename( initData(&vtkFilename, "filename", "output VTK file name"))
     , fileFormat( initData(&fileFormat, (bool) true, "XMLformat", "Set to true to use XML format"))
     , position( initData(&position, "position", "points position (will use points from topology or mechanical state if this is empty)"))
     , writeEdges( initData(&writeEdges, (bool) true, "edges", "write edge topology"))
@@ -68,14 +68,19 @@ SigmaPointsVTKExporter::SigmaPointsVTKExporter()
     , exportAtBegin( initData(&exportAtBegin, false, "exportAtBegin", "export file at the initialization"))
     , exportAtEnd( initData(&exportAtEnd, false, "exportAtEnd", "export file when the simulation is finished"))
     , overwrite( initData(&overwrite, false, "overwrite", "overwrite the file, otherwise create a new file at each export, with suffix in the filename"))
-{
-}
+    , stepCounter(0)
+    , outfile(NULL)
+{ }
+
+
 
 SigmaPointsVTKExporter::~SigmaPointsVTKExporter()
 {
     if (outfile)
         delete outfile;
 }
+
+
 
 void SigmaPointsVTKExporter::init()
 {    
@@ -104,8 +109,8 @@ void SigmaPointsVTKExporter::init()
     gnode = dynamic_cast<sofa::simulation::Node*>(this->getContext());
 
 
-    const helper::vector<std::string>& pointsData = dPointsDataFields.getValue();
-    const helper::vector<std::string>& cellsData = dCellsDataFields.getValue();
+    const type::vector<std::string>& pointsData = dPointsDataFields.getValue();
+    const type::vector<std::string>& cellsData = dCellsDataFields.getValue();
 
     if (!pointsData.empty())
     {
@@ -115,20 +120,22 @@ void SigmaPointsVTKExporter::init()
     {
         fetchDataFields(cellsData, cellsDataObject, cellsDataField, cellsDataName);
     }
-
 }
 
-void SigmaPointsVTKExporter::fetchDataFields(const helper::vector<std::string>& strData, helper::vector<std::string>& objects, helper::vector<std::string>& fields, helper::vector<std::string>& names)
+
+
+void SigmaPointsVTKExporter::fetchDataFields(const type::vector<std::string> &strData, type::vector<std::string> &objects,
+                                             type::vector<std::string> &fields, type::vector<std::string> &names)
 {
-    for (unsigned int i=0 ; i<strData.size() ; i++)
+    for (unsigned int i = 0; i < strData.size(); i++)
     {
         std::string str = strData[i];
         std::string name, objectName, dataFieldName;
         std::string::size_type loc = str.find_first_of('=');
         if (loc != std::string::npos)
         {
-            name = str.substr(0,loc);
-            str = str.substr(loc+1);
+            name = str.substr(0, loc);
+            str = str.substr(loc + 1);
         }
         if (str.at(0) == '@') // ignore @ prefix
             str = str.substr(1);
@@ -151,21 +158,22 @@ void SigmaPointsVTKExporter::fetchDataFields(const helper::vector<std::string>& 
     }
 }
 
-void SigmaPointsVTKExporter::writeData(const helper::vector<std::string>& objects, const helper::vector<std::string>& fields, const helper::vector<std::string>& names)
+
+
+void SigmaPointsVTKExporter::writeData(const type::vector<std::string>& objects, const type::vector<std::string>& fields, const type::vector<std::string>& names)
 {
     sofa::core::objectmodel::BaseContext* context = this->getContext();
 
-    for (unsigned int i=0 ; i<objects.size() ; i++)
+    for (unsigned int i = 0; i < objects.size(); i++)
     {
         core::objectmodel::BaseObject* obj = context->get<core::objectmodel::BaseObject> (objects[i]);
         core::objectmodel::BaseData* field = NULL;
-        if (obj)
-        {
+
+        if (obj) {
             field = obj->findData(fields[i]);
         }
 
-        if (!obj || !field)
-        {
+        if (!obj || !field) {
             if (!obj)
                 msg_error() << "VTKExporter : error while fetching data field '" << msgendl
                             << fields[i] << "' of object '" << objects[i] << msgendl
@@ -174,28 +182,26 @@ void SigmaPointsVTKExporter::writeData(const helper::vector<std::string>& object
                 msg_error() << "VTKExporter : error while fetching data field " << msgendl
                             << fields[i] << " of object '" << objects[i] << msgendl
                             << "', check field name " << msgendl;
-        }
-        else
-        {
+        } else {
             //Scalars
             std::string line;
-            unsigned int sizeSeg=0;
-            if (dynamic_cast<sofa::core::objectmodel::TData< helper::vector<float> >* >(field))
+            unsigned int sizeSeg = 0;
+            if (dynamic_cast<sofa::core::objectmodel::Data< type::vector<float> >* >(field))
             {
                 line = "float 1";
                 sizeSeg = 1;
             }
-            if (dynamic_cast<sofa::core::objectmodel::TData<helper::vector<double> >* >(field))
+            if (dynamic_cast<sofa::core::objectmodel::Data<type::vector<double> >* >(field))
             {
                 line = "double 1";
                 sizeSeg = 1;
             }
-            if (dynamic_cast<sofa::core::objectmodel::TData<helper::vector< defaulttype::Vec2f > >* > (field))
+            if (dynamic_cast<sofa::core::objectmodel::Data<type::vector< type::Vec2f > >* > (field))
             {
                 line = "float 2";
                 sizeSeg = 2;
             }
-            if (dynamic_cast<sofa::core::objectmodel::TData<helper::vector< defaulttype::Vec2d > >* >(field))
+            if (dynamic_cast<sofa::core::objectmodel::Data<type::vector< type::Vec2d > >* >(field))
             {
                 line = "double 2";
                 sizeSeg = 2;
@@ -211,12 +217,12 @@ void SigmaPointsVTKExporter::writeData(const helper::vector<std::string>& object
             else
             {
                 //Vectors
-                if (dynamic_cast<sofa::core::objectmodel::TData<helper::vector< defaulttype::Vec3f > >* > (field))
+                if (dynamic_cast<sofa::core::objectmodel::Data<type::vector< type::Vec3f > >* > (field))
                 {
                     line = "float";
                     sizeSeg = 3;
                 }
-                if (dynamic_cast<sofa::core::objectmodel::TData<helper::vector< defaulttype::Vec3d > >* >(field))
+                if (dynamic_cast<sofa::core::objectmodel::Data<type::vector< type::Vec3d > >* >(field))
                 {
                     line = "double";
                     sizeSeg = 3;
@@ -227,17 +233,17 @@ void SigmaPointsVTKExporter::writeData(const helper::vector<std::string>& object
 
             *outfile << segmentString(field->getValueString(),sizeSeg) << std::endl;
             *outfile << std::endl;
-
-
         }
     }
 }
 
-void SigmaPointsVTKExporter::writeDataArray(const helper::vector<std::string>& objects, const helper::vector<std::string>& fields, const helper::vector<std::string>& names)
+
+
+void SigmaPointsVTKExporter::writeDataArray(const type::vector<std::string>& objects, const type::vector<std::string>& fields, const type::vector<std::string>& names)
 {
     sofa::core::objectmodel::BaseContext* context = this->getContext();
 
-    for (unsigned int i=0 ; i<objects.size() ; i++)
+    for (unsigned int i = 0; i < objects.size(); i++)
     {
         core::objectmodel::BaseObject* obj = context->get<core::objectmodel::BaseObject> (objects[i]);
         core::objectmodel::BaseData* field = NULL;
@@ -261,23 +267,23 @@ void SigmaPointsVTKExporter::writeDataArray(const helper::vector<std::string>& o
         {
             //Scalars
             std::string type;
-            unsigned int sizeSeg=0;
-            if (dynamic_cast<sofa::core::objectmodel::TData< helper::vector<int> >* >(field))
+            unsigned int sizeSeg = 0;
+            if (dynamic_cast<sofa::core::objectmodel::Data< type::vector<int> >* >(field))
             {
                 type = "Int32";
                 sizeSeg = 1;
             }
-            if (dynamic_cast<sofa::core::objectmodel::TData< helper::vector<unsigned int> >* >(field))
+            if (dynamic_cast<sofa::core::objectmodel::Data< type::vector<unsigned int> >* >(field))
             {
                 type = "UInt32";
                 sizeSeg = 1;
             }
-            if (dynamic_cast<sofa::core::objectmodel::TData< helper::vector<float> >* >(field))
+            if (dynamic_cast<sofa::core::objectmodel::Data< type::vector<float> >* >(field))
             {
                 type = "Float32";
                 sizeSeg = 1;
             }
-            if (dynamic_cast<sofa::core::objectmodel::TData<helper::vector<double> >* >(field))
+            if (dynamic_cast<sofa::core::objectmodel::Data<type::vector<double> >* >(field))
             {
                 type = "Float64";
                 sizeSeg = 1;
@@ -286,39 +292,40 @@ void SigmaPointsVTKExporter::writeDataArray(const helper::vector<std::string>& o
             //Vectors
             if (type.empty())
             {
-                if (dynamic_cast<sofa::core::objectmodel::TData<helper::vector< defaulttype::Vec1f> >* >(field))
+                if (dynamic_cast<sofa::core::objectmodel::Data<type::vector< type::Vec1f> >* >(field))
                 {
                     type = "Float32";
                     sizeSeg = 1;
                 }
-                if (dynamic_cast<sofa::core::objectmodel::TData<helper::vector< defaulttype::Vec1d> >* >(field))
+                if (dynamic_cast<sofa::core::objectmodel::Data<type::vector< type::Vec1d> >* >(field))
                 {
                     type = "Float64";
                     sizeSeg = 1;
                 }
 
-                if (dynamic_cast<sofa::core::objectmodel::TData<helper::vector< defaulttype::Vec2f> >* >(field))
+                if (dynamic_cast<sofa::core::objectmodel::Data<type::vector< type::Vec2f> >* >(field))
                 {
                     type = "Float32";
                     sizeSeg = 2;
                 }
-                if (dynamic_cast<sofa::core::objectmodel::TData<helper::vector< defaulttype::Vec2d> >* >(field))
+                if (dynamic_cast<sofa::core::objectmodel::Data<type::vector< type::Vec2d> >* >(field))
                 {
                     type = "Float64";
                     sizeSeg = 2;
                 }
 
-                if (dynamic_cast<sofa::core::objectmodel::TData<helper::vector< defaulttype::Vec3f > >* > (field))
+                if (dynamic_cast<sofa::core::objectmodel::Data<type::vector< type::Vec3f > >* > (field))
                 {
                     type = "Float32";
                     sizeSeg = 3;
                 }
-                if (dynamic_cast<sofa::core::objectmodel::TData<helper::vector< defaulttype::Vec3d > >* >(field))
+                if (dynamic_cast<sofa::core::objectmodel::Data<type::vector< type::Vec3d > >* >(field))
                 {
                     type = "Float64";
                     sizeSeg = 3;
                 }
             }
+
             *outfile << "        <DataArray type=\""<< type << "\" Name=\"" << names[i];
             if(sizeSeg > 1)
                 *outfile << "\" NumberOfComponents=\"" << sizeSeg;
@@ -330,10 +337,11 @@ void SigmaPointsVTKExporter::writeDataArray(const helper::vector<std::string>& o
 }
 
 
+
 std::string SigmaPointsVTKExporter::segmentString(std::string str, unsigned int n)
 {
     std::string::size_type loc = 0;
-    unsigned int i=0;
+    unsigned int i = 0;
 
     loc = str.find(' ', 0);
 
@@ -352,6 +360,7 @@ std::string SigmaPointsVTKExporter::segmentString(std::string str, unsigned int 
 }
 
 
+
 void SigmaPointsVTKExporter::writeVTKSimple()
 {
     std::string filename = vtkFilename.getFullPath();
@@ -362,14 +371,14 @@ void SigmaPointsVTKExporter::writeVTKSimple()
     if (filename.size() > 3) {
         std::string ext;
         std::string baseName;
-        if (filename.substr(filename.size()-4)==".vtu") {
+        if (filename.substr(filename.size() - 4) == ".vtu") {
             ext = ".vtu";
-            baseName = filename.substr(0, filename.size()-4);
+            baseName = filename.substr(0, filename.size() - 4);
         }
 
-        if (filename.substr(filename.size()-4)==".vtk") {
+        if (filename.substr(filename.size() - 4) == ".vtk") {
             ext = ".vtk";
-            baseName = filename.substr(0, filename.size()-4);
+            baseName = filename.substr(0, filename.size() - 4);
         }
 
         /// no extension given => default "vtu"
@@ -378,12 +387,13 @@ void SigmaPointsVTKExporter::writeVTKSimple()
             baseName = filename;
         }
 
-        if (overwrite.getValue())
+        if (overwrite.getValue()) {
             filename = baseName + ext;
-        else
+        } else {
             filename = baseName + oss.str() + ext;
-
+        }
     }
+
 
     /*if ( filename.size() > 3 && filename.substr(filename.size()-4)==".vtu")
     {
@@ -406,8 +416,8 @@ void SigmaPointsVTKExporter::writeVTKSimple()
         return;
     }
 
-    const helper::vector<std::string>& pointsData = dPointsDataFields.getValue();
-    const helper::vector<std::string>& cellsData = dCellsDataFields.getValue();
+    const type::vector<std::string>& pointsData = dPointsDataFields.getValue();
+    const type::vector<std::string>& cellsData = dCellsDataFields.getValue();
 
     helper::ReadAccessor<Data<defaulttype::Vec3Types::VecCoord> > pointsPos = position;
 
@@ -549,6 +559,8 @@ void SigmaPointsVTKExporter::writeVTKSimple()
     msg_info() << "Export VTK in file " << filename << "  done.";
 }
 
+
+
 void SigmaPointsVTKExporter::writeVTKXML()
 {
     std::string filename = vtkFilename.getFullPath();
@@ -576,12 +588,12 @@ void SigmaPointsVTKExporter::writeVTKXML()
         outfile = NULL;
         return;
     }
-    const helper::vector<std::string>& pointsData = dPointsDataFields.getValue();
-    const helper::vector<std::string>& cellsData = dCellsDataFields.getValue();
+    const type::vector<std::string>& pointsData = dPointsDataFields.getValue();
+    const type::vector<std::string>& cellsData = dCellsDataFields.getValue();
 
-    helper::ReadAccessor<Data<defaulttype::Vec3Types::VecCoord> > pointsPos = position;
+    helper::ReadAccessor< Data< defaulttype::Vec3Types::VecCoord> > pointsPos = position;
 
-    const size_t nbp = (!pointsPos.empty()) ? pointsPos.size() : topology->getNbPoints();
+    const size_t nbp = ( !pointsPos.empty() ) ? pointsPos.size() : topology->getNbPoints();
 
     size_t numberOfCells;
     numberOfCells = ( (writeEdges.getValue()) ? topology->getNbEdges() : 0 )
@@ -600,21 +612,21 @@ void SigmaPointsVTKExporter::writeVTKXML()
                << "### ###" << msgendl
                << "Total nb cells: " << numberOfCells << msgendl;
 
-    //write header
+    // write header
     *outfile << "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"BigEndian\">" << std::endl;
     *outfile << "  <UnstructuredGrid>" << std::endl;
 
-    //write piece
+    // write piece
     *outfile << "    <Piece NumberOfPoints=\"" << nbp << "\" NumberOfCells=\""<< numberOfCells << "\">" << std::endl;
 
-    //write point data
+    // write point data
     if (!pointsData.empty())
     {
         *outfile << "      <PointData>" << std::endl;
         writeDataArray(pointsDataObject, pointsDataField, pointsDataName);
         *outfile << "      </PointData>" << std::endl;
     }
-    //write cell data
+    // write cell data
     if (!cellsData.empty())
     {
         *outfile << "      <CellData>" << std::endl;
@@ -624,12 +636,12 @@ void SigmaPointsVTKExporter::writeVTKXML()
 
 
 
-    //write points
+    // write points
     *outfile << "      <Points>" << std::endl;
     *outfile << "        <DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"ascii\">" << std::endl;
     if (!pointsPos.empty())
     {
-        for (size_t i = 0 ; i < nbp; i++)
+        for (size_t i = 0; i < nbp; i++)
         {
             *outfile << "\t" << pointsPos[i] << std::endl;
         }
@@ -647,34 +659,34 @@ void SigmaPointsVTKExporter::writeVTKXML()
     *outfile << "        </DataArray>" << std::endl;
     *outfile << "      </Points>" << std::endl;
 
-    //write cells
+    // write cells
     *outfile << "      <Cells>" << std::endl;
-    //write connectivity
+    // write connectivity
     *outfile << "        <DataArray type=\"Int32\" Name=\"connectivity\" format=\"ascii\">" << std::endl;
     if (writeEdges.getValue())
     {
-        for (unsigned int i=0 ; i<topology->getNbEdges() ; i++)
+        for (unsigned int i = 0; i < topology->getNbEdges(); i++)
             *outfile << "          " << topology->getEdge(i) << std::endl;
     }
 
     if (writeTriangles.getValue())
     {
-        for (unsigned int i=0 ; i<topology->getNbTriangles() ; i++)
+        for (unsigned int i = 0; i < topology->getNbTriangles(); i++)
             *outfile << "          " <<  topology->getTriangle(i) << std::endl;
     }
     if (writeQuads.getValue())
     {
-        for (unsigned int i=0 ; i<topology->getNbQuads() ; i++)
+        for (unsigned int i = 0; i < topology->getNbQuads(); i++)
             *outfile << "          " << topology->getQuad(i) << std::endl;
     }
     if (writeTetras.getValue())
     {
-        for (unsigned int i=0 ; i<topology->getNbTetras() ; i++)
+        for (unsigned int i = 0; i < topology->getNbTetras(); i++)
             *outfile << "          " <<  topology->getTetra(i) << std::endl;
     }
     if (writeHexas.getValue())
     {
-        for (unsigned int i=0 ; i<topology->getNbHexas() ; i++)
+        for (unsigned int i = 0; i < topology->getNbHexas(); i++)
             *outfile << "          " <<  topology->getHexa(i) << std::endl;
     }
     *outfile << "        </DataArray>" << std::endl;
@@ -684,7 +696,7 @@ void SigmaPointsVTKExporter::writeVTKXML()
     *outfile << "          ";
     if (writeEdges.getValue())
     {
-        for (unsigned int i=0 ; i<topology->getNbEdges() ; i++)
+        for (unsigned int i = 0; i < topology->getNbEdges(); i++)
         {
             num += 2;
             *outfile << num << " ";
@@ -692,7 +704,7 @@ void SigmaPointsVTKExporter::writeVTKXML()
     }
     if (writeTriangles.getValue())
     {
-        for (unsigned int i=0 ; i<topology->getNbTriangles() ; i++)
+        for (unsigned int i = 0; i<topology->getNbTriangles(); i++)
         {
             num += 3;
             *outfile << num << " ";
@@ -700,7 +712,7 @@ void SigmaPointsVTKExporter::writeVTKXML()
     }
     if (writeQuads.getValue())
     {
-        for (unsigned int i=0 ; i<topology->getNbQuads() ; i++)
+        for (unsigned int i = 0; i < topology->getNbQuads(); i++)
         {
             num += 4;
             *outfile << num << " ";
@@ -708,7 +720,7 @@ void SigmaPointsVTKExporter::writeVTKXML()
     }
     if (writeTetras.getValue())
     {
-        for (unsigned int i=0 ; i<topology->getNbTetras() ; i++)
+        for (unsigned int i = 0; i < topology->getNbTetras(); i++)
         {
             num += 4;
             *outfile << num << " ";
@@ -716,7 +728,7 @@ void SigmaPointsVTKExporter::writeVTKXML()
     }
     if (writeHexas.getValue())
     {
-        for (unsigned int i=0 ; i<topology->getNbHexas() ; i++)
+        for (unsigned int i = 0; i < topology->getNbHexas(); i++)
         {
             num += 8;
             *outfile << num << " ";
@@ -729,27 +741,27 @@ void SigmaPointsVTKExporter::writeVTKXML()
     *outfile << "          ";
     if (writeEdges.getValue())
     {
-        for (unsigned int i=0 ; i<topology->getNbEdges() ; i++)
+        for (unsigned int i = 0; i < topology->getNbEdges(); i++)
             *outfile << 3 << " ";
     }
     if (writeTriangles.getValue())
     {
-        for (unsigned int i=0 ; i<topology->getNbTriangles() ; i++)
+        for (unsigned int i = 0; i < topology->getNbTriangles(); i++)
             *outfile << 5 << " ";
     }
     if (writeQuads.getValue())
     {
-        for (unsigned int i=0 ; i<topology->getNbQuads() ; i++)
+        for (unsigned int i = 0; i < topology->getNbQuads(); i++)
             *outfile << 9 << " ";
     }
     if (writeTetras.getValue())
     {
-        for (unsigned int i=0 ; i<topology->getNbTetras() ; i++)
+        for (unsigned int i = 0; i < topology->getNbTetras(); i++)
             *outfile << 10 << " ";
     }
     if (writeHexas.getValue())
     {
-        for (unsigned int i=0 ; i<topology->getNbHexas() ; i++)
+        for (unsigned int i = 0; i < topology->getNbHexas(); i++)
             *outfile << 12 << " ";
     }
     *outfile << std::endl;
@@ -764,6 +776,7 @@ void SigmaPointsVTKExporter::writeVTKXML()
 
     msg_info() << "Export VTK XML in file " << filename << "  done.";
 }
+
 
 
 void SigmaPointsVTKExporter::handleEvent(sofa::core::objectmodel::Event *event)
@@ -785,7 +798,6 @@ void SigmaPointsVTKExporter::handleEvent(sofa::core::objectmodel::Event *event)
 
         }
     }
-
 
     if ( /*simulation::AnimateEndEvent* ev =*/ simulation::AnimateEndEvent::checkEventType(event))
     {
@@ -815,12 +827,15 @@ void SigmaPointsVTKExporter::handleEvent(sofa::core::objectmodel::Event *event)
     }
 }
 
+
+
 void SigmaPointsVTKExporter::cleanup()
 {
     if (exportAtEnd.getValue())
         (fileFormat.getValue()) ? writeVTKXML() : writeVTKSimple();
-
 }
+
+
 
 void SigmaPointsVTKExporter::bwdInit()
 {

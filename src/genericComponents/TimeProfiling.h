@@ -21,6 +21,7 @@
 ******************************************************************************/
 #pragma once
 
+#include <iostream>
 #include <sofa/core/objectmodel/DataFileName.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/date_time/gregorian/gregorian_types.hpp>
@@ -39,8 +40,15 @@ namespace stochastic
 
 class TimeProfiling
 {
-public:
+protected:
+    boost::posix_time::time_duration currentMomentMicroseconds;
+    boost::posix_time::ptime time_t_epoch;
+    bool m_isActive;
+    size_t m_stepNumber;
+    std::string m_timeDataFile;
 
+
+public:
     TimeProfiling( ) : m_isActive(false) {
         time_t_epoch = boost::posix_time::ptime(boost::gregorian::date(1970,1,1));
     }
@@ -104,13 +112,6 @@ public:
             outputFile.close();
         }
     }
-
-protected:
-    boost::posix_time::time_duration currentMomentMicroseconds;
-    boost::posix_time::ptime time_t_epoch;
-    bool m_isActive;
-    size_t m_stepNumber;
-    std::string m_timeDataFile;
 };
 
 
