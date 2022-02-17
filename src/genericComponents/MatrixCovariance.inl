@@ -27,7 +27,7 @@
 #include <sofa/type/Mat.h>
 #include <sofa/core/loader/BaseLoader.h>
 #include <sofa/core/topology/Topology.h>
-#include <sofa/helper/fixed_array.h>
+#include <sofa/type/fixed_array.h>
 
 
 
@@ -47,19 +47,21 @@ MatrixCovariance<DataTypes>::MatrixCovariance()
     : d_val( initData(&d_val, "values", "values for covariance matrix") )
     , d_rows( initData(&d_rows, "rows", "amount of rows in covariance matrix") )
     , d_columns( initData(&d_columns, "columns", "amount of columns in covariance matrix") )
-{
-}
+{ }
+
+
 
 template <class DataTypes>
 MatrixCovariance<DataTypes>::~MatrixCovariance()
-{
-}
+{ }
+
+
 
 template <class DataTypes>
 void MatrixCovariance<DataTypes>::init()
-{
+{ }
 
-}
+
 
 template <class DataTypes>
 void MatrixCovariance<DataTypes>::reinit()
@@ -71,15 +73,13 @@ void MatrixCovariance<DataTypes>::reinit()
 
 template <class DataTypes>
 void MatrixCovariance<DataTypes>::bwdInit()
-{
-
-}
+{ }
 
 
 
-} // container
+} // namespace container
 
-} // component
+} // namespace component
 
-} // sofa
+} // namespace sofa
 

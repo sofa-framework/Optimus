@@ -310,25 +310,25 @@ void AdaptativeUKFilterClassic<FilterType>::init()
     }
 
     /// Init for Adaptive Tuning Parameters
-    if (d_lambda_0.isSet() == 0){
-        serr << "No parameter *lambda_0* initialized for Adaptive Adjustment of Q" << sendl;
+    if ( d_lambda_0.isSet() == 0 ) {
+        PRNE("No parameter *lambda_0* initialized for Adaptive Adjustment of Q");
         return;
     }
 
-    if (d_delta_0.isSet() == 0 ){
-        serr << "No parameter *delta_0* initialized for Adaptive Adjustment of R" << sendl;
+    if ( d_delta_0.isSet() == 0 ) {
+        PRNE("No parameter *delta_0* initialized for Adaptive Adjustment of R");
         return;
     }
-    if (d_paramA.isSet() == 0 ){
-        serr << "No parameter *paramA* initialized for Adaptive Adjustment of Q" << sendl;
+    if ( d_paramA.isSet() == 0 ) {
+        PRNE("No parameter *paramA* initialized for Adaptive Adjustment of Q");
         return;
     }
-    if (d_paramB.isSet() == 0 ){
-        serr << "No *paramB* initialized for Adaptive Adjustment of R" << sendl;
+    if ( d_paramB.isSet() == 0 ) {
+        PRNE("No *paramB* initialized for Adaptive Adjustment of R");
         return;
     }
-    if (d_chiSquared.isSet() == 0 ){
-        serr << "No *chiSquared* initialized for Adaptive Adjustment of R" << sendl;
+    if ( d_chiSquared.isSet() == 0 ) {
+        PRNE("No *chiSquared* initialized for Adaptive Adjustment of R");
         return;
     }
 

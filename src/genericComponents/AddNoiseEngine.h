@@ -41,6 +41,7 @@
 #include <chrono>
 
 
+
 namespace sofa
 {
 
@@ -51,7 +52,6 @@ namespace engine
 {
 
 
-using namespace defaulttype;
 
 template <class DataTypes>
 class AddNoiseEngine : public sofa::core::DataEngine
@@ -90,13 +90,13 @@ public:
     double getRandomGauss(const double mean, const double sigma);
     
     void handleEvent(core::objectmodel::Event *event) override;
-}; /// class
+};
 
 
 
-} // engine
+} // namespace engine
 
-} // component
+} // namespace component
 
-} // sofa
+} // namespace sofa
 

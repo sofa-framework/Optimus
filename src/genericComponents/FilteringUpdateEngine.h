@@ -50,7 +50,6 @@ namespace engine
 {
 
 
-using namespace defaulttype;
 
 template <class DataTypes>
 class FilteringUpdateEngine : public core::objectmodel::BaseObject
@@ -98,9 +97,9 @@ public:
 
 
 
-} // engine
+} // namespace engine
 
-} // component
+} // namespace component
 
-} // sofa
+} // namespace sofa
 

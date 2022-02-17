@@ -21,8 +21,9 @@
 ******************************************************************************/
 #pragma once
 
-#include "initOptimusPlugin.h"
+#include "../initOptimusPlugin.h"
 #include <sofa/core/objectmodel/Event.h>
+
 
 
 namespace sofa
@@ -54,6 +55,7 @@ public:
 };
 
 
+
 class SOFA_STOCHASTIC_API CorrectionEndEvent : public sofa::core::objectmodel::Event
 {
 protected:
@@ -73,9 +75,9 @@ public:
 
 
 
-} // stochastic
+} // namespace stochastic
 
-} // components
+} // namespace components
 
-} // sofa
+} // namespace sofa
 

@@ -21,7 +21,7 @@
 ******************************************************************************/
 #pragma once
 
-#include "initOptimusPlugin.h"
+#include "../initOptimusPlugin.h"
 #include "StochasticFilterBase.h"
 #include "StochasticStateWrapper.h"
 #include "ObservationManagerBase.h"

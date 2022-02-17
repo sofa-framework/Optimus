@@ -41,8 +41,6 @@ namespace NAMESPACE
 
 
 
-using namespace defaulttype;
-
 template <class DataTypes>
 class CLASSNAME: public sofa::core::objectmodel::BaseObject
 {

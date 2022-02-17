@@ -226,10 +226,10 @@ void OptimParams<sofa::type::vector<double> >::init()
         size_t numKeyValues = keys.size();
 
         if ((numKeyValues % (numParams+1) ) != 0) {
-            serr << this->getName() << " ERROR: wrong size of keys, should be N x " << numParams+1 << sendl;
+            PRNE(this->getName() << " ERROR: wrong size of keys, should be N x " << numParams+1);
         } else {
             size_t numKeys = numKeyValues / (numParams+1);
-            std::cout << this->getName() << " found " << numKeys << " keys for prescribed parameters" << std::endl;
+            PRNS(this->getName() << " found " << numKeys << " keys for prescribed parameters");
 
             m_paramKeys.clear();
             m_paramKeys.resize(numKeys);
@@ -260,21 +260,21 @@ void OptimParams<sofa::type::vector<double> >::init()
     size_t nInitVal = initVal.size();
 
     if ( (m_numParams.getValue() == 0 && nInitVal > 0) || m_numParams.getValue() == nInitVal) {
-        sout << this->getName() << ": setting parameter number according to init. value vector: " << nInitVal << sendl;
+        PRNS(this->getName() << ": setting parameter number according to init. value vector: " << nInitVal);
         m_numParams.setValue(nInitVal);
     } else {
         if (m_numParams.getValue() > 0 && nInitVal == 1) {
             nInitVal = m_numParams.getValue();
-            sout << this->getName() << ": copying initial value to " << nInitVal << " positions" << sendl;
+            PRNS(this->getName() << ": copying initial value to " << nInitVal << " positions");
             double value = initVal[0];
 
-            sout << this->getName() << ": Resizing init value vector to " << nInitVal << sendl;
+            PRNS(this->getName() << ": Resizing init value vector to " << nInitVal);
             helper::WriteAccessor<Data<sofa::type::vector<double> > > wInitVal = m_initVal;
             wInitVal.wref().resize(nInitVal);
             for (size_t i = 0; i < nInitVal; i++)
                 wInitVal[i] = value;
         } else {
-            serr << this->getName() << ": Incompatible input: numParams: " << m_numParams.getValue() << " |initVal| = " << nInitVal << sendl;
+            PRNE(this->getName() << ": Incompatible input: numParams: " << m_numParams.getValue() << " |initVal| = " << nInitVal);
             return;
         }
     }
@@ -435,7 +435,7 @@ void OptimParams<sofa::type::vector<double> >::handleEvent(core::objectmodel::Ev
                     }
                     std::cout << std::endl;
                 } else {
-                    std::cerr << this->getName() << " ERROR: no slot found for time " << actTime << std::endl;
+                    PRNE(this->getName() << " ERROR: no slot found for time " << actTime);
                 }
             } else {
                 double t1 = m_paramKeys[timeSlot].first;
@@ -443,7 +443,7 @@ void OptimParams<sofa::type::vector<double> >::handleEvent(core::objectmodel::Ev
                 double r1 = (actTime - t1) / (t2 - t1);
                 double r2 = (t2 - actTime) / (t2 - t1);
 
-                //std::cout << "Time slot: " << timeSlot << " actual time: " << actTime << " ratii: " << r1 << " " << r2 << std::endl;
+                // std::cout << "Time slot: " << timeSlot << " actual time: " << actTime << " ratii: " << r1 << " " << r2 << std::endl;
 
                 helper::WriteAccessor<Data<sofa::type::vector<double> > > val = m_val;
                 std::cout << "Value: ";
@@ -591,7 +591,7 @@ void OptimParams<Vec3dTypes::VecDeriv>::handleEvent(core::objectmodel::Event *ev
                 }
                 std::cout << std::endl;
             } else {
-                std::cerr << this->getName() << " ERROR: no slot found for time " << actTime << std::endl;
+                PRNE(this->getName() << " ERROR: no slot found for time " << actTime);
             }
         } else {
             double t1 = m_paramKeys[timeSlot].first;
@@ -639,9 +639,9 @@ void OptimParams<Rigid3dTypes::VecDeriv>::init()
     paramMOrigid = m_paramMOLinkrigid.get();
 
     if (paramMOrigid == NULL) {
-        std::cerr << "WARNING: cannot find the parametric mechanical state, assuming no mechanical state is associated with the parameters" << std::endl;
+        PRNE("WARNING: cannot find the parametric mechanical state, assuming no mechanical state is associated with the parameters");
     } else {
-        std::cout << "Mechanical state associated with the parameters: " << paramMOrigid->getName() << std::endl;
+        PRNS("Mechanical state associated with the parameters: " << paramMOrigid->getName());
         typename MechStateRigid3d::ReadVecCoord moPos = paramMOrigid->readPositions();
         mstate_dim = moPos.size();
     }
@@ -649,18 +649,18 @@ void OptimParams<Rigid3dTypes::VecDeriv>::init()
     size_t nInitVal = initVal.size();
 
     if (nInitVal != mstate_dim ){
-        PRNE ("Wrong values of parameter \"initValue\" in OptimParams. \nRESET it consistent with dimension of "<< paramMOrigid->getName())
+        PRNE("Wrong values of parameter \"initValue\" in OptimParams. \nRESET it consistent with dimension of "<< paramMOrigid->getName())
         return;
     }
 
     if ( (m_numParams.getValue() == 0 && nInitVal > 0) || m_numParams.getValue() == nInitVal*6) {
-         sout << this->getName() << ": setting parameter number according to init. value vector: " << nInitVal*6 << sendl;
+         PRNS(this->getName() << ": setting parameter number according to init. value vector: " << nInitVal*6);
          m_numParams.setValue(nInitVal*6);
     } else {
         if (m_numParams.getValue() > 0 && nInitVal == mstate_dim) {
 
         } else {
-            serr << this->getName() << ": Incompatible input: numParams: " << m_numParams.getValue() << " wth value = " << nInitVal*3 << sendl;
+            PRNE(this->getName() << ": Incompatible input: numParams: " << m_numParams.getValue() << " wth value = " << nInitVal*3);
             return;
         }
     }
@@ -684,7 +684,7 @@ void OptimParams<Rigid3dTypes::VecDeriv>::init()
                 stdev[i] = stdev[0];
         }
     } else {
-         PRNE ("Wrong initValue. Must be consistent with "<< paramMOrigid->getName() << "dimensions. ")
+         PRNE("Wrong initValue. Must be consistent with "<< paramMOrigid->getName() << "dimensions. ")
     }
 }
 
@@ -755,7 +755,7 @@ void OptimParams<Rigid3dTypes::VecDeriv>::handleEvent(core::objectmodel::Event *
                 }
                 std::cout << std::endl;
             } else {
-                std::cerr << this->getName() << " ERROR: no slot found for time " << actTime << std::endl;
+                PRNE(this->getName() << " ERROR: no slot found for time " << actTime);
             }
         } else {
             double t1 = m_paramKeys[timeSlot].first;
@@ -808,7 +808,7 @@ void OptimParams<double>::init()
         size_t numKeyValues = keys.size();
 
         if ((numKeyValues % 2 ) != 0) {
-            serr << this->getName() << " ERROR: wrong size of keys, should be N x " << 2 << sendl;
+            PRNE(this->getName() << " ERROR: wrong size of keys, should be N x " << 2);
         } else {
             size_t numKeys = numKeyValues / 2;
             std::cout << this->getName() << " found " << numKeys << " keys for prescribed parameters" << std::endl;
@@ -859,7 +859,7 @@ void OptimParams<double>::handleEvent(core::objectmodel::Event *event)
                 std::cout << "["  << this->getName() << "] const val: " << val << std::endl;
                 m_val.setValue(val);
             } else {
-                std::cerr << this->getName() << " ERROR: no slot found for time " << actTime << std::endl;
+                PRNE(this->getName() << " ERROR: no slot found for time " << actTime);
             }
         } else {
             double t1 = m_paramKeys[timeSlot].first;
@@ -899,6 +899,7 @@ int OptimParamsClass = core::RegisterObject("Optimization Parameters")
     .add< OptimParams<Vec3Types::VecDeriv> >()
     .add< OptimParams<Rigid3Types::VecDeriv> >()
     ;
+
 
 template class SOFA_OPTIMUSPLUGIN_API OptimParams<double>;
 template class SOFA_OPTIMUSPLUGIN_API OptimParams<type::Vec3>;

@@ -22,7 +22,7 @@
 #pragma once
 
 /* include files */
-#include "initOptimusPlugin.h"
+#include "../initOptimusPlugin.h"
 #include "StochasticFilterBase.h"
 #include "StochasticStateWrapper.h"
 #include "ObservationManagerBase.h"

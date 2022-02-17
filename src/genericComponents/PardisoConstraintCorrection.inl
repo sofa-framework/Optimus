@@ -43,6 +43,7 @@ namespace constraintset
 {
 
 
+
 template<class DataTypes>
 PardisoConstraintCorrection<DataTypes>::PardisoConstraintCorrection(sofa::core::behavior::MechanicalState<DataTypes> *mm)
     : Inherit(mm)
@@ -50,6 +51,7 @@ PardisoConstraintCorrection<DataTypes>::PardisoConstraintCorrection(sofa::core::
 {
 
 }
+
 
 
 template<class DataTypes>
@@ -77,6 +79,8 @@ void PardisoConstraintCorrection<DataTypes>::init()
     if (schurLinearSolvers.size() != this->linearsolvers.size())
         schurLinearSolvers = this->linearsolvers;
 }
+
+
 
 template<class DataTypes>
 void PardisoConstraintCorrection<DataTypes>::addComplianceInConstraintSpace(const sofa::core::ConstraintParams *cparams, sofa::defaulttype::BaseMatrix* W)

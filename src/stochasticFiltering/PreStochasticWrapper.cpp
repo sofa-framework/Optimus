@@ -35,7 +35,6 @@
 #include <sofa/simulation/UpdateMappingVisitor.h>
 #include <sofa/simulation/ResetVisitor.h>
 #include <sofa/simulation/VisualVisitor.h>
-#include <sofa/simulation/ExportOBJVisitor.h>
 #include <sofa/simulation/WriteStateVisitor.h>
 #include <sofa/simulation/XMLPrintVisitor.h>
 #include <sofa/simulation/PropagateEventVisitor.h>

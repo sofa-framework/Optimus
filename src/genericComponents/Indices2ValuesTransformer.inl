@@ -39,9 +39,6 @@ namespace engine
 
 
 
-using namespace sofa;
-using namespace sofa::core::topology;
-
 template <class DataTypes>
 Indices2ValuesTransformer<DataTypes>::Indices2ValuesTransformer()
     : f_inputValues(initData(&f_inputValues, "inputValues", "Already existing values (can be empty) "))
@@ -51,8 +48,9 @@ Indices2ValuesTransformer<DataTypes>::Indices2ValuesTransformer()
     , f_outputValues(initData(&f_outputValues, "outputValues", "New map between indices and values"))
     , p_defaultValue(initData(&p_defaultValue, Real(0.0), "defaultValue", "Default value for indices without any value"))
     , d_transformation(initData(&d_transformation,std::string("ENu2Lame"),"transformation","identifier of transformation"))
-{
-}
+{ }
+
+
 
 template <class DataTypes>
 void Indices2ValuesTransformer<DataTypes>::init()
@@ -67,11 +65,15 @@ void Indices2ValuesTransformer<DataTypes>::init()
     setDirtyValue();
 }
 
+
+
 template <class DataTypes>
 void Indices2ValuesTransformer<DataTypes>::reinit()
 {
     update();
 }
+
+
 
 template <class DataTypes>
 void Indices2ValuesTransformer<DataTypes>::doUpdate()
@@ -103,10 +105,10 @@ void Indices2ValuesTransformer<DataTypes>::doUpdate()
         outputValues.resize(2*inputValues.size());
 
         //add new value
-        for(unsigned int i=0 ; i<inputValues.size() ; i++) {
+        for (unsigned int i = 0; i < inputValues.size(); i++) {
             bool found = false;
             for (size_t j = 0; j < indices.size(); j++) {
-                if (inputValues[i] == indices[j]) {
+                if ( inputValues[i] == indices[j] ) {
                     Real E=values1[j];
                     Real nu = values2[j];
 

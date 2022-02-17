@@ -45,7 +45,6 @@ SOFA_DECL_CLASS(UKFilterClassic)
 int UKFilterClassicClass = core::RegisterObject("UKFilterClassicOrig")
         #ifndef SOFA_FLOAT
         .add< UKFilterClassic<double> >()
-
         #endif
         #ifndef SOFA_DOUBLE
         //.add< UKFilterClassic<float> >()

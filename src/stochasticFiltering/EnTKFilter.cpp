@@ -45,7 +45,6 @@ SOFA_DECL_CLASS(EnTKFilter)
 int EnTKFilterClass = core::RegisterObject("UKFilterClassicOrig")
         #ifndef SOFA_FLOAT
         .add< EnTKFilter<double> >()
-
         #endif
         #ifndef SOFA_DOUBLE
         // .add< EnTKFilter<float> >()

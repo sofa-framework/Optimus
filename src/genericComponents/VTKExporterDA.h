@@ -38,13 +38,13 @@ namespace sofa
 namespace component
 {
 
-namespace misc
+namespace exporter
 {
 
 class SOFA_OPTIMUSPLUGIN_API VTKExporterDA : public VTKExporter
 {
 public:
-    SOFA_CLASS(VTKExporterDA,VTKExporter);
+    SOFA_CLASS(VTKExporterDA, VTKExporter);
 
     void handleEvent(sofa::core::objectmodel::Event *) override;
 };

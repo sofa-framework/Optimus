@@ -66,30 +66,30 @@ void BindedSimpleObservationManager<FilterType, DataTypes1, DataTypes2>::init()
     stateWrapper = stateWrapperLink.get();
 
     if (stateWrapper) {
-        std::cout << "[BindedSimpleObservationManager] Link to state wrapper: " << stateWrapper->getName() << std::endl;
+        PRNS("[BindedSimpleObservationManager] Link to state wrapper: " << stateWrapper->getName());
     } else {
-        std::cout << "[BindedSimpleObservationManager] Link to state wrapper not initialized!" << std::endl;
+        PRNE("[BindedSimpleObservationManager] Link to state wrapper not initialized!");
     }
 
     if(stateWrapper->declaredMapState() == 0){
         return;
-        serr<<"No mapped state declared in the StochasticStateWrapper  "<<sendl;
+        PRNE("No mapped state declared in the StochasticStateWrapper");
     }
 
     this->gnode->get(masterState);
 
     if (masterState != NULL) {
-        std::cout << "Found master mechanical state: " << masterState->getName() << std::endl;
+        PRNS("Found master mechanical state: " << masterState->getName());
     } else {
-        std::cout << "No master mechanical state found!" << std::endl;
+        PRNE("No master mechanical state found!");
     }
 
     this->gnode->get(mappedState, d_mappedStatePath.getValue());
 
     if ( mappedState != NULL)  {
-        std::cout << "[BindedSimpleObservationManager]  Found mapped mechanical state: " << mappedState->getName() << " size:  " << mappedState->getSize() << std::endl;
+        PRNS("[BindedSimpleObservationManager]  Found mapped mechanical state: " << mappedState->getName() << " size:  " << mappedState->getSize());
     } else {
-        std::cout << "[BindedSimpleObservationManager]  No mapped state state found" << std::endl;
+        PRNE("[BindedSimpleObservationManager]  No mapped state state found");
         return;
     }
 }

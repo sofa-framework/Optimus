@@ -355,6 +355,7 @@ bool MappedStateObservationManager<FilterType, DataTypes1, DataTypes2>::getInnov
 }
 
 
+
 //  template <class DataTypes>
 //  void MappedStateObservationManager<DataTypes>::init()
 //  { }
@@ -362,6 +363,7 @@ bool MappedStateObservationManager<FilterType, DataTypes1, DataTypes2>::getInnov
 //  template <class DataTypes>
 //  void MappedStateObservationManager<DataTypes>::reinit()
 //  { }
+
 
 
 } // namespace stochastic

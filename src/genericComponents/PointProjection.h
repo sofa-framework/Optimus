@@ -23,15 +23,16 @@
 //
 // Class for performing projection of points onto triangular surface
 //
-
 #pragma once
 
-#include <SofaBaseTopology/TriangleSetTopologyContainer.h>
+#include "../initOptimusPlugin.h"
 
+#include <SofaBaseTopology/TriangleSetTopologyContainer.h>
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/type/Vec.h>
 #include <sofa/type/Mat.h>
-#include <sofa/helper/vector.h>
+#include <sofa/type/vector.h>
+
 
 
 namespace sofa
@@ -44,9 +45,12 @@ namespace sofa
  * @tparam Real Real type to use.
  */
 template <class Real>
-class PointProjection
+class PointProjection : public sofa::core::objectmodel::BaseObject
 {
 public:
+    SOFA_CLASS(SOFA_TEMPLATE(PointProjection, Real), core::objectmodel::BaseObject);
+
+
     typedef sofa::type::Vec<2, Real> Vec2;
     typedef sofa::type::Vec<3, Real> Vec3;
 

@@ -37,6 +37,7 @@ namespace container
 {
 
 
+
 template<class DataTypes>
 class ObservationSource : public sofa::core::objectmodel::BaseObject
 {

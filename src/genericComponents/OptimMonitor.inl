@@ -77,10 +77,10 @@ OptimMonitor<DataTypes>::OptimMonitor()
 {
     if (!f_listening.isSet()) f_listening.setValue(true);
 
-    d_positionsColor = RGBAColor::yellow();
-    d_velocitiesColor = RGBAColor::yellow();
-    d_forcesColor = RGBAColor::yellow();
-    d_trajectoriesColor = RGBAColor::yellow();
+    d_positionsColor = sofa::type::RGBAColor::yellow();
+    d_velocitiesColor = sofa::type::RGBAColor::yellow();
+    d_forcesColor = sofa::type::RGBAColor::yellow();
+    d_trajectoriesColor = sofa::type::RGBAColor::yellow();
 }
 /////////////////////////// end OptimMonitor ///////////////////////////////////
 
@@ -187,7 +187,7 @@ void OptimMonitor<DataTypes>::handleEvent( core::objectmodel::Event* ev )
 
         if(!mmodel)
         {
-            msg_error("OptimMonitor") << "error : no MechanicalObject found";
+            msg_error(this) << "error : no MechanicalObject found";
             return;
         }
 
@@ -381,6 +381,7 @@ void OptimMonitor<DataTypes>::exportGnuplot ( Real time )
     }
 }
 ///////////////////////////////////////////////////////////////////////////
+
 
 
 } // namespace misc

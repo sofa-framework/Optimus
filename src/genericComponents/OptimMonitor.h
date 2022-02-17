@@ -26,7 +26,7 @@
 #include <sofa/core/objectmodel/BaseObject.h>
 #include <sofa/core/behavior/MechanicalState.h>
 #include <sofa/type/Vec.h>
-#include <sofa/helper/types/RGBAColor.h>
+#include <sofa/type/RGBAColor.h>
 #include <sofa/core/objectmodel/DataFileName.h>
 
 
@@ -52,7 +52,7 @@ class OptimMonitor : public virtual core::objectmodel::BaseObject
 public:
     SOFA_CLASS(SOFA_TEMPLATE(OptimMonitor, DataTypes), core::objectmodel::BaseObject);
 
-    typedef sofa::helper::types::RGBAColor RGBAColor;
+    typedef sofa::type::RGBAColor RGBAColor;
     typedef typename DataTypes::VecReal VecReal;
     typedef typename DataTypes::VecCoord VecCoord;
     typedef typename DataTypes::VecDeriv VecDeriv;
@@ -69,19 +69,19 @@ public:
     Data< bool > d_saveFToGnuplot; ///< export OptimMonitored forces as gnuplot file
 
     Data< bool > d_showPositions; ///< see the OptimMonitored positions
-    Data<RGBAColor > d_positionsColor; ///< define the color of positions
+    Data< sofa::type::RGBAColor > d_positionsColor; ///< define the color of positions
 
     Data< bool > d_showVelocities; ///< see the OptimMonitored velocities
-    Data< RGBAColor > d_velocitiesColor; ///< define the color of velocities
+    Data< sofa::type::RGBAColor > d_velocitiesColor; ///< define the color of velocities
 
     Data< bool > d_showForces; ///< see the OptimMonitored forces
-    Data< RGBAColor > d_forcesColor; ///< define the color of forces
+    Data< sofa::type::RGBAColor > d_forcesColor; ///< define the color of forces
 
     Data< double > d_showMinThreshold; ///< under this value, vectors are not represented
 
     Data< bool > d_showTrajectories; ///< print the trajectory of OptimMonitored particles
     Data< double > d_trajectoriesPrecision; ///< set the dt between to save of positions
-    Data< RGBAColor > d_trajectoriesColor; ///< define the color of the trajectories
+    Data< sofa::type::RGBAColor > d_trajectoriesColor; ///< define the color of the trajectories
 
     Data< double > d_showSizeFactor; ///< factor to multiply to arrows
     core::objectmodel::DataFileName  d_fileName;

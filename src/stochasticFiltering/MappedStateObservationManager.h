@@ -21,7 +21,7 @@
 ******************************************************************************/
 #pragma once
 
-#include "initOptimusPlugin.h"
+#include "../initOptimusPlugin.h"
 #include "ObservationManagerBase.h"
 #include "../genericComponents/SimulatedStateObservationSource.h"
 #include "StochasticStateWrapper.h"

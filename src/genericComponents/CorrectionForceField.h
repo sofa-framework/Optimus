@@ -21,9 +21,11 @@
 ******************************************************************************/
 #pragma once
 
+#include "../initOptimusPlugin.h"
+
 #include <sofa/core/behavior/ForceField.h>
 #include <sofa/core/objectmodel/Data.h>
-#include <sofa/helper/vector.h>
+#include <sofa/type/vector.h>
 #include <SofaBaseTopology/TopologySubsetData.h>
 #include <SofaBaseTopology/TopologySubsetData.inl>
 #include <sofa/simulation/AnimateBeginEvent.h>
@@ -100,7 +102,7 @@ public:
 
     virtual SReal getPotentialEnergy(const core::MechanicalParams* /*mparams*/, const DataVecCoord&  /* x */) const override
     {
-        serr << "Get potentialEnergy not implemented" << sendl;
+        PRNE("Get potentialEnergy not implemented");
         return 0.0;
     }
 
