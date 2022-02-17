@@ -67,14 +67,9 @@ fi
 echo "Recompile sofa sources"
 cd $BUILD_DIRECTORY
 /usr/bin/make clean
-/usr/local/bin/cmake -DSOFA_BUILD_TESTS=ON -DSOFAGUI_BUILD_TESTS=ON -DSOFA_EXTERNAL_DIRECTORIES=/home/sergei/Optimus_test/sofaconfig/sergei .. 2>&1 >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
+/usr/local/bin/cmake .. 2>&1 >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
 /usr/bin/make -B -j 8 2>&1 >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
 /usr/bin/make install 2>&1 >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
-
-### remove SofaPython plugin with python2 from the plugins default list (use local version of list)
-# cp $OPTIMUS_DIRECTORY/benchmarks/crontask/plugin_list.conf.default $BUILD_DIRECTORY/lib/plugin_list.conf.default
-# cp $OPTIMUS_DIRECTORY/benchmarks/crontask/plugin_list.conf.default $BUILD_DIRECTORY/install/lib/plugin_list.conf.default
-
 
 echo "Recompile python3 plugin"
 if ! [ -d "$SOFA_PYTHON3_BUILD_DIRECTORY" ]; then
