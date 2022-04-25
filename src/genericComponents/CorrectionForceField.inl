@@ -46,6 +46,7 @@ namespace forcefield
 {
 
 
+
 template<class DataTypes>
 CorrectionForceField<DataTypes>::CorrectionForceField()
     : d_force(initData(&d_force, "force","applied forces at each point"))
@@ -57,6 +58,7 @@ CorrectionForceField<DataTypes>::CorrectionForceField()
 { }
 
 
+
 template<class DataTypes>
 void CorrectionForceField<DataTypes>::bwdInit()
 {
@@ -66,27 +68,29 @@ void CorrectionForceField<DataTypes>::bwdInit()
 }
 
 
-template<class DataTypes>
-void CorrectionForceField<DataTypes>::plusF() {
 
+template<class DataTypes>
+void CorrectionForceField<DataTypes>::plusF()
+{
     double temp = d_Optimforces.getValue()[0];
     temp+= d_delta.getValue();
-    helper::vector<double> T;
+    type::vector<double> T;
     T.resize(d_Optimforces.getValue().size());
 
-    T[0]=d_Optimforces.getValue()[0];
-    T[1]=temp;
-    for (unsigned int i=2; i<T.size();i++)
-        T[i]=d_Optimforces.getValue()[i];
+    T[0] = d_Optimforces.getValue()[0];
+    T[1] = temp;
+    for (unsigned int i=2; i<T.size(); i++)
+        T[i] = d_Optimforces.getValue()[i];
 
-    d_Optimforces=T;
-    std::cout<<"newForc: "<< d_Optimforces.getValue() <<std::endl;
+    d_Optimforces = T;
+    std::cout << "newForc: " << d_Optimforces.getValue() << std::endl;
 }
 
 
-template<class DataTypes>
-void CorrectionForceField<DataTypes>::minusF() {
 
+template<class DataTypes>
+void CorrectionForceField<DataTypes>::minusF()
+{
     double temp = d_Optimforces.getValue()[0];
     temp -= d_delta.getValue();
     type::vector<double> T;
@@ -102,17 +106,19 @@ void CorrectionForceField<DataTypes>::minusF() {
 }
 
 
+
 template<class DataTypes>
 void CorrectionForceField<DataTypes>::handleEvent(sofa::core::objectmodel::Event *event)
 {
    if (sofa::core::objectmodel::KeypressedEvent* ev = dynamic_cast<sofa::core::objectmodel::KeypressedEvent*>(event)) {
-        if ((ev->getKey() == 'z') || (ev->getKey() == 'Z'))      {
+        if ( (ev->getKey() == 'z') || (ev->getKey() == 'Z') ) {
             plusF();
-        }else if ((ev->getKey() == 'a') || (ev->getKey() == 'A')){
+        } else if ( (ev->getKey() == 'a') || (ev->getKey() == 'A') ) {
             minusF();
         }
     }
 }
+
 
 
 template<class DataTypes>
@@ -123,15 +129,14 @@ void CorrectionForceField<DataTypes>::addForce(const core::MechanicalParams* /*p
     _f1.resize(p1.getValue().size());
 
     Deriv singleForce;
-
-
     Deriv forceVal;
-    for (unsigned int i=0; i< d_Optimforces.getValue().size(); i++)
-        forceVal[i]=d_paramF.getValue()*d_Optimforces.getValue()[i];
+
+    for (unsigned int i = 0; i < d_Optimforces.getValue().size(); i++)
+        forceVal[i] = d_paramF.getValue() * d_Optimforces.getValue()[i];
+
     const VecIndex& indices = d_indices.getValue();
     const VecDeriv& f = d_forces.getValue();
     unsigned int i = 0, nbForcesIn = f.size(); // nbForcesOut = _f1.size();
-
 
     if (forceVal * forceVal > 0.0)
         singleForce = forceVal;
@@ -152,6 +157,7 @@ void CorrectionForceField<DataTypes>::addForce(const core::MechanicalParams* /*p
 }
 
 
+
 template<class DataTypes>
 void CorrectionForceField<DataTypes>::addDForce(const core::MechanicalParams* /* mparams */, DataVecDeriv& /* df */, const DataVecDeriv& /* dx */)
 {
@@ -163,6 +169,7 @@ void CorrectionForceField<DataTypes>::addDForce(const core::MechanicalParams* /*
     //        df1[i] += d_forces.getValue()[i] * kFactor;
     //    }
 }
+
 
 
 template<class DataTypes>
@@ -181,11 +188,10 @@ void CorrectionForceField<DataTypes>::addKToMatrix(const core::MechanicalParams*
 }
 
 
+
 template<class DataTypes>
-void CorrectionForceField<DataTypes>::draw(const core::visual::VisualParams* /* vparams */) {
-
-
-
+void CorrectionForceField<DataTypes>::draw(const core::visual::VisualParams* /* vparams */)
+{
     //    if (! vparams->displayFlags().getShowCollisionModels()) return;
 
     //    helper::ReadAccessor<Data <VecCoord> > x = *this->mstate->read(core::VecCoordId::position());

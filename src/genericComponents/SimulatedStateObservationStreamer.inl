@@ -43,7 +43,6 @@ namespace container
 {
 
 
-using namespace sofa::core::objectmodel;
 
 template<class DataTypes>
 SimulatedStateObservationStreamer<DataTypes>::SimulatedStateObservationStreamer()
@@ -51,15 +50,13 @@ SimulatedStateObservationStreamer<DataTypes>::SimulatedStateObservationStreamer(
     , m_streamObservations( initData (&m_streamObservations, "streamObservation", "observations obtained from another source") )
     , m_actualTime( initData (&m_actualTime, "actualTime", "actual iteration time") )
     , m_prevTime( initData (&m_prevTime, "previousTime", "previous iteration time") )
-{
-}
+{ }
 
 
 
 template<class DataTypes>
 SimulatedStateObservationStreamer<DataTypes>::~SimulatedStateObservationStreamer()
-{
-}
+{ }
 
 
 

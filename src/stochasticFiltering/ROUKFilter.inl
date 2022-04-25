@@ -50,6 +50,7 @@ void ROUKFilter<FilterType>::blasMultAdd(EMatrixX& _a, EMatrixX& _b, EMatrixX& _
 }
 
 
+
 template <class FilterType>
 void ROUKFilter<FilterType>::blasMultAdd(char _trans1, char _trans2, EMatrixX& _a, EMatrixX& _b, EMatrixX& _c, Type _alpha, Type _beta) {
     int m = (_trans1 == 'N' ? _a.rows() : _a.cols());
@@ -60,8 +61,8 @@ void ROUKFilter<FilterType>::blasMultAdd(char _trans1, char _trans2, EMatrixX& _
     Type* _adata = _a.data();
     Type* _bdata = _b.data();
     Type* _cdata = _c.data();
-    PRNS("Trans: " << _trans1 << "  " << _trans2);
-    PRNS("Values: " << m << "  " << n << " " << k);
+    msg_info() << "Trans: " << _trans1 << "  " << _trans2;
+    msg_info() << "Values: " << m << "  " << n << " " << k;
     dgemm_(&_trans1,&_trans2, &m, &n, &k, &_alpha, _adata, &m1, _bdata, &k1, &_beta, _cdata, &m);
 }
 
@@ -285,7 +286,7 @@ void ROUKFilter<FilterType>::computeStarPrediction()
 
     //std::cout << "\n M_trans \n " << M_trans << std::endl;
 
-    if (!alphaConstant) {
+    if ( !alphaConstant ) {
         PRNE("Version for non-constant alpha not implemented!");
         return;
     }
@@ -365,7 +366,7 @@ void ROUKFilter<FilterType>::computeSimplexCorrection()
     // PRNS("Computing correction, T= " << this->actualTime);
     sofa::helper::AdvancedTimer::stepBegin("ROUKFSimplexCorrection");
 
-    if (!alphaConstant) {
+    if ( !alphaConstant ) {
         PRNE("Version for non-constant alpha not implemented!");
         return;
     }
@@ -546,7 +547,7 @@ void ROUKFilter<FilterType>::computeStarCorrection()
     //PRNS("Computing correction, T= " << this->actualTime);
     sofa::helper::AdvancedTimer::stepBegin("ROUKFStarCorrection");
 
-    if (!alphaConstant) {
+    if ( !alphaConstant ) {
         PRNE("Version for non-constant alpha not implemented!");
         return;
     }
@@ -1034,6 +1035,7 @@ void ROUKFilter<FilterType>::computeStarSigmaPoints(EMatrixX& sigmaMat) {
     // PRNS("sigmaMat: \n" << sigmaMat);
     // PRNS("vecAlphaVar: \n" << vecAlphaVar);
 }
+
 
 
 //  template <class FilterType>

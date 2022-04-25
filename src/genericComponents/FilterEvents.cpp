@@ -43,26 +43,26 @@ SOFA_EVENT_CPP( PredictionEndEvent )
 PredictionEndEvent::PredictionEndEvent(SReal dt)
     : sofa::core::objectmodel::Event()
     , dt(dt)
-{
-}
+{ }
+
 
 
 PredictionEndEvent::~PredictionEndEvent()
-{
-}
+{ }
+
+
 
 SOFA_EVENT_CPP( CorrectionEndEvent )
 
 CorrectionEndEvent::CorrectionEndEvent(SReal dt)
     : sofa::core::objectmodel::Event()
     , dt(dt)
-{
-}
+{ }
+
 
 
 CorrectionEndEvent::~CorrectionEndEvent()
-{
-}
+{ }
 
 
 

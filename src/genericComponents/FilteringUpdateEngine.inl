@@ -168,9 +168,10 @@ void FilteringUpdateEngine<DataTypes>::handleEvent(sofa::core::objectmodel::Even
 }
 
 
-} // engine
 
-} // component
+} // namespace engine
 
-} // sofa
+} // namespace component
+
+} // namespace sofa
 

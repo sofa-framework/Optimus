@@ -38,6 +38,7 @@ namespace misc
 {
 
 
+
 SOFA_DECL_CLASS(OptimMonitor)
 
 using namespace sofa::defaulttype;

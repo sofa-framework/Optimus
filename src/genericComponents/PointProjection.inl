@@ -221,12 +221,13 @@ void PointProjection<Real>::ComputeBaryCoords(Vec3 &baryCoords, const Vec2 &p,
     m(2,0) = a[1]; m(2,1) = b[1]; m(2,2) = c[1];
 
     Mat33 mi;
-    mi.invert(m);
-
-    baryCoords = mi * Vec3(1, p[0], p[1]);
-    if (bConstraint) {
-        ConstraintBaryCoords<Real>(baryCoords);
-    }        
+    bool res = mi.invert(m);
+    if (res) {
+        baryCoords = mi * Vec3(1, p[0], p[1]);
+        if (bConstraint) {
+            ConstraintBaryCoords<Real>(baryCoords);
+        }
+    }
 }
 
 
@@ -374,7 +375,7 @@ void PointProjection<Real>::ProjectPoint(Vec3 &baryCoords, Index &triangleID, Co
         TrianglesAroundVertex trianglesAroundVertex = topology.getTrianglesAroundVertex(closestVertex);
         if (trianglesAroundVertex.size() <= 0)
         {
-            std::cerr << "No triangles attached to vertex " << closestVertex << std::endl;
+            PRNE("No triangles attached to vertex " << closestVertex);
             triangleID = InvalidID;
             which = (minEdge <= minTriangle) ? 1 : 2;
         }
@@ -390,7 +391,7 @@ void PointProjection<Real>::ProjectPoint(Vec3 &baryCoords, Index &triangleID, Co
         TrianglesAroundEdge trianglesAroundEdge = topology.getTrianglesAroundEdge(closestEdge);
         if (trianglesAroundEdge.size() <= 0)
         {
-            std::cerr << "No triangles attached to edge " << closestEdge << std::endl;
+            PRNE("No triangles attached to edge " << closestEdge);
             triangleID = InvalidID;
         }
         else

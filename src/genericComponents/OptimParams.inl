@@ -28,7 +28,7 @@
 #include <sofa/type/Mat.h>
 #include <sofa/core/loader/BaseLoader.h>
 #include <sofa/core/topology/Topology.h>
-#include <sofa/helper/fixed_array.h>
+#include <sofa/type/fixed_array.h>
 
 
 
@@ -40,6 +40,7 @@ namespace component
 
 namespace container
 {
+
 
 
 template <class DataTypes>
@@ -57,19 +58,21 @@ OptimParams<DataTypes>::OptimParams(loader_t* mm)
     , m_maxVal(initData(&m_maxVal, "maxValue", "higher bound for parameter"))
     , m_stdev(initData(&m_stdev, "stdev", "standard variation"))
     , m_loader(initLink("loader", "loader for mechanical state for which we approximate stiffness of ALL elements"), mm)
-{    
-}
+{ }
+
+
 
 template <class DataTypes>
 OptimParams<DataTypes>::~OptimParams()
-{
-}
+{ }
+
+
 
 template <class DataTypes>
 void OptimParams<DataTypes>::init()
-{
+{ }
 
-}
+
 
 template <class DataTypes>
 void OptimParams<DataTypes>::reinit()
@@ -87,15 +90,13 @@ void OptimParams<type::vector<double> >::bwdInit()
     {
         myLoader->d_tetrahedra.getValue().size();
         size_t count = myLoader->d_tetrahedra.getValue().size() + myLoader->d_hexahedra.getValue().size();
-        std::cout<<"Optim params <"<<getName()<<"> found loader <"<<myLoader->getName()<<"> with "<<count<<" elements.\n";
-
+        msg_info(this) << "Optim params <" << getName() << "> found loader <" << myLoader->getName() << "> with " << count << " elements.\n";
 
         sofa::helper::WriteAccessor< Data<type::vector<double> > > initValues = m_initVal;
         sofa::helper::WriteAccessor< Data<type::vector<double> > > values = m_val;
         sofa::helper::WriteAccessor< Data<type::vector<double> > > min = m_minVal;
         sofa::helper::WriteAccessor< Data<type::vector<double> > > max = m_maxVal;
         sofa::helper::WriteAccessor< Data<type::vector<double> > > stdev = m_stdev;
-
 
         initValues.resize(count);
         values.resize(count);
@@ -118,9 +119,9 @@ void OptimParams<type::vector<double> >::bwdInit()
 
 
 
-} // container
+} // namespace container
 
-} // component
+} // namespace component
 
-} // sofa
+} // namespace sofa
 

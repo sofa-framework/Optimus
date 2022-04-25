@@ -35,6 +35,7 @@ namespace engine
 {
 
 
+
 template <class DataTypes>
 AddNoiseEngine<DataTypes>::AddNoiseEngine()
     : _inputPositions( initData(&_inputPositions, "inputPositions", "input positions which will be subjected to noise perturbation"))
@@ -49,6 +50,8 @@ AddNoiseEngine<DataTypes>::AddNoiseEngine()
     addOutput(&_outputPositionsWithNoise);
     setDirtyValue();
 }
+
+
 
 template <class DataTypes>
 void AddNoiseEngine<DataTypes>::init() {
@@ -76,16 +79,15 @@ void AddNoiseEngine<DataTypes>::init() {
         orth2.normalize();
     }
 
-//    std::cout << "dir = " << dir << std::endl;
-//    std::cout << "O1 = " << orth1 << std::endl;
-//    std::cout << "O2 = " << orth2 << std::endl;
+    // std::cout << "dir = " << dir << std::endl;
+    // std::cout << "O1 = " << orth1 << std::endl;
+    // std::cout << "O2 = " << orth2 << std::endl;
 
-    //helper::ReadAccessor< Data< VecCoord > > inputPos = _inputPositions;
-    //helper::WriteAccessor< Data< VecCoord > > outputPos = _outputPositionsWithNoise;
-
-
-
+    // helper::ReadAccessor< Data< VecCoord > > inputPos = _inputPositions;
+    // helper::WriteAccessor< Data< VecCoord > > outputPos = _outputPositionsWithNoise;
 }
+
+
 
 template<class DataTypes>
 void AddNoiseEngine<DataTypes>::doUpdate() {
@@ -94,24 +96,23 @@ void AddNoiseEngine<DataTypes>::doUpdate() {
 
     outputPos.resize(inputPos.size());
 
-//    std::cout <<"Resize " << inputPos.size() << " -> " << outputPos.size() <<  std::endl;
-
+    // std::cout <<"Resize " << inputPos.size() << " -> " << outputPos.size() <<  std::endl;
 
     double mean = _noiseMean.getValue();
     double varPrinc = _noisePrincipalVariance.getValue();
     double varOrtho = _noiseOrthogonalVariance.getValue();
 
-    //std::cout << this->getName() << ": applying principal noise (var = " << varPrinc << ") in direction : " << dir << std::endl;
-    //std::cout << this->getName() << ": applying orthogonal noise (var = " << varOrtho << ") in directions : " << orth1 << " and " << orth2 << std::endl;
+    // std::cout << this->getName() << ": applying principal noise (var = " << varPrinc << ") in direction : " << dir << std::endl;
+    // std::cout << this->getName() << ": applying orthogonal noise (var = " << varOrtho << ") in directions : " << orth1 << " and " << orth2 << std::endl;
 
     for (size_t i = 0; i < inputPos.size(); i++) {
         Coord pert = dir * getRandomGauss(mean,varPrinc) +  orth1 * getRandomGauss(mean,varOrtho) + orth2 * getRandomGauss(mean,varOrtho);
-//        std::cout << "Pert = " << pert << std::endl;
+        // std::cout << "Pert = " << pert << std::endl;
         outputPos[i] = inputPos[i] + pert;
-//        std::cout << "Pos[" << i << "]= " << outputPos[i] << std::endl;
-
+        // std::cout << "Pos[" << i << "]= " << outputPos[i] << std::endl;
     }
 }
+
 
 
 template<class DataTypes>
@@ -135,9 +136,9 @@ void AddNoiseEngine<DataTypes>::handleEvent(core::objectmodel::Event *event) {
 
 
 
-} // engine
+} // namespace engine
 
-} // component
+} // namespace component
 
-} // sofa
+} // namespace sofa
 

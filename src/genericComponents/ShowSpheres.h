@@ -21,12 +21,12 @@
 ******************************************************************************/
 #pragma once
 
-#include "initOptimusPlugin.h"
+#include "../initOptimusPlugin.h"
 #include <sofa/core/objectmodel/BaseObject.h>
 #include <sofa/type/Vec.h>
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/RigidTypes.h>
-#include <sofa/helper/types/RGBAColor.h>
+#include <sofa/type/RGBAColor.h>
 #include <sofa/core/behavior/MechanicalState.h>
 
 #include <sofa/simulation/AnimateEndEvent.h>
@@ -58,8 +58,8 @@ public:
     Data<bool> _draw;
     Data<float> _radius;
     Data<float> _showIndicesSize;
-    Data<helper::types::RGBAColor> _color;
-    Data<helper::types::RGBAColor> _indexColor;
+    Data<sofa::type::RGBAColor> _color;
+    Data<sofa::type::RGBAColor> _indexColor;
 
     ShowSpheres();
     ~ShowSpheres();

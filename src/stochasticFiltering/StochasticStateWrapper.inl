@@ -36,7 +36,6 @@
 #include <sofa/simulation/UpdateMappingVisitor.h>
 #include <sofa/simulation/ResetVisitor.h>
 #include <sofa/simulation/VisualVisitor.h>
-#include <sofa/simulation/ExportOBJVisitor.h>
 #include <sofa/simulation/WriteStateVisitor.h>
 #include <sofa/simulation/XMLPrintVisitor.h>
 #include <sofa/simulation/PropagateEventVisitor.h>
@@ -65,7 +64,7 @@
 #include <sofa/helper/system/SetDirectory.h>
 #include <sofa/helper/system/PipeProcess.h>
 #include <sofa/helper/AdvancedTimer.h>
-#include <sofa/helper/types/RGBAColor.h>
+#include <sofa/type/RGBAColor.h>
 #include <sofa/simulation/IntegrateBeginEvent.h>
 #include <sofa/simulation/IntegrateEndEvent.h>
 #include "StochasticStateWrapper.h"
@@ -221,7 +220,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::init()
         this->getContext()->get(constraintSolver, core::objectmodel::BaseContext::SearchDown);
         if (constraintSolver == NULL && defaultSolver != NULL)
         {
-            serr << "No ConstraintSolver found, using default LCPConstraintSolver" << sendl;
+            PRNE("No ConstraintSolver found, using default LCPConstraintSolver");
             this->getContext()->addObject(defaultSolver);
             constraintSolver = defaultSolver.get();
             defaultSolver = NULL;
@@ -234,10 +233,10 @@ void StochasticStateWrapper<DataTypes, FilterType>::init()
 
     this->gnode->get(mappedState, d_mappedStatePath.getValue());
     if ( mappedState != NULL)  {
-        std::cout << "Found mapped mechanical state: " << mappedState->getName() << std::endl;
+        PRNS("Found mapped mechanical state: " << mappedState->getName());
         this->declaredMappedState = 1;
     } else {
-        std::cout << "[WARNING] No mapped state state found! Necessary for BindedSimpleObservationManager" << std::endl;
+        PRNE("[WARNING] No mapped state state found! Necessary for BindedSimpleObservationManager");
         this->declaredMappedState = 0;
     }
     this->EstimatePOSITION = estimatePosition.getValue();
@@ -1480,20 +1479,20 @@ void StochasticStateWrapper<DataTypes, FilterType>::draw(const core::visual::Vis
                     points[j][2] = pts[j][2];
                 }
 
-                helper::types::RGBAColor color;
+                type::RGBAColor color;
 
                 switch(i) {
-                case 0: color = helper::types::RGBAColor(1.0, 0.0, 0.0, 1.0); break;
-                case 1: color = helper::types::RGBAColor(0.0, 1.0, 0.0, 1.0); break;
-                case 2: color = helper::types::RGBAColor(0.0, 0.0, 1.0, 1.0); break;
-                default: color = helper::types::RGBAColor(0.5, 0.5, 0.5, 0.5);
+                case 0: color = type::RGBAColor(1.0, 0.0, 0.0, 1.0); break;
+                case 1: color = type::RGBAColor(0.0, 1.0, 0.0, 1.0); break;
+                case 2: color = type::RGBAColor(0.0, 0.0, 1.0, 1.0); break;
+                default: color = type::RGBAColor(0.5, 0.5, 0.5, 0.5);
                 }
 
                 vparams->drawTool()->setPolygonMode(0,vparams->displayFlags().getShowWireFrame());
                 vparams->drawTool()->setLightingEnabled(true); //Enable lightning
                 vparams->drawTool()->drawSpheres(points, d_radius_draw.getValue(), color); // sofa::defaulttype::Vec<4, float>(color[i],0.8f,colorB[i],1.0f));
                 vparams->drawTool()->setPolygonMode(0, false);
-                vparams->drawTool()->drawLineStrip(points, 3.0, helper::types::RGBAColor(color[i], 0.8f, colorB[i], 1.0f));
+                vparams->drawTool()->drawLineStrip(points, 3.0, type::RGBAColor(color[i], 0.8f, colorB[i], 1.0f));
             }
         }
     }

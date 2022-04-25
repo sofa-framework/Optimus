@@ -21,7 +21,7 @@
 ******************************************************************************/
 #pragma once
 
-#include "initOptimusPlugin.h"
+#include "../initOptimusPlugin.h"
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/RigidTypes.h>
 #include <sofa/core/behavior/MechanicalState.h>

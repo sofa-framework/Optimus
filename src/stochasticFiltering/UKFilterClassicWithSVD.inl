@@ -25,7 +25,7 @@
 #include <iostream>
 #include <fstream>
 #include <sofa/core/visual/VisualParams.h>
-#include <sofa/helper/types/RGBAColor.h>
+#include <sofa/type/RGBAColor.h>
 
 
 
@@ -526,13 +526,13 @@ void UKFilterClassicWithSVD<FilterType>::draw(const core::visual::VisualParams* 
                     }
                 }
 
-                helper::types::RGBAColor color;
+                type::RGBAColor color;
 
                 switch (i) {
-                case 0: color = helper::types::RGBAColor(1.0,0.0,0.0,1.0); break;
-                case 1: color = helper::types::RGBAColor(0.0,1.0,0.0,1.0); break;
-                case 2: color = helper::types::RGBAColor(0.0,0.0,1.0,1.0); break;
-                default: color = helper::types::RGBAColor(0.5, 0.5, 0.5, 0.5);
+                case 0: color = type::RGBAColor(1.0, 0.0, 0.0, 1.0); break;
+                case 1: color = type::RGBAColor(0.0, 1.0, 0.0, 1.0); break;
+                case 2: color = type::RGBAColor(0.0, 0.0, 1.0, 1.0); break;
+                default: color = type::RGBAColor(0.5, 0.5, 0.5, 0.5);
                 }
 
                 type::vector<double> colorB;
@@ -541,12 +541,11 @@ void UKFilterClassicWithSVD<FilterType>::draw(const core::visual::VisualParams* 
                     colorB[i] = ((double) rand() / (RAND_MAX));
                 }
 
-                vparams->drawTool()->drawSpheres(predpoints[i],  d_radius_draw.getValue(), helper::types::RGBAColor(m_omega,0.0f,0.0f,1.0f));
+                vparams->drawTool()->drawSpheres(predpoints[i], d_radius_draw.getValue(), type::RGBAColor(m_omega, 0.0f, 0.0f, 1.0f));
             }
             //  if (d_MOnodes_draw.getValue() >= 2)
             //      vparams->drawTool()->drawLineStrip(predpoints[i],3.0,sofa::defaulttype::Vec<4, float>(color[i],0.5f,colorB[i],1.0f));
             //  }
-
         }
     }
 }

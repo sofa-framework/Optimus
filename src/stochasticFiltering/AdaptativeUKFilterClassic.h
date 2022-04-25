@@ -21,7 +21,7 @@
 ******************************************************************************/
 #pragma once
 
-#include "initOptimusPlugin.h"
+#include "../initOptimusPlugin.h"
 #include "StochasticFilterBase.h"
 #include "StochasticStateWrapper.h"
 #include "ObservationManagerBase.h"
@@ -134,14 +134,14 @@ public:
     Data<type::vector<FilterType> > d_variance;
     Data<type::vector<FilterType> > d_covariance;
     Data<type::vector<FilterType> > d_innovation;
-    Data< bool  > d_draw;
-    Data< double  > d_radius_draw;
-    Data< double  > d_MOnodes_draw;
-    Data< double  > d_lambda_0;
-    Data< double  > d_delta_0;
-    Data< double  > d_paramA;
-    Data< double  > d_paramB;
-    Data< double  > d_chiSquared;
+    Data< bool > d_draw;
+    Data< double > d_radius_draw;
+    Data< double > d_MOnodes_draw;
+    Data< double > d_lambda_0;
+    Data< double > d_delta_0;
+    Data< double > d_paramA;
+    Data< double > d_paramB;
+    Data< double > d_chiSquared;
 
     double m_omega;
     bool hasObs;

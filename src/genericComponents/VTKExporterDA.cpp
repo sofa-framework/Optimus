@@ -31,7 +31,7 @@ namespace sofa
 namespace component
 {
 
-namespace misc
+namespace exporter
 {
 
 

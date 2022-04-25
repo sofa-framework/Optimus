@@ -50,7 +50,7 @@ jobs:
 
       - name: Build SOFA
         run: |
-          git clone --branch v21.06 https://github.com/sofa-framework/sofa.git $SOFA_ROOT_DIRECTORY
+          git clone --branch v21.12 https://github.com/sofa-framework/sofa.git $SOFA_ROOT_DIRECTORY
           mkdir $SOFA_BUILD_DIRECTORY
           cd $SOFA_BUILD_DIRECTORY
           cmake -DSOFAGUI_QGLVIEWER=OFF -DSOFAGUI_QT=OFF -DSOFAGUI_QTVIEWER=OFF ..
@@ -63,7 +63,7 @@ jobs:
 
       - name: Build python3 plugin
         run: |
-          git clone --branch v21.06 https://github.com/sofa-framework/SofaPython3.git $SOFA_PYTHON3_DIRECTORY
+          git clone --branch v21.12 https://github.com/sofa-framework/SofaPython3.git $SOFA_PYTHON3_DIRECTORY
           mkdir $SOFA_PYTHON3_BUILD_DIRECTORY
           cd $SOFA_PYTHON3_BUILD_DIRECTORY
           cmake -DCMAKE_PREFIX_PATH=$SOFA_BUILD_DIRECTORY/install ..

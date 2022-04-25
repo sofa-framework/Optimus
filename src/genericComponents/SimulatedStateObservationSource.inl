@@ -46,8 +46,6 @@ namespace container
 {
 
 
-using namespace sofa::core::objectmodel;
-
 
 template<class DataTypes>
 SimulatedStateObservationSource<DataTypes>::SimulatedStateObservationSource()
@@ -69,8 +67,7 @@ SimulatedStateObservationSource<DataTypes>::SimulatedStateObservationSource()
 
 template<class DataTypes>
 SimulatedStateObservationSource<DataTypes>::~SimulatedStateObservationSource()
-{
-}
+{ }
 
 
 
@@ -283,7 +280,7 @@ void SimulatedStateObservationSource<DataTypes>::parseAsynMonitorFile(const std:
 
         } while (getline(file, line));
     } else {
-         serr <<"Cannot open " << name<<sendl;
+        PRNE("Cannot open " << name);
         return;
     }
 
@@ -291,7 +288,7 @@ void SimulatedStateObservationSource<DataTypes>::parseAsynMonitorFile(const std:
 
     if (m_nObservations > 0)
     {
-        sout << "Valid observations available: #observations: " << m_nObservations << " #particles: " << m_nParticles << std::endl;
+        PRNS("Valid observations available: #observations: " << m_nObservations << " #particles: " << m_nParticles);
     }
     #ifdef __APPLE__
         setlocale(LC_ALL, "C");
@@ -457,7 +454,7 @@ void SimulatedStateObservationSource<DataTypes>::parseMonitorFile(const std::str
     PRNS("Number of observations: " << m_nObservations << " |tbl| = " << m_observationTable.size())
 
     if (m_nObservations > 0) {
-        sout << "Valid observations available: #observations: " << m_nObservations << " #particles: " << m_nParticles << std::endl;
+        PRNS("Valid observations available: #observations: " << m_nObservations << " #particles: " << m_nParticles);
     } /*else {
         // workaround in the case when no observations are available
         if (nParticles > 0) {

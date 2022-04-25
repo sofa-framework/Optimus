@@ -35,15 +35,18 @@ namespace NAMESPACE
 {
 
 
+
 template <class DataTypes>
 CLASSNAME<DataTypes>::CLASSNAME()
-{    
-}
+{ }
+
+
 
 template <class DataTypes>
 CLASSNAME<DataTypes>::~CLASSNAME()
-{
-}
+{ }
+
+
 
 //template <class DataTypes>
 //void CLASSNAME<DataTypes>::init()
@@ -55,6 +58,7 @@ CLASSNAME<DataTypes>::~CLASSNAME()
 //void CLASSNAME<DataTypes>::reinit()
 //{
 //}
+
 
 
 } // NAMESPACE
