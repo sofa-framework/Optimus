@@ -138,7 +138,7 @@ bool BindedSimpleObservationManager<FilterType, DataTypes1, DataTypes2>::getInno
         return (false);
     }
 
-    if ((stateWrapper->getFilterKind() == SIMCORR) || (stateWrapper->getFilterKind() == CLASSIC) || (stateWrapper->getFilterKind() == LOCENSEMBLE)) {
+    if ((stateWrapper->getFilterKind() == SIMCORR) || (stateWrapper->getFilterKind() == CLASSIC) || (stateWrapper->getFilterKind() == ENSEMBLTRANSF)) {
         for (size_t i = 0; i < this->observationSize; i++)
             _innovation(i) = realObservations[0](i) - _state(i);
     }

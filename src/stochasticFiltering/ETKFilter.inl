@@ -21,7 +21,7 @@
 ******************************************************************************/
 #pragma once
 
-#include "EnTKFilter.h"
+#include "ETKFilter.h"
 #include <iostream>
 #include <fstream>
 #include <random>
@@ -40,7 +40,7 @@ namespace stochastic
 
 
 template <class FilterType>
-EnTKFilter<FilterType>::EnTKFilter()
+ETKFilter<FilterType>::ETKFilter()
     : Inherit()
     , d_ensembleMembersNumber(initData(&d_ensembleMembersNumber, "ensembleMembersNumber", "number of ensemble memebrs for localized ensemble filter" ) )
     , d_additiveNoiseType( initData(&d_additiveNoiseType, size_t(0), "additiveNoiseType", "add noise for ensemble members: 0 - no noise, 1 - after prediction, 2 -- after correction" ) )
@@ -54,7 +54,7 @@ EnTKFilter<FilterType>::EnTKFilter()
 
 
 template <class FilterType>
-void EnTKFilter<FilterType>::computePerturbedStates()
+void ETKFilter<FilterType>::computePerturbedStates()
 {
     EVectorX xCol(stateSize);
     int currentPointID = 0;
@@ -70,7 +70,7 @@ void EnTKFilter<FilterType>::computePerturbedStates()
 
 
 template <class FilterType>
-void EnTKFilter<FilterType>::computePrediction()
+void ETKFilter<FilterType>::computePrediction()
 {
     // std::cout<<"\n COMPUTE PREDICTION" << std::endl;
     PRNS("Computing prediction, T= " << this->actualTime  << " ======");
@@ -113,7 +113,7 @@ void EnTKFilter<FilterType>::computePrediction()
 
 
 template <class FilterType>
-void EnTKFilter<FilterType>::computeCorrection()
+void ETKFilter<FilterType>::computeCorrection()
 {
     if (observationManager->hasObservation(this->actualTime)) {
         // std::cout<<"\n COMPUTE CORRECTION" << std::endl;
@@ -242,7 +242,7 @@ void EnTKFilter<FilterType>::computeCorrection()
 
 
 template <class FilterType>
-void EnTKFilter<FilterType>::init()
+void ETKFilter<FilterType>::init()
 {
     Inherit::init();
     assert(this->gnode);
@@ -254,7 +254,7 @@ void EnTKFilter<FilterType>::init()
     size_t numMasterWrappers = 0;
     numThreads = 0;
     for (size_t i = 0; i < stateWrappers.size(); i++) {
-        stateWrappers[i]->setFilterKind(LOCENSEMBLE);
+        stateWrappers[i]->setFilterKind(ENSEMBLTRANSF);
         if (stateWrappers[i]->isSlave()) {
             numSlaveWrappers++;
             PRNS("found stochastic state slave wrapper: " << stateWrappers[i]->getName());
@@ -287,7 +287,7 @@ void EnTKFilter<FilterType>::init()
 
 
 template <class FilterType>
-void EnTKFilter<FilterType>::bwdInit()
+void ETKFilter<FilterType>::bwdInit()
 {
     assert(masterStateWrapper);
 
@@ -353,7 +353,7 @@ void EnTKFilter<FilterType>::bwdInit()
 
 
 template <class FilterType>
-void EnTKFilter<FilterType>::initializeStep(const core::ExecParams* _params, const size_t _step)
+void ETKFilter<FilterType>::initializeStep(const core::ExecParams* _params, const size_t _step)
 {
     Inherit::initializeStep(_params, _step);
 
@@ -377,7 +377,7 @@ void EnTKFilter<FilterType>::initializeStep(const core::ExecParams* _params, con
 
 
 template <class FilterType>
-void EnTKFilter<FilterType>::updateState()
+void ETKFilter<FilterType>::updateState()
 {
     stateSize = masterStateWrapper->getStateSize();
     // std::cout<< "new [UKF] stateSize " << stateSize << std::endl;
@@ -412,7 +412,7 @@ void EnTKFilter<FilterType>::updateState()
 
 
 template <class FilterType>
-void EnTKFilter<FilterType>::stabilizeMatrix(EMatrixX& _initial, EMatrixX& _stabilized)
+void ETKFilter<FilterType>::stabilizeMatrix(EMatrixX& _initial, EMatrixX& _stabilized)
 {
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(_initial, Eigen::ComputeThinU | Eigen::ComputeThinV);
     const Eigen::JacobiSVD<Eigen::MatrixXd>::SingularValuesType singVals = svd.singularValues();
@@ -428,7 +428,7 @@ void EnTKFilter<FilterType>::stabilizeMatrix(EMatrixX& _initial, EMatrixX& _stab
 
 
 template <class FilterType>
-void EnTKFilter<FilterType>::pseudoInverse(EMatrixX& M, EMatrixX& pinvM)
+void ETKFilter<FilterType>::pseudoInverse(EMatrixX& M, EMatrixX& pinvM)
 {
     double epsilon= 1e-15;
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(M, Eigen::ComputeThinU | Eigen::ComputeThinV);
@@ -448,7 +448,7 @@ void EnTKFilter<FilterType>::pseudoInverse(EMatrixX& M, EMatrixX& pinvM)
 
 
 template <class FilterType>
-void EnTKFilter<FilterType>::sqrtMat(EMatrixX& A, EMatrixX& sqrtA)
+void ETKFilter<FilterType>::sqrtMat(EMatrixX& A, EMatrixX& sqrtA)
 {
     double epsilon = 1e-15;
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(A, Eigen::ComputeThinU | Eigen::ComputeThinV);
@@ -468,7 +468,7 @@ void EnTKFilter<FilterType>::sqrtMat(EMatrixX& A, EMatrixX& sqrtA)
 
 
 template <class FilterType>
-void EnTKFilter<FilterType>::writeValidationPlot (std::string filename ,EVectorX& state )
+void ETKFilter<FilterType>::writeValidationPlot (std::string filename ,EVectorX& state )
 {
     if (this->saveParam) {
         std::ofstream paramFile(filename.c_str(), std::ios::app);

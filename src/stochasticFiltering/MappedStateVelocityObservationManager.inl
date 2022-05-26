@@ -445,7 +445,7 @@ bool MappedStateVelocityObservationManager<FilterType, DataTypes1, DataTypes2>::
     }
 
     /// TEMPORARY: _state here is the predicted observation computed before
-    if ((stateWrapper->getFilterKind() == SIMCORR) || (stateWrapper->getFilterKind() == CLASSIC) || (stateWrapper->getFilterKind() == LOCENSEMBLE)) {
+    if ((stateWrapper->getFilterKind() == SIMCORR) || (stateWrapper->getFilterKind() == CLASSIC) || (stateWrapper->getFilterKind() == ENSEMBLTRANSF)) {
             for (size_t i = 0; i < this->observationSize; i++)
                 _innovation(i) = actualObservation(i) - _state(i);
     }

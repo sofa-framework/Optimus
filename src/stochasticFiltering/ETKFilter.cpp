@@ -21,7 +21,7 @@
 ******************************************************************************/
 
 #include <sofa/core/ObjectFactory.h>
-#include "EnTKFilter.inl"
+#include "ETKFilter.inl"
 //#include <sofa/helper/accessor.h>
 
 
@@ -39,23 +39,23 @@ namespace stochastic
 
 using namespace defaulttype;
 
-SOFA_DECL_CLASS(EnTKFilter)
+SOFA_DECL_CLASS(ETKFilter)
 
 // Register in the Factory
 int EnTKFilterClass = core::RegisterObject("UKFilterClassicOrig")
         #ifndef SOFA_FLOAT
-        .add< EnTKFilter<double> >()
+        .add< ETKFilter<double> >()
         #endif
         #ifndef SOFA_DOUBLE
-        // .add< EnTKFilter<float> >()
+        // .add< ETKFilter<float> >()
         #endif
         ;
 
 #ifndef SOFA_FLOAT
-template class SOFA_STOCHASTIC_API EnTKFilter<double>;
+template class SOFA_STOCHASTIC_API ETKFilter<double>;
 #endif
 #ifndef SOFA_DOUBLE
-//template class SOFA_STOCHASTIC_API EnTKFilter<float>;
+//template class SOFA_STOCHASTIC_API ETKFilter<float>;
 #endif
 
 
