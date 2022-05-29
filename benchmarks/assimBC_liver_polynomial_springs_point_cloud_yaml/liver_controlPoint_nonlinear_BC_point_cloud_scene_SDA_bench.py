@@ -134,6 +134,7 @@ class LiverControlPointSDA_Controller(Sofa.Core.Controller):
         rootNode.addObject('ViewerSetting', cameraMode='Perspective', resolution='1000 700', objectPickingMethod='Ray casting')
         rootNode.addObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels showInteractionForceFields')
 
+        rootNode.addObject('DefaultVisualManagerLoop')
         rootNode.addObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")
 
         ### filter data
@@ -182,14 +183,14 @@ class LiverControlPointSDA_Controller(Sofa.Core.Controller):
         elif self.options['general_parameters']['solver_kind'] == 'Symplectic':
             node.addObject('VariationalSymplecticSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'], newtonError='1e-12', steps='1', verbose='0')
         elif self.options['general_parameters']['solver_kind'] == 'Newton':
-            node.addObject('StaticSolver', name="NewtonStatic", printLog="0", correction_tolerance_threshold="1e-8", residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations="2")
+            node.addObject('StaticSolver', name="NewtonStatic", printLog="0", absolute_correction_tolerance_threshold="1e-8", absolute_residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations="2")
         else:
             print('Unknown solver type!')
 
         if self.options['general_parameters']['linear_solver_kind'] == 'Pardiso':
             node.addObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
         elif self.options['general_parameters']['linear_solver_kind'] == 'LDL':
-            node.addObject('SparseLDLSolver', printLog="0")
+            node.addObject('SparseLDLSolver', template='CompressedRowSparseMatrixMat3x3d', printLog="0")
         elif self.options['general_parameters']['linear_solver_kind'] == 'CG':
             if self.options['precondition_parameters']['usePCG']:
                 node.addObject('StepPCGLinearSolver', name='lsolverit', precondOnTimeStep='1', use_precond='1', tolerance='1e-10', iterations='500', verbose='1', listening='1', update_step=self.options['precondition_parameters']['PCGUpdateSteps'], preconditioners='precond')

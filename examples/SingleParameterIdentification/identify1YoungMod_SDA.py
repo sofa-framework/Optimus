@@ -16,14 +16,16 @@ def createScene(rootNode):
     rootNode.addObject('RequiredPlugin', name='Engine', pluginName='SofaEngine')
     rootNode.addObject('RequiredPlugin', name='GeneralEngine', pluginName='SofaGeneralEngine')
     rootNode.addObject('RequiredPlugin', name='ImplicitOdeSolver', pluginName='SofaImplicitOdeSolver')
+    rootNode.addObject('RequiredPlugin', name='SparseSolver', pluginName='SofaSparseSolver')
     rootNode.addObject('RequiredPlugin', name='BoundaryCondition', pluginName='SofaBoundaryCondition')
     rootNode.addObject('RequiredPlugin', name='Loader', pluginName='SofaLoader')
     rootNode.addObject('RequiredPlugin', name='MiscForceField', pluginName='SofaMiscForceField')
     rootNode.addObject('RequiredPlugin', name='SimpleFem', pluginName='SofaSimpleFem')
     rootNode.addObject('RequiredPlugin', name='GraphComponent', pluginName='SofaGraphComponent')
     rootNode.addObject('RequiredPlugin', name='Visual', pluginName='SofaOpenglVisual')
+    rootNode.addObject('RequiredPlugin', name='Exporter', pluginName='SofaExporter')
     # rootNode.addObject('RequiredPlugin', name='Python3', pluginName='SofaPython3')
-    rootNode.addObject('RequiredPlugin', name='Optim', pluginName='Optimus')
+    rootNode.addObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
 
     try:
         sys.argv[0]
@@ -76,7 +78,7 @@ class AppStiffSDA_Controller(Sofa.Core.Controller):
 
         ### create folder to save the observations; back-up if the folder exists already
         stamp='_'+str(int(time.time()))
-        os.system('mkdir -p '+self.folder+' /arch')
+        os.system('mkdir -p '+self.folder+'/arch')
         os.system('mv --backup -S '+stamp+' '+self.sdaFolder+' '+self.folder+'/arch')
         os.system('mkdir -p '+self.sdaFolder)
 
@@ -128,6 +130,7 @@ class AppStiffSDA_Controller(Sofa.Core.Controller):
 
         rootNode.addObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels hideVisualModels')
 
+        rootNode.addObject('DefaultVisualManagerLoop')
         rootNode.addObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1", printLog='1')
 
         ### filter data
@@ -141,6 +144,8 @@ class AppStiffSDA_Controller(Sofa.Core.Controller):
         elif self.filterKind == 'UKFClassic':
             self.filter = rootNode.addObject('UKFilterClassic', name="UKFClas", printLog='1', verbose="1", sigmaTopology=self.opt['filter']['sigma_points_topology'], exportPrefix=self.sdaFolder)
             estimatePosition = 1
+        else:
+            print('Unknown filter type')
 
         ### object loader
         rootNode.addObject('MeshVTKLoader', name='loader', filename=self.opt['model']['volumeMesh'])
@@ -165,13 +170,19 @@ class AppStiffSDA_Controller(Sofa.Core.Controller):
         if intType == 'Euler':
             simuNode.addObject('EulerImplicitSolver', firstOrder = self.opt['model']['int']['first_order'], rayleighStiffness=self.opt['model']['int']['rstiff'], rayleighMass=self.opt['model']['int']['rmass'])
         elif intType == 'Newton':
-            simuNode.addObject('StaticSolver', name="NewtonStatic", correction_tolerance_threshold="1e-8", residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations=self.opt['model']['int']['maxit'], printLog=self.opt['model']['int']['verbose'])
+            simuNode.addObject('StaticSolver', name="NewtonStatic", absolute_correction_tolerance_threshold="1e-8", absolute_residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations=self.opt['model']['int']['maxit'], printLog=self.opt['model']['int']['verbose'])
+        else:
+            print('Unknown solver type')
 
         linType = self.opt['model']['int']['lin_type']
         if linType == 'Pardiso':
             simuNode.addObject('SparsePARDISOSolver', name='lsolver', verbose='0', symmetric=self.opt['model']['linsol']['pardisoSym'], exportDataToFolder=self.opt['model']['linsol']['pardisoFolder'])
+        elif linType == 'LDL':
+            simuNode.addObject('SparseLDLSolver', template='CompressedRowSparseMatrixMat3x3d', printLog="0")
         elif linType == 'CG':
             simuNode.addObject('CGLinearSolver', name='lsolverit', tolerance='1e-10', threshold='1e-10', iterations='500', verbose='0')
+        else:
+            print('Unknown linear solver type')
 
         ### mechanical object
         simuNode.addObject('MechanicalObject', src="@/loader", name="Volume")

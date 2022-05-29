@@ -109,6 +109,7 @@ class AppliedForcesSDA_Controller(Sofa.Core.Controller):
         rootNode.addObject('ViewerSetting', cameraMode='Perspective', resolution='1000 700', objectPickingMethod='Ray casting')
         rootNode.addObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels hideVisualModels')
 
+        rootNode.addObject('DefaultVisualManagerLoop')
         rootNode.addObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")
 
         ### filter data
@@ -149,14 +150,14 @@ class AppliedForcesSDA_Controller(Sofa.Core.Controller):
         if intType == 'Euler':
             simuNode.addObject('EulerImplicitSolver', rayleighStiffness=rstiff, rayleighMass=rmass)
         elif intType == 'Newton':
-            simuNode.addObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", correctionTolerance="1e-8", residualTolerance="1e-8", convergeOnResidual="1", maxIt="2")
+            simuNode.addObject('NewtonStaticSolver', name="NewtonStatic", printLog="0", absolute_correction_tolerance_threshold="1e-8", absolute_residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations="2")
         else:
             print('Unknown solver type!')
 
         if intLinearType == 'Pardiso':
             simuNode.addObject('SparsePARDISOSolver', name='lsolver', verbose='0', pardisoSchurComplement=self.planeCollision, symmetric=self.opt['model']['linsol']['pardisoSym'], exportDataToFolder=self.opt['model']['linsol']['pardisoFolder'])
         elif intLinearType == 'LDL':
-            simuNode.addObject('SparseLDLSolver', printLog="0")
+            simuNode.addObject('SparseLDLSolver', template='CompressedRowSparseMatrixMat3x3d', printLog="0")
         elif intLinearType == 'CG':
             simuNode.addObject('CGLinearSolver', name='lsolverit', tolerance='1e-10', threshold='1e-10', iterations='500', verbose='0')
             if self.opt['model']['linsol']['usePCG']:

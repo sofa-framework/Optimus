@@ -133,6 +133,7 @@ class Cylinder3PartsRestShapeSDA_Controller(Sofa.Core.Controller):
         rootNode.addObject('ViewerSetting', cameraMode='Perspective', resolution='1000 700', objectPickingMethod='Ray casting')
         rootNode.addObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels')
 
+        rootNode.addObject('DefaultVisualManagerLoop')
         rootNode.addObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1", computationTimeFile=self.folderName+'/'+self.options['time_parameters']['computation_time_file_name'])
 
         ### filter data
@@ -169,12 +170,14 @@ class Cylinder3PartsRestShapeSDA_Controller(Sofa.Core.Controller):
         elif self.options['general_parameters']['da_solver_kind'] == 'Symplectic':
             node.addObject('VariationalSymplecticSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'], newtonError='1e-12', steps='1', verbose='0')
         elif self.options['general_parameters']['da_solver_kind'] == 'Newton':
-            node.addObject('StaticSolver', name="NewtonStatic", printLog="0", correction_tolerance_threshold="1e-8", residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations="2")
+            node.addObject('StaticSolver', name="NewtonStatic", printLog="0", absolute_correction_tolerance_threshold="1e-8", absolute_residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations="2")
+        else:
+            print('Unknown solver type!')
 
         if self.options['general_parameters']['linear_solver_kind'] == 'Pardiso':
             node.addObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
         elif self.options['general_parameters']['linear_solver_kind'] == 'LDL':
-            node.addObject('SparseLDLSolver', printLog="0")
+            node.addObject('SparseLDLSolver', template='CompressedRowSparseMatrixMat3x3d', printLog="0")
         elif self.options['general_parameters']['linear_solver_kind'] == 'CG':
             node.addObject('CGLinearSolver', iterations="20", tolerance="1e-12", threshold="1e-12")
             # node.addObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")

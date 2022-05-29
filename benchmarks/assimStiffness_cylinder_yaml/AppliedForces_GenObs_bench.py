@@ -98,6 +98,8 @@ class AppliedForcesGenObs_Controller(Sofa.Core.Controller):
 
         ### rootNode
         rootNode.addObject('VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels hideVisual')
+        rootNode.addObject('DefaultAnimationLoop')
+        rootNode.addObject('DefaultVisualManagerLoop')
 
         ### solver to handle contact
         if self.planeCollision == 1:
@@ -123,14 +125,14 @@ class AppliedForcesGenObs_Controller(Sofa.Core.Controller):
         if intType == 'Euler':
             simuNode.addObject('EulerImplicitSolver', rayleighStiffness = rstiff, rayleighMass = rmass)
         elif intType == 'Newton':
-            simuNode.addObject('NewtonStaticSolver', maxIt='1', correctionTolerance='1e-8', residualTolerance='1e-8', convergeOnResidual='1')
+            simuNode.addObject('NewtonStaticSolver', absolute_correction_tolerance_threshold='1e-8', absolute_residual_tolerance_threshold='1e-8', should_diverge_when_residual_is_growing='1', newton_iterations='1')
         else:
             print('Unknown solver type!')
 
         if intLinearType == 'Pardiso':
             simuNode.addObject('SparsePARDISOSolver', name='lsolver', verbose='0', pardisoSchurComplement=self.planeCollision, symmetric=self.opt['model']['linsol']['pardisoSym'], exportDataToFolder=self.opt['model']['linsol']['pardisoFolder'])
         elif intLinearType == 'LDL':
-            simuNode.addObject('SparseLDLSolver', printLog="0")
+            simuNode.addObject('SparseLDLSolver', template='CompressedRowSparseMatrixMat3x3d', printLog="0")
         elif intLinearType == 'CG':
             simuNode.addObject('CGLinearSolver', name='lsolverit', tolerance='1e-10', threshold='1e-10', iterations='500', verbose='0')
             # simuNode.addObject('StepPCGLinearSolver', name='lsolverit', precondOnTimeStep='0', use_precond='1', tolerance='1e-10', iterations='500', verbose='0', update_step='10', listening='1', preconditioners='lsolver')

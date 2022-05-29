@@ -236,7 +236,6 @@ void StochasticStateWrapper<DataTypes, FilterType>::init()
         PRNS("Found mapped mechanical state: " << mappedState->getName());
         this->declaredMappedState = 1;
     } else {
-        PRNE("[WARNING] No mapped state state found! Necessary for BindedSimpleObservationManager");
         this->declaredMappedState = 0;
     }
     this->EstimatePOSITION = estimatePosition.getValue();

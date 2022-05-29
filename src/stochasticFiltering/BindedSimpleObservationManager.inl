@@ -71,9 +71,9 @@ void BindedSimpleObservationManager<FilterType, DataTypes1, DataTypes2>::init()
         PRNE("[BindedSimpleObservationManager] Link to state wrapper not initialized!");
     }
 
-    if(stateWrapper->declaredMapState() == 0){
-        return;
+    if(stateWrapper->declaredMapState() == 0) {
         PRNE("No mapped state declared in the StochasticStateWrapper");
+        return;
     }
 
     this->gnode->get(masterState);
