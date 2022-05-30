@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 3.1)
-project(Optimus)
+cmake_minimum_required(VERSION 3.11)
+project(Optimus VERSION 1.0)
 
 set(OPTIMUS_MAJOR_VERSION 1)
 set(OPTIMUS_MINOR_VERSION 1)
@@ -34,12 +34,20 @@ find_package(SofaExporter REQUIRED)
 find_package(SofaGui REQUIRED)
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
+# configuration flags
+set(STOCHASTIC_FILTERING "1" CACHE BOOL "Set to activate the compilation of the filtering module" FORCE)
+set(USE_BLAS_FOR_OPTIMUS "1" CACHE BOOL "Set to include BLAS in dependences")
 
 include_directories(${EIGEN3_INCLUDE_DIR})
-set(LINKER_DEPENDENCIES SofaCore SofaBase SofaGeneralAnimationLoop SofaGeneralEngine SofaImplicitOdeSolver SofaGeneralLinearSolver SofaGeneralRigid SofaBoundaryCondition SofaBaseTopology SofaExporter SofaUserInteraction SofaConstraint SofaSimpleFem SofaGeneralTopology SofaTopologyMapping SofaUserInteraction SofaConstraint SofaGeneralLoader SofaMiscEngine SofaMiscFem SofaMiscForceField SofaMiscMapping SofaMiscSolver SofaMiscTopology SofaGuiCommon blas Eigen3::Eigen)
+
+set(LINKER_DEPENDENCIES SofaCore SofaBase SofaGeneralAnimationLoop SofaGeneralEngine SofaImplicitOdeSolver SofaGeneralLinearSolver SofaGeneralRigid SofaBoundaryCondition SofaBaseTopology SofaExporter SofaUserInteraction SofaConstraint SofaSimpleFem SofaGeneralTopology SofaTopologyMapping SofaUserInteraction SofaConstraint SofaGeneralLoader SofaMiscEngine SofaMiscFem SofaMiscForceField SofaMiscMapping SofaMiscSolver SofaMiscTopology SofaGuiCommon Eigen3::Eigen)
+if ( ${USE_BLAS_FOR_OPTIMUS} )
+    message(STATUS "Add blas dependency")
+    set(LINKER_DEPENDENCIES ${LINKER_DEPENDENCIES} blas)
+endif()
+
 set(COMPILATION_FLAGS "-DSOFA_BUILD_OPTIMUS -Wno-unused-local-typedef -Wno-deprecated")
 
-set(STOCHASTIC_FILTERING "1" CACHE BOOL "Set to activate the compilation of the filtering module" FORCE)
 
 set(HEADER_FILES
     src/initOptimusPlugin.h
@@ -104,9 +112,7 @@ set(SOURCE_FILES
     src/test/GeoListener.cpp
     )
 
-set(README_FILES 
-    ReadMe.md
-    )
+set(README_FILES ReadMe.md)
 
 if ( ${STOCHASTIC_FILTERING} )
     message(STATUS "Activating stochastic filtering")
@@ -159,7 +165,6 @@ if ( ${STOCHASTIC_FILTERING} )
         src/stochasticFiltering/BindedSimpleObservationManager.cpp
         src/stochasticFiltering/PreStochasticWrapper.cpp
     )
-
 endif()
 
 
@@ -171,11 +176,14 @@ else()
     message("SofaPardisoSolver not found, PardisoSolver component will not work")
 endif()
 
-target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>")
 target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>")
-target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>")
+target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>")
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION "${OPTIMUS_VERSION}")
 set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "${COMPILATION_FLAGS}")
+if ( ${USE_BLAS_FOR_OPTIMUS} )
+    set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_DEFINITIONS "BLAS_LINKED")
+endif()
 set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${HEADER_FILES}")
 target_link_libraries(${PROJECT_NAME} ${LINKER_DEPENDENCIES})
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src")
@@ -183,9 +191,30 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src")
 get_target_property(compile_defs ${PROJECT_NAME} COMPILE_FLAGS)
 message(STATUS "Compile definitions: ${compile_defs}")
 
-install(TARGETS Optimus
-        EXPORT  OptimusTargets
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        PUBLIC_HEADER DESTINATION include/Optimus)
+
+# install rules
+if( CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT )
+    set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install CACHE PATH "Install path prefix, prepended onto install directories." FORCE)
+endif()
+message(STATUS "Install prefix: ${CMAKE_INSTALL_PREFIX}")
+
+#sofa_create_package(
+#    PACKAGE_NAME ${PROJECT_NAME}
+#    PACKAGE_VERSION ${PROJECT_VERSION}
+#    RELOCATABLE "plugins"
+#    )
+sofa_create_package_with_targets(
+    PACKAGE_NAME ${PROJECT_NAME}
+    PACKAGE_VERSION ${PROJECT_VERSION}
+    TARGETS ${PROJECT_NAME} AUTO_SET_TARGET_PROPERTIES
+    INCLUDE_SOURCE_DIR "src"
+    INCLUDE_INSTALL_DIR ${PROJECT_NAME}
+    EXAMPLE_INSTALL_DIR "examples"
+    RELOCATABLE "plugins"
+    )
+#install(TARGETS Optimus
+#        EXPORT  OptimusTargets
+#        RUNTIME DESTINATION bin
+#        LIBRARY DESTINATION lib
+#        ARCHIVE DESTINATION lib
+#        PUBLIC_HEADER DESTINATION include/Optimus)

@@ -153,7 +153,7 @@ class Cylinder3PartsRestShapeSDA_Controller(Sofa.Core.Controller):
         impactSimu = rootNode.addChild('externalImpSimu')
         impactSimu.addObject('PreStochasticWrapper')
         impactSimu.addObject('EulerImplicitSolver')
-        impactSimu.addObject('CGLinearSolver')
+        impactSimu.addObject('CGLinearSolver', iterations="25", tolerance="1e-8", threshold="1e-8")
         self.targetPoint = impactSimu.addObject('MechanicalObject', name="state", template='Vec3d', useTopology='false', position=self.options['impact_parameters']['position'])
         impactSimu.addObject('SimulatedStateObservationSource', name="ImpactSim", template='Vec3d', printLog="1", monitorPrefix=self.options['impact_parameters']['observation_file_name'], drawSize="0.0015", controllerMode="1")
         impactSimu.addObject('ShowSpheres', name="externImp", radius='0.005', color='1 0 1 1', position='@state.position')
@@ -259,7 +259,7 @@ class Cylinder3PartsRestShapeSDA_Controller(Sofa.Core.Controller):
             # print(reducedState)
 
             self.stateExpValFile = self.folderName + '/' + self.stateFileName
-            print('Storing to' + self.stateExpValFile)
+            # print('Storing to' + self.stateExpValFile)
             f1 = open(self.stateExpValFile, "a")
             f1.write(" ".join(map(lambda x: str(x), state)))
             f1.write('\n')
