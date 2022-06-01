@@ -57,7 +57,7 @@ namespace stochastic
 
 
 
-#ifdef BLAS_INCLUDED
+#ifdef BLAS_LINKED
 /// to speed up, wrappers for BLAS matrix multiplications created, much faster that Eigen by default
 extern "C" {
     // product C= alphaA.B + betaC
@@ -70,7 +70,7 @@ extern "C" {
                double* alpha, double* A, const int* LDA, double* X,
                const int* INCX, double* beta, double* C, const int* INCY);
 }
-#endif // BLAS_INCLUDED
+#endif // BLAS_LINKED
 
 
 
