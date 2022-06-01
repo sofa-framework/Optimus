@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.11)
-project(Optimus VERSION 1.0)
 
 set(OPTIMUS_MAJOR_VERSION 1)
 set(OPTIMUS_MINOR_VERSION 1)
 set(OPTIMUS_VERSION ${OPTIMUS_MAJOR_VERSION}.${OPTIMUS_MINOR_VERSION})
+
+project(Optimus VERSION ${OPTIMUS_VERSION})
 
 # required standard
 set(CMAKE_CXX_STANDARD 17)
