@@ -166,9 +166,9 @@ class LiverControlPointSDA_Controller(Sofa.Core.Controller):
         impactSimu = rootNode.addChild('externalImpSimu')
         impactSimu.addObject('PreStochasticWrapper')
         impactSimu.addObject('EulerImplicitSolver')
-        impactSimu.addObject('CGLinearSolver')
+        impactSimu.addObject('CGLinearSolver', iterations="25", tolerance="1e-5", threshold="1e-5")
         impactSimu.addObject('MechanicalObject', name="state", template='Vec3d', useTopology='false', position=self.options['impact_parameters']['position'])
-        impactSimu.addObject('SimulatedStateObservationSource', name="ImpactSim", template='Vec3d', printLog="1", monitorPrefix = self.generalFolderName + '/' + self.options['impact_parameters']['observation_file_name'], drawSize="0.0015", controllerMode="1")
+        impactSimu.addObject('SimulatedStateObservationSource', name="ImpactSim", template='Vec3d', printLog="1", monitorPrefix=self.generalFolderName+'/'+self.options['impact_parameters']['observation_file_name'], drawSize="0.0015", controllerMode="1")
         impactSimu.addObject('ShowSpheres', name="externImp", position='@state.position', color='1.0 0.0 1.0 1', radius="0.01", showIndicesScale='0.0')
 
         return 0
@@ -245,7 +245,7 @@ class LiverControlPointSDA_Controller(Sofa.Core.Controller):
 
 
     def createMasterScene(self, node):
-        node.addObject('StochasticStateWrapper',name="StateWrapper",verbose="1", estimatePosition=self.estimPosition, positionStdev=self.options['filtering_parameters']['positions_standart_deviation'], estimateVelocity=self.estimVelocity)
+        node.addObject('StochasticStateWrapper', name="StateWrapper", verbose="1", estimatePosition=self.estimPosition, positionStdev=self.options['filtering_parameters']['positions_standart_deviation'], estimateVelocity=self.estimVelocity)
         self.createCommonComponents(node)
         ### node with groundtruth observations
         obsNode = node.addChild('obsNode')
@@ -301,7 +301,7 @@ class LiverControlPointSDA_Controller(Sofa.Core.Controller):
             # print(reducedState)
 
             self.stateExpValFile = self.folderName + '/' + self.stateFileName
-            print('Storing to: ' + self.stateExpValFile)
+            # print('Storing to: ' + self.stateExpValFile)
             f1 = open(self.stateExpValFile, "a")
             f1.write(" ".join(map(lambda x: str(x), state)))
             f1.write('\n')

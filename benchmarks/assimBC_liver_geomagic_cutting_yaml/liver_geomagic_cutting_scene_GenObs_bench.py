@@ -175,7 +175,7 @@ class LiverGeomagicControlPointGenObs_Controller(Sofa.Core.Controller):
 
         ### visualize object
         visuNode = simuNode.addChild('visu')
-        visuNode.addObject('MeshObjLoader', name='visualModelLoader', filename='../../data/baseLiver/baseLiver_surface.obj')
+        visuNode.addObject('MeshOBJLoader', name='visualModelLoader', filename='../../data/baseLiver/baseLiver_surface.obj')
         visuNode.addObject('OglModel', name='VisualModel', src='@visualModelLoader', material="texture Ambient 1 0.5 0.5 0.5 1.0 Diffuse 1 1.0 1.0 1.0 1.0")
         visuNode.addObject('BarycentricMapping', name='VisualMapping', input='@../Volume', output='@VisualModel')
 

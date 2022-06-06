@@ -45,6 +45,7 @@ class SyntheticGenObs_Controller(Sofa.Core.Controller):
         self.linearSolver = 'CG' # options are 'Pardiso' and 'CG'
 
         if saveObservations:
+            os.system('mkdir -p observations/arch')
             os.system('mv '+outputDir+ ' observations/arch')
             os.system('mkdir -p '+outputDir)
 
@@ -53,8 +54,8 @@ class SyntheticGenObs_Controller(Sofa.Core.Controller):
 
         ### rootNode
         self.rootNode.addObject('VisualStyle', displayFlags='showVisual showBehavior showCollision hideMapping showWireframe hideNormals')
-        rootNode.addObject('DefaultAnimationLoop')
-        rootNode.addObject('DefaultVisualManagerLoop')
+        self.rootNode.addObject('DefaultAnimationLoop')
+        self.rootNode.addObject('DefaultVisualManagerLoop')
 
         self.rootNode.findData('gravity').value = [0.0, 0.0, 0.0]
         self.rootNode.findData('dt').value = 1.0

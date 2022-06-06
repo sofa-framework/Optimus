@@ -22,8 +22,9 @@ def createScene(rootNode):
     rootNode.addObject('RequiredPlugin', name='SimpleFem', pluginName='SofaSimpleFem')
     rootNode.addObject('RequiredPlugin', name='Deformable', pluginName='SofaDeformable')
     rootNode.addObject('RequiredPlugin', name='Loader', pluginName='SofaLoader')
-    rootNode.addObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
+    rootNode.addObject('RequiredPlugin', name='GraphComponent', pluginName='SofaGraphComponent')
     # rootNode.addObject('RequiredPlugin', name='Python3', pluginName='SofaPython3')
+    rootNode.addObject('RequiredPlugin', name='Optimus', pluginName='Optimus')
 
     try:
         sys.argv[0]
@@ -268,7 +269,7 @@ class cylConstForceSDA_Controller(Sofa.Core.Controller):
             # print(reducedState)
 
             self.stateExpValFile = self.folderName + '/' + self.stateFileName
-            print('Storing to', self.stateExpValFile)
+            # print('Storing to', self.stateExpValFile)
             f1 = open(self.stateExpValFile, "a")
             f1.write(" ".join(map(lambda x: str(x), state)))
             f1.write('\n')

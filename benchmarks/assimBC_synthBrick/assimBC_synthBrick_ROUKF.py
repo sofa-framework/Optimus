@@ -105,6 +105,7 @@ class SyntheticSDA_Controller(Sofa.Core.Controller):
         node.addObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels')
 
         ### filter data
+        node.addObject('DefaultVisualManagerLoop')
         node.addObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")
         self.filter = node.addObject('ROUKFilter', name="ROUKF", sigmaTopology="Simplex", verbose="1", useUnbiasedVariance='0')
 
