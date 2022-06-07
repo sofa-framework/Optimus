@@ -44,6 +44,10 @@ impact_parameters:
     observation_file_name: "obs_testing/liverGeomagicImpact"
     position: "0.144 0.154 0.398"
 
+precondition_parameters:
+    usePCG: 0
+    PCGUpdateSteps: 100
+
 time_parameters:
     computation_time_file_name: "computationTime.txt"
 ...

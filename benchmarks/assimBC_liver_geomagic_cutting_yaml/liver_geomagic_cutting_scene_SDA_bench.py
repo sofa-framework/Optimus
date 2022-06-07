@@ -130,6 +130,7 @@ class LiverGeomagicControlPointSDA_Controller(Sofa.Core.Controller):
         rootNode.addObject('ViewerSetting', cameraMode='Perspective', resolution='1000 700', objectPickingMethod='Ray casting')
         rootNode.addObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels')
 
+        rootNode.addObject('DefaultVisualManagerLoop')
         rootNode.addObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1", computationTimeFile=self.folderName+'/'+self.options['time_parameters']['computation_time_file_name'])
 
         ### filter data
@@ -156,7 +157,7 @@ class LiverGeomagicControlPointSDA_Controller(Sofa.Core.Controller):
         impactSimu = rootNode.addChild('externalImpSimu')
         impactSimu.addObject('PreStochasticWrapper')
         impactSimu.addObject('EulerImplicitSolver')
-        impactSimu.addObject('CGLinearSolver')
+        impactSimu.addObject('CGLinearSolver', iterations="25", tolerance="1e-5", threshold="1e-5")
         impactSimu.addObject('MechanicalObject', name="state", template='Vec3d', useTopology='false', position=self.options['impact_parameters']['position'])
         impactSimu.addObject('SimulatedStateObservationSource', name="ImpactSim", template='Vec3d', printLog="0", monitorPrefix=self.options['impact_parameters']['observation_file_name'], drawSize="0.0015", controllerMode="1")
         impactSimu.addObject('ShowSpheres', name="externImp", radius="0.01", color="0.7 0 1 1", position='@state.position')
@@ -173,17 +174,18 @@ class LiverGeomagicControlPointSDA_Controller(Sofa.Core.Controller):
         elif self.options['general_parameters']['solver_kind'] == 'Symplectic':
             node.addObject('VariationalSymplecticSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'], newtonError='1e-12', steps='1', verbose='0')
         elif self.options['general_parameters']['solver_kind'] == 'Newton':
-            node.addObject('StaticSolver', name="NewtonStatic", printLog="0", correction_tolerance_threshold="1e-8", residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations="2")
+            node.addObject('StaticSolver', name="NewtonStatic", printLog="0", absolute_correction_tolerance_threshold="1e-8", absolute_residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations="2")
         else:
             print('Unknown solver type!')
 
         if self.options['general_parameters']['linear_solver_kind'] == 'Pardiso':
             node.addObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
         elif self.options['general_parameters']['linear_solver_kind'] == 'LDL':
-            node.addObject('SparseLDLSolver', printLog="0")
+            node.addObject('SparseLDLSolver', template='CompressedRowSparseMatrixMat3x3d', printLog="0")
         elif self.options['general_parameters']['linear_solver_kind'] == 'CG':
+            if self.options['precondition_parameters']['usePCG']:
+                node.addObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
             node.addObject('CGLinearSolver', iterations="20", tolerance="1e-12", threshold="1e-12")
-            #node.addObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
         else:
             print('Unknown linear solver type!')
 
@@ -228,7 +230,7 @@ class LiverGeomagicControlPointSDA_Controller(Sofa.Core.Controller):
 
 
     def createMasterScene(self, node):
-        node.addObject('StochasticStateWrapper',name="StateWrapper", verbose="1", estimatePosition=self.estimPosition, positionStdev=self.options['filtering_parameters']['positions_standart_deviation'], estimateVelocity=self.estimVelocity)
+        node.addObject('StochasticStateWrapper', name="StateWrapper", verbose="1", estimatePosition=self.estimPosition, positionStdev=self.options['filtering_parameters']['positions_standart_deviation'], estimateVelocity=self.estimVelocity)
         self.createCommonComponents(node)
         ### node with groundtruth observations
         obsNode = node.addChild('obsNode')
@@ -267,7 +269,7 @@ class LiverGeomagicControlPointSDA_Controller(Sofa.Core.Controller):
             # print(reducedState)
 
             self.stateExpValFile = self.folderName + '/' + self.stateFileName
-            print('Storing to', self.stateExpValFile)
+            # print('Storing to', self.stateExpValFile)
             f1 = open(self.stateExpValFile, "a")
             f1.write(" ".join(map(lambda x: str(x), state)))
             f1.write('\n')

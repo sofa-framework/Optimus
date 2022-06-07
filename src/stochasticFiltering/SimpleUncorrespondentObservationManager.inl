@@ -294,7 +294,7 @@ bool SimpleUncorrespondentObservationManager<FilterType, DataTypes1, DataTypes2>
     }
 
     /// TEMPORARY: _state here is the predicted observation computed before
-    if ((stateWrapper->getFilterKind() == SIMCORR) || (stateWrapper->getFilterKind() == CLASSIC) || (stateWrapper->getFilterKind() == LOCENSEMBLE)) {
+    if ((stateWrapper->getFilterKind() == SIMCORR) || (stateWrapper->getFilterKind() == CLASSIC) || (stateWrapper->getFilterKind() == ENSEMBLTRANSF)) {
             for (size_t i = 0; i < this->observationSize; i++)
                 _innovation(i) = vMappedMask[i / DataTypes1::spatial_dimensions] * (actualObservation(i) - _state(i));
     }

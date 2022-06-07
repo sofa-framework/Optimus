@@ -236,7 +236,6 @@ void StochasticStateWrapper<DataTypes, FilterType>::init()
         PRNS("Found mapped mechanical state: " << mappedState->getName());
         this->declaredMappedState = 1;
     } else {
-        PRNE("[WARNING] No mapped state state found! Necessary for BindedSimpleObservationManager");
         this->declaredMappedState = 0;
     }
     this->EstimatePOSITION = estimatePosition.getValue();
@@ -915,7 +914,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::getActualVelocity(int _id, V
 template <class DataTypes, class FilterType>
 void StochasticStateWrapper<DataTypes, FilterType>::getPos(EVectorX& _state, VecCoord& actualPos)
 {
-    if (! (this->filterKind == CLASSIC || this->filterKind == REDORD || this->filterKind == LOCENSEMBLE) )
+    if (! (this->filterKind == CLASSIC || this->filterKind == REDORD || this->filterKind == ENSEMBLTRANSF) )
         return;
 
     EVectorX savedState;
@@ -1360,7 +1359,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::computeSimulationStep(EVecto
 template <class DataTypes, class FilterType>
 void StochasticStateWrapper<DataTypes, FilterType>::transformState(EVectorX &_vecX, const core::MechanicalParams *_mparams, int* _stateID)
 {
-    if (! (this->filterKind == CLASSIC || this->filterKind == REDORD || this->filterKind == LOCENSEMBLE) )
+    if (! (this->filterKind == CLASSIC || this->filterKind == REDORD || this->filterKind == ENSEMBLTRANSF) )
         return;
 
     EVectorX savedState;
@@ -1381,7 +1380,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::transformState(EVectorX &_ve
     copyStateSofa2Filter();
     _vecX = this->state;
 
-    if (this->filterKind == CLASSIC || this->filterKind == LOCENSEMBLE) {
+    if (this->filterKind == CLASSIC || this->filterKind == ENSEMBLTRANSF) {
         /// store the result of the simulation as a vector
         VecCoord actualPos(this->mStateSize);
         VecDeriv actualVel(this->mStateSize);
@@ -1435,7 +1434,7 @@ void StochasticStateWrapper<DataTypes, FilterType>::transformState(EVectorX &_ve
 template <class DataTypes, class FilterType>
 void StochasticStateWrapper<DataTypes, FilterType>::lastApplyOperator(EVectorX& /* _vecX */, const core::MechanicalParams* /* _mparams */)
 {
-    if (! (this->filterKind == CLASSIC || this->filterKind == LOCENSEMBLE) )
+    if (! (this->filterKind == CLASSIC || this->filterKind == ENSEMBLTRANSF) )
         return;
 
     //    this->state = _vecX;

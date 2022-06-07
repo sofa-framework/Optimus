@@ -10,13 +10,13 @@ model:
     density: 10000
              
     int:   # temporal integrator properties
-        type: 'Newton'       # Newton or Euler
-        lin_type: 'Pardiso'  # options are 'Pardiso' and 'CG'
-        maxit: 5             # only for Newton
-        verbose: 0           # only for Newton
-        #first_order: 0      # only for Euler
-        #rmass: 1            # only for Euler
-        #rstiff: 1           # only for Euler
+        type: 'Newton'  # options are "Newton" and "Euler"
+        lin_type: 'LDL'  # options are 'LDL', 'Pardiso', and 'CG'
+        maxit: 5            # only for Newton
+        verbose: 0          # only for Newton
+        first_order: 0      # only for Euler
+        rmass: 1            # only for Euler
+        rstiff: 1           # only for Euler
         
     bc:
         type: 'fixed'

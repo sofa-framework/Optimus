@@ -12,6 +12,7 @@ def createScene(rootNode):
     rootNode.addObject('RequiredPlugin', name='Engine', pluginName='SofaEngine')
     rootNode.addObject('RequiredPlugin', name='BoundaryCondition', pluginName='SofaBoundaryCondition')
     rootNode.addObject('RequiredPlugin', name='ImplicitOdeSolver', pluginName='SofaImplicitOdeSolver')
+    rootNode.addObject('RequiredPlugin', name='SparseSolver', pluginName='SofaSparseSolver')
     rootNode.addObject('RequiredPlugin', name='Deformable', pluginName='SofaDeformable')
     rootNode.addObject('RequiredPlugin', name='MeshCollision', pluginName='SofaMeshCollision')
     rootNode.addObject('RequiredPlugin', name='Loader', pluginName='SofaLoader')
@@ -44,6 +45,7 @@ class SyntheticGenObs_Controller(Sofa.Core.Controller):
         self.linearSolver = 'CG' # options are 'Pardiso' and 'CG'
 
         if saveObservations:
+            os.system('mkdir -p observations/arch')
             os.system('mv '+outputDir+ ' observations/arch')
             os.system('mkdir -p '+outputDir)
 
@@ -52,13 +54,15 @@ class SyntheticGenObs_Controller(Sofa.Core.Controller):
 
         ### rootNode
         self.rootNode.addObject('VisualStyle', displayFlags='showVisual showBehavior showCollision hideMapping showWireframe hideNormals')
+        self.rootNode.addObject('DefaultAnimationLoop')
+        self.rootNode.addObject('DefaultVisualManagerLoop')
 
         self.rootNode.findData('gravity').value = [0.0, 0.0, 0.0]
         self.rootNode.findData('dt').value = 1.0
 
         ### tool node
         tool = self.rootNode.addChild('tool')
-        tool.addObject('StaticSolver', name="NewtonStatic", printLog="0", correction_tolerance_threshold="1e-8", residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations="3")
+        tool.addObject('StaticSolver', name="NewtonStatic", printLog="0", absolute_correction_tolerance_threshold="1e-8", absolute_residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations="3")
         tool.addObject('CGLinearSolver', iterations="100", tolerance="1e-20", threshold="1e-20")
         tool.addObject('PointSetTopologyContainer', name='pointTopo', position='0.045 0.1 0.0   0.05 0.1 0.0   0.055 0.1 0.0   0.045 0.1 -0.005   0.05 0.1 -0.005   0.055 0.1 -0.005    0.045 0.1 -0.01   0.05 0.1 -0.01   0.055 0.1 -0.01')
         tool.addObject('MechanicalObject', name='MO', position='@pointTopo.position')
@@ -79,13 +83,15 @@ class SyntheticGenObs_Controller(Sofa.Core.Controller):
         if self.solver == 'Euler':
             simuNode.addObject('EulerImplicitSolver', rayleighStiffness='0.1', rayleighMass='0.1')
         elif self.solver == 'Newton':
-            simuNode.addObject('StaticSolver', name="NewtonStatic", printLog="0", correction_tolerance_threshold="1e-8", residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations="3")
+            simuNode.addObject('StaticSolver', name="NewtonStatic", printLog="0", absolute_correction_tolerance_threshold="1e-8", absolute_residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations="3")
         else:
             print('Unknown solver type')
 
         if self.linearSolver == 'CG':
             simuNode.addObject('CGLinearSolver', iterations="100", tolerance="1e-20", threshold="1e-20")
             # simuNode.addObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
+        elif self.linearSolver == 'LDL':
+            simuNode.addObject('SparseLDLSolver', template='CompressedRowSparseMatrixMat3x3d', printLog="0")
         elif self.linearSolver == 'Pardiso':
             simuNode.addObject('SparsePARDISOSolver', symmetric='1', exportDataToFolder='', name='precond', iterativeSolverNumbering='1')
         else:

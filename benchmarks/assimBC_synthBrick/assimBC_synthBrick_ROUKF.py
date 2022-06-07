@@ -14,6 +14,7 @@ def createScene(rootNode):
     rootNode.addObject('RequiredPlugin', name='Engine', pluginName='SofaEngine')
     rootNode.addObject('RequiredPlugin', name='BoundaryCondition', pluginName='SofaBoundaryCondition')
     rootNode.addObject('RequiredPlugin', name='ImplicitOdeSolver', pluginName='SofaImplicitOdeSolver')
+    rootNode.addObject('RequiredPlugin', name='SparseSolver', pluginName='SofaSparseSolver')
     rootNode.addObject('RequiredPlugin', name='Deformable', pluginName='SofaDeformable')
     rootNode.addObject('RequiredPlugin', name='MeshCollision', pluginName='SofaMeshCollision')
     rootNode.addObject('RequiredPlugin', name='Loader', pluginName='SofaLoader')
@@ -104,6 +105,7 @@ class SyntheticSDA_Controller(Sofa.Core.Controller):
         node.addObject('VisualStyle', name='VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels')
 
         ### filter data
+        node.addObject('DefaultVisualManagerLoop')
         node.addObject('FilteringAnimationLoop', name="StochAnimLoop", verbose="1")
         self.filter = node.addObject('ROUKFilter', name="ROUKF", sigmaTopology="Simplex", verbose="1", useUnbiasedVariance='0')
 
@@ -123,13 +125,15 @@ class SyntheticSDA_Controller(Sofa.Core.Controller):
         if self.solver == 'Euler':
             node.addObject('EulerImplicitSolver', rayleighStiffness='0.1', rayleighMass='0.1')
         elif self.solver == 'Newton':
-            node.addObject('StaticSolver', name="NewtonStatic", printLog="0", correction_tolerance_threshold="1e-8", residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations="3")
+            node.addObject('StaticSolver', name="NewtonStatic", printLog="0", absolute_correction_tolerance_threshold="1e-8", absolute_residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations="3")
         else:
             print('Unknown solver type')
 
         if self.linearSolver == 'CG':
             node.addObject('CGLinearSolver', iterations="100", tolerance="1e-20", threshold="1e-20")
             # node.addObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
+        elif self.linearSolver == 'LDL':
+            node.addObject('SparseLDLSolver', template='CompressedRowSparseMatrixMat3x3d', printLog="0")
         elif self.linearSolver == 'Pardiso':
             node.addObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
         else:

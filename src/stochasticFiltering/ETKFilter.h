@@ -73,10 +73,10 @@ extern "C" {
 
 
 template <class FilterType>
-class EnTKFilter : public sofa::component::stochastic::StochasticFilterBase
+class ETKFilter : public sofa::component::stochastic::StochasticFilterBase
 {
 public:
-    SOFA_CLASS(SOFA_TEMPLATE(EnTKFilter, FilterType), StochasticFilterBase);
+    SOFA_CLASS(SOFA_TEMPLATE(ETKFilter, FilterType), StochasticFilterBase);
 
     typedef sofa::component::stochastic::StochasticFilterBase Inherit;
     typedef FilterType Type;
@@ -132,8 +132,8 @@ public:
     Data< type::vector<FilterType> > d_covariance;
     Data< type::vector<FilterType> > d_innovation;
 
-    EnTKFilter();
-    ~EnTKFilter() {}
+    ETKFilter();
+    ~ETKFilter() {}
 
     void init() override;
     void bwdInit() override;

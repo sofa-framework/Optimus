@@ -77,6 +77,8 @@ class LiverGeomagicControlPointGenObs_Controller(Sofa.Core.Controller):
 
     def createGraph(self, rootNode):
         rootNode.addObject('VisualStyle', displayFlags='showVisualModels hideBehaviorModels hideCollisionModels hideMappings showForceFields')
+        rootNode.addObject('DefaultAnimationLoop')
+        rootNode.addObject('DefaultVisualManagerLoop')
 
         ### node to generate external impact
         dotNode = rootNode.addChild('dotNode')
@@ -107,14 +109,14 @@ class LiverGeomagicControlPointGenObs_Controller(Sofa.Core.Controller):
         elif self.options['general_parameters']['solver_kind'] == 'Symplectic':
             simuNode.addObject('VariationalSymplecticSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'], newtonError='1e-12', steps='1', verbose='0')
         elif self.options['general_parameters']['solver_kind'] == 'Newton':
-            simuNode.addObject('StaticSolver', name="NewtonStatic", printLog="0", correction_tolerance_threshold="1e-8", residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations="2")
+            simuNode.addObject('StaticSolver', name="NewtonStatic", printLog="0", absolute_correction_tolerance_threshold="1e-8", absolute_residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations="2")
         else:
             print('Unknown solver type!')
 
         if self.options['general_parameters']['linear_solver_kind'] == 'Pardiso':
             simuNode.addObject('SparsePARDISOSolver', name='LDLsolver', verbose='0', symmetric='1', exportDataToFolder='')
         elif self.options['general_parameters']['linear_solver_kind'] == 'LDL':
-            simuNode.addObject('SparseLDLSolver', printLog="0")
+            simuNode.addObject('SparseLDLSolver', template='CompressedRowSparseMatrixMat3x3d', printLog="0")
         elif self.options['general_parameters']['linear_solver_kind'] == 'CG':
             simuNode.addObject('CGLinearSolver', iterations="20", tolerance="1e-12", threshold="1e-12")
         else:
@@ -173,7 +175,7 @@ class LiverGeomagicControlPointGenObs_Controller(Sofa.Core.Controller):
 
         ### visualize object
         visuNode = simuNode.addChild('visu')
-        visuNode.addObject('MeshObjLoader', name='visualModelLoader', filename='../../data/baseLiver/baseLiver_surface.obj')
+        visuNode.addObject('MeshOBJLoader', name='visualModelLoader', filename='../../data/baseLiver/baseLiver_surface.obj')
         visuNode.addObject('OglModel', name='VisualModel', src='@visualModelLoader', material="texture Ambient 1 0.5 0.5 0.5 1.0 Diffuse 1 1.0 1.0 1.0 1.0")
         visuNode.addObject('BarycentricMapping', name='VisualMapping', input='@../Volume', output='@VisualModel')
 

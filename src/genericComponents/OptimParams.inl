@@ -88,7 +88,6 @@ void OptimParams<type::vector<double> >::bwdInit()
     loader_t* myLoader = m_loader.get();
     if (myLoader)
     {
-        myLoader->d_tetrahedra.getValue().size();
         size_t count = myLoader->d_tetrahedra.getValue().size() + myLoader->d_hexahedra.getValue().size();
         msg_info(this) << "Optim params <" << getName() << "> found loader <" << myLoader->getName() << "> with " << count << " elements.\n";
 
@@ -104,15 +103,15 @@ void OptimParams<type::vector<double> >::bwdInit()
         max.resize(count);
         stdev.resize(count);
 
-        m_numParams=count;
-        //
-        for (size_t i=0;i<count;i++)
+        m_numParams = count;
+
+        for (size_t i = 0; i < count; i++)
         {
-             initValues[i]=m_initVal.getValue()[0];
-             values[i]=m_val.getValue()[0];
-             min[i]=m_minVal.getValue()[0];
-             max[i]=m_maxVal.getValue()[0];
-             stdev[i]=m_stdev.getValue()[0];
+             initValues[i] = m_initVal.getValue()[0];
+             values[i] = m_val.getValue()[0];
+             min[i] = m_minVal.getValue()[0];
+             max[i] = m_maxVal.getValue()[0];
+             stdev[i] = m_stdev.getValue()[0];
         }
     }
 }

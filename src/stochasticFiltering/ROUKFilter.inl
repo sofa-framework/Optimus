@@ -36,6 +36,7 @@ namespace stochastic
 
 
 
+#ifdef BLAS_LINKED
 /// C = alpha*A*B + beta*C;
 template <class FilterType>
 void ROUKFilter<FilterType>::blasMultAdd(EMatrixX& _a, EMatrixX& _b, EMatrixX& _c, Type _alpha, Type _beta) {
@@ -48,7 +49,6 @@ void ROUKFilter<FilterType>::blasMultAdd(EMatrixX& _a, EMatrixX& _b, EMatrixX& _
     Type* _cdata = _c.data();
     dgemm_(&trans,&trans, &m, &n, &k, &_alpha, _adata, &m, _bdata, &k, &_beta, _cdata, &m);
 }
-
 
 
 template <class FilterType>
@@ -65,6 +65,7 @@ void ROUKFilter<FilterType>::blasMultAdd(char _trans1, char _trans2, EMatrixX& _
     msg_info() << "Values: " << m << "  " << n << " " << k;
     dgemm_(&_trans1,&_trans2, &m, &n, &k, &_alpha, _adata, &m1, _bdata, &k1, &_beta, _cdata, &m);
 }
+#endif // BLAS_LINKED
 
 
 
@@ -170,9 +171,12 @@ void ROUKFilter<FilterType>::computeSimplexPrediction()
     //PRNS("errorVarProj: " << tmpStateVarProj);
 
     sofa::helper::AdvancedTimer::stepBegin("prediction_multiplication");
+
+#ifdef BLAS_LINKED
     if (useBlasToMultiply.getValue())
         blasMultAdd(tmpStateVarProj, matUinv, tmpStateVarProj2, 1.0, 0.0);
     else
+#endif // BLAS_LINKED
         tmpStateVarProj2.noalias() = tmpStateVarProj * matUinv;
 
     //std::cout << "matUinv: " << matUinv << std::endl;
@@ -184,9 +188,11 @@ void ROUKFilter<FilterType>::computeSimplexPrediction()
     for (size_t i = 0; i < sigmaPointsNum; i++)
         matXi.col(i) = vecX;
 
+#ifdef BLAS_LINKED
     if (useBlasToMultiply.getValue())
         blasMultAdd(tmpStateVarProj2, matI, matXi, 1.0, 1.0);
     else
+#endif // BLAS_LINKED
         matXi = matXi + tmpStateVarProj2 * matI;
     sofa::helper::AdvancedTimer::stepEnd("prediction_multiplication");
 
@@ -202,9 +208,11 @@ void ROUKFilter<FilterType>::computeSimplexPrediction()
     //std::cout << "\n matXi+\n " << matXi.transpose() << std::endl;
 
     /// TODO: add resampling!!!
+#ifdef BLAS_LINKED
     if (useBlasToMultiply.getValue())
         blasMultAdd(matXi, matItrans, tmpStateVarProj2, alpha, 0.0);
     else
+#endif // BLAS_LINKED
         tmpStateVarProj2 = alpha*matXi * matItrans;
     //PRNS("\n errorVarProj \n " << matItrans.transpose());
 
@@ -239,9 +247,12 @@ void ROUKFilter<FilterType>::computeStarPrediction()
 
     tmpStateVarProj = masterStateWrapper->getStateErrorVarianceProjector();   
     sofa::helper::AdvancedTimer::stepBegin("prediction_multiplication");
+
+#ifdef BLAS_LINKED
     if (useBlasToMultiply.getValue())
         blasMultAdd(tmpStateVarProj, matUinv, tmpStateVarProj2, 1.0, 0.0);
     else
+#endif // BLAS_LINKED
         tmpStateVarProj2.noalias() = tmpStateVarProj * matUinv;
 
     //std::cout << "matUinv: " << matUinv << std::endl;
@@ -253,9 +264,11 @@ void ROUKFilter<FilterType>::computeStarPrediction()
     for (size_t i = 0; i < sigmaPointsNum; i++)
         matXi.col(i) = vecX;
 
+#ifdef BLAS_LINKED
     if (useBlasToMultiply.getValue())
         blasMultAdd(tmpStateVarProj2, matI, matXi, 1.0, 1.0);
     else
+#endif // BLAS_LINKED
         matXi = matXi + tmpStateVarProj2 * matI;    
     sofa::helper::AdvancedTimer::stepEnd("prediction_multiplication");
 
@@ -277,12 +290,13 @@ void ROUKFilter<FilterType>::computeStarPrediction()
 
     //std::cout << "\n vecX \n " << vecX.transpose() << std::endl;
 
+#ifdef BLAS_LINKED
     if (useBlasToMultiply.getValue()) {
         EMatrixX iden = EMatrixX::Identity(sigmaPointsNum, sigmaPointsNum);
         blasMultAdd('N', 'T', iden, matXi, M_trans, 1.0, -1.0);
-    } else {
+    } else
+#endif // BLAS_LINKED
         M_trans = Type(-1.0) * M_trans + matXi.transpose();
-    }
 
     //std::cout << "\n M_trans \n " << M_trans << std::endl;
 
@@ -293,9 +307,12 @@ void ROUKFilter<FilterType>::computeStarPrediction()
     M_trans = Type(sqrt(alpha)) * M_trans;
     EMatrixX workingMatrixRR(sigmaPointsNum, sigmaPointsNum);
     EMatrixX workingMatrixRN;
+
+#ifdef BLAS_LINKED
     if (useBlasToMultiply.getValue())
         blasMultAdd('N', 'T', M_trans, M_trans, workingMatrixRR, 1.0, 0.0);
     else
+#endif // BLAS_LINKED
         workingMatrixRR = M_trans * M_trans.transpose();
 
     //std::cout << "\n workingMatrixRR \n " << workingMatrixRR << std::endl;
@@ -320,11 +337,17 @@ void ROUKFilter<FilterType>::computeStarPrediction()
     workingMatrixRN = workingMatrixRN - matXi.transpose();
 
     //std::cout << "\n workingMatrixRN \n " << workingMatrixRN << std::endl;
-    if (useBlasToMultiply.getValue()) {
+
+#ifdef BLAS_LINKED
+    if (useBlasToMultiply.getValue())
+    {
         blasMultAdd('N', 'T', Umod, matItrans, workingMatrixRR, sqrt(alpha), 0.0);
         blasMultAdd('T', 'N', workingMatrixRN, workingMatrixRR, matXi, 1.0, 1.0);
         blasMultAdd(matXi, matItrans, tmpStateVarProj2, alpha, 0.0);
-    } else {
+    }
+    else
+#endif // BLAS_LINKED
+    {
         workingMatrixRR = Type(sqrt(alpha)) * Umod * matItrans.transpose();
         matXi = matXi + workingMatrixRN.transpose() * workingMatrixRR;
         tmpStateVarProj2 = alpha*matXi * matItrans;
@@ -777,7 +800,7 @@ void ROUKFilter<FilterType>::init()
 
     if (numThreads > 0) {
         PRNS("number of slave wrappers: " << numThreads-1);
-           /// slaves + master
+        /// slaves + master
     }
     numThreads = numSlaveWrappers + numMasterWrappers;
 
@@ -822,6 +845,11 @@ void ROUKFilter<FilterType>::bwdInit()
     PRNS("State size: " << stateSize);
     PRNS("Reduced state size: " << reducedStateSize);
     PRNS("Number of sigma points: " << sigmaPointsNum);
+
+#ifndef BLAS_LINKED
+    if (useBlasToMultiply.getValue())
+        PRNW("Blas was not set among dependences for Optimus. Eigen is used everywhere by default.");
+#endif // BLAS_LINKED
 
     // initialise observation data
     if (!initialiseObservationsAtFirstStep.getValue()) {
@@ -1038,10 +1066,6 @@ void ROUKFilter<FilterType>::computeStarSigmaPoints(EMatrixX& sigmaMat) {
 
 
 
-//  template <class FilterType>
-//  void ROUKFilter<FilterType>::init()
-//  { }
-//
 //  template <class FilterType>
 //  void ROUKFilter<FilterType>::reinit()
 //  { }

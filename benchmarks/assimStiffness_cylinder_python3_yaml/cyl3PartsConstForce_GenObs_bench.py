@@ -81,6 +81,8 @@ class cyl3PartsConstForceGenObs_Controller(Sofa.Core.Controller):
 
         ### rootNode
         rootNode.addObject('VisualStyle', displayFlags='showBehaviorModels showForceFields showCollisionModels hideVisual')
+        rootNode.addObject('DefaultAnimationLoop')
+        rootNode.addObject('DefaultVisualManagerLoop')
 
         ### general node
         simuNode = rootNode.addChild('simuNode')
@@ -92,14 +94,14 @@ class cyl3PartsConstForceGenObs_Controller(Sofa.Core.Controller):
         elif self.options['general_parameters']['solver_kind'] == 'Symplectic':
             simuNode.addObject('VariationalSymplecticSolver', rayleighStiffness=self.options['general_parameters']['rayleigh_stiffness'], rayleighMass=self.options['general_parameters']['rayleigh_mass'], newtonError='1e-12', steps='1', verbose='0')
         elif self.options['general_parameters']['solver_kind'] == 'Newton':
-            simuNode.addObject('StaticSolver', name="NewtonStatic", printLog="0", correction_tolerance_threshold="1e-8", residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations="2")
+            simuNode.addObject('StaticSolver', name="NewtonStatic", printLog="0", absolute_correction_tolerance_threshold="1e-8", absolute_residual_tolerance_threshold="1e-8", should_diverge_when_residual_is_growing="1", newton_iterations="2")
         else:
             print('Unknown solver type!')
 
         if self.options['general_parameters']['linear_solver_kind'] == 'Pardiso':
             simuNode.addObject('SparsePARDISOSolver', name='LDLsolver', verbose='0', symmetric='2', exportDataToFolder='')
         elif self.options['general_parameters']['linear_solver_kind'] == 'LDL':
-            simuNode.addObject('SparseLDLSolver', printLog="0")
+            simuNode.addObject('SparseLDLSolver', template='CompressedRowSparseMatrixMat3x3d', printLog="0")
         elif self.options['general_parameters']['linear_solver_kind'] == 'CG':
             simuNode.addObject('CGLinearSolver', iterations="50", tolerance="1e-12", threshold="1e-12")
         else:

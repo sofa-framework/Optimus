@@ -71,9 +71,9 @@ void BindedSimpleObservationManager<FilterType, DataTypes1, DataTypes2>::init()
         PRNE("[BindedSimpleObservationManager] Link to state wrapper not initialized!");
     }
 
-    if(stateWrapper->declaredMapState() == 0){
-        return;
+    if(stateWrapper->declaredMapState() == 0) {
         PRNE("No mapped state declared in the StochasticStateWrapper");
+        return;
     }
 
     this->gnode->get(masterState);
@@ -138,7 +138,7 @@ bool BindedSimpleObservationManager<FilterType, DataTypes1, DataTypes2>::getInno
         return (false);
     }
 
-    if ((stateWrapper->getFilterKind() == SIMCORR) || (stateWrapper->getFilterKind() == CLASSIC) || (stateWrapper->getFilterKind() == LOCENSEMBLE)) {
+    if ((stateWrapper->getFilterKind() == SIMCORR) || (stateWrapper->getFilterKind() == CLASSIC) || (stateWrapper->getFilterKind() == ENSEMBLTRANSF)) {
         for (size_t i = 0; i < this->observationSize; i++)
             _innovation(i) = realObservations[0](i) - _state(i);
     }
