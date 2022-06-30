@@ -22,6 +22,8 @@
 
 #define SHOWSPHERES_CPP
 
+#include "../optimusConfig.h"
+
 #include "ShowSpheres.inl"
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/RigidTypes.h>

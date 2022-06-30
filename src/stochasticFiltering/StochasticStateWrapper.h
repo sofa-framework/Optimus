@@ -73,8 +73,8 @@ template<class DataTypes>
 class InternalCopy {
 public:
     typedef typename DataTypes::VecCoord VecCoord;
-    void copyStateToFilter(type::vector<std::pair<size_t, size_t> >& pairs, const VecCoord& ) {}
-    void copyFilterToSofa(type::vector<std::pair<size_t, size_t> >& pairs, VecCoord& ) {}
+    void copyStateToFilter(type::vector<std::pair<size_t, size_t> >& , const VecCoord& ) {}
+    void copyFilterToSofa(type::vector<std::pair<size_t, size_t> >& , VecCoord& ) {}
     void stateDim() {}
 };
 

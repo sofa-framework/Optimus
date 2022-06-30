@@ -19,6 +19,8 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
+#include "../optimusConfig.h"
+
 #include "SimulatedStateObservationStreamer.inl"
 #include <sofa/core/ObjectFactory.h>
 

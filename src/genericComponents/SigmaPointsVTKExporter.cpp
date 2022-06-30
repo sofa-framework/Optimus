@@ -22,6 +22,7 @@
 /*
  * SigmaPointsVTKExporter.cpp
  */
+#include "optimusConfig.h"
 
 #include "SigmaPointsVTKExporter.h"
 

@@ -37,7 +37,7 @@ namespace stochastic
 
 
 
-class  SOFA_STOCHASTIC_API PredictionEndEvent : public sofa::core::objectmodel::Event
+class SOFA_STOCHASTIC_API PredictionEndEvent : public sofa::core::objectmodel::Event
 {
 protected:
     SReal dt;

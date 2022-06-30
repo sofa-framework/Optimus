@@ -21,6 +21,8 @@
 ******************************************************************************/
 #define SOFA_COMPONENT_MISC_OPTIMMONITOR_CPP
 
+#include "optimusConfig.h"
+
 #include "OptimMonitor.inl"
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/RigidTypes.h>

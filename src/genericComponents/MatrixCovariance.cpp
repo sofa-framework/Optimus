@@ -21,6 +21,7 @@
 ******************************************************************************/
 
 //#define SOFA_COMPONENT_CONTAINER_OPTIMPARAMS_CPP
+#include "../optimusConfig.h"
 
 #include <fstream>
 #include <sofa/core/ObjectFactory.h>

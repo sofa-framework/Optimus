@@ -86,7 +86,7 @@ public:
         doUpdate();
     }
 
-    void doUpdate();
+    void doUpdate() override;
     double getRandomGauss(const double mean, const double sigma);
     
     void handleEvent(core::objectmodel::Event *event) override;

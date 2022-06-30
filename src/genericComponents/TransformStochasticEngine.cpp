@@ -21,6 +21,8 @@
 ******************************************************************************/
 #define SOFA_COMPONENT_ENGINE_TransformStochasticEngine_CPP
 
+#include "optimusConfig.h"
+
 #include <genericComponents/TransformStochasticEngine.inl>
 #include <sofa/core/ObjectFactory.h>
 

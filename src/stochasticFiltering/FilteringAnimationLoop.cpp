@@ -22,6 +22,8 @@
 
 //#define FILTERINGANIMATIONLOOP_CPP
 
+#include "optimusConfig.h"
+
 #include "FilteringAnimationLoop.h"
 
 #include <sofa/core/ObjectFactory.h>

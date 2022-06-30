@@ -21,6 +21,8 @@
 ******************************************************************************/
 #define SOFA_COMPONENT_CONSTRAINT_PARDISOCONSTRAINTCORRECTION_CPP
 
+#include "optimusConfig.h"
+
 #include "PardisoConstraintCorrection.inl"
 #include <sofa/defaulttype/Vec3Types.h>
 #include <sofa/core/ObjectFactory.h>

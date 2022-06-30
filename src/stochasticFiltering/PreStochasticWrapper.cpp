@@ -22,6 +22,8 @@
 
 //#define PRESTOCHASTICWRAPPER_CPP
 
+#include "../optimusConfig.h"
+
 #include <sofa/simulation/PrintVisitor.h>
 #include <SofaSimulationCommon/FindByTypeVisitor.h>
 #include <sofa/simulation/ExportGnuplotVisitor.h>

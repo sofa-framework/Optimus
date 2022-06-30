@@ -22,6 +22,7 @@
 //
 // Class for performing projection of points onto triangular surface
 //
+#include "../optimusConfig.h"
 
 #include "PointProjection.inl"
 //#include <sofa/core/ObjectFactory.h>

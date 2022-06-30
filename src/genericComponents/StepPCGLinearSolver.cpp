@@ -20,6 +20,8 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 // Copyright: See COPYING file that comes with this distribution
+#include "../optimusConfig.h"
+
 #include <sofa/core/objectmodel/BaseContext.h>
 #include <sofa/core/behavior/LinearSolver.h>
 #include <sofa/core/visual/VisualParams.h>

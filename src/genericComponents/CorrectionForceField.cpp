@@ -20,6 +20,8 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 
+#include "../optimusConfig.h"
+
 #include "genericComponents/CorrectionForceField.inl"
 #include <sofa/helper/visual/DrawTool.h>
 #include <sofa/core/ObjectFactory.h>
