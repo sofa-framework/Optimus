@@ -20,6 +20,8 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 
+#include "../optimusConfig.h"
+
 #include <sofa/core/ObjectFactory.h>
 #include "ETKFilter.inl"
 //#include <sofa/helper/accessor.h>

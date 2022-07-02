@@ -22,6 +22,8 @@
 
 //#define SOFASTATEWRAPPER_CPP
 
+#include "../optimusConfig.h"
+
 #include <sofa/core/ObjectFactory.h>
 #include "StochasticStateWrapper.inl"
 //#include <sofa/helper/accessor.h>

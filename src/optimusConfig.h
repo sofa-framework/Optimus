@@ -19,57 +19,9 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
+#pragma once
 
-#include "../optimusConfig.h"
-
-#include <sofa/core/objectmodel/Event.h>
-#include "initOptimusPlugin.h"
-#include "FilterEvents.h"
-
-
-
-namespace sofa
-{
-
-namespace component
-{
-
-namespace stochastic
-{
-
-
-
-SOFA_EVENT_CPP( PredictionEndEvent )
-
-PredictionEndEvent::PredictionEndEvent(SReal dt)
-    : sofa::core::objectmodel::Event()
-    , dt(dt)
-{ }
-
-
-
-PredictionEndEvent::~PredictionEndEvent()
-{ }
-
-
-
-SOFA_EVENT_CPP( CorrectionEndEvent )
-
-CorrectionEndEvent::CorrectionEndEvent(SReal dt)
-    : sofa::core::objectmodel::Event()
-    , dt(dt)
-{ }
-
-
-
-CorrectionEndEvent::~CorrectionEndEvent()
-{ }
-
-
-
-} // namespace stochastic
-
-} // namespace component
-
-} // namespace sofa
-
+/**
+ * definition to export plugin interface
+ */
+#define SOFA_BUILD_OPTIMUSPLUGIN 

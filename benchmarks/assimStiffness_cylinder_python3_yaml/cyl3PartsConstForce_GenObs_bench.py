@@ -101,7 +101,7 @@ class cyl3PartsConstForceGenObs_Controller(Sofa.Core.Controller):
         if self.options['general_parameters']['linear_solver_kind'] == 'Pardiso':
             simuNode.addObject('SparsePARDISOSolver', name='LDLsolver', verbose='0', symmetric='2', exportDataToFolder='')
         elif self.options['general_parameters']['linear_solver_kind'] == 'LDL':
-            simuNode.addObject('SparseLDLSolver', template='CompressedRowSparseMatrixMat3x3d', printLog="0")
+            simuNode.addObject('SparseLDLSolver', template='CompressedRowSparseMatrixd', printLog="0")
         elif self.options['general_parameters']['linear_solver_kind'] == 'CG':
             simuNode.addObject('CGLinearSolver', iterations="50", tolerance="1e-12", threshold="1e-12")
         else:

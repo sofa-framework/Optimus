@@ -22,6 +22,8 @@
 
 //#define MAPPEDSTATEOBSERVATIONMANAGER_CPP
 
+#include "optimusConfig.h"
+
 #include <sofa/core/ObjectFactory.h>
 #include "SimpleObservationManager.inl"
 //#include <sofa/helper/accessor.h>

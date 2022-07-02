@@ -20,6 +20,8 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 
+#include "optimusConfig.h"
+
 #include "VTKExporterDA.h"
 #include "FilterEvents.h"
 

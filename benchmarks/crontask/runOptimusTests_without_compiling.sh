@@ -36,7 +36,7 @@ do
     cd $FOLDER
     if [ -f $FOLDER/verify.sh ]; then
         echo "Perform test: $FOLDER"
-        $FOLDER/verify.sh $BUILD_DIRECTORY/install/bin/runSofa $SOFA_PYTHON3_BUILD_DIRECTORY/lib >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
+        $FOLDER/verify.sh $BUILD_DIRECTORY/install/bin/runSofa $SOFA_PYTHON3_BUILD_DIRECTORY/lib/libSofaPython3.so >> $GENERAL_DIRECTORY/log_`/bin/date +"%Y_%m_%d"`.txt
     fi
 done
 echo "All tests have been executed"

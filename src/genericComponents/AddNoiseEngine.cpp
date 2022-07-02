@@ -22,6 +22,8 @@
 
 //#define TEMPLATE_CPP
 
+#include "../optimusConfig.h"
+
 #include <sofa/core/ObjectFactory.h>
 #include "AddNoiseEngine.inl"
 //#include <sofa/helper/accessor.h>

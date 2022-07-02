@@ -22,6 +22,8 @@
 
 //#define TEMPLATE_CPP
 
+#include "../optimusConfig.h"
+
 #include <sofa/core/ObjectFactory.h>
 #include "ComponentTemplate.inl"
 //#include <sofa/helper/accessor.h>

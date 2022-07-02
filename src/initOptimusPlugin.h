@@ -27,32 +27,32 @@
 
 #include <sofa/helper/config.h>
 //#include <pthread.h> /* pthread_t, pthread_barrier_t */
-#include <sys/errno.h>
+//#include <sys/errno.h>
 #include <sofa/helper/rmath.h>
 
-#ifdef __APPLE__
-typedef int pthread_barrierattr_t;
-typedef struct
-{
-    pthread_mutex_t mutex;
-    pthread_cond_t cond;
-    int count;
-    int tripCount;
-} pthread_barrier_t;
-#endif
+// #ifdef __APPLE__
+// typedef int pthread_barrierattr_t;
+// typedef struct
+// {
+//     pthread_mutex_t mutex;
+//     pthread_cond_t cond;
+//     int count;
+//     int tripCount;
+// } pthread_barrier_t;
+// #endif
 
 //#define SQR(ARG) ((ARG)*(ARG))
 
 #ifdef SOFA_BUILD_OPTIMUSPLUGIN
 #define SOFA_OPTIMUSPLUGIN_API SOFA_EXPORT_DYNAMIC_LIBRARY
 #else
-#define SOFA_OPTIMUSPLUGIN_API  SOFA_IMPORT_DYNAMIC_LIBRARY
+#define SOFA_OPTIMUSPLUGIN_API SOFA_IMPORT_DYNAMIC_LIBRARY
 #endif
 
 #ifdef SOFA_BUILD_OPTIMUSPLUGIN
 #define SOFA_STOCHASTIC_API SOFA_EXPORT_DYNAMIC_LIBRARY
 #else
-#define SOFA_STOCHASTIC_API  SOFA_IMPORT_DYNAMIC_LIBRARY
+#define SOFA_STOCHASTIC_API SOFA_IMPORT_DYNAMIC_LIBRARY
 #endif
 
 #define PRNW(ARG) msg_warning(this) << ARG;

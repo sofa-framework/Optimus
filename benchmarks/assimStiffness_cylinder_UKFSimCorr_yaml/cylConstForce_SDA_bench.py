@@ -165,7 +165,7 @@ class CylinderConstForceSDA_Controller(Sofa.Core.Controller):
         if self.options['general_parameters']['linear_solver_kind'] == 'Pardiso':
             node.addObject('SparsePARDISOSolver', name="precond", symmetric="1", exportDataToFolder="", iterativeSolverNumbering="0")
         elif self.options['general_parameters']['linear_solver_kind'] == 'LDL':
-            node.addObject('SparseLDLSolver', template='CompressedRowSparseMatrixMat3x3d', printLog="0")
+            node.addObject('SparseLDLSolver', template='CompressedRowSparseMatrixd', printLog="0")
         elif self.options['general_parameters']['linear_solver_kind'] == 'CG':
             node.addObject('CGLinearSolver', iterations="20", tolerance="1e-12", threshold="1e-12")
             # node.addObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")

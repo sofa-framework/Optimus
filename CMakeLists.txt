@@ -47,10 +47,15 @@ if ( ${USE_BLAS_FOR_OPTIMUS} )
     set(LINKER_DEPENDENCIES ${LINKER_DEPENDENCIES} blas)
 endif()
 
-set(COMPILATION_FLAGS "-DSOFA_BUILD_OPTIMUS -Wno-unused-local-typedef -Wno-deprecated")
+if ( WIN32 )
+    set(COMPILATION_FLAGS "-DSOFA_BUILD_OPTIMUS")
+else()
+    set(COMPILATION_FLAGS "-DSOFA_BUILD_OPTIMUS -Wno-deprecated") # obsolete flag: -Wno-unused-local-typedef
+endif()
 
 
 set(HEADER_FILES
+    src/optimusConfig.h
     src/initOptimusPlugin.h
     src/genericComponents/TimeProfiling.h
     src/genericComponents/ShowSpheres.h

@@ -22,6 +22,8 @@
 
 //#define ROUKFILTER_CPP
 
+#include "../optimusConfig.h"
+
 #include <sofa/core/ObjectFactory.h>
 #include "ROUKFilter.inl"
 //#include <sofa/helper/accessor.h>

@@ -91,7 +91,7 @@ class SyntheticGenObs_Controller(Sofa.Core.Controller):
             simuNode.addObject('CGLinearSolver', iterations="100", tolerance="1e-20", threshold="1e-20")
             # simuNode.addObject('StepPCGLinearSolver', name="StepPCG", iterations="10000", tolerance="1e-12", preconditioners="precond", verbose="1", precondOnTimeStep="1")
         elif self.linearSolver == 'LDL':
-            simuNode.addObject('SparseLDLSolver', template='CompressedRowSparseMatrixMat3x3d', printLog="0")
+            simuNode.addObject('SparseLDLSolver', template='CompressedRowSparseMatrixd', printLog="0")
         elif self.linearSolver == 'Pardiso':
             simuNode.addObject('SparsePARDISOSolver', symmetric='1', exportDataToFolder='', name='precond', iterativeSolverNumbering='1')
         else:

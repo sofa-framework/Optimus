@@ -22,6 +22,8 @@
 
 //#define MAPPEDSTATEVELOCITYOBSERVATIONMANAGER_CPP
 
+#include "optimusConfig.h"
+
 #include <sofa/core/ObjectFactory.h>
 #include "MappedStateVelocityObservationManager.inl"
 //#include <sofa/helper/accessor.h>

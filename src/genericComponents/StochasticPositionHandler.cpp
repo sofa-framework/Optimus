@@ -19,6 +19,8 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
+#include "optimusConfig.h"
+
 #include <genericComponents/StochasticPositionHandler.inl>
 #include <sofa/core/behavior/OdeSolver.h>
 #include <sofa/core/BaseMapping.h>

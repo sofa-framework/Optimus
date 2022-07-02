@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ $# == "2" ]; then
-        SOFA_EXEC="$1 -l $2/libSofaPython3.so"
+        SOFA_EXEC="$1 -l $2"
 elif [ $# == "1" ]; then
         SOFA_EXEC="$1 -l libSofaPython3.so"
 else

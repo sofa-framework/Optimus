@@ -1,10 +1,12 @@
-name: Benchmark_tests_Ubuntu
+name: Benchmark_tests_Ubuntu_old_version
 
 on:
+  workflow_dispatch:
+  pull_request:
+  push:
   schedule:
     - cron:  '00 2 * * *'
 
-  workflow_dispatch:
 
 jobs:
   build_and_test:
@@ -42,10 +44,6 @@ jobs:
           cmake -DPYBIND11_TEST=OFF .
           cmake -DPYBIND11_TEST=OFF .
           make
-
-      - name: Install pybind11
-        run: |
-          cd /tmp/pybind11
           sudo make install
 
       - name: Build SOFA
@@ -55,10 +53,6 @@ jobs:
           cd $SOFA_BUILD_DIRECTORY
           cmake -DSOFAGUI_QGLVIEWER=OFF -DSOFAGUI_QT=OFF -DSOFAGUI_QTVIEWER=OFF ..
           make -j 8
-
-      - name: Install SOFA
-        run: |
-          cd $SOFA_BUILD_DIRECTORY
           sudo make install
 
       - name: Build python3 plugin
@@ -68,10 +62,6 @@ jobs:
           cd $SOFA_PYTHON3_BUILD_DIRECTORY
           cmake -DCMAKE_PREFIX_PATH=$SOFA_BUILD_DIRECTORY/install ..
           make -j 8
-
-      - name: Install python3 plugin
-        run: |
-          cd $SOFA_PYTHON3_BUILD_DIRECTORY
           sudo make install
       
       - name: Build Optimus
@@ -80,10 +70,6 @@ jobs:
           cd $GITHUB_WORKSPACE/build_release
           cmake -DCMAKE_PREFIX_PATH=$SOFA_BUILD_DIRECTORY/install ..
           make -j 8
-        
-      - name: Install Optimus
-        run: |
-          cd $GITHUB_WORKSPACE/build_release
           sudo make install
 
       - name: Optimus tests
@@ -95,7 +81,7 @@ jobs:
               if [ -f $FOLDER/verify.sh ]; then
                   cd $FOLDER
                   echo "Perform test: $FOLDER"
-                  $FOLDER/verify.sh $SOFA_BUILD_DIRECTORY/bin/runSofa $SOFA_PYTHON3_BUILD_DIRECTORY/lib
+                  $FOLDER/verify.sh $SOFA_BUILD_DIRECTORY/bin/runSofa $SOFA_PYTHON3_BUILD_DIRECTORY/lib/libSofaPython3.so
               fi
           done
           echo "All tests have been executed"
