@@ -95,7 +95,7 @@ jobs:
               if [ -f $FOLDER/verify.sh ]; then
                   cd $FOLDER
                   echo "Perform test: $FOLDER"
-                  $FOLDER/verify.sh $SOFA_BUILD_DIRECTORY/bin/runSofa $SOFA_PYTHON3_BUILD_DIRECTORY/lib
+                  $FOLDER/verify.sh $SOFA_BUILD_DIRECTORY/bin/runSofa $SOFA_PYTHON3_BUILD_DIRECTORY/lib/libSofaPython3.so
               fi
           done
           echo "All tests have been executed"

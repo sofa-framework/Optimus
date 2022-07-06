@@ -1,0 +1,202 @@
+name: Benchmark_tests
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+  #schedule:
+  #  - cron:  '00 2 * * *'
+
+
+jobs:
+  build_and_test:
+    name: Building on ${{ matrix.os }} with SOFA ${{ matrix.sofa_branch }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-20.04, macos-10.15, windows-2019]
+        sofa_branch: [v21.12] # master
+        python-version: ['3.10']
+
+    steps:
+      - name: Setup SOFA and environment
+        id: sofa
+        uses: sofa-framework/sofa-setup-action@v4
+        with:
+          sofa_root: /opt/sofa
+          sofa_version: ${{ matrix.sofa_branch }}
+          sofa_scope: 'standard'
+
+      - name: Checkout source code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+ 
+      - name: Install requirements
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            EIGEN_VERSION=3.4.0
+            EIGEN_INSTALL_DIR="C:/eigen"
+            if ! ls -a "$EIGEN_INSTALL_DIR"/* >/dev/null 2>&1; then
+              # directory does not exist or is empty
+              mkdir -p "$EIGEN_INSTALL_DIR"
+              curl --output "${{ runner.temp }}/eigen_tmp.zip" -L \
+                "https://gitlab.com/libeigen/eigen/-/archive/${EIGEN_VERSION}/eigen-${EIGEN_VERSION}.zip"
+              unzip -qq "${{ runner.temp }}/eigen_tmp.zip" -d "${{ runner.temp }}/eigen_tmp"
+              mv "${{ runner.temp }}"/eigen_tmp/eigen-*/* $EIGEN_INSTALL_DIR
+            fi
+            mkdir $EIGEN_INSTALL_DIR/build_release \
+            && cmd //c "${{ steps.sofa.outputs.vs_vsdevcmd }} \
+            && cd /d $EIGEN_INSTALL_DIR/build_release \
+            && cmake -GNinja -DCMAKE_BUILD_TYPE=Release .. \
+            && ninja install"
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            brew install eigen
+          elif [[ "$RUNNER_OS" == "Linux" ]]; then
+            sudo apt install -qq libeigen3-dev libblas-dev libglew-dev
+          fi
+          python3 -m pip install --upgrade pip
+          python3 -m pip install numpy pyyaml
+
+      - name: Build pybind11
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            PYBIND_INSTALL_PATH="C:/pybind11" \
+            && git clone -b v2.8 --depth 1 https://github.com/pybind/pybind11.git $PYBIND_INSTALL_PATH \
+            && cmd //c "${{ steps.sofa.outputs.vs_vsdevcmd }} \
+            && cd /d $PYBIND_INSTALL_PATH \
+            && cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DPYBIND11_TEST=OFF . \
+            && ninja install"
+          else
+            PYBIND_INSTALL_PATH="/tmp/pybind11"
+            git clone -b v2.8 --depth 1 https://github.com/pybind/pybind11.git $PYBIND_INSTALL_PATH
+            cd $PYBIND_INSTALL_PATH
+            echo "Curent plugin branch is:" && git branch --show-current
+            cmake -DCMAKE_BUILD_TYPE=Release -DPYBIND11_TEST=OFF .
+            make
+            sudo make install
+          fi
+
+      - name: Build python3 plugin
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            SOFA_PYTHON3_ROOT="C:/SofaPython3" \
+            && git clone --branch ${{ steps.sofa.outputs.sofa_version }} https://github.com/sofa-framework/SofaPython3.git $SOFA_PYTHON3_ROOT \
+            && mkdir $SOFA_PYTHON3_ROOT/build_release \
+            && cmd //c "${{ steps.sofa.outputs.vs_vsdevcmd }} \
+            && cd /d $SOFA_PYTHON3_ROOT/build_release \
+            && cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DPYTHON_ROOT=$PYTHON_ROOT -DPython_ROOT=$PYTHON_ROOT -DPYTHON_EXECUTABLE=$PYTHON_ROOT/python.exe \
+            -DPython_EXECUTABLE=$PYTHON_ROOT/python.exe -DCMAKE_PREFIX_PATH="$SOFA_ROOT/build_release/install" .. \
+            && ninja install"
+          else
+            export SOFA_PYTHON3_ROOT=/tmp/SofaPython3
+            git clone --branch ${{ steps.sofa.outputs.sofa_version }} https://github.com/sofa-framework/SofaPython3.git $SOFA_PYTHON3_ROOT
+            mkdir $SOFA_PYTHON3_ROOT/build_release
+            cd $SOFA_PYTHON3_ROOT/build_release
+            echo "Curent plugin branch is:" && git branch --show-current
+            cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$SOFA_ROOT/build_release/install ..
+            make -j 8
+            make install
+          fi
+      
+      - name: Build Optimus
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            EIGEN_INSTALL_DIR="C:/eigen" \
+            && echo "GITHUB_WORKSPACE = $GITHUB_WORKSPACE" \
+            && mkdir $GITHUB_WORKSPACE/build_release \
+            && cmd //c "${{ steps.sofa.outputs.vs_vsdevcmd }} \
+            && cd /d $GITHUB_WORKSPACE/build_release \
+            && cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DUSE_BLAS_FOR_OPTIMUS=0 \
+            -DCMAKE_PREFIX_PATH="$SOFA_ROOT/build_release/install";$EIGEN_INSTALL_DIR/build_release .. \
+            && ninja install"
+          else
+            mkdir $GITHUB_WORKSPACE/build_release
+            cd $GITHUB_WORKSPACE/build_release
+            cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$SOFA_ROOT/build_release/install ..
+            make -j 8
+            make install
+          fi
+
+      - name: Create artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: Optimus_${{ steps.sofa.outputs.run_branch }}_for-SOFA-${{ steps.sofa.outputs.sofa_version }}_${{ runner.os }}
+          path: ${{ github.workspace }}/build_release/install
+
+      - name: Install artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: Optimus_${{ steps.sofa.outputs.run_branch }}_for-SOFA-${{ steps.sofa.outputs.sofa_version }}_${{ runner.os }}
+          path: ${{ github.workspace }}/build_release/install
+
+      - name: Optimus tests
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            echo "Skip tests for windows system"
+          else
+            export SOFA_PYTHON3_ROOT=/tmp/SofaPython3
+            export LD_LIBRARY_PATH=$GITHUB_WORKSPACE/build_release
+            export SOFA_PLUGIN_PATH=$GITHUB_WORKSPACE/build_release
+            FOLDER_LIST=`find $GITHUB_WORKSPACE/benchmarks -maxdepth 1`
+            for FOLDER in $FOLDER_LIST; do
+                if [ -f $FOLDER/verify.sh ]; then
+                    cd $FOLDER
+                    echo "Perform test: $FOLDER"
+                    if [[ "$RUNNER_OS" == "macOS" ]]; then
+                        $FOLDER/verify.sh $SOFA_ROOT/bin/runSofa $SOFA_PYTHON3_ROOT/build_release/lib/libSofaPython3.dylib
+                    else
+                        $FOLDER/verify.sh $SOFA_ROOT/bin/runSofa $SOFA_PYTHON3_ROOT/build_release/lib/libSofaPython3.so
+                    fi
+                fi
+            done
+            echo "All tests have been executed"
+          fi
+
+
+  deploy:
+    name: Deploy artifacts
+    if: always() && startsWith(github.ref, 'refs/heads/') # we are on a branch (not a PR)
+    needs: [build_and_test]
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Get artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: artifacts
+
+      - name: Zip artifacts
+        shell: bash
+        run: |
+          cd $GITHUB_WORKSPACE/artifacts
+          for artifact in *; do
+            zip $artifact.zip -r $artifact/*
+          done
+
+      - name: Delete old release
+        uses: dev-drprasad/delete-tag-and-release@v0.2.0
+        with:
+          delete_release: true
+          tag_name: release-${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: ${{ github.ref_name }}
+          tag_name: release-${{ github.ref_name }}
+          fail_on_unmatched_files: true
+          files: |
+            artifacts/Optimus_*_Linux.zip
+            artifacts/Optimus_*_macOS.zip
