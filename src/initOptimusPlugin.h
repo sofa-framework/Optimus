@@ -27,19 +27,19 @@
 
 #include <sofa/helper/config.h>
 //#include <pthread.h> /* pthread_t, pthread_barrier_t */
-#include <sys/errno.h>
+//#include <sys/errno.h>
 #include <sofa/helper/rmath.h>
 
-#ifdef __APPLE__
-typedef int pthread_barrierattr_t;
-typedef struct
-{
-    pthread_mutex_t mutex;
-    pthread_cond_t cond;
-    int count;
-    int tripCount;
-} pthread_barrier_t;
-#endif
+//#ifdef __APPLE__
+//typedef int pthread_barrierattr_t;
+//typedef struct
+//{
+//    pthread_mutex_t mutex;
+//    pthread_cond_t cond;
+//    int count;
+//    int tripCount;
+//} pthread_barrier_t;
+//#endif
 
 //#define SQR(ARG) ((ARG)*(ARG))
 
