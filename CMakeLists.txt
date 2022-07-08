@@ -1,9 +1,10 @@
-cmake_minimum_required(VERSION 3.1)
-project(Optimus)
+cmake_minimum_required(VERSION 3.8)
 
 set(OPTIMUS_MAJOR_VERSION 1)
 set(OPTIMUS_MINOR_VERSION 1)
 set(OPTIMUS_VERSION ${OPTIMUS_MAJOR_VERSION}.${OPTIMUS_MINOR_VERSION})
+
+project(Optimus VERSION ${OPTIMUS_VERSION})
 
 # required standard
 set(CMAKE_CXX_STANDARD 17)
@@ -171,9 +172,9 @@ else()
     message("SofaPardisoSolver not found, PardisoSolver component will not work")
 endif()
 
-target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>")
 target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>")
-target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>")
+target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>")
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION "${OPTIMUS_VERSION}")
 set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "${COMPILATION_FLAGS}")
 set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${HEADER_FILES}")
@@ -183,9 +184,26 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src")
 get_target_property(compile_defs ${PROJECT_NAME} COMPILE_FLAGS)
 message(STATUS "Compile definitions: ${compile_defs}")
 
-install(TARGETS Optimus
-        EXPORT  OptimusTargets
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        PUBLIC_HEADER DESTINATION include/Optimus)
+
+# install rules
+if( CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT )
+    set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install CACHE PATH "Install path prefix, prepended onto install directories." FORCE)
+endif()
+message(STATUS "Install prefix: ${CMAKE_INSTALL_PREFIX}")
+
+sofa_create_package_with_targets(
+    PACKAGE_NAME ${PROJECT_NAME}
+    PACKAGE_VERSION ${PROJECT_VERSION}
+    TARGETS ${PROJECT_NAME} AUTO_SET_TARGET_PROPERTIES
+    INCLUDE_SOURCE_DIR "src"
+    INCLUDE_INSTALL_DIR ${PROJECT_NAME}
+    EXAMPLE_INSTALL_DIR "examples"
+    RELOCATABLE "plugins"
+    )
+
+#install(TARGETS Optimus
+#        EXPORT  OptimusTargets
+#        RUNTIME DESTINATION bin
+#        LIBRARY DESTINATION lib
+#        ARCHIVE DESTINATION lib
+#        PUBLIC_HEADER DESTINATION include/Optimus)
